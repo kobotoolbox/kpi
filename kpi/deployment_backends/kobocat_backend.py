@@ -505,14 +505,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise SubmissionNotFoundException
 
         submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
-        element = submission_tree.find(xpath)
 
         try:
+            element = submission_tree.find(xpath)
             attachment_filename = element.text
-        except AttributeError:
+        except (AttributeError, KeyError):
             raise InvalidXPathException
 
-        # No need to validate is `submission_json` equals `None`. It has
+        # No need to validate if `submission_json` equals `None`. It has
         # already be done with `submission_xml`.
         submission_json = self.get_submission(
             submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON

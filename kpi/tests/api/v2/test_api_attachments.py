@@ -23,9 +23,14 @@ class AttachmentApiTests(BaseAssetTestCase):
 
     def setUp(self) -> None:
         self.client.login(username='someuser', password='someuser')
-        self.someuser = User.objects.get(username="someuser")
-        content_source_asset = Asset.objects.get(id=1)
-        self.asset = Asset.objects.create(content=content_source_asset.content,
+        self.someuser = User.objects.get(username='someuser')
+        content_source_asset = {
+            'survey': [
+                {'type': 'audio', 'label': 'q1', 'required': 'false', '$kuid': 'abcd'},
+                {'type': 'file', 'label': 'q2', 'required': 'false', '$kuid': 'efgh'},
+            ]
+        }
+        self.asset = Asset.objects.create(content=content_source_asset,
                                           owner=self.someuser,
                                           asset_type='survey')
 
@@ -158,4 +163,28 @@ class AttachmentApiTests(BaseAssetTestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response['Content-Type'] == 'application/json'
+        assert response.data['detail'].code == 'xpath_not_found'
+
+    def test_invalid_xpath_syntax(self):
+        self.__add_submissions()
+        query_dict = QueryDict('', mutable=True)
+        query_dict.update(
+            {
+                'xpath': 'q0@!',
+                'format': 'mp3',
+            }
+        )
+        url = '{baseurl}?{querystring}'.format(
+            baseurl=reverse(
+                self._get_endpoint('attachment-list'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'parent_lookup_data': 1,
+                },
+            ),
+            querystring=query_dict.urlencode()
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data['detail'].code == 'xpath_not_found'

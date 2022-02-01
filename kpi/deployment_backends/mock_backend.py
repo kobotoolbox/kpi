@@ -223,8 +223,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         submission_tree = ET.ElementTree(
             ET.fromstring(submission_xml)
         )
-        element = submission_tree.find(xpath)
         try:
+            element = submission_tree.find(xpath)
             attachment_filename = element.text
         except AttributeError:
             raise InvalidXPathException
