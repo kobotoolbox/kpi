@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // DEPRECATED: please don't use this component. From now on, we will only use
 // the `Button` component (from `js/components/common/button`) as it covers
 // all possible cases.
@@ -10,7 +12,7 @@
   display: inline-block;
   vertical-align: middle;
   position: relative; // needed for tooltips etc.
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   font-weight: 400;
   text-decoration: none;
   border: 0;

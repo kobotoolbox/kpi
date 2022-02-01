@@ -6,17 +6,23 @@ import {stores} from 'js/stores'
 import mfaActions, {
   mfaActiveResponse,
   mfaActivatedResponse,
-  mfaBackupCodesResponse,
 } from 'js/actions/mfaActions'
 import {MODAL_TYPES} from 'jsapp/js/constants'
+
+import './securityRoute.scss'
 
 bem.Security = makeBem(null, 'security')
 
 bem.SecurityRow = makeBem(null, 'security-row')
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header')
-bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title')
+bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title', 'h2')
 bem.SecurityRow__buttons = makeBem(bem.SecurityRow, 'buttons')
 bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description')
+
+bem.MFAOptions = makeBem(null, 'mfa-options')
+bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row')
+bem.MFAOptions__label = makeBem(bem.MFAOptions, 'label')
+bem.MFAOptions__buttons = makeBem(bem.MFAOptions, 'row')
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
@@ -116,51 +122,71 @@ export default class Security extends React.Component<
     console.dir(this.state)
     return (
       <bem.SecurityRow>
-        <label>
-          Security
-        </label>
+        <bem.SecurityRow__header>
+          <bem.SecurityRow__title>
+            {t('Two-factor authentication')}
+          </bem.SecurityRow__title>
 
-        <ToggleSwitch
-          checked={this.state.mfaActive}
-          onChange={this.onToggleChange.bind(this)}
-        />
+          <bem.SecurityRow__buttons>
+            <ToggleSwitch
+              label={this.state.mfaActive ? 'Enabled' : 'Disabled'}
+              checked={this.state.mfaActive}
+              onChange={this.onToggleChange.bind(this)}
+            />
+          </bem.SecurityRow__buttons>
+        </bem.SecurityRow__header>
+
+        <bem.SecurityRow__description>
+          {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additonal layer of protection.')}
+        </bem.SecurityRow__description>
 
         {this.state.mfaActive &&
-          <div>
-            <label>
-              Authenticator app
-            </label>
-            <Button
-              type='frame'
-              color='storm'
-              label='Reconfigure'
-              size='l'
-              onClick={() => {
-                stores.pageState.showModal({
-                  type: MODAL_TYPES.MFA_MODALS,
-                  modalType: 'reconfigure',
-                  customModalHeader: this.renderCustomHeader(),
-                })
-              }}
-            />
+          <bem.MFAOptions>
+            <bem.MFAOptions__row>
+              <bem.MFAOptions__label>
+                {t('Authenticator app')}
+              </bem.MFAOptions__label>
 
-            <label>
-              Regenerate backups
-            </label>
-            <Button
-              type='frame'
-              color='storm'
-              label='Generate new'
-              size='l'
-              onClick={() => {
-                stores.pageState.showModal({
-                  type: MODAL_TYPES.MFA_MODALS,
-                  modalType: 'regenerate',
-                  customModalHeader: this.renderCustomHeader(),
-                })
-              }}
-            />
-          </div>
+              <bem.MFAOptions__buttons>
+                {/*Put date last configured here*/}
+                <Button
+                  type='frame'
+                  color='storm'
+                  label='Reconfigure'
+                  size='l'
+                  onClick={() => {
+                    stores.pageState.showModal({
+                      type: MODAL_TYPES.MFA_MODALS,
+                      modalType: 'reconfigure',
+                      customModalHeader: this.renderCustomHeader(),
+                    })
+                  }}
+                />
+              </bem.MFAOptions__buttons>
+            </bem.MFAOptions__row>
+
+            <bem.MFAOptions__row>
+              <bem.MFAOptions__label>
+                {t('Recovery codes')}
+              </bem.MFAOptions__label>
+
+              <bem.MFAOptions__buttons>
+                <Button
+                  type='frame'
+                  color='storm'
+                  label='Generate new'
+                  size='l'
+                  onClick={() => {
+                    stores.pageState.showModal({
+                      type: MODAL_TYPES.MFA_MODALS,
+                      modalType: 'regenerate',
+                      customModalHeader: this.renderCustomHeader(),
+                    })
+                  }}
+                />
+              </bem.MFAOptions__buttons>
+            </bem.MFAOptions__row>
+          </bem.MFAOptions>
         }
       </bem.SecurityRow>
     )

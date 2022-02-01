@@ -309,7 +309,10 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        cls.objects.create(user_id=user.pk)
+        today = datetime.today()
+        first = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        cls.objects.get_or_create(user_id=user.pk, timestamp=first)
 
 
 class KobocatUser(ShadowModel):

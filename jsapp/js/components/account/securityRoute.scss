@@ -1,0 +1,45 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
+.security-row {
+  margin: sizes.$x32;
+
+  .security-row__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: sizes.$x14;
+    border-bottom: 1px solid;
+    border-color: colors.$kobo-gray-85;
+  }
+
+  .security-row__title {
+    color: colors.$kobo-gray-40;
+    font-weight: 600;
+  }
+
+  .security-row__buttons {
+    margin: sizes.$x20 sizes.$x20 sizes.$x14 0;
+
+    .toggle-switch__label {
+      font-weight: 400;
+      color: colors.$kobo-gray-40;
+    }
+  }
+}
+
+.mfa-options {
+  .mfa-options__row {
+    margin: sizes.$x14 0;
+    padding: 0 sizes.$x14 0 sizes.$x28;
+    display: flex;
+    justify-content: space-between;
+    background-color: colors.$kobo-gray-92;
+
+    .mfa-options__label {
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      font-size: sizes.$x16;
+    }
+  }
+}
