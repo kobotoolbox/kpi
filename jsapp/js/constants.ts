@@ -359,6 +359,8 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_index',
 ]);
 
+export const SUPPLEMENTAL_DETAILS_PROP = '_supplementalDetails'
+
 export const NAME_MAX_LENGTH = 255;
 
 /**

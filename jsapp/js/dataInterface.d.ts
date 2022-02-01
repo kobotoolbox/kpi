@@ -26,6 +26,39 @@ interface SubmissionAttachment {
   id: number
 }
 
+interface SubmissionSupplementalDetails {
+  [questionName: string]: {
+    transcript?: {
+      languageCode: string
+      value: string
+      dateCreated: string
+      dateModified: string
+      engine?: string
+      revisions?: {
+        dateModified: string
+        engine?: string
+        languageCode: string
+        value: string
+      }[]
+    }
+    translated?: {
+      [languageCode: string]: {
+        languageCode: string
+        value: string
+        dateCreated: string
+        dateModified: string
+        engine?: string
+        revisions?: {
+          dateModified: string
+          engine?: string
+          languageCode: string
+          value: string
+        }[]
+      }
+    }
+  }
+}
+
 interface SubmissionResponse {
   [questionName: string]: any
   __version__: string
@@ -51,38 +84,7 @@ interface SubmissionResponse {
   subscriberid?: string
   today?: string
   username?: string
-  _supplementalDetails?: {
-    [key: string]: {
-      transcript?: {
-        languageCode: string
-        value: string
-        dateCreated: string
-        dateModified: string
-        engine?: string
-        revisions?: {
-          dateModified: string
-          engine?: string
-          languageCode: string
-          value: string
-        }[]
-      }
-      translated?: {
-        [languageCode: string]: {
-          languageCode: string
-          value: string
-          dateCreated: string
-          dateModified: string
-          engine?: string
-          revisions?: {
-            dateModified: string
-            engine?: string
-            languageCode: string
-            value: string
-          }[]
-        }
-      }
-    }
-  }
+  _supplementalDetails?: SubmissionSupplementalDetails
 }
 
 interface AssignablePermission {
@@ -214,10 +216,12 @@ interface AdvancedSubmissionSchema {
 
 interface AssetAdvancedFeatures {
   transcript?: {
+    /** List of question names */
     values?: string[]
   }
   translated?: {
     languages?: string[]
+    /** List of question names */
     values?: string[]
   }
 }
