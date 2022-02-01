@@ -11,7 +11,10 @@ import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import ApiTokenDisplay from 'js/components/apiTokenDisplay';
-import {addRequiredToLabel, stringToColor} from 'utils';
+import {
+  addRequiredToLabel,
+  stringToColor,
+} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
@@ -187,7 +190,7 @@ export default class AccountSettings extends React.Component {
       'instagram',
       'twitter',
       'linkedin',
-      'instagram'
+      'instagram',
     ]) {
       metaFields[metaFieldName] = envStore.data.getUserMetadataField(metaFieldName);
     }
