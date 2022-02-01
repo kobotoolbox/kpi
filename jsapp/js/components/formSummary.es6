@@ -10,6 +10,7 @@ import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import DocumentTitle from 'react-document-title';
+import Icon from 'js/components/common/icon';
 import moment from 'moment';
 import Chart from 'chart.js';
 import {getFormDataTabs} from './formViewTabs';
@@ -24,7 +25,6 @@ import {
   MODAL_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
-import {getCountryDisplayString} from 'js/assetUtils';
 import './formSummary.scss';
 
 class FormSummary extends React.Component {
@@ -217,17 +217,18 @@ class FormSummary extends React.Component {
           to={`/forms/${this.state.uid}/landing`}
           key='landing'
           data-path={`/forms/${this.state.uid}/landing`}
-          onClick={this.triggerRefresh}>
+          onClick={this.triggerRefresh}
+        >
             <i className='k-icon k-icon-projects' />
             {t('Collect data')}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
         </Link>
 
         {this.userCan('change_asset', this.state) &&
           <button onClick={this.sharingModal}>
             <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
           </button>
         }
 
@@ -240,14 +241,14 @@ class FormSummary extends React.Component {
           >
             <i className='k-icon k-icon-edit' />
             {t('Edit form')}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
           </Link>
         }
 
         <button onClick={this.enketoPreviewModal}>
           <i className='k-icon k-icon-view' />
           {t('Preview form')}
-          <i className='k-icon k-icon-angle-right' />
+          <Icon name='angle-right' size='s'/>
         </button>
       </bem.FormView__cell>
     );
@@ -268,7 +269,7 @@ class FormSummary extends React.Component {
           >
             <i className={`k-icon ${item.icon}`} />
             {item.label}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
           </Link>
         )}
       </bem.FormView__cell>

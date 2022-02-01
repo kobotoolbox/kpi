@@ -4,14 +4,14 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import Select from 'react-select';
 import Dropzone from 'react-dropzone';
+import clonedeep from 'lodash.clonedeep';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import assetUtils from 'js/assetUtils';
-import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
@@ -19,9 +19,10 @@ import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  validFileTypes,
-  isAValidUrl,
+  addRequiredToLabel,
   escapeHtml,
+  isAValidUrl,
+  validFileTypes,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
@@ -34,18 +35,23 @@ import envStore from 'js/envStore';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
-/*
-This is used for multiple different purposes:
-
-1. When creating new project
-2. When replacing project with new one
-3. When editing project in /settings
-4. When editing or creating asset in Form Builder
-
-Identifying the purpose is done by checking `context` and `formAsset`.
-
-You can listen to field changes by `onProjectDetailsChange` prop function.
-*/
+/**
+ * This is used for multiple different purposes:
+ *
+ * 1. When creating new project
+ * 2. When replacing project with new one
+ * 3. When editing project in /settings
+ * 4. When editing or creating asset in Form Builder
+ *
+ * Identifying the purpose is done by checking `context` and `formAsset`.
+ *
+ * You can listen to field changes by `onProjectDetailsChange` prop function.
+ *
+ * NOTE: We have multiple components with similar form:
+ * - ProjectSettings
+ * - AccountSettingsRoute
+ * - LibraryAssetForm
+ */
 class ProjectSettings extends React.Component {
   constructor(props) {
     super(props);
@@ -60,22 +66,13 @@ class ProjectSettings extends React.Component {
 
     this.unlisteners = [];
 
-    this.validationAlerts = [];
-
-    const formAsset = this.props.formAsset;
-
     this.state = {
       isSessionLoaded: !!stores.session.isLoggedIn,
       isSubmitPending: false,
-      formAsset: formAsset,
+      formAsset: this.props.formAsset,
       // project details
-      name: formAsset ? formAsset.name : '',
-      description: formAsset ? formAsset.settings.description : '',
-      sector: formAsset ? formAsset.settings.sector : null,
-      country: formAsset ? formAsset.settings.country : null,
-      'share-metadata': formAsset ? formAsset.settings['share-metadata'] : false,
-      operational_purpose: formAsset ? formAsset.settings.operational_purpose : null,
-      collects_pii: formAsset ? formAsset.settings.collects_pii : null,
+      fields: this.getInitialFieldsFromAsset(this.props.formAsset),
+      fieldsWithErrors: [],
       // steps
       currentStep: null,
       previousStep: null,
@@ -123,6 +120,20 @@ class ProjectSettings extends React.Component {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  getInitialFieldsFromAsset(asset) {
+    const fields = {};
+
+    fields.name = asset ? asset.name : '';
+    fields.description = asset?.settings ? asset.settings.description : '';
+    fields.sector = asset?.settings ? asset.settings.sector : null;
+    fields.country = asset?.settings ? asset.settings.country : null;
+    fields['share-metadata'] = asset?.settings ? asset.settings['share-metadata'] : false;
+    fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null;
+    fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null;
+
+    return fields;
   }
 
   setInitialStep() {
@@ -191,45 +202,33 @@ class ProjectSettings extends React.Component {
    * handling user input
    */
 
-  onAnyDataChange(fieldName, fieldValue) {
+  onAnyFieldChange(fieldName, newFieldValue) {
+    let newStateObj = clonedeep(this.state);
+
+    // Set Value
+    newStateObj.fields[fieldName] = newFieldValue;
+
+    // If given field has error and user starts to edit it, we can remove
+    // the error and wait for `handleSubmit` to add new ones if necessary.
+    if (this.hasFieldError(fieldName)) {
+      newStateObj.fieldsWithErrors = newStateObj.fieldsWithErrors.filter(
+        (fieldWithErrorName) => (fieldWithErrorName !== fieldName)
+      );
+    }
+
+    this.setState(newStateObj);
+
     if (typeof this.props.onProjectDetailsChange === 'function') {
-      this.props.onProjectDetailsChange({fieldName, fieldValue});
+      this.props.onProjectDetailsChange({fieldName, newFieldValue});
     }
   }
 
-  onNameChange(evt) {
-    this.setState({name: assetUtils.removeInvalidChars(evt.target.value)});
-    this.onAnyDataChange('name', assetUtils.removeInvalidChars(evt.target.value));
+  onNameChange(newValue) {
+    this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue).slice(0, NAME_MAX_LENGTH));
   }
 
-  onDescriptionChange(evt) {
-    this.setState({description: assetUtils.removeInvalidChars(evt.target.value)});
-    this.onAnyDataChange('description', assetUtils.removeInvalidChars(evt.target.value));
-  }
-
-  onCountryChange(val) {
-    this.setState({country: val});
-    this.onAnyDataChange('country', val);
-  }
-
-  onSectorChange(val) {
-    this.setState({sector: val});
-    this.onAnyDataChange('sector', val);
-  }
-
-  onOperationalPurposeChange(val) {
-    this.setState({operational_purpose: val});
-    this.onAnyDataChange('operational_purpose', val);
-  }
-
-  onCollectsPiiChange(val) {
-    this.setState({collects_pii: val});
-    this.onAnyDataChange('collects_pii', val);
-  }
-
-  onShareMetadataChange(isChecked) {
-    this.setState({'share-metadata': isChecked});
-    this.onAnyDataChange('share-metadata', isChecked);
+  onDescriptionChange(newValue) {
+    this.onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue));
   }
 
   onImportUrlChange(value) {
@@ -272,6 +271,10 @@ class ProjectSettings extends React.Component {
   }
 
   // archive flow
+
+  isArchivable() {
+    return this.state.formAsset.has_deployment && this.state.formAsset.deployment__active;
+  }
 
   isArchived() {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
@@ -466,15 +469,21 @@ class ProjectSettings extends React.Component {
     return assetPromise;
   }
 
+  getSettingsForEndpoint() {
+    return JSON.stringify({
+      description: this.state.fields.description,
+      sector: this.state.fields.sector,
+      country: this.state.fields.country,
+      'share-metadata': this.state.fields['share-metadata'],
+      operational_purpose: this.state.fields.operational_purpose,
+      collects_pii: this.state.fields.collects_pii,
+    });
+  }
+
   createAssetAndOpenInBuilder() {
     dataInterface.createResource({
-      name: this.state.name,
-      settings: JSON.stringify({
-        description: this.state.description,
-        sector: this.state.sector,
-        country: this.state.country,
-        'share-metadata': this.state['share-metadata'],
-      }),
+      name: this.state.fields.name,
+      settings: this.getSettingsForEndpoint(),
       asset_type: 'survey',
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
@@ -487,15 +496,8 @@ class ProjectSettings extends React.Component {
     actions.resources.updateAsset(
       this.state.formAsset.uid,
       {
-        name: this.state.name,
-        settings: JSON.stringify({
-          description: this.state.description,
-          sector: this.state.sector,
-          country: this.state.country,
-          'share-metadata': this.state['share-metadata'],
-          operational_purpose: this.state.operational_purpose,
-          collects_pii: this.state.collects_pii,
-        }),
+        name: this.state.fields.name,
+        settings: this.getSettingsForEndpoint(),
       }
     );
   }
@@ -643,48 +645,51 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  /**
-   * This is needed because validation alerts are `alertify` instances, so we
-   * need to dismiss them all and clear the array.
-   */
-  clearErrors() {
-    // remove stale validation errors
-    while (this.validationAlerts.length) {
-      const oldAlert = this.validationAlerts.pop();
-      oldAlert.dismiss();
-    }
-  }
-
-  displayError(message) {
-    this.validationAlerts.push(alertify.error(message));
+  hasFieldError(fieldName) {
+    return this.state.fieldsWithErrors.includes(fieldName);
   }
 
   handleSubmit(evt) {
     evt.preventDefault();
 
-    this.clearErrors();
+    const fieldsWithErrors = [];
 
     // simple non-empty name validation
-    if (!this.state.name.trim()) {
-      this.displayError(t('Please enter a title for your project!'));
-      return;
+    if (!this.state.fields.name.trim()) {
+      fieldsWithErrors.push('name');
     }
 
     // superuser-configured metadata
-    if (envStore.data.getProjectMetadataField('sector').required && !this.state.sector) {
-      this.displayError(t('Please choose a sector for your project'));
-      return;
+    if (
+      envStore.data.getProjectMetadataField('sector').required &&
+      !this.state.fields.sector
+    ) {
+      fieldsWithErrors.push('sector');
     }
-    if (envStore.data.getProjectMetadataField('country').required && !this.state.country?.length) {
-      this.displayError(t('Please specify at least one country for your project'));
-      return;
+    if (
+      envStore.data.getProjectMetadataField('country').required &&
+      !this.state.fields.country?.length
+    ) {
+      fieldsWithErrors.push('country');
     }
-    if (envStore.data.getProjectMetadataField('operational_purpose').required && !this.state.operational_purpose) {
-      this.displayError(t('Please specify the operational purpose of your project'));
-      return;
+    if (
+      envStore.data.getProjectMetadataField('operational_purpose').required &&
+      !this.state.fields.operational_purpose
+    ) {
+      fieldsWithErrors.push('operational_purpose');
     }
-    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.collects_pii) {
-      this.displayError(t('Please indicate whether or not your project collects personally identifiable information'));
+    if (
+      envStore.data.getProjectMetadataField('collects_pii').required &&
+      !this.state.fields.collects_pii
+    ) {
+      fieldsWithErrors.push('collects_pii');
+    }
+
+    // Will set either an empty array (no errors) or a list of fieldNames.
+    this.setState({fieldsWithErrors: fieldsWithErrors});
+
+    if (fieldsWithErrors.length >= 1) {
+      alertify.error(t('Some fields contain errors!'));
       return;
     }
 
@@ -827,6 +832,7 @@ class ProjectSettings extends React.Component {
 
         <bem.FormModal__item>
           <TextBox
+            customModifiers='on-white'
             type='url'
             label={t('URL')}
             placeholder='https://'
@@ -888,121 +894,91 @@ class ProjectSettings extends React.Component {
           {/* form builder displays name in different place */}
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
             <bem.FormModal__item>
-              <label htmlFor='name'>
-                {this.getNameInputLabel(this.state.name)}
-              </label>
-              <input
-                type='text'
-                maxLength={NAME_MAX_LENGTH}
-                id='name'
+              <TextBox
+                customModifiers='on-white'
+                value={this.state.fields.name}
+                onChange={this.onNameChange.bind(this)}
+                errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
+                label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
-                value={this.state.name}
-                onChange={this.onNameChange}
               />
             </bem.FormModal__item>
           }
 
           <bem.FormModal__item>
-            <label htmlFor='description'>
-              {t('Description')}
-            </label>
-            <TextareaAutosize
-              onChange={this.onDescriptionChange}
-              value={this.state.description}
+            <TextBox
+              customModifiers='on-white'
+              type='text-multiline'
+              value={this.state.fields.description}
+              onChange={this.onDescriptionChange.bind(this)}
+              label={t('Description')}
               placeholder={t('Enter short description here')}
             />
           </bem.FormModal__item>
 
-          {bothCountryAndSector &&
-            <bem.FormModal__item>
-              <label className='long'>
-                {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed.')}
-                {countryField && !sectorField && t('Please specify the country where this project will be deployed.')}
-                {sectorField && !countryField && t('Please specify the sector where this project will be deployed.')}
-              </label>
-            </bem.FormModal__item>
-          }
-
           {sectorField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
-              <label htmlFor='sector'>
-                {t('Sector')}
-              </label>
-              <Select
-                id='sector'
-                value={this.state.sector}
-                onChange={this.onSectorChange}
+              <WrappedSelect
+                label={addRequiredToLabel(t('Sector'), sectorField.required)}
+                value={this.state.fields.sector}
+                onChange={this.onAnyFieldChange.bind(this, 'sector')}
                 options={sectors}
-                className='kobo-select kobo-select--limited-height'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
+                isLimitedHeight
                 isClearable
+                error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
               />
             </bem.FormModal__item>
           }
 
           {countryField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
-              <label htmlFor='country'>
-                {t('Country')}
-              </label>
-              <Select
+              <WrappedSelect
+                label={addRequiredToLabel(t('Country'), countryField.required)}
                 isMulti
-                id='country'
-                value={this.state.country}
-                onChange={this.onCountryChange}
+                value={this.state.fields.country}
+                onChange={this.onAnyFieldChange.bind(this, 'country')}
                 options={countries}
-                className='kobo-select kobo-select--limited-height'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
+                isLimitedHeight
                 isClearable
+                error={this.hasFieldError('country') ? t('Please select at least one contry') : false}
               />
             </bem.FormModal__item>
           }
 
           {operationalPurposeField &&
             <bem.FormModal__item>
-              <label htmlFor='operational-purpose'>
-                {t('Operational Purpose of Data')}
-              </label>
-              <Select
-                id='operational-purpose'
-                value={this.state.operational_purpose}
-                onChange={this.onOperationalPurposeChange}
+              <WrappedSelect
+                label={addRequiredToLabel(t('Operational Purpose of Data'), operationalPurposeField.required)}
+                value={this.state.fields.operational_purpose}
+                onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
                 options={operationalPurposes}
-                className='kobo-select kobo-select--limited-height'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
+                isLimitedHeight
                 isClearable
+                error={this.hasFieldError('operational_purpose') ? t('Please specify the operational purpose of your project') : false}
               />
             </bem.FormModal__item>
           }
 
           {collectsPiiField &&
             <bem.FormModal__item>
-              <label htmlFor='collects-pii'>
-                {t('Does this project collect personally identifiable information?')}
-              </label>
-              <Select
-                id='collects-pii'
-                value={this.state.collects_pii}
-                onChange={this.onCollectsPiiChange}
+              <WrappedSelect
+                label={addRequiredToLabel(t('Does this project collect personally identifiable information?'), collectsPiiField.required)}
+                value={this.state.fields.collects_pii}
+                onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
                 options={[
                   {value: 'Yes', label: t('Yes')},
                   {value: 'No', label: t('No')},
                 ]}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
                 isClearable
+                error={this.hasFieldError('collects_pii') ? t('Please indicate whether or not your project collects personally identifiable information') : false}
               />
             </bem.FormModal__item>
           }
 
           <bem.FormModal__item m='metadata-share'>
             <Checkbox
-              checked={this.state['share-metadata']}
-              onChange={this.onShareMetadataChange}
+              checked={this.state.fields['share-metadata']}
+              onChange={this.onAnyFieldChange.bind(this, 'share-metadata')}
               label={t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             />
           </bem.FormModal__item>
@@ -1039,7 +1015,7 @@ class ProjectSettings extends React.Component {
                   </bem.KoboButton>
                 }
 
-                {!this.isArchived() &&
+                {this.isArchivable() &&
                   <bem.KoboButton
                     m='red'
                     onClick={this.archiveProject}
@@ -1049,9 +1025,17 @@ class ProjectSettings extends React.Component {
                 }
               </bem.FormModal__item>
 
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
-              </bem.FormModal__item>
+              {this.isArchivable() &&
+                <bem.FormModal__item m='inline'>
+                  {t('Archive project to stop accepting submissions.')}
+                </bem.FormModal__item>
+              }
+              {this.isArchived() &&
+                <bem.FormModal__item m='inline'>
+                  {t('Unarchive project to resume accepting submissions.')}
+                </bem.FormModal__item>
+              }
+
             </bem.FormModal__item>
           }
 
