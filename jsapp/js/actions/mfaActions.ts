@@ -75,11 +75,12 @@ mfaActions.confirm.listen((mfaCode: string) => {
   }).done((response) => {
     mfaActions.confirm.completed(response)
   }).fail((response: mfaErrorResponse | any) => {
-    let errorText = t('An error occured')
+    let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
     }
     notify(errorText, 'error')
+    mfaActions.confirm.failed(response)
   })
 })
 
@@ -92,11 +93,12 @@ mfaActions.deactivate.listen((mfaCode: string) => {
   }).done((response) => {
     mfaActions.deactivate.completed(response)
   }).fail((response: mfaErrorResponse | any) => {
-    let errorText = t('An error occured')
+    let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
     }
     notify(errorText, 'error')
+    mfaActions.deactivate.failed(response)
   })
 })
 
@@ -109,11 +111,12 @@ mfaActions.regenerate.listen((mfaCode: string) => {
   }).done((response) => {
     mfaActions.regenerate.completed(response)
   }).fail((response: mfaErrorResponse | any) => {
-    let errorText = t('An error occured')
+    let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
     }
     notify(errorText, 'error')
+    mfaActions.regenerate.failed(response)
   })
 })
 

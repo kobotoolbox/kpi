@@ -1,36 +1,38 @@
-@import "../colors";
+@use "js/components/common/button";
+@use "scss/sizes";
+@use "scss/_colors";
+@use "scss/_variables";
 
+// Styles for WrappedSelect.
 .kobo-select__wrapper {
   &.kobo-select__wrapper--error {
-    .kobo-select__errors,
-    > label,
-    .kobo-select-label,
-    .kobo-select-error,
-    .kobo-select .kobo-select__placeholder {
-      color: $kobo-red;
+    .kobo-select__error,
+    .kobo-select__label, {
+      color: colors.$kobo-red;
     }
 
     .kobo-select .kobo-select__control {
-      border-bottom-color: $kobo-red;
+      border-color: colors.$kobo-red;
     }
   }
 }
 
-.kobo-select-label {
-  display: block;
-  color: inherit;
-  font-size: 12px;
-  line-height: 16px;
+.kobo-select__error {
+  font-size: sizes.$x13;
   font-weight: 400;
-  opacity: 0.38;
-
-  & + .kobo-select {
-    margin-top: 10px;
-  }
+  font-style: normal;
 }
 
-.kobo-select-error {
-  font-size: 12px;
+.kobo-select__label {
+  display: block;
+  color: inherit;
+  font-size: sizes.$x13;
+  line-height: sizes.$x16;
+  font-weight: 400;
+
+  & + .kobo-select {
+    margin-top: 5px;
+  }
 }
 
 .kobo-select--limited-height {
@@ -43,6 +45,8 @@
 }
 
 .kobo-select {
+  font-size: variables.$base-font-size;
+
   &.kobo-select--is-disabled {
     pointer-events: none;
     opacity: 0.5;
@@ -50,22 +54,25 @@
 
   .kobo-select__control {
     box-shadow: none;
-    border: none;
-    border-radius: 3px;
-    color: $kobo-gray-40;
-    background-color: $kobo-white;
-    min-height: 24px;
-    font-size: 12px;
+    border: 1px solid colors.$kobo-gray-92;
+    border-radius: 6px;
+    color: colors.$kobo-gray-40;
+    background-color: colors.$kobo-white;
+    min-height: button.$button-height-m;
+    height: auto;
+    font-size: inherit;
     padding: 0 8px;
     box-sizing: border-box;
     cursor: pointer;
+    // it's a flexbox wrapper
+    align-content: center;
 
     &:hover {
-      border-color: $kobo-gray-92;
+      border-color: colors.$kobo-gray-92;
     }
 
     &.kobo-select__control--is-focused {
-      border-color: $kobo-blue;
+      border-color: colors.$kobo-blue;
     }
   }
 
@@ -77,11 +84,43 @@
   }
 
   .kobo-select__placeholder {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-65;
   }
 
   .kobo-select__indicator-separator {
     display: none;
+  }
+
+  .kobo-select__value-container {
+    padding: 0;
+  }
+
+  .kobo-select__single-value,
+  .kobo-select__multi-value, {
+    color: colors.$kobo-gray-24;
+  }
+
+  .kobo-select__multi-value {
+    height: button.$button-height-m - 8px;
+  }
+
+  .kobo-select__multi-value__label {
+    line-height: button.$button-height-m - 8px;
+    padding: 0 3px 0 6px;
+  }
+
+  .kobo-select__multi-value__remove:hover {
+    color: colors.$kobo-dark-red;
+    background-color: colors.$kobo-light-red;
+  }
+
+  .kobo-select__indicator {
+    height: 100%;
+    padding: 0 6px;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
   }
 
   .kobo-select__menu {
@@ -106,14 +145,14 @@
     cursor: pointer;
 
     &.kobo-select__option--is-selected {
-      background-color: $kobo-white;
-      color: $kobo-blue;
+      background-color: colors.$kobo-white;
+      color: colors.$kobo-blue;
       font-weight: 700;
     }
 
     // is-focused needs to go after is-selected
     &.kobo-select__option--is-focused {
-      background-color: $kobo-gray-96;
+      background-color: colors.$kobo-gray-96;
     }
   }
 }

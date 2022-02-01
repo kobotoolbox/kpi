@@ -71,6 +71,7 @@ export default class AccountSidebar extends React.Component<
           <bem.FormSidebar__label
             m={{selected: this.isDataStorageSelected()}}
             href={'#' + ROUTES.DATA_STORAGE}
+            disabled
           >
             {/*TODO: get the data usage icon*/}
             <Icon name='projects' size='xl'/>
@@ -82,6 +83,7 @@ export default class AccountSidebar extends React.Component<
           {window.MFAEnabled && <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
             href={'#' + ROUTES.SECURITY}
+            disabled
           >
             {/*TODO: get the data usage icon*/}
             <Icon name='lock' size='xl'/>
