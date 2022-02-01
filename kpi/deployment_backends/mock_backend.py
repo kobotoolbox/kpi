@@ -226,7 +226,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         try:
             element = submission_tree.find(xpath)
             attachment_filename = element.text
-        except AttributeError:
+        except (AttributeError, KeyError):
             raise InvalidXPathException
 
         submission_json = self.get_submission(
