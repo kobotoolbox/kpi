@@ -1,8 +1,10 @@
 # coding: utf-8
+import os
+from collections import defaultdict
+
 import requests
 from django.conf import settings
 from django.http import Http404
-from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as t
 from rest_framework import (
     renderers,
@@ -27,6 +29,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatAttachment
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.paginators import DataPagination
@@ -578,7 +581,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_id, user, SUBMISSION_FORMAT_TYPE_XML
         )
         # The JSON version is needed to detect its version
-        submission_json = deployment.get_submission(submission_id, user)
+        submission_json = deployment.get_submission(
+            submission_id, user, request=request
+        )
 
         _, submissions_stream = build_formpack(
             self.asset,
@@ -594,7 +599,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 {'version': gettext_lazy('Version not found')}
             )
 
-        # ToDo support attachments
         data = {
             'server_url': reverse(
                 viewname='assetsnapshot-detail',
@@ -606,6 +610,24 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             'form_id': snapshot.uid,
             'return_url': 'false'  # String to be parsed by EE as a boolean
         }
+
+        # Add attachments if any.
+        if len(submission_json['_attachments']):
+            # Get filenames from DB because Mongo does not contain the original name.
+            # The one saved in the XML, the one that EE expects.
+            # E.g.:
+            # - XML filename: Screenshot 2022-01-19 222028-13_45_57.jpg
+            # - Mongo: Screenshot_2022-01-19_222028-13_45_57.jpg
+            attachments = ReadOnlyKobocatAttachment.objects.filter(
+                instance_id=submission_id
+            )
+            for attachment in attachments:
+                key_ = f"instance_attachments[{attachment.media_file_basename}]"
+                data[key_] = reverse(
+                    'attachment-detail',
+                    args=(self.asset.uid, submission_id, attachment.pk),
+                    request=request,
+                )
 
         enketo_endpoint = getattr(
             settings, f'ENKETO_{action_}_INSTANCE_ENDPOINT'.upper()

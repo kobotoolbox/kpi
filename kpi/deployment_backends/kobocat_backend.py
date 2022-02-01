@@ -27,7 +27,6 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
-    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -42,7 +41,6 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.datetime import several_minutes_from_now
 from kpi.utils.xml import edit_submission_xml, strip_nodes
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
@@ -1448,7 +1446,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 kpi_url = reverse(
                     'attachment-detail',
                     args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request
+                    request=request,
                 )
                 key = f'download{suffix}_url'
                 try:
