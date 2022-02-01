@@ -45,7 +45,7 @@ class MP3ConversionRenderer(MediaFileRenderer):
         try:
             audio = AudioSegment.from_file(BytesIO(data))
         except IndexError:
-            # Seems that audio track is seeming
+            # The file format is not supported
             raise CouldntDecodeError
 
         with NamedTemporaryFile(suffix='.mp3') as f:

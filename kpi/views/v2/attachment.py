@@ -61,7 +61,7 @@ class AttachmentViewSet(
             xpath = filters['xpath']
         except KeyError:
             raise serializers.ValidationError({
-                'detail': t('Please query the path to the file')
+                'detail': t('xpath query parameter is required')
             }, 'xpath_missing')
 
         try:
@@ -84,6 +84,8 @@ class AttachmentViewSet(
                         content_type
                     )
                 }, 'not_supported_format')
+            # setting the content type to none here allows the renderer to
+            # specify the content type for the response
             set_content = None
         else:
             set_content = content_type
