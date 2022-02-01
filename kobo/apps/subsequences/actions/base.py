@@ -11,6 +11,7 @@ class BaseAction:
 
     DATE_CREATED_FIELD = 'dateCreated'
     DATE_MODIFIED_FIELD = 'dateModified'
+    DELETE = '⌫'
 
     def __init__(self, params):
         self.load_params(params)
@@ -62,6 +63,8 @@ class BaseAction:
         return {**edit, 'revisions': []}
 
     def revise_field(self, original, edit):
+        if self.record_repr(edit) == self.DELETE:
+            return {}
         record = {**original}
         revisions = record.pop('revisions', [])
         if self.DATE_CREATED_FIELD in record:

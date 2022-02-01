@@ -55,6 +55,8 @@ class TranslationAction(BaseAction):
             else:
                 old = self.init_translation_record(language, {})
             upd = edit[language]
+            if upd.get('value') == self.DELETE:
+                continue
             revisions = old.pop('revisions', [])
             if self.DATE_CREATED_FIELD in old:
                 del old[self.DATE_CREATED_FIELD]

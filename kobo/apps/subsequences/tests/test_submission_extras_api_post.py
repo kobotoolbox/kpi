@@ -85,7 +85,40 @@ class ValidateSubmissionTest(APITestCase):
         }
 
 
-class FieldRevisionsOnlyTests(ValidateSubmissionTest):
+class TranscriptFieldRevisionsOnlyTests(ValidateSubmissionTest):
+    def setUp(self):
+        ValidateSubmissionTest.setUp(self)
+        self.set_asset_advanced_features({
+            'transcript': {
+                'values': ['q1'],
+            }
+        })
+        self.act1 = next(self.asset.get_advanced_feature_instances())
+
+    def test_simplest(self):
+        field = self.act1.revise_field({
+            'value': 'V1',
+            'revisions': [],
+            'dateCreated': '1',
+            'dateModified': '1',
+        }, {
+            'value': 'V2',
+        })
+        assert field['value'] == 'V2'
+
+    def test_send_delete_character(self):
+        field = self.act1.revise_field({
+            'value': 'V1',
+            'revisions': [],
+            'dateCreated': '1',
+            'dateModified': '1',
+        }, {
+            'value': self.act1.DELETE,
+        })
+        assert field == {}
+
+
+class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
     def setUp(self):
         ValidateSubmissionTest.setUp(self)
         self.set_asset_advanced_features({
@@ -117,6 +150,38 @@ class FieldRevisionsOnlyTests(ValidateSubmissionTest):
         assert 'dateCreated' not in field['tx1']['revisions'][0]
         assert 'dateModified' in field['tx1']
         assert field['tx1']['dateCreated'] == '1'
+
+    def test_append_empty_string(self):
+        field = self.txi.revise_field({
+            'tx1': {
+                'value': 'V1',
+                'revisions': [],
+                'dateCreated': '1',
+                'dateModified': '1',
+            }
+        }, {
+            'tx1': {
+                'value': '',
+            }
+        })
+
+        assert 'tx1' in field
+        assert field['tx1']['value'] == ''
+
+    def test_send_delete_character(self):
+        field = self.txi.revise_field({
+            'tx1': {
+                'value': 'V1',
+                'revisions': [],
+                'dateCreated': '1',
+                'dateModified': '1',
+            }
+        }, {
+            'tx1': {
+                'value': self.txi.DELETE,
+            }
+        })
+        assert 'tx1' not in field
 
     def test_date_created_is_pulled_from_last_revision(self):
         field = self.txi.revise_field({
