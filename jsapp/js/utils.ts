@@ -177,8 +177,8 @@ export function addRequiredToLabel(label: string, isRequired: boolean = true): s
   if (!isRequired) {
     return label;
   }
-  const requiredTemplate = t('##field label## (required)');
-  return requiredTemplate.replace('##field label##', label);
+  const requiredTemplate = t('##field_label## (required)');
+  return requiredTemplate.replace('##field_label##', label);
 }
 
 export function stringToColor(str: string, prc: number) {
