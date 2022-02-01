@@ -133,7 +133,7 @@ data_routes = asset_routes.register(r'data',
                                     parents_query_lookups=['asset'],
                                     )
 
-data_routes.register(r'attachment',
+data_routes.register(r'attachments',
                      AttachmentViewSet,
                      basename='attachment',
                      parents_query_lookups=['asset', 'data'],

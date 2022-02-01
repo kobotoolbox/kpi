@@ -412,6 +412,8 @@ REST_FRAMEWORK = {
        'kpi.renderers.XMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    # Cannot be placed in kpi.exceptions.py because of circular imports
+    'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
 
 TEMPLATES = [
@@ -603,6 +605,14 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
 
+if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
+    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
+    KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
+    if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
+        KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
+else:
+    KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
 ''' Django error logging configuration '''
 # Need a default logger when sentry is not activated

@@ -19,6 +19,10 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
+class AttachmentNotFoundException(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 
@@ -63,7 +67,7 @@ class InvalidSearchException(exceptions.APIException):
 
 class InvalidXPathException(exceptions.APIException):
     status_code = 400
-    default_detail = _('The path could not be found in the submission')
+    default_detail = t('The path could not be found in the submission')
     default_code = 'xpath_not_found'
 
 
@@ -122,6 +126,10 @@ class ReadOnlyModelError(Exception):
 
     def __init__(self, msg='This model is read only', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
+
+
+class SubmissionNotFoundException(Exception):
+    pass
 
 
 class SearchQueryTooShortException(InvalidSearchException):

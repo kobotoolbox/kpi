@@ -3,8 +3,6 @@ from datetime import datetime
 from secrets import token_urlsafe
 from typing import Optional
 
-from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.signing import Signer
@@ -24,6 +22,8 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
+
+from .storage import get_kobocat_storage
 
 
 def update_autofield_sequence(model):
@@ -542,6 +542,28 @@ class ReadOnlyModel(ShadowModel):
 
     class Meta(ShadowModel.Meta):
         abstract = True
+
+
+class ReadOnlyKobocatAttachment(ReadOnlyModel):
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_attachment'
+
+    instance = models.ForeignKey(
+        'superuser_stats.ReadOnlyKobocatInstance',
+        related_name='attachments',
+        on_delete=models.CASCADE,
+    )
+    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
+                                  db_index=True)
+    media_file_basename = models.CharField(
+        max_length=260, null=True, blank=True, db_index=True)
+    # `PositiveIntegerField` will only accomodate 2 GiB, so we should consider
+    # `PositiveBigIntegerField` after upgrading to Django 3.1+
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(
+        max_length=100, null=False, blank=True, default=''
+    )
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):

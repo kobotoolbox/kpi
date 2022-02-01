@@ -11,7 +11,6 @@ import pytz
 from deepmerge import always_merger
 from dicttoxml import dicttoxml
 from django.conf import settings
-from django.http import Http404
 from django.urls import reverse
 from rest_framework import status
 
@@ -23,7 +22,11 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import InvalidXPathException
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionNotFoundException,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
@@ -205,52 +208,55 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
-    def get_attachment_content(self, user, submission_uuid, response_xpath):
+    def get_attachment_content(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> tuple:
 
-        try:
-            submission_xml = self.get_submissions(
-                user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
-                    '_uuid': submission_uuid
-                }
-            )
-            first_submission = submission_xml[0]
-        except StopIteration:
-            raise Http404
-
-        submission_tree = ET.ElementTree(
-            ET.fromstring(first_submission)
+        submission_xml = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
         )
-        response_element = submission_tree.find(response_xpath)
-        try:
-            response_filename = response_element.text
-        except AttributeError:
-            raise InvalidXPathException
 
-        try:
-            submission_json = next(
-                iter(
-                    self.get_submissions(
-                        user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
-                            '_uuid': submission_uuid
-                        }
-                    )
+        if not submission_xml:
+            raise SubmissionNotFoundException
+
+        if xpath:
+            submission_tree = ET.ElementTree(
+                ET.fromstring(submission_xml)
+            )
+            element = submission_tree.find(xpath)
+            try:
+                attachment_filename = element.text
+            except AttributeError:
+                raise InvalidXPathException
+
+        submission_json = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+        )
+        attachments = submission_json['_attachments']
+        for attachment in attachments:
+            filename = os.path.basename(attachment['filename'])
+
+            if xpath:
+                is_good_file = attachment_filename == filename
+            else:
+                is_good_file = int(attachment['id']) == int(attachment_id)
+
+            if is_good_file:
+                video_file = os.path.join(
+                    settings.BASE_DIR,
+                    'kpi',
+                    'tests',
+                    filename
                 )
-            )
-        except StopIteration:
-            raise Exception('No matching submission')
+                with open(video_file, 'rb') as f:
+                    file_content = f.read()
+                return filename, file_content, attachment['mimetype']
 
-        audio_file = os.path.join(
-            settings.BASE_DIR,
-            'kpi',
-            'tests',
-            'audio_conversion_test_clip.mp4'
-        )
-
-        with open(audio_file, 'rb') as f:
-            file_response = f.read()
-
-        content_type = 'video/mp4'
-        return file_response, content_type
+        raise AttachmentNotFoundException
 
     def get_data_download_links(self):
         return {}
