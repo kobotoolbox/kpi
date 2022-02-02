@@ -1,13 +1,17 @@
 # coding: utf-8
+import os
+import subprocess
 from datetime import datetime
 from secrets import token_urlsafe
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
-from django.core.signing import Signer
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
+from django.core.files.base import ContentFile
+from django.core.signing import Signer
 from django.db import (
     ProgrammingError,
     connections,
@@ -15,14 +19,18 @@ from django.db import (
     router,
 )
 from django.utils import timezone
+from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
-
-from .storage import get_kobocat_storage
+from kpi.utils.log import logging
+from .storage import (
+    get_kobocat_storage,
+    KobocatS3Boto3Storage,
+)
 
 
 def update_autofield_sequence(model):
@@ -527,6 +535,12 @@ class ReadOnlyModel(ShadowModel):
 
 class ReadOnlyKobocatAttachment(ReadOnlyModel):
 
+    CONVERSION_AUDIO_FORMAT = 'mp3'
+    SUPPORTED_CONVERTED_FORMAT = (
+        'audio',
+        'video',
+    )
+
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
 
@@ -545,6 +559,89 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
+
+    @property
+    def converted_file_name(self):
+        """
+        Return the name of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{str(self.media_file)}.{self.CONVERSION_AUDIO_FORMAT}'
+
+    @property
+    def converted_file_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
+
+        return self.media_file.url.replace(
+            str(self.media_file),
+            f'{str(self.media_file)}.{self.CONVERSION_AUDIO_FORMAT}',
+        )
+
+    @property
+    def path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+            return self.media_file.path
+
+        return self.media_file.url
+
+    def protected_path(self, format_: Optional[str] = None):
+
+        if format_ == self.CONVERSION_AUDIO_FORMAT:
+            attachment_file_path = self._get_converted_file_path()
+        else:
+            attachment_file_path = self.path
+
+        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+            protected_url = attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_PATH, '/protected'
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    def _get_converted_file_path(self) -> str:
+
+        if not self.mimetype.startswith(self.SUPPORTED_CONVERTED_FORMAT):
+            raise Exception('Not supported converted format')
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.converted_file_path):
+            ffmpeg_command = [
+                '/usr/bin/ffmpeg',
+                '-i',
+                self.path,
+                '-f',
+                'mp3',
+                'pipe:1',
+            ]
+
+            pipe = subprocess.run(
+                ffmpeg_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+            if pipe.returncode:
+                logging.error(f'ffmpeg error: {pipe.stderr}')
+                raise Exception('FFMPEG error')
+
+            kobocat_storage.save(self.converted_file_name, ContentFile(pipe.stdout))
+
+        return self.converted_file_path
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):

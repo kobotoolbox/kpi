@@ -1,4 +1,5 @@
 # coding: utf-8
+import os.path
 import subprocess
 from typing import Optional
 
@@ -11,6 +12,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatAttachment,
 )
+from kpi.deployment_backends.kc_access.storage import get_kobocat_storage
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
@@ -21,6 +23,7 @@ from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.log import logging
+
 
 class AttachmentViewSet(
     NestedViewSetMixin,
@@ -54,11 +57,6 @@ class AttachmentViewSet(
         MP3ConversionRenderer,
     )
     permission_classes = (SubmissionPermission,)
-
-    SUPPORTED_CONVERTED_FORMAT = (
-        'audio',
-        'video',
-    )
 
     def retrieve(self, request, pk, *args, **kwargs):
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
@@ -100,58 +98,12 @@ class AttachmentViewSet(
                 'detail': t('The path could not be found in the submission')
             }, 'xpath_not_found')
 
-        if request.accepted_renderer.format == MP3ConversionRenderer.format:
-            # setting the content type to `None` here allows the renderer to
-            # specify the content type for the response
-            content_type = None
-            content = self._get_mp3(attachment)
-            filename = attachment.media_file_basename
-        else:
-            content_type = attachment.mimetype
-            content = attachment.media_file.read()
-            filename = attachment.media_file_basename
-            attachment.media_file.close()
-
-        # Send filename to browser
         headers = {
-            'Content-Disposition': f'inline; filename={filename}'
+            'Content-Disposition': f'inline; filename={attachment.media_file.name}',
+            'X-Accel-Redirect': attachment.protected_path(
+                request.accepted_renderer.format
+            )
         }
-        # Not optimized for big files.
-        # ToDo Serve files with NGINX  `X-Accel-Redirect` option
-        return Response(
-            content,
-            content_type=content_type,
-            headers=headers,
-        )
-
-    def _get_mp3(self, attachment: ReadOnlyKobocatAttachment) -> str:
-        if not attachment.mimetype.startswith(self.SUPPORTED_CONVERTED_FORMAT):
-            raise serializers.ValidationError({
-                'detail': t('Conversion is not supported for {}').format(
-                    attachment.mimetype
-                )
-            }, 'not_supported_format')
-
-        ffmpeg_command = [
-            '/usr/bin/ffmpeg',
-            '-i',
-            attachment.media_file.path,
-            '-f',
-            MP3ConversionRenderer.format,
-            'pipe:1',
-        ]
-
-        pipe = subprocess.run(
-            ffmpeg_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        if pipe.returncode:
-            logging.error(f'ffmpeg error: {pipe.stderr}')
-            raise serializers.ValidationError({
-                'detail': t('Could not convert attachment')
-            })
-
-        # ToDo save output to avoid converting it again
-        return pipe.stdout
+        # Let nginx determine the correct content type
+        response = Response(content_type='', headers=headers)
+        return response
