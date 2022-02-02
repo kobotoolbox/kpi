@@ -15,6 +15,7 @@ import pytz
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files import File
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -468,25 +469,32 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             raise KobocatDuplicateSubmissionException
 
-    def edit_submission(self, submission_xml: str, user: 'auth.User'):
+    def edit_submission(
+        self, xml_submission_file: File, user: 'auth.User', attachments: dict = None
+    ):
         """
-        Edit a submission through KoBoCAT proxy.
+        Edit a submission through KoBoCAT proxy on behalf of `user`.
+        Attachments can be uploaded by passing a dictionary (name, File object)
+
         The returned Response should be in XML (expected format by Enketo Express)
         """
-        submission_xml_str = submission_xml.read().decode()
+        submission_xml = xml_submission_file.read().decode()
         # Keep only relevant nodes before parsing with regex.
         stripped_xml = strip_nodes(
-            submission_xml_str, ['meta/deprecatedID', 'formhub/uuid'], use_xpath=True
+            submission_xml, ['meta/deprecatedID', 'formhub/uuid'], use_xpath=True
         )
         instance_uuid_matches = re.search(r'uuid:([^<]+)', stripped_xml)
         xform_uuid_matches = re.search(r'uuid>([^<]+)', stripped_xml)
+
         if not instance_uuid_matches and not xform_uuid_matches:
+            # ToDo Create exception
             raise Exception('NO UUID FOUNDS')
 
         try:
             deprecated_uuid = instance_uuid_matches.groups()[0]
             xform_uuid = xform_uuid_matches.groups()[0]
         except IndexError:
+            # ToDo Create exception
             raise Exception('NO UUID FOUNDS')
 
         try:
@@ -496,6 +504,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 xform__kpi_asset_uid=self.asset.uid,
             )
         except ReadOnlyKobocatInstance.DoesNotExist:
+            # ToDo Create exception
             raise Exception('Invalid INSTANCE')
 
         # Validate write access for users with partial permissions
@@ -507,11 +516,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Set the In-Memory file’s current position to 0 before passing it to
         # Request.
-        submission_xml.seek(0)
+        xml_submission_file.seek(0)
+        files = {'xml_submission_file': xml_submission_file}
+
+        # Combine all files altogether
+        if attachments:
+            files.update(attachments)
+
         kc_request = requests.Request(
-            method='POST', url=self.submission_url, files={
-                'xml_submission_file': submission_xml
-            }
+            method='POST', url=self.submission_url, files=files
         )
         # ToDo use system account instead of asset.owner
         kc_response = self.__kobocat_proxy_request(kc_request, self.asset.owner)

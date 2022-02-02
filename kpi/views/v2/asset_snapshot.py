@@ -163,8 +163,21 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             return Response({})
 
         asset_snapshot = self.get_object()
+
+        xml_submission_file = request.data['xml_submission_file']
+
+        # Prepare attachments even if all files are present in `request.FILES`
+        # (i.e.: submission XML and attachments)
+        attachments = None
+        # Remove 'xml_submission_file' since it is already handled
+        request.FILES.pop('xml_submission_file')
+        if len(request.FILES):
+            attachments = {}
+            for name, attachment in request.FILES.items():
+                attachments[name] = attachment
+
         xml_response = asset_snapshot.asset.deployment.edit_submission(
-            request.data['xml_submission_file'], request.user
+            xml_submission_file, request.user, attachments
         )
 
         # Add OpenRosa headers to response
