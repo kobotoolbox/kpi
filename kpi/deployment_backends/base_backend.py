@@ -99,7 +99,7 @@ class BaseDeploymentBackend(abc.ABC):
         return value
 
     @abc.abstractmethod
-    def get_attachment_content(
+    def get_attachment(
         self,
         submission_id: int,
         user: 'auth.User',

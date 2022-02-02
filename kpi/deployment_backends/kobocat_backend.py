@@ -493,17 +493,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
 
-    def get_attachment_content(
+    def get_attachment(
         self,
         submission_id: int,
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-    ) -> tuple:
+    ) -> ReadOnlyKobocatAttachment:
         """
-        Return a tuple which contains the filename of the attachment, its content
-        and its mimetype.
-        Attachment can be retrieved by its primary key or by XPath.
+        Return an object which can be retrieved by its primary key or by XPath.
         An exception is raised when the submission or the attachment is not found.
         """
 
@@ -542,14 +540,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ReadOnlyKobocatAttachment.DoesNotExist:
             raise AttachmentNotFoundException
 
-        content = attachment.media_file.read()
-        attachment.media_file.close()
-
-        return (
-            attachment.media_file_basename,
-            content,
-            attachment.mimetype,
-        )
+        return attachment
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
