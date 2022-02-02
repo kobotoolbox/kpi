@@ -127,10 +127,6 @@ class ReadOnlyModelError(Exception):
         super().__init__(msg, *args, **kwargs)
 
 
-class SubmissionNotFoundException(Exception):
-    pass
-
-
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = t('Your query is too short')
     default_code = 'query_too_short'
