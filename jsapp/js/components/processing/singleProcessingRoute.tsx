@@ -2,7 +2,7 @@ import React from 'react'
 import {RouteComponentProps} from 'react-router'
 import {getSurveyFlatPaths} from 'js/assetUtils'
 import assetStore from 'js/assetStore'
-import {getAssetProcessingRows} from 'js/assetUtils'
+import {isRowProcessingEnabled} from 'js/assetUtils'
 import bem, {makeBem} from 'js/bem'
 import {AnyRowTypeName} from 'js/constants'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
@@ -93,14 +93,6 @@ export default class SingleProcessingRoute extends React.Component<
 
   /** Whether the question and submission uuid pair make sense for processing. */
   isDataValid() {
-    // To prepare UI for questions that are not processing-enabled.
-    const processingRows = getAssetProcessingRows(this.props.params.uid)
-    const isQuestionProcessingEnabled = (
-      Array.isArray(processingRows) &&
-      processingRows.includes(this.props.params.questionName)
-    )
-
-    // To prepare UI for submissions (uuids) that don't contain any processable data.
     const uuids = singleProcessingStore.getSubmissionsUuids()
     const hasSubmissionAnyProcessableData = (
       uuids &&
@@ -108,7 +100,15 @@ export default class SingleProcessingRoute extends React.Component<
       uuids[this.props.params.questionName].includes(this.props.params.submissionUuid)
     )
 
-    return isQuestionProcessingEnabled && hasSubmissionAnyProcessableData
+    return (
+      // To prepare UI for questions that are not processing-enabled.
+      isRowProcessingEnabled(
+        this.props.params.uid,
+        this.props.params.questionName
+      ) &&
+      // To prepare UI for submissions (uuids) that don't contain any processable data.
+      hasSubmissionAnyProcessableData
+    )
   }
 
   render() {

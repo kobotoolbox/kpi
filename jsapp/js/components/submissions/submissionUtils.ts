@@ -4,6 +4,7 @@ import {
   getTranslatedRowLabel,
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
+  isRowProcessingEnabled,
 } from 'js/assetUtils';
 import {
   createEnum,
@@ -13,6 +14,7 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
+  SUPPLEMENTAL_DETAILS_PROP,
   AnyRowTypeName,
 } from 'js/constants';
 
@@ -60,17 +62,8 @@ class DisplayGroup {
   }
 }
 
-/**
- * @typedef {Object} DisplayResponse
- * @property {string} type - One of QUESTION_TYPES
- * @property {string} label - Localized display label
- * @property {string} name - Unique identifier
- * @property {string|undefined} listName - Unique identifier of a choices list,
- *                                         only applicable for question types
- *                                         that uses choices lists
- * @property {string|null} data - User response, `null` for no response
- */
 class DisplayResponse {
+  /** One of QUESTION_TYPES */
   public type: AnyRowTypeName;
   /** Localized display label */
   public label: string | null;
@@ -107,16 +100,18 @@ class DisplayResponse {
  * Returns a root group with everything inside
  */
 export function getSubmissionDisplayData(
-  survey: SurveyRow[],
-  choices: SurveyChoice[],
+  asset: AssetResponse,
   /** for choosing label to display */
   translationIndex: number,
   submissionData: SubmissionResponse
 ) {
-  const flatPaths = getSurveyFlatPaths(survey, true);
-
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
+
+  const survey = asset?.content?.survey || []
+  const choices = asset?.content?.choices || []
+
+  const flatPaths = getSurveyFlatPaths(survey, true);
 
   /**
    * Recursively generates a nested architecture of survey with data.
@@ -262,6 +257,13 @@ export function getSubmissionDisplayData(
           rowData
         );
         parentGroup.addChild(rowObj);
+
+        const rowSupplementalResponses = getRowSupplementalResponses(
+          asset.uid,
+          submissionData,
+          rowName,
+        )
+        console.log('supplemental details', rowName, rowSupplementalResponses)
       }
     }
   }
@@ -493,6 +495,10 @@ export function getMediaAttachment(
   return mediaAttachment;
 }
 
+/**
+ * Returns supplemental details for given path,
+ * e.g. `_supplementalDetails/question_name/translated/pl`.
+ */
 export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
   path: string
@@ -501,6 +507,26 @@ export function getSupplementalDetailsContent(
   pathArray.push('value')
   // Moments like these makes you really apprecieate the beauty of lodash.
   return _.get(submission, pathArray, '')
+}
+
+/**
+ * Returns all supplemental details (as rows) for given row. Includes transcript
+ * and all translations.
+ *
+ * Returns empty array if row is not enabled to have supplemental details.
+ * If there is potential for details, then it will return a list of
+ * DisplayResponses with existing values (falling back to empty strings).
+ */
+function getRowSupplementalResponses(
+  assetUid: string,
+  submissionData: SubmissionResponse,
+  rowName: string,
+): DisplayResponse[] {
+  const supplementalResponses: DisplayResponse[] = []
+  if (isRowProcessingEnabled(assetUid, rowName)) {
+
+  }
+  return supplementalResponses
 }
 
 export default {

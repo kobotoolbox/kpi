@@ -664,6 +664,7 @@ export function getAssetProcessingUrl(assetUid: string): string | undefined {
   return undefined
 }
 
+/** Returns a list of all rows activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid)
   if (foundAsset?.advanced_submission_schema.properties) {
@@ -682,6 +683,11 @@ export function getAssetProcessingRows(assetUid: string) {
     return rows
   }
   return undefined
+}
+
+export function isRowProcessingEnabled(assetUid: string, rowName: string) {
+  const processingRows = getAssetProcessingRows(assetUid)
+  return Array.isArray(processingRows) && processingRows.includes(rowName)
 }
 
 export function isAssetProcessingActivated(assetUid: string) {
@@ -716,5 +722,9 @@ export default {
   replaceForm,
   share,
   removeInvalidChars,
+  getAssetAdvancedFeatures,
   getAssetProcessingUrl,
+  getAssetProcessingRows,
+  isRowProcessingEnabled,
+  isAssetProcessingActivated
 };
