@@ -1,28 +1,25 @@
 # coding: utf-8
-import os.path
-import subprocess
-from typing import Optional
+from typing import Optional, Union
 
+from django.conf import settings
+from django.http import FileResponse
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatAttachment,
-)
-from kpi.deployment_backends.kc_access.storage import get_kobocat_storage
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    FFMpegException,
     InvalidXPathException,
+    NotSupportedFormatException,
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.log import logging
 
 
 class AttachmentViewSet(
@@ -98,12 +95,42 @@ class AttachmentViewSet(
                 'detail': t('The path could not be found in the submission')
             }, 'xpath_not_found')
 
-        headers = {
-            'Content-Disposition': f'inline; filename={attachment.media_file.name}',
-            'X-Accel-Redirect': attachment.protected_path(
+        try:
+            protected_path = attachment.protected_path(
                 request.accepted_renderer.format
             )
+        except FFMpegException:
+            raise serializers.ValidationError({
+                'detail': t('The error occurred during conversion')
+            }, 'ffmpeg_error')
+        except NotSupportedFormatException:
+            raise serializers.ValidationError({
+                'detail': t('Conversion is not supported for {}').format(
+                    attachment.mimetype
+                )
+            }, 'not_supported_format')
+
+        # If unit tests are running, pytest webserver does not support
+        # `X-Accel-Redirect` header (or ignores it). We need to pass
+        # the content of the Response object
+        if settings.TESTING:
+            # setting the content type to `None` here allows the renderer to
+            # specify the content type for the response
+            content_type = (
+                attachment.mimetype
+                if request.accepted_renderer.format != MP3ConversionRenderer.format
+                else None
+            )
+            return Response(
+                attachment.content,
+                content_type=content_type,
+            )
+
+        # Otherwise, let NGINX determine the correct content type and serve
+        # the file
+        headers = {
+            'Content-Disposition': f'inline; filename={attachment.media_file_basename}',
+            'X-Accel-Redirect': protected_path
         }
-        # Let nginx determine the correct content type
         response = Response(content_type='', headers=headers)
         return response

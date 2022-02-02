@@ -1,6 +1,4 @@
 # coding: utf-8
-import os
-import subprocess
 from datetime import datetime
 from secrets import token_urlsafe
 from typing import Optional
@@ -23,10 +21,12 @@ from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
-from kpi.exceptions import BadContentTypeException
+from kpi.exceptions import (
+    BadContentTypeException,
+)
+from kpi.mixins.audio_converter import AudioConverterMixin
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
-from kpi.utils.log import logging
 from .storage import (
     get_kobocat_storage,
     KobocatS3Boto3Storage,
@@ -533,13 +533,7 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatAttachment(ReadOnlyModel):
-
-    CONVERSION_AUDIO_FORMAT = 'mp3'
-    SUPPORTED_CONVERTED_FORMAT = (
-        'audio',
-        'video',
-    )
+class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioConverterMixin):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
@@ -614,32 +608,11 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
 
     def _get_converted_file_path(self) -> str:
 
-        if not self.mimetype.startswith(self.SUPPORTED_CONVERTED_FORMAT):
-            raise Exception('Not supported converted format')
-
         kobocat_storage = get_kobocat_storage()
 
         if not kobocat_storage.exists(self.converted_file_path):
-            ffmpeg_command = [
-                '/usr/bin/ffmpeg',
-                '-i',
-                self.path,
-                '-f',
-                'mp3',
-                'pipe:1',
-            ]
-
-            pipe = subprocess.run(
-                ffmpeg_command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-
-            if pipe.returncode:
-                logging.error(f'ffmpeg error: {pipe.stderr}')
-                raise Exception('FFMPEG error')
-
-            kobocat_storage.save(self.converted_file_name, ContentFile(pipe.stdout))
+            content = self.get_converted_audio(self.path)
+            kobocat_storage.save(self.converted_file_name, ContentFile(content))
 
         return self.converted_file_path
 
