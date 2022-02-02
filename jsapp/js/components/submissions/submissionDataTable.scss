@@ -1,5 +1,6 @@
 @use "scss/_colors";
 @use "scss/libs/_mdl";
+@use "scss/mixins";
 
 $submission-data-table-space: 12px;
 
@@ -31,8 +32,7 @@ $submission-data-table-space: 12px;
   }
 
   &.submission-data-table__row--columns {
-    display: flex;
-    flex-direction: row;
+    @include mixins.centerRowFlex;
   }
 
   &.submission-data-table__row--column-names {
@@ -97,6 +97,7 @@ $submission-data-table-space: 12px;
 
     .k-icon {
       font-size: 20px;
+      display: block;
     }
   }
 
