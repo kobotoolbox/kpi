@@ -1,5 +1,4 @@
 # coding: utf-8
-from datetime import timedelta, datetime
 import json
 
 import constance
@@ -21,6 +20,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_CHANGE_ASSET
 )
+from kpi.utils.datetime import several_minutes_from_now
 from .hook_test_case import HookTestCase, MockSSRFProtect
 
 
@@ -346,16 +346,12 @@ class ApiHookTestCase(HookTestCase):
         })
 
         # There should be a successful log for the success hook
-        response = self.client.get(hook_log_url + '?status='+str(HOOK_LOG_SUCCESS), format='json')
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
         self.assertEqual(response.data.get('count'), 1)
 
         # There should be no failed log for the success hook
-        response = self.client.get(hook_log_url + '?status='+str(HOOK_LOG_FAILED), format='json')
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_FAILED}', format='json')
         self.assertEqual(response.data.get('count'), 0)
-
-        # Test bad argument
-        response = self.client.get(hook_log_url + '?status=abc', format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
            new=MockSSRFProtect._get_ip_address)
@@ -385,11 +381,11 @@ class ApiHookTestCase(HookTestCase):
         })
 
         # There should be no success log for the failing hook
-        response = self.client.get(hook_log_url + '?status='+str(HOOK_LOG_SUCCESS), format='json')
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be a pending log for the failing hook
-        response = self.client.get(hook_log_url + '?status='+str(HOOK_LOG_PENDING), format='json')
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_PENDING}', format='json')
         self.assertEqual(response.data.get('count'), 1)
 
     def test_hook_log_filter_validation(self):
@@ -405,14 +401,14 @@ class ApiHookTestCase(HookTestCase):
         })
 
         # Test bad argument
-        response = self.client.get(hook_log_url + '?status=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?status=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
            new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_hook_log_filter_date(self):
-        # Create failing hook
+        # Create success hook
         hook = self._create_hook(name="date hook",
                                 endpoint="http://date.service.local/",
                                 settings={})
@@ -435,24 +431,26 @@ class ApiHookTestCase(HookTestCase):
             'parent_lookup_hook': hook.uid,
         })
 
-        now = datetime.utcnow()
-        delta = timedelta(minutes = 5)
+        isoformat='%Y-%m-%dT%H:%M:%S'
+        five_minutes_ago = several_minutes_from_now(-5).strftime(isoformat)
+        in_five_min = several_minutes_from_now(5).strftime(isoformat)
         tzoffset = '-02:00'
 
         # There should be a success log around now
-        response = self.client.get(hook_log_url + '?start='+str(now - delta) + '&end='+str(now + delta), format='json')
+        print(f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}')
+        response = self.client.get(f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}', format='json')
         self.assertEqual(response.data.get('count'), 1)
 
         # There should be no log before now
-        response = self.client.get(hook_log_url + '?start='+str(now + delta), format='json')
+        response = self.client.get(f'{hook_log_url}?start={in_five_min}', format='json')
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be no log after now
-        response = self.client.get(hook_log_url + '?end='+str(now - delta), format='json')
+        response = self.client.get(f'{hook_log_url}?end={five_minutes_ago}', format='json')
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be no log around now when expressed in a different time zone
-        response = self.client.get(hook_log_url + '?start='+str(now - delta) + tzoffset + '&end='+str(now + delta) + tzoffset, format='json')
+        response = self.client.get(f'{hook_log_url}?start={five_minutes_ago}{tzoffset}&end={in_five_min}{tzoffset}', format='json')
         self.assertEqual(response.data.get('count'), 0)
 
     def test_hook_log_filter_date_validation(self):
@@ -468,9 +466,9 @@ class ApiHookTestCase(HookTestCase):
         })
 
         # Test bad argument
-        response = self.client.get(hook_log_url + '?start=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?start=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Test bad argument
-        response = self.client.get(hook_log_url + '?end=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?end=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
