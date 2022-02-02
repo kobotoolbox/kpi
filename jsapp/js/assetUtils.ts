@@ -504,24 +504,32 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = []
     }
-    paths[questionName].push(
-      `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript`
-    )
+    paths[questionName].push(getSupplementalTranscriptPath(questionName))
   })
 
   advancedFeatures.translated?.values?.forEach((questionName: string) => {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = []
     }
-
     advancedFeatures.translated?.languages?.forEach((languageCode: string) => {
       paths[questionName].push(
-        `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated/${languageCode}`
+        getSupplementalTranslationPath(questionName, languageCode)
       )
     })
   })
 
   return paths
+}
+
+export function getSupplementalTranscriptPath(questionName: string) {
+  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript`
+}
+
+export function getSupplementalTranslationPath(
+  questionName: string,
+  languageCode: string
+) {
+  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated/${languageCode}`
 }
 
 export interface FlatQuestion {

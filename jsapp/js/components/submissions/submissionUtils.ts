@@ -5,6 +5,8 @@ import {
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
   isRowProcessingEnabled,
+  getSupplementalTranscriptPath,
+  getSupplementalTranslationPath,
 } from 'js/assetUtils';
 import {
   createEnum,
@@ -14,7 +16,6 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
-  SUPPLEMENTAL_DETAILS_PROP,
   AnyRowTypeName,
 } from 'js/constants';
 
@@ -63,8 +64,8 @@ class DisplayGroup {
 }
 
 class DisplayResponse {
-  /** One of QUESTION_TYPES */
-  public type: AnyRowTypeName;
+  /** One of QUESTION_TYPES or `null` for supplemental details */
+  public type: AnyRowTypeName | null;
   /** Localized display label */
   public label: string | null;
   /** Unique identifier */
@@ -78,7 +79,7 @@ class DisplayResponse {
   public data: string | null = null;
 
   constructor(
-    type: AnyRowTypeName,
+    type: AnyRowTypeName | null,
     label: string | null,
     name: string,
     listName: string | undefined,
@@ -259,11 +260,11 @@ export function getSubmissionDisplayData(
         parentGroup.addChild(rowObj);
 
         const rowSupplementalResponses = getRowSupplementalResponses(
-          asset.uid,
+          asset,
           submissionData,
           rowName,
         )
-        console.log('supplemental details', rowName, rowSupplementalResponses)
+        rowSupplementalResponses.forEach((resp) => {parentGroup.addChild(resp)})
       }
     }
   }
@@ -518,15 +519,53 @@ export function getSupplementalDetailsContent(
  * DisplayResponses with existing values (falling back to empty strings).
  */
 function getRowSupplementalResponses(
-  assetUid: string,
+  asset: AssetResponse,
   submissionData: SubmissionResponse,
   rowName: string,
 ): DisplayResponse[] {
-  const supplementalResponses: DisplayResponse[] = []
-  if (isRowProcessingEnabled(assetUid, rowName)) {
+  const output: DisplayResponse[] = []
+  if (isRowProcessingEnabled(asset.uid, rowName)) {
+    const advancedFeatures = asset.advanced_features
 
+    if (advancedFeatures.transcript !== undefined) {
+      output.push(
+        new DisplayResponse(
+          null,
+          t('Transcript'),
+          `${rowName}/transcript`,
+          undefined,
+          getSupplementalDetailsContent(
+            submissionData,
+            getSupplementalTranscriptPath(rowName)
+          )
+        )
+      )
+    }
+
+    if (
+      advancedFeatures.translated !== undefined &&
+      advancedFeatures.translated.languages !== undefined
+    ) {
+      advancedFeatures.translated.languages.forEach((languageCode: string) => {
+        output.push(
+          new DisplayResponse(
+            null,
+            t('Translation (##language_code##)').replace(
+              '##language_code##',
+              languageCode
+            ),
+            `${rowName}/transcript/${languageCode}`,
+            undefined,
+            getSupplementalDetailsContent(
+              submissionData,
+              getSupplementalTranslationPath(rowName, languageCode)
+            )
+          )
+        )
+      })
+    }
   }
-  return supplementalResponses
+  return output
 }
 
 export default {
