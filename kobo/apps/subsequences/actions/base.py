@@ -96,3 +96,10 @@ class BaseAction:
         params = kls.build_params(*args, **kwargs)
         # check that they match schema
         return params
+
+    def get_name(self, row):
+        # return the first "name" field, either 'name' or '$autoname'
+        for name_field in ['name', '$autoname']:
+            if name_field in row:
+                return row[name_field]
+        return None

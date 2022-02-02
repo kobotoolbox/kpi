@@ -20,7 +20,7 @@ class AutomaticTranscriptionAction(BaseAction):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(row['name'])
+                possible_transcribed_fields.append(self.get_name(row))
         params = {'values': possible_transcribed_fields, 'services': kls.TRANSCRIPTION_SERVICES}
         return params
 
@@ -29,7 +29,7 @@ class AutomaticTranscriptionAction(BaseAction):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(row['name'])
+                possible_transcribed_fields.append(self.get_name(row))
         return possible_transcribed_fields
 
     def load_params(self, params):

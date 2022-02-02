@@ -15,7 +15,7 @@ class TranslationAction(BaseAction):
         translatable_fields = []
         for row in survey_content.get('survey', []):
             if row['type'] in ['audio', 'video', 'text']:
-                translatable_fields.append(row['name'])
+                translatable_fields.append(self.get_name(row))
         params = {'values': translatable_fields}
         return params
 
@@ -24,8 +24,9 @@ class TranslationAction(BaseAction):
         translatable_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video', 'text']:
-                if 'name' in row:
-                    translatable_fields.append(row['name'])
+                name = self.get_name(row)
+                if name:
+                    translatable_fields.append(name)
         return translatable_fields
 
     def load_params(self, params):
