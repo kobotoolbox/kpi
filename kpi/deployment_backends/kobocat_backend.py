@@ -33,6 +33,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
     SubmissionNotFoundException,
+    XPathNotFoundException,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -515,12 +516,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if xpath:
             submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
-            element = submission_tree.find(xpath)
+
+            try:
+                element = submission_tree.find(xpath)
+            except KeyError:
+                raise InvalidXPathException
 
             try:
                 attachment_filename = element.text
             except AttributeError:
-                raise InvalidXPathException
+                raise XPathNotFoundException
+
             filters = {
                 'instance_id': submission_id,
                 'media_file_basename': attachment_filename,

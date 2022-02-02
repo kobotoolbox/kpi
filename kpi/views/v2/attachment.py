@@ -1,7 +1,7 @@
 # coding: utf-8
 from typing import Optional
 
-from django.http import Http404
+from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
@@ -9,7 +9,9 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    InvalidXPathException,
     SubmissionNotFoundException,
+    XPathNotFoundException,
 )
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
@@ -66,8 +68,9 @@ class AttachmentViewSet(
             xpath = request.query_params['xpath']
         except KeyError:
             raise serializers.ValidationError({
-                'xpath': t('Please query the path to the file')
-            })
+                'detail': t('`xpath` query parameter is required')
+            }, 'xpath_missing')
+
         return self._get_response(request, submission_id, xpath=xpath)
 
     def _get_response(
@@ -88,14 +91,24 @@ class AttachmentViewSet(
             )
         except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404
+        except InvalidXPathException:
+            raise serializers.ValidationError({
+                'detail': t('Invalid XPath syntax')
+            }, 'invalid_xpath')
+        except XPathNotFoundException:
+            raise serializers.ValidationError({
+                'detail': t('The path could not be found in the submission')
+            }, 'xpath_not_found')
 
         if request.accepted_renderer.format == MP3ConversionRenderer.format:
             if not content_type.startswith(self.SUPPORTED_CONVERTED_FORMAT):
                 raise serializers.ValidationError({
-                    'format': t('Conversion is not supported for {}'.format(
+                    'detail': t('Conversion is not supported for {}').format(
                         content_type
-                    ))
-                })
+                    )
+                }, 'not_supported_format')
+            # setting the content type to none here allows the renderer to
+            # specify the content type for the response
             set_content = None
         else:
             set_content = content_type

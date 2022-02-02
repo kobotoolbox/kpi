@@ -26,6 +26,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
     SubmissionNotFoundException,
+    XPathNotFoundException,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -227,11 +228,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_tree = ET.ElementTree(
                 ET.fromstring(submission_xml)
             )
-            element = submission_tree.find(xpath)
+            try:
+                element = submission_tree.find(xpath)
+            except KeyError:
+                raise InvalidXPathException
+
             try:
                 attachment_filename = element.text
             except AttributeError:
-                raise InvalidXPathException
+                raise XPathNotFoundException
 
         submission_json = self.get_submission(
             submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON

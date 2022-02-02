@@ -49,8 +49,9 @@ class DeploymentDataException(Exception):
 
 class DeploymentNotFound(Exception):
 
-    def __init__(self,
-                 message=t('Must call `asset.connect_deployment()` first')):
+    def __init__(
+        self, message=t('Must call `asset.connect_deployment()` first')
+    ):
         self.message = message
         super().__init__(self.message)
 
@@ -65,10 +66,8 @@ class InvalidSearchException(exceptions.APIException):
     default_code = 'invalid_search'
 
 
-class InvalidXPathException(exceptions.APIException):
-    status_code = 400
-    default_detail = t('The path could not be found in the submission')
-    default_code = 'xpath_not_found'
+class InvalidXPathException(Exception):
+    pass
 
 
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
@@ -135,3 +134,11 @@ class SubmissionNotFoundException(Exception):
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = t('Your query is too short')
     default_code = 'query_too_short'
+
+
+class SubmissionNotFoundException(Exception):
+    pass
+
+
+class XPathNotFoundException(Exception):
+    pass
