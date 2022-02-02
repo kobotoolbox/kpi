@@ -172,6 +172,14 @@ export function getLangString(obj: LangObject): string | undefined {
   }
 }
 
+export function addRequiredToLabel(label: string, isRequired: boolean = true): string {
+  if (!isRequired) {
+    return label;
+  }
+  const requiredTemplate = t('##field_label## (required)');
+  return requiredTemplate.replace('##field_label##', label);
+}
+
 export function stringToColor(str: string, prc: number) {
   // Higher prc = lighter color, lower = darker
   prc = typeof prc === 'number' ? prc : -15;
