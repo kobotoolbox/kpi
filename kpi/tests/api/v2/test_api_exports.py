@@ -10,7 +10,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, ExportTask, AssetExportSettings
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -293,4 +293,54 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         )
         response = self.client.delete(detail_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_synchronous_csv_export(self):
+        settings_name = 'Simple CSV export'
+        export_settings = {
+            'fields_from_all_versions': 'true',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'true',
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'csv',
+        }
+        es = AssetExportSettings.objects.create(
+            asset=self.asset,
+            name=settings_name,
+            export_settings=export_settings,
+        )
+        self.client.login(username='someuser', password='someuser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('submission-exports'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        synchronous_export_response = self.client.get(synchronous_exports_url)
+        assert synchronous_export_response.status_code == status.HTTP_200_OK
+
+        exports_list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        exports_list_response = self.client.post(
+            exports_list_url, data=export_settings
+        )
+        assert exports_list_response.status_code == status.HTTP_201_CREATED
+
+        exports_detail_response = self.client.get(
+            exports_list_response.data['url'], HTTP_ACCEPT='application/json'
+        )
+        assert exports_detail_response.status_code == status.HTTP_200_OK
+
+        export_content_response = self.client.get(
+            exports_detail_response.json()['result']
+        )
+        assert export_content_response.status_code == status.HTTP_200_OK
+        export_content = ''.join(
+            line.decode() for line in export_content_response.streaming_content
+        )
+        assert synchronous_export_response.content.decode() == export_content
 

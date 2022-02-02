@@ -1,7 +1,8 @@
 # coding: utf-8
 import json
 import re
-from io import StringIO
+from io import StringIO, BytesIO
+from typing import Dict, Generator, Tuple, Optional
 
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
@@ -13,6 +14,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.mixins.export_object import ExportObjectMixin
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -120,6 +122,56 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
                 geo_question_name=geo_question_name,
             )
         )
+
+
+class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
+    format = 'xlsx'
+
+    def render(
+        self,
+        data: Dict,
+        media_type: Optional[str] = None,
+        renderer_context: Optional[Dict] = None,
+    ) -> BytesIO:
+        view = renderer_context['view']
+        # `self.user` required to check for valid (partial) permissions before
+        # allowing an export to succeed
+        self.user = view.request.user
+        self.data = data
+        export, submission_stream = self.get_export_object(
+            source=view.asset,
+            _async=False,
+        )
+        stream = BytesIO()
+        export.to_xlsx(stream, submission_stream)
+        stream.seek(0)
+        return stream
+
+
+class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
+    media_type = 'text/csv'
+    format = 'csv'
+
+    def render(
+        self,
+        data: Dict,
+        media_type: Optional[str] = None,
+        renderer_context: Optional[Dict] = None,
+    ) -> str:
+        view = renderer_context['view']
+        # `self.user` required to check for valid (partial) permissions before
+        # allowing an export to succeed
+        self.user = view.request.user
+        self.data = data
+        export, submission_stream = self.get_export_object(
+            source=view.asset,
+            _async=False,
+        )
+        stream = StringIO()
+        for line in export.to_csv(submission_stream):
+            stream.write(line + '\r\n')
+        return stream.getvalue()
 
 
 class SubmissionXMLRenderer(DRFXMLRenderer):

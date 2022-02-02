@@ -14,7 +14,7 @@ from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
@@ -213,18 +213,18 @@ class Asset(ObjectPermissionMixin,
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
-            (PERM_VIEW_ASSET, _('Can view asset')),
-            (PERM_DISCOVER_ASSET, _('Can discover asset in public lists')),
-            (PERM_MANAGE_ASSET, _('Can manage all aspects of asset')),
+            (PERM_VIEW_ASSET, t('Can view asset')),
+            (PERM_DISCOVER_ASSET, t('Can discover asset in public lists')),
+            (PERM_MANAGE_ASSET, t('Can manage all aspects of asset')),
             # Permissions for collected data, i.e. submissions
-            (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
-            (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on '
+            (PERM_ADD_SUBMISSIONS, t('Can submit data to asset')),
+            (PERM_VIEW_SUBMISSIONS, t('Can view submitted data for asset')),
+            (PERM_PARTIAL_SUBMISSIONS, t('Can make partial actions on '
                                          'submitted data for asset '
                                          'for specific users')),
-            (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
-            (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
-            (PERM_VALIDATE_SUBMISSIONS, _("Can validate submitted data asset")),
+            (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
+            (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
+            (PERM_VALIDATE_SUBMISSIONS, t("Can validate submitted data asset")),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -247,46 +247,46 @@ class Asset(ObjectPermissionMixin,
     # codename of the permission for which a label is being created
     ASSET_TYPE_LABELS_FOR_PERMISSIONS = {
         ASSET_TYPE_SURVEY: (
-            lambda p: _('project') if p == PERM_MANAGE_ASSET else _('form')
+            lambda p: t('project') if p == PERM_MANAGE_ASSET else t('form')
         ),
-        ASSET_TYPE_TEMPLATE: _('template'),
-        ASSET_TYPE_BLOCK: _('block'),
-        ASSET_TYPE_QUESTION: _('question'),
-        ASSET_TYPE_TEXT: _('text'),  # unused?
-        ASSET_TYPE_EMPTY: _('empty'),  # unused?
-        ASSET_TYPE_COLLECTION: _('collection'),
+        ASSET_TYPE_TEMPLATE: t('template'),
+        ASSET_TYPE_BLOCK: t('block'),
+        ASSET_TYPE_QUESTION: t('question'),
+        ASSET_TYPE_TEXT: t('text'),  # unused?
+        ASSET_TYPE_EMPTY: t('empty'),  # unused?
+        ASSET_TYPE_COLLECTION: t('collection'),
     }
 
     # Assignable permissions that are stored in the database.
     # The labels are templates used by `get_label_for_permission()`, which you
     # should call instead of accessing this dictionary directly
     ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
-        PERM_VIEW_ASSET: _('View ##asset_type_label##'),
-        PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
-        PERM_DISCOVER_ASSET: _('Discover ##asset_type_label##'),
-        PERM_MANAGE_ASSET: _('Manage ##asset_type_label##'),
-        PERM_ADD_SUBMISSIONS: _('Add submissions'),
-        PERM_VIEW_SUBMISSIONS: _('View submissions'),
+        PERM_VIEW_ASSET: t('View ##asset_type_label##'),
+        PERM_CHANGE_ASSET: t('Edit ##asset_type_label##'),
+        PERM_DISCOVER_ASSET: t('Discover ##asset_type_label##'),
+        PERM_MANAGE_ASSET: t('Manage ##asset_type_label##'),
+        PERM_ADD_SUBMISSIONS: t('Add submissions'),
+        PERM_VIEW_SUBMISSIONS: t('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: {
-            'default': _(
+            'default': t(
                 'Act on submissions only from specific users'
             ),
-            PERM_VIEW_SUBMISSIONS: _(
+            PERM_VIEW_SUBMISSIONS: t(
                 'View submissions only from specific users'
             ),
-            PERM_CHANGE_SUBMISSIONS: _(
+            PERM_CHANGE_SUBMISSIONS: t(
                 'Edit submissions only from specific users'
             ),
-            PERM_DELETE_SUBMISSIONS: _(
+            PERM_DELETE_SUBMISSIONS: t(
                 'Delete submissions only from specific users'
             ),
-            PERM_VALIDATE_SUBMISSIONS: _(
+            PERM_VALIDATE_SUBMISSIONS: t(
                 'Validate submissions only from specific users'
             ),
         },
-        PERM_CHANGE_SUBMISSIONS: _('Edit submissions'),
-        PERM_DELETE_SUBMISSIONS: _('Delete submissions'),
-        PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
+        PERM_CHANGE_SUBMISSIONS: t('Edit submissions'),
+        PERM_DELETE_SUBMISSIONS: t('Delete submissions'),
+        PERM_VALIDATE_SUBMISSIONS: t('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
     # Depending on our `asset_type`, only some permissions might be applicable
@@ -550,7 +550,7 @@ class Asset(ObjectPermissionMixin,
             not perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
             or perm == PERM_PARTIAL_SUBMISSIONS
         ):
-            raise BadPermissionsException(_('Only partial permissions for '
+            raise BadPermissionsException(t('Only partial permissions for '
                                             'submissions are supported'))
 
         perms = self.get_partial_perms(user_id, with_filters=True)
@@ -1097,11 +1097,11 @@ class Asset(ObjectPermissionMixin,
 
             if user.pk == self.owner.pk:
                 raise BadPermissionsException(
-                    _("Can not assign '{}' permission to owner".format(perm)))
+                    t("Can not assign '{}' permission to owner".format(perm)))
 
             if not partial_perms:
                 raise BadPermissionsException(
-                    _("Can not assign '{}' permission. "
+                    t("Can not assign '{}' permission. "
                       "Partial permissions are missing.".format(perm)))
 
             new_partial_perms = defaultdict(list)

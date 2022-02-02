@@ -112,28 +112,27 @@ export function getSectorDisplayString(asset: AssetResponse): string {
   return output
 }
 
-export function getCountryDisplayString(
-  asset: AssetResponse,
-  showLongName: boolean = false
-): string {
-  let output = '-'
-
-  if (asset.settings.country?.value) {
+export function getCountryDisplayString(asset: AssetResponse): string {
+  if (asset.settings.country) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
      * and thus prone to not be true (e.g. creating form in spanish UI language
      * and then switching to french would result in seeing spanish labels)
      */
-    const countryLabel = envStore.getCountryLabel(asset.settings.country.value)
-
-    if (showLongName && countryLabel !== undefined) {
-      output = countryLabel
+    let countries = [];
+    // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
+    if (Array.isArray(asset.settings.country)) {
+      for (let country of asset.settings.country) {
+        countries.push(envStore.getCountryLabel(country.value));
+      }
     } else {
-      output = asset.settings.country.value
+      countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
+    // TODO: improve for RTL?
+    return countries.join(', ');
+  } else {
+    return '-';
   }
-
-  return output
 }
 
 interface DisplayNameObj {

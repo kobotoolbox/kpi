@@ -9,6 +9,11 @@
     margin-bottom: 18px;
   }
 
+  .form-sidebar__label[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
   .form-sidebar__label--selected {
     border-left: 3px solid $kobo-teal;
   }
