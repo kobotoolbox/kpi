@@ -6,19 +6,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.hook.models.hook_log import HookLog
-from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
-from kpi.paginators import TinyPaginated
-from kpi.permissions import AssetEditorSubmissionViewerPermission
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-
 from kobo.apps.hook.constants import (
     HOOK_LOG_FAILED,
     HOOK_LOG_PENDING,
     HOOK_LOG_SUCCESS,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
 )
-VALID_STATUSES = [HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS]
+from kobo.apps.hook.models.hook_log import HookLog
+from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
+from kpi.paginators import TinyPaginated
+from kpi.permissions import AssetEditorSubmissionViewerPermission
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
@@ -86,6 +84,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     serializer_class = HookLogSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     pagination_class = TinyPaginated
+    VALID_STATUSES = [HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS]
 
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get("hook")
@@ -100,10 +99,10 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # Filter on status
         status = self.request.GET.get('status')
         if status is not None:
-            if status not in map(str,VALID_STATUSES):
+            if status not in map(str,self.VALID_STATUSES):
                 raise serializers.ValidationError(
                     {'status': _('Value must be one of: ' +
-                                 ', '.join(map(str,VALID_STATUSES)))}
+                                 ', '.join(map(str,self.VALID_STATUSES)))}
                 )
             else:
                 queryset = queryset.filter(status=status)
