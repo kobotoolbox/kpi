@@ -7,10 +7,11 @@ import TextBox from 'js/components/common/textBox'
 import mfaActions, {
   mfaActivatedResponse,
   mfaBackupCodesResponse,
-  mfaErrorResponse,
 } from 'js/actions/mfaActions'
 
-bem.MFAModals = makeBem(null, 'mfa-setup')
+import './mfaModals.scss'
+
+bem.MFAModals = makeBem(null, 'mfa-modal')
 bem.MFAModals__qrstep = makeBem(bem.MFAModals, 'qrstep')
 bem.MFAModals__backupstep = makeBem(bem.MFAModals, 'backupstep')
 bem.MFAModals__manualstep = makeBem(bem.MFAModals, 'manualstep')
@@ -22,7 +23,6 @@ bem.MFAModals__description = makeBem(bem.MFAModals, 'description')
 bem.MFAModals__body = makeBem(bem.MFAModals, 'body')
 bem.MFAModals__qr = makeBem(bem.MFAModals, 'qr')
 bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
-bem.MFAModals__token__input = makeBem(bem.MFAModals__token, 'token__input', 'input')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
 bem.MFAModals__manual__link = makeBem(bem.MFAModals__token, 'manual__link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
@@ -184,6 +184,7 @@ export default class MFAModals extends React.Component<
   }
 
   isTokenValid(): boolean {
+    console.log(this.state.inputString)
     return this.state.inputString !== null && this.state.inputString.length === 6
   }
 
@@ -217,7 +218,10 @@ export default class MFAModals extends React.Component<
 
         <bem.MFAModals__body>
           <bem.MFAModals__qr>
-            <QRCode value={this.state.qrCode || ''}/>
+            <QRCode
+              value={this.state.qrCode || ''}
+              size={240}
+            />
           </bem.MFAModals__qr>
 
           <bem.MFAModals__token>
@@ -231,6 +235,7 @@ export default class MFAModals extends React.Component<
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              customModifiers={'on-white'}
             />
             <bem.MFAModals__manual>
               {t('No QR code?')}
@@ -362,9 +367,11 @@ export default class MFAModals extends React.Component<
               )}
             </strong>
 
-            <bem.MFAModals__token__input
-              type='text'
+            <TextBox
+              errors={this.state.errorText}
+              value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              customModifiers={'on-white'}
             />
           </bem.MFAModals__token>
         </bem.MFAModals__body>

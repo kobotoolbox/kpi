@@ -1,0 +1,61 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
+// Standardization overrides
+.modal {
+  width: 570px;
+  height: 500px;
+}
+
+.modal-body {
+  overflow: none;
+}
+
+.table-media-preview-header__title {
+  font-size: sizes.$x18;
+}
+
+.mfa-modal {
+  padding: 0 32px;
+}
+
+// Individual steps separeted out from parent for readability
+.mfa-modal__qrstep {
+  .mfa-modal__body {
+    display: flex;
+    justify-content: space-between;
+    padding: sizes.$x24 0;
+
+    .mfa-modal__qr {
+      flex: 20;
+
+      canvas {
+        padding: sizes.$x24;
+        border: sizes.$x1 solid;
+        border-radius: 5%;
+        border-color: colors.$kobo-gray-85;
+      }
+    }
+
+    .mfa-modal__token {
+      flex: 23;
+      display: grid;
+    }
+
+  }
+
+  .mfa-modal__footer {
+    display: flex;
+    justify-content: space-between;
+
+    .mfa-modal__footer-left {
+      width: 40%;
+    }
+
+    .mfa-modal__footer-right {
+      width: 40%;
+      margin-left: auto;
+      order: 2;
+    }
+  }
+}
