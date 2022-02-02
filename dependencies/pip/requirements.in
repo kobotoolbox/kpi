@@ -63,7 +63,6 @@ lxml
 oauthlib
 #py-gfm # Incompatible with markdown 3.x
 psycopg2
-pydub
 pymongo
 python-dateutil
 pytz
