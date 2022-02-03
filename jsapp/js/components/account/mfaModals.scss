@@ -34,6 +34,10 @@
       display: grid;
     }
   }
+
+  .mfa-modal__manual__link {
+    cursor: pointer;
+  }
 }
 
 .mfa-modal__codes {
@@ -95,6 +99,6 @@
 
 .mfa-modal__tokenstep {
   .text-box__input {
-    margin: 114px 0 !important;
+    margin: 112px 0 !important;
   }
 }

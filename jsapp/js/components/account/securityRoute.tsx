@@ -79,6 +79,7 @@ export default class Security extends React.Component<
         qrCode: response.details,
         modalType: 'qr',
         customModalHeader: this.renderCustomHeader(),
+        disableBackdrop: true,
       })
     }
   }
@@ -99,6 +100,7 @@ export default class Security extends React.Component<
         type: MODAL_TYPES.MFA_MODALS,
         modalType: 'deactivate',
         customModalHeader: this.renderCustomHeader(),
+        disableBackdrop: true,
       })
     }
   }
@@ -159,6 +161,7 @@ export default class Security extends React.Component<
                       type: MODAL_TYPES.MFA_MODALS,
                       modalType: 'reconfigure',
                       customModalHeader: this.renderCustomHeader(),
+                      disableBackdrop: true,
                     })
                   }}
                 />
@@ -181,6 +184,7 @@ export default class Security extends React.Component<
                       type: MODAL_TYPES.MFA_MODALS,
                       modalType: 'regenerate',
                       customModalHeader: this.renderCustomHeader(),
+                      disableBackdrop: true,
                     })
                   }}
                 />

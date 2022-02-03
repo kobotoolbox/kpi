@@ -118,7 +118,6 @@ export default class MFAModals extends React.Component<
   mfaDeactivated() {
     if (this.props.modalType === 'reconfigure') {
       mfaActions.activate(true)
-      console.log('good so far')
     } else {
       this.closeModal()
     }
@@ -188,7 +187,6 @@ export default class MFAModals extends React.Component<
   }
 
   isTokenValid(): boolean {
-    console.log(this.state.inputString)
     return this.state.inputString !== null && this.state.inputString.length === 6
   }
 
@@ -209,8 +207,16 @@ export default class MFAModals extends React.Component<
 
       document.body.appendChild(codesLink)
       codesLink.click()
+
       this.setState({downloadClicked: true})
     }
+  }
+
+  // HACK FIX: since the header is seperate from the modal we do this
+  // roundabout way of disabling the close icon
+  disableCloseIcon() {
+    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement
+    closeIcon.hidden = true
   }
 
   renderQRCodeStep() {
@@ -275,6 +281,8 @@ export default class MFAModals extends React.Component<
   }
 
   renderBackupStep() {
+    this.disableCloseIcon()
+
     return(
       <bem.MFAModals__backupstep>
         <bem.MFAModals__description>
