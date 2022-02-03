@@ -5,11 +5,11 @@ import './processingBody.scss'
 bem.ProcessingBody = makeBem(null, 'processing-body')
 
 // For both transcripts and translations.
-bem.ProcessingBody__transHeader = makeBem(bem.ProcessingBody, 'trans-header', 'header')
-bem.ProcessingBody__transHeaderLanguage = makeBem(bem.ProcessingBody, 'trans-header-language', 'label')
-bem.ProcessingBody__transHeaderLanguageWrapper = makeBem(bem.ProcessingBody, 'trans-header-language-wrapper')
-bem.ProcessingBody__transHeaderDate = makeBem(bem.ProcessingBody, 'trans-header-date', 'time')
-bem.ProcessingBody__transHeaderButtons = makeBem(bem.ProcessingBody, 'trans-header-buttons', 'nav')
+bem.ProcessingBody__transxHeader = makeBem(bem.ProcessingBody, 'transx-header', 'header')
+bem.ProcessingBody__transxHeaderLanguage = makeBem(bem.ProcessingBody, 'transx-header-language', 'label')
+bem.ProcessingBody__transxHeaderLanguageWrapper = makeBem(bem.ProcessingBody, 'transx-header-language-wrapper')
+bem.ProcessingBody__transxHeaderDate = makeBem(bem.ProcessingBody, 'transx-header-date', 'time')
+bem.ProcessingBody__transxHeaderButtons = makeBem(bem.ProcessingBody, 'transx-header-buttons', 'nav')
 
 bem.ProcessingBody__footer = makeBem(bem.ProcessingBody, 'footer', 'footer')
 bem.ProcessingBody__footerRightButtons = makeBem(bem.ProcessingBody, 'footer-right-buttons')

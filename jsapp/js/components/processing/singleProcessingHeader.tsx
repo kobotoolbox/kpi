@@ -27,7 +27,10 @@ type SingleProcessingHeaderProps = {
   assetContent: AssetContent
 }
 
-/** Component with the question and UI for switching between submissions */
+/**
+ * Component with the current question label and the UI for switching between
+ * submissions.
+ */
 export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps,
   {}
@@ -101,7 +104,7 @@ export default class SingleProcessingHeader extends React.Component<
     hashHistory.push(newRoute)
   }
 
-  /** Goes to another submission */
+  /** Goes to another submission. */
   goToSubmission(questionName: string, targetSubmissionUuid: string) {
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
@@ -137,8 +140,9 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Looks for closest previous submissionUuid that has data. It omits all `null`s
-   * in submissionsUuids array. Returns `null` if there is no such submissionUuid.
+   * Looks for closest previous submissionUuid that has data - i.e. it omits all
+   * `null`s in `submissionsUuids` array. If there is no such `submissionUuid`
+   * found, simply returns `null`.
    */
   getPrevSubmissionUuid(): string | null {
     const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
@@ -147,7 +151,8 @@ export default class SingleProcessingHeader extends React.Component<
     }
     const currentIndex = uuids.indexOf(this.props.submissionUuid)
 
-    // If not found current submissionUuid in the array, we don't know what is next.
+    // If not found current submissionUuid in the array,
+    // we don't know what is next.
     if (currentIndex === -1) {
       return null
     }
@@ -156,7 +161,8 @@ export default class SingleProcessingHeader extends React.Component<
       return null
     }
 
-    // Finds the closest non-null submissionUuid going backwards from current one.
+    // Finds the closest non-`null` submissionUuid going backwards from
+    // the current one.
     const leftSubmissionsIds = uuids.slice(0, currentIndex)
     let foundId: string | null = null
     leftSubmissionsIds.forEach((id) => {
@@ -169,8 +175,9 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Looks for closest next submissionUuid that has data. It omits all `null`s
-   * in submissionsUuids array. Returns `null` if there is no such submissionUuid.
+   * Looks for closest next submissionUuid that has data - i.e. it omits all
+   * `null`s in `submissionsUuids` array. If there is no such `submissionUuid`
+   * found, simply returns `null`.
    */
   getNextSubmissionUuid(): string | null {
     const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
@@ -179,7 +186,8 @@ export default class SingleProcessingHeader extends React.Component<
     }
     const currentIndex = uuids.indexOf(this.props.submissionUuid)
 
-    // If not found current submissionUuid in the array, we don't know what is next.
+    // If not found current submissionUuid in the array,
+    // we don't know what is next.
     if (currentIndex === -1) {
       return null
     }
@@ -188,7 +196,8 @@ export default class SingleProcessingHeader extends React.Component<
       return null
     }
 
-    // Finds the closest non-null submissionUuid going forwards from current one.
+    // Finds the closest non-`null` submissionUuid going forwards from
+    // the current one.
     const rightSubmissionsIds = uuids.slice(currentIndex + 1)
     let foundId: string | null = null
     rightSubmissionsIds.find((id) => {

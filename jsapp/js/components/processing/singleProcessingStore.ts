@@ -22,18 +22,12 @@ export enum SingleProcessingTabs {
   Analysis,
 }
 
-export interface Transcript {
+/** Shared interface for transcript and translations. */
+export interface Transx {
   value: string
   languageCode: string
   dateCreated: string
   dateModified: string
-}
-
-export interface Translation {
-  value: string
-  languageCode: string
-  dateModified: string
-  dateCreated: string
 }
 
 /** Transcript or translation draft. */
@@ -59,9 +53,9 @@ interface SubmissionsUuids {
 }
 
 interface SingleProcessingStoreData {
-  transcript?: Transcript
+  transcript?: Transx
   transcriptDraft?: TransxDraft
-  translations: Translation[]
+  translations: Transx[]
   translationDraft?: TransxDraft
   /** Being displayed on the left side of the screen during translation editing. */
   source?: string
@@ -146,14 +140,6 @@ class SingleProcessingStore extends Reflux.Store {
     // immediately and also listen to asset loads.
     this.startupStore()
 
-    // TODO: we can't listen to asset loads like this, as they will happen when
-    // enabling a new language with setTranslation (and every time
-    // fetchAllInitialDataForAsset is being called)
-    //
-    // 1. We should initialize the asset data somehow
-    // 2. we should rely on processingActions.activateAsset for asset activation
-    //
-
     // This comes back with data after `processingActions.activateAsset` call.
     assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this))
   }
@@ -208,7 +194,7 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private fetchAllInitialDataForAsset() {
     // JUST A NOTE: we don't need to load asset ourselves, as it is already
-    // taken care of in PermProtectedRoute. It can happen so that this method
+    // taken care of in `PermProtectedRoute`. It can happen so that this method
     // is being called sooner than the mentioned component does its thing.
     const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid))
 
@@ -281,7 +267,10 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  /** NOTE: We only need to call this once for given asset. */
+  /**
+   * NOTE: We only need to call this once for given asset. We assume that while
+   * processing view is opened, submissions will not be deleted or added.
+   */
   private fetchUuids(): void {
     this.areUuidsLoaded = false
     this.data.submissionsUuids = undefined
@@ -310,7 +299,9 @@ class SingleProcessingStore extends Reflux.Store {
     )
   }
 
-  private onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
+  private onGetProcessingSubmissionsCompleted(
+    response: GetProcessingSubmissionsResponse
+  ) {
     const submissionsUuids: SubmissionsUuids = {}
     const processingRows = getAssetProcessingRows(this.currentAssetUid)
 
@@ -370,7 +361,7 @@ class SingleProcessingStore extends Reflux.Store {
     const transcriptResponse = response[this.currentQuestionName]?.transcript
     const translationsResponse = response[this.currentQuestionName]?.translated
 
-    const translationsArray: Translation[] = []
+    const translationsArray: Transx[] = []
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: string) => {
         const translation = translationsResponse[languageCode]
@@ -420,7 +411,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  private onSetTranslationCompleted(newTranslations: Translation[]) {
+  private onSetTranslationCompleted(newTranslations: Transx[]) {
     this.isFetchingData = false
     this.data.translations = newTranslations
     // discard draft after saving (exit the editor)
@@ -428,7 +419,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  private onDeleteTranslationCompleted(newTranslations: Translation[]) {
+  private onDeleteTranslationCompleted(newTranslations: Transx[]) {
     // TODO check if the data is ok here
     console.log('onDeleteTranslationCompleted', newTranslations)
     this.isFetchingData = false
@@ -447,7 +438,7 @@ class SingleProcessingStore extends Reflux.Store {
       sources.push(this.data.transcript?.languageCode)
     }
 
-    this.data.translations.forEach((translation: Translation) => {
+    this.data.translations.forEach((translation: Transx) => {
       if (translation.languageCode !== this.data.translationDraft?.languageCode) {
         sources.push(translation.languageCode)
       }
@@ -456,14 +447,13 @@ class SingleProcessingStore extends Reflux.Store {
     return sources
   }
 
-  /** Sets a new source (stores a `languageCode`). */
-  setSource(newSource: string) {
-    this.data.source = newSource
+  setSource(languageCode: string) {
+    this.data.source = languageCode
     this.trigger(this.data)
   }
 
   /** Returns whole transcript/translation for selected source. */
-  getSourceData(): Transcript | Translation | undefined {
+  getSourceData(): Transx | undefined {
     if (!this.data.source) {
       return undefined
     }
@@ -483,7 +473,7 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcript
   }
 
-  setTranscript(newTranscript: Transcript | undefined) {
+  setTranscript(newTranscript: Transx | undefined) {
     this.isFetchingData = true
 
     const transcript = this.getTranscript()
@@ -530,7 +520,7 @@ class SingleProcessingStore extends Reflux.Store {
    */
   setTranslation(
     newTranslationLanguageCode: string,
-    newTranslation: Translation | undefined
+    newTranslation: Transx | undefined
   ) {
     this.isFetchingData = true
 

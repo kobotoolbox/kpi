@@ -6,7 +6,7 @@ import {formatTime} from 'js/utils'
 import {AnyRowTypeName} from 'js/constants'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
-import languageSelectorActions from 'js/components/languages/languageSelectorActions';
+import languageSelectorActions from 'js/components/languages/languageSelectorActions'
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
 
@@ -149,15 +149,15 @@ export default class TranscriptTabContent extends React.Component<
       <React.Fragment>
         <div>
           {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
+          <bem.ProcessingBody__transxHeaderLanguage>
             {envStore.getLanguageDisplayLabel(valueLanguageCode)}
-          </bem.ProcessingBody__transHeaderLanguage>
+          </bem.ProcessingBody__transxHeaderLanguage>
         </div>
 
         {dateText !== '' &&
-          <bem.ProcessingBody__transHeaderDate>
+          <bem.ProcessingBody__transxHeaderDate>
             {dateText}
-          </bem.ProcessingBody__transHeaderDate>
+          </bem.ProcessingBody__transxHeaderDate>
         }
       </React.Fragment>
     )
@@ -241,10 +241,10 @@ export default class TranscriptTabContent extends React.Component<
 
     return (
       <bem.ProcessingBody>
-        <bem.ProcessingBody__transHeader>
+        <bem.ProcessingBody__transxHeader>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transHeaderButtons>
+          <bem.ProcessingBody__transxHeaderButtons>
             <Button
               type='frame'
               color='blue'
@@ -263,8 +263,8 @@ export default class TranscriptTabContent extends React.Component<
               isPending={singleProcessingStore.isFetchingData}
               isDisabled={!singleProcessingStore.hasUnsavedTranscriptDraftValue()}
             />
-          </bem.ProcessingBody__transHeaderButtons>
-        </bem.ProcessingBody__transHeader>
+          </bem.ProcessingBody__transxHeaderButtons>
+        </bem.ProcessingBody__transxHeader>
 
         <bem.ProcessingBody__textarea
           value={draft?.value}
@@ -278,10 +278,10 @@ export default class TranscriptTabContent extends React.Component<
   renderStepViewer() {
     return (
       <bem.ProcessingBody>
-        <bem.ProcessingBody__transHeader>
+        <bem.ProcessingBody__transxHeader>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transHeaderButtons>
+          <bem.ProcessingBody__transxHeaderButtons>
             <Button
               type='bare'
               color='storm'
@@ -301,8 +301,8 @@ export default class TranscriptTabContent extends React.Component<
               tooltip={t('Delete')}
               isPending={singleProcessingStore.isFetchingData}
             />
-          </bem.ProcessingBody__transHeaderButtons>
-        </bem.ProcessingBody__transHeader>
+          </bem.ProcessingBody__transxHeaderButtons>
+        </bem.ProcessingBody__transxHeader>
 
         <bem.ProcessingBody__text>
           {singleProcessingStore.getTranscript()?.value}

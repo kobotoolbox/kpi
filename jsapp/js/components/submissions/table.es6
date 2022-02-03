@@ -1,5 +1,3 @@
-// NLP TODO: use _supplementalDetails to generate new columns with transcript and translations for given question
-
 import React from 'react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';

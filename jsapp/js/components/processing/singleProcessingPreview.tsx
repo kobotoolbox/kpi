@@ -52,9 +52,9 @@ export default class SingleProcessingPreview extends React.Component {
         {this.renderLanguage()}
 
         {dateText !== '' &&
-          <bem.ProcessingBody__transHeaderDate>
+          <bem.ProcessingBody__transxHeaderDate>
             {dateText}
-          </bem.ProcessingBody__transHeaderDate>
+          </bem.ProcessingBody__transxHeaderDate>
         }
       </React.Fragment>
     )
@@ -72,12 +72,12 @@ export default class SingleProcessingPreview extends React.Component {
     // If there is only one source, we display it as a text.
     if (sources.length === 1) {
       return (
-        <bem.ProcessingBody__transHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
+          <bem.ProcessingBody__transxHeaderLanguage>
             {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
-          </bem.ProcessingBody__transHeaderLanguage>
-        </bem.ProcessingBody__transHeaderLanguageWrapper>
+          </bem.ProcessingBody__transxHeaderLanguage>
+        </bem.ProcessingBody__transxHeaderLanguageWrapper>
       )
     }
 
@@ -92,9 +92,9 @@ export default class SingleProcessingPreview extends React.Component {
 
       // TODO: don't use Select because of styles issues, use KoboSelect
       return (
-        <bem.ProcessingBody__transHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
+          <bem.ProcessingBody__transxHeaderLanguage>
             <KoboSelect
               name='single-processing-preview-language-switcher'
               type='blue'
@@ -105,8 +105,8 @@ export default class SingleProcessingPreview extends React.Component {
                 singleProcessingStore.setSource(newSelectedOption)
               }}
             />
-          </bem.ProcessingBody__transHeaderLanguage>
-        </bem.ProcessingBody__transHeaderLanguageWrapper>
+          </bem.ProcessingBody__transxHeaderLanguage>
+        </bem.ProcessingBody__transxHeaderLanguageWrapper>
       )
     }
 
@@ -123,9 +123,9 @@ export default class SingleProcessingPreview extends React.Component {
       return (
         <bem.SingleProcessingPreview>
           <bem.ProcessingBody>
-            <bem.ProcessingBody__transHeader>
+            <bem.ProcessingBody__transxHeader>
               {this.renderLanguageAndDate()}
-            </bem.ProcessingBody__transHeader>
+            </bem.ProcessingBody__transxHeader>
 
             <bem.ProcessingBody__text>
               {singleProcessingStore.getSourceData()?.value}

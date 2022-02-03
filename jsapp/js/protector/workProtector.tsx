@@ -6,7 +6,7 @@ import {UNSAVED_CHANGES_WARNING} from 'js/protector/protectorConstants'
 type TranslationsTabContentProps = {
   /**
    * This is a generic component, so it can't be hold responsible for any
-   * protection logic.
+   * protection logic - it needs to come from the outside.
    */
   shouldProtect: boolean
   /** A `this.props.route` from a route component. */
@@ -14,8 +14,6 @@ type TranslationsTabContentProps = {
   /** A `this.props.router` from a route component. */
   router: InjectedRouter
 }
-
-type TranslationsTabContentState = {}
 
 /**
  * A generic component to be used with router components to avoid losing unsaved
@@ -25,14 +23,10 @@ type TranslationsTabContentState = {}
  */
 export default class WorkProtector extends React.Component<
   TranslationsTabContentProps,
-  TranslationsTabContentState
+  {}
 > {
   private removeRouterLeaveHook?: Function
   private onBeforeUnloadBound = this.onBeforeUnload.bind(this)
-
-  constructor(props: TranslationsTabContentProps) {
-    super(props)
-  }
 
   componentDidMount() {
     // This listens to react router changing routes.
@@ -77,6 +71,11 @@ export default class WorkProtector extends React.Component<
     dialog.set(opts).show()
   }
 
+  /**
+   * We want this to not render anything, but still be mountable by other
+   * components - the reason is that it is simpler to pass props to such
+   * non-renderable component than any other way.
+   */
   render() {
     return null
   }

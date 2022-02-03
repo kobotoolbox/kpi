@@ -3,9 +3,9 @@ import clonedeep from 'lodash.clonedeep'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import bem from 'js/bem'
-import singleProcessingStore, {Translation} from 'js/components/processing/singleProcessingStore'
+import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
-import languageSelectorActions from 'js/components/languages/languageSelectorActions';
+import languageSelectorActions from 'js/components/languages/languageSelectorActions'
 import Button from 'js/components/common/button'
 import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
 import 'js/components/processing/processingBody'
@@ -28,7 +28,7 @@ export default class TranslationsTabContent extends React.Component<
 
     // We want to always have a translation selected when there is at least one
     // so we preselect it on the initialization.
-    let selected;
+    let selected
     const storedTranslations = singleProcessingStore.getTranslations()
     if (storedTranslations.length >= 1) {
       selected = storedTranslations[0].languageCode
@@ -73,7 +73,7 @@ export default class TranslationsTabContent extends React.Component<
     ) {
       // We want to always have a translation selected when there is at least one
       // so we preselect it on the initialization.
-      let selected;
+      let selected
       const storedTranslations = singleProcessingStore.getTranslations()
       if (storedTranslations.length >= 1) {
         selected = storedTranslations[0].languageCode
@@ -208,7 +208,7 @@ export default class TranslationsTabContent extends React.Component<
   getTranslationsLanguages() {
     const translations = singleProcessingStore.getTranslations()
     const languages: string[] = []
-    translations.forEach((translation: Translation) => {
+    translations.forEach((translation) => {
       languages.push(translation.languageCode)
     })
     return languages
@@ -231,9 +231,9 @@ export default class TranslationsTabContent extends React.Component<
         {this.renderLanguage()}
 
         {dateText !== '' &&
-          <bem.ProcessingBody__transHeaderDate>
+          <bem.ProcessingBody__transxHeaderDate>
             {dateText}
-          </bem.ProcessingBody__transHeaderDate>
+          </bem.ProcessingBody__transxHeaderDate>
         }
       </React.Fragment>
     )
@@ -246,12 +246,12 @@ export default class TranslationsTabContent extends React.Component<
     // When editing we want to display just a text
     if (draft?.languageCode) {
       return (
-        <bem.ProcessingBody__transHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
+          <bem.ProcessingBody__transxHeaderLanguage>
             {envStore.getLanguageDisplayLabel(draft.languageCode)}
-          </bem.ProcessingBody__transHeaderLanguage>
-        </bem.ProcessingBody__transHeaderLanguageWrapper>
+          </bem.ProcessingBody__transxHeaderLanguage>
+        </bem.ProcessingBody__transxHeaderLanguageWrapper>
       )
     }
 
@@ -260,12 +260,12 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing the only translation we want to display just a text
     if (!draft && translations.length === 1) {
       return (
-        <bem.ProcessingBody__transHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
+          <bem.ProcessingBody__transxHeaderLanguage>
             {envStore.getLanguageDisplayLabel(translations[0].languageCode)}
-          </bem.ProcessingBody__transHeaderLanguage>
-        </bem.ProcessingBody__transHeaderLanguageWrapper>
+          </bem.ProcessingBody__transxHeaderLanguage>
+        </bem.ProcessingBody__transxHeaderLanguageWrapper>
       )
     }
 
@@ -273,7 +273,7 @@ export default class TranslationsTabContent extends React.Component<
     // other translation.
     if (!draft && translations.length >= 2) {
       const selectOptions: KoboSelectOption[] = []
-      translations.forEach((translation: Translation) => {
+      translations.forEach((translation) => {
         selectOptions.push({
           id: translation.languageCode,
           label: envStore.getLanguageDisplayLabel(translation.languageCode)
@@ -282,9 +282,9 @@ export default class TranslationsTabContent extends React.Component<
 
       // TODO: don't use Select because of styles issues, use KoboSelect
       return (
-        <bem.ProcessingBody__transHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
+          <bem.ProcessingBody__transxHeaderLanguage>
             <KoboSelect
               name='translation-header-language-switcher'
               type='blue'
@@ -295,8 +295,8 @@ export default class TranslationsTabContent extends React.Component<
                 this.selectTranslation(newSelectedOption)
               }}
             />
-          </bem.ProcessingBody__transHeaderLanguage>
-        </bem.ProcessingBody__transHeaderLanguageWrapper>
+          </bem.ProcessingBody__transxHeaderLanguage>
+        </bem.ProcessingBody__transxHeaderLanguageWrapper>
       )
     }
 
@@ -377,10 +377,10 @@ export default class TranslationsTabContent extends React.Component<
 
     return (
       <bem.ProcessingBody>
-        <bem.ProcessingBody__transHeader>
+        <bem.ProcessingBody__transxHeader>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transHeaderButtons>
+          <bem.ProcessingBody__transxHeaderButtons>
             <Button
               type='frame'
               color='blue'
@@ -399,8 +399,8 @@ export default class TranslationsTabContent extends React.Component<
               isPending={singleProcessingStore.isFetchingData}
               isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftValue()}
             />
-          </bem.ProcessingBody__transHeaderButtons>
-        </bem.ProcessingBody__transHeader>
+          </bem.ProcessingBody__transxHeaderButtons>
+        </bem.ProcessingBody__transxHeader>
 
         <bem.ProcessingBody__textarea
           value={draft?.value}
@@ -419,10 +419,10 @@ export default class TranslationsTabContent extends React.Component<
 
     return (
       <bem.ProcessingBody>
-        <bem.ProcessingBody__transHeader>
+        <bem.ProcessingBody__transxHeader>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transHeaderButtons>
+          <bem.ProcessingBody__transxHeaderButtons>
             <Button
               type='frame'
               color='storm'
@@ -452,8 +452,8 @@ export default class TranslationsTabContent extends React.Component<
               tooltip={t('Delete')}
               isPending={singleProcessingStore.isFetchingData}
             />
-          </bem.ProcessingBody__transHeaderButtons>
-        </bem.ProcessingBody__transHeader>
+          </bem.ProcessingBody__transxHeaderButtons>
+        </bem.ProcessingBody__transxHeader>
 
         <bem.ProcessingBody__text>
           {singleProcessingStore.getTranslation(this.state.selectedTranslation)?.value}

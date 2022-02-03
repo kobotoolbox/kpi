@@ -1,10 +1,6 @@
-// TODO
-// 1. we need to activate translated language before we create a translation - this will require making one call before the other
-// 3. handle deleting translations (unactivate language? or dont care?)
-
 import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
-import clonedeep from 'lodash.clonedeep';
+import clonedeep from 'lodash.clonedeep'
 import {actions} from 'js/actions'
 import {
   getAssetAdvancedFeatures,
@@ -323,6 +319,7 @@ processingActions.deleteTranslation.listen((
   languageCode: string
 ) => {
   // TODO update code when DELETE is supported on the endpoint
+  // TODO2 see if we need to delete/unactivate the language when deleting translation
 
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
