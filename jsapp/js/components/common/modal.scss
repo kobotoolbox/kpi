@@ -372,6 +372,10 @@ $z-modal-x: 10;
 }
 
 .modal.modal-mfa-setup {
+  // FIXME: Fixed size for standardization
+  width: 570px;
+  height: 500px;
+
   .modal__header {
     background-color: colors.$kobo-white;
     font-size: 24px;
@@ -383,6 +387,8 @@ $z-modal-x: 10;
     }
   }
   .modal__body {
+    overflow: hidden;
+
     .mfa-setup {
       padding: 0 32px 32px 32px;
       margin: auto;

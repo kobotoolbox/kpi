@@ -16,6 +16,7 @@ bem.MFAModals__qrstep = makeBem(bem.MFAModals, 'qrstep')
 bem.MFAModals__backupstep = makeBem(bem.MFAModals, 'backupstep')
 bem.MFAModals__manualstep = makeBem(bem.MFAModals, 'manualstep')
 bem.MFAModals__tokenstep = makeBem(bem.MFAModals, 'tokenstep')
+bem.MFAModals__disclaimerstep = makeBem(bem.MFAModals, 'disclaimerstep')
 
 bem.MFAModals__title = makeBem(bem.MFAModals, 'title', 'h4')
 bem.MFAModals__description = makeBem(bem.MFAModals, 'description')
@@ -26,7 +27,8 @@ bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
 bem.MFAModals__manual__link = makeBem(bem.MFAModals__token, 'manual__link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
-bem.MFAModals__codes__item = makeBem(bem.MFAModals__codes, 'item', 'strong')
+bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'item', 'ul')
+bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
 bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
@@ -157,6 +159,8 @@ export default class MFAModals extends React.Component<
 
 
   handleTokenSubmit() {
+    this.setState({inputString: ''})
+
     switch(this.props.modalType) {
       case 'regenerate':
         this.mfaRegenerate()
@@ -280,13 +284,17 @@ export default class MFAModals extends React.Component<
         <bem.MFAModals__body>
           {this.state.backupCodes &&
             <bem.MFAModals__codes>
-              {this.state.backupCodes.map((t) => {
-                return (
-                  <bem.MFAModals__codes__item>
-                    {t}
-                  </bem.MFAModals__codes__item>
-                )
-              })}
+              <bem.MFAModals__list>
+                {this.state.backupCodes.map((t) => {
+                  return (
+                    <bem.MFAModals__list__item>
+                      <strong>
+                        {t}
+                      </strong>
+                    </bem.MFAModals__list__item>
+                  )
+                })}
+              </bem.MFAModals__list>
             </bem.MFAModals__codes>
           }
         </bem.MFAModals__body>
@@ -397,7 +405,9 @@ export default class MFAModals extends React.Component<
 
   renderDisclaimerStep() {
     return (
-      <bem.MFAModals__tokenstep>
+      <bem.MFAModals__disclaimerstep
+        m={this.props.modalType === 'regenerate' ? 'regenerate' : ''}
+      >
         <bem.MFAModals__body>
           <strong>
             {/*This is safe as this step only shows if on reconfigure or regenerate*/}
@@ -432,7 +442,7 @@ export default class MFAModals extends React.Component<
             />
           </bem.MFAModals__footer__right>
         </bem.MFAModals__footer>
-      </bem.MFAModals__tokenstep>
+      </bem.MFAModals__disclaimerstep>
     )
   }
 
