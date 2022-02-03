@@ -27,7 +27,9 @@ class KobocatFileSystemStorage(FileSystemStorage):
         file_permissions_mode=None,
         directory_permissions_mode=None,
     ):
-        location = django_settings.KOBOCAT_MEDIA_PATH if not location else location
+        location = (
+            django_settings.KOBOCAT_MEDIA_PATH if not location else location
+        )
         super().__init__(
             location=location,
             base_url=base_url,
