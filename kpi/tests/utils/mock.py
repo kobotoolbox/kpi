@@ -1,14 +1,15 @@
 # coding: utf-8
 import os
-from tempfile import NamedTemporaryFile
 from mimetypes import guess_type
+from tempfile import NamedTemporaryFile
+from typing import Optional
 
 from django.core.files import File
 
-from kpi.mixins.audio_converter import AudioConverterMixin
+from kpi.mixins.mp3_converter import MP3ConverterMixin
 
 
-class MockAttachment(AudioConverterMixin):
+class MockAttachment(MP3ConverterMixin):
     """
     Mock object to simulate ReadOnlyKobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
@@ -22,14 +23,14 @@ class MockAttachment(AudioConverterMixin):
         self.media_file.close()
 
     @property
-    def path(self):
+    def absolute_path(self):
         return self.media_file.path
 
-    def protected_path(self, format_):
+    def protected_path(self, format_: Optional[str] = None):
         if format_ == self.CONVERSION_AUDIO_FORMAT:
             suffix = f'.{self.CONVERSION_AUDIO_FORMAT}'
             with NamedTemporaryFile(suffix=suffix) as f:
-                self.content = self.get_converted_audio(self.path)
+                self.content = self.get_mp3_content()
             return f.name
         else:
-            return self.path
+            return self.absolute_path

@@ -110,8 +110,8 @@ class AttachmentViewSet(
             }, 'not_supported_format')
 
         # If unit tests are running, pytest webserver does not support
-        # `X-Accel-Redirect` header (or ignores it). We need to pass
-        # the content of the Response object
+        # `X-Accel-Redirect` header (or ignores it?). We need to pass
+        # the content to the Response object
         if settings.TESTING:
             # setting the content type to `None` here allows the renderer to
             # specify the content type for the response
