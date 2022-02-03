@@ -36,6 +36,8 @@ botocore==1.13.15
     # via
     #   boto3
     #   s3transfer
+cachetools==5.0.0
+    # via google-auth
 celery[redis]==4.3.0
     # via -r dependencies/pip/requirements.in
 certifi==2019.9.11
@@ -48,6 +50,8 @@ cryptography==2.8
     # via pyopenssl
 cssselect==1.1.0
     # via pyquery
+decorator==4.4.2
+    # via moviepy
 deepmerge==0.3.0
     # via -r dependencies/pip/requirements.in
 defusedxml==0.6.0
@@ -138,8 +142,42 @@ geojson-rewind==0.2.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+google-api-core[grpc]==2.5.0
+    # via
+    #   google-cloud-core
+    #   google-cloud-speech
+    #   google-cloud-storage
+google-auth==2.6.0
+    # via
+    #   google-api-core
+    #   google-cloud-core
+    #   google-cloud-storage
+google-cloud-core==2.2.2
+    # via google-cloud-storage
+google-cloud-speech==2.12.0
+    # via -r dependencies/pip/requirements.in
+google-cloud-storage==2.1.0
+    # via -r dependencies/pip/requirements.in
+google-crc32c==1.3.0
+    # via google-resumable-media
+google-resumable-media==2.1.0
+    # via google-cloud-storage
+googleapis-common-protos==1.54.0
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio==1.43.0
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio-status==1.43.0
+    # via google-api-core
 idna==2.8
     # via requests
+imageio==2.14.1
+    # via moviepy
+imageio-ffmpeg==0.4.5
+    # via moviepy
 importlib-metadata==1.7.0
     # via
     #   jsonschema
@@ -157,6 +195,8 @@ kombu==4.6.6
     # via
     #   -r dependencies/pip/requirements.in
     #   celery
+libcst==0.4.1
+    # via google-cloud-speech
 lxml==4.4.1
     # via
     #   -r dependencies/pip/requirements.in
@@ -168,22 +208,47 @@ markdown==3.1.1
     #   django-markdownx
 more-itertools==7.2.0
     # via zipp
+moviepy==1.0.3
+    # via -r dependencies/pip/requirements.in
+mypy-extensions==0.4.3
+    # via typing-inspect
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
+numpy==1.22.1
+    # via
+    #   imageio
+    #   moviepy
 oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
 path.py==12.0.2
     # via formpack
-pillow==6.2.1
-    # via django-markdownx
+pillow==9.0.1
+    # via
+    #   django-markdownx
+    #   imageio
+proglog==0.1.9
+    # via moviepy
+proto-plus==1.19.9
+    # via google-cloud-speech
+protobuf==3.19.4
+    # via
+    #   google-api-core
+    #   google-cloud-storage
+    #   googleapis-common-protos
+    #   grpcio-status
+    #   proto-plus
 psycopg2==2.8.4
     # via -r dependencies/pip/requirements.in
 pyasn1==0.4.7
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.2.8
+    # via google-auth
 pycparser==2.19
     # via cffi
 pygments==2.4.2
@@ -215,6 +280,8 @@ pyxform==1.7.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+pyyaml==6.0
+    # via libcst
 raven==6.10.0
     # via -r dependencies/pip/external_services.in
 redis==3.3.11
@@ -225,9 +292,14 @@ requests==2.22.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+    #   google-api-core
+    #   google-cloud-storage
+    #   moviepy
     #   responses
 responses==0.10.6
     # via -r dependencies/pip/requirements.in
+rsa==4.8
+    # via google-auth
 s3transfer==0.2.1
     # via boto3
 shortuuid==0.5.0
@@ -236,6 +308,8 @@ six==1.13.0
     # via
     #   cryptography
     #   django-extensions
+    #   google-auth
+    #   grpcio
     #   jsonschema
     #   pyopenssl
     #   pyrsistent
@@ -256,8 +330,18 @@ statistics==1.0.3.5
     # via formpack
 tabulate==0.8.5
     # via -r dependencies/pip/requirements.in
+tqdm==4.62.3
+    # via
+    #   moviepy
+    #   proglog
 transifex-client==0.12.5
     # via -r dependencies/pip/external_services.in
+typing-extensions==4.0.1
+    # via
+    #   libcst
+    #   typing-inspect
+typing-inspect==0.7.1
+    # via libcst
 unicodecsv==0.14.1
     # via -r dependencies/pip/requirements.in
 urllib3==1.25.7
@@ -292,5 +376,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools

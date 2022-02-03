@@ -57,9 +57,12 @@ django-request-cache
 drf-extensions
 future
 geojson-rewind
+google-cloud-speech
+google-cloud-storage
 jsonfield
 kombu
 lxml
+moviepy
 oauthlib
 #py-gfm # Incompatible with markdown 3.x
 psycopg2
