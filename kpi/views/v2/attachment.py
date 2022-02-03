@@ -1,8 +1,7 @@
 # coding: utf-8
-from typing import Optional, Union
+from typing import Optional
 
 from django.conf import settings
-from django.http import FileResponse
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
