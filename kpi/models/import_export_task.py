@@ -22,13 +22,6 @@ from werkzeug.http import parse_options_header
 
 import formpack
 from formpack.constants import KOBO_LOCK_SHEET
-from formpack.schema.fields import (
-    IdCopyField,
-    NotesCopyField,
-    SubmissionTimeCopyField,
-    TagsCopyField,
-    ValidationStatusCopyField,
-)
 from formpack.utils.string import ellipsize
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kpi.constants import (
@@ -49,7 +42,6 @@ from ..fields import KpiUidField
 from kpi.utils.models import (
     _load_library_content,
     create_assets,
-    remove_string_prefix,
     resolve_url_to_asset,
 )
 from ..models import Asset
