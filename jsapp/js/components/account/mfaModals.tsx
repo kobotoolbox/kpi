@@ -145,7 +145,7 @@ export default class MFAModals extends React.Component<
   }
 
   getInitalModalStep(): modalSteps {
-    switch(this.props.modalType) {
+    switch (this.props.modalType) {
       case 'qr':
         return 'qr'
       case 'regenerate':
@@ -160,7 +160,7 @@ export default class MFAModals extends React.Component<
   handleTokenSubmit() {
     this.setState({inputString: ''})
 
-    switch(this.props.modalType) {
+    switch (this.props.modalType) {
       case 'regenerate':
         this.mfaRegenerate()
         break
@@ -194,9 +194,9 @@ export default class MFAModals extends React.Component<
     if (this.state.backupCodes) {
       const USERNAME = stores.session.currentAccount.username
       // gets date in yyyymmdd
-      const DATE = new Date().toJSON().slice(0,10).replace(/-/g,'')
+      const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '')
 
-      const formatedCodes = this.state.backupCodes.map((t)  => {
+      const formatedCodes = this.state.backupCodes.map((t) => {
         return t + '\n'
       })
       const codesLink = document.createElement('a')
@@ -283,7 +283,7 @@ export default class MFAModals extends React.Component<
   renderBackupStep() {
     this.disableCloseIcon()
 
-    return(
+    return (
       <bem.MFAModals__backupstep>
         <bem.MFAModals__description>
           {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
@@ -336,7 +336,7 @@ export default class MFAModals extends React.Component<
   }
 
   renderManualStep() {
-    return(
+    return (
       <bem.MFAModals__manualstep>
         <bem.MFAModals__description>
           {t('Enter the following key into your authentication app to generate the six digit token')}
@@ -454,15 +454,6 @@ export default class MFAModals extends React.Component<
     )
   }
 
- /**
-  * TODO:
-  * $ Remove old modal styling (headers, padding etc)
-  * $ Add transition to showing backup codes
-  * $ add transition to manually entering key
-  * $ use custom button merged into beta
-  * - make a confirm step that asks user if they are sure they want to reconfigure
-  * - make css
-  */
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
@@ -472,7 +463,7 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModals>
         {(this.state.currentStep === 'qr') &&
-            this.renderQRCodeStep()
+          this.renderQRCodeStep()
         }
 
         {(this.state.currentStep === 'backups') &&
