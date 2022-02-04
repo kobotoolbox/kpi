@@ -129,18 +129,19 @@
       color: colors.$kobo-gray-24;
     }
 
-    .k-icon {
+    .k-icon:not(.k-icon-angle-right) {
       font-size: 24px;
       width: 24px;
       margin: 4px 10px 4px 4px;
       display: inline-block;
       vertical-align: middle;
+    }
 
-      &.k-icon-angle-right {
-        position: absolute;
-        right: 4px;
-        top: 6px;
-      }
+    .k-icon.k-icon-angle-right {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
     }
   }
 }

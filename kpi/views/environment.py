@@ -3,7 +3,7 @@ import json
 
 import constance
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -27,9 +27,9 @@ class EnvironmentView(APIView):
         ('USER_METADATA_FIELDS', json.loads),
         (
             'SECTOR_CHOICES',
-            # Intentional _() call on dynamic string because the default
+            # Intentional t() call on dynamic string because the default
             # choices are translated (see static_lists.py)
-            lambda text: tuple((line, _(line)) for line in text.split('\r\n')),
+            lambda text: tuple((line, t(line)) for line in text.split('\r\n')),
         ),
         (
             'OPERATIONAL_PURPOSE_CHOICES',

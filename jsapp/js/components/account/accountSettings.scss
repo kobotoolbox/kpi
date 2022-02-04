@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "scss/libs/_mdl";
 
 .account-settings {
@@ -27,9 +28,24 @@
     }
 
     .form-modal__item--api-token {
-      input {
-        font-family: mdl.$font_mono;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+
+      > label {
+        width: 100%;
+      }
+
+      .text-box {
+        display: inline-block;
+        vertical-align: top;
         width: 50%;
+        margin-right: sizes.$x5;
+
+        .text-box__input {
+          font-family: mdl.$font_mono;
+        }
       }
     }
 
@@ -55,6 +71,10 @@
     top: 26px;
     right: 0;
 
+    .account-settings-save:last-child {
+      margin-right: 48px;
+    }
+
     .account-settings-close {
       padding: 0 12px;
     }
@@ -70,57 +90,52 @@
     color: colors.$kobo-gray-24;
   }
 
-  .account-settings__desc {
-    color: colors.$kobo-gray-40;
-  }
-
-  .form-modal__item--primary-sector {
-    width: 46%;
-    margin-right: 2%;
-    float: left;
-  }
-
-  .form-modal__item--gender {
-    width: 52%;
-    float: left;
-  }
-
-  .form-modal__item--bio {
-    clear: both;
-  }
-
-  .form-modal__item--city {
-    width: 46%;
-    margin-right: 2%;
-    float: left;
-
-    .text-box__input {
-      margin-top: 8px;
+  .form-modal__item {
+    &.form-modal__item--primary-sector {
+      width: 46%;
+      margin-right: 2%;
+      float: left;
     }
-  }
 
-  .form-modal__item--country {
-    width: 52%;
-    float: left;
-  }
+    &.form-modal__item--gender {
+      width: 50%;
+    }
 
-  .form-modal__item--social {
-    clear: both;
+    &.form-modal__item--bio {
+      clear: both;
+    }
 
-    label {
-      position: relative;
+    &.form-modal__item--country {
+      width: 50%;
+      margin-right: 4%;
+      float: left;
+    }
 
-      i {
-        position: absolute;
-        font-size: 24px;
-        top: 10px;
-        left: 4px;
-      }
+    &.form-modal__item--city {
+      width: 46%;
+      float: left;
+    }
 
-      input {
-        margin-top: 8px;
-        padding-left: 40px;
-        max-width: 400px;
+    &.form-modal__item--social {
+      clear: both;
+
+      > label {
+        position: relative;
+
+        &:not(:first-child) {
+          margin-top: sizes.$x5;
+        }
+
+        > i {
+          position: absolute;
+          font-size: 24px;
+          top: 4px;
+          left: 4px;
+        }
+
+        .text-box .text-box__input {
+          padding-left: 40px;
+        }
       }
     }
   }

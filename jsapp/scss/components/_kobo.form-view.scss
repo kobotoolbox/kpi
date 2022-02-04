@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
@@ -98,7 +100,7 @@ $side-tabs-width-mobile: 70px;
     border: none;
     padding: 6px;
     border-left: 2px solid transparent;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
     color: $kobo-gray-40;
@@ -337,7 +339,7 @@ $side-tabs-width-mobile: 70px;
 
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     color: $kobo-gray-24;
     font-weight: 500;
 
@@ -831,7 +833,7 @@ $side-tabs-width-mobile: 70px;
     height: 39px;
 
     a.form-view__tab {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
     }
   }
 

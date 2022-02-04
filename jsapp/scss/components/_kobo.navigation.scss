@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // header and navigation styling
 
 // This element handles stretched background of app header
@@ -209,6 +211,7 @@
     padding-bottom: 5px;
 
     ul {
+      margin-top: 5px;
       background-color: $kobo-white;
       color: $kobo-gray-40;
       min-width: 140px;
@@ -302,7 +305,7 @@
     font-size: 18px;
 
     &.main-header__title--long input {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
     }
 
     input {
@@ -340,7 +343,7 @@
   }
 
   .main-header__counter {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     margin-right: 20px;
     color: $kobo-gray-65;
   }

@@ -16,7 +16,7 @@ import requests
 from django.conf import settings
 from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -139,7 +139,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if not self.current_submissions_count:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
+                detail=t('No submissions match the given `submission_ids`')
             )
 
         update_data = self.__prepare_bulk_update_data(data['data'])
@@ -1367,7 +1367,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _(
+                    'detail': t(
                         'KoBoCAT returned an unexpected response: {}'.format(
                             str(e))
                     )
@@ -1420,7 +1420,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     .text
                 )
             except ET.ParseError:
-                message = _('Something went wrong')
+                message = t('Something went wrong')
 
             results.append(
                 {
@@ -1461,8 +1461,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     request=request
                 )
                 key = f'download{suffix}_url'
-                attachment[key] = attachment[key].replace(
-                    f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                try:
+                    attachment[key] = attachment[key].replace(
+                        f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                except KeyError:
+                    continue
 
         return submission
 

@@ -32,7 +32,6 @@ class MainHeader extends Reflux.Component {
     super(props);
     this.state = assign({
       asset: false,
-      currentLang: currentLang(),
       isLanguageSelectorVisible: false,
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
@@ -132,10 +131,16 @@ class MainHeader extends Reflux.Component {
   }
 
   renderLangItem(lang) {
+    const currentLanguage = currentLang();
     return (
       <bem.AccountBox__menuLI key={lang.value}>
         <bem.AccountBox__menuLink onClick={this.languageChange} data-key={lang.value}>
-          {lang.label}
+          {lang.value === currentLanguage &&
+            <strong>{lang.label}</strong>
+          }
+          {lang.value !== currentLanguage &&
+            lang.label
+          }
         </bem.AccountBox__menuLink>
       </bem.AccountBox__menuLI>
     );

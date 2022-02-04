@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
-import Select from 'react-select';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
@@ -109,18 +109,12 @@ class LibraryUploadForm extends React.Component {
             </bem.FormModal__item>
 
             <bem.FormModal__item>
-              <label htmlFor='desired-type'>
-                {t('Choose desired type')}
-              </label>
-
-              <Select
-                id='desired-type'
+              <WrappedSelect
+                label={t('Choose desired type')}
                 value={this.state.desiredType}
                 onChange={this.onDesiredTypeChange}
                 options={DESIRED_TYPES}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
+                isLimitedHeight
               />
             </bem.FormModal__item>
           </React.Fragment>
