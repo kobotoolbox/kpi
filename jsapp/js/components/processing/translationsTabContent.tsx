@@ -205,6 +205,7 @@ export default class TranslationsTabContent extends React.Component<
     this.setState({selectedTranslation: languageCode})
   }
 
+  /** Returns languages of all translations */
   getTranslationsLanguages() {
     const translations = singleProcessingStore.getTranslations()
     const languages: string[] = []
@@ -280,7 +281,6 @@ export default class TranslationsTabContent extends React.Component<
         })
       })
 
-      // TODO: don't use Select because of styles issues, use KoboSelect
       return (
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
@@ -328,7 +328,8 @@ export default class TranslationsTabContent extends React.Component<
           titleOverride={t('Please selet the language you want to translate to')}
           onLanguageChange={this.onLanguageChange.bind(this)}
           sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
-          hideLanguages={this.getTranslationsLanguages()}
+          hiddenLanguages={this.getTranslationsLanguages()}
+          suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
         />
 
         <bem.ProcessingBody__footer>

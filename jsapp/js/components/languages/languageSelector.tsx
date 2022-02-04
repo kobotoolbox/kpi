@@ -38,8 +38,14 @@ type LanguageSelectorProps = {
    * not selectable from the list.
    */
   sourceLanguage?: string
+  /**
+   * A list of languages that should be displayed in front of other languages.
+   * Most possibly these languages were already chosen for other parts of given
+   * feature or can be found in existing data.
+   */
+  suggestedLanguages?: string[]
   /** A list of languages that should be omitted from display. */
-  hideLanguages?: string[]
+  hiddenLanguages?: string[]
   /** Triggered after language is selected or cleared. */
   onLanguageChange: (selectedLanguage: string | undefined) => void
 }
@@ -126,25 +132,47 @@ class LanguageSelector extends React.Component<
     this.setState({selectedLanguage: undefined}, this.notifyParentComponent.bind(this))
   }
 
-  getFilteredLanguagesList() {
-    let hiddenLanguages = this.props.hideLanguages || []
 
-    // Filter out the source language and hidden languages first.
-    const languages = [...this.state.allLanguages].filter((language) => {
+
+  /** Return two lists of languages. */
+  getFilteredLanguages(): {
+    suggested: Fuse.FuseResult<EnvStoreDataItem>[] | EnvStoreDataItem[]
+    other: Fuse.FuseResult<EnvStoreDataItem>[] | EnvStoreDataItem[]
+  } {
+    let hiddenLanguages = this.props.hiddenLanguages || []
+    let suggestedLanguages = this.props.suggestedLanguages || []
+
+    // Filter out the source language and hidden languages first. They should
+    // not be displayed to user.
+    const visible = [...this.state.allLanguages].filter((language) => {
       return (
         language.value !== this.props.sourceLanguage &&
         !hiddenLanguages.includes(language.value)
       )
     })
 
+    // Split languages into suggested and the rest.
+    const suggested = [...visible].filter((language) => suggestedLanguages.includes(language.value))
+    const fuseSuggested = new Fuse(suggested, {...FUSE_OPTIONS, keys: ['value', 'label']})
+
+    const other = [...visible].filter((language) => !suggestedLanguages.includes(language.value))
+    const fuseOther = new Fuse(other, {...FUSE_OPTIONS, keys: ['value', 'label']})
+
     if (this.state.filterPhrase !== '') {
-      let fuse = new Fuse(languages, {...FUSE_OPTIONS, keys: ['value', 'label']})
-      return fuse.search(this.state.filterPhrase)
+      return {
+        suggested: fuseSuggested.search(this.state.filterPhrase),
+        other: fuseOther.search(this.state.filterPhrase)
+      }
     }
-    return languages
+    return {
+      suggested,
+      other
+    }
   }
 
-  renderLanguageItem(languageObj: EnvStoreDataItem | Fuse.FuseResult<EnvStoreDataItem>) {
+  renderLanguageItem(
+    languageObj: EnvStoreDataItem | Fuse.FuseResult<EnvStoreDataItem>
+  ) {
     let value
     let label
     if ('value' in languageObj) {
@@ -159,11 +187,13 @@ class LanguageSelector extends React.Component<
       return null
     }
 
+    const isHighlighted = this.props.suggestedLanguages?.includes(value)
+
     return (
       <li key={value}>
         <Button
           type='bare'
-          color='storm'
+          color={isHighlighted ? 'blue' : 'storm'}
           size='m'
           label={(<span>{label}&nbsp;<small>({value})</small></span>)}
           onClick={this.selectLanguage.bind(this, value)}
@@ -244,7 +274,7 @@ class LanguageSelector extends React.Component<
   }
 
   renderSearchForm() {
-    const filteredLanguages = this.getFilteredLanguagesList()
+    const filteredLanguages = this.getFilteredLanguages()
 
     return (
       <React.Fragment>
@@ -259,14 +289,20 @@ class LanguageSelector extends React.Component<
         </bem.LanguageSelector__searchBoxRow>
 
         <bem.LanguageSelector__list>
-          {filteredLanguages.length === 0 &&
+          {(
+            filteredLanguages.suggested.length === 0 &&
+            filteredLanguages.other.length === 0
+          ) &&
             <bem.LanguageSelector__notFoundMessage key='empty'>
               {t("Sorry, didn't find any language…")}
             </bem.LanguageSelector__notFoundMessage>
           }
 
-          {filteredLanguages.length >= 1 &&
-            filteredLanguages.map(this.renderLanguageItem.bind(this))
+          {filteredLanguages.suggested.length >= 1 &&
+            filteredLanguages.suggested.map(this.renderLanguageItem.bind(this))
+          }
+          {filteredLanguages.other.length >= 1 &&
+            filteredLanguages.other.map(this.renderLanguageItem.bind(this))
           }
 
           {this.isCustomLanguageVisible() &&

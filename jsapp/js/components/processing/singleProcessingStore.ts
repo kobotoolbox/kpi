@@ -10,6 +10,7 @@ import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
   isAssetProcessingActivated,
+  getAssetAdvancedFeatures,
 } from 'js/assetUtils'
 import {SurveyFlatPaths} from 'js/assetUtils'
 import assetStore from 'js/assetStore'
@@ -511,6 +512,18 @@ class SingleProcessingStore extends Reflux.Store {
   /** Returns a local cached translations list. */
   getTranslations() {
     return this.data.translations
+  }
+
+  /**
+   * Returns a list of language codes of languages that are activated within
+   * advanced_features.translated
+   */
+  getAssetTranslatableLanguages() {
+    const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid)
+    if (advancedFeatures?.translated?.languages) {
+      return advancedFeatures.translated.languages
+    }
+    return []
   }
 
   /**
