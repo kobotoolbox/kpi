@@ -507,7 +507,10 @@ export function getSupplementalDetailsContent(
   const pathArray = path.split('/')
   pathArray.push('value')
   // Moments like these makes you really apprecieate the beauty of lodash.
-  return _.get(submission, pathArray, '')
+  const value = _.get(submission, pathArray, '')
+  // If there is no value it could be either WIP or intentional. We want to be
+  // clear about the fact it could be intentionally empty.
+  return value || t('N/A')
 }
 
 /**
