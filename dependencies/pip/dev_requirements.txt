@@ -248,8 +248,6 @@ pyasn1==0.4.7
     #   ndg-httpsclient
 pycparser==2.19
     # via cffi
-pydub==0.25.1
-    # via -r dependencies/pip/requirements.in
 pygments==2.4.2
     # via
     #   -r dependencies/pip/requirements.in
@@ -291,8 +289,6 @@ python-dateutil==2.8.0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   python-crontab
-python-magic==0.4.24
-    # via -r dependencies/pip/requirements.in
 pytz==2019.3
     # via
     #   -r dependencies/pip/requirements.in
