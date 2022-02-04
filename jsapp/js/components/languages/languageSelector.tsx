@@ -10,6 +10,8 @@ import './languageSelector.scss'
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section')
 bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1')
+bem.LanguageSelector__suggestedHeader = makeBem(bem.LanguageSelector, 'suggested-header', 'h2')
+bem.LanguageSelector__suggestedLine = makeBem(bem.LanguageSelector, 'suggested-line', 'hr')
 bem.LanguageSelector__source = makeBem(bem.LanguageSelector, 'source')
 bem.LanguageSelector__sourceLanguage = makeBem(bem.LanguageSelector, 'source-language')
 bem.LanguageSelector__sourceLabel = makeBem(bem.LanguageSelector, 'source-label', 'label')
@@ -187,13 +189,11 @@ class LanguageSelector extends React.Component<
       return null
     }
 
-    const isHighlighted = this.props.suggestedLanguages?.includes(value)
-
     return (
       <li key={value}>
         <Button
           type='bare'
-          color={isHighlighted ? 'blue' : 'storm'}
+          color='storm'
           size='m'
           label={(<span>{label}&nbsp;<small>({value})</small></span>)}
           onClick={this.selectLanguage.bind(this, value)}
@@ -273,6 +273,26 @@ class LanguageSelector extends React.Component<
     )
   }
 
+  renderSuggestedLanguages() {
+    const filteredLanguages = this.getFilteredLanguages()
+
+    if (filteredLanguages.suggested.length === 0) {
+      return null
+    }
+
+    return (
+      <React.Fragment>
+        <bem.LanguageSelector__suggestedHeader>
+          {t('Suggested languages:')}
+        </bem.LanguageSelector__suggestedHeader>
+
+        {filteredLanguages.suggested.map(this.renderLanguageItem.bind(this))}
+
+        <bem.LanguageSelector__suggestedLine/>
+      </React.Fragment>
+    )
+  }
+
   renderSearchForm() {
     const filteredLanguages = this.getFilteredLanguages()
 
@@ -298,9 +318,7 @@ class LanguageSelector extends React.Component<
             </bem.LanguageSelector__notFoundMessage>
           }
 
-          {filteredLanguages.suggested.length >= 1 &&
-            filteredLanguages.suggested.map(this.renderLanguageItem.bind(this))
-          }
+          {this.renderSuggestedLanguages()}
           {filteredLanguages.other.length >= 1 &&
             filteredLanguages.other.map(this.renderLanguageItem.bind(this))
           }

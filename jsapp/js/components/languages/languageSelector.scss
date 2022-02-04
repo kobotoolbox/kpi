@@ -188,3 +188,22 @@
   margin-top: sizes.$x16;
   padding-top: sizes.$x4;
 }
+
+.language-selector__suggested-header {
+  display: block;
+  width: 100%;
+  font-size: sizes.$x14;
+  font-weight: 400;
+  text-align: center;
+  line-height: sizes.$x20;
+  margin: 0;
+}
+
+.language-selector__suggested-line {
+  width: calc(100% - #{sizes.$x5});
+  height: 1px;
+  border: 0;
+  margin: 0 0 sizes.$x5 0;
+  padding: 0;
+  background-color: colors.$kobo-gray-92;
+}
