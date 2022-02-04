@@ -417,7 +417,7 @@ class Asset(ObjectPermissionMixin,
             for key, val in instance.engines():
                 yield key, val
 
-    def get_analysis_form_json(self):
+    def analysis_form_json(self):
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
         return {'engines': engines, 'additional_fields': additional_fields}

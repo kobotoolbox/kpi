@@ -55,6 +55,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     map_custom = WritableJSONField(required=False)
     advanced_features = WritableJSONField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
+    analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
@@ -128,6 +129,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'report_custom',
                   'advanced_features',
                   'advanced_submission_schema',
+                  'analysis_form_json',
                   'map_styles',
                   'map_custom',
                   'content',
@@ -195,6 +197,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         req = self.context.get('request')
         url = req.build_absolute_uri(f'/advanced_submission_post/{obj.uid}')
         return obj.get_advanced_submission_schema(url=url)
+
+    def get_analysis_form_json(self, obj):
+        return obj.analysis_form_json()
 
     def get_version_count(self, obj):
         return obj.asset_versions.count()
