@@ -252,15 +252,21 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 is_good_file = int(attachment['id']) == int(attachment_id)
 
             if is_good_file:
-                video_file = os.path.join(
-                    settings.BASE_DIR,
-                    'kpi',
-                    'tests',
-                    filename
-                )
-                return MockAttachment(video_file)
+                return MockAttachment(**attachment)
 
         raise AttachmentNotFoundException
+
+    def get_attachment_objects_from_dict(self, submission: dict) -> list:
+
+        try:
+            attachments = submission['_attachments']
+        except KeyError:
+            return []
+
+        if len(attachments) == 0:
+            return []
+
+        return [MockAttachment(**attachment) for attachment in attachments]
 
     def get_data_download_links(self):
         return {}

@@ -577,7 +577,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment.validate_access_with_partial_perms(
             user=user,
             perm=partial_perm,
-            submission_ids=submission_id,
+            submission_ids=[submission_id],
         )
 
         # The XML version is needed for Enketo Express
@@ -616,22 +616,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         }
 
         # Add attachments if any.
-        if len(submission_json['_attachments']):
-            # Get filenames from DB because Mongo does not contain the original name.
-            # The one saved in the XML, the one that EE expects.
-            # E.g.:
-            # - XML filename: Screenshot 2022-01-19 222028-13_45_57.jpg
-            # - Mongo: Screenshot_2022-01-19_222028-13_45_57.jpg
-            attachments = ReadOnlyKobocatAttachment.objects.filter(
-                instance_id=submission_id
+        attachments = deployment.get_attachment_objects_from_dict(submission_json)
+        for attachment in attachments:
+            key_ = f'instance_attachments[{attachment.media_file_basename}]'
+            data[key_] = reverse(
+                'attachment-detail',
+                args=(self.asset.uid, submission_id, attachment.pk),
+                request=request,
             )
-            for attachment in attachments:
-                key_ = f"instance_attachments[{attachment.media_file_basename}]"
-                data[key_] = reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission_id, attachment.pk),
-                    request=request,
-                )
 
         enketo_endpoint = getattr(
             settings, f'ENKETO_{action_}_INSTANCE_ENDPOINT'.upper()
@@ -640,7 +632,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
             auth=(settings.ENKETO_API_TOKEN, ''),
-            data=data
+            json=data
         )
         response.raise_for_status()
 

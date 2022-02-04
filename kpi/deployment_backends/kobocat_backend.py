@@ -16,6 +16,7 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
+from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -603,6 +604,32 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise AttachmentNotFoundException
 
         return attachment
+
+    def get_attachment_objects_from_dict(self, submission: dict) -> QuerySet:
+
+        # First test with there are attachments to avoid a call to the DB for
+        # nothing
+        try:
+            attachments = submission['_attachments']
+        except KeyError:
+            return []
+
+        if len(attachments) == 0:
+            return []
+
+        # Get filenames from DB because Mongo does not contain the
+        # original basename.
+        # EE excepts the original basename before Django renames it and
+        # stores it in Mongo
+        # E.g.:
+        # - XML filename: Screenshot 2022-01-19 222028-13_45_57.jpg
+        # - Mongo: Screenshot_2022-01-19_222028-13_45_57.jpg
+
+        # ToDo What about adding the original basename and the question
+        #  name in Mongo to avoid another DB query?
+        return ReadOnlyKobocatAttachment.objects.filter(
+            instance_id=submission['_id']
+        )
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
