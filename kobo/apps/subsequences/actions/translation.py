@@ -87,10 +87,19 @@ class TranslationAction(BaseAction):
         return edit
 
     def modify_jsonschema(self, schema):
+        SOURCE_HASH_PROPERTY = {'type': 'string',
+          'comment': 'store the hash of the transcribed string to evaluate ' + \
+                     'if translation is stale.',
+          'minLength': 8,
+          'maxLength': 8,
+        }
+
+
         defs = schema.get('definitions', {})
         translation_properties = {
             'value': {'type': 'string'},
             'engine': {'type': 'string'},
+            'sourceHash': SOURCE_HASH_PROPERTY,
             self.DATE_CREATED_FIELD: {'type': 'string',
                                       'format': 'date-time'},
             self.DATE_MODIFIED_FIELD: {'type': 'string',
@@ -121,6 +130,7 @@ class TranslationAction(BaseAction):
                 'engine': {'type': 'string'},
                 self.DATE_MODIFIED_FIELD: {'type': 'string',
                                            'format': 'date-time'},
+                'sourceHash': SOURCE_HASH_PROPERTY,
                 'languageCode': {'type': 'string'},
             },
             'additionalProperties': False,

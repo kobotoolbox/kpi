@@ -2,6 +2,8 @@ import datetime
 import pytz
 from django.utils import timezone
 
+from formpack.utils.json_hash import json_hash
+
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
 
@@ -60,6 +62,7 @@ class BaseAction:
         edit[self.DATE_CREATED_FIELD] = \
             edit[self.DATE_MODIFIED_FIELD] = \
             str(timezone.now()).split('.')[0]
+        edit['hash'] = json_hash({'value': self.record_repr(edit)})
         return {**edit, 'revisions': []}
 
     def revise_field(self, original, edit):
@@ -69,6 +72,7 @@ class BaseAction:
         revisions = record.pop('revisions', [])
         if self.DATE_CREATED_FIELD in record:
             del record[self.DATE_CREATED_FIELD]
+        edit['hash'] = json_hash({'value': self.record_repr(edit)})
         edit[self.DATE_MODIFIED_FIELD] = \
             edit[self.DATE_CREATED_FIELD] = \
             str(timezone.now()).split('.')[0]

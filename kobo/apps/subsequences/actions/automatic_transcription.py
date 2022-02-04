@@ -38,6 +38,10 @@ class AutomaticTranscriptionAction(BaseAction):
 
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})
+        HASH_PROPERTY = {'type': 'string',
+                         'minLength': 8,
+                         'maxLength': 8,
+                         '$comment': 'set by the server'}
         defs['transcript'] = {
             'type': 'object',
             'properties': {
@@ -48,6 +52,7 @@ class AutomaticTranscriptionAction(BaseAction):
                 self.DATE_MODIFIED_FIELD: {'type': 'string',
                                            'format': 'date-time'},
                 'languageCode': {'type': 'string'},
+                'hash': HASH_PROPERTY,
                 'revisions': {'type': 'array', 'items': {
                     '$ref': '#/definitions/transcriptRevision'
                 }}
@@ -62,6 +67,7 @@ class AutomaticTranscriptionAction(BaseAction):
                 'engine': {'type': 'string'},
                 self.DATE_MODIFIED_FIELD: {'type': 'string',
                                            'format': 'date-time'},
+                'hash': HASH_PROPERTY,
                 'languageCode': {'type': 'string'},
             },
             'additionalProperties': False,
