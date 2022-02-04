@@ -1,6 +1,8 @@
 # coding: utf-8
+from django.conf.urls import url
 from django.urls import re_path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
+from rest_framework.urlpatterns import format_suffix_patterns
 
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
@@ -27,15 +29,16 @@ class OptionalSlashRouter(ExtendedDefaultRouter):
 
     `ExtendedDefaultRouter` redirects routes without trailing slash to their
     counterparts with a trailing slash. This behaviour should be avoided with
-    OpenRosa endpoints because clients POST requests will be redirected losing
+    OpenRosa endpoints because clients POST requests will be redirected, losing
     their payload.
     """
 
     def get_urls(self):
         """
-        Use the registered viewsets to generate a list of URL patterns.
+        Overwrite parent `get_urls()` to support `trailing_slash` argument of
+        DRF `@action` decorator
         """
-        ret = []
+        urls = []
 
         for prefix, viewset, basename in self.registry:
             lookup = self.get_lookup_regex(viewset)
@@ -75,9 +78,18 @@ class OptionalSlashRouter(ExtendedDefaultRouter):
 
                 view = viewset.as_view(mapping, **initkwargs)
                 name = route.name.format(basename=basename)
-                ret.append(re_path(regex, view, name=name))
+                urls.append(re_path(regex, view, name=name))
 
-        return ret
+        # Need to apply `ExtendedDefaultRouter.get_urls()` extra code
+        if self.include_root_view:
+            view = self.get_api_root_view(api_urls=urls)
+            root_url = url(r'^$', view, name=self.root_view_name)
+            urls.append(root_url)
+
+        if self.include_format_suffixes:
+            urls = format_suffix_patterns(urls)
+
+        return urls
 
 
 URL_NAMESPACE = 'api_v2'
