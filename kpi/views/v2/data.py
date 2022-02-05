@@ -628,7 +628,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
             auth=(settings.ENKETO_API_TOKEN, ''),
-            json=data
+            data=data
         )
         response.raise_for_status()
 

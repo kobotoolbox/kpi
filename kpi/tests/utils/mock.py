@@ -4,6 +4,7 @@ import os
 from mimetypes import guess_type
 from tempfile import NamedTemporaryFile
 from typing import Optional
+from urllib.parse import parse_qs, unquote
 
 from django.conf import settings
 from django.core.files import File
@@ -16,7 +17,9 @@ def enketo_edit_instance_response(request):
     """
     Simulate Enketo response
     """
-    body = json.loads(request.body)
+    # Decode `x-www-form-urlencoded` data
+    body = {k: v[0] for k, v in parse_qs(unquote(request.body)).items()}
+
     resp_body = {
         'edit_url': (
             f"{settings.ENKETO_URL}/edit/{body['instance_id']}"
@@ -30,7 +33,9 @@ def enketo_view_instance_response(request):
     """
     Simulate Enketo response
     """
-    body = json.loads(request.body)
+    # Decode `x-www-form-urlencoded` data
+    body = {k: v[0] for k, v in parse_qs(unquote(request.body)).items()}
+    
     resp_body = {
         'view_url': (
             f"{settings.ENKETO_URL}/view/{body['instance_id']}"
@@ -59,7 +64,7 @@ class MockAttachment(MP3ConverterMixin):
         self.id = id
         self.media_file = File(open(file_, 'rb'), basename)
         self.media_file.path = file_
-        self.content = self.media_file.read()
+        #self.content = self.media_file.read()
         self.media_file_basename = basename
         if not mimetype:
             self.mimetype, _ = guess_type(file_)
