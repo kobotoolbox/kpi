@@ -35,6 +35,7 @@ class AutomaticTranscriptionAction(BaseAction):
     def load_params(self, params):
         self.possible_transcribed_fields = params['values']
         self.available_services = params.get('services', [])
+        self.languages = params.get('languages', [])
 
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})
@@ -96,17 +97,18 @@ class AutomaticTranscriptionAction(BaseAction):
     def addl_fields(self):
         service = 'manual'
         for field in self.possible_transcribed_fields:
-            label = f'{field} Transcript (en)'
+            label = f'{field} Transcript'
             yield {
-                'type': 'text',
+                'type': 'transcript',
                 'name': f'{field}/{service}',
                 'label': label,
+                'languages': self.languages,
                 'path': [field, service],
                 'source': field,
                 'settings': {
                     'mode': 'auto',
                     'engine': f'engines/transcript_{service}',
-                }
+                },
             }
 
     '''

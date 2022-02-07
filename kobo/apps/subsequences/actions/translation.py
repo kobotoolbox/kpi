@@ -147,9 +147,10 @@ class TranslationAction(BaseAction):
             for language in self.languages:
                 label = f'{field} Translated ({language})'
                 yield {
-                    'type': 'text',
+                    'type': 'translation',
                     'name': f'{field}/{service}',
                     'label': label,
+                    'language': language,
                     'path': [field, service],
                     'source': field,
                     'settings': {
