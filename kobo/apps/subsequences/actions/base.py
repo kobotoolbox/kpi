@@ -73,8 +73,8 @@ class BaseAction:
             edit[self.DATE_CREATED_FIELD] = \
             str(timezone.now()).split('.')[0]
         if len(revisions) > 0:
-            edit[self.DATE_CREATED_FIELD] = \
-                revisions[-1][self.DATE_MODIFIED_FIELD]
+            date_modified = revisions[-1].get(self.DATE_MODIFIED_FIELD)
+            edit[self.DATE_CREATED_FIELD] = date_modified
         return {**edit, 'revisions': [record, *revisions]}
 
     def record_repr(self, record):
