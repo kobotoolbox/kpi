@@ -62,12 +62,11 @@ class TranslationAction(BaseAction):
             if self.DATE_CREATED_FIELD in old:
                 del old[self.DATE_CREATED_FIELD]
             upd[self.DATE_MODIFIED_FIELD] = \
-                upd[self.DATE_CREATED_FIELD] = \
-                str(timezone.now()).split('.')[0]
+                upd[self.DATE_CREATED_FIELD] = self.cur_time()
             revisions = [old, *revisions]
             if len(revisions) > 0:
-                upd[self.DATE_CREATED_FIELD] = \
-                    revisions[-1][self.DATE_MODIFIED_FIELD]
+                date_modified = revisions[-1].get(self.DATE_MODIFIED_FIELD)
+                upd[self.DATE_CREATED_FIELD] = date_modified
             upd['revisions'] = revisions
             record[language] = upd
         return record
