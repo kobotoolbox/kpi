@@ -65,7 +65,7 @@ def test_details_for_transcript_export():
             'values': ['q1'],
         },
     })
-    _afj = asset.get_analysis_form_json()
+    _afj = asset.analysis_form_json()
     engines = _afj['engines']
     addl_fields = _afj['additional_fields']
     assert len(addl_fields) == 1
@@ -78,7 +78,7 @@ def test_details_for_translation_export():
             'languages': ['en', 'fr']
         },
     })
-    _afj = asset.get_analysis_form_json()
+    _afj = asset.analysis_form_json()
     engines = _afj['engines']
     addl_fields = _afj['additional_fields']
     assert len(addl_fields) == 2

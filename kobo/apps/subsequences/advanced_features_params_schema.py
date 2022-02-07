@@ -21,6 +21,10 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
                     'type': 'array',
                     'items': {'type': 'string'},
                 },
+                'languages': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                },
             }
         },
         'translated': {
