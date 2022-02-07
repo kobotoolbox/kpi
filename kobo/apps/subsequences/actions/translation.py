@@ -88,6 +88,8 @@ class TranslationAction(BaseAction):
 
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})
+        # since 95% of this schema does not change, I will
+        # move it outside of this method
         translation_properties = {
             'value': {'type': 'string'},
             'engine': {'type': 'string'},
@@ -103,6 +105,7 @@ class TranslationAction(BaseAction):
         defs['xtranslation'] = {
             'type': 'object',
             'additionalProperties': False,
+            'required': ['value', 'languageCode'],
             'properties': translation_properties,
         }
         indiv_tx_ref = {'$ref': '#/definitions/xtranslation'}
