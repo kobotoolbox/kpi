@@ -10,8 +10,7 @@ import './languageSelector.scss'
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section')
 bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1')
-bem.LanguageSelector__suggestedHeader = makeBem(bem.LanguageSelector, 'suggested-header', 'h2')
-bem.LanguageSelector__suggestedLine = makeBem(bem.LanguageSelector, 'suggested-line', 'hr')
+bem.LanguageSelector__line = makeBem(bem.LanguageSelector, 'line', 'hr')
 bem.LanguageSelector__source = makeBem(bem.LanguageSelector, 'source')
 bem.LanguageSelector__sourceLanguage = makeBem(bem.LanguageSelector, 'source-language')
 bem.LanguageSelector__sourceLabel = makeBem(bem.LanguageSelector, 'source-label', 'label')
@@ -282,13 +281,8 @@ class LanguageSelector extends React.Component<
 
     return (
       <React.Fragment>
-        <bem.LanguageSelector__suggestedHeader>
-          {t('Suggested languages:')}
-        </bem.LanguageSelector__suggestedHeader>
-
         {filteredLanguages.suggested.map(this.renderLanguageItem.bind(this))}
-
-        <bem.LanguageSelector__suggestedLine/>
+        <bem.LanguageSelector__line/>
       </React.Fragment>
     )
   }
