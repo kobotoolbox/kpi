@@ -93,39 +93,32 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   discardDraft() {
-    // Remove draft.
-    singleProcessingStore.setTranscriptDraft(undefined)
+    singleProcessingStore.deleteTranscriptDraft()
   }
 
   saveDraft() {
-    const existingTranscript = singleProcessingStore.getTranscript()
     const draft = singleProcessingStore.getTranscriptDraft()
-
-    const dateNow = new Date()
-    const dateISO = dateNow.toISOString()
-
     if (
       draft?.languageCode !== undefined &&
       draft?.value !== undefined
     ) {
-      singleProcessingStore.setTranscript({
-        languageCode: draft.languageCode,
-        value: draft.value,
-        dateCreated: existingTranscript?.dateCreated || dateISO,
-        dateModified: dateISO
-      })
+      singleProcessingStore.setTranscript(
+        draft.languageCode,
+        draft.value
+      )
     }
   }
 
   openEditor() {
-    // Make new draft using existing transcript.
-    singleProcessingStore.setTranscriptDraft(
-      singleProcessingStore.getTranscript()
-    )
+    const transcript = singleProcessingStore.getTranscript()
+    if (transcript) {
+      // Make new draft using existing transcript.
+      singleProcessingStore.setTranscriptDraft(transcript)
+    }
   }
 
   deleteTranscript() {
-    singleProcessingStore.setTranscript(undefined)
+    singleProcessingStore.deleteTranscript()
   }
 
   renderLanguageAndDate() {
@@ -163,11 +156,6 @@ export default class TranscriptTabContent extends React.Component<
     )
   }
 
-  getLanguageSelectorTitle() {
-    let typeLabel = this.props.questionType || t('source file')
-    return t('Please selet the original language of the ##type##').replace('##type##', typeLabel)
-  }
-
   renderStepBegin() {
     let typeLabel = this.props.questionType || t('source file')
     return (
@@ -188,11 +176,15 @@ export default class TranscriptTabContent extends React.Component<
   renderStepConfig() {
     const draft = singleProcessingStore.getTranscriptDraft()
 
+    let typeLabel = this.props.questionType || t('source file')
+    const languageSelectorTitle = t('Please selet the original language of the ##type##').replace('##type##', typeLabel)
+
     return (
       <bem.ProcessingBody m='config'>
         <LanguageSelector
-          titleOverride={this.getLanguageSelectorTitle()}
+          titleOverride={languageSelectorTitle}
           onLanguageChange={this.onLanguageChange.bind(this)}
+          suggestedLanguages={singleProcessingStore.getAssetTranscriptableLanguages()}
         />
 
         <bem.ProcessingBody__footer>

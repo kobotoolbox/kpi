@@ -132,7 +132,8 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this))
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this))
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this))
-    processingActions.deleteTranslation.completed.listen(this.onDeleteTranslationCompleted.bind(this))
+    // NOTE: deleteTranslation endpoint is sending whole processing data in response.
+    processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this))
     processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this))
     processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
 
@@ -360,8 +361,16 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
     const transcriptResponse = response[this.currentQuestionName]?.transcript
-    const translationsResponse = response[this.currentQuestionName]?.translated
+    // NOTE: we treat empty transcript object same as nonexistent one
+    this.data.transcript = undefined
+    if (
+      transcriptResponse?.value &&
+      transcriptResponse?.languageCode
+    ) {
+      this.data.transcript = transcriptResponse
+    }
 
+    const translationsResponse = response[this.currentQuestionName]?.translated
     const translationsArray: Transx[] = []
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: string) => {
@@ -376,13 +385,11 @@ class SingleProcessingStore extends Reflux.Store {
         }
       })
     }
+    this.data.translations = translationsArray
 
     delete this.abortFetchData
     this.isProcessingDataLoaded = true
     this.isFetchingData = false
-
-    this.data.translations = translationsArray
-    this.data.transcript = transcriptResponse
 
     this.trigger(this.data)
   }
@@ -417,14 +424,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translations = newTranslations
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined
-    this.trigger(this.data)
-  }
-
-  private onDeleteTranslationCompleted(newTranslations: Transx[]) {
-    // TODO check if the data is ok here
-    console.log('onDeleteTranslationCompleted', newTranslations)
-    this.isFetchingData = false
-    this.data.translations = newTranslations
     this.trigger(this.data)
   }
 
@@ -474,22 +473,25 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcript
   }
 
-  setTranscript(newTranscript: Transx | undefined) {
+  setTranscript(languageCode: string, value: string) {
     this.isFetchingData = true
+    processingActions.setTranscript(
+      this.currentAssetUid,
+      this.currentQuestionName,
+      this.currentSubmissionUuid,
+      languageCode,
+      value
+    )
+    this.trigger(this.data)
+  }
 
-    const transcript = this.getTranscript()
-    if (newTranscript === undefined) {
-      processingActions.deleteTranscript(this.currentAssetUid, transcript?.languageCode)
-    } else {
-      processingActions.setTranscript(
-        this.currentAssetUid,
-        this.currentQuestionName,
-        this.currentSubmissionUuid,
-        newTranscript.languageCode,
-        newTranscript.value
-      )
-    }
-
+  deleteTranscript() {
+    this.isFetchingData = true
+    processingActions.deleteTranscript(
+      this.currentAssetUid,
+      this.currentQuestionName,
+      this.currentSubmissionUuid
+    )
     this.trigger(this.data)
   }
 
@@ -497,9 +499,26 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcriptDraft
   }
 
-  setTranscriptDraft(newTranscriptDraft: TransxDraft | undefined) {
+  setTranscriptDraft(newTranscriptDraft: TransxDraft) {
     this.data.transcriptDraft = newTranscriptDraft
     this.trigger(this.data)
+  }
+
+  deleteTranscriptDraft() {
+    this.data.transcriptDraft = undefined
+    this.trigger(this.data)
+  }
+
+  /**
+   * Returns a list of language codes of languages that are activated within
+   * advanced_features.transcript
+   */
+  getAssetTranscriptableLanguages() {
+    const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid)
+    if (advancedFeatures?.transcript?.languages) {
+      return advancedFeatures.transcript.languages
+    }
+    return []
   }
 
   /** Returns a local cached translation data. */
@@ -514,6 +533,48 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.translations
   }
 
+  /** This stores the translation on backend. */
+  setTranslation(languageCode: string, value: string) {
+    this.isFetchingData = true
+    processingActions.setTranslation(
+      this.currentAssetUid,
+      this.currentQuestionName,
+      this.currentSubmissionUuid,
+      languageCode,
+      value
+    )
+    this.trigger(this.data)
+  }
+
+  deleteTranslation(languageCode: string) {
+    this.isFetchingData = true
+    processingActions.deleteTranslation(
+      this.currentAssetUid,
+      this.currentQuestionName,
+      this.currentSubmissionUuid,
+      languageCode
+    )
+    this.trigger(this.data)
+  }
+
+  getTranslationDraft() {
+    return this.data.translationDraft
+  }
+
+  setTranslationDraft(newTranslationDraft: TransxDraft) {
+    this.data.translationDraft = newTranslationDraft
+    // We use transcript as source by default.
+    this.data.source = this.data.transcript?.languageCode
+    this.trigger(this.data)
+  }
+
+  deleteTranslationDraft() {
+    this.data.translationDraft = undefined
+    // If we clear the draft, we remove the source too.
+    this.data.source = undefined
+    this.trigger(this.data)
+  }
+
   /**
    * Returns a list of language codes of languages that are activated within
    * advanced_features.translated
@@ -524,60 +585,6 @@ class SingleProcessingStore extends Reflux.Store {
       return advancedFeatures.translated.languages
     }
     return []
-  }
-
-  /**
-   * This stores the translation on backend. We require both language code and
-   * whole translation object to allow deleting translations (by passing
-   * `undefined` as data).
-   */
-  setTranslation(
-    newTranslationLanguageCode: string,
-    newTranslation: Transx | undefined
-  ) {
-    this.isFetchingData = true
-
-    if (
-      newTranslation !== undefined &&
-      newTranslation.languageCode !== newTranslationLanguageCode
-    ) {
-      throw new Error('New translation language code mismatch!')
-    }
-
-    if (newTranslation === undefined) {
-      processingActions.deleteTranslation(this.currentAssetUid, newTranslationLanguageCode)
-    } else {
-      processingActions.setTranslation(
-        this.currentAssetUid,
-        this.currentQuestionName,
-        this.currentSubmissionUuid,
-        newTranslation.languageCode,
-        newTranslation.value
-      )
-    }
-
-    this.trigger(this.data)
-  }
-
-  getTranslationDraft() {
-    return this.data.translationDraft
-  }
-
-  setTranslationDraft(newTranslationDraft: TransxDraft | undefined) {
-    this.data.translationDraft = newTranslationDraft
-
-    // If we clear the draft, we remove the source too.
-    if (newTranslationDraft === undefined) {
-      this.data.source = undefined
-    }
-
-    // We show the source when editing translation or creating a new draft.
-    if (newTranslationDraft !== undefined) {
-      // We use transcript as source by default.
-      this.data.source = this.data.transcript?.languageCode
-    }
-
-    this.trigger(this.data)
   }
 
   activateTab(tab: SingleProcessingTabs) {

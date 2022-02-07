@@ -223,11 +223,14 @@ interface AssetAdvancedFeatures {
   transcript?: {
     /** List of question names */
     values?: string[]
+    /** List of transcript enabled languages. */
+    languages?: string[]
   }
   translated?: {
-    languages?: string[]
     /** List of question names */
     values?: string[]
+    /** List of translations enabled languages. */
+    languages?: string[]
   }
 }
 

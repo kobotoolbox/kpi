@@ -150,7 +150,7 @@ export default class TranslationsTabContent extends React.Component<
       }
     }
 
-    singleProcessingStore.setTranslationDraft(undefined)
+    singleProcessingStore.deleteTranslationDraft()
 
     this.setState({
       selectedTranslation: preselectedTranslation,
@@ -160,36 +160,32 @@ export default class TranslationsTabContent extends React.Component<
 
   saveDraft() {
     const draft = singleProcessingStore.getTranslationDraft()
-    const existingTranslation = singleProcessingStore.getTranslation(draft?.languageCode)
-
-    const dateNow = new Date()
-    const dateISO = dateNow.toISOString()
 
     if (
       draft?.languageCode !== undefined &&
       draft?.value !== undefined
     ) {
-      singleProcessingStore.setTranslation(draft.languageCode, {
-        languageCode: draft.languageCode,
-        value: draft.value,
-        dateCreated: existingTranslation?.dateCreated || dateISO,
-        dateModified: dateISO
-      })
+      singleProcessingStore.setTranslation(
+        draft.languageCode,
+        draft.value
+      )
     }
   }
 
   openEditor(languageCode: string) {
-    // Make new draft using existing translation.
-    singleProcessingStore.setTranslationDraft(
-      singleProcessingStore.getTranslation(languageCode)
-    )
-    this.setState({
-      selectedTranslation: languageCode
-    })
+    const translation = singleProcessingStore.getTranslation(languageCode)
+
+    if (translation) {
+      // Make new draft using existing translation.
+      singleProcessingStore.setTranslationDraft(translation)
+      this.setState({
+        selectedTranslation: languageCode
+      })
+    }
   }
 
   deleteTranslation(languageCode: string) {
-    singleProcessingStore.setTranslation(languageCode, undefined)
+    singleProcessingStore.deleteTranslation(languageCode)
   }
 
   addTranslation() {
