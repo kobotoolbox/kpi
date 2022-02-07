@@ -635,11 +635,12 @@ export class DataTable extends React.Component {
       columnsToRender.push({
         Header: () => {
           const columnName = getColumnLabel(
-            this.props.asset.content.survey,
+            this.props.asset,
             key,
             this.state.showGroupName,
             this.state.translationIndex
           );
+
           const columnHXLTags = getColumnHXLTags(this.props.asset.content.survey, key);
           return (
             <div className='column-header-wrapper'>

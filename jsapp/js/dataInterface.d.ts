@@ -160,6 +160,8 @@ interface SurveyRow {
   'kobo--rank-items'?: string
   'kobo--score-choices'?: string
   'kobo--locking-profile'?: string
+  /** HXL tags. */
+  tags: string[]
 }
 
 interface SurveyChoice {

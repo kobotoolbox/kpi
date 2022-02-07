@@ -8,6 +8,7 @@ import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
 } from 'js/assetUtils';
+import {getColumnLabel} from 'js/components/submissions/tableUtils'
 import {
   createEnum,
   SCORE_ROW_TYPE,
@@ -534,7 +535,7 @@ function getRowSupplementalResponses(
       output.push(
         new DisplayResponse(
           null,
-          t('Transcript'),
+          getColumnLabel(asset, getSupplementalTranscriptPath(rowName), false),
           `${rowName}/transcript`,
           undefined,
           getSupplementalDetailsContent(
@@ -553,10 +554,7 @@ function getRowSupplementalResponses(
         output.push(
           new DisplayResponse(
             null,
-            t('Translation (##language_code##)').replace(
-              '##language_code##',
-              languageCode
-            ),
+            getColumnLabel(asset, getSupplementalTranslationPath(rowName, languageCode), false),
             `${rowName}/transcript/${languageCode}`,
             undefined,
             getSupplementalDetailsContent(
