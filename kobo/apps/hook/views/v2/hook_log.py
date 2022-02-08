@@ -99,10 +99,10 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # Filter on status
         status = self.request.GET.get('status')
         if status is not None:
-            if status not in map(str,self.VALID_STATUSES):
+            if status not in map(str, self.VALID_STATUSES):
                 raise serializers.ValidationError(
-                    {'status': _('Value must be one of: ' +
-                                 ', '.join(map(str,self.VALID_STATUSES)))}
+                    {'status': t('Value must be one of: ' +
+                                 ', '.join(map(str, self.VALID_STATUSES)))}
                 )
             else:
                 queryset = queryset.filter(status=status)
@@ -110,27 +110,27 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # Filter on date range
         start = self.request.GET.get('start')
         if start is not None:
-          try:
-            start_date = datetime.fromisoformat(start)
-            if not start_date.tzname():
-                start_date=start_date.replace(tzinfo=timezone.utc)
-            queryset = queryset.filter(date_modified__gte=start_date)
-          except ValueError:
-            raise serializers.ValidationError(
-                {'start': _('Value must be a valid ISO-8601 date')}
-            )
+            try:
+                start_date = datetime.fromisoformat(start)
+                if not start_date.tzname():
+                    start_date = start_date.replace(tzinfo=timezone.utc)
+                queryset = queryset.filter(date_modified__gte=start_date)
+            except ValueError:
+                raise serializers.ValidationError(
+                    {'start': t('Value must be a valid ISO-8601 date')}
+                )
 
         end = self.request.GET.get('end')
         if end is not None:
-          try:
-            end_date = datetime.fromisoformat(end)
-            if not end_date.tzname():
-                end_date=end_date.replace(tzinfo=timezone.utc)
-            queryset = queryset.filter(date_modified__lt=end_date)
-          except ValueError:
-            raise serializers.ValidationError(
-                {'end': _('Value must be a valid ISO-8601 date')}
-            )
+            try:
+                end_date = datetime.fromisoformat(end)
+                if not end_date.tzname():
+                    end_date = end_date.replace(tzinfo=timezone.utc)
+                queryset = queryset.filter(date_modified__lt=end_date)
+            except ValueError:
+                raise serializers.ValidationError(
+                    {'end': t('Value must be a valid ISO-8601 date')}
+                )
 
         return queryset
 
@@ -156,10 +156,12 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response["detail"] = hook_log.message
                 response["status_code"] = hook_log.status_code
             else:
-                response["detail"] = t("An error has occurred when sending the data. Please try again later.")
+                response["detail"] = t(
+                    "An error has occurred when sending the data. Please try again later.")
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            response["detail"] = t("Data is being or has already been processed")
+            response["detail"] = t(
+                "Data is being or has already been processed")
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)
