@@ -3,6 +3,7 @@ import bem, {makeBem} from 'js/bem'
 import KoboRange from 'js/components/common/koboRange'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import Icon from 'js/components/common/icon'
+import Button from 'js/components/common/button'
 import 'js/components/common/audioPlayer.scss'
 
 bem.AudioPlayer = makeBem(null, 'audio-player')
@@ -105,16 +106,13 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
         }
         {!this.state.isLoading &&
           <bem.AudioPlayer__controls>
-            {/*
-              TODO: use this temporary button until the Button component is merged
-              https://github.com/kobotoolbox/kpi/pull/3532
-            */}
-            <button onClick={this.onPlayStatusChange.bind(this)}>
-              <Icon
-                name={this.state.isPlaying ? 'pause' : 'caret-right'}
-                size='xl'
-              />
-            </button>
+            <Button
+              type='bare'
+              startIcon={this.state.isPlaying ? 'pause' : 'caret-right'}
+              size='l'
+              color='blue'
+              onClick={this.onPlayStatusChange.bind(this)}
+            />
           </bem.AudioPlayer__controls>
         }
 
