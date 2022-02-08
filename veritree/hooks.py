@@ -8,7 +8,9 @@ from veritree.question_blocks.constants import (
     FOREST_TYPES_SPECIES_BY_ORG_GROUP_NAME,
     NATION_GROUP_NAME,
     NATION_QUESTION_NAME,
-    amount_planted_question
+    amount_planted_question,
+    enter_by_question,
+    by_species_option
 )
 from veritree.question_blocks.utils import unformat_question_name
 from veritree.utils import get_veritree_default_org_params, parse_veritree_response, get_headers_for_veritree_request
@@ -77,9 +79,9 @@ def get_point(submission_data: dict) -> tuple or None:
     return None
 
 def get_amount_planted(submission_data: dict) -> int:
-    planted_by = submission_data[f"{FOREST_TYPES_SPECIES_BY_ORG_GROUP_NAME}/planted_by"]
+    planted_by = submission_data[f"{FOREST_TYPES_SPECIES_BY_ORG_GROUP_NAME}/{enter_by_question}"]
 
-    if planted_by == "by_species":
+    if planted_by == by_species_option:
         species_keys = [key for key in submission_data.keys() if FOREST_TYPE_AND_SPECIES_BY_ORG_NAME_PREFIX in key]
         return sum([int(submission_data[key]) for key in species_keys])
     else:
