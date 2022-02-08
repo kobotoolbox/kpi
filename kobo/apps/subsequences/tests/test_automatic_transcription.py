@@ -23,19 +23,19 @@ def _survey_and_submission():
 def test_param_builder():
     AutomaticTranscriptionAction.TRANSCRIPTION_SERVICES = TEST_TRANSCRIPTION_SERVICES
     survey = _survey_and_submission()[0]
-    built_params = AutomaticTranscriptionAction.build_params__valid(survey)
+    built_params = AutomaticTranscriptionAction.build_params({}, survey)
     assert built_params['values'] == ['ask_a_question']
     assert 'services' in built_params
 
 def test_instantiate_action_with_params():
     survey = _survey_and_submission()[0]
-    action_params = AutomaticTranscriptionAction.build_params(survey)
+    action_params = AutomaticTranscriptionAction.build_params({}, survey)
     action_instance = AutomaticTranscriptionAction(action_params)
     assert action_instance is not None
 
 def test_submission_status_before_change():
     survey, submission = _survey_and_submission()
-    action_params = AutomaticTranscriptionAction.build_params(survey)
+    action_params = AutomaticTranscriptionAction.build_params({}, survey)
     action_instance = AutomaticTranscriptionAction(action_params)
 
     # check that the changes ARE needed

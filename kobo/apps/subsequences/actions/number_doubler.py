@@ -14,7 +14,7 @@ def double_number(number):
         cast_result_to = int
     result = number * 2
     return cast_result_to(result)
-    
+
 
 class NumberDoubler(BaseAction):
     ID = 'number_doubler'
@@ -39,7 +39,7 @@ class NumberDoubler(BaseAction):
         return ACTION_NEEDED
 
     @classmethod
-    def build_params(kls, asset_content):
+    def build_params(kls, params, asset_content):
         numeric_questions = {}
         for row in asset_content['survey']:
             if row.get('type') in ['number', 'decimal']:

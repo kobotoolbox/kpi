@@ -87,16 +87,6 @@ class BaseAction:
     def build_params(kls, *args, **kwargs):
         raise NotImplementedError(f'{kls.__name__} has not implemented a build_params method')
 
-    @classmethod
-    def build_params__valid(kls, *args, **kwargs):
-        '''
-        a shortcut for tests that builds params and then runs them through the action's
-        param validator
-        '''
-        params = kls.build_params(*args, **kwargs)
-        # check that they match schema
-        return params
-
     def get_name(self, row):
         # return the first "name" field, either 'name' or '$autoname'
         for name_field in ['name', '$autoname']:
