@@ -136,6 +136,18 @@ class ProjectSettings extends React.Component {
     return fields;
   }
 
+  /**
+   * Function used whenever some endpoint calls return an asset.
+   */
+  applyAssetToState(asset) {
+    const newStateObj = clonedeep(this.state);
+    newStateObj.fields = this.getInitialFieldsFromAsset(asset);
+    newStateObj.isUploadFilePending = false;
+    newStateObj.isImportFromURLPending = false;
+    newStateObj.formAsset = asset;
+    this.setState(newStateObj);
+  }
+
   setInitialStep() {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
@@ -548,16 +560,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  var assetName = finalAsset.name;
-                  this.setState({
-                    formAsset: finalAsset,
-                    name: assetName,
-                    description: finalAsset.settings.description,
-                    sector: finalAsset.settings.sector,
-                    country: finalAsset.settings.country,
-                    'share-metadata': finalAsset.settings['share-metadata'],
-                    isImportFromURLPending: false,
-                  });
+                  this.applyAssetToState(finalAsset);
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
@@ -606,16 +609,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  var assetName = finalAsset.name;
-                  this.setState({
-                    formAsset: finalAsset,
-                    name: assetName,
-                    description: finalAsset.settings.description,
-                    sector: finalAsset.settings.sector,
-                    country: finalAsset.settings.country,
-                    'share-metadata': finalAsset.settings['share-metadata'],
-                    isUploadFilePending: false,
-                  });
+                  this.applyAssetToState(finalAsset);
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
