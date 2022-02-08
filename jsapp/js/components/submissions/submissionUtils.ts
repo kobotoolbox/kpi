@@ -499,13 +499,33 @@ export function getMediaAttachment(
 
 /**
  * Returns supplemental details for given path,
+ * e.g. `_supplementalDetails/question_name/transcript/pl` or
  * e.g. `_supplementalDetails/question_name/translated/pl`.
+ *
+ * NOTE: transcripts are actually not nested on language level (because there
+ * can be only one transcript), but we need to use paths with languages in it
+ * to build Submission Modal and Data Table properly.
  */
 export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
   path: string
 ) {
   const pathArray = path.split('/')
+
+  if (pathArray[2] === 'transcript') {
+    // There is always one transcript, not nested in language code object, thus
+    // we don't need the language code in the path.
+    const transcriptLanguageCode = pathArray.pop()
+    const transcriptObj = _.get(submission, pathArray, '')
+    if (
+      transcriptObj.languageCode === transcriptLanguageCode &&
+      typeof transcriptObj.value === 'string'
+    ) {
+      return transcriptObj.value
+    }
+    return t('N/A')
+  }
+
   pathArray.push('value')
   // Moments like these makes you really apprecieate the beauty of lodash.
   const value = _.get(submission, pathArray, '')
@@ -519,7 +539,8 @@ export function getSupplementalDetailsContent(
  * and all translations.
  *
  * Returns empty array if row is not enabled to have supplemental details.
- * If there is potential for details, then it will return a list of
+ *
+ * If there is potential for details, then it will return a full list of
  * DisplayResponses with existing values (falling back to empty strings).
  */
 function getRowSupplementalResponses(
@@ -531,19 +552,28 @@ function getRowSupplementalResponses(
   if (isRowProcessingEnabled(asset.uid, rowName)) {
     const advancedFeatures = asset.advanced_features
 
-    if (advancedFeatures.transcript !== undefined) {
-      output.push(
-        new DisplayResponse(
-          null,
-          getColumnLabel(asset, getSupplementalTranscriptPath(rowName), false),
-          `${rowName}/transcript`,
-          undefined,
-          getSupplementalDetailsContent(
-            submissionData,
-            getSupplementalTranscriptPath(rowName)
+    if (
+      advancedFeatures.transcript !== undefined &&
+      advancedFeatures.transcript.languages !== undefined
+    ) {
+      advancedFeatures.transcript.languages.forEach((languageCode: string) => {
+        output.push(
+          new DisplayResponse(
+            null,
+            getColumnLabel(
+              asset,
+              getSupplementalTranscriptPath(rowName, languageCode),
+              false
+            ),
+            `${rowName}/transcript/${languageCode}`,
+            undefined,
+            getSupplementalDetailsContent(
+              submissionData,
+              getSupplementalTranscriptPath(rowName, languageCode)
+            )
           )
         )
-      )
+      })
     }
 
     if (
@@ -554,7 +584,11 @@ function getRowSupplementalResponses(
         output.push(
           new DisplayResponse(
             null,
-            getColumnLabel(asset, getSupplementalTranslationPath(rowName, languageCode), false),
+            getColumnLabel(
+              asset,
+              getSupplementalTranslationPath(rowName, languageCode),
+              false
+            ),
             `${rowName}/transcript/${languageCode}`,
             undefined,
             getSupplementalDetailsContent(

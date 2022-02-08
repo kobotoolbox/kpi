@@ -504,7 +504,13 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = []
     }
-    paths[questionName].push(getSupplementalTranscriptPath(questionName))
+    // NOTE: the values for transcripts are not nested in submission, but we
+    // need the path to contain language for other parts of code to work.
+    advancedFeatures.transcript?.languages?.forEach((languageCode: string) => {
+      paths[questionName].push(
+        getSupplementalTranscriptPath(questionName, languageCode)
+      )
+    })
   })
 
   advancedFeatures.translated?.values?.forEach((questionName: string) => {
@@ -521,8 +527,11 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
   return paths
 }
 
-export function getSupplementalTranscriptPath(questionName: string) {
-  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript`
+export function getSupplementalTranscriptPath(
+  questionName: string,
+  languageCode: string
+) {
+  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript/${languageCode}`
 }
 
 export function getSupplementalTranslationPath(

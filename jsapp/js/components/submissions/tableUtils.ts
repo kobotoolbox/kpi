@@ -35,7 +35,6 @@ export function getColumnLabel(
     questionPath[0] === SUPPLEMENTAL_DETAILS_PROP
   ) {
     const flatPaths = getSurveyFlatPaths(asset.content?.survey)
-    console.log(key)
     // Supplemental details keys are built like one of:
     // - prefix / source question name / transcript
     // - prefix / source question name / translated / language code
@@ -48,7 +47,7 @@ export function getColumnLabel(
     if (questionPath[2] === 'transcript') {
       return `${sourceQuestionLabel} (${questionPath[3] || t('transcript')})`
     } else if (questionPath[2] === 'translated') {
-      return `${sourceQuestionLabel} (${questionPath[3]})`
+      return `${sourceQuestionLabel} (${questionPath[3] || t('translation')})`
     }
   }
 
