@@ -21,7 +21,10 @@ from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
 import formpack
-from formpack.constants import KOBO_LOCK_SHEET
+from formpack.constants import (
+    EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS,
+    KOBO_LOCK_SHEET,
+)
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,

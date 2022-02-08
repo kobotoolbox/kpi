@@ -61,6 +61,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     >               "flatten": "true",
     >               "xls_types_as_text": "false",
     >               "include_media_url": "false",
+    >               "include_analysis_fields": "false",
     >               "submission_ids": [1, 2, 3, 4],
     >               "query": {
     >                   "$and": [
@@ -95,6 +96,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
             * "xls"
         * "xls_types_as_text" (optional) is a boolean value that defaults to "false" and only affects "xls" export types.
         * "include_media_url" (optional) is a boolean value that defaults to "false" and only affects "xls" and "csv" export types.
+        * "include_analysis_fields" (optional) is a boolean value that defaults to "false" and only affects "xls" and "csv" export types.
         * "submission_ids" (optional) is an array of submission ids that will filter exported submissions to only the specified array of ids. Valid inputs include:
             * An array containing integer values
             * An empty array (no filtering)

@@ -11,6 +11,7 @@ from formpack.constants import (
     EXPORT_SETTING_FLATTEN,
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
+    EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS,
     EXPORT_SETTING_INCLUDE_MEDIA_URL,
     EXPORT_SETTING_LANG,
     EXPORT_SETTING_MULTIPLE_SELECT,
@@ -108,6 +109,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         if EXPORT_SETTING_INCLUDE_MEDIA_URL in data_:
             attrs[EXPORT_SETTING_INCLUDE_MEDIA_URL] = data_[
                 EXPORT_SETTING_INCLUDE_MEDIA_URL
+            ]
+
+        if EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS in data_:
+            attrs[EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS] = data_[
+                EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS
             ]
 
         return attrs
