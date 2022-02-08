@@ -9,6 +9,7 @@ import LanguageSelector from 'js/components/languages/languageSelector'
 import languageSelectorActions from 'js/components/languages/languageSelectorActions'
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
+import {simpleConfirm} from 'js/alertify'
 
 type TranscriptTabContentProps = {
   questionType: AnyRowTypeName | undefined
@@ -93,7 +94,16 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   discardDraft() {
-    singleProcessingStore.deleteTranscriptDraft()
+    if (singleProcessingStore.hasUnsavedTranscriptDraftValue()) {
+      simpleConfirm(
+        t('Discard unsaved changes?'),
+        t('This action is not reversible'),
+        t('Discard'),
+        singleProcessingStore.deleteTranscriptDraft.bind(singleProcessingStore)
+      )
+    } else {
+      singleProcessingStore.deleteTranscriptDraft()
+    }
   }
 
   saveDraft() {
@@ -118,7 +128,12 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   deleteTranscript() {
-    singleProcessingStore.deleteTranscript()
+    simpleConfirm(
+      t('Delete transcript?'),
+      t('This action is not reversible'),
+      t('Delete'),
+      singleProcessingStore.deleteTranscript.bind(singleProcessingStore)
+    )
   }
 
   renderLanguageAndDate() {

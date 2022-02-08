@@ -148,14 +148,19 @@ export function multiConfirm(
   dialog.show();
 }
 
-/** A simple delete confirmation with a universal message. */
-export function deleteConfirm(callback: Function) {
+/** A simple DRY confirmation wrapper function. */
+export function simpleConfirm(
+  title: string,
+  message: string,
+  okLabel: string,
+  okCallback: Function
+) {
   const dialog = alertify.dialog('confirm')
   const opts = {
-    title: t('Delete?'),
-    message: t('Are you sure you want to delete it? This action is not reversible.'),
-    labels: {ok: t('Delete'), cancel: t('Cancel')},
-    onok: callback,
+    title: title,
+    message: message,
+    labels: {ok: okLabel, cancel: t('Cancel')},
+    onok: okCallback,
     oncancel: dialog.destroy
   }
   dialog.set(opts).show()

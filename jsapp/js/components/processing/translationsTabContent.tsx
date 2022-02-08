@@ -9,6 +9,7 @@ import languageSelectorActions from 'js/components/languages/languageSelectorAct
 import Button from 'js/components/common/button'
 import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
 import 'js/components/processing/processingBody'
+import {simpleConfirm} from 'js/alertify'
 
 type TranslationsTabContentProps = {}
 
@@ -140,6 +141,19 @@ export default class TranslationsTabContent extends React.Component<
 
   /** Removes the draft and preselects translations if possible. */
   discardDraft() {
+    if (singleProcessingStore.hasUnsavedTranslationDraftValue()) {
+      simpleConfirm(
+        t('Discard unsaved changes?'),
+        t('This action is not reversible'),
+        t('Discard'),
+        this.discardDraftInnerMethod.bind(this)
+      )
+    } else {
+      this.discardDraftInnerMethod()
+    }
+  }
+
+  discardDraftInnerMethod() {
     let preselectedTranslation = undefined
     if (this.state.previousSelectedTranslation) {
       preselectedTranslation = this.state.previousSelectedTranslation
@@ -185,7 +199,15 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   deleteTranslation(languageCode: string) {
-    singleProcessingStore.deleteTranslation(languageCode)
+    simpleConfirm(
+      t('Delete ##language name## translation?').replace(
+        '##language name##',
+        envStore.getLanguageDisplayLabel(languageCode)
+      ),
+      t('This action is not reversible'),
+      t('Delete'),
+      singleProcessingStore.deleteTranslation.bind(singleProcessingStore, languageCode)
+    )
   }
 
   addTranslation() {
