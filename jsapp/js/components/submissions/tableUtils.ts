@@ -44,10 +44,11 @@ export function getColumnLabel(
       showGroupName,
       translationIndex
     )
+
     if (questionPath[2] === 'transcript') {
-      return `${sourceQuestionLabel} (${questionPath[3] || t('transcript')})`
+      return `${sourceQuestionLabel} - ${t('transcript')} (${questionPath[3]})`
     } else if (questionPath[2] === 'translated') {
-      return `${sourceQuestionLabel} (${questionPath[3] || t('translation')})`
+      return `${sourceQuestionLabel} - ${t('translation')} (${questionPath[3]})`
     }
   }
 
