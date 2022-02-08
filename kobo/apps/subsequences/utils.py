@@ -38,11 +38,6 @@ def discern_next_stage(action_instances, submission):
         if not action.test_submission_passes_action(submission):
             return action
 
-def get_additional_fields_data_xyz(content, actions):
-    for instance in advanced_feature_instances(content, actions):
-        for addl_field in instance.addl_fields():
-            yield addl_field
-
 def advanced_feature_instances(content, actions):
     action_instances = []
     for action_id, action_params in actions.items():
