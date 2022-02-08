@@ -87,7 +87,7 @@ class AssetContentSummary extends React.Component {
         {isExpandable &&
           <bem.FormView__cell m={['toggle-details']}>
             <button onClick={this.toggleExpanded}>
-              {this.state.isExpanded ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
+              {this.state.isExpanded ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
               {this.state.isExpanded ? t('Show less') : t('Show more')}
             </button>
           </bem.FormView__cell>

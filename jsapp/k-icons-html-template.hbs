@@ -6,7 +6,7 @@
   <style>
     body {
       font-size: 20px;
-      margin: 2em;
+      margin: 2rem;
     }
     
     .preview-table {
@@ -16,7 +16,7 @@
     .preview-table th,
     .preview-table td {
       border-bottom: 1px solid hsl(0, 0%, 80%);
-      padding: 0.5em;
+      padding: 0.5rem;
       line-height: 1;
     }
 
@@ -31,7 +31,7 @@
     }
     
     .preview-table td.icon {
-      font-size: 2em;
+      font-size: 2rem;
       padding: 0;
     }
     
@@ -48,12 +48,21 @@
       display: inline-block;
       vertical-align: top;
     }
+    
+    code {
+      background: hsl(0, 0%, 90%);
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+      border-radius: 0.25rem;
+    }
 
     {{{styles}}}
   </style>
 </head>
 <body>
   <h1>{{fontName}}</h1>
+  
+  <p>Note: using the icons require importing a React component <code>import Icon from 'js/components/common/icon'</code>. You can also set a size with <code>size=</code> attribute, but it's optional.</p>
 
   <table class="preview-table">
     <tr>
@@ -69,7 +78,7 @@
         <i class="{{../baseClassName}} {{../classPrefix}}{{this}}"></i>
       </td>
       <td class="code">
-        <pre><code>&lt;i className='{{../baseClassName}} {{../classPrefix}}{{this}}'/&gt;</code></pre>
+        <pre><code>&lt;Icon name='{{this}}'/&gt;</code></pre>
       </td>
     </tr>
     {{/each}}

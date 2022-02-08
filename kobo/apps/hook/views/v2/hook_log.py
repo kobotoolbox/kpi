@@ -1,6 +1,6 @@
 # coding: utf-8
 from datetime import datetime, timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -156,12 +156,10 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response["detail"] = hook_log.message
                 response["status_code"] = hook_log.status_code
             else:
-                response["detail"] = _(
-                    "An error has occurred when sending the data. Please try again later.")
+                response["detail"] = t("An error has occurred when sending the data. Please try again later.")
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            response["detail"] = _(
-                "Data is being or has already been processed")
+            response["detail"] = t("Data is being or has already been processed")
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

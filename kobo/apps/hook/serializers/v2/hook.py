@@ -2,7 +2,7 @@
 import json
 
 import constance
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -43,10 +43,10 @@ class HookSerializer(serializers.ModelSerializer):
         Check if endpoint is valid
         """
         if not value.startswith('http'):
-            raise serializers.ValidationError(_('Invalid scheme'))
+            raise serializers.ValidationError(t('Invalid scheme'))
         elif not constance.config.ALLOW_UNSECURED_HOOK_ENDPOINTS and \
                 value.startswith('http:'):
-            raise serializers.ValidationError(_('Unsecured endpoint is not allowed'))
+            raise serializers.ValidationError(t('Unsecured endpoint is not allowed'))
         return value
 
     def validate_payload_template(self, value):
@@ -57,7 +57,7 @@ class HookSerializer(serializers.ModelSerializer):
             try:
                 json.loads(value.replace(SUBMISSION_PLACEHOLDER, '{}'))
             except ValueError:
-                raise serializers.ValidationError(_('Invalid JSON'))
+                raise serializers.ValidationError(t('Invalid JSON'))
         return value
 
     def validate(self, attrs):
@@ -67,7 +67,7 @@ class HookSerializer(serializers.ModelSerializer):
             # `payload_template` can be used only with `json`
             if payload_template and export_type != Hook.JSON:
                 raise serializers.ValidationError({
-                    'payload_template': _('Can be used only with JSON submission format')
+                    'payload_template': t('Can be used only with JSON submission format')
                 })
         except KeyError:
             pass

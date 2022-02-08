@@ -294,6 +294,12 @@ export default assign({
       if (this.state.settingsNew.country) {
         settings.country = this.state.settingsNew.country;
       }
+      if (this.state.settingsNew.operational_purpose) {
+        settings.operational_purpose = this.state.settingsNew.operational_purpose;
+      }
+      if (this.state.settingsNew.collects_pii) {
+        settings.collects_pii = this.state.settingsNew.collects_pii;
+      }
       if (this.state.settingsNew['share-metadata']) {
         settings['share-metadata'] = this.state.settingsNew['share-metadata'];
       }
@@ -728,7 +734,7 @@ export default assign({
     return (
       <bem.FormBuilderMessageBox m='warning'>
         <span data-tip={t('background recording')}>
-          <i className='k-icon k-icon-form-overview'/>
+          <i className='k-icon k-icon-project-overview'/>
         </span>
 
         <p>
@@ -791,7 +797,7 @@ export default assign({
               </bem.FormBuilderAside__header>
 
               <label
-                className='kobo-select-label'
+                className='kobo-select__label'
                 htmlFor='webform-style'
               >
                 { hasSettings ?

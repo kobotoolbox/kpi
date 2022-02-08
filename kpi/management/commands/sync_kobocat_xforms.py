@@ -539,7 +539,7 @@ class Command(BaseCommand):
                                 'WARN',
                                 user.username,
                                 xform.id_string,
-                                e.message
+                                str(e)
                             ]
                             self._print_tabular(*error_information)
                             continue
