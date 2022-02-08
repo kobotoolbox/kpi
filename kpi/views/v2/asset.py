@@ -271,7 +271,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >        {
     >           "data_sharing": {
     >              "enabled": true,
-    >              "fields": []"
+    >              "fields": []
     >           }
     >        }
     >
@@ -289,7 +289,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >           ...
     >           "data_sharing": {
     >              "enabled": true,
-    >              "fields": []"
+    >              "fields": []
     >           }
     >        }
     >

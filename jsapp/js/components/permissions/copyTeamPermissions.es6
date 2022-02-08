@@ -122,7 +122,7 @@ class CopyTeamPermissions extends React.Component {
         >
           {t('Copy team from another project')}
 
-          <i className='k-icon k-icon-next'/>
+          <i className='k-icon k-icon-angle-right'/>
         </button>
 
         {this.state.isCopyFormVisible && (

@@ -1,6 +1,7 @@
 @use "scss/_colors";
 @use "scss/sizes";
 @use "scss/libs/_mdl";
+@use "scss/_variables";
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -329,26 +330,6 @@ $z-modal-x: 10;
     background: colors.$kobo-gray-96;
     text-align: center;
     line-height: 1em;
-
-    i {
-      color: colors.$kobo-orange;
-      font-size: 28px;
-      margin-right: 13px;
-      vertical-align: middle;
-      display: inline-block;
-    }
-
-    span {
-      line-height: 1.4em;
-      display: inline-block;
-      vertical-align: middle;
-      width: calc(100% - 60px);
-    }
-
-    + .submission--warning {
-      margin-top: -30px;
-      border-top: 1px solid colors.$kobo-gray-92;
-    }
   }
 }
 
@@ -379,7 +360,7 @@ $modal-media-preview-header-height: sizes.$x60;
       width: 100%;
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       font-weight: 600;
       margin-right: 12px;
 
@@ -432,7 +413,7 @@ $modal-media-preview-header-height: sizes.$x60;
     }
 
     .k-icon {
-      color: colors.$kobo-blue-light;
+      color: colors.$kobo-blue;
       font-size: 24px;
     }
   }
@@ -800,7 +781,7 @@ $modal-media-preview-header-height: sizes.$x60;
         padding: 0px;
         color: colors.$kobo-gray-40;
         textarea {
-          background: colors.$kobo-green-light;
+          background: colors.$kobo-lime;
           display: block;
           padding: 10px;
           border: none;
