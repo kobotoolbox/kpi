@@ -1,25 +1,40 @@
+// This is a collection of DRY wrappers for alertifyjs.
 import alertify from 'alertifyjs';
-import { KEY_CODES } from 'js/constants';
+import {KEY_CODES} from 'js/constants';
+import {IconName} from 'jsapp/fonts/k-icons'
 
-/**
- * @namespace MultiButton
- * @param {string} label
- * @param {string} [color] "blue" or "red", if not given button will be gray
- * @param {string} [icon] one of k-icons
- * @param {boolean} [isDisabled]
- * @param {function} callback
- */
+interface MultiConfirmButton {
+  label: string
+  /** Defaults to gray. */
+  color?: 'blue' | 'red'
+  icon?: IconName
+  isDisabled?: boolean
+  callback: Function
+}
+
+interface AlertifyButton {
+  text: string
+  className: string
+  /** primary is needed to not change for disabling below to work */
+  scope: 'primary'
+  element: any
+  index: number
+}
+
+interface MultiConfirmButtonCloseEvent {
+  index: number
+}
 
 /**
  * Use this custom alertify modal to display multiple buttons with different
  * callbacks.
- *
- * @param {string} confirmId needs to be unique
- * @param {string} [title] optional
- * @param {string} [message] optional
- * @param {MultiButton[]} buttons
  */
-export function multiConfirm(confirmId, title, message, buttons) {
+export function multiConfirm(
+  confirmId: string,
+  title: string,
+  message: string,
+  buttons: MultiConfirmButton[]
+) {
   // `confirmId` needs to be unique, as alertify requires the custom dialog to be
   // defined before it is being invoked.
   // We check if it haven't been already defined to avoid errors and unnecessary
@@ -31,7 +46,7 @@ export function multiConfirm(confirmId, title, message, buttons) {
       function() {
         return {
           setup: function() {
-            const buttonsArray = [];
+            const buttonsArray: AlertifyButton[] = [];
             buttons.forEach((button, i) => {
               let buttonLabel = button.label;
               if (button.icon) {
@@ -73,14 +88,14 @@ export function multiConfirm(confirmId, title, message, buttons) {
             };
           },
           prepare: function() {
-            if (message) {
+            if (message && this.setContent) {
               this.setContent(message);
             }
           },
           settings: {
             onclick: Function.prototype,
           },
-          callback: function(closeEvent) {
+          callback: function(closeEvent: MultiConfirmButtonCloseEvent) {
             this.settings.onclick(closeEvent);
           },
         };
@@ -93,14 +108,14 @@ export function multiConfirm(confirmId, title, message, buttons) {
   const dialog = alertify[confirmId]();
 
   // set up closing modal on ESC key
-  const killMe = (evt) => {
+  const killMe = (evt: JQuery.KeyUpEvent) => {
     if (evt.keyCode === KEY_CODES.ESC) {
       dialog.destroy();
     }
   };
 
   dialog.set({
-    onclick: function(closeEvent) {
+    onclick: function(closeEvent: MultiConfirmButtonCloseEvent) {
       // button click operates on the button array indexes to know which
       // callback needs to be triggered
       if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
@@ -108,7 +123,7 @@ export function multiConfirm(confirmId, title, message, buttons) {
       }
     },
     onshow: function() {
-      $(document).on('keyup', killMe);
+      $(document).on('keyup', killMe)
     },
     onclose: function() {
       $(document).off('keyup', killMe);
@@ -131,4 +146,17 @@ export function multiConfirm(confirmId, title, message, buttons) {
   });
 
   dialog.show();
+}
+
+/** A simple delete confirmation with a universal message. */
+export function deleteConfirm(callback: Function) {
+  const dialog = alertify.dialog('confirm')
+  const opts = {
+    title: t('Delete?'),
+    message: t('Are you sure you want to delete it? This action is not reversible.'),
+    labels: {ok: t('Delete'), cancel: t('Cancel')},
+    onok: callback,
+    oncancel: dialog.destroy
+  }
+  dialog.set(opts).show()
 }
