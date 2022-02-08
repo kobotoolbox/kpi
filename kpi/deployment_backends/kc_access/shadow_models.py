@@ -309,7 +309,10 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        cls.objects.create(user_id=user.pk)
+        today = datetime.today()
+        first = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        cls.objects.get_or_create(user_id=user.pk, timestamp=first)
 
 
 class KobocatUser(ShadowModel):
@@ -381,10 +384,7 @@ class KobocatUserObjectPermission(ShadowModel):
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
     object_pk = models.CharField('object ID', max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
-    # It's okay not to use `KobocatUser` as long as PKs are synchronized
-    user = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
-        on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
 
     class Meta(ShadowModel.Meta):
         db_table = 'guardian_userobjectpermission'
@@ -456,7 +456,7 @@ class KobocatUserProfile(ShadowModel):
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(User, null=True, blank=True,
+    created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
@@ -538,7 +538,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
         verbose_name_plural = 'Submissions by Country'
 
     xml = models.TextField()
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
