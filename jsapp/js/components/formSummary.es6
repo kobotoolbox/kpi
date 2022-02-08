@@ -343,6 +343,7 @@ class FormSummary extends React.Component {
     let hasProjectInfo = (
       this.state.settings &&
       (
+        this.state.settings.description ||
         hasCountry ||
         this.state.settings.sector ||
         this.state.settings.operational_purpose ||
@@ -363,7 +364,7 @@ class FormSummary extends React.Component {
                 <bem.FormView__cell m={['label', 'first']}>
                   {t('Project information')}
                 </bem.FormView__cell>
-                <bem.FormView__cell m={['box', 'padding']}>
+                <bem.FormView__cell m='box'>
                   {(hasCountry || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
                       {hasCountry &&
