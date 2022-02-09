@@ -2,7 +2,6 @@ import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import KoboRange from 'js/components/common/koboRange'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Icon from 'js/components/common/icon'
 import Button from 'js/components/common/button'
 import 'js/components/common/audioPlayer.scss'
 
@@ -49,8 +48,6 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   prepareAudio() {
-    this.setState({isLoading: true})
-
     this.audioInterface = new Audio(this.props.mediaURL)
 
     // Set up listeners for audio component
