@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
+import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
@@ -70,7 +71,10 @@ export default class ReportViewItem extends React.Component {
   }
 
   buildChartOptions() {
-    var data = this.props.data;
+    // We need to clone the data object to not pollute it with mutations. This
+    // fixes a bug when we want to truncate labels for the chart, but they
+    // end up being truncated everywhere in report view.
+    var data = clonedeep(this.props.data);
     var chartType = this.props.style.report_type || 'bar';
     let _this = this;
 
