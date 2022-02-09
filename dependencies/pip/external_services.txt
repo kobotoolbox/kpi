@@ -4,11 +4,13 @@
 #
 #    make pip_compile
 #
+-e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
+    # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@ad78349d259dfce5f01e7dd308ee78f9b0e80315#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -21,7 +23,9 @@ amqp==2.5.2
 anyjson==0.3.3
     # via -r dependencies/pip/requirements.in
 attrs==19.3.0
-    # via jsonschema
+    # via
+    #   jsonschema
+    #   pytest
 begins==0.9
     # via formpack
 billiard==3.6.1.0
@@ -142,17 +146,19 @@ idna==2.8
     # via requests
 importlib-metadata==1.7.0
     # via
-    #   jsonschema
     #   kombu
-    #   path.py
+    #   path-py
 jmespath==0.9.4
     # via
     #   boto3
     #   botocore
 jsonfield==2.0.2
     # via -r dependencies/pip/requirements.in
-jsonschema==3.1.1
-    # via formpack
+jsonschema==3.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   a1d05eba1-dorey
+    #   formpack
 kombu==4.6.6
     # via
     #   -r dependencies/pip/requirements.in
@@ -167,19 +173,29 @@ markdown==3.1.1
     #   -r dependencies/pip/requirements.in
     #   django-markdownx
 more-itertools==7.2.0
-    # via zipp
+    # via
+    #   pytest
+    #   zipp
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
 oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
-path.py==12.0.2
+oyaml==0.9
+    # via a1d05eba1-dorey
+packaging==21.3
+    # via pytest
+path-py==12.0.2
     # via formpack
 pillow==6.2.1
     # via django-markdownx
+pluggy==0.13.1
+    # via pytest
 psycopg2==2.8.4
     # via -r dependencies/pip/requirements.in
+py==1.11.0
+    # via pytest
 pyasn1==0.4.7
     # via
     #   -r dependencies/pip/requirements.in
@@ -194,10 +210,14 @@ pyopenssl==19.0.0
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
+pyparsing==3.0.7
+    # via packaging
 pyquery==1.4.1
     # via formpack
 pyrsistent==0.15.5
     # via jsonschema
+pytest==5.4.3
+    # via a1d05eba1-dorey
 python-crontab==2.4.0
     # via django-celery-beat
 python-dateutil==2.8.0
@@ -215,6 +235,8 @@ pyxform==1.7.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+pyyaml==6.0
+    # via oyaml
 raven==6.10.0
     # via -r dependencies/pip/external_services.in
 redis==3.3.11
@@ -271,6 +293,8 @@ vine==1.3.0
     # via
     #   amqp
     #   celery
+wcwidth==0.2.5
+    # via pytest
 werkzeug==1.0.1
     # via -r dependencies/pip/requirements.in
 xlrd==1.2.0
@@ -292,5 +316,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
