@@ -1257,11 +1257,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         add_supplemental_details_to_query = self.asset.has_advanced_features
 
-        if 'fields' in params and '_uuid' not in params['fields']:
+        fields = params.get('fields', [])
+        if len(fields) > 0 and '_uuid' not in fields:
             # skip the query if submission '_uuid' is not even q'd from mongo
             add_supplemental_details_to_query = False
 
-        # if self.asset.has_advanced_features:
         if add_supplemental_details_to_query:
             extras_query = self.asset.submission_extras
             extras_data = dict(extras_query.values_list('uuid', 'content'))
