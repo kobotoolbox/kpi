@@ -1,5 +1,4 @@
 @use "scss/_colors";
-@use "scss/mixins";
 
 .audio-player {
   display: flex;
@@ -11,21 +10,5 @@
     // this % calculates to around 8px for regular modal size, will be a bit
     // smaller on mobile
     margin-right: 2.3%;
-
-    // TODO: Temporary button, until the Button component is merged
-    // https://github.com/kobotoolbox/kpi/pull/3532
-    > button {
-      @include mixins.buttonReset;
-      color: colors.$kobo-blue;
-      border-radius: 4px;
-      width: 36px;
-      height: 36px;
-      line-height: 36px;
-      text-align: center;
-
-      &:hover {
-        background-color: colors.$kobo-gray-92;
-      }
-    }
   }
 }
