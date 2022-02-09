@@ -4,11 +4,13 @@
 #
 #    make pip_compile
 #
+-e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
+    # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@ad78349d259dfce5f01e7dd308ee78f9b0e80315#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -20,8 +22,6 @@ amqp==2.5.2
     #   kombu
 anyjson==0.3.3
     # via -r dependencies/pip/requirements.in
-atomicwrites==1.3.0
-    # via pytest
 attrs==19.3.0
     # via
     #   jsonschema
@@ -170,9 +170,8 @@ idna==2.8
     # via requests
 importlib-metadata==1.7.0
     # via
-    #   jsonschema
     #   kombu
-    #   path.py
+    #   path-py
 invoke==1.3.0
     # via fabric
 ipython==7.9.0
@@ -187,8 +186,11 @@ jmespath==0.9.4
     #   botocore
 jsonfield==2.0.2
     # via -r dependencies/pip/requirements.in
-jsonschema==3.1.1
-    # via formpack
+jsonschema==3.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   a1d05eba1-dorey
+    #   formpack
 kombu==4.6.6
     # via
     #   -r dependencies/pip/requirements.in
@@ -216,13 +218,15 @@ oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+oyaml==0.9
+    # via a1d05eba1-dorey
 packaging==19.2
     # via pytest
 paramiko==2.6.0
     # via fabric
 parso==0.5.1
     # via jedi
-path.py==12.0.2
+path-py==12.0.2
     # via formpack
 pexpect==4.7.0
     # via ipython
@@ -264,9 +268,10 @@ pyquery==1.4.1
     # via formpack
 pyrsistent==0.15.5
     # via jsonschema
-pytest==5.2.2
+pytest==5.4.3
     # via
     #   -r dependencies/pip/dev_requirements.in
+    #   a1d05eba1-dorey
     #   pytest-cov
     #   pytest-django
     #   pytest-env
@@ -293,6 +298,8 @@ pyxform==1.7.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+pyyaml==6.0
+    # via oyaml
 redis==3.3.11
     # via
     #   celery
@@ -382,5 +389,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
