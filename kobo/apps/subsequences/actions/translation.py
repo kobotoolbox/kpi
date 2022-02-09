@@ -145,13 +145,15 @@ class TranslationAction(BaseAction):
         service = 'manual'
         for field in self.translatable_fields:
             for language in self.languages:
-                label = f'{field} Translated ({language})'
+                label = f'{field} - translation ({language})'
+                _type = 'translation'
+                _name = f'{_type}_{language}'
                 yield {
-                    'type': 'translation',
-                    'name': f'{field}/{service}',
+                    'type': _type,
+                    'name': f'{field}/{_name}',
                     'label': label,
                     'language': language,
-                    'path': [field, service],
+                    'path': [field, _name],
                     'source': field,
                     'settings': {
                         'mode': 'auto',

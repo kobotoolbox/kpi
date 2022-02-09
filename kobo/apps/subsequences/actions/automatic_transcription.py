@@ -97,13 +97,14 @@ class AutomaticTranscriptionAction(BaseAction):
     def addl_fields(self):
         service = 'manual'
         for field in self.possible_transcribed_fields:
-            label = f'{field} Transcript'
+            label = f'{field} - transcript'
+            _type = 'transcript'
             yield {
-                'type': 'transcript',
-                'name': f'{field}/{service}',
+                'type': _type,
+                'name': f'{field}/{_type}',
                 'label': label,
                 'languages': self.languages,
-                'path': [field, service],
+                'path': [field, _type],
                 'source': field,
                 'settings': {
                     'mode': 'auto',

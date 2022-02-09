@@ -178,7 +178,7 @@ class ExportObjectMixin:
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments']
+        additional_fields = ['_attachments', '_supplementalDetails']
 
         field_groups = set()
         for field in fields:
