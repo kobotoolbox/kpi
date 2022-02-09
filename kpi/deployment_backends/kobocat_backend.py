@@ -1255,7 +1255,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
 
-        if self.asset.has_advanced_features:
+        add_supplemental_details_to_query = self.asset.has_advanced_features
+
+        if 'fields' in params and '_uuid' not in params['fields']:
+            # skip the query if submission '_uuid' is not even q'd from mongo
+            add_supplemental_details_to_query = False
+
+        # if self.asset.has_advanced_features:
+        if add_supplemental_details_to_query:
             extras_query = self.asset.submission_extras
             extras_data = dict(extras_query.values_list('uuid', 'content'))
             mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
