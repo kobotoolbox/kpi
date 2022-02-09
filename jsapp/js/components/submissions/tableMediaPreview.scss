@@ -1,0 +1,44 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
+.table-media-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.table-media-preview__audio {
+  padding: sizes.$x32 0 sizes.$x12 0;
+  text-align: center;
+
+  .audio-player {
+    // Needed so it looks centered for the audio illustration above player.
+    margin-right: sizes.$x12;
+  }
+
+  i.k-icon-file-audio {
+    // TODO: try to come with up and use some general "icon as illustration" size
+    font-size: 128px;
+    color: colors.$kobo-gray-92;
+  }
+}
+
+.table-media-preview__image {
+  width: 100%;
+  height: 100%;
+}
+
+.table-media-preview__text {
+  padding: sizes.$x32;
+}
+
+.table-media-preview__video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media screen and (min-width: 600px) {
+  .table-media-preview {
+    min-width: sizes.$x400;
+  }
+}

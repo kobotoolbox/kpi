@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 @media screen and (min-width: 961px) {
   .report-view {
@@ -66,7 +67,7 @@
       color: colors.$kobo-white;
       text-align: right;
       font-weight: normal;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
 
       &:first-child {
         text-align: left;

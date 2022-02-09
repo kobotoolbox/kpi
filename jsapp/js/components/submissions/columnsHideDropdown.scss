@@ -1,6 +1,7 @@
 @use "scss/mixins";
 @use "scss/_colors";
 @use "scss/libs/_mdl";
+@use "scss/_variables";
 
 // nested selector needed for specificity
 .kobo-dropdown[data-name='columns-hide-dropdown']  {
@@ -25,7 +26,7 @@
   margin: 0;
   padding: 0;
   color: colors.$kobo-gray-55;
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   font-weight: 500;
   line-height: 24px;
 

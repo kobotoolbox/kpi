@@ -7,37 +7,54 @@ export interface EnvStoreDataItem {
   label: string
 }
 
-interface EnvStoreData {
-  terms_of_service_url: string
-  privacy_policy_url: string
-  source_code_url: string
-  support_email: string
-  support_url: string
-  community_url: string
-  available_sectors: EnvStoreDataItem[]
-  available_countries: EnvStoreDataItem[]
-  all_languages: EnvStoreDataItem[]
-  interface_languages: EnvStoreDataItem[]
-  submission_placeholder: string
+export interface EnvStoreFieldItem {
+  name: string
+  required: boolean
+}
+
+class EnvStoreData {
+  terms_of_service_url: string = ''
+  privacy_policy_url: string = ''
+  source_code_url: string = ''
+  support_email: string = ''
+  support_url: string = ''
+  community_url: string = ''
+  project_metadata_fields: EnvStoreFieldItem[] = []
+  user_metadata_fields: EnvStoreFieldItem[] = []
+  sector_choices: EnvStoreDataItem[] = []
+  operational_purpose_choices: EnvStoreDataItem[] = []
+  country_choices: EnvStoreDataItem[] = []
+  /** languages come from `kobo/static_lists.py` **/
+  all_languages: EnvStoreDataItem[] = []
+  interface_languages: EnvStoreDataItem[] = []
+  submission_placeholder: string = ''
+
+  getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+    for (const f of this.project_metadata_fields) {
+      if (f.name === fieldName) {
+        return f
+      }
+    }
+    return false;
+  }
+  getUserMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+    for (const f of this.user_metadata_fields) {
+      if (f.name === fieldName) {
+        return f
+      }
+    }
+    return false;
+  }
 }
 
 class EnvStore extends Reflux.Store {
-  data: EnvStoreData = {
-    terms_of_service_url: '',
-    privacy_policy_url: '',
-    source_code_url: '',
-    support_email: '',
-    support_url: '',
-    community_url: '',
-    available_sectors: [],
-    available_countries: [],
-    /** languages come from `kobo/static_lists.py` */
-    all_languages: [],
-    interface_languages: [],
-    submission_placeholder: ''
-  }
-
+  data: EnvStoreData
   isReady: boolean = false
+
+  constructor() {
+    super()
+    this.data = new EnvStoreData()
+  }
 
   /**
    * A DRY utility function that turns an array of two items into an object with
@@ -62,13 +79,18 @@ class EnvStore extends Reflux.Store {
     this.data.support_email = response.support_email
     this.data.support_url = response.support_url
     this.data.community_url = response.community_url
+    this.data.project_metadata_fields = response.project_metadata_fields;
+    this.data.user_metadata_fields = response.user_metadata_fields;
     this.data.submission_placeholder = response.submission_placeholder
 
-    if (response.available_sectors) {
-      this.data.available_sectors = response.available_sectors.map(this.nestedArrToChoiceObjs)
+    if (response.sector_choices) {
+      this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs)
     }
-    if (response.available_countries) {
-      this.data.available_countries = response.available_countries.map(this.nestedArrToChoiceObjs)
+    if (response.operational_purpose_choices) {
+      this.data.operational_purpose_choices = response.operational_purpose_choices.map(this.nestedArrToChoiceObjs)
+    }
+    if (response.country_choices) {
+      this.data.country_choices = response.country_choices.map(this.nestedArrToChoiceObjs)
     }
     if (response.interface_languages) {
       this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs)
@@ -92,7 +114,7 @@ class EnvStore extends Reflux.Store {
   }
 
   getSectorLabel(sectorName: string): string | undefined {
-    const foundSector = this.data.available_sectors.find(
+    const foundSector = this.data.sector_choices.find(
       (item: EnvStoreDataItem) => item.value === sectorName
     )
     if (foundSector) {
@@ -102,7 +124,7 @@ class EnvStore extends Reflux.Store {
   }
 
   getCountryLabel(code: string): string | undefined {
-    const foundCountry = this.data.available_countries.find(
+    const foundCountry = this.data.country_choices.find(
       (item: EnvStoreDataItem) => item.value === code
     )
     if (foundCountry) {

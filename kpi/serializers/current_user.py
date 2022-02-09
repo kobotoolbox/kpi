@@ -1,12 +1,13 @@
 # coding: utf-8
 import datetime
+import json
 import pytz
 
 import constance
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from hub.models import ExtraUserDetail
@@ -74,13 +75,49 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         if obj.is_anonymous:
             return {'message': 'user is not logged in'}
+
         rep = super().to_representation(obj)
-        if not rep['extra_details']:
+        if (
+            not rep['extra_details']
+            or not isinstance(rep['extra_details'], dict)
+        ):
             rep['extra_details'] = {}
+        extra_details = rep['extra_details']
+
+        # the front end used to set `primarySector` but has since been changed
+        # to `sector`, which matches the registration form
+        if (
+            extra_details.get('primarySector')
+            and not extra_details.get('sector')
+        ):
+            extra_details['sector'] = extra_details['primarySector']
+
+        # remove `primarySector` to avoid confusion
+        try:
+            del extra_details['primarySector']
+        except KeyError:
+            pass
+
+        # the registration form records only the value, but the front end
+        # expects an object with both the label and the value.
+        # TODO: store and load the value *only*
+        for field in 'sector', 'country':
+            if isinstance(extra_details.get(field), str):
+                extra_details[field] = {
+                    'label': extra_details[field],
+                    'value': extra_details[field],
+                }
+
         # `require_auth` needs to be read from KC every time
-        if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
-            rep['extra_details']['require_auth'] = get_kc_profile_data(
-                obj.pk).get('require_auth', False)
+        # except during testing, when KC's database is not available
+        if (
+            settings.KOBOCAT_URL
+            and settings.KOBOCAT_INTERNAL_URL
+            and not settings.TESTING
+        ):
+            extra_details['require_auth'] = get_kc_profile_data(obj.pk).get(
+                'require_auth', False
+            )
 
         return rep
 
@@ -93,7 +130,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             if all((current_password, new_password)):
                 if not self.instance.check_password(current_password):
                     raise serializers.ValidationError({
-                        'current_password': _('Incorrect current password.')
+                        'current_password': t('Incorrect current password.')
                     })
             elif any((current_password, new_password)):
                 not_empty_field_name = 'current_password' \
@@ -101,13 +138,27 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 empty_field_name = 'current_password' \
                     if new_password else 'new_password'
                 raise serializers.ValidationError({
-                    empty_field_name: _('`current_password` and `new_password` '
+                    empty_field_name: t('`current_password` and `new_password` '
                                         'must both be sent together; '
                                         f'`{not_empty_field_name}` cannot be '
                                         'sent individually.')
                 })
 
         return attrs
+
+    def validate_extra_details(self, value):
+        desired_metadata_fields = json.loads(
+            constance.config.USER_METADATA_FIELDS
+        )
+        errors = {}
+        for field in desired_metadata_fields:
+            if field['required'] and not value.get(field['name']):
+                # Use verbatim message from DRF to avoid giving translators
+                # more busy work
+                errors[field['name']] = t('This field may not be blank.')
+        if errors:
+            raise serializers.ValidationError(errors)
+        return value
 
     def update(self, instance, validated_data):
 
