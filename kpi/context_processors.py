@@ -31,11 +31,11 @@ def email(request):
 
 def mfa(request):
     return {
-        # Use (the strings) 'true' or 'false' to generate a true boolean in Javascript in
-        # index.html.
+        # Use (the strings) 'true' or 'false' to generate a true boolean if
+        # used in Javascript
         'mfa_enabled': 'true' if constance.config.MFA_ENABLED else 'false',
         # Allow markdown to emphasize part of the text and/or activate hyperlink
-        'mfa_help_text': markdown.markdown(constance.config.MFA_HELP_TEXT)
+        'mfa_help_text': markdown.markdown(I18nUtils.get_mfa_help_text()),
     }
 
 

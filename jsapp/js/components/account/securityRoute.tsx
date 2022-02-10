@@ -10,6 +10,8 @@ import mfaActions, {
 import {MODAL_TYPES} from 'jsapp/js/constants'
 
 import './securityRoute.scss'
+import envStore from 'js/envStore'
+import {currentLang} from 'js/utils'
 
 bem.Security = makeBem(null, 'security')
 
@@ -18,6 +20,7 @@ bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header')
 bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title', 'h2')
 bem.SecurityRow__buttons = makeBem(bem.SecurityRow, 'buttons')
 bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description')
+bem.SecurityRow__help = makeBem(bem.SecurityRow, 'help')
 
 bem.MFAOptions = makeBem(null, 'mfa-options')
 bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row')
@@ -57,6 +60,15 @@ export default class Security extends React.Component<
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  getLocalizedMfaHelpText() {
+    const language = currentLang()
+    const texts = envStore.data.mfa_i18n_help_texts
+    if (texts.hasOwnProperty(language)) {
+      return texts[language]
+    }
+    return texts['default']
   }
 
   mfaActive(response: mfaActiveResponse) {
@@ -123,9 +135,17 @@ export default class Security extends React.Component<
           </bem.SecurityRow__buttons>
         </bem.SecurityRow__header>
 
-        <bem.SecurityRow__description>
-          {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additonal layer of protection.')}
-        </bem.SecurityRow__description>
+        {!this.state.mfaActive &&
+          <bem.SecurityRow__description>
+            {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additional layer of protection.')}
+          </bem.SecurityRow__description>
+        }
+
+        {this.state.mfaActive &&
+          <bem.SecurityRow__help>
+            <div dangerouslySetInnerHTML={{__html: this.getLocalizedMfaHelpText()}}/>
+          </bem.SecurityRow__help>
+        }
 
         {this.state.mfaActive &&
           <bem.MFAOptions>
