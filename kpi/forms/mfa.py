@@ -49,7 +49,7 @@ class MFATokenForm(forms.Form):
     Second (and last) step of login process when MFA is activated.
     """
     code = forms.CharField(
-        label=_('Insert your MFA code'),
+        label='',
         strip=True,
         required=True,
         widget=forms.TextInput(
@@ -67,7 +67,7 @@ class MFATokenForm(forms.Form):
 
     error_messages = {
         'invalid_code': _(
-            'Invalid MFA code.'
+            'Your token is invalid'
         )
     }
 
