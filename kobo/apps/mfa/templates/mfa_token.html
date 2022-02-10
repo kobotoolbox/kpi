@@ -10,10 +10,15 @@
     </div>
     {% csrf_token %}
     {{ mfa_help_text | safe }}
-
+    <p><b>{% trans "Please enter your verification token" %}</b></p>
+    <p>&nbsp;</p>
     {{ form.as_p }}
-    <button type="submit" name="Login" class="kobo-button kobo-button--blue kobo-button--fullwidth">
-      {% trans "Login" %}
+    <a href="#" class="registration__forgot">
+      {% trans "Problems with your token?" %}
+    </a>
+    <p>&nbsp;</p>
+    <button type="submit" name="continue" class="kobo-button kobo-button--blue kobo-button--fullwidth">
+      {% trans "Continue" %}
     </button>
     <input type="hidden" name="next" value="{{ next }}" />
   </form>
