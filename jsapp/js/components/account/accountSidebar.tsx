@@ -4,6 +4,7 @@ import bem from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import Icon from 'js/components/common/icon'
 import './accountSidebar.scss'
+import envStore from 'js/envStore'
 
 type AccountSidebarProps = {
   submissionsPerMonth: number
@@ -80,17 +81,16 @@ export default class AccountSidebar extends React.Component<
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
 
-          {window.MFAEnabled && <bem.FormSidebar__label
+          <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
             href={'#' + ROUTES.SECURITY}
+            disabled={ !(envStore.isReady && envStore.data.mfa_enabled) }
           >
-            {/*TODO: get the data usage icon*/}
             <Icon name='lock' size='xl'/>
             <bem.FormSidebar__labelText>
               {t('Security')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
-          }
         </bem.FormSidebar>
       )
     }
