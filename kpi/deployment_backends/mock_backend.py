@@ -31,6 +31,7 @@ from kpi.exceptions import (
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
+from kpi.tests.utils.mock import MockAttachment
 from .base_backend import BaseDeploymentBackend
 
 
@@ -209,13 +210,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
-    def get_attachment_content(
+    def get_attachment(
         self,
         submission_id: int,
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
-    ) -> tuple:
+    ) -> MockAttachment:
 
         submission_xml = self.get_submission(
             submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
@@ -257,9 +258,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     'tests',
                     filename
                 )
-                with open(video_file, 'rb') as f:
-                    file_content = f.read()
-                return filename, file_content, attachment['mimetype']
+                return MockAttachment(video_file)
 
         raise AttachmentNotFoundException
 
