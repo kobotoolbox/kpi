@@ -200,6 +200,14 @@ CONSTANCE_CONFIG = {
         True,
         'Enable two-factor authentication',
     ),
+    'USER_METADATA_FIELDS': (
+        json.dumps([
+            {'name': 'organization', 'required': False},
+            {'name': 'organization_website', 'required': False},
+            {'name': 'sector', 'required': False},
+            {'name': 'gender', 'required': False},
+            {'name': 'bio', 'required': False},
+            {'name': 'city', 'required': False},
             {'name': 'country', 'required': False},
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
@@ -243,6 +251,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ]
 }
+
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 

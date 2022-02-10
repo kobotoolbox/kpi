@@ -217,12 +217,8 @@ pytz==2019.3
     #   celery
     #   django
     #   django-timezone-field
-<<<<<<< HEAD
-pyxform==1.7.0
-=======
     #   twilio
-pyxform==1.5.1
->>>>>>> f95fff0ef... Make login page work with MFA
+pyxform==1.7.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
@@ -254,12 +250,9 @@ six==1.13.0
     #   python-dateutil
     #   responses
     #   ssrf-protect
-<<<<<<< HEAD
-=======
     #   unittest2
 smsapi-client==2.5.0
     # via django-trench
->>>>>>> f95fff0ef... Make login page work with MFA
 sqlparse==0.3.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -273,13 +266,10 @@ statistics==1.0.3.5
     # via formpack
 tabulate==0.8.5
     # via -r dependencies/pip/requirements.in
-<<<<<<< HEAD
-=======
 traceback2==1.4.0
     # via unittest2
 twilio==7.3.0
     # via django-trench
->>>>>>> f95fff0ef... Make login page work with MFA
 unicodecsv==0.14.1
     # via -r dependencies/pip/requirements.in
 urllib3==1.25.7
