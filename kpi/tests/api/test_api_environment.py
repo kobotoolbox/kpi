@@ -5,6 +5,7 @@ import json
 import constance
 from django.urls import reverse
 from django.http import HttpRequest
+from markdown import markdown
 from django.template import Template, RequestContext
 from rest_framework import status
 
@@ -51,6 +52,11 @@ class EnvironmentTests(BaseTestCase):
                     ('ar', 'العربيّة'), x
                 ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
+            'mfa_enabled': constance.config.MFA_ENABLED,
+            'mfa_i18n_help_texts': lambda i18n_texts: {
+                lang: markdown(text)
+                for lang, text in json.loads(constance.config.MFA_I18N_HELP_TEXTS).items()
+            },
         }
 
     def _check_response_dict(self, response_dict):
