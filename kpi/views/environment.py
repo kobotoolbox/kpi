@@ -35,6 +35,8 @@ class EnvironmentView(APIView):
             'OPERATIONAL_PURPOSE_CHOICES',
             lambda text: tuple((line, line) for line in text.split('\r\n')),
         ),
+        'MFA_HELP_TEXT',
+        'MFA_ENABLED',
     ]
 
     def get(self, request, *args, **kwargs):

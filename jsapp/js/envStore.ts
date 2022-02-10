@@ -28,6 +28,8 @@ class EnvStoreData {
   all_languages: EnvStoreDataItem[] = []
   interface_languages: EnvStoreDataItem[] = []
   submission_placeholder: string = ''
+  mfa_help_text: string = ''
+  mfa_enabled: boolean = false
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -79,9 +81,11 @@ class EnvStore extends Reflux.Store {
     this.data.support_email = response.support_email
     this.data.support_url = response.support_url
     this.data.community_url = response.community_url
-    this.data.project_metadata_fields = response.project_metadata_fields;
-    this.data.user_metadata_fields = response.user_metadata_fields;
+    this.data.project_metadata_fields = response.project_metadata_fields
+    this.data.user_metadata_fields = response.user_metadata_fields
     this.data.submission_placeholder = response.submission_placeholder
+    this.data.mfa_help_text = response.mfa_help_text
+    this.data.mfa_enabled = response.mfa_enabled
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs)

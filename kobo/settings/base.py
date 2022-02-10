@@ -201,6 +201,14 @@ CONSTANCE_CONFIG = {
         True,
         'Enable two-factor authentication',
     ),
+    'MFA_HELP_TEXT': (
+        'KoBoToolbox uses Multi-Factor Authentication. '
+        'If you no longer have access to the device registered '
+        'with your account and the backup codes, the KoBo Support Team '
+        'can assist you regaining access to the system.'
+        'To request this support, please contact us at [support@kobotoolbox.org](mailto:support@kobotoolbox.org)',
+        'Guidance text on help users when they lock their account'
+    ),
     'USER_METADATA_FIELDS': (
         json.dumps([
             {'name': 'organization', 'required': False},
