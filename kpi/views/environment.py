@@ -1,9 +1,11 @@
 # coding: utf-8
 import json
+import logging
 
 import constance
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
+from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -35,7 +37,13 @@ class EnvironmentView(APIView):
             'OPERATIONAL_PURPOSE_CHOICES',
             lambda text: tuple((line, line) for line in text.split('\r\n')),
         ),
-        'MFA_HELP_TEXT',
+        (
+            'MFA_I18N_HELP_TEXTS',
+            lambda i18n_texts: {
+                lang: markdown(text)
+                for lang, text in json.loads(i18n_texts).items()
+            },
+        ),
         'MFA_ENABLED',
     ]
 
@@ -55,7 +63,12 @@ class EnvironmentView(APIView):
                 processor = None
             value = getattr(constance.config, key)
             if processor:
-                value = processor(value)
+                try:
+                    value = processor(value)
+                except json.JSONDecodeError:
+                    logging.error(f'Environment.py: Could not decode `{key}`')
+                    continue
+
             data[key.lower()] = value
 
         data['country_choices'] = COUNTRIES

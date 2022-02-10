@@ -129,6 +129,13 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {'widget': 'django.forms.Textarea'},
+    ]
+}
+
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
@@ -199,15 +206,24 @@ CONSTANCE_CONFIG = {
     ),
     'MFA_ENABLED': (
         True,
-        'Enable two-factor authentication',
+        'Enable two-factor authentication'
     ),
-    'MFA_HELP_TEXT': (
-        'KoBoToolbox uses Multi-Factor Authentication. '
-        'If you no longer have access to the device registered '
-        'with your account and the backup codes, the KoBo Support Team '
-        'can assist you regaining access to the system.'
-        'To request this support, please contact us at [support@kobotoolbox.org](mailto:support@kobotoolbox.org)',
-        'Guidance text on help users when they lock their account'
+    'MFA_I18N_HELP_TEXTS': (
+        json.dumps({
+            'default': (
+                'KoBoToolbox uses Multi-Factor Authentication. '
+                'If you no longer have access to the device registered '
+                'with your account and the backup codes, the KoBo Support Team '
+                'can assist you regaining access to the system.'
+                'To request this support, please contact us at '
+                '[support@kobotoolbox.org](mailto:support@kobotoolbox.org)'
+            )
+        }), (
+            'Guidance texts to help users when they lock their account. '
+            'It supports markdown syntax. To add texts in other languages, use '
+            "the language code (e.g. 'fr' for French) as the key of the "
+            'translated version.'
+        )
     ),
     'USER_METADATA_FIELDS': (
         json.dumps([
@@ -253,12 +269,6 @@ CONSTANCE_CONFIG = {
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
     ),
-}
-CONSTANCE_ADDITIONAL_FIELDS = {
-    'metadata_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
-        {'widget': 'django.forms.Textarea'},
-    ]
 }
 
 # Tell django-constance to use a database model instead of Redis

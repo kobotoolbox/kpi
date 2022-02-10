@@ -1,8 +1,13 @@
 # coding: utf-8
+import json
+import logging
+
+import constance
 from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.translation import get_language
 
+from kpi.utils.log import logging
 from ..models import SitewideMessage
 
 
@@ -39,3 +44,21 @@ class I18nUtils:
             return sitewide_message.body
 
         return None
+
+    @staticmethod
+    def get_mfa_help_text(lang=None):
+        """
+        Returns a localized version of the text for MFA guidance
+        """
+
+        # Get default value if lang is not specified
+        language = lang if lang else get_language()
+
+        try:
+            i18n_mfa_help_texts = json.loads(constance.config.MFA_I18N_HELP_TEXTS)
+        except json.JSONDecodeError:
+            logging.error('Could decode Constance.MFA_I18N_HELP_TEXTS')
+            return ''
+
+        default = i18n_mfa_help_texts['default']
+        return i18n_mfa_help_texts.get(language, default)
