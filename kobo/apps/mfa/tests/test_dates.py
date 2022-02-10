@@ -28,7 +28,7 @@ class MFADatesTestCase(BaseTestCase):
         mfa_method.save()
         self.assertEqual(mfa_method.date_disabled, None)
 
-    def test_date_disabled_is_true_when_not_active(self):
+    def test_date_disabled_is_set_when_not_active(self):
 
         mfa_method = get_mfa_model().objects.create(
             user=self.someuser,
