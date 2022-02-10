@@ -83,7 +83,6 @@ export default class AccountSidebar extends React.Component<
           {window.MFAEnabled && <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
             href={'#' + ROUTES.SECURITY}
-            disabled
           >
             {/*TODO: get the data usage icon*/}
             <Icon name='lock' size='xl'/>

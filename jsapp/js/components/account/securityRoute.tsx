@@ -28,8 +28,6 @@ bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
 
 type SecurityState = {
-  isLoading: boolean,
-  backupCodes: null | string[],
   mfaActive: boolean,
 }
 
@@ -40,9 +38,6 @@ export default class Security extends React.Component<
   constructor(props: any) {
     super(props)
     this.state = {
-      isLoading: true,
-      // Currently input code, used for confirm, deactivate, regenerate
-      backupCodes: null,
       mfaActive: false,
     }
   }
@@ -50,10 +45,6 @@ export default class Security extends React.Component<
   private unlisteners: Function[] = []
 
   componentDidMount() {
-    this.setState({
-      isLoading: false,
-    })
-
     this.unlisteners.push(
       mfaActions.isActive.completed.listen(this.mfaActive.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
@@ -79,6 +70,7 @@ export default class Security extends React.Component<
         qrCode: response.details,
         modalType: 'qr',
         customModalHeader: this.renderCustomHeader(),
+        disableBackdrop: true,
       })
     }
   }
@@ -99,12 +91,13 @@ export default class Security extends React.Component<
         type: MODAL_TYPES.MFA_MODALS,
         modalType: 'deactivate',
         customModalHeader: this.renderCustomHeader(),
+        disableBackdrop: true,
       })
     }
   }
 
   renderCustomHeader() {
-    return(
+    return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
           {t('Two-factor authentication')}
@@ -113,13 +106,7 @@ export default class Security extends React.Component<
     )
   }
 
- /**
-  * TODO:
-  * - redo bem elements
-  * - make css
-  */
   render() {
-    console.dir(this.state)
     return (
       <bem.SecurityRow>
         <bem.SecurityRow__header>
@@ -159,6 +146,7 @@ export default class Security extends React.Component<
                       type: MODAL_TYPES.MFA_MODALS,
                       modalType: 'reconfigure',
                       customModalHeader: this.renderCustomHeader(),
+                      disableBackdrop: true,
                     })
                   }}
                 />
@@ -181,6 +169,7 @@ export default class Security extends React.Component<
                       type: MODAL_TYPES.MFA_MODALS,
                       modalType: 'regenerate',
                       customModalHeader: this.renderCustomHeader(),
+                      disableBackdrop: true,
                     })
                   }}
                 />
