@@ -52,6 +52,13 @@ class MFATokenForm(forms.Form):
         label=_('Insert your MFA code'),
         strip=True,
         required=True,
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': _(
+                    'Enter the ##token length##-character token'
+                ).replace('##token length##', str(settings.TRENCH_AUTH['CODE_LENGTH']))
+            }
+        )
     )
     ephemeral_token = forms.CharField(
         required=True,
