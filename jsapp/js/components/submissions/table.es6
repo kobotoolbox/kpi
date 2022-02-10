@@ -608,17 +608,38 @@ export class DataTable extends React.Component {
             index = '_1';
             break;
         default:
-          // set index for questions in current version of survey (including questions in groups)
-          survey.map(function (x, i) {
-            var k = key;
+          // Look for a survey row that matches current column 'key' and set
+          // index for it based on the order in which it is stored in survey
+          // (including questions in groups).
+          survey.forEach((surveyRow, surveyRowIndex) => {
+            // Get the row name (`loopKey`) from possible path (`key`).
+            let loopKey = key;
             if (key.includes('/')) {
-              var kArray = k.split('/');
-              k = kArray[kArray.length - 1];
+              var loopKeyArray = loopKey.split('/');
+              loopKey = loopKeyArray[loopKeyArray.length - 1];
             }
-            if (x.name === k || x.$autoname === k) {
-              index = i.toString();
+
+            if (getRowName(surveyRow) === loopKey) {
+              index = surveyRowIndex.toString();
             }
           });
+
+          // Detect supplemental details column and put it after its source column.
+          if (
+            q === undefined &&
+            key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+          ) {
+            const supplementalColumnSource = key.split('/')[1];
+            const sourceColumn = columnsToRender.find((columnToRender) =>
+              columnToRender.id === supplementalColumnSource
+            );
+            if (sourceColumn) {
+              // This way if we have a source column with index `2`, we will set
+              // the supplemental details column to `2__supplementalDetails/…`
+              // to make sure it keeps the correct order.
+              index = `${sourceColumn.index}_${key}`;
+            }
+          }
       }
 
       const elClassNames = [];
@@ -782,9 +803,12 @@ export class DataTable extends React.Component {
 
     });
 
-    columnsToRender.sort((columnA, columnB) => {
-      return columnA.index.localeCompare(columnB.index, 'en', {numeric: true});
-    });
+    // Apply stored indexes to all columns to sort them.
+    // NOTE: frozen column index stay as is, it is being moved to the beginning
+    // of table using CSS styling.
+    columnsToRender.sort((columnA, columnB) =>
+      columnA.index.localeCompare(columnB.index, 'en', {numeric: true})
+    );
 
     let frozenColumn = tableStore.getFrozenColumn();
     const textFilterQuestionTypes = [

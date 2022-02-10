@@ -15,6 +15,7 @@ import {
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   SUPPLEMENTAL_DETAILS_PROP,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import {
   EXCLUDED_COLUMNS,
@@ -162,7 +163,15 @@ const tableStore = Reflux.createStore({
     const dataKeys = Object.keys(submissions.reduce(function (result, obj) {
       return Object.assign(result, obj);
     }, {}));
-    output = [...new Set([...dataKeys, ...output])];
+    output = [...new Set([...output, ...dataKeys])];
+
+    // Put `start` and `end` first
+    if (output.indexOf(META_QUESTION_TYPES.end)) {
+      output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0]);
+    }
+    if (output.indexOf(META_QUESTION_TYPES.start)) {
+      output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0]);
+    }
 
     // exclude some technical non-data columns
     output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
@@ -172,7 +181,6 @@ const tableStore = Reflux.createStore({
       const foundPathKey = Object.keys(flatPaths).find(
         (pathKey) => flatPaths[pathKey] === key
       );
-
 
       // no path means this definitely is not a note type
       if (!foundPathKey) {
