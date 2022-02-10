@@ -9,7 +9,8 @@
       </a>
     </div>
     {% csrf_token %}
-    <p>{{ mfa_help_text | safe }}</p>
+    {{ mfa_help_text | safe }}
+
     {{ form.as_p }}
     <button type="submit" name="Login" class="kobo-button kobo-button--blue kobo-button--fullwidth">
       {% trans "Login" %}
