@@ -1,4 +1,4 @@
-import json
+import uuid
 from abc import ABC, abstractmethod
 from os import environ
 from dataclasses import dataclass
@@ -6,10 +6,16 @@ from typing import List, Dict, Optional, Union, TypeVar
 
 from google.api_core.exceptions import InvalidArgument
 from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import translate_v3 as translate
+from google.cloud import translate_v3 as translate, storage
 
 
 PROJECT_ID = 'kobo-nlp-asr-mt'
+BUCKET_NAME = 'kobo-translations-test-qwerty12345'
+LOCATION = 'us-central1'
+SOURCE_BASENAME = 'source'
+EXTENSION = '.txt'
+TIMEOUT = 360
+MAX_SYNC_CHARS = 30720
 
 
 class TranslationException(Exception):
@@ -39,6 +45,11 @@ class GoogleTranslationEngine(TranslationEngineBase):
         except DefaultCredentialsError as e:
             raise TranslationException(e)
 
+        self.uri_base = f'gs://{BUCKET_NAME}'
+        self.parent_async = f'projects/{PROJECT_ID}/locations/{LOCATION}'
+        self.storage_client = storage.Client()
+        self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
+
     def get_languages(
         self, labels: bool = False, display_language: str = 'en'
     ) -> Union[Dict, List]:
@@ -52,21 +63,108 @@ class GoogleTranslationEngine(TranslationEngineBase):
             }
         return [lang.language_code for lang in response.languages]
 
-    def translate(
-        self, content: str, target_lang: str, source_lang: Optional[str] = None
+    def translate(self, content: str, *args: List, **kwargs: Dict) -> str:
+        if len(content) < MAX_SYNC_CHARS:
+            return self._translate_sync(content, *args, **kwargs)
+        return self._translate_async(content, *args, **kwargs)
+
+    def _translate_sync(
+        self,
+        content: str,
+        username: str,
+        target_lang: str,
+        source_lang: Optional[str] = None,
+        *args: List,
+        **kwargs: Dict,
     ) -> str:
         try:
             response = self.client.translate_text(
-                contents=[content],
-                source_language_code=source_lang,
-                target_language_code=target_lang,
-                parent=self.parent,
-                mime_type=self.mime_type,
+                request={
+                    'contents': [content],
+                    'source_language_code': source_lang,
+                    'target_language_code': target_lang,
+                    'parent': self.parent,
+                    'mime_type': self.mime_type,
+                    'labels': {'user': username},
+                }
             )
         except InvalidArgument as e:
             raise TranslationException(e.message)
 
         return response.translations[0].translated_text
+
+    def _store_content(self, content: str, path: str) -> bool:
+        dest = self.bucket.blob(path)
+        dest.upload_from_string(content)
+        return True
+
+    def _get_output_filename(self, output_path: str) -> str:
+        username, _uuid, target_lang, _ = output_path.split('/')
+        return output_path + '_'.join(
+            [
+                BUCKET_NAME,
+                username,
+                _uuid,
+                SOURCE_BASENAME,
+                target_lang,
+                f'translations{EXTENSION}',
+            ]
+        )
+
+    def _get_content(self, path: str) -> str:
+        return self.bucket.get_blob(path).download_as_text()
+
+    def _cleanup(self, username: str, _uuid: str) -> None:
+        for blob in self.bucket.list_blobs(prefix=f'{username}/{_uuid}'):
+            try:
+                blob.delete()
+            except Exception as e:
+                raise TranslationException(e)
+
+    def _translate_async(
+        self,
+        content: str,
+        username: str,
+        _uuid: str,
+        source_lang: str,
+        target_lang: str,
+    ) -> str:
+        source_path = f'{username}/{_uuid}/{SOURCE_BASENAME}{EXTENSION}'
+        output_path = f'{username}/{_uuid}/{target_lang}/'
+
+        storage_response = self._store_content(content, source_path)
+
+        if not storage_response:
+            raise TranslationException('Unable to store content in GCP')
+
+        input_uri = f'{self.uri_base}/{source_path}'
+        output_uri = f'{self.uri_base}/{output_path}'
+        output_filename = self._get_output_filename(output_path)
+
+        input_configs_element = {
+            "gcs_source": {"input_uri": input_uri},
+            "mime_type": "text/plain",
+        }
+        output_config = {"gcs_destination": {"output_uri_prefix": output_uri}}
+
+        operation = self.client.batch_translate_text(
+            request={
+                "parent": self.parent_async,
+                "source_language_code": source_lang,
+                "target_language_codes": [target_lang],
+                "input_configs": [input_configs_element],
+                "output_config": output_config,
+                'labels': {'user': username},
+            }
+        )
+
+        response = operation.result(TIMEOUT)
+
+        content = self._get_content(output_filename)
+
+        self._cleanup(username, _uuid)
+
+        return content
 
 
 TranslationEngine = TypeVar('TranslationEngine')
@@ -148,4 +246,11 @@ class Translate:
 
 def run(*args):
     engine = Translate.get_engine('google')()
-    print(engine.translate('Hello world', target_lang='eo'))
+    options = {
+        'content': 'Hello world',
+        'username': 'josh',
+        '_uuid': uuid.uuid4(),
+        'source_lang': 'en',
+        'target_lang': 'eo',
+    }
+    print(engine.translate(**options))
