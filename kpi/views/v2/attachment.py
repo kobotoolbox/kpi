@@ -1,4 +1,6 @@
 # coding: utf-8
+from typing import Optional
+
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
@@ -9,6 +11,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
     SubmissionNotFoundException,
+    XPathNotFoundException,
 )
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
@@ -53,26 +56,46 @@ class AttachmentViewSet(
         'video',
     )
 
-    def list(self, request, *args, **kwargs):
-
+    def retrieve(self, request, pk, *args, **kwargs):
+        # Since endpoint is needed for KobocatDeploymentBackend to overwrite
+        # Mongo attachments URL with their primary keys (instead of their XPath)
         submission_id = kwargs['parent_lookup_data']
-        filters = request.query_params.dict()
+        return self._get_response(request, submission_id, attachment_id=pk)
+
+    def list(self, request, *args, **kwargs):
+        submission_id = kwargs['parent_lookup_data']
         try:
-            xpath = filters['xpath']
+            xpath = request.query_params['xpath']
         except KeyError:
             raise serializers.ValidationError({
-                'detail': t('xpath query parameter is required')
+                'detail': t('`xpath` query parameter is required')
             }, 'xpath_missing')
 
+        return self._get_response(request, submission_id, xpath=xpath)
+
+    def _get_response(
+        self,
+        request,
+        submission_id: int,
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> Response:
+
         try:
-            filename, content, content_type = self.asset.deployment.get_attachment_content(
-                submission_id,
-                request.user,
-                xpath
+            (
+                filename,
+                content,
+                content_type,
+            ) = self.asset.deployment.get_attachment_content(
+                submission_id, request.user, attachment_id, xpath
             )
-        except (AttachmentNotFoundException, SubmissionNotFoundException):
+        except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404
         except InvalidXPathException:
+            raise serializers.ValidationError({
+                'detail': t('Invalid XPath syntax')
+            }, 'invalid_xpath')
+        except XPathNotFoundException:
             raise serializers.ValidationError({
                 'detail': t('The path could not be found in the submission')
             }, 'xpath_not_found')
@@ -94,7 +117,8 @@ class AttachmentViewSet(
         headers = {
             'Content-Disposition': f'inline; filename={filename}'
         }
-
+        # Not optimized for big files. What about using FileResponse if
+        # length is bigger than X MB.
         return Response(
             content,
             content_type=set_content,

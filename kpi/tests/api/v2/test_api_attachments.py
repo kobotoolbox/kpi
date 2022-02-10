@@ -54,11 +54,13 @@ class AttachmentApiTests(BaseAssetTestCase):
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
+                    'id': 1,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_clip.mp4',
                     'filename': 'someuser/audio_conversion_test_clip.mp4',
                     'mimetype': 'video/mp4',
                 },
                 {
+                    'id': 2,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
@@ -140,7 +142,21 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'video/mp4'
 
-    def test_bad_xpath(self):
+    def test_get_attachment_with_id(self):
+        url = reverse(
+            self._get_endpoint('attachment-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'parent_lookup_data': 1,
+                'pk': 1,
+            },
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response['Content-Type'] == 'video/mp4'
+
+    def test_xpath_not_found(self):
         self.__add_submissions()
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
@@ -187,4 +203,4 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['detail'].code == 'xpath_not_found'
+        assert response.data['detail'].code == 'invalid_xpath'

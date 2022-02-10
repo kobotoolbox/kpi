@@ -134,3 +134,7 @@ class SearchQueryTooShortException(InvalidSearchException):
 
 class SubmissionNotFoundException(Exception):
     pass
+
+
+class XPathNotFoundException(Exception):
+    pass

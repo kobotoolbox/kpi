@@ -45,7 +45,9 @@ class MP3ConversionRenderer(MediaFileRenderer):
         try:
             audio = AudioSegment.from_file(BytesIO(data))
         except IndexError:
-            # The file format is not supported
+            # If an `IndexError` is raised, the file is probably supported but
+            # it does not have an audio track. We want to re-raise the same
+            # error as pydub
             raise CouldntDecodeError
 
         with NamedTemporaryFile(suffix='.mp3') as f:
