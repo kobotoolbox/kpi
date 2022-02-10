@@ -333,7 +333,6 @@ $z-modal-x: 10;
 }
 
 // TODO: Make a better generic modal component
-
 .modal.modal-custom-header {
   border-radius: 6px;
 
@@ -349,21 +348,8 @@ $z-modal-x: 10;
       padding: 0;
       margin: 0;
     }
-
-    .table-media-preview-header {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      font-size: variables.$base-font-size;
-      font-weight: 600;
-      margin-right: 12px;
-
-      .table-media-preview-header__title {
-        padding-top: 3px;
-        margin-right: 6px;
-      }
-    }
   }
+
   .modal__body {
     padding: 0;
     margin: 0;
@@ -408,9 +394,17 @@ $z-modal-x: 10;
     padding: 16px;
 
     .table-media-preview-header {
-      font-size: 14px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: variables.$base-font-size;
+      font-weight: 600;
+      margin-right: 12px;
 
       .table-media-preview-header__title {
+        padding-top: 3px;
+        margin-right: 6px;
+
         .table-media-preview-header__label {
           vertical-align: top;
         }
