@@ -10,7 +10,8 @@ def get_kobocat_storage():
     `KOBOCAT_DEFAULT_FILE_STORAGE` value
     """
     if (
-        django_settings.KOBOCAT_DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage'
+        django_settings.KOBOCAT_DEFAULT_FILE_STORAGE
+        == 'storages.backends.s3boto3.S3Boto3Storage'
     ):
         return KobocatS3Boto3Storage()
     else:
