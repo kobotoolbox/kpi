@@ -147,16 +147,21 @@ google-api-core[grpc]==2.5.0
     #   google-cloud-core
     #   google-cloud-speech
     #   google-cloud-storage
+    #   google-cloud-translate
 google-auth==2.6.0
     # via
     #   google-api-core
     #   google-cloud-core
     #   google-cloud-storage
 google-cloud-core==2.2.2
-    # via google-cloud-storage
+    # via
+    #   google-cloud-storage
+    #   google-cloud-translate
 google-cloud-speech==2.12.0
     # via -r dependencies/pip/requirements.in
 google-cloud-storage==2.1.0
+    # via -r dependencies/pip/requirements.in
+google-cloud-translate==3.6.1
     # via -r dependencies/pip/requirements.in
 google-crc32c==1.3.0
     # via google-resumable-media
@@ -182,7 +187,7 @@ importlib-metadata==1.7.0
     # via
     #   jsonschema
     #   kombu
-    #   path.py
+    #   path-py
 jmespath==0.9.4
     # via
     #   boto3
@@ -222,7 +227,7 @@ oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
-path.py==12.0.2
+path-py==12.0.2
     # via formpack
 pillow==9.0.1
     # via
@@ -231,7 +236,9 @@ pillow==9.0.1
 proglog==0.1.9
     # via moviepy
 proto-plus==1.19.9
-    # via google-cloud-speech
+    # via
+    #   google-cloud-speech
+    #   google-cloud-translate
 protobuf==3.19.4
     # via
     #   google-api-core

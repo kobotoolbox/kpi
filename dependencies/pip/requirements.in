@@ -59,7 +59,7 @@ future
 geojson-rewind
 google-cloud-speech
 google-cloud-storage
-google-cloud-translate==2.0.1
+google-cloud-translate
 jsonfield
 kombu
 lxml
