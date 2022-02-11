@@ -478,6 +478,7 @@ export function getMediaAttachment(
   fileName: string
 ): string | SubmissionAttachment {
   const validFileName = getValidFilename(fileName);
+  console.log('validFileName', validFileName);
   let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
     '##fileName##',
     fileName,
@@ -487,9 +488,9 @@ export function getMediaAttachment(
     if (attachment.filename.includes(validFileName)) {
       mediaAttachment = attachment;
     }
-  });
+  })
 
-  return mediaAttachment;
+  return mediaAttachment
 }
 
 /**
@@ -502,7 +503,7 @@ export function getValidFilename(
 ): string {
   return fileName.normalize('NFD').replace(/\p{Diacritic}/gu, '')
     .replace(/ /g, '_')
-    .replace(/[^-\w\.]/g, '');
+    .replace(/[^\p{L}\p{M}\.\d_-]/gu, '')
 }
 
 export default {
