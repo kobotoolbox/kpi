@@ -67,5 +67,4 @@ class KoboMFAMethod(MFAMethod):
 
 class KoboMFAMethodAdmin(MFAMethodAdmin):
 
-    change_list_template = 'admin/change_list.html'
     search_fields = ['user__username']
