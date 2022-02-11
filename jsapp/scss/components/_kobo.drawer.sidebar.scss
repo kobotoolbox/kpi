@@ -1,9 +1,13 @@
+.form-sidebar-wrapper {
+  padding: 20px 14px;
+}
+
 .form-sidebar {
   margin-top: 10px;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &.form-sidebar--loading {
     pointer-events: none;
@@ -32,11 +36,11 @@
     color: inherit;
 
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.form-sidebar__label--selected {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     i {
@@ -55,7 +59,7 @@
       line-height: 20px;
       min-width: 20px;
       border-radius: 20px;
-      background-color: $kobo-lightgray;
+      background-color: $kobo-gray-92;
       text-align: center;
       margin-right: 4px;
     }
@@ -76,13 +80,13 @@
     flex-direction: row;
     align-items: flex-start;
     line-height: 15px;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
     font-size: 12px;
     padding: 5px;
 
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.form-sidebar__item--active {

@@ -4,7 +4,7 @@
   border: $cardBorderStyle;
   padding: 20px;
   background: $kobo-white;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
@@ -32,6 +32,7 @@
   height: auto !important;
   font-size: 13px;
   width: 100%;
+  background: transparent;
 }
 
 code input[type="text"] {
@@ -56,12 +57,11 @@ code input[type="text"] {
 
 .survey-warnings {
   @extend .container;
-  background-color: $kobo-orange-light;
-  color: $kobo-orange-dark;
+  background-color: $kobo-light-amber;
+  color: $kobo-dark-amber;
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 4px;
-  border: 1px solid $kobo-orange;
 }
 
 .survey-warnings__warning {
@@ -69,7 +69,7 @@ code input[type="text"] {
 }
 
 .survey-warnings__close-button {
-  color: $kobo-orange-dark;
+  color: $kobo-dark-amber;
   position: absolute;
   top: 24px;
   margin-top: -12px;
@@ -109,5 +109,5 @@ code input[type="text"] {
 
 .survey-editor__message {
   text-align: center;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 }

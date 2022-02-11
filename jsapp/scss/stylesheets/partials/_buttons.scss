@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // ==========================================================================
 // Buttons
 // ==========================================================================
@@ -20,7 +22,7 @@
     line-height: 30px;
     padding: 0 20px;
     font-weight: 400;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -29,7 +31,7 @@
     position: relative;
 
     &:hover {
-        background-color: $kobo-blue-light;
+        background-color: $kobo-alt-blue;
         text-decoration: none;
     }
 
@@ -74,6 +76,6 @@ input[type="button"].btn--block {
 
 .btn--disabled {
     cursor: default;
-    color: $kobo-lightgray;
+    color: $kobo-gray-92;
     font-weight: normal;
 }

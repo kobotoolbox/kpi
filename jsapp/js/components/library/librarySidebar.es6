@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import {stores} from 'js/stores';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import myLibraryStore from './myLibraryStore';
 
@@ -58,6 +58,7 @@ class LibrarySidebar extends Reflux.Component {
       <React.Fragment>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
+          disabled={!stores.session.isLoggedIn}
           onClick={this.showLibraryNewModal}
         >
           {t('new')}
@@ -68,7 +69,7 @@ class LibrarySidebar extends Reflux.Component {
             m={{selected: this.isMyLibrarySelected()}}
             href='#/library/my-library'
           >
-            <i className='k-icon-library'/>
+            <i className='k-icon k-icon-library'/>
             <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
             <bem.FormSidebar__labelCount>{this.state.myLibraryCount}</bem.FormSidebar__labelCount>
           </bem.FormSidebar__label>
@@ -77,7 +78,7 @@ class LibrarySidebar extends Reflux.Component {
             m={{selected: this.isPublicCollectionsSelected()}}
             href='#/library/public-collections'
           >
-            <i className='k-icon-library-public'/>
+            <i className='k-icon k-icon-library-public'/>
             <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
         </bem.FormSidebar>

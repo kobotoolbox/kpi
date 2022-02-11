@@ -23,6 +23,7 @@ import {
   notify,
   assign,
 } from 'utils';
+import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
 
@@ -177,94 +178,50 @@ stores.snapshots = Reflux.createStore({
   },
 });
 
-stores.asset = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
-    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
-  },
-
-  onUpdateAssetCompleted: function (resp/*, req, jqhr*/){
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid, {asset_updated: true});
-  },
-  onLoadAssetCompleted: function (resp/*, req, jqxhr*/) {
-    if (!resp.uid) {
-      throw new Error('no uid found in response');
-    }
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid);
-  }
-});
-
 stores.session = Reflux.createStore({
+  // start up with "fake" current account
+  currentAccount: {
+    username: ANON_USERNAME,
+  },
+  isAuthStateKnown: false,
+  isLoggedIn: false,
+
   init() {
-    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
-    this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
-      log('login confirmed anonymous', data.message);
-    });
-    this.listenTo(actions.auth.verifyLogin.failed, (xhr)=> {
-      log('login not verified', xhr.status, xhr.statusText);
-    });
+    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
+    this.listenTo(actions.auth.verifyLogin.loggedin, this.onLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.anonymous, this.onNotLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.failed, this.onVerifyLoginFailed);
     actions.auth.verifyLogin();
-    actions.auth.getEnvironment();
   },
-  getInitialState() {
-    return {
-      isLoggedIn: false,
-      sessionIsLoggedIn: false
-    };
-  },
-  triggerEnv(environment) {
-    const nestedArrToChoiceObjs = (i) => {
-      return {
-        value: i[0],
-        label: i[1],
-      };
-    };
-    if (environment.available_sectors) {
-      environment.available_sectors = environment.available_sectors.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.available_countries) {
-      environment.available_countries = environment.available_countries.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.interface_languages) {
-      environment.interface_languages = environment.interface_languages.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.all_languages) {
-      environment.all_languages = environment.all_languages.map(
-        nestedArrToChoiceObjs);
-    }
-    this.environment = environment;
-    this.trigger({environment: environment});
-  },
-  triggerLoggedIn(acct) {
-    this.currentAccount = acct;
-    this.trigger({
-      isLoggedIn: true,
-      sessionIsLoggedIn: true,
-      sessionAccount: acct,
-      currentAccount: acct
-    });
-  }
-});
 
-stores.assetContent = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.surveys = {};
-    this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
+  onUpdateProfileCompleted(response) {
+    this.currentAccount = response;
+    this.trigger({currentAccount: this.currentAccount});
   },
-  onLoadAssetContentCompleted: function(resp/*, req, jqxhr*/) {
-    this.data[resp.uid] = resp;
-    this.trigger(this.data, resp.uid);
+
+  onLoggedIn(account) {
+    this.isAuthStateKnown = true;
+    this.isLoggedIn = true;
+    this.currentAccount = account;
+    this.trigger();
+  },
+
+  onNotLoggedIn(data) {
+    log('login confirmed anonymous', data.message);
+    this.isAuthStateKnown = true;
+    this.trigger();
+  },
+
+  onVerifyLoginFailed(xhr) {
+    log('login not verified', xhr.status, xhr.statusText);
   },
 });
 
+/**
+ * NOTE: this is not a reliable source of complete assets (i.e. ones with
+ * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
+ * one without it.
+ */
 stores.allAssets = Reflux.createStore({
   init() {
     this.data = [];
@@ -279,7 +236,14 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
-  whenLoaded (uid, cb) {
+  /**
+   * Either calls immediately if data already exists, or makes a call to get
+   * asset and then calls.
+   *
+   * @param {string} uid
+   * @param {function} cb
+   */
+  whenLoaded(uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
       return;
     }
@@ -294,6 +258,15 @@ stores.allAssets = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
+
+  /**
+   * @param {string} assetUid
+   * @returns {object|undefined}
+   */
+  getAsset(assetUid) {
+    return this.byUid[assetUid];
+  },
+
   onUpdateAssetCompleted (asset) {
     this.registerAsset(asset);
     this.data.forEach((dataAsset, index) => {
@@ -313,6 +286,11 @@ stores.allAssets = Reflux.createStore({
   },
   onDeleteAssetCompleted (asset) {
     if (this.byUid[asset.uid]) {
+      // We append `deleted: true` to the asset after the asset is removed in
+      // the backend because the asset still exists in the frontend,
+      // specifically in the search store's lists.
+      // We do this so that the deleted asset doesn't show up in the asset list
+      // during the same search store instance
       this.byUid[asset.uid].deleted = 'true';
       this.trigger(this.data);
       window.setTimeout(()=> {
@@ -352,7 +330,7 @@ stores.allAssets = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (searchData, response) {
-    notify(response.responseJSON.detail || t('failed to list assets'));
+    notify(response?.responseJSON?.detail || t('failed to list assets'));
   }
 });
 
@@ -404,22 +382,4 @@ stores.userExists = Reflux.createStore({
     this.checked[username] = false;
     this.trigger(this.checked, username);
   }
-});
-
-stores.serverEnvironment = Reflux.createStore({
-  init() {
-    this.state = {};
-    this.listenTo(actions.misc.getServerEnvironment.completed,
-                  this.updateEnvironment);
-  },
-  setState (state) {
-    var chz = changes(this.state, state);
-    if (chz) {
-      assign(this.state, state);
-      this.trigger(chz);
-    }
-  },
-  updateEnvironment(response) {
-    this.setState(response);
-  },
 });

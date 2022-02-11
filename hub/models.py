@@ -8,10 +8,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
 from markitup.fields import MarkupField
 
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_database_user
 
 
 class SitewideMessage(models.Model):
@@ -65,11 +64,11 @@ class PerUserSetting(models.Model):
     a user matches certain criteria
     """
     user_queries = JSONBField(
-        help_text=_('A JSON representation of a *list* of Django queries, '
-                    'e.g. `[{"email__iendswith": "@kobotoolbox.org"}, '
-                    '{"email__iendswith": "@kbtdev.org"}]`. '
-                    'A matching user is one who would be returned by ANY of '
-                    'the queries in the list.')
+        help_text='A JSON representation of a *list* of Django queries, '
+                  'e.g. `[{"email__iendswith": "@kobotoolbox.org"}, '
+                  '{"email__iendswith": "@kbtdev.org"}]`. '
+                  'A matching user is one who would be returned by ANY of '
+                  'the queries in the list.'
     )
     name = models.CharField(max_length=255, unique=True,
                             default='INTERCOM_APP_ID')  # The only one for now!
@@ -77,8 +76,7 @@ class PerUserSetting(models.Model):
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
     def user_matches(self, user, ignore_invalid_queries=True):
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(user)
         manager = user._meta.model.objects
         queryset = manager.none()
         for user_query in self.user_queries:
@@ -107,7 +105,7 @@ class PerUserSetting(models.Model):
             raise ValidationError({'user_queries': e.message})
         except TypeError:
             raise ValidationError(
-                {'user_queries': _('JSON structure is incorrect.')})
+                {'user_queries': 'JSON structure is incorrect.'})
 
     def __str__(self):
         return self.name

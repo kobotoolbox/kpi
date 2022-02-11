@@ -3,20 +3,29 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
-import {bem} from '../bem';
+import assetUtils from 'js/assetUtils';
+import bem from 'js/bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import {MODAL_TYPES} from '../constants';
+import {
+  MODAL_TYPES,
+  COLLECTION_METHODS,
+} from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
   notify
 } from 'utils';
+import {
+  Link,
+  hashHistory,
+} from 'react-router';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -24,7 +33,7 @@ export class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      selectedCollectMethod: 'offline_url',
+      selectedCollectMethod: COLLECTION_METHODS.offline_url.id,
       DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
       nextPageUrl: null,
       nextPagesVersions: []
@@ -178,6 +187,7 @@ export class FormLanding extends React.Component {
     const versionsToDisplay = this.state.deployed_versions.results.concat(
       this.state.nextPagesVersions
     );
+    const isLoggedIn = stores.session.isLoggedIn;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
@@ -191,7 +201,9 @@ export class FormLanding extends React.Component {
             <bem.FormView__group m={['items', 'headings']}>
               <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
               <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-              <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
+              {isLoggedIn &&
+                <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
+              }
             </bem.FormView__group>
             {versionsToDisplay.map((item, n) => {
               if (dvcount - n > 0) {
@@ -208,14 +220,18 @@ export class FormLanding extends React.Component {
                     <bem.FormView__label m='date'>
                       {formatTime(item.date_deployed)}
                     </bem.FormView__label>
-                    <bem.FormView__label m='clone' className='right-tooltip'>
-                        <bem.FormView__link m='clone'
-                            data-version-id={item.uid}
-                            data-tip={t('Clone this version as a new project')}
-                            onClick={this.saveCloneAs}>
-                          <i className='k-icon-clone' />
+                    {isLoggedIn &&
+                      <bem.FormView__label m='clone' className='right-tooltip'>
+                        <bem.FormView__link
+                          m='clone'
+                          data-version-id={item.uid}
+                          data-tip={t('Clone this version as a new project')}
+                          onClick={this.saveCloneAs}
+                        >
+                          <i className='k-icon k-icon-duplicate' />
                         </bem.FormView__link>
-                    </bem.FormView__label>
+                      </bem.FormView__label>
+                    }
                   </bem.FormView__group>
                 );
               }
@@ -238,49 +254,20 @@ export class FormLanding extends React.Component {
     );
   }
   renderCollectData () {
-    var available_links = new Map([
-        ['offline_url', {
-          label: t('Online-Offline (multiple submission)'),
-          desc: t('This allows online and offline submissions and is the best option for collecting data in the field. ')
-        }],
-        ['url', {
-          label: t('Online-Only (multiple submissions)'),
-          desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.')
-        }],
-        ['single_url', {
-          label: t('Online-Only (single submission)'),
-          desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.')
-        }],
-        ['single_once_url', {
-          label: t('Online-only (once per respondent)'),
-          desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.')
-        }],
-        ['iframe_url', {
-          label: t('Embeddable web form code'),
-          desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')
-        }],
-        ['preview_url', {
-          label: t('View only'),
-          desc: t('Use this version for testing, getting feedback. Does not allow submitting data. ')
-        }],
-        ['android', {
-          label: t('Android application'),
-          desc: t('Use this option to collect data in the field with your Android device.')
-        }],
-    ]);
-
-    var deployment__links_list = [];
-    available_links.forEach(function (value, key) {
+    const deployment__links_list = [];
+    Object.keys(COLLECTION_METHODS).forEach((methodId) => {
+      const methodDef = COLLECTION_METHODS[methodId];
       deployment__links_list.push(
         {
-          key: key,
-          label: value.label,
-          desc: value.desc,
+          key: methodDef.id,
+          label: methodDef.label,
+          desc: methodDef.desc,
         }
       );
     });
 
-    var chosenMethod = this.state.selectedCollectMethod;
+    const chosenMethod = this.state.selectedCollectMethod;
+    const chosenMethodLink = this.state.deployment__links[chosenMethod] || null;
 
     var kc_server = document.createElement('a');
     kc_server.href = this.state.deployment__identifier;
@@ -292,9 +279,12 @@ export class FormLanding extends React.Component {
             {t('Collect data')}
         </bem.FormView__cell>
         <bem.FormView__cell m='box'>
-          <bem.FormView__cell m={['columns', 'padding']}>
+          <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
-              <ui.PopoverMenu type='collectData-menu' triggerLabel={available_links.get(chosenMethod).label}>
+              <PopoverMenu
+                type="collectData-menu"
+                triggerLabel={COLLECTION_METHODS[chosenMethod].label}
+              >
                 {deployment__links_list.map((c) => {
                   return (
                     <bem.PopoverMenu__link
@@ -308,59 +298,25 @@ export class FormLanding extends React.Component {
                     </bem.PopoverMenu__link>
                   );
                 })}
-              </ui.PopoverMenu>
+              </PopoverMenu>
             </bem.FormView__cell>
+
             <bem.FormView__cell>
-              {chosenMethod !== 'iframe_url' && chosenMethod !== 'android' &&
-               this.state.deployment__links[chosenMethod] &&
-                <CopyToClipboard text={this.state.deployment__links[chosenMethod]}
-                  onCopy={() => notify(t('copied to clipboard'))}
-                  options={{format: 'text/plain'}}
-                >
-                  <button className='copy mdl-button mdl-button--colored'>
-                    {t('Copy')}
-                  </button>
-                </CopyToClipboard>
-              }
-              {chosenMethod !== 'iframe_url' && chosenMethod !== 'android' &&
-                <a className='collect-link mdl-button mdl-button--colored'
-                  target='_blank'
-                  href={this.state.deployment__links[chosenMethod]}>
-                  {t('Open')}
-                </a>
-              }
-              { chosenMethod === 'android' &&
-                <a className='collect-link mdl-button mdl-button--colored'
-                  target='_blank'
-                  href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en'>
-                  {t('Download KoboCollect')}
-                </a>
-              }
-              {chosenMethod === 'iframe_url' &&
-                <CopyToClipboard
-                  text={`<iframe src=${this.state.deployment__links[chosenMethod]} width="800" height="600"></iframe>`}
-                  onCopy={() => notify(t('copied to clipboard'))}
-                  options={{format: 'text/plain'}}
-                >
-                  <button className='copy mdl-button mdl-button--colored'>
-                    {t('Copy')}
-                  </button>
-                </CopyToClipboard>
-              }
+              {this.renderCollectLink()}
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__cell m={['padding', 'bordertop', 'collect-meta']}>
-            {chosenMethod !== 'android' &&
-              available_links.get(chosenMethod).desc
+            {chosenMethod !== COLLECTION_METHODS.android.id &&
+              COLLECTION_METHODS[chosenMethod].desc
             }
 
-            {chosenMethod === 'iframe_url' &&
+            {chosenMethod === COLLECTION_METHODS.iframe_url.id &&
               <pre>
-                {`<iframe src="${this.state.deployment__links[chosenMethod]}" width="800" height="600"></iframe>`}
+                {`<iframe src="${chosenMethodLink}" width="800" height="600"></iframe>`}
               </pre>
             }
 
-            {chosenMethod === 'android' &&
+            {chosenMethod === COLLECTION_METHODS.android.id &&
               <ol>
                 <li>
                   {t('Install')}
@@ -385,14 +341,97 @@ export class FormLanding extends React.Component {
       </bem.FormView__row>
     );
   }
+
+  renderCollectLink() {
+    const chosenMethod = this.state.selectedCollectMethod;
+    const chosenMethodLink = this.state.deployment__links[chosenMethod] || null;
+
+    if (chosenMethod === COLLECTION_METHODS.android.id) {
+      return (
+        <a className='mdl-button mdl-button--colored'
+          target='_blank'
+          href={COLLECTION_METHODS.android.url}>
+          {t('Download KoboCollect')}
+        </a>
+      );
+    }
+
+    if (chosenMethodLink === null) {
+      return (
+        <span
+          className='collect-link-missing right-tooltip'
+          data-tip={t("Try reloading the page, if problem doesn't go away, contact support.")}
+        >
+          <i className='k-icon k-icon-alert'/>
+          {t('Link missing')}
+        </span>
+      );
+    }
+
+    if (chosenMethod === COLLECTION_METHODS.iframe_url.id) {
+      return (
+        <CopyToClipboard
+          text={`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`}
+          onCopy={() => {notify(t('Copied to clipboard'));}}
+          options={{format: 'text/plain'}}
+        >
+          <button className='copy mdl-button mdl-button--colored'>
+            {t('Copy')}
+          </button>
+        </CopyToClipboard>
+      );
+    }
+
+    return (
+      <React.Fragment>
+        <CopyToClipboard text={chosenMethodLink}
+          onCopy={() => {notify(t('Copied to clipboard'));}}
+          options={{format: 'text/plain'}}
+        >
+          <button className='copy mdl-button mdl-button--colored'>
+            {t('Copy')}
+          </button>
+        </CopyToClipboard>
+
+        <a className='mdl-button mdl-button--colored'
+          target='_blank'
+          href={chosenMethodLink}>
+          {t('Open')}
+        </a>
+      </React.Fragment>
+    );
+  }
+
   setCollectMethod(evt) {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
-  renderButtons (userCanEdit) {
+  goToProjectsList() {
+    hashHistory.push(ROUTES.FORMS);
+  }
+  nonOwnerSelfRemoval(evt) {
+    evt.preventDefault();
+    // Listen for permission removal here to avoid manage_asset user removal
+    // from triggering redirect
+    this.nonOwnerSelfRemovalListener = this.listenTo(
+      actions.permissions.removeAssetPermission.completed,
+      this.nonOwnerSelfRemovalCompleted
+    );
+    this.removeSharing();
+  }
+  nonOwnerSelfRemovalCompleted() {
+    // Remove listener after self removal
+    if (this.nonOwnerSelfRemovalListener) {
+      this.stopListeningTo(actions.permissions.removeAssetPermission.completed);
+    }
+    this.goToProjectsList();
+  }
+  renderButtons(userCanEdit) {
     var downloads = [];
     if (this.state.downloads) {
       downloads = this.state.downloads;
     }
+
+    const isLoggedIn = stores.session.isLoggedIn;
 
     return (
       <React.Fragment>
@@ -400,20 +439,20 @@ export class FormLanding extends React.Component {
           <Link to={`/forms/${this.state.uid}/edit`}
                 className='form-view__link form-view__link--edit'
                 data-tip={t('Edit in Form Builder')}>
-            <i className='k-icon-edit' />
+            <i className='k-icon k-icon-edit' />
           </Link>
         :
           <bem.FormView__link m={['edit', 'disabled']}
             className='right-tooltip'
             data-tip={t('Editing capabilities not granted, you can only view this form')}>
-            <i className='k-icon-edit' />
+            <i className='k-icon k-icon-edit' />
           </bem.FormView__link>
         }
 
         <bem.FormView__link m='preview'
           onClick={this.enketoPreviewModal}
           data-tip={t('Preview')}>
-          <i className='k-icon-view' />
+          <i className='k-icon k-icon-view' />
         </bem.FormView__link>
 
         {userCanEdit &&
@@ -422,20 +461,23 @@ export class FormLanding extends React.Component {
             data-tip={t('Replace form')}
             onClick={this.showReplaceProjectModal}
           >
-            <i className='k-icon-replace' />
+            <i className='k-icon k-icon-replace' />
           </bem.FormView__link>
         }
 
-        <ui.PopoverMenu
+        <PopoverMenu
           type='formLanding-menu'
-          triggerLabel={<i className='k-icon-more' />}
-          triggerTip={t('More Actions')}
+          triggerLabel={
+            <div data-tip={t('More actions')}>
+              <i className='k-icon k-icon-more'/>
+            </div>
+          }
         >
           {downloads.map((dl) => {
             return (
                 <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                     key={`dl-${dl.format}`}>
-                  <i className={`k-icon-${dl.format}-file`}/>
+                  <i className={`k-icon k-icon-file-${dl.format}`}/>
                   {t('Download')}&nbsp;
                   {dl.format.toString().toUpperCase()}
                 </bem.PopoverMenu__link>
@@ -444,38 +486,51 @@ export class FormLanding extends React.Component {
 
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
-              <i className='k-icon-user-share'/>
+              <i className='k-icon k-icon-user-share'/>
               {t('Share this project')}
             </bem.PopoverMenu__link>
           }
 
-          <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-            <i className='k-icon-clone'/>
-            {t('Clone this project')}
-          </bem.PopoverMenu__link>
+          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
+            <bem.PopoverMenu__link
+              onClick={this.nonOwnerSelfRemoval}
+            >
+              <i className='k-icon k-icon-trash'/>
+              {t('Remove shared project')}
+            </bem.PopoverMenu__link>
+          }
 
-          <bem.PopoverMenu__link
-            onClick={this.cloneAsTemplate}
-            data-asset-uid={this.state.uid}
-            data-asset-name={this.state.name}
-          >
-            <i className='k-icon-template'/>
-            {t('Create template')}
-          </bem.PopoverMenu__link>
+          {isLoggedIn &&
+            <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+              <i className='k-icon k-icon-duplicate'/>
+              {t('Clone this project')}
+            </bem.PopoverMenu__link>
+          }
+
+          {isLoggedIn &&
+            <bem.PopoverMenu__link
+              onClick={this.cloneAsTemplate}
+              data-asset-uid={this.state.uid}
+              data-asset-name={this.state.name}
+            >
+              <i className='k-icon k-icon-template'/>
+              {t('Create template')}
+            </bem.PopoverMenu__link>
+          }
 
           {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
-              <i className='k-icon-language'/>
-              {t('Manage Translations')}
+              <i className='k-icon k-icon-language'/>
+              {t('Manage translations')}
             </bem.PopoverMenu__link>
           }
           { /* temporarily disabled
           <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
-            <i className='k-icon-lock'/>
+            <i className='k-icon k-icon-lock'/>
             {t('Manage Encryption')}
           </bem.PopoverMenu__link>
           */ }
-        </ui.PopoverMenu>
+        </PopoverMenu>
       </React.Fragment>
     );
   }
@@ -506,9 +561,9 @@ export class FormLanding extends React.Component {
         {canEdit &&
           <bem.FormView__cell>
             <bem.FormView__link
-              data-tip={t('Manage Translations')}
+              data-tip={t('Manage translations')}
               onClick={this.showLanguagesModal}>
-              <i className='k-icon-language' />
+              <i className='k-icon k-icon-language' />
             </bem.FormView__link>
           </bem.FormView__cell>
         }
@@ -518,9 +573,10 @@ export class FormLanding extends React.Component {
   render () {
     var docTitle = this.state.name || t('Untitled');
     const userCanEdit = this.userCan('change_asset', this.state);
+    const isLoggedIn = stores.session.isLoggedIn;
 
     if (this.state.uid === undefined) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     return (
@@ -540,7 +596,7 @@ export class FormLanding extends React.Component {
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
-                  <i className='k-icon-alert' />
+                  <i className='k-icon k-icon-alert' />
                   <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
                 </bem.FormView__cell>
               }
@@ -552,7 +608,8 @@ export class FormLanding extends React.Component {
             this.renderHistory()
           }
           {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
-            this.renderCollectData()
+            isLoggedIn &&
+              this.renderCollectData()
           }
         </bem.FormView>
       </DocumentTitle>

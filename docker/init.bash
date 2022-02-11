@@ -13,16 +13,38 @@ if [[ -z $DATABASE_URL ]]; then
     exit 1
 fi
 
+# Handle Python dependencies BEFORE attempting any `manage.py` commands
+KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
+if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
+    # `diff` returns exit code 1 if it finds a difference between the files
+    if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+    then
+        echo "Syncing production pip dependencies..."
+        pip-sync dependencies/pip/external_services.txt 1>/dev/null
+        cp "dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+    fi
+else
+    if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
+    then
+        echo "Syncing development pip dependencies..."
+        pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
+        cp "dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
+    fi
+    if [[ -n "$RAVEN_DSN" ]]; then
+        echo "Sentry detected. Installing \`raven\` pip dependency..."
+        pip install raven
+    fi
+fi
 
 # Wait for databases to be up & running before going further
 /bin/bash "${INIT_PATH}/wait_for_mongo.bash"
 /bin/bash "${INIT_PATH}/wait_for_postgres.bash"
 
 echo 'Running migrations...'
-python manage.py migrate --noinput
+gosu "${UWSGI_USER}" python manage.py migrate --noinput
 
 echo 'Creating superuser...'
-python manage.py create_kobo_superuser
+gosu "${UWSGI_USER}" python manage.py create_kobo_superuser
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
     if [[ "${FRONTEND_DEV_MODE}" == "host" ]]; then
@@ -51,7 +73,7 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     echo "Fetching translations..."
     git submodule init && \
     git submodule update --remote && \
-    python manage.py compilemessages
+    gosu "${UWSGI_USER}" python manage.py compilemessages
 fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
@@ -63,6 +85,14 @@ fi
 echo 'Cleaning up Celery PIDs...'
 rm -rf /tmp/celery*.pid
 
+echo 'Restore permissions on Celery logs folder'
+chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
+
+# This can take a while when starting a container with lots of media files.
+# Maybe we should add a disclaimer as we do in KoBoCAT to let the users
+# do it themselves
+chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
+
 echo 'KoBoForm initialization completed.'
 
-exec /usr/bin/runsvdir /etc/service
+exec /usr/bin/runsvdir "${SERVICES_DIR}"

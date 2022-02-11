@@ -12,7 +12,6 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, AssetExportSettings
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -101,6 +100,38 @@ class AssetExportSettingsApiTest(BaseTestCase):
         assert (
             data['export_settings'] == self.valid_export_settings
         )
+
+        exports_url = reverse(
+            self._get_endpoint('submission-exports'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': data['uid'],
+            },
+        )
+        assert exports_url in data['exports_url']
+
+    def test_api_create_extended_asset_export_settings_for_owner(self):
+        export_settings = {
+            **self.valid_export_settings,
+            'type': 'xls',
+            'xls_types_as_text': True,
+            'submission_ids': [1, 2, 3],
+            'query': {'_submission_time': {'$gt': '2021-10-13'}},
+        }
+        response = self.client.post(
+            self.export_settings_list_url,
+            data={
+                'name': self.name,
+                'export_settings': export_settings,
+            },
+            format='json',
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert self.asset_export_settings.count() == 1
+
+        data = response.json()
+        assert data['name'] == self.name
+        assert data['export_settings'] == export_settings
 
     def test_api_create_invalid_asset_export_settings_for_owner(self):
         invalid_export_settings = {**self.valid_export_settings, 'type': 'pdf'}

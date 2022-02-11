@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // TODO: cleanup these buttons
 // 1. stop @extend-ing them, as ut makes for much harder debugging in Dev Tools
 //    instead create few mixins and use those
@@ -10,7 +12,7 @@
   text-decoration: none;
   text-align: center;
   font-weight: normal;
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   letter-spacing: 0;
   height: 40px;
   min-height: 40px;
@@ -26,7 +28,7 @@
   overflow: hidden;
   outline: none;
   cursor: pointer;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &[data-tip] {
     overflow: visible;
@@ -37,7 +39,7 @@
   }
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 
   &.mdl-button--colored {
@@ -57,27 +59,11 @@
     }
   }
 
-  &.mdl-button--colored.mdl-button--orange {
-    color: $kobo-orange;
-
-    &:hover {
-      color: darken($kobo-orange, 10%);
-    }
-  }
-
-  &.mdl-button--colored.mdl-button--green {
-    color: $kobo-green;
-
-    &:hover {
-      color: darken($kobo-green, 10%);
-    }
-  }
-
   &.mdl-button--colored.mdl-button--gray {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &:hover {
-      color: darken($kobo-darkgray, 10%);
+      color: darken($kobo-gray-40, 10%);
     }
   }
 }
@@ -131,32 +117,12 @@ input.mdl-button[type="submit"] {
     }
   }
 
-  &.mdl-button--colored.mdl-button--orange {
-    background-color: $kobo-orange;
-    color: $kobo-white;
-
-    &:hover {
-      background-color: darken($kobo-orange, 5%);
-      color: $kobo-white;
-    }
-  }
-
-  &.mdl-button--colored.mdl-button--green {
-    background-color: $kobo-green;
-    color: $kobo-white;
-
-    &:hover {
-      background-color: darken($kobo-green, 5%);
-      color: $kobo-white;
-    }
-  }
-
   &.mdl-button--colored.mdl-button--gray {
-    background-color: $kobo-darkgray;
+    background-color: $kobo-gray-40;
     color: $kobo-white;
 
     &:hover {
-      background-color: darken($kobo-darkgray, 5%);
+      background-color: darken($kobo-gray-40, 5%);
       color: $kobo-white;
     }
   }
@@ -202,7 +168,7 @@ input.mdl-button[type="submit"] {
   // Bump up specificity by using [disabled] twice.
   &[disabled][disabled],
   &.mdl-button--disabled.mdl-button--disabled {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     cursor: default;
     background-color: transparent;
     pointer-events: none;
@@ -212,8 +178,8 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      background-color: $kobo-lightgray;
-      color: $kobo-darkgray;
+      background-color: $kobo-gray-92;
+      color: $kobo-gray-40;
       box-shadow: none;
     }
   }
@@ -222,7 +188,7 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
     }
   }
 }

@@ -6,6 +6,7 @@ from kpi.utils.mongo_helper import MongoHelper
 
 
 def get_instances_from_mongo():
+    # TODO: remove this as we no longer use `_deleted_at`
     query = {'_deleted_at': {'$exists': False}}
     instances = settings.MONGO_DB.instances.find(query)
     return (

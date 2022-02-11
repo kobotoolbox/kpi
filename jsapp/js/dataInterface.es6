@@ -27,26 +27,8 @@ export var dataInterface;
     'p': 'permissions',
   };
 
-  // hook up to all AJAX requests to check auth problems
-  $(document).ajaxError((event, request, settings) => {
-    if (request.status === 403 || request.status === 401 || request.status === 404) {
-      dataInterface.selfProfile().done((data) => {
-        if (data.message === 'user is not logged in') {
-          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>');
-          let serverMessage = request.status.toString();
-          if (request.responseJSON && request.responseJSON.detail) {
-            serverMessage += ': ' + request.responseJSON.detail;
-          }
-          errorMessage = errorMessage.replace('##server_message##', serverMessage);
-          alertify.alert(t('You are not logged in'), errorMessage);
-        }
-      });
-    }
-  });
-
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
-    serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
     apiToken: () => {
       return $ajax({
         url: `${ROOT_URL}/token/?format=json`
@@ -217,6 +199,69 @@ export var dataInterface;
     },
 
     /*
+     * form media
+     */
+    postFormMedia(uid, data) {
+      return $ajax({
+        method: 'POST',
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        data: data,
+      });
+    },
+    deleteFormMedia(url) {
+      return $ajax({
+        method: 'DELETE',
+        url: url,
+      });
+    },
+
+    /*
+     * Dynamic data attachments
+     */
+    attachToSource(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    detachSource(attachmentUrl) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'DELETE',
+      });
+    },
+    patchSource(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    getAttachedSources(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'GET',
+      });
+    },
+    getSharingEnabledAssets() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
+        method: 'GET',
+      });
+    },
+    patchDataSharing(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+
+    /*
      * permissions
      */
 
@@ -298,9 +343,6 @@ export var dataInterface;
           method: 'DELETE'
         });
       });
-    },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
@@ -536,7 +578,9 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
         method: 'PATCH',
-        data: data
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
     listTags (data) {
@@ -544,7 +588,9 @@ export var dataInterface;
         url: `${ROOT_URL}/tags/`,
         method: 'GET',
         data: assign({
-          limit: 9999,
+          // If this number is too big (e.g. 9999) it causes a deadly timeout
+          // whenever Form Builder displays the aside Library search
+          limit: 100,
         }, data),
       });
     },
@@ -596,20 +642,31 @@ export var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=DEFAULT_PAGE_SIZE, page=0, sort=[], fields=[], filter='') {
+
+    getSubmissions(
+      uid,
+      pageSize = DEFAULT_PAGE_SIZE,
+      page = 0,
+      sort = [],
+      fields = [],
+      filter = ''
+    ) {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
-      if (sort.length)
+      if (sort.length) {
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
-      if (fields.length)
+      }
+      if (fields.length) {
         f = `&fields=${JSON.stringify(fields)}`;
+      }
 
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-        method: 'GET'
+        method: 'GET',
       });
     },
+
     getSubmission(uid, sid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
@@ -680,7 +737,13 @@ export var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
+        method: 'GET'
+      });
+    },
+    getEnketoViewLink(uid, sid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
         method: 'GET'
       });
     },
@@ -698,9 +761,9 @@ export var dataInterface;
         contentType: false
       });
     },
-    getAssetFiles(uid) {
+    getAssetFiles(uid, fileType) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
         method: 'GET'
       });
     },
@@ -735,7 +798,7 @@ export var dataInterface;
       });
     },
     environment() {
-      return $ajax({url: `${ROOT_URL}/environment/`,method: 'GET'});
+      return $ajax({url: `${ROOT_URL}/environment/`});
     },
     login: (creds)=> {
       return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});

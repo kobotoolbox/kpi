@@ -11,8 +11,8 @@ $aliases = require './model.aliases'
 $rowDetail = require './model.rowDetail'
 $choices = require './model.choices'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-readParameters = require('utils').readParameters
-writeParameters = require('utils').writeParameters
+readParameters = require('../../js/components/formBuilder/formBuilderUtils').readParameters
+writeParameters = require('../../js/components/formBuilder/formBuilderUtils').writeParameters
 
 module.exports = do ->
   row = {}

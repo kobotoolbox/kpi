@@ -1,0 +1,60 @@
+{% extends "admin/change_list.html" %}
+{% block extrahead %}
+    <style>
+        #changelist table {
+            width: calc(100% - 250px);
+        }
+    </style>
+{% endblock %}
+{% load i18n %}
+
+{% block content_title %}
+    <h1>User Statistics</h1>
+{% endblock %}
+
+{% block result_list %}
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    <div class="text">
+                        <a href="#">User</a>
+                    </div>
+                </th>
+                <th>
+                    <div class="text">
+                        <a href="#">Date Joined</a>
+                    </div>
+                </th>
+                <th>
+                    <div class="text">
+                        <a href="#">Submissions Count</a>
+                    </div>
+                </th>
+                <th>
+                    <div class="text">
+                        <a href="#">Forms Count</a>
+                    </div>
+                </th>
+                <th>
+                    <div class="text">
+                        <a href="#">Deployed Forms Count</a>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in summary %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td> {{ row.username }} </td>
+                <td> {{ row.date_joined }} </td>
+                <td> {{ row.submission_count }} </td>
+                <td> {{ row.form_count }} </td>
+                <td> {{ row.deployed_form_count }} </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block pagination %}{% endblock %}

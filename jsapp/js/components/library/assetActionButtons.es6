@@ -15,17 +15,18 @@ import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';
-import ui from 'js/ui';
-import {bem} from 'js/bem';
+import PopoverMenu from 'js/popoverMenu';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
+import './assetActionButtons.scss';
 
 const assetActions = mixins.clickAssets.click.asset;
 
@@ -76,7 +77,7 @@ class AssetActionButtons extends React.Component {
 
   /**
    * Allow for some time for user to go back to the popover menu.
-   * Then force hide popover in next render cycle (ui.PopoverMenu interface
+   * Then force hide popover in next render cycle (PopoverMenu interface
    * handles it this way)
    */
   onMouseLeave() {
@@ -202,6 +203,17 @@ class AssetActionButtons extends React.Component {
     return link;
   }
 
+  renderMoreActionsTrigger() {
+    return (
+      <div
+        className='right-tooltip'
+        data-tip={t('More actions')}
+      >
+        <i className='k-icon k-icon-more'/>
+      </div>
+    );
+  }
+
   renderMoreActions() {
     const assetType = this.props.asset.asset_type;
     let downloads = [];
@@ -220,10 +232,8 @@ class AssetActionButtons extends React.Component {
     }
 
     return (
-      <ui.PopoverMenu
-        triggerLabel={<i className='k-icon k-icon-more'/>}
-        triggerTip={t('More Actions')}
-        triggerClassName='right-tooltip'
+      <PopoverMenu
+        triggerLabel={this.renderMoreActionsTrigger()}
         clearPopover={this.state.shouldHidePopover}
         popoverSetVisible={this.onPopoverSetVisible}
       >
@@ -244,7 +254,7 @@ class AssetActionButtons extends React.Component {
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.PopoverMenu__link onClick={this.editLanguages}>
             <i className='k-icon k-icon-language'/>
-            {t('Manage Translations')}
+            {t('Manage translations')}
           </bem.PopoverMenu__link>
         }
 
@@ -261,7 +271,7 @@ class AssetActionButtons extends React.Component {
               href={dl.url}
               key={`dl-${dl.format}`}
             >
-              <i className={`k-icon k-icon-${dl.format}-file`}/>
+              <i className={`k-icon k-icon-file-${dl.format}`}/>
               {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
             </bem.PopoverMenu__link>
           );
@@ -338,7 +348,7 @@ class AssetActionButtons extends React.Component {
             {t('Delete')}
           </bem.PopoverMenu__link>
         }
-      </ui.PopoverMenu>
+      </PopoverMenu>
     );
   }
 
@@ -452,11 +462,11 @@ class AssetActionButtons extends React.Component {
             data-tip={t('Clone')}
             className='right-tooltip'
           >
-            <i className='k-icon k-icon-clone'/>
+            <i className='k-icon k-icon-duplicate'/>
           </bem.AssetActionButtons__iconButton>
         }
 
-        {userCanEdit && assetType === ASSET_TYPES.template.id &&
+        {assetType === ASSET_TYPES.template.id &&
           <bem.AssetActionButtons__iconButton
             onClick={this.cloneAsSurvey}
             data-tip={t('Create project')}

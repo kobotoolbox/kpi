@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 /* ==========================================================================
  * Base
  * ========================================================================== */
@@ -10,7 +12,7 @@
 
 html {
   height: 100%;
-  color: $kobo-black;
+  color: $kobo-gray-24;
 }
 
 body {
@@ -22,7 +24,7 @@ body {
 
 html, body, input, textarea, select, button {
   font-family: $font;
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   font-weight: 400;
   line-height: 20px;
 }
@@ -51,7 +53,7 @@ hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid $kobo-midgray;
+  border-top: 1px solid $kobo-gray-65;
   margin: 1em 0;
   padding: 0;
 }

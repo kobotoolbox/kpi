@@ -7,10 +7,14 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
+from kobo.apps.superuser_stats.views import (
+    user_report,
+    country_report,
+    retrieve_reports,
+)
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests
+from kpi.views import home, one_time_login, browser_tests, design_system
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
@@ -44,6 +48,7 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
+    path('design-system/', design_system),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
@@ -57,7 +62,9 @@ urlpatterns = [
     # Statistics for superusers
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_user_report),
+            retrieve_reports),
+    path('superuser_stats/country_report/', country_report),
+    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':

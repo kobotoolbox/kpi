@@ -1,3 +1,12 @@
+/*
+KoBo Tooltips
+
+Add `data-tip` attribute to any element with tooltip text as attribute value.
+
+Additional class names:
+- `right-tooltip`
+- `left-tooltip`
+*/
 $z-tooltip: 2;
 
 // Our own, css-only tooltips
@@ -9,6 +18,12 @@ $z-tooltip: 2;
     &::before,
     &::after {
       pointer-events: none;
+      position: absolute;
+      opacity: 0;
+      visibility: hidden;
+      transition-duration: 0.2s;
+      transition-property: visibility, opacity;
+      z-index: $z-tooltip;
     }
 
     &::after {
@@ -16,36 +31,25 @@ $z-tooltip: 2;
       font-size: 13px;
       line-height: 1.35em;
       color: $kobo-white;
-      background-color: $kobo-darkgray;
+      background-color: $kobo-gray-40;
       padding: 6px 12px;
-      position: absolute;
       top: 96%;
       left: 50%;
       transform: translate(-50%, 0);
-      z-index: $z-tooltip;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s;
       white-space: nowrap;
-
       @include box-shadow;
     }
 
     &::before {
-      border-bottom: 5px solid $kobo-darkgray;
+      content: "";
+      border-bottom: 5px solid $kobo-gray-40;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
-      position: absolute;
       top: calc(96% - 5px);
-      content: "";
       width: 0;
       height: 0;
       left: 50%;
       transform: translate(-50%, 0);
-      z-index: $z-tooltip;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s;
     }
   }
 
@@ -55,8 +59,7 @@ $z-tooltip: 2;
     visibility: visible;
   }
 
-  // Modify positioning for sidebar elements
-
+  // Custom tooltips position for sidebar elements
   .k-drawer {
     [data-tip]::after {
       left: 95%;
@@ -68,7 +71,7 @@ $z-tooltip: 2;
       left: calc(95% - 5px);
       top: 50%;
       transform: translate(0, -50%);
-      border-right: 5px solid $kobo-darkgray;
+      border-right: 5px solid $kobo-gray-40;
       border-bottom: 5px solid transparent;
       border-top: 5px solid transparent;
       border-left: none;
@@ -97,7 +100,6 @@ $z-tooltip: 2;
   }
 
   // Modify positioning to header tooltips
-
   .mdl-layout__header [data-tip]::after {
     left: 50px;
   }

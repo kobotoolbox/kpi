@@ -1,21 +1,19 @@
 // drawer (sidebar)
 
-$drawer-icons-width: 58px;
-$drawer-background: $kobo-whitegray;
-
 .k-drawer {
   height: calc(100% - #{$layout-desktop-header-height});
   top: $layout-desktop-header-height;
-  width: 270px;
+  width: $s-drawer-width;
   position: absolute;
   left: 0;
   display: flex;
   flex-direction: row;
-  border-right: 2px solid $kobo-lightgray;
+  border-right: 2px solid $kobo-gray-92;
 }
 
-.mdl-layout__content {
-  margin-left: 270px;
+// only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
+.k-drawer + .mdl-layout__content {
+  margin-left: $s-drawer-width; // for drawer
 }
 
 .k-drawer__primary-icons {
@@ -27,10 +25,10 @@ $drawer-background: $kobo-whitegray;
 }
 
 .k-drawer__link {
-  font-size: 30px;
+  font-size: 26px;
   margin: 6px 0;
   text-align: center;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   padding: 0;
   border-left: 3px solid transparent;
 
@@ -61,14 +59,14 @@ $drawer-background: $kobo-whitegray;
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &:hover {
       color: $kobo-teal;
     }
 
     i {
-      font-size: 28px;
+      font-size: 24px;
       margin: 12px;
       display: block;
     }
@@ -78,7 +76,7 @@ $drawer-background: $kobo-whitegray;
 .k-drawer__sidebar {
   width: calc(100% - #{$drawer-icons-width});
   height: 100%;
-  padding: 20px 14px;
+  padding: 0;
   display: flex;
   flex-direction: column;
 
@@ -91,7 +89,8 @@ $drawer-background: $kobo-whitegray;
   .k-drawer {
     position: fixed;
     z-index: 1050; // must be over leaflet
-    left: -274px;
+    // We need some pxs more as there is shadow on the drawer.
+    left: -1 * $s-drawer-width - 10px;
     transition: left 0.5s;
     background-color: $kobo-white;
 
@@ -100,10 +99,9 @@ $drawer-background: $kobo-whitegray;
 
   .page-wrapper--fixed-drawer .k-drawer {
     left: 0;
-    width: 340px;
   }
 
-  .mdl-layout__content {
+  .k-drawer + .mdl-layout__content {
     margin-left: 0;
   }
 }

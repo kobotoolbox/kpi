@@ -3,22 +3,23 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {searches} from '../searches';
-import mixins from '../mixins';
-import {stores} from '../stores';
-import {dataInterface} from '../dataInterface';
-import {bem} from '../bem';
-import {LoadingSpinner} from 'js/ui';
+import {searches} from 'js/searches';
+import mixins from 'js/mixins';
+import {stores} from 'js/stores';
+import {dataInterface} from 'js/dataInterface';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'utils';
+import {redirectToLogin} from 'js/router/routerUtils';
 import {
   ASSET_TYPES,
   COMMON_QUERIES,
   ACCESS_TYPES,
-  DEPLOYMENT_CATEGORIES
-} from '../constants';
+  DEPLOYMENT_CATEGORIES,
+} from 'js/constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -26,14 +27,20 @@ class SearchCollectionList extends Reflux.Component {
     this.state = {
       ownedCollections: [],
       fixedHeadings: '',
-      fixedHeadingsWidth: 'auto'
+      fixedHeadingsWidth: 'auto',
     };
     this.store = stores.selectedAsset;
+    this.unlisteners = [];
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(this.searchStore, this.searchChanged);
+    this.unlisteners.push(
+      this.searchStore.listen(this.searchChanged)
+    );
     this.queryCollections();
+  }
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   searchChanged(searchStoreState) {
     this.setState(searchStoreState);
@@ -112,7 +119,7 @@ class SearchCollectionList extends Reflux.Component {
 
           {this.state.parentName &&
             <span>
-              <i className='k-icon-next' />
+              <i className='k-icon k-icon-angle-right' />
               <span>{this.state.parentName}</span>
             </span>
           }
@@ -188,6 +195,11 @@ class SearchCollectionList extends Reflux.Component {
   }
 
   render() {
+    if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
+      redirectToLogin();
+      return null;
+    }
+
     var s = this.state;
     var docTitle = '';
     let display;
@@ -277,7 +289,7 @@ class SearchCollectionList extends Reflux.Component {
             }
             </bem.AssetList>
             <div className='dropzone-active-overlay'>
-              <i className='k-icon-upload' />
+              <i className='k-icon k-icon-upload' />
               {t('Drop files to upload')}
             </div>
           </bem.List>

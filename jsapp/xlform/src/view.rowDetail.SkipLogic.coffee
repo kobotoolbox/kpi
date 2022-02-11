@@ -26,7 +26,7 @@ module.exports = do ->
         </p>
         <div class="skiplogic__criterialist"></div>
         <p class="skiplogic__addnew">
-          <button class="skiplogic__addcriterion kobo-button kobo-button--green">+ #{t("Add another condition")}</button>
+          <button class="skiplogic__addcriterion kobo-button kobo-button--storm">+ #{t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
           <option value="and">#{t("Question should match all of these criteria")}</option>
@@ -254,6 +254,7 @@ module.exports = do ->
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
       super(target)
+      return
 
     bind_event: (handler) ->
       @$el.on 'blur', handler
@@ -294,8 +295,8 @@ module.exports = do ->
     className: 'skiplogic__responseval'
 
     attach_to: (target) ->
-      super(target)
       target.find('.skiplogic__responseval').remove()
+      super(target)
       # workaround for missing elements when toggling skiplogic back and forth
       target.find('.skiplogic__responseval.select2-container').show()
 

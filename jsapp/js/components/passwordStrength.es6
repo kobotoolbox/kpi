@@ -1,7 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import zxcvbn from 'zxcvbn';
-import {bem} from '../bem';
+import bem from 'js/bem';
+import './passwordStrength.scss';
 
 /*
 Properties:

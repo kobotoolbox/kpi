@@ -1,4 +1,7 @@
+@use "sass:math";
+
 $s-service-row-action-button: 36px;
+$s-service-row-action-button-icon: 26px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
 $s-service-row-z-link: 10;
@@ -13,7 +16,7 @@ $s-service-row-z-link: 10;
   position: relative;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid $kobo-lightgray;
+    border-bottom: 1px solid $kobo-gray-92;
   }
 
   &:hover .service-row__action-button {
@@ -22,8 +25,8 @@ $s-service-row-z-link: 10;
   }
 
   &:not(.service-row--header):hover {
-    background-color: $kobo-whitegray;
-    color: $kobo-black;
+    background-color: $kobo-gray-96;
+    color: $kobo-gray-24;
   }
 
   &.service-row--clickable {
@@ -36,11 +39,11 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row--active {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   &.service-row--inactive {
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
   }
 }
 
@@ -86,7 +89,7 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--success {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   &.service-row__column--pending {
@@ -104,12 +107,16 @@ $s-service-row-z-link: 10;
   padding: 0;
   width: $s-service-row-action-button;
   height: $s-service-row-action-button;
-  font-size: $s-service-row-action-button;
+  font-size: math.div($s-service-row-action-button * 2, 3);
   color: inherit;
   cursor: pointer;
   background: transparent;
   display: inline-block;
   vertical-align: top;
+
+  i.k-icon {
+    font-size: $s-service-row-action-button-icon;
+  }
 
   &[disabled] {
     opacity: 0.5;
@@ -132,10 +139,10 @@ $s-service-row-z-link: 10;
   padding: 0;
   text-transform: uppercase;
   cursor: pointer;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 
   &:active {
@@ -144,6 +151,6 @@ $s-service-row-z-link: 10;
 
   &.service-row-button--loading {
     pointer-events: none;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 }

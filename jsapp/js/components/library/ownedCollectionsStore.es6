@@ -3,7 +3,7 @@ import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {isAnyLibraryRoute} from 'js/routerUtils';
+import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import {ASSET_TYPES} from 'js/constants';
 
 const ownedCollectionsStore = Reflux.createStore({
@@ -35,7 +35,7 @@ const ownedCollectionsStore = Reflux.createStore({
     if (
       !this.isInitialised &&
       isAnyLibraryRoute() &&
-      stores.session.currentAccount !== undefined &&
+      stores.session.isLoggedIn &&
       !this.data.isFetchingData
     ) {
       this.fetchData();

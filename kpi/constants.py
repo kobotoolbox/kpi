@@ -1,6 +1,6 @@
 # coding: utf-8
-INSTANCE_FORMAT_TYPE_XML = "xml"
-INSTANCE_FORMAT_TYPE_JSON = "json"
+SUBMISSION_FORMAT_TYPE_XML = "xml"
+SUBMISSION_FORMAT_TYPE_JSON = "json"
 
 GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
 
@@ -55,7 +55,14 @@ CLONE_COMPATIBLE_TYPES = {
 
 ASSET_TYPE_ARG_NAME = "asset_type"
 
-SHADOW_MODEL_APP_LABEL = "shadow_model"
+# Main app label for shadow models.
+SHADOW_MODEL_APP_LABEL = 'shadow_model'
+# List of app labels that need to read/write data from KoBoCAT database
+# Useful in `db_routers.py`
+SHADOW_MODEL_APP_LABELS = [
+    SHADOW_MODEL_APP_LABEL,
+    'superuser_stats',
+]
 
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [

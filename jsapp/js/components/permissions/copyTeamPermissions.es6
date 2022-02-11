@@ -2,11 +2,12 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import {bem} from '../../bem';
+import bem from 'js/bem';
 import classNames from 'classnames';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
+import assetStore from 'js/assetStore';
 import {actions} from '../../actions';
 import {notify} from 'utils';
 
@@ -25,7 +26,7 @@ class CopyTeamPermissions extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
     this.listenTo(actions.permissions.copyPermissionsFrom.completed, this.onPermissionsCopied);
   }
 
@@ -115,14 +116,14 @@ class CopyTeamPermissions extends React.Component {
 
     return (
       <bem.FormModal__item className={rootButtonClasses}>
-        <bem.Button
-          m='copy-team-permissions-opener'
+        <button
+          className='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
           {t('Copy team from another project')}
 
-          <i className='k-icon k-icon-next'/>
-        </bem.Button>
+          <i className='k-icon k-icon-angle-right'/>
+        </button>
 
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>

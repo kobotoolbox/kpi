@@ -61,6 +61,11 @@ module.exports = do ->
       label: "audit"
       description: "Records the behavior of enumerators as they navigate through a form"
       default: false
+    bg_aud:
+      name: "background-audio"
+      label: "background audio"
+      description: "record bg audio"
+      default: false
 
   do ->
     class SurveyDetailSchemaItem extends Backbone.Model
@@ -159,6 +164,12 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+    'xml-external':
+      label:
+        value: "File_name"
+      required:
+        value: false
+        _hideUnlessChanged: true
 
   configs.paramTypes = {
     number: 'number',
@@ -244,6 +255,7 @@ module.exports = do ->
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
+      ["xml-external", "External XML"],
     ]
 
     class Type

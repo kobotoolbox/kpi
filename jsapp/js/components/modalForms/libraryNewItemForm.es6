@@ -3,15 +3,15 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import PropTypes from 'prop-types';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
 import {
   MODAL_TYPES,
   ASSET_TYPES,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 
@@ -19,7 +19,7 @@ class LibraryNewItemForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount
+      isSessionLoaded: !!stores.session.isLoggedIn,
     };
 
     autoBind(this);
@@ -77,22 +77,22 @@ class LibraryNewItemForm extends React.Component {
       <bem.FormModal__form className='project-settings project-settings--form-source'>
         <bem.FormModal__item m='form-source-buttons'>
           <button onClick={this.goToAssetCreator}>
-            <i className='k-icon-block' />
+            <i className='k-icon k-icon-block' />
             {t('Question Block')}
           </button>
 
           <button onClick={this.goToTemplate}>
-            <i className='k-icon-template' />
+            <i className='k-icon k-icon-template' />
             {t('Template')}
           </button>
 
           <button onClick={this.goToUpload}>
-            <i className='k-icon-upload' />
+            <i className='k-icon k-icon-upload' />
             {t('Upload')}
           </button>
 
           <button onClick={this.goToCollection}>
-            <i className='k-icon-folder' />
+            <i className='k-icon k-icon-folder' />
             {t('Collection')}
           </button>
         </bem.FormModal__item>

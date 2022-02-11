@@ -1,3 +1,5 @@
+import {createEnum} from 'js/constants';
+
 export const EXPORT_TYPES = Object.freeze({
   csv_legacy: {value: 'csv_legacy', label: t('CSV (legacy)'), isLegacy: true},
   csv: {value: 'csv', label: t('CSV'), isLegacy: false},
@@ -38,14 +40,12 @@ export const EXPORT_MULTIPLE_OPTIONS = Object.freeze({
   },
 });
 
-export const EXPORT_STATUSES = {};
-new Set([
+export const EXPORT_STATUSES = createEnum([
   'created',
   'processing',
   'complete',
   'error',
-]).forEach((kind) => {EXPORT_STATUSES[kind] = kind;});
-Object.freeze(EXPORT_STATUSES);
+]);
 
 export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   CUSTOM_EXPORT_NAME: '',
@@ -58,6 +58,8 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   // xls is the most popular choice and we respect that
   EXPORT_TYPE: EXPORT_TYPES.xls,
   FLATTEN_GEO_JSON: false,
+  XLS_TYPES_AS_TEXT: false,
+  INCLUDE_MEDIA_URL: true,
   GROUP_SEPARATOR: '/',
   INCLUDE_ALL_VERSIONS: true,
   INCLUDE_GROUPS: false,
@@ -67,3 +69,5 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   // DEFAULT_EXPORT_SETTINGS is responsible to fill it up
   SELECTED_ROWS: new Set(),
 });
+
+export const EXPORT_REFRESH_TIME = 4000;

@@ -1,0 +1,542 @@
+@use "scss/_colors";
+@use "js/components/common/checkbox-and-radio";
+
+// These are custom styles for Table View table.
+
+$data-table-border: 1px solid colors.$kobo-gray-92;
+$data-table-row-height: 36px;
+$c-header-bg: colors.$kobo-gray-96;
+$s-data-table-font: 13px;
+$z-table-frozen: 10;
+
+.form-view__sidetabs + .form-view.form-view--table {
+  overflow-x: hidden;
+  overflow-y: auto; // needed for columnsHideDropdown on smaller screens
+}
+
+.form-view.form-view--table {
+  padding: 0px 15px;
+  position: relative;
+  background: colors.$kobo-white;
+
+  .form-view__group--table-header {
+    padding: 10px 0px 0px 0px;
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+    transition: 0.3s all;
+    opacity: 1;
+
+    &.form-view__group--table-loading {
+      opacity: 0.25;
+    }
+
+    .form-view__item--table-buttons {
+      text-align: right;
+
+      button {
+        overflow: visible;
+        margin-left: 10px;
+      }
+    }
+  }
+}
+
+// react table overrides
+.form-view--table .ReactTable {
+  border: none;
+  background: transparent;
+  height: calc(100% - 50px);
+  position: relative;
+  z-index: 0; // To not interfere with UI elements outside the table, as contents of the table have many different z-index values - this makes them all irrelevant.
+  font-size: $s-data-table-font;
+
+  .rt-resizer {
+    width: 10px;
+    right: -5px;
+  }
+
+  .rt-table {
+    border: $data-table-border;
+    background-color: colors.$kobo-white;
+    color: colors.$kobo-gray-24;
+  }
+
+  // minimum body height so at least two rows are visible
+  .rt-tbody {
+    min-height: 72px;
+  }
+
+  .rt-tbody,
+  .rt-thead {
+    overflow-x: hidden;
+  }
+
+  .rt-thead {
+    background: $c-header-bg;
+
+    .column-header-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
+      height: 100%;
+    }
+
+    .column-header-title {
+      font-weight: 600;
+      line-height: 20px;
+
+      .k-icon {
+        font-size: 20px;
+        color: colors.$kobo-gray-55;
+        vertical-align: top;
+        margin-right: 3px;
+      }
+    }
+
+    // the first header row
+    &.-header {
+      box-shadow: none;
+      overflow-x: visible;
+
+      .rt-sub-actions {
+        overflow: visible;
+        position: relative;
+
+        .table-header-results {
+          line-height: 15px;
+          padding-top: 1px;
+          text-align: left;
+        }
+      }
+    }
+
+    // the second header row
+    &.-filters {
+      overflow-x: visible;
+      // we want both header rows to look like one merged
+      border-bottom: $data-table-border;
+      border-bottom-width: 2px;
+
+      .rt-th,
+      .rt-td {
+        border-right: $data-table-border;
+
+        // Remove ellipsis overflow from filters row, as it is useless for us and also
+        // causes Chrome to display it in weird situations :shrug:.
+        white-space: initial;
+        text-overflow: initial;
+        overflow: initial;
+      }
+
+      .rt-sub-actions {
+        .table-bulk-checkbox {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: $data-table-row-height;
+
+          .popover-menu {
+            margin-top: 10px;
+
+            .popover-menu__toggle::after {
+              content: "\25BC";
+              font-size: 16px;
+              display: inline-block;
+              vertical-align: 1px;
+              padding: 0 5px 0 35px;
+            }
+
+            .popover-menu__content {
+              left: 5px;
+            }
+          }
+        }
+      }
+
+      .table-filter-input {
+        width: 100%;
+        border: 0;
+        background: colors.$kobo-white;
+        border-radius: 3px;
+        height: 28px;
+        min-height: 28px;
+        vertical-align: top;
+        display: inline-block;
+        font-size: 12px;
+
+        &::placeholder {
+          color: colors.$kobo-gray-55;
+        }
+      }
+
+      select {
+        margin-top: 2px;
+        margin-right: 2px;
+      }
+
+      input.checkbox__input {
+        // override the very specific styles that react-table gives to header filter `input`s that is causing our Checkbox component to fail
+        @extend .checkbox__input;
+      }
+    }
+
+    .rt-tr {
+      align-items: center;
+    }
+
+    .rt-th.-sort-desc,
+    .rt-td.-sort-desc,
+    .rt-th.-sort-asc,
+    .rt-td.-sort-asc {
+      box-shadow: inset 0 3px 0 0 colors.$kobo-teal;
+    }
+
+    .rt-th.rt-resizable-header:last-child {
+      overflow: visible;
+      .rt-resizer {
+        width: 5px;
+        right: 0;
+      }
+    }
+
+    .rt-resizable-header-content {
+      overflow: visible;
+      text-overflow: inherit;
+      height: $data-table-row-height - (2 * 5px);;
+
+      .column-header-title,
+      .column-header-hxl-tags {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .column-header-hxl-tags {
+        font-size: 12px;
+        color: colors.$kobo-gray-40;
+      }
+    }
+  }
+
+  .rt-tbody .rt-tr-group:last-child {
+    // undo react-table removing the border
+    border-bottom: $data-table-border;
+  }
+
+  .rt-tr {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .rt-tr-group {
+    max-height: $data-table-row-height;
+    border-bottom: $data-table-border;
+    box-sizing: content-box; // to make the border be outside the cell for hover
+  }
+
+  .rt-tbody .rt-th,
+  .rt-tbody .rt-td,
+  .rt-thead .rt-th,
+  .rt-thead .rt-td {
+    padding: 5px 8px;
+    border-right: $data-table-border;
+    line-height: $data-table-row-height - (2 * 5px);
+    height: $data-table-row-height;
+  }
+
+  .rt-td .trimmed-text,
+  .rt-th .trimmed-text {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rt-thead.-filters .rt-th.rt-status {
+    line-height: inherit;
+    overflow: visible;
+  }
+
+  .rt-td.rt-status {
+    // needed for dropdown
+    overflow: visible;
+  }
+
+  .table-submission-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+
+    .checkbox {
+      margin-right: 7px;
+    }
+
+    .checkbox__input {
+      display: block;
+    }
+
+    .table-link {
+      cursor: pointer;
+      min-height: 28px;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: colors.$kobo-gray-55;
+
+      &:hover {
+        color: colors.$kobo-blue;
+      }
+
+      .k-icon {
+        font-size: 22px;
+        margin: 0 3px;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .-pagination {
+    box-shadow: none;
+    border-top: none;
+    padding: 0;
+
+    .-center {
+      flex: 2;
+    }
+
+    .-btn {
+      color: colors.$kobo-blue;
+      font-size: 12px;
+      line-height: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: transparent;
+
+      &[disabled] {
+        pointer-events: none;
+      }
+
+      .k-icon {
+        vertical-align: top;
+      }
+
+      &:hover {
+        color: colors.$kobo-dark-blue;
+        background: transparent;
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+
+    .-pageJump {
+      margin-left: 10px;
+      margin-right: 10px;
+
+      input {
+        appearance: none;
+      }
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    input,
+    select {
+      border: 1px solid colors.$kobo-gray-92;
+      background: colors.$kobo-white;
+      height: 32px;
+      padding: 5px 7px;
+      font-size: $s-data-table-font;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+  }
+
+  .pagination-bottom {
+    margin-top: 5px;
+    margin-bottom: 20px;
+  }
+
+  .-loading {
+    background: colors.$kobo-gray-96;
+
+    .-loading-inner {
+      display: block;
+      text-align: center;
+      font-size: 18px;
+      opacity: 0.8;
+      color: colors.$kobo-gray-40;
+
+      i {
+        margin-right: 12px;
+        vertical-align: middle;
+        font-size: 24px;
+      }
+    }
+  }
+
+  &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
+    background: colors.$kobo-gray-98;
+
+    .rt-td.is-frozen {
+      background-color: inherit;
+    }
+  }
+
+  // currently hovered cell will be on top - for tooltips and dropdowns
+  .rt-th:hover.is-frozen,
+  .rt-td:hover.is-frozen {
+    z-index: $z-table-frozen + 10;
+  }
+
+  // currently focused cell will be over hovered one to not cover opened dropdown
+  //
+  // BUG NOTE: there is still an issue when you open the dropdown from within
+  // a frozen column and then TAB-navigate our of it (a non-functionality, as we
+  // still don't have a visible focus state :P) but is extremely unlikely to
+  // happen for a regular user.
+  .rt-th:focus-within.is-frozen,
+  .rt-td:focus-within.is-frozen {
+    z-index: $z-table-frozen + 11;
+  }
+
+  .rt-th.is-frozen,
+  .rt-td.is-frozen {
+    z-index: $z-table-frozen;
+    position: relative;
+    left: 0;
+    // needed for tooltips and for ::after shadow
+    overflow: visible !important; // important needed because of default react-table styles
+  }
+
+  // The subtle shadow after the last sticky column.
+  .rt-th.is-frozen.is-last-frozen,
+  .rt-td.is-frozen.is-last-frozen {
+    &::after {
+      content: '';
+      position: absolute;
+      left: calc(100% + 2px);
+      top: 0;
+      width: 8px;
+      height: 100%;
+      pointer-events: none;
+      background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04), transparent);
+      opacity: 0;
+      transition-property: opacity;
+      transition-duration: 0.5s;
+      transition-delay: 0.1s;
+      transition-timing-function: ease-in;
+    }
+  }
+
+  // animating the shadow to show up only if table is scrolled horizontally
+  .rt-th.is-frozen.is-last-frozen.is-scrolled-horizontally::after,
+  .rt-td.is-frozen.is-last-frozen.is-scrolled-horizontally::after {
+    opacity: 1;
+    transition-timing-function: ease-out;
+  }
+
+  .rt-th.is-frozen {
+    background-color: $c-header-bg;
+  }
+
+  .rt-td.is-frozen {
+    background-color: colors.$kobo-white;
+  }
+
+  .rt-th.is-frozen.is-last-frozen,
+  .rt-td.is-frozen.is-last-frozen {
+    order: -1;
+    height: $data-table-row-height;
+    border-right: $data-table-border;
+    border-right-width: 2px !important; // important needed due to .-filters specificity
+  }
+
+  .rt-th.is-sorted {
+    background-color: rgba(colors.$kobo-light-teal, 0.5);
+  }
+
+  .rt-td.is-sorted {
+    background-color: rgba(colors.$kobo-light-teal, 0.2);
+  }
+
+  // NOTE: submissions actions column is always frozen as first column
+  .rt-th.rt-sub-actions,
+  .rt-td.rt-sub-actions {
+    order: -2;
+  }
+
+  &.has-hxl-tags-visible {
+    .rt-thead.-header .rt-th {
+      height: $data-table-row-height * 2;
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .form-view--table {
+    padding: 0px 20px;
+  }
+
+  .form-view--table .ReactTable .pagination-bottom {
+    margin-bottom: 10px;
+  }
+}
+
+.table-meta {
+  flex-grow: 1;
+  min-height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .bulk-clear-badge-icon {
+    margin-right: -5px;
+    cursor: pointer;
+    padding: 0 5px;
+    border-radius: 50%;
+    color: colors.$kobo-gray-24;
+
+    &:hover {
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-red;
+    }
+  }
+
+  .table-meta__bulk-options {
+    > *:not(:first-child) {
+      margin-left: 10px;
+    }
+  }
+
+  .table-meta__counter {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  @media screen and (max-width: 1100px) {
+    .table-meta__additional-text {
+      display: none;
+    }
+  }
+}
+
+.table-meta__bulk-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .popover-menu .popover-menu__toggle {
+    // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
+    height: auto;
+  }
+}

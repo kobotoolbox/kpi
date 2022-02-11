@@ -23,6 +23,8 @@
   border-top: 1px solid $kobo-blue;
   padding: 3px;
   position: relative;
+  line-height: 20px;
+
   &:after, &:before {
     bottom: 100%;
     left: 50%;
@@ -40,8 +42,8 @@
     margin-left: -8px;
   }
   &:before {
-    border-color: rgba(217, 221, 225, 0);
-    border-bottom-color: $kobo-blue-light;
+    border-color: rgba($kobo-blue, 0);
+    border-bottom-color: $kobo-blue;
     border-width: 11px;
     margin-left: -11px;
   }
@@ -51,7 +53,7 @@
   position: absolute;
   top: -3px;
   right: 1px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   background: transparent;
   border: 0 none;
   font-family: $font;
@@ -62,7 +64,7 @@
   cursor: pointer;
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 }
 
@@ -118,7 +120,7 @@ input.row__questiontypes__new-question-name {
   font-family: $font;
   font-weight: 600;
   cursor: pointer;
-  color: $kobo-black;
+  color: $kobo-gray-24;
 
   .k-icon {
     margin-right: 6px;

@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
@@ -11,6 +13,9 @@
 // 3. Add comments describing what you're adding.
 // 4. We should migrate form-view layout to flex box to avoid all those calc()
 //    and to make it context independent.
+
+$side-tabs-width: 180px;
+$side-tabs-width-mobile: 70px;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main parts
@@ -27,7 +32,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-whitegray;
+  background: $kobo-gray-96;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -46,21 +51,34 @@
   }
 }
 
+@media not print {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view,
+  .form-view__sidetabs + .loading,
+  .form-view__sidetabs + .access-denied {
+    width: calc(100% - 170px);
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
+}
+
 // The additional side menu tabs on the left
 .form-view__sidetabs {
-  width: 170px;
+  width: $side-tabs-width;
   height: 100%;
   max-height: calc(100% - 48px);
   overflow-x: hidden;
   overflow-y: auto;
   float: left;
   background: $kobo-white;
-  border-right: 1px solid $kobo-lightgray;
+  border-right: 1px solid $kobo-gray-92;
 
   & + .form-view,
   & + .report-view,
-  & + .loading {
-    width: calc(100% - 170px);
+  & + .loading,
+  & + .access-denied {
+    width: calc(100% - #{$side-tabs-width});
     height: calc(100% - 48px);
     overflow: auto;
     overflow-x: hidden;
@@ -77,27 +95,24 @@
     }
   }
 
-  & + .form-view.form-view--table {
-    overflow: hidden;
-  }
-
   a.form-view__tab {
     background: transparent;
     border: none;
     padding: 6px;
     border-left: 2px solid transparent;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
-    display: block;
+    display: flex;
+    align-items: center;
     margin-left: 10px;
 
     &:hover,
     &.active {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.active {
@@ -116,6 +131,11 @@
       }
     }
 
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
     .k-icon {
       font-size: 26px;
       vertical-align: -7px;
@@ -132,7 +152,7 @@
 // The main tabs on top
 .form-view__toptabs {
   background: $kobo-white;
-  border-bottom: 1px solid $kobo-lightgray;
+  border-bottom: 1px solid $kobo-gray-92;
   text-align: center;
   height: 48px;
   position: relative;
@@ -151,24 +171,31 @@
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
 
     &:hover,
     &.active {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.active {
       font-weight: 700;
       border-bottom: 4px solid $kobo-teal;
     }
+
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
   }
 
   a.form-view__link--close {
     position: absolute;
-    right: 0;
-    top: 5px;
+    right: 10px;
+    top: 10px;
+    padding: 5px;
+    font-size: 18px;
   }
 }
 
@@ -179,21 +206,26 @@
     margin-top: 0;
   }
 
+  &.historyHidden,
+  &.historyExpanded {
+    transition-duration: 0.2s;
+    transition-property: max-height, margin-top, margin-bottom;
+  }
+
   &.historyHidden {
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
     overflow: hidden;
-    transition: 0.2s max-height;
     padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
     max-height: 99999px;
   }
 
@@ -219,7 +251,7 @@
   }
 
   &.form-view__cell--bordered {
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--page-title {
@@ -264,7 +296,7 @@
     width: 30px;
     margin-right: 10px;
     text-align: center;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     .k-icon {
       font-size: 24px;
@@ -281,7 +313,7 @@
     text-align: center;
 
     &:hover {
-      color: $kobo-blue-dark;
+      color: $kobo-dark-blue;
     }
 
     &:active {
@@ -299,7 +331,7 @@
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--padding {
@@ -312,13 +344,13 @@
 
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
-    font-size: 14px;
-    color: $kobo-black;
+    font-size: variables.$base-font-size;
+    color: $kobo-gray-24;
     font-weight: 500;
 
     span {
       display: block;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       font-size: 12px;
     }
 
@@ -413,7 +445,7 @@
   }
 
   &.form-view__cell--thin-label {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -432,23 +464,21 @@
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    color: $kobo-white;
     background-color: $kobo-green;
     border-radius: 2px;
   }
 
   &.form-view__cell--warning {
-    background-color: $kobo-orange-light;
-    color: $kobo-orange-dark;
-    border: 1px solid $kobo-orange;
+    background-color: $kobo-light-amber;
+    color: $kobo-dark-amber;
     padding: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
 
     i {
-      color: $kobo-orange;
-      font-size: 32px;
+      color: inherit;
+      font-size: 28px;
       margin-right: 5px;
       vertical-align: -11px;
       display: inline-block;
@@ -457,7 +487,34 @@
     p {
       margin: 0;
     }
+
+    a {
+      color: inherit;
+      font-weight: bold;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
   }
+
+  &.form-view__cell--error {
+    background-color: $kobo-light-red;
+    color: $kobo-dark-red;
+    border: 1px solid $kobo-red;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    i {
+      color: $kobo-red;
+      font-size: 28px;
+      margin-right: 5px;
+      // If used in a dropzone, need to overwrite left margin
+      margin-left: 0px;
+    }
+  }
+
 
   &.form-view__cell--translation-modal-warning {
     margin-bottom: 20px;
@@ -483,7 +540,7 @@
   font-size: 26px;
   line-height: 18px;
   padding: 0 5px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   cursor: pointer;
   vertical-align: middle;
   display: inline-block;
@@ -494,7 +551,7 @@
 
   &--disabled,
   &--disabled:hover {
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
   }
 }
 
@@ -517,14 +574,9 @@
     display: inline;
   }
 
-  .popover-menu .popover-menu__toggle {
-    // TODO: this is too generic, find out what was this really set for
-    height: 36px;
-  }
-
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     display: flex;
     align-items: center;
 
@@ -693,13 +745,26 @@
   }
 }
 
+.form-view__cell--collect-header {
+  .collect-link-missing {
+    color: $kobo-dark-amber;
+    display: block;
+    line-height: 24px;
+
+    .k-icon {
+      vertical-align: top;
+      font-size: 24px;
+    }
+  }
+}
+
 .form-view__cell--collect-meta {
   pre {
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $kobo-lightgray;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     font-size: 13px;
     white-space: normal;
   }
@@ -724,8 +789,8 @@
 
   code {
     padding: 4px;
-    border: 1px solid $kobo-lightgray;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     margin-left: 5px;
     margin-right: 5px;
   }
@@ -748,19 +813,23 @@
 
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
-    width: 50px;
+    width: $side-tabs-width-mobile;
 
     a.form-view__tab {
       padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
-      line-height: 1.5em;
+      line-height: 1;
       text-align: center;
       display: block;
       letter-spacing: -0.05em;
 
-      span {
-        display: none;
+      .k-icon {
+        margin: 0;
+      }
+
+      .form-view__tab-name {
+        display: block;
       }
     }
   }
@@ -769,28 +838,17 @@
     height: 39px;
 
     a.form-view__tab {
-      font-size: 12px;
-    }
-
-    a.form-view__link {
-      font-size: 28px;
+      font-size: variables.$base-font-size;
     }
   }
 
   .form-view__sidetabs + .form-view {
-    width: calc(100% - 50px);
+    width: calc(100% - #{$side-tabs-width-mobile});
     overflow-x: hidden;
   }
 
   .form-view__toptabs + .form-view {
     height: calc(100% - 39px);
-  }
-
-  .form-view {
-    a.form-view__link {
-      font-size: 32px;
-      padding: 0 3px;
-    }
   }
 
   .form-view__row {
@@ -846,6 +904,26 @@
   .modal__footer .footer-back-button {
     float: left;
   }
+}
+
+// Compensate for when sidebar(s) messes up modal a bit
+
+// TODO: Clean this up via PR changes
+@media
+  (min-width: 770px) and (max-width: 1020px),
+  (max-width: 560px) {
+    .bulk-options {
+      display: block !important;
+
+      .bulk-options__buttons {
+        margin-top: 6px;
+        text-align: center;
+      }
+    }
+
+    .multi-checkbox {
+      overflow-x: scroll !important;
+    }
 }
 
 .form-view--library-asset {
