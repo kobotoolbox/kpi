@@ -42,8 +42,6 @@ django-webpack-loader
 django-loginas
 django-markdownx
 
-# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
-
 django-markitup
 django-mptt
 
@@ -88,3 +86,6 @@ pyasn1
 
 # This package is only needed for unit tests but MockBackend is loaded even on production environment
 deepmerge
+
+# MFA
+django-trench

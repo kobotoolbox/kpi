@@ -14,11 +14,11 @@ from django.db import (
     ProgrammingError,
     connections,
     models,
-    IntegrityError,
     router,
 )
 from django.utils import timezone
 from django_digest.models import PartialDigest
+from trench.utils import get_mfa_model
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
@@ -460,6 +460,21 @@ class KobocatUserProfile(ShadowModel):
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
+    # We need to cast `is_active` to an (positive small) integer because KoBoCAT
+    # is using `LazyBooleanField` which is an integer behind the scene.
+    # We do not want to port this class to KPI only for one line of code.
+    is_mfa_active = models.PositiveSmallIntegerField(default=False)
+
+    @classmethod
+    def set_mfa_status(cls, user_id: int, is_active: bool):
+
+        try:
+            user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        except cls.DoesNotExist:
+            pass
+        else:
+            user_profile.is_mfa_active = int(is_active)
+            user_profile.save(update_fields=['is_mfa_active'])
 
 
 class KobocatToken(ShadowModel):

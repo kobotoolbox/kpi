@@ -140,6 +140,8 @@ django-taggit==1.1.0
     # via -r dependencies/pip/requirements.in
 django-timezone-field==3.1
     # via django-celery-beat
+django-trench==0.2.3
+    # via -r dependencies/pip/requirements.in
 django-userforeignkey==0.3.0
     # via django-request-cache
 django-webpack-loader==0.6.0
@@ -250,6 +252,8 @@ pygments==2.4.2
     # via
     #   -r dependencies/pip/requirements.in
     #   ipython
+pyjwt==2.3.0
+    # via twilio
 pymongo==3.9.0
     # via -r dependencies/pip/requirements.in
 pynacl==1.4.0
@@ -258,6 +262,8 @@ pyopenssl==19.0.0
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
+pyotp==2.6.0
+    # via django-trench
 pyparsing==2.4.5
     # via packaging
 pyquery==1.4.1
@@ -289,6 +295,7 @@ pytz==2019.3
     #   celery
     #   django
     #   django-timezone-field
+    #   twilio
 pyxform==1.7.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -303,6 +310,9 @@ requests==2.22.0
     #   coveralls
     #   django-oauth-toolkit
     #   responses
+    #   smsapi-client
+    #   twilio
+    #   yubico-client
 responses==0.10.6
     # via -r dependencies/pip/requirements.in
 s3transfer==0.2.1
@@ -328,6 +338,8 @@ six==1.13.0
     #   responses
     #   ssrf-protect
     #   traitlets
+smsapi-client==2.5.0
+    # via django-trench
 sqlparse==0.3.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -345,6 +357,8 @@ toml==0.10.2
     # via pytest-cov
 traitlets==4.3.3
     # via ipython
+twilio==7.3.0
+    # via django-trench
 unicodecsv==0.14.1
     # via -r dependencies/pip/requirements.in
 urllib3==1.25.7
@@ -378,9 +392,10 @@ xlwt==1.3.0
     # via
     #   -r dependencies/pip/requirements.in
     #   xlutils
+yubico-client==1.13.0
+    # via django-trench
 zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
