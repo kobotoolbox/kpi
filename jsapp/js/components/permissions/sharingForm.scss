@@ -9,7 +9,7 @@ $s-gray-row-spacing: 10px;
 .form-modal--sharing-form {
   h2 {
     margin: 0;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     color: colors.$kobo-gray-24;
     font-weight: 500;
   }
@@ -58,7 +58,7 @@ $s-gray-row-spacing: 10px;
     }
 
     .k-icon {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       margin: 0 3px;
       vertical-align: middle;
 

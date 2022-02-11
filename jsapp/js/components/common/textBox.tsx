@@ -124,7 +124,9 @@ class TextBox extends React.Component<TextBoxProps, {}> {
 
         {errors.length > 0 &&
           <bem.TextBox__error>
-            {errors.map((message: string) => (<div>{message}</div>))}
+            {errors.map((message: string, index: number) => (
+              <div key={`textbox-error-${index}`}>{message}</div>
+            ))}
           </bem.TextBox__error>
         }
       </bem.TextBox>

@@ -1,0 +1,8 @@
+@use "scss/sizes";
+
+@mixin centerRowFlex() {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+}

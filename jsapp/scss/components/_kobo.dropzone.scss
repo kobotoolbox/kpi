@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // Kobo specific dropzone changes
 
 // Extension of `dropzone` used in settings modals
@@ -12,7 +14,7 @@
   // Optional description
   .dropzone-description {
     padding-top: 6px;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
 
     a {
       text-decoration: underline;
