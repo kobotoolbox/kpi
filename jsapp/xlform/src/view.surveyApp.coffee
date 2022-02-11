@@ -3,7 +3,6 @@ Backbone = require 'backbone'
 $survey = require './model.survey'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
-$surveyDetailView = require './view.surveyDetails'
 $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
@@ -311,7 +310,6 @@ module.exports = do ->
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
       @formEditorEl = @$(".-form-editor")
-      @settingsBox = @$(".form__settings-meta__questions")
       return
 
     _render_attachEvents: ->
@@ -343,19 +341,15 @@ module.exports = do ->
       return
 
     _render_addSubViews: ->
-      meta_view = new $viewUtils.ViewComposer()
-
-      for detail in @survey.surveyDetails.models
-        if detail.get('name') in ["start", "end", "today", "deviceid"]
-          meta_view.add new $surveyDetailView.SurveyDetailView(model: detail, selector: '.settings__first-meta')
-        else
-          meta_view.add new $surveyDetailView.SurveyDetailView(model: detail, selector: '.settings__second-meta')
-
-      meta_view.render()
-      meta_view.attach_to @settingsBox
-
       # in which cases is the null_top_row_view_selector viewed
-      @null_top_row_view_selector = new $viewRowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), survey: @survey, ngScope: @ngScope, surveyView: @, reversible:true)
+      @null_top_row_view_selector = new $viewRowSelector.RowSelector({
+        el: @$el.find(".survey__row__spacer").get(0),
+        survey: @survey,
+        ngScope: @ngScope,
+        surveyView: @,
+        reversible: true
+      })
+      return
 
     _render_hideConditionallyDisplayedContent: ->
       if !@features.multipleQuestions

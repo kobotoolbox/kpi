@@ -9,7 +9,7 @@ from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import exceptions
@@ -31,6 +31,10 @@ def browser_tests(request):
 
 def modern_browsers(request):
     return TemplateResponse(request, "modern_browsers.html")
+
+
+def design_system(request):
+    return TemplateResponse(request, "design_system.html")
 
 
 @api_view(['POST'])
@@ -83,7 +87,7 @@ def one_time_login(request):
     try:
         key = request.POST['key']
     except KeyError:
-        return HttpResponseBadRequest(_('No key provided'))
+        return HttpResponseBadRequest(t('No key provided'))
     try:
         next_ = request.GET['next']
     except KeyError:
@@ -100,7 +104,7 @@ def one_time_login(request):
                 expiry__gte=datetime.datetime.now()
             )
         except OneTimeAuthenticationKey.DoesNotExist:
-            return HttpResponseBadRequest(_('Invalid or expired key'))
+            return HttpResponseBadRequest(t('Invalid or expired key'))
         # Nevermore
         otak.delete()
     # The request included a valid one-time key. Log in the associated user

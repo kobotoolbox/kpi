@@ -5,19 +5,20 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, hashHistory } from 'react-router';
 import {stores} from '../stores';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
+import AccountSidebar from 'js/components/account/accountSidebar';
 import {
   IntercomHelpBubble,
-  SupportHelpBubble
+  SupportHelpBubble,
 } from '../components/helpBubbles';
 import {
   COMMON_QUERIES,
   MODAL_TYPES,
-  ROUTES,
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
@@ -152,9 +153,21 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
-          { this.isLibrary()
-            ? <LibrarySidebar />
-            : <FormSidebar />
+          { this.isLibrary() &&
+            <bem.FormSidebarWrapper>
+              <LibrarySidebar/>
+            </bem.FormSidebarWrapper>
+          }
+
+          { this.isAccount() &&
+            // TODO: Temporary magic number for display purposes
+            <AccountSidebar dataStoreage={2} />
+          }
+
+          { !this.isLibrary() && !this.isAccount() &&
+            <bem.FormSidebarWrapper>
+              <FormSidebar/>
+            </bem.FormSidebarWrapper>
           }
         </bem.KDrawer__sidebar>
 

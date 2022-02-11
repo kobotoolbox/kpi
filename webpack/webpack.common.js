@@ -101,9 +101,10 @@ var commonOptions = {
     ]
   },
   resolve: {
-    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts'],
+    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx'],
     alias: {
       app: path.join(__dirname, '../app'),
+      jsapp: path.join(__dirname, '../jsapp'),
       js: path.join(__dirname, '../jsapp/js'),
       scss: path.join(__dirname, '../jsapp/scss'),
       utils: path.join(__dirname, '../jsapp/js/utils'),

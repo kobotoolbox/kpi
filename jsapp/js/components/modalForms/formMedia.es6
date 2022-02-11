@@ -4,7 +4,7 @@ import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import envStore from 'js/envStore';
 import {
@@ -16,6 +16,7 @@ import {
   truncateString,
   truncateUrl,
 } from 'js/utils';
+import './formMedia.scss';
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';

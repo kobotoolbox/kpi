@@ -2,7 +2,7 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import assetUtils from 'js/assetUtils';
@@ -11,6 +11,7 @@ import {
   notify,
   formatTime,
 } from 'utils';
+import './assetInfoBox.scss';
 
 /**
  * @prop asset
@@ -20,7 +21,7 @@ class AssetInfoBox extends React.Component {
     super(props);
     this.state = {
       areDetailsVisible: false,
-      ownerData: null
+      ownerData: null,
     };
     autoBind(this);
   }
@@ -122,7 +123,7 @@ class AssetInfoBox extends React.Component {
           {this.state.areDetailsVisible &&
           <bem.AssetInfoBox__cell>
             <label>{t('Country')}</label>
-            {assetUtils.getCountryDisplayString(this.props.asset, true)}
+            {assetUtils.getCountryDisplayString(this.props.asset)}
           </bem.AssetInfoBox__cell>
           }
 
@@ -136,7 +137,7 @@ class AssetInfoBox extends React.Component {
 
         <bem.AssetInfoBox__column m='toggle'>
           <bem.AssetInfoBox__toggle onClick={this.toggleDetails}>
-            {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
+            {this.state.areDetailsVisible ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
             {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
           </bem.AssetInfoBox__toggle>
         </bem.AssetInfoBox__column>

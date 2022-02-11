@@ -1,12 +1,13 @@
 import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {actions} from '../actions';
 import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
+import './helpBubbles.scss';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
 
@@ -449,7 +450,7 @@ export class SupportHelpBubble extends HelpBubble {
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
-          <i className='k-icon k-icon-prev'/>
+          <i className='k-icon k-icon-angle-left'/>
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__popupContent>

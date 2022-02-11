@@ -22,10 +22,11 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ROUTES,
 } from './constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import assetStore from 'js/assetStore';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -218,9 +219,9 @@ mixins.dmix = {
       return this.props.uid;
     }
   },
-  // TODO
+  // TODO 1/2
   // Fix `componentWillUpdate` and `componentDidMount` asset loading flow.
-  // Ideally we should build a single overaching component that would
+  // Ideally we should build a single overaching component or store that would
   // handle loading of the asset in all necessary cases in a way that all
   // interested parties could use without duplication or confusion and with
   // indication when the loading starts and when ends.
@@ -233,14 +234,22 @@ mixins.dmix = {
       actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
-  componentDidMount() {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
+  componentDidMount() {
+    assetStore.listen(this.dmixAssetStoreChange);
+
+    // TODO 2/2
+    // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
+    // call to get asset, as it is being already made. Ideally we want to have
+    // this nice SSOT as described in TODO comment above.
     const uid = this._getAssetUid();
-    if (uid) {
+    if (uid && this.props.initialAssetLoadNotNeeded) {
+      this.setState(assign({}, assetStore.data[uid]));
+    } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   },
+
   removeSharing: function() {
     mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
   },
@@ -839,8 +848,8 @@ mixins.permissions = {
     if (!asset.permissions) {
       return false;
     }
-
     const currentUsername = stores.session.currentAccount.username;
+
     if (asset.owner__username === currentUsername) {
       return true;
     }
@@ -869,6 +878,15 @@ mixins.permissions = {
    * @param {Object} asset
    */
   userCanPartially(permName, asset) {
+
+    const currentUsername = stores.session.currentAccount.username;
+
+    // Owners cannot have partial permissions because they have full permissions.
+    // Both are contradictory.
+    if (asset.owner__username === currentUsername) {
+      return false;
+    }
+
     return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
   },
 };
@@ -899,7 +917,7 @@ mixins.contextRouter = {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset() {
-    return stores.asset.data[this.currentAssetID()];
+    return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
@@ -916,7 +934,15 @@ mixins.contextRouter = {
       this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
       this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
-  }
+  },
+  isAccount() {
+    return (
+      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
+      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
+      this.context.router.isActive(ROUTES.SECURITY) ||
+      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+    );
+  },
 };
 
 /*

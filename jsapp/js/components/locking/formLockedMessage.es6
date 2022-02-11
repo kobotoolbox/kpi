@@ -1,6 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {ASSET_TYPES} from 'js/constants';
 import {
   isAssetLocked,
@@ -51,8 +51,8 @@ class FormLockedMessage extends React.Component {
       <React.Fragment>
         <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
           {t('see more')}
-          {this.state.isOpen && <i className='k-icon k-icon-up'/>}
-          {!this.state.isOpen && <i className='k-icon k-icon-down'/>}
+          {this.state.isOpen && <i className='k-icon k-icon-angle-up'/>}
+          {!this.state.isOpen && <i className='k-icon k-icon-angle-down'/>}
         </bem.FormBuilderMessageBox__toggle>
 
         {this.state.isOpen &&

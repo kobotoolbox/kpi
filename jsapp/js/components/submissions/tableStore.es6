@@ -1,9 +1,9 @@
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
-import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
-import {getRouteAssetUid} from 'js/routerUtils';
+import {getRouteAssetUid} from 'js/router/routerUtils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {
   PERMISSIONS_CODENAMES,
@@ -139,7 +139,7 @@ const tableStore = Reflux.createStore({
    * A shortcut method, to be deleted in future.
    */
   getCurrentAsset() {
-    return stores.asset.getAsset(getRouteAssetUid());
+    return assetStore.getAsset(getRouteAssetUid());
   },
 
   /**
@@ -205,16 +205,23 @@ const tableStore = Reflux.createStore({
     });
     output = output.filter((key) => excludedMatrixKeys.includes(key) === false);
 
-    // exclude repeat groups as we don't handle them in table yet
-    const excludedRepeatGroups = [];
+    // Exclude repeat groups and regular groups as all of their data is handled
+    // by children rows.
+    // This also fixes the issue when a repeat group in older version becomes
+    // a regular group in new form version (with the same name), and the Table
+    // was displaying "[object Object]" as responses.
+    const excludedGroups = [];
     const flatPathsWithGroups = getSurveyFlatPaths(asset.content.survey, true);
     asset.content.survey.forEach((row) => {
-      if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
+      if (
+        row.type === GROUP_TYPES_BEGIN.begin_repeat ||
+        row.type === GROUP_TYPES_BEGIN.begin_group
+      ) {
         const rowPath = flatPathsWithGroups[row.name] || flatPathsWithGroups[row.$autoname];
-        excludedRepeatGroups.push(rowPath);
+        excludedGroups.push(rowPath);
       }
     });
-    output = output.filter((key) => excludedRepeatGroups.includes(key) === false);
+    output = output.filter((key) => excludedGroups.includes(key) === false);
 
     return output;
   },

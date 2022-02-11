@@ -1,7 +1,7 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
 import {actions} from '../actions';
@@ -403,7 +403,7 @@ class MapSettings extends React.Component {
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.KoboButton m='whitegray' onClick={this.resetMapSettings}>
+              <bem.KoboButton m='storm' onClick={this.resetMapSettings}>
                 {t('Reset')}
               </bem.KoboButton>
             }

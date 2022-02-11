@@ -201,6 +201,7 @@ class KobocatOneTimeAuthToken(ShadowModel):
     One time authenticated token
     """
     HEADER = 'X-KOBOCAT-OTA-TOKEN'
+    QS_PARAM = 'kc_ota_token'
 
     user = models.ForeignKey(
         'KobocatUser',
@@ -210,38 +211,46 @@ class KobocatOneTimeAuthToken(ShadowModel):
     token = models.CharField(max_length=50, default=token_urlsafe)
     expiration_time = models.DateTimeField()
     method = models.CharField(max_length=6)
+    request_identifier = models.CharField(max_length=1000)
 
     class Meta(ShadowModel.Meta):
         db_table = 'api_onetimeauthtoken'
         unique_together = ('user', 'token', 'method')
 
+    def get_header(self) -> dict:
+        return {self.HEADER: self.token}
+
     @classmethod
-    def create_token(
+    def get_or_create_token(
             cls,
             user: 'auth.User',
-            method: str = 'POST',
+            method: str,
+            request_identifier: str,
+            use_identifier_as_token: bool = False,
             expiration_time: Optional[datetime] = None,
-            url: Optional[str] = None,
     ) -> 'KobocatOneTimeAuthToken':
         """
-        Create and return an instance of KobocatOneTimeAuthToken.
+        Get or create an instance of KobocatOneTimeAuthToken and return it.
 
-        If `url` is specified, it generates the token based on the URL instead
-        of auto-generating it.
-        It's useful for Enketo Express to be granted when POSTing data to
-        KoBoCAT from one specific url (e.g.: edit a submission).
+        If `use_identifier_as_token` is True, it generates the token based on
+        the `request_identifier` instead of auto-generating it.
         """
         kc_user = KobocatUser.objects.get(id=user.pk)
         token_attrs = dict(
-            user=kc_user, method=method,
+            user=kc_user, method=method, request_identifier=request_identifier,
             defaults={'expiration_time': expiration_time},
         )
 
-        if url is not None:
+        if use_identifier_as_token:
             # `Signer()` returns 'url:encoded-string'.
             # E.g: https://ee.kt.org/edit:a123bc'
-            # We only want the last part
-            parts = Signer().sign(url).split(':')
+            # We only want the last part.
+            # When KoBoCAT tries to get the token, it reads the headers, then
+            # the querystring parameters and finally uses the HTTP referrer if
+            # none of the others worked. The headers and querystring parameters
+            # cannot be transferred through Enketo Express, so we use its URL
+            # to generate the token and let KoBoCAT compare it to its referrer.
+            parts = Signer().sign(request_identifier).split(':')
             # TODO: consider removing Signer() as it's only value here is to
             # assure that the token will always be a consistent length (and,
             # for example, not overrun the size of the database column for long
@@ -255,9 +264,6 @@ class KobocatOneTimeAuthToken(ShadowModel):
             auth_token.save()
 
         return auth_token
-
-    def get_header(self) -> dict:
-        return {self.HEADER: self.token}
 
     def save(self, *args, **kwargs):
         if not self.expiration_time:
@@ -303,7 +309,10 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        cls.objects.create(user_id=user.pk)
+        today = datetime.today()
+        first = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        cls.objects.get_or_create(user_id=user.pk, timestamp=first)
 
 
 class KobocatUser(ShadowModel):
@@ -375,10 +384,7 @@ class KobocatUserObjectPermission(ShadowModel):
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
     object_pk = models.CharField('object ID', max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
-    # It's okay not to use `KobocatUser` as long as PKs are synchronized
-    user = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
-        on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
 
     class Meta(ShadowModel.Meta):
         db_table = 'guardian_userobjectpermission'
@@ -450,7 +456,7 @@ class KobocatUserProfile(ShadowModel):
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(User, null=True, blank=True,
+    created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
@@ -532,7 +538,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
         verbose_name_plural = 'Submissions by Country'
 
     xml = models.TextField()
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()

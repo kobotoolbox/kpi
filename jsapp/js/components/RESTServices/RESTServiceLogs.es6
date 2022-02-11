@@ -5,7 +5,7 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
-import {bem} from '../../bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
@@ -167,7 +167,7 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   showLogInfo(log) {
-    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.instance_id);
+    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.submission_id);
     const escapedMessage = $('<div/>').text(log.message).html();
     alertify.alert(title, `<pre>${escapedMessage}</pre>`);
   }
@@ -176,9 +176,9 @@ export default class RESTServiceLogs extends React.Component {
     const currentAsset = this.currentAsset();
     stores.pageState.switchModal({
       type: MODAL_TYPES.SUBMISSION,
-      sid: log.instance_id,
+      sid: log.submission_id,
       asset: currentAsset,
-      ids: [log.instance_id]
+      ids: [log.submission_id]
     });
   }
 
@@ -207,7 +207,7 @@ export default class RESTServiceLogs extends React.Component {
           className='rest-services-list__header-back-button'
           href={`/#/forms/${this.state.assetUid}/settings/rest`}
         >
-          <i className='k-icon k-icon-prev' />
+          <i className='k-icon k-icon-angle-left' />
           {t('Back to REST Services')}
         </a>
 
@@ -301,7 +301,7 @@ export default class RESTServiceLogs extends React.Component {
               return (
                 <bem.ServiceRow {...rowProps}>
                   <bem.ServiceRow__column m='submission'>
-                    {log.instance_id}
+                    {log.submission_id}
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column

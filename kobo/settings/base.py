@@ -1,5 +1,5 @@
 # coding: utf-8
-import multiprocessing
+import json
 import os
 import subprocess
 from mimetypes import add_type
@@ -15,7 +15,7 @@ from django.utils.translation import get_language_info
 from pymongo import MongoClient
 
 from kpi.utils.redis_helper import RedisHelper
-from ..static_lists import EXTRA_LANG_INFO
+from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -175,6 +175,70 @@ CONSTANCE_CONFIG = {
         False,
         'Display information about the running commit to non-superusers',
     ),
+    'CELERY_WORKER_MAX_CONCURRENCY': (
+        '',
+        'Maximum number of asynchronous worker processes to run. When '
+        'unspecified, the default is the number of CPU cores on your server, '
+        'down to a minimum of 2 and up to a maximum of 6. You may override '
+        'here with larger values',
+        # Omit type specification because int doesn't allow an empty default
+    ),
+    'CELERY_WORKER_MIN_CONCURRENCY': (
+        2,
+        'Minimum number of asynchronous worker processes to run. If larger '
+        'than the maximum, the maximum will be ignored',
+        int
+    ),
+    'USER_METADATA_FIELDS': (
+        json.dumps([
+            {'name': 'organization', 'required': False},
+            {'name': 'organization_website', 'required': False},
+            {'name': 'sector', 'required': False},
+            {'name': 'gender', 'required': False},
+            {'name': 'bio', 'required': False},
+            {'name': 'city', 'required': False},
+            {'name': 'country', 'required': False},
+            {'name': 'twitter', 'required': False},
+            {'name': 'linkedin', 'required': False},
+            {'name': 'instagram', 'required': False},
+        ]),
+        # The available fields are hard-coded in the front end
+        'Display (and optionally require) these metadata fields for users. '
+        "Possible fields are 'organization', 'organization_website', "
+        "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
+        "and 'instagram'",
+        # Use custom field for schema validation
+        'metadata_fields_jsonschema'
+    ),
+    'PROJECT_METADATA_FIELDS': (
+        json.dumps([
+            {'name': 'sector', 'required': False},
+            {'name': 'country', 'required': False},
+            # {'name': 'operational_purpose', 'required': False},
+            # {'name': 'collects_pii', 'required': False},
+        ]),
+        # The available fields are hard-coded in the front end
+        'Display (and optionally require) these metadata fields for projects. '
+        "Possible fields are 'sector', 'country', 'operational_purpose', and "
+        "'collects_pii'.",
+        # Use custom field for schema validation
+        'metadata_fields_jsonschema'
+    ),
+    'SECTOR_CHOICES': (
+        '\r\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        "Options available for the 'sector' metadata field, one per line."
+    ),
+    'OPERATIONAL_PURPOSE_CHOICES': (
+        '',
+        "Options available for the 'operational purpose of data' metadata "
+        'field, one per line.'
+    ),
+}
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {'widget': 'django.forms.Textarea'},
+    ]
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -327,6 +391,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -381,14 +446,11 @@ else:
 
 
 ''' Enketo configuration '''
-ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
-ENKETO_SERVER = ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
+ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
+ENKETO_URL = ENKETO_URL.rstrip('/')  # Remove any trailing slashes
 ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
-ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
-
-# ToDo 2020-01-23 Verify if 2 lines below are still needed?
-assert ENKETO_VERSION in ['legacy', 'express']
-ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
+ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
+ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
@@ -411,14 +473,6 @@ CELERY_TIMEZONE = "UTC"
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
     CELERY_TASK_ALWAYS_EAGER = True
-
-# Celery defaults to having as many workers as there are cores. To avoid
-# excessive resource consumption, don't spawn more than 6 workers by default
-# even if there more than 6 cores.
-
-CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
-if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
-    CELERY_WORKER_CONCURRENCY = CELERYD_MAX_CONCURRENCY
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
@@ -739,3 +793,11 @@ HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
 # add some mimetype
 add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
+
+KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
+KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
+    'original': '',
+    'large': '_large',
+    'medium': '_medium',
+    'small': '_small',
+}

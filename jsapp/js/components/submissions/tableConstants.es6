@@ -2,6 +2,7 @@ import {
   createEnum,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
+  ADDITIONAL_SUBMISSION_PROPS,
 } from 'js/constants';
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
@@ -42,9 +43,24 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   SORT_BY: 'sort-by',
 });
 
+// TODO: Append this list with transcriptions/translations when they get added (NLP)
 export const TABLE_MEDIA_TYPES = createEnum([
   QUESTION_TYPES.image.id,
   QUESTION_TYPES.audio.id,
   QUESTION_TYPES.video.id,
+  QUESTION_TYPES.text.id,
   META_QUESTION_TYPES['background-audio'],
 ]);
+
+export const DEFAULT_DATA_CELL_WIDTH = 140;
+
+export const CELLS_WIDTH_OVERRIDES = {};
+CELLS_WIDTH_OVERRIDES[VALIDATION_STATUS_ID_PROP] = 125;
+CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.start] = 110;
+CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.end] = 110;
+CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._id] = 100;
+CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.image.id] = 110;
+CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.audio.id] = 110;
+CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.video.id] = 110;
+CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES['background-audio']] = 110;
+Object.freeze(CELLS_WIDTH_OVERRIDES);

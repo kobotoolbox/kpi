@@ -8,7 +8,7 @@ import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'utils';
 import {stores} from 'js/stores';
@@ -139,6 +139,8 @@ class SubmissionModal extends React.Component {
         promptRefresh: false,
       };
     }
+    // Return null to indicate no change to state.
+    return null;
   }
 
   componentDidUpdate(prevProps) {
@@ -451,7 +453,7 @@ class SubmissionModal extends React.Component {
                     onClick={this.switchSubmission.bind(this, this.state.previous)}
                     className='mdl-button mdl-button--colored'
                   >
-                    <i className='k-icon k-icon-prev' />
+                    <i className='k-icon k-icon-angle-left' />
                     {t('Previous')}
                   </a>
                 }
@@ -460,7 +462,7 @@ class SubmissionModal extends React.Component {
                     onClick={this.prevTablePage}
                     className='mdl-button mdl-button--colored'
                   >
-                    <i className='k-icon k-icon-prev' />
+                    <i className='k-icon k-icon-angle-left' />
                     {t('Previous')}
                   </a>
                 }
@@ -472,7 +474,7 @@ class SubmissionModal extends React.Component {
                     className='mdl-button mdl-button--colored'
                   >
                     {t('Next')}
-                    <i className='k-icon k-icon-next' />
+                    <i className='k-icon k-icon-angle-right' />
                   </a>
                 }
                 {this.state.next === -2 &&
@@ -481,7 +483,7 @@ class SubmissionModal extends React.Component {
                     className='mdl-button mdl-button--colored'
                   >
                     {t('Next')}
-                    <i className='k-icon k-icon-next' />
+                    <i className='k-icon k-icon-angle-right' />
                   </a>
                 }
               </div>

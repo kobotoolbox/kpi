@@ -9,7 +9,7 @@ import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {generateAutoname} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import envStore from 'js/envStore';
@@ -136,6 +136,8 @@ class ConnectProjects extends React.Component {
   }
 
   onGetSharingEnabledAssetsCompleted(response) {
+    // NOTE: it is completely valid to connect a project back to itself, so
+    // don't be alarmed about seeing your current project in this list.
     this.setState({sharingEnabledAssets: response});
   }
 
@@ -347,17 +349,14 @@ class ConnectProjects extends React.Component {
    * Rendering
    */
 
-  //TODO: Use BEM elements instead
-
   renderSelect() {
     if (this.state.sharingEnabledAssets !== null) {
       let sharingEnabledAssets = this.generateFilteredAssetList();
-      const selectClassNames = ['kobo-select__wrapper'];
-      if (this.state.fieldsErrors?.source) {
-        selectClassNames.push('kobo-select__wrapper--error');
-      }
+
       return(
-        <div className={selectClassNames.join(' ')}>
+        <bem.KoboSelect__wrapper m={{
+          'error': Boolean(this.state.fieldsErrors?.source),
+        }}>
           <Select
             placeholder={t('Select a different project to import data from')}
             options={sharingEnabledAssets}
@@ -371,10 +370,12 @@ class ConnectProjects extends React.Component {
             classNamePrefix='kobo-select'
           />
 
-          <label className='select-errors'>
-            {this.state.fieldsErrors?.source}
-          </label>
-        </div>
+          {this.state.fieldsErrors?.source &&
+            <bem.KoboSelect__errors>
+              {this.state.fieldsErrors?.source}
+            </bem.KoboSelect__errors>
+          }
+        </bem.KoboSelect__wrapper>
       );
     }
   }

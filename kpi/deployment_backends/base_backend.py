@@ -2,12 +2,12 @@
 import abc
 import copy
 import json
-from typing import Union, Iterator
+from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.db.models.query import QuerySet
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
@@ -178,7 +178,8 @@ class BaseDeploymentBackend(abc.ABC):
         user: 'auth.User',
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
-        **mongo_query_params: dict
+        request: Optional['rest_framework.request.Request'] = None,
+        **mongo_query_params
     ) -> Union[Iterator[dict], Iterator[str]]:
         """
         Retrieve submissions that `user` is allowed to access.
@@ -331,7 +332,7 @@ class BaseDeploymentBackend(abc.ABC):
         if 'count' in mongo_query_params:
             raise serializers.ValidationError(
                 {
-                    'count': _(
+                    'count': t(
                         'This param is not implemented. Use `count` property '
                         'of the response instead.'
                     )
@@ -343,12 +344,12 @@ class BaseDeploymentBackend(abc.ABC):
                 # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
-                    'sort': _('This param is not supported in `XML` format')
+                    'sort': t('This param is not supported in `XML` format')
                 })
 
             if 'fields' in mongo_query_params:
                 raise serializers.ValidationError({
-                    'fields': _('This is not supported in `XML` format')
+                    'fields': t('This is not supported in `XML` format')
                 })
 
         start = mongo_query_params.get('start', 0)
@@ -357,6 +358,7 @@ class BaseDeploymentBackend(abc.ABC):
         fields = mongo_query_params.get('fields', [])
         query = mongo_query_params.get('query', {})
         submission_ids = mongo_query_params.get('submission_ids', [])
+        skip_count = mongo_query_params.get('skip_count', False)
 
         # I've copied these `ValidationError` messages verbatim from DRF where
         # possible.TODO: Should this validation be in (or called directly by)
@@ -367,13 +369,13 @@ class BaseDeploymentBackend(abc.ABC):
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
                 raise serializers.ValidationError(
-                    {'query': _('Value must be valid JSON.')}
+                    {'query': t('Value must be valid JSON.')}
                 )
 
         if not isinstance(submission_ids, list):
 
             raise serializers.ValidationError(
-                {'submission_ids': _('Value must be a list.')}
+                {'submission_ids': t('Value must be a list.')}
             )
 
         # This error should not be returned as `ValidationError` to user.
@@ -396,21 +398,21 @@ class BaseDeploymentBackend(abc.ABC):
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
                 raise serializers.ValidationError(
-                    {'sort': _('Value must be valid JSON.')}
+                    {'sort': t('Value must be valid JSON.')}
                 )
 
         try:
             start = positive_int(start)
         except ValueError:
             raise serializers.ValidationError(
-                {'start': _('A positive integer is required.')}
+                {'start': t('A positive integer is required.')}
             )
         try:
             if limit is not None:
                 limit = positive_int(limit, strict=True)
         except ValueError:
             raise serializers.ValidationError(
-                {'limit': _('A positive integer is required.')}
+                {'limit': t('A positive integer is required.')}
             )
 
         if isinstance(fields, str):
@@ -418,7 +420,7 @@ class BaseDeploymentBackend(abc.ABC):
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:
                 raise serializers.ValidationError(
-                    {'fields': _('Value must be valid JSON.')}
+                    {'fields': t('Value must be valid JSON.')}
                 )
 
         params = {
@@ -427,7 +429,8 @@ class BaseDeploymentBackend(abc.ABC):
             'fields': fields,
             'sort': sort,
             'submission_ids': submission_ids,
-            'permission_filters': permission_filters
+            'permission_filters': permission_filters,
+            'skip_count': skip_count,
         }
 
         if limit:
@@ -435,7 +438,7 @@ class BaseDeploymentBackend(abc.ABC):
 
         return params
 
-    def validate_write_access_with_partial_perms(
+    def validate_access_with_partial_perms(
         self,
         user: 'auth.User',
         perm: str,
@@ -468,6 +471,7 @@ class BaseDeploymentBackend(abc.ABC):
                 user=user,
                 partial_perm=perm,
                 fields=['_id'],
+                skip_count=True,
             )
             allowed_submission_ids = [r['_id'] for r in all_submissions]
 
@@ -487,6 +491,7 @@ class BaseDeploymentBackend(abc.ABC):
             fields=['_id'],
             submission_ids=submission_ids,
             query=query,
+            skip_count=True,
         )
 
         requested_submission_ids = [

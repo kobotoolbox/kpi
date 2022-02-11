@@ -3,17 +3,18 @@ import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {
   hasVerticalScrollbar,
-  getScrollbarWidth
+  getScrollbarWidth,
 } from 'utils';
 import AssetsTableRow from './assetsTableRow';
 import {
   ASSETS_TABLE_CONTEXTS,
   ORDER_DIRECTIONS,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
+import './assetsTable.scss';
 
 /**
  * Displays a table of assets.
@@ -238,10 +239,10 @@ export default class AssetsTable extends React.Component {
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
       if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
-        icon = (<i className='k-icon k-icon-up'/>);
+        icon = (<i className='k-icon k-icon-angle-up'/>);
       }
       if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
-        icon = (<i className='k-icon k-icon-down'/>);
+        icon = (<i className='k-icon k-icon-angle-down'/>);
       }
     }
 
@@ -279,7 +280,7 @@ export default class AssetsTable extends React.Component {
             disabled={this.props.currentPage === 0}
             onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
           >
-            <i className='k-icon k-icon-prev'/>
+            <i className='k-icon k-icon-angle-left'/>
             {t('Previous')}
           </bem.AssetsTablePagination__button>
 
@@ -293,7 +294,7 @@ export default class AssetsTable extends React.Component {
             onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
           >
             {t('Next')}
-            <i className='k-icon k-icon-next'/>
+            <i className='k-icon k-icon-angle-right'/>
           </bem.AssetsTablePagination__button>
         </bem.AssetsTablePagination>
       );

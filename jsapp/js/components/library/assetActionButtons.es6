@@ -16,16 +16,17 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
+import './assetActionButtons.scss';
 
 const assetActions = mixins.clickAssets.click.asset;
 
@@ -270,7 +271,7 @@ class AssetActionButtons extends React.Component {
               href={dl.url}
               key={`dl-${dl.format}`}
             >
-              <i className={`k-icon k-icon-${dl.format}-file`}/>
+              <i className={`k-icon k-icon-file-${dl.format}`}/>
               {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
             </bem.PopoverMenu__link>
           );
@@ -461,7 +462,7 @@ class AssetActionButtons extends React.Component {
             data-tip={t('Clone')}
             className='right-tooltip'
           >
-            <i className='k-icon k-icon-clone'/>
+            <i className='k-icon k-icon-duplicate'/>
           </bem.AssetActionButtons__iconButton>
         }
 

@@ -1,9 +1,8 @@
 # coding: utf-8
-import json
-
 from django.conf import settings
 from django.http import Http404
-from django.utils.translation import ugettext_lazy as _
+from django.shortcuts import redirect
+from django.utils.translation import gettext_lazy as t
 from rest_framework import (
     renderers,
     serializers,
@@ -22,7 +21,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset
+from kpi.models import Asset, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -31,7 +30,12 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import (
+    SubmissionCSVRenderer,
+    SubmissionGeoJsonRenderer,
+    SubmissionXLSXRenderer,
+    SubmissionXMLRenderer,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
@@ -275,16 +279,51 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
+    ## Synchronous data export
+
+    The use of synchronous exports requires an existing export setting for the
+    current asset, accessible at:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
+    </pre>
+
+    The export settings associated with the `export_setting_uid` is used to
+    configure the output of the synchronous export. It is advisable to create
+    specific export settings to be used for synchronous exports, tailored to
+    the desired output format.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
+    </pre>
+
+    By default, XLSX format is used, but CSV is also available:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
+    </pre>
+
+    or
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
+    </pre>
+
 
     ### CURRENT ENDPOINT
     """
 
     parent_model = Asset
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        renderers.JSONRenderer,
-                        SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer,
-                        )
+    renderer_classes = (
+        renderers.BrowsableAPIRenderer,
+        renderers.JSONRenderer,
+        SubmissionGeoJsonRenderer,
+        SubmissionXMLRenderer,
+        SubmissionXLSXRenderer,
+        SubmissionCSVRenderer,
+    )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
 
@@ -294,10 +333,25 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         if not self.asset.has_deployment:
             raise ObjectDeploymentDoesNotExist(
-                _('The specified asset has not been deployed')
+                t('The specified asset has not been deployed')
             )
 
         return self.asset.deployment
+
+    @action(detail=True, methods=['GET'],
+            url_path='attachments/(?P<size>.*)')
+    def attachments(self, request, pk, size, *args, **kwargs):
+        deployment = self._get_deployment()
+        submission_id = positive_int(pk)
+        media_file = request.query_params['media_file']
+        return redirect(
+            deployment.get_signed_attachment_url_token(
+                submission_id,
+                request.user,
+                size,
+                media_file
+            )
+        )
 
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
@@ -334,7 +388,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditSubmissionPermission],
-        url_path='enketo(?:/(?P<action>edit))?',
+        url_path='(enketo\/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
@@ -348,6 +402,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     )
     def enketo_view(self, request, pk, *args, **kwargs):
         return self._enketo_request(request, pk, action_='view', *args, **kwargs)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
+        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
+    )
+    def exports(self, request, uid, *args, **kwargs):
+        try:
+            obj = AssetExportSettings.objects.get(uid=uid)
+        except AssetExportSettings.DoesNotExist:
+            raise Http404
+        return Response(obj.export_settings)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
@@ -367,12 +434,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 deployment.get_submissions(
                     user=request.user,
                     format_type=SUBMISSION_FORMAT_TYPE_JSON,
+                    request=request,
                     **filters
                 )
             )
 
         submissions = deployment.get_submissions(request.user,
                                                  format_type=format_type,
+                                                 request=request,
                                                  **filters)
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
@@ -393,6 +462,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 positive_int(pk),
                 user=request.user,
                 format_type=format_type,
+                request=request,
                 **filters,
             )
         except ValueError:
@@ -490,7 +560,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
         except ValueError:
             raise serializers.ValidationError(
-                {'limit': _('A positive integer is required')}
+                {'limit': t('A positive integer is required')}
             )
 
         return filters

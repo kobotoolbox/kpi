@@ -5,23 +5,21 @@ import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import Reflux from 'reflux';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
-  getLoginUrl,
   stringToColor,
 } from 'utils';
+import {getLoginUrl} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
-import {
-  COMMON_QUERIES,
-  PATHS,
-  ROUTES,
-} from 'js/constants';
+import {COMMON_QUERIES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
@@ -34,7 +32,6 @@ class MainHeader extends Reflux.Component {
     super(props);
     this.state = assign({
       asset: false,
-      currentLang: currentLang(),
       isLanguageSelectorVisible: false,
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
@@ -52,8 +49,11 @@ class MainHeader extends Reflux.Component {
   }
 
   componentDidMount() {
+    // On initial load use the possibly stored asset.
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
+
     this.unlisteners.push(
-      stores.asset.listen(this.onAssetLoad),
+      assetStore.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)
     );
   }
@@ -131,10 +131,16 @@ class MainHeader extends Reflux.Component {
   }
 
   renderLangItem(lang) {
+    const currentLanguage = currentLang();
     return (
       <bem.AccountBox__menuLI key={lang.value}>
         <bem.AccountBox__menuLink onClick={this.languageChange} data-key={lang.value}>
-          {lang.label}
+          {lang.value === currentLanguage &&
+            <strong>{lang.label}</strong>
+          }
+          {lang.value !== currentLanguage &&
+            lang.label
+          }
         </bem.AccountBox__menuLink>
       </bem.AccountBox__menuLI>
     );
@@ -290,7 +296,7 @@ class MainHeader extends Reflux.Component {
                 <i className='k-icon k-icon-menu' />
               </bem.Button>
             }
-            <span className='mdl-layout-title'>
+            <span className='mdl-layout__title'>
               <a href='/'>
                 <bem.Header__logo />
               </a>

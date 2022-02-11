@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import assetUtils from 'js/assetUtils';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import PopoverMenu from 'js/popoverMenu';
@@ -16,8 +16,8 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
-  ROUTES,
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
   notify
@@ -228,7 +228,7 @@ export class FormLanding extends React.Component {
                           data-tip={t('Clone this version as a new project')}
                           onClick={this.saveCloneAs}
                         >
-                          <i className='k-icon k-icon-clone' />
+                          <i className='k-icon k-icon-duplicate' />
                         </bem.FormView__link>
                       </bem.FormView__label>
                     }
@@ -477,7 +477,7 @@ export class FormLanding extends React.Component {
             return (
                 <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                     key={`dl-${dl.format}`}>
-                  <i className={`k-icon k-icon-${dl.format}-file`}/>
+                  <i className={`k-icon k-icon-file-${dl.format}`}/>
                   {t('Download')}&nbsp;
                   {dl.format.toString().toUpperCase()}
                 </bem.PopoverMenu__link>
@@ -491,7 +491,7 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {!assetUtils.isSelfOwned(this.state) &&
+          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >
@@ -502,7 +502,7 @@ export class FormLanding extends React.Component {
 
           {isLoggedIn &&
             <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-              <i className='k-icon k-icon-clone'/>
+              <i className='k-icon k-icon-duplicate'/>
               {t('Clone this project')}
             </bem.PopoverMenu__link>
           }

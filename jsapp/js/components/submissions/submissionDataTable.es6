@@ -4,7 +4,7 @@ import {
   formatTimeDate,
   formatDate,
 } from 'utils';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
@@ -16,6 +16,7 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
+import './submissionDataTable.scss';
 
 /**
  * @prop {object} asset

@@ -8,16 +8,18 @@ import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Generator, Optional, Union
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 from xml.etree import ElementTree as ET
 
 import pytz
 import requests
 from django.conf import settings
+from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -36,6 +38,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.datetime import several_minutes_from_now
+from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
@@ -109,7 +112,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -136,7 +139,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if not self.current_submissions_count:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
+                detail=t('No submissions match the given `submission_ids`')
             )
 
         update_data = self.__prepare_bulk_update_data(data['data'])
@@ -166,32 +169,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # a new element has to be created before a value can be set.
             # However, with this new power, arbitrary fields can be added
             # to the XML tree through the API.
-            for k, v in update_data.items():
-                # A potentially clunky way of taking groups and nested groups
-                # into account when the elements don't exist on the XML tree
-                # (which could be the case if the form has been updated). They
-                # are iteratively attached to the tree since we can only
-                # append one element deep per iteration
-                if '/' in k:
-                    accumulated_elements = []
-                    for i, element in enumerate(k.split('/')):
-                        if i == 0:
-                            ET.SubElement(xml_parsed, element)
-                            accumulated_elements.append(element)
-                        else:
-                            updated_xml_path = '/'.join(accumulated_elements)
-                            ET.SubElement(
-                                xml_parsed.find(updated_xml_path), element
-                            )
-                            accumulated_elements.append(element)
-
-                element_to_update = xml_parsed.find(k)
-                element_to_update_or_new = (
-                    element_to_update
-                    if element_to_update is not None
-                    else ET.SubElement(xml_parsed, k)
-                )
-                element_to_update_or_new.text = v
+            for path, value in update_data.items():
+                edit_submission_xml(xml_parsed, path, value)
 
             # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission
@@ -201,7 +180,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             headers = {}
             if partial_perms:
                 headers.update(
-                    KobocatOneTimeAuthToken.create_token(user, method='POST').get_header()
+                    KobocatOneTimeAuthToken.get_or_create_token(
+                        user,
+                        method='POST',
+                        request_identifier='bulk_update_submissions',
+                    ).get_header()
                 )
 
             kc_request = requests.Request(
@@ -342,7 +325,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=[submission_id]
@@ -352,7 +335,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='DELETE').get_header()
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user,
+                    method='DELETE',
+                    request_identifier='delete_submission',
+                ).get_header()
             )
 
         kc_url = self.get_submission_detail_url(submission_id)
@@ -376,7 +363,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
              {"query": {"Question": "response"}
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -392,7 +379,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='DELETE').get_header()
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user,
+                    method='DELETE',
+                    request_identifier='delete_submissions',
+                ).get_header()
             )
 
         kc_url = self.submission_list_url
@@ -417,7 +408,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -428,7 +419,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='POST').get_header()
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user,
+                    method='POST',
+                    request_identifier='duplicate_submission',
+                ).get_header()
             )
 
         submission = self.get_submission(
@@ -542,7 +537,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 "Only 'view' and 'edit' actions are currently supported"
             )
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=partial_perm,
             submission_ids=[submission_id],
@@ -555,7 +550,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if submission_ids:
             use_partial_perms = True
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='GET').get_header()
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user,
+                    method='GET',
+                    request_identifier=f'get_enketo_submission_url_{action_}',
+                ).get_header()
             )
         url = '{detail_url}/enketo_{action}'.format(
             detail_url=self.get_submission_detail_url(submission_id),
@@ -579,8 +578,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             else:
                 # Give the token a longer life in case the edit takes longer
                 # than `KobocatOneTimeAuthToken` default expiration time
-                KobocatOneTimeAuthToken.create_token(
-                    user=user, url=url,
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user=user,
+                    method='POST',
+                    request_identifier=url,
+                    use_identifier_as_token=True,
                     expiration_time=several_minutes_from_now(24 * 60)
                 )
 
@@ -596,8 +598,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         try:
             response = requests.post(
-                '{}{}'.format(
-                    settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
+                f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_TOKEN, ''),
                 data=data
@@ -620,6 +621,60 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
+    def get_signed_attachment_url_token(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        media_size: str,
+        media_file: str,
+    ) -> str:
+        """
+        Get a signed KoBoCAT attachment url which is granted once with a
+        one time authentication token (sent through querystring parameters)
+        If `user` has full access on submissions, the url is returned as-is.
+        """
+        submission_ids = self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_VIEW_SUBMISSIONS,
+            submission_ids=[submission_id],
+        )
+
+        url = (
+            f'{settings.KOBOCAT_MEDIA_URL}{media_size}'
+            f"?{urlencode({'media_file':media_file})}"
+        )
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # Validate that the attachment does really belong to the submission.
+            # We want to ensure the user is allowed to this media file.
+            submission = self.get_submission(submission_id, user)
+            try:
+                suffix = settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING[media_size]
+            except KeyError:
+                raise Http404
+
+            is_allowed = False
+            for attachment in submission['_attachments']:
+                try:
+                    kc_url = attachment[f'download{suffix}_url']
+                except KeyError:
+                    continue
+
+                if kc_url == url:
+                    is_allowed = True
+                    break
+
+            if not is_allowed:
+                raise Http404
+
+            token = KobocatOneTimeAuthToken.get_or_create_token(
+                user, method='GET', request_identifier=url
+            )
+            url += f'&{KobocatOneTimeAuthToken.QS_PARAM}={token.token}'
+
+        return url
+
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
         return url
@@ -635,6 +690,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         user: 'auth.User',
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
+        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -652,6 +708,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         If `format_type` is 'json', a generator of dictionaries is returned.
         Otherwise, if `format_type` is 'xml', a generator of strings is returned.
+
+        If `request` is provided, submission attachments url are rewritten to
+        point to KPI (instead of KoBoCAT).
+        See `__rewrite_json_attachment_urls()`
         """
 
         mongo_query_params['submission_ids'] = submission_ids
@@ -660,7 +720,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                                       **mongo_query_params)
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(**params)
+            submissions = self.__get_submissions_in_json(request, **params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
@@ -877,7 +937,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -888,7 +948,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='PATCH').get_header()
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user,
+                    method='PATCH',
+                    request_identifier='set_validation_status',
+                ).get_header()
             )
 
         kc_request_params = {
@@ -916,7 +980,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             {"submission_ids": [1, 2, 3]}
             {"query":{"_validation_status.uid":"validation_status_not_approved"}
         """
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -932,7 +996,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='PATCH').get_header()
+                KobocatOneTimeAuthToken.get_or_create_token(
+                    user,
+                    method='PATCH',
+                    request_identifier='set_validation_statuses',
+                ).get_header()
             )
 
         # `PATCH` KC even if KPI receives `DELETE`
@@ -1169,12 +1237,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Delete file in KPI if requested
         file_.delete(force=True)
 
-    def __get_submissions_in_json(self, **params):
+    def __get_submissions_in_json(
+        self,
+        request: Optional['rest_framework.request.Request'] = None,
+        **params
+    ) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
-
-        :param params: dict. Filter params
-        :return: generator<JSON>
+        Submissions can be filtered with `params`.
         """
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
@@ -1183,16 +1253,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self.current_submissions_count = total_count
 
         return (
-            MongoHelper.to_readable_dict(submission)
+            self.__rewrite_json_attachment_urls(
+                MongoHelper.to_readable_dict(submission),
+                request,
+            )
             for submission in mongo_cursor
         )
 
-    def __get_submissions_in_xml(self, **params):
+    def __get_submissions_in_xml(
+            self,
+            **params
+    ) -> Generator[str, None, None]:
         """
-        Retrieves submissions directly from PostgreSQL.
-
-        :param params: dict. Filter params
-        :return: list<XML>
+        Retrieve submissions directly from PostgreSQL.
+        Submissions can be filtered with `params`.
         """
 
         mongo_filters = ['query', 'permission_filters']
@@ -1293,7 +1367,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _(
+                    'detail': t(
                         'KoBoCAT returned an unexpected response: {}'.format(
                             str(e))
                     )
@@ -1346,7 +1420,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     .text
                 )
             except ET.ParseError:
-                message = _('Something went wrong')
+                message = t('Something went wrong')
 
             results.append(
                 {
@@ -1372,6 +1446,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'results': results,
             },
         }
+
+    def __rewrite_json_attachment_urls(
+        self, submission: dict, request
+    ) -> list:
+        if not request or '_attachments' not in submission:
+            return submission
+
+        for attachment in submission['_attachments']:
+            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
+                kpi_url = reverse(
+                    'submission-attachments',
+                    args=(self.asset.uid, submission['_id'], size),
+                    request=request
+                )
+                key = f'download{suffix}_url'
+                try:
+                    attachment[key] = attachment[key].replace(
+                        f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                except KeyError:
+                    continue
+
+        return submission
 
     def __save_kc_metadata(self, file_: SyncBackendMediaInterface):
         """
