@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
-from trench.models import MFAMethod
+from trench.admin import MFAMethod, MFAMethodAdmin
 
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserProfile,
@@ -21,6 +21,9 @@ class KoboMFAMethod(MFAMethod):
     date_created = models.DateTimeField(default=now)
     date_modified = models.DateTimeField(default=now)
     date_disabled = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f'{self.user.username} #{self.user_id} (MFA Method: {self.name})'
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None,
@@ -60,3 +63,9 @@ class KoboMFAMethod(MFAMethod):
             KobocatUserProfile.set_mfa_status(
                 user_id=user_id, is_active=False
             )
+
+
+class KoboMFAMethodAdmin(MFAMethodAdmin):
+
+    change_list_template = 'admin/change_list.html'
+    search_fields = ['user__username']
