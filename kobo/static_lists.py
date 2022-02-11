@@ -724,7 +724,8 @@ transcription_languages = {
             "Google",
             "IBM",
             "Microsoft"
-        ]
+        ],
+        "alternate_code": "zh-Hans"
     },
     "zh-TW": {
         "name": "Chinese, Mandarin (Traditional, Taiwan)",
@@ -732,7 +733,8 @@ transcription_languages = {
             "Google",
             "Amazon",
             "Microsoft"
-        ]
+        ],
+        "alternate_code": "zh-Hant"
     },
     "hr-HR": {
         "name": "Croatian (Croatia)",
@@ -1653,7 +1655,7 @@ translation_languages = {
         ]
     },
     "zh": {
-        "name": "Chinese (Simplified)",
+        "name": "Chinese, Mandarin (Simplified, China)",
         "options": [
             "Google",
             "Amazon",
@@ -1663,7 +1665,7 @@ translation_languages = {
         "alternate_code": "zh-Hans"
     },
     "zh-TW": {
-        "name": "Chinese (Traditional)",
+        "name": "Chinese, Mandarin (Traditional, Taiwan)",
         "options": [
             "Google",
             "Amazon",
