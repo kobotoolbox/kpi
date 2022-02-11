@@ -513,2006 +513,369 @@ EXTRA_LANG_INFO = {
     },
 }
 
-transcription_languages = {
-    "af-ZA": {
-        "name": "Afrikaans (South Africa)",
-        "options": [
-            "Google",
-            "Amazon"
-        ]
-    },
-    "sq-AL": {
-        "name": "Albanian (Albania)",
-        "options": [
-            "Google"
-        ]
-    },
-    "am-ET": {
-        "name": "Amharic (Ethiopia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ar-DZ": {
-        "name": "Arabic (Algeria)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-BH": {
-        "name": "Arabic (Bahrain)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-EG": {
-        "name": "Arabic (Egypt)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-IQ": {
-        "name": "Arabic (Iraq)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-IL": {
-        "name": "Arabic (Israel)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-JO": {
-        "name": "Arabic (Jordan)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-KW": {
-        "name": "Arabic (Kuwait)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-LB": {
-        "name": "Arabic (Lebanon)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-LY": {
-        "name": "Arabic (Libya)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ar-MA": {
-        "name": "Arabic (Morocco)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-OM": {
-        "name": "Arabic (Oman)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-QA": {
-        "name": "Arabic (Qatar)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-SA": {
-        "name": "Arabic (Saudi Arabia)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ar-PS": {
-        "name": "Arabic (State of Palestine)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-TN": {
-        "name": "Arabic (Tunisia)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ar-AE": {
-        "name": "Arabic (United Arab Emirates)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ar-YE": {
-        "name": "Arabic (Yemen)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "hy-AM": {
-        "name": "Armenian (Armenia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "az-AZ": {
-        "name": "Azerbaijani (Azerbaijan)",
-        "options": [
-            "Google"
-        ]
-    },
-    "eu-ES": {
-        "name": "Basque (Spain)",
-        "options": [
-            "Google"
-        ]
-    },
-    "bn-BD": {
-        "name": "Bengali (Bangladesh)",
-        "options": [
-            "Google"
-        ]
-    },
-    "bn-IN": {
-        "name": "Bengali (India)",
-        "options": [
-            "Google"
-        ]
-    },
-    "bs-BA": {
-        "name": "Bosnian (Bosnia and Herzegovina)",
-        "options": [
-            "Google"
-        ]
-    },
-    "bg-BG": {
-        "name": "Bulgarian (Bulgaria)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "my-MM": {
-        "name": "Burmese (Myanmar)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ca-ES": {
-        "name": "Catalan (Spain)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "yue-Hant-HK": {
-        "name": "Chinese, Cantonese (Traditional Hong Kong)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "zh": {
-        "name": "Chinese, Mandarin (Simplified, China)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ],
-        "alternate_code": "zh-Hans"
-    },
-    "zh-TW": {
-        "name": "Chinese, Mandarin (Traditional, Taiwan)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ],
-        "alternate_code": "zh-Hant"
-    },
-    "hr-HR": {
-        "name": "Croatian (Croatia)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "cs-CZ": {
-        "name": "Czech (Czech Republic)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "da-DK": {
-        "name": "Danish (Denmark)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "nl-BE": {
-        "name": "Dutch (Belgium)",
-        "options": [
-            "Google",
-            "IBM"
-        ]
-    },
-    "nl-NL": {
-        "name": "Dutch (Netherlands)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "en-AU": {
-        "name": "English (Australia)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "en-CA": {
-        "name": "English (Canada)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-GH": {
-        "name": "English (Ghana)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-HK": {
-        "name": "English (Hong Kong)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-IN": {
-        "name": "English (India)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "en-IE": {
-        "name": "English (Ireland)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "en-KE": {
-        "name": "English (Kenya)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-NZ": {
-        "name": "English (New Zealand)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "en-NG": {
-        "name": "English (Nigeria)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-PK": {
-        "name": "English (Pakistan)",
-        "options": [
-            "Google"
-        ]
-    },
-    "en-PH": {
-        "name": "English (Philippines)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-AB": {
-        "name": "English (Scottish)",
-        "options": [
-            "Amazon"
-        ]
-    },
-    "en-SG": {
-        "name": "English (Singapore)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-ZA": {
-        "name": "English (South Africa)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "en-TZ": {
-        "name": "English (Tanzania)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "en-GB": {
-        "name": "English (United Kingdom)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "en-US": {
-        "name": "English (United States)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft",
-            "TWB"
-        ]
-    },
-    "en-WL": {
-        "name": "English (Welsh)",
-        "options": [
-            "Amazon"
-        ]
-    },
-    "et-EE": {
-        "name": "Estonian (Estonia)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "fil-PH": {
-        "name": "Filipino (Philippines)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "fi-FI": {
-        "name": "Finnish (Finland)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "fr-BE": {
-        "name": "French (Belgium)",
-        "options": [
-            "Google"
-        ]
-    },
-    "fr-CA": {
-        "name": "French (Canada)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "fr-FR": {
-        "name": "French (France)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft",
-            "TWB"
-        ]
-    },
-    "fr-CH": {
-        "name": "French (Switzerland)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "gl-ES": {
-        "name": "Galician (Spain)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ka-GE": {
-        "name": "Georgian (Georgia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "de-AT": {
-        "name": "German (Austria)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "de-DE": {
-        "name": "German (Germany)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "de-CH": {
-        "name": "German (Switzerland)",
-        "options": [
-            "Google",
-            "Amazon"
-        ]
-    },
-    "el-GR": {
-        "name": "Greek (Greece)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "gu-IN": {
-        "name": "Gujarati (India)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "iw-IL": {
-        "name": "Hebrew (Israel)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "hi-IN": {
-        "name": "Hindi (India)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "hu-HU": {
-        "name": "Hungarian (Hungary)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "is-IS": {
-        "name": "Icelandic (Iceland)",
-        "options": [
-            "Google"
-        ]
-    },
-    "id-ID": {
-        "name": "Indonesian (Indonesia)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ge-IE": {
-        "name": "Irish (Ireland)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "it-IT": {
-        "name": "Italian (Italy)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "it-CH": {
-        "name": "Italian (Switzerland)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ja-JP": {
-        "name": "Japanese (Japan)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "jv-ID": {
-        "name": "Javanese (Indonesia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "kn-IN": {
-        "name": "Kannada (India)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "kk-KZ": {
-        "name": "Kazakh (Kazakhstan)",
-        "options": [
-            "Google"
-        ]
-    },
-    "km-KH": {
-        "name": "Khmer (Cambodia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ko-KR": {
-        "name": "Korean (South Korea)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "lo-LA": {
-        "name": "Lao (Laos)",
-        "options": [
-            "Google"
-        ]
-    },
-    "lv-LV": {
-        "name": "Latvian (Latvia)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "lt-LT": {
-        "name": "Lithuanian (Lithuania)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "mk-MK": {
-        "name": "Macedonian (North Macedonia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ms-MY": {
-        "name": "Malay (Malaysia)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ml-IN": {
-        "name": "Malayalam (India)",
-        "options": [
-            "Google"
-        ]
-    },
-    "mt-IN": {
-        "name": "Maltese (Malta)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "mr-IN": {
-        "name": "Marathi (India)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "mn-MN": {
-        "name": "Mongolian (Mongolia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ne-NP": {
-        "name": "Nepali (Nepal)",
-        "options": [
-            "Google"
-        ]
-    },
-    "no-NO": {
-        "name": "Norwegian Bokmål (Norway)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "fa-IR": {
-        "name": "Persian (Iran)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "pl-PL": {
-        "name": "Polish (Poland)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "pt-BR": {
-        "name": "Portuguese (Brazil)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "pt-PT": {
-        "name": "Portuguese (Portugal)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "pa-Guru-IN": {
-        "name": "Punjabi (Gurmukhi India)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ro-RO": {
-        "name": "Romanian (Romania)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ru-RU": {
-        "name": "Russian (Russia)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "sr-RS": {
-        "name": "Serbian (Serbia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "si-LK": {
-        "name": "Sinhala (Sri Lanka)",
-        "options": [
-            "Google"
-        ]
-    },
-    "sk-SK": {
-        "name": "Slovak (Slovakia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "sl-SI": {
-        "name": "Slovenian (Slovenia)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-AR": {
-        "name": "Spanish (Argentina)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "es-BO": {
-        "name": "Spanish (Bolivia)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-CL": {
-        "name": "Spanish (Chile)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "es-CO": {
-        "name": "Spanish (Colombia)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "es-CR": {
-        "name": "Spanish (Costa Rica)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-DO": {
-        "name": "Spanish (Dominican Republic)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-EC": {
-        "name": "Spanish (Ecuador)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-SV": {
-        "name": "Spanish (El Salvador)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-GT": {
-        "name": "Spanish (Guatemala)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-HN": {
-        "name": "Spanish (Honduras)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-MX": {
-        "name": "Spanish (Mexico)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "es-NI": {
-        "name": "Spanish (Nicaragua)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-PA": {
-        "name": "Spanish (Panama)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-PY": {
-        "name": "Spanish (Paraguay)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-PE": {
-        "name": "Spanish (Peru)",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "es-PR": {
-        "name": "Spanish (Puerto Rico)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-ES": {
-        "name": "Spanish (Spain)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "es-US": {
-        "name": "Spanish (United States)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "es-UY": {
-        "name": "Spanish (Uruguay)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "es-VE": {
-        "name": "Spanish (Venezuela)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "su-ID": {
-        "name": "Sundanese (Indonesia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "sw-cd": {
-        "name": "Swahili (Congo)",
-        "options": [
-            "TWB"
-        ]
-    },
-    "sw-KE": {
-        "name": "Swahili (Kenya)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "sw-TZ": {
-        "name": "Swahili (Tanzania)",
-        "options": [
-            "Google"
-        ]
-    },
-    "sv-SE": {
-        "name": "Swedish (Sweden)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ta-IN": {
-        "name": "Tamil (India)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ta-MY": {
-        "name": "Tamil (Malaysia)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ta-SG": {
-        "name": "Tamil (Singapore)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ta-LK": {
-        "name": "Tamil (Sri Lanka)",
-        "options": [
-            "Google"
-        ]
-    },
-    "te-IN": {
-        "name": "Telugu (India)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "th-TH": {
-        "name": "Thai (Thailand)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "tr-TR": {
-        "name": "Turkish (Turkey)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "uk-UA": {
-        "name": "Ukrainian (Ukraine)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ur-IN": {
-        "name": "Urdu (India)",
-        "options": [
-            "Google"
-        ]
-    },
-    "ur-PK": {
-        "name": "Urdu (Pakistan)",
-        "options": [
-            "Google"
-        ]
-    },
-    "uz-UZ": {
-        "name": "Uzbek (Uzbekistan)",
-        "options": [
-            "Google"
-        ]
-    },
-    "vi-VN": {
-        "name": "Vietnamese (Vietnam)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "zu-ZA": {
-        "name": "Zulu (South Africa)",
-        "options": [
-            "Google"
-        ]
-    }
+# A list of languages and language codes used by external services
+EXTERNAL_SERVICE_LANGUAGES = {
+    'af': 'Afrikaans',
+    'af-ZA': 'Afrikaans (South Africa)',
+    'am': 'Amharic',
+    'am-ET': 'Amharic (Ethiopia)',
+    'ar': 'Arabic',
+    'ar-AE': 'Arabic (United Arab Emirates)',
+    'ar-BH': 'Arabic (Bahrain)',
+    'ar-DZ': 'Arabic (Algeria)',
+    'ar-EG': 'Arabic (Egypt)',
+    'ar-IL': 'Arabic (Israel)',
+    'ar-IQ': 'Arabic (Iraq)',
+    'ar-JO': 'Arabic (Jordan)',
+    'ar-KW': 'Arabic (Kuwait)',
+    'ar-LB': 'Arabic (Lebanon)',
+    'ar-LY': 'Arabic (Libya)',
+    'ar-MA': 'Arabic (Morocco)',
+    'ar-OM': 'Arabic (Oman)',
+    'ar-PS': 'Arabic (State of Palestine)',
+    'ar-QA': 'Arabic (Qatar)',
+    'ar-SA': 'Arabic (Saudi Arabia)',
+    'ar-TN': 'Arabic (Tunisia)',
+    'ar-YE': 'Arabic (Yemen)',
+    'as': 'Assamese',
+    'az': 'Azerbaijani',
+    'az-AZ': 'Azerbaijani (Azerbaijan)',
+    'ba': 'Bashkir',
+    'be': 'Belarusian',
+    'bg': 'Bulgarian',
+    'bg-BG': 'Bulgarian (Bulgaria)',
+    'bn': 'Bengali',
+    'bn-BD': 'Bengali (Bangladesh)',
+    'bn-IN': 'Bengali (India)',
+    'bo': 'Tibetan',
+    'bs': 'Bosnian',
+    'bs-BA': 'Bosnian (Bosnia and Herzegovina)',
+    'ca': 'Catalan',
+    'ca-ES': 'Catalan (Spain)',
+    'ceb': 'Cebuano',
+    'cnr': 'Montenegrin',
+    'co': 'Corsican',
+    'cs': 'Czech',
+    'cs-CZ': 'Czech (Czech Republic)',
+    'cy': 'Welsh',
+    'da': 'Danish',
+    'da-DK': 'Danish (Denmark)',
+    'de': 'German',
+    'de-AT': 'German (Austria)',
+    'de-CH': 'German (Switzerland)',
+    'de-DE': 'German (Germany)',
+    'dv': 'Divehi',
+    'el': 'Greek',
+    'el-GR': 'Greek (Greece)',
+    'en': 'English',
+    'en-AB': 'English (Scottish)',
+    'en-AU': 'English (Australia)',
+    'en-CA': 'English (Canada)',
+    'en-GB': 'English (United Kingdom)',
+    'en-GH': 'English (Ghana)',
+    'en-HK': 'English (Hong Kong)',
+    'en-IE': 'English (Ireland)',
+    'en-IN': 'English (India)',
+    'en-KE': 'English (Kenya)',
+    'en-NG': 'English (Nigeria)',
+    'en-NZ': 'English (New Zealand)',
+    'en-PH': 'English (Philippines)',
+    'en-PK': 'English (Pakistan)',
+    'en-SG': 'English (Singapore)',
+    'en-TZ': 'English (Tanzania)',
+    'en-US': 'English (United States)',
+    'en-WL': 'English (Welsh)',
+    'en-ZA': 'English (South Africa)',
+    'eo': 'Esperanto',
+    'es': 'Spanish',
+    'es-AR': 'Spanish (Argentina)',
+    'es-BO': 'Spanish (Bolivia)',
+    'es-CL': 'Spanish (Chile)',
+    'es-CO': 'Spanish (Colombia)',
+    'es-CR': 'Spanish (Costa Rica)',
+    'es-DO': 'Spanish (Dominican Republic)',
+    'es-EC': 'Spanish (Ecuador)',
+    'es-ES': 'Spanish (Spain)',
+    'es-GT': 'Spanish (Guatemala)',
+    'es-HN': 'Spanish (Honduras)',
+    'es-MX': 'Spanish (Mexico)',
+    'es-NI': 'Spanish (Nicaragua)',
+    'es-PA': 'Spanish (Panama)',
+    'es-PE': 'Spanish (Peru)',
+    'es-PR': 'Spanish (Puerto Rico)',
+    'es-PY': 'Spanish (Paraguay)',
+    'es-SV': 'Spanish (El Salvador)',
+    'es-US': 'Spanish (United States)',
+    'es-UY': 'Spanish (Uruguay)',
+    'es-VE': 'Spanish (Venezuela)',
+    'et': 'Estonian',
+    'et-EE': 'Estonian (Estonia)',
+    'eu': 'Basque',
+    'eu-ES': 'Basque (Spain)',
+    'fa': 'Persian',
+    'fa-Af': 'Dari',
+    'fa-IR': 'Persian (Iran)',
+    'fi': 'Finnish',
+    'fi-FI': 'Finnish (Finland)',
+    'fil-PH': 'Filipino (Philippines)',
+    'fj': 'Fijian',
+    'fr': 'French',
+    'fr-BE': 'French (Belgium)',
+    'fr-CA': 'French (Canada)',
+    'fr-CH': 'French (Switzerland)',
+    'fr-FR': 'French (France)',
+    'fy': 'Frisian',
+    'ga': 'Irish',
+    'gd': 'Scots Gaelic',
+    'ge-IE': 'Irish (Ireland)',
+    'gl': 'Galician',
+    'gl-ES': 'Galician (Spain)',
+    'gu': 'Gujarati',
+    'gu-IN': 'Gujarati (India)',
+    'ha': 'Hausa',
+    'haw': 'Hawaiian',
+    'he': 'Hebrew',
+    'hi': 'Hindi',
+    'hi-IN': 'Hindi (India)',
+    'hmn': 'Hmong',
+    'hr': 'Croatian',
+    'hr-HR': 'Croatian (Croatia)',
+    'ht': 'Haitian Creole',
+    'hu': 'Hungarian',
+    'hu-HU': 'Hungarian (Hungary)',
+    'hy': 'Armenian',
+    'hy-AM': 'Armenian (Armenia)',
+    'id': 'Indonesian',
+    'id-ID': 'Indonesian (Indonesia)',
+    'ig': 'Igbo',
+    'is': 'Icelandic',
+    'is-IS': 'Icelandic (Iceland)',
+    'it': 'Italian',
+    'it-CH': 'Italian (Switzerland)',
+    'it-IT': 'Italian (Italy)',
+    'iu': 'Inuktitut',
+    'iw-IL': 'Hebrew (Israel)',
+    'ja': 'Japanese',
+    'ja-JP': 'Japanese (Japan)',
+    'jv': 'Javanese',
+    'jv-ID': 'Javanese (Indonesia)',
+    'ka': 'Georgian',
+    'ka-GE': 'Georgian (Georgia)',
+    'kk': 'Kazakh',
+    'kk-KZ': 'Kazakh (Kazakhstan)',
+    'km': 'Khmer',
+    'km-KH': 'Khmer (Cambodia)',
+    'kmr': 'Kurdish (Northern)',
+    'kn': 'Kannada',
+    'kn-IN': 'Kannada (India)',
+    'ko': 'Korean',
+    'ko-KR': 'Korean (South Korea)',
+    'ku': 'Kurdish',
+    'ky': 'Kyrgyz',
+    'lb': 'Luxembourgish',
+    'lo': 'Lao',
+    'lo-LA': 'Lao (Laos)',
+    'lt': 'Lithuanian',
+    'lt-LT': 'Lithuanian (Lithuania)',
+    'lv': 'Latvian',
+    'lv-LV': 'Latvian (Latvia)',
+    'mg': 'Malagasy',
+    'mi': 'Maori',
+    'mk': 'Macedonian',
+    'mk-MK': 'Macedonian (North Macedonia)',
+    'ml': 'Malayalam',
+    'ml-IN': 'Malayalam (India)',
+    'mn': 'Mongolian',
+    'mn-Cyrl': 'Mongolian (Cyrillic)',
+    'mn-MN': 'Mongolian (Mongolia)',
+    'mn-Mong': 'Mongolian (Traditional)',
+    'mr': 'Marathi',
+    'mr-IN': 'Marathi (India)',
+    'ms': 'Malay',
+    'ms-MY': 'Malay (Malaysia)',
+    'mt': 'Maltese',
+    'mt-IN': 'Maltese (Malta)',
+    'my': 'Myanmar (Burmese)',
+    'my-MM': 'Burmese (Myanmar)',
+    'ne': 'Nepali',
+    'ne-NP': 'Nepali (Nepal)',
+    'nl': 'Dutch',
+    'nl-BE': 'Dutch (Belgium)',
+    'nl-NL': 'Dutch (Netherlands)',
+    'no': 'Norwegian',
+    'no-NO': 'Norwegian Bokmål (Norway)',
+    'ny': 'Nyanja (Chichewa)',
+    'or': 'Odia (Oriya)',
+    'otq': 'Queretaru Otomi',
+    'pa': 'Punjabi',
+    'pa-Guru-IN': 'Punjabi (Gurmukhi India)',
+    'pl': 'Polish',
+    'pl-PL': 'Polish (Poland)',
+    'ps': 'Pashto',
+    'pt': 'Portuguese (Portugal, Brazil)',
+    'pt-BR': 'Portuguese (Brazil)',
+    'pt-PT': 'Portuguese (Portugal)',
+    'pt-pt': 'Portuguese (Portugal)',
+    'ro': 'Romanian',
+    'ro-RO': 'Romanian (Romania)',
+    'ru': 'Russian',
+    'ru-RU': 'Russian (Russia)',
+    'rw': 'Kinyarwanda',
+    'sd': 'Sindhi',
+    'si': 'Sinhala (Sinhalese)',
+    'si-LK': 'Sinhala (Sri Lanka)',
+    'sk': 'Slovak',
+    'sk-SK': 'Slovak (Slovakia)',
+    'sl': 'Slovenian',
+    'sl-SI': 'Slovenian (Slovenia)',
+    'sm': 'Samoan',
+    'sn': 'Shona',
+    'so': 'Somali',
+    'sq': 'Albanian',
+    'sq-AL': 'Albanian (Albania)',
+    'sr': 'Serbian',
+    'sr-Cyrl': 'Serbian (Cryllic)',
+    'sr-Latn': 'Serbian (Latin)',
+    'sr-RS': 'Serbian (Serbia)',
+    'st': 'Sesotho',
+    'su': 'Sundanese',
+    'su-ID': 'Sundanese (Indonesia)',
+    'sv': 'Swedish',
+    'sv-SE': 'Swedish (Sweden)',
+    'sw': 'Swahili',
+    'sw-KE': 'Swahili (Kenya)',
+    'sw-TZ': 'Swahili (Tanzania)',
+    'sw-cd': 'Swahili (Congo)',
+    'ta': 'Tamil',
+    'ta-IN': 'Tamil (India)',
+    'ta-LK': 'Tamil (Sri Lanka)',
+    'ta-MY': 'Tamil (Malaysia)',
+    'ta-SG': 'Tamil (Singapore)',
+    'te': 'Telugu',
+    'te-IN': 'Telugu (India)',
+    'tg': 'Tajik',
+    'th': 'Thai',
+    'th-TH': 'Thai (Thailand)',
+    'ti': 'Tigrinya',
+    'tk': 'Turkmen',
+    'tl': 'Tagalog (Filipino)',
+    'tlh-Latn': 'Klingon',
+    'tlh-Piqd': 'Klingon (plqaD)',
+    'tr': 'Turkish',
+    'tr-TR': 'Turkish (Turkey)',
+    'tt': 'Tatar',
+    'ug': 'Uyghur',
+    'uk': 'Ukrainian',
+    'uk-UA': 'Ukrainian (Ukraine)',
+    'ur': 'Urdu',
+    'ur-IN': 'Urdu (India)',
+    'ur-PK': 'Urdu (Pakistan)',
+    'uz': 'Uzbek',
+    'uz-UZ': 'Uzbek (Uzbekistan)',
+    'vi': 'Vietnamese',
+    'vi-VN': 'Vietnamese (Vietnam)',
+    'xh': 'Xhosa',
+    'yi': 'Yiddish',
+    'yo': 'Yoruba',
+    'yua': 'Yucatec Maya',
+    'yue': 'Cantonese',
+    'yue-Hant-HK': 'Chinese, Cantonese (Traditional Hong Kong)',
+    'zh': 'Chinese, Mandarin (Simplified, China)',
+    'zh-TW': 'Chinese, Mandarin (Traditional, Taiwan)',
+    'zu': 'Zulu',
+    'zu-ZA': 'Zulu (South Africa)',
 }
 
-translation_languages = {
-    "af": {
-        "name": "Afrikaans",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "sq": {
-        "name": "Albanian",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "am": {
-        "name": "Amharic",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ar": {
-        "name": "Arabic",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "hy": {
-        "name": "Armenian",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "as": {
-        "name": "Assamese",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "az": {
-        "name": "Azerbaijani",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "bn": {
-        "name": "Bengali",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM"
-        ]
-    },
-    "ba": {
-        "name": "Bashkir",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "eu": {
-        "name": "Basque",
-        "options": [
-            "Google",
-            "IBM"
-        ]
-    },
-    "be": {
-        "name": "Belarusian",
-        "options": [
-            "Google"
-        ]
-    },
-    "bs": {
-        "name": "Bosnian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "bg": {
-        "name": "Bulgarian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "yue": {
-        "name": "Cantonese",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ca": {
-        "name": "Catalan",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ceb": {
-        "name": "Cebuano",
-        "options": [
-            "Google"
-        ]
-    },
-    "zh": {
-        "name": "Chinese, Mandarin (Simplified, China)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ],
-        "alternate_code": "zh-Hans"
-    },
-    "zh-TW": {
-        "name": "Chinese, Mandarin (Traditional, Taiwan)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ],
-        "alternate_code": "zh-Hant"
-    },
-    "co": {
-        "name": "Corsican",
-        "options": [
-            "Google"
-        ]
-    },
-    "hr": {
-        "name": "Croatian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "cs": {
-        "name": "Czech",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ],
-        "alternate_code": "prs"
-    },
-    "fa-Af": {
-        "name": "Dari",
-        "options": [
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "da": {
-        "name": "Danish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "dv": {
-        "name": "Divehi",
-        "options": ["Microsoft"]
-    },
-    "nl": {
-        "name": "Dutch",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "en": {
-        "name": "English",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "eo": {
-        "name": "Esperanto",
-        "options": [
-            "Google"
-        ]
-    },
-    "et": {
-        "name": "Estonian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "fj": {
-        "name": "Fijian",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "fi": {
-        "name": "Finnish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "fr": {
-        "name": "French",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "fr-CA": {
-        "name": "French (Canada)",
-        "options": [
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "fy": {
-        "name": "Frisian",
-        "options": [
-            "Google"
-        ]
-    },
-    "gl": {
-        "name": "Galician",
-        "options": [
-            "Google"
-        ]
-    },
-    "ka": {
-        "name": "Georgian",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "de": {
-        "name": "German",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "el": {
-        "name": "Greek",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "gu": {
-        "name": "Gujarati",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ht": {
-        "name": "Haitian Creole",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ha": {
-        "name": "Hausa",
-        "options": [
-            "Google",
-            "Amazon"
-        ]
-    },
-    "haw": {
-        "name": "Hawaiian",
-        "options": [
-            "Google"
-        ]
-    },
-    "he": {
-        "name": "Hebrew",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "hi": {
-        "name": "Hindi",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "hmn": {
-        "name": "Hmong",
-        "options": [
-            "Google",
-            "Microsoft"
-        ],
-        "alternate_code": "mww"
-    },
-    "hu": {
-        "name": "Hungarian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "is": {
-        "name": "Icelandic",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "ig": {
-        "name": "Igbo",
-        "options": [
-            "Google"
-        ]
-    },
-    "id": {
-        "name": "Indonesian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "iu": {
-        "name": "Inuktitut",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ga": {
-        "name": "Irish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "it": {
-        "name": "Italian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ja": {
-        "name": "Japanese",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "jv": {
-        "name": "Javanese",
-        "options": [
-            "Google"
-        ]
-    },
-    "kn": {
-        "name": "Kannada",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "kk": {
-        "name": "Kazakh",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "km": {
-        "name": "Khmer",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "rw": {
-        "name": "Kinyarwanda",
-        "options": [
-            "Google"
-        ]
-    },
-    "tlh-Latn": {
-        "name": "Klingon",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "tlh-Piqd": {
-        "name": "Klingon (plqaD)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ko": {
-        "name": "Korean",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ku": {
-        "name": "Kurdish",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "kmr": {
-        "name": "Kurdish (Northern)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ky": {
-        "name": "Kyrgyz",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "lo": {
-        "name": "Lao",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "lv": {
-        "name": "Latvian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "lt": {
-        "name": "Lithuanian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "lb": {
-        "name": "Luxembourgish",
-        "options": [
-            "Google"
-        ]
-    },
-    "mk": {
-        "name": "Macedonian",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "mg": {
-        "name": "Malagasy",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ms": {
-        "name": "Malay",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ml": {
-        "name": "Malayalam",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "mt": {
-        "name": "Maltese",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "mi": {
-        "name": "Maori",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "mr": {
-        "name": "Marathi",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "mn": {
-        "name": "Mongolian",
-        "options": [
-            "Google",
-            "Amazon"
-        ]
-    },
-    "mn-Cyrl": {
-        "name": "Mongolian (Cyrillic)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "mn-Mong": {
-        "name": "Mongolian (Traditional)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "cnr": {
-        "name": "Montenegrin",
-        "options": [
-            "IBM"
-        ]
-    },
-    "my": {
-        "name": "Myanmar (Burmese)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ne": {
-        "name": "Nepali",
-        "options": [
-            "Google",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "no": {
-        "name": "Norwegian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ny": {
-        "name": "Nyanja (Chichewa)",
-        "options": [
-            "Google"
-        ]
-    },
-    "or": {
-        "name": "Odia (Oriya)",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "ps": {
-        "name": "Pashto",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "fa": {
-        "name": "Persian",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "pl": {
-        "name": "Polish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "pt": {
-        "name": "Portuguese (Portugal, Brazil)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "pt-pt": {
-        "name": "Portuguese (Portugal)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "pa": {
-        "name": "Punjabi",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "otq": {
-        "name": "Queretaru Otomi",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ro": {
-        "name": "Romanian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ru": {
-        "name": "Russian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "sm": {
-        "name": "Samoan",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "gd": {
-        "name": "Scots Gaelic",
-        "options": [
-            "Google"
-        ]
-    },
-    "sr": {
-        "name": "Serbian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM"
-        ]
-    },
-    "sr-Cyrl": {
-        "name": "Serbian (Cryllic)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "sr-Latn": {
-        "name": "Serbian (Latin)",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "st": {
-        "name": "Sesotho",
-        "options": [
-            "Google"
-        ]
-    },
-    "sn": {
-        "name": "Shona",
-        "options": [
-            "Google"
-        ]
-    },
-    "sd": {
-        "name": "Sindhi",
-        "options": [
-            "Google"
-        ]
-    },
-    "si": {
-        "name": "Sinhala (Sinhalese)",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM"
-        ]
-    },
-    "sk": {
-        "name": "Slovak",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "sl": {
-        "name": "Slovenian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "so": {
-        "name": "Somali",
-        "options": [
-            "Google",
-            "Amazon"
-        ]
-    },
-    "es": {
-        "name": "Spanish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "su": {
-        "name": "Sundanese",
-        "options": [
-            "Google"
-        ]
-    },
-    "sw": {
-        "name": "Swahili",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "sv": {
-        "name": "Swedish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "tl": {
-        "name": "Tagalog (Filipino)",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ],
-        "alternate_code": "fil"
-    },
-    "tg": {
-        "name": "Tajik",
-        "options": [
-            "Google"
-        ]
-    },
-    "ta": {
-        "name": "Tamil",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "tt": {
-        "name": "Tatar",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "te": {
-        "name": "Telugu",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "th": {
-        "name": "Thai",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "bo": {
-        "name": "Tibetan",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "ti": {
-        "name": "Tigrinya",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "tr": {
-        "name": "Turkish",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "tk": {
-        "name": "Turkmen",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "uk": {
-        "name": "Ukrainian",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ur": {
-        "name": "Urdu",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "ug": {
-        "name": "Uyghur",
-        "options": [
-            "Google",
-            "Microsoft"
-        ]
-    },
-    "uz": {
-        "name": "Uzbek",
-        "options": [
-            "Google",
-            "Amazon",
-            "Microsoft"
-        ]
-    },
-    "vi": {
-        "name": "Vietnamese",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "cy": {
-        "name": "Welsh",
-        "options": [
-            "Google",
-            "Amazon",
-            "IBM",
-            "Microsoft"
-        ]
-    },
-    "xh": {
-        "name": "Xhosa",
-        "options": [
-            "Google"
-        ]
-    },
-    "yi": {
-        "name": "Yiddish",
-        "options": [
-            "Google"
-        ]
-    },
-    "yo": {
-        "name": "Yoruba",
-        "options": [
-            "Google"
-        ]
-    },
-    "yua": {
-        "name": "Yucatec Maya",
-        "options": [
-            "Microsoft"
-        ]
-    },
-    "zu": {
-        "name": "Zulu",
-        "options": [
-            "Google"
-        ]
-    }
+EXTERNAL_SERVICE_LANGUAGE_ALIASES = {
+    'cs': ['prs'],
+    'hmn': ['mww'],
+    'tl': ['fil'],
+    'zh': ['zh-Hans'],
+    'zh-TW': ['zh-Hant'],
 }
+
+split_values = lambda o: dict([(k,v.split(' ')) for k,v in o.items()])
+
+TRANSCRIPTION_SERVICES = split_values({
+    'AMZN': 'af-ZA ar-SA ar-AE yue-Hant-HK zh-TW da-DK nl-NL en-AU en-IN '
+                 'en-IE en-NZ en-AB en-ZA en-GB en-US en-WL fr-CA fr-FR de-DE '
+                 'de-CH iw-IL hi-IN id-ID it-IT ja-JP ko-KR ms-MY fa-IR pt-BR '
+                 'pt-PT ru-RU es-ES es-US ta-IN te-IN th-TH tr-TR',
+    'GOOG': 'af-ZA sq-AL am-ET ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW '
+                 'ar-LB ar-MA ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE hy-AM '
+                 'az-AZ eu-ES bn-BD bn-IN bs-BA bg-BG my-MM ca-ES yue-Hant-HK '
+                 'zh zh-TW hr-HR cs-CZ da-DK nl-BE nl-NL en-AU en-CA en-GH '
+                 'en-HK en-IN en-IE en-KE en-NZ en-NG en-PK en-PH en-SG en-ZA '
+                 'en-TZ en-GB en-US et-EE fil-PH fi-FI fr-BE fr-CA fr-FR fr-CH '
+                 'gl-ES ka-GE de-AT de-DE de-CH el-GR gu-IN iw-IL hi-IN hu-HU '
+                 'is-IS id-ID it-IT it-CH ja-JP jv-ID kn-IN kk-KZ km-KH ko-KR '
+                 'lo-LA lv-LV lt-LT mk-MK ms-MY ml-IN mr-IN mn-MN ne-NP no-NO '
+                 'fa-IR pl-PL pt-BR pt-PT pa-Guru-IN ro-RO ru-RU sr-RS si-LK '
+                 'sk-SK sl-SI es-AR es-BO es-CL es-CO es-CR es-DO es-EC es-SV '
+                 'es-GT es-HN es-MX es-NI es-PA es-PY es-PE es-PR es-ES es-US '
+                 'es-UY es-VE su-ID sw-KE sw-TZ sv-SE ta-IN ta-MY ta-SG ta-LK '
+                 'te-IN th-TH tr-TR uk-UA ur-IN ur-PK uz-UZ vi-VN zu-ZA',
+    'IBM': 'ar-SA zh cs-CZ nl-BE nl-NL en-AU en-IN en-GB en-US fr-CA '
+                 'fr-FR de-DE hi-IN it-IT ja-JP ko-KR pt-BR es-AR es-CL es-CO '
+                 'es-MX es-PE es-ES',
+    'MSFT': 'ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW ar-LB ar-LY ar-MA '
+                 'ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE bg-BG ca-ES '
+                 'yue-Hant-HK zh zh-TW hr-HR cs-CZ da-DK nl-NL en-AU en-CA '
+                 'en-GH en-HK en-IN en-IE en-KE en-NZ en-NG en-PH en-SG en-ZA '
+                 'en-TZ en-GB en-US et-EE fil-PH fi-FI fr-CA fr-FR fr-CH de-AT '
+                 'de-DE el-GR gu-IN iw-IL hi-IN hu-HU id-ID ge-IE it-IT ja-JP '
+                 'kn-IN ko-KR lv-LV lt-LT ms-MY mt-IN mr-IN no-NO fa-IR pl-PL '
+                 'pt-BR pt-PT ro-RO ru-RU sl-SI es-AR es-BO es-CL es-CO es-CR '
+                 'es-DO es-EC es-SV es-GT es-HN es-MX es-NI es-PA es-PY es-PE '
+                 'es-PR es-ES es-US es-UY es-VE sw-KE ta-IN te-IN th-TH tr-TR '
+                 'vi-VN',
+    'TWB': 'en-US fr-FR sw-cd',
+})
+
+TRANSLATION_SERVICES = split_values({
+    'AMZN': 'af sq am ar hy az bn bs bg ca zh zh-TW hr cs fa-Af da nl en '
+                 'et fi fr fr-CA ka de el gu ht ha he hi hu is id ga it ja kn '
+                 'kk ko lv lt mk ms ml mt mr mn no ps fa pl pt pa ro ru sr si '
+                 'sk sl so es sw sv tl ta te th tr uk ur uz vi cy',
+    'GOOG': 'af sq am ar hy az bn eu be bs bg ca ceb zh zh-TW co hr cs da '
+                 'nl en eo et fi fr fy gl ka de el gu ht ha haw he hi hmn hu '
+                 'is ig id ga it ja jv kn kk km rw ko ku ky lo lv lt lb mk mg '
+                 'ms ml mt mi mr mn my ne no ny or ps fa pl pt pa ro ru sm gd '
+                 'sr st sn sd si sk sl so es su sw sv tl tg ta tt te th tr tk '
+                 'uk ur ug uz vi cy xh yi yo zu',
+    'IBM': 'ar bn eu bs bg ca zh zh-TW hr cs da nl en et fi fr fr-CA de '
+                 'el gu he hi hu id ga it ja ko lv lt ms ml mt cnr ne no pl pt '
+                 'ro ru sr si sk sl es sv ta te th tr uk ur vi cy',
+    'MSFT': 'af sq am ar hy as az ba bs bg yue ca zh zh-TW hr cs fa-Af da '
+                 'dv nl en et fj fi fr fr-CA ka de el gu ht he hi hmn hu is id '
+                 'iu ga it ja kn kk km tlh-Latn tlh-Piqd ko ku kmr ky lo lv lt '
+                 'mk mg ms ml mt mi mr mn-Cyrl mn-Mong my ne no or ps fa pl pt '
+                 'pt-pt pa otq ro ru sm sr-Cyrl sr-Latn sk sl es sw sv tl ta '
+                 'tt te th bo ti tr tk uk ur ug uz vi cy yua'
+})
+
+SERVICES = {
+    'AMZN': {'name': 'Amazon'},
+    'GOOG': {'name': 'Google'},
+    'IBM': {'name': 'IBM'},
+    'MSFT': {'name': 'Microsoft'},
+    'TWB': {'name': 'TWB'},
+}
+
+def repack(obj):
+    # Rearrange these dicts to the representation expeced by the API viewset
+    out = {}
+    for svc, langs in obj.items():
+        for lang in langs:
+            if lang not in out:
+                name = EXTERNAL_SERVICE_LANGUAGES[lang]
+                out[lang] = {'name': name, 'options': []}
+            svc_name = SERVICES[svc]['name']
+            out[lang]['options'] = sorted([*out[lang]['options'], svc_name])
+            if lang in EXTERNAL_SERVICE_LANGUAGE_ALIASES:
+                alias = EXTERNAL_SERVICE_LANGUAGE_ALIASES[lang][0]
+                out[lang]['alternate_code'] = alias
+    return out
+
+translation_languages = repack(TRANSLATION_SERVICES)
+transcription_languages = repack(TRANSCRIPTION_SERVICES)
