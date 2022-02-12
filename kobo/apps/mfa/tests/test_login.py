@@ -5,7 +5,7 @@ from django.utils.http import urlencode
 from rest_framework import status
 from trench.utils import get_mfa_model
 
-from .kpi_test_case import KpiTestCase
+from kpi.tests.kpi_test_case import KpiTestCase
 
 
 class LoginTests(KpiTestCase):
