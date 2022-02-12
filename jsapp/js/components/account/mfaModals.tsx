@@ -7,14 +7,16 @@ import TextBox from 'js/components/common/textBox'
 import mfaActions, {
   mfaActivatedResponse,
   mfaBackupCodesResponse,
-  mfaErrorResponse,
 } from 'js/actions/mfaActions'
 
-bem.MFAModals = makeBem(null, 'mfa-setup')
+import './mfaModals.scss'
+
+bem.MFAModals = makeBem(null, 'mfa-modal')
 bem.MFAModals__qrstep = makeBem(bem.MFAModals, 'qrstep')
 bem.MFAModals__backupstep = makeBem(bem.MFAModals, 'backupstep')
 bem.MFAModals__manualstep = makeBem(bem.MFAModals, 'manualstep')
 bem.MFAModals__tokenstep = makeBem(bem.MFAModals, 'tokenstep')
+bem.MFAModals__disclaimerstep = makeBem(bem.MFAModals, 'disclaimerstep')
 
 bem.MFAModals__title = makeBem(bem.MFAModals, 'title', 'h4')
 bem.MFAModals__description = makeBem(bem.MFAModals, 'description')
@@ -22,11 +24,11 @@ bem.MFAModals__description = makeBem(bem.MFAModals, 'description')
 bem.MFAModals__body = makeBem(bem.MFAModals, 'body')
 bem.MFAModals__qr = makeBem(bem.MFAModals, 'qr')
 bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
-bem.MFAModals__token__input = makeBem(bem.MFAModals__token, 'token__input', 'input')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
 bem.MFAModals__manual__link = makeBem(bem.MFAModals__token, 'manual__link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
-bem.MFAModals__codes__item = makeBem(bem.MFAModals__codes, 'item', 'strong')
+bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'item', 'ul')
+bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
 bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
@@ -116,7 +118,6 @@ export default class MFAModals extends React.Component<
   mfaDeactivated() {
     if (this.props.modalType === 'reconfigure') {
       mfaActions.activate(true)
-      console.log('good so far')
     } else {
       this.closeModal()
     }
@@ -144,7 +145,7 @@ export default class MFAModals extends React.Component<
   }
 
   getInitalModalStep(): modalSteps {
-    switch(this.props.modalType) {
+    switch (this.props.modalType) {
       case 'qr':
         return 'qr'
       case 'regenerate':
@@ -157,7 +158,9 @@ export default class MFAModals extends React.Component<
 
 
   handleTokenSubmit() {
-    switch(this.props.modalType) {
+    this.setState({inputString: ''})
+
+    switch (this.props.modalType) {
       case 'regenerate':
         this.mfaRegenerate()
         break
@@ -191,9 +194,9 @@ export default class MFAModals extends React.Component<
     if (this.state.backupCodes) {
       const USERNAME = stores.session.currentAccount.username
       // gets date in yyyymmdd
-      const DATE = new Date().toJSON().slice(0,10).replace(/-/g,'')
+      const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '')
 
-      const formatedCodes = this.state.backupCodes.map((t)  => {
+      const formatedCodes = this.state.backupCodes.map((t) => {
         return t + '\n'
       })
       const codesLink = document.createElement('a')
@@ -204,8 +207,16 @@ export default class MFAModals extends React.Component<
 
       document.body.appendChild(codesLink)
       codesLink.click()
+
       this.setState({downloadClicked: true})
     }
+  }
+
+  // HACK FIX: since the header is seperate from the modal we do this
+  // roundabout way of disabling the close icon
+  disableCloseIcon() {
+    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement
+    closeIcon.hidden = true
   }
 
   renderQRCodeStep() {
@@ -217,7 +228,10 @@ export default class MFAModals extends React.Component<
 
         <bem.MFAModals__body>
           <bem.MFAModals__qr>
-            <QRCode value={this.state.qrCode || ''}/>
+            <QRCode
+              value={this.state.qrCode || ''}
+              size={240}
+            />
           </bem.MFAModals__qr>
 
           <bem.MFAModals__token>
@@ -231,6 +245,7 @@ export default class MFAModals extends React.Component<
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              customModifiers={'on-white'}
             />
             <bem.MFAModals__manual>
               {t('No QR code?')}
@@ -266,7 +281,9 @@ export default class MFAModals extends React.Component<
   }
 
   renderBackupStep() {
-    return(
+    this.disableCloseIcon()
+
+    return (
       <bem.MFAModals__backupstep>
         <bem.MFAModals__description>
           {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
@@ -275,13 +292,17 @@ export default class MFAModals extends React.Component<
         <bem.MFAModals__body>
           {this.state.backupCodes &&
             <bem.MFAModals__codes>
-              {this.state.backupCodes.map((t) => {
-                return (
-                  <bem.MFAModals__codes__item>
-                    {t}
-                  </bem.MFAModals__codes__item>
-                )
-              })}
+              <bem.MFAModals__list>
+                {this.state.backupCodes.map((t) => {
+                  return (
+                    <bem.MFAModals__list__item>
+                      <strong>
+                        {t}
+                      </strong>
+                    </bem.MFAModals__list__item>
+                  )
+                })}
+              </bem.MFAModals__list>
             </bem.MFAModals__codes>
           }
         </bem.MFAModals__body>
@@ -315,7 +336,7 @@ export default class MFAModals extends React.Component<
   }
 
   renderManualStep() {
-    return(
+    return (
       <bem.MFAModals__manualstep>
         <bem.MFAModals__description>
           {t('Enter the following key into your authentication app to generate the six digit token')}
@@ -362,9 +383,11 @@ export default class MFAModals extends React.Component<
               )}
             </strong>
 
-            <bem.MFAModals__token__input
-              type='text'
+            <TextBox
+              errors={this.state.errorText}
+              value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
+              customModifiers={'on-white'}
             />
           </bem.MFAModals__token>
         </bem.MFAModals__body>
@@ -390,7 +413,9 @@ export default class MFAModals extends React.Component<
 
   renderDisclaimerStep() {
     return (
-      <bem.MFAModals__tokenstep>
+      <bem.MFAModals__disclaimerstep
+        m={this.props.modalType === 'regenerate' ? 'regenerate' : ''}
+      >
         <bem.MFAModals__body>
           <strong>
             {/*This is safe as this step only shows if on reconfigure or regenerate*/}
@@ -425,19 +450,10 @@ export default class MFAModals extends React.Component<
             />
           </bem.MFAModals__footer__right>
         </bem.MFAModals__footer>
-      </bem.MFAModals__tokenstep>
+      </bem.MFAModals__disclaimerstep>
     )
   }
 
- /**
-  * TODO:
-  * $ Remove old modal styling (headers, padding etc)
-  * $ Add transition to showing backup codes
-  * $ add transition to manually entering key
-  * $ use custom button merged into beta
-  * - make a confirm step that asks user if they are sure they want to reconfigure
-  * - make css
-  */
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
@@ -447,7 +463,7 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModals>
         {(this.state.currentStep === 'qr') &&
-            this.renderQRCodeStep()
+          this.renderQRCodeStep()
         }
 
         {(this.state.currentStep === 'backups') &&

@@ -1,26 +1,25 @@
 # coding: utf-8
-import subprocess
 from typing import Optional
 
+from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatAttachment,
-)
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    FFMpegException,
     InvalidXPathException,
+    NotSupportedFormatException,
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.log import logging
+
 
 class AttachmentViewSet(
     NestedViewSetMixin,
@@ -54,11 +53,6 @@ class AttachmentViewSet(
         MP3ConversionRenderer,
     )
     permission_classes = (SubmissionPermission,)
-
-    SUPPORTED_CONVERTED_FORMAT = (
-        'audio',
-        'video',
-    )
 
     def retrieve(self, request, pk, *args, **kwargs):
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
@@ -100,58 +94,42 @@ class AttachmentViewSet(
                 'detail': t('The path could not be found in the submission')
             }, 'xpath_not_found')
 
-        if request.accepted_renderer.format == MP3ConversionRenderer.format:
-            # setting the content type to `None` here allows the renderer to
-            # specify the content type for the response
-            content_type = None
-            content = self._get_mp3(attachment)
-            filename = attachment.media_file_basename
-        else:
-            content_type = attachment.mimetype
-            content = attachment.media_file.read()
-            filename = attachment.media_file_basename
-            attachment.media_file.close()
-
-        # Send filename to browser
-        headers = {
-            'Content-Disposition': f'inline; filename={filename}'
-        }
-        # Not optimized for big files.
-        # ToDo Serve files with NGINX  `X-Accel-Redirect` option
-        return Response(
-            content,
-            content_type=content_type,
-            headers=headers,
-        )
-
-    def _get_mp3(self, attachment: ReadOnlyKobocatAttachment) -> str:
-        if not attachment.mimetype.startswith(self.SUPPORTED_CONVERTED_FORMAT):
+        try:
+            protected_path = attachment.protected_path(
+                request.accepted_renderer.format
+            )
+        except FFMpegException:
+            raise serializers.ValidationError({
+                'detail': t('The error occurred during conversion')
+            }, 'ffmpeg_error')
+        except NotSupportedFormatException:
             raise serializers.ValidationError({
                 'detail': t('Conversion is not supported for {}').format(
                     attachment.mimetype
                 )
             }, 'not_supported_format')
 
-        ffmpeg_command = [
-            '/usr/bin/ffmpeg',
-            '-i',
-            attachment.media_file.path,
-            '-f',
-            MP3ConversionRenderer.format,
-            'pipe:1',
-        ]
+        # If unit tests are running, pytest webserver does not support
+        # `X-Accel-Redirect` header (or ignores it?). We need to pass
+        # the content to the Response object
+        if settings.TESTING:
+            # setting the content type to `None` here allows the renderer to
+            # specify the content type for the response
+            content_type = (
+                attachment.mimetype
+                if request.accepted_renderer.format != MP3ConversionRenderer.format
+                else None
+            )
+            return Response(
+                attachment.content,
+                content_type=content_type,
+            )
 
-        pipe = subprocess.run(
-            ffmpeg_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        if pipe.returncode:
-            logging.error(f'ffmpeg error: {pipe.stderr}')
-            raise serializers.ValidationError({
-                'detail': t('Could not convert attachment')
-            })
-
-        # ToDo save output to avoid converting it again
-        return pipe.stdout
+        # Otherwise, let NGINX determine the correct content type and serve
+        # the file
+        headers = {
+            'Content-Disposition': f'inline; filename={attachment.media_file_basename}',
+            'X-Accel-Redirect': protected_path
+        }
+        response = Response(content_type='', headers=headers)
+        return response

@@ -1,0 +1,106 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
+.table-media-preview-header__title {
+  font-size: sizes.$x18;
+}
+
+.mfa-modal {
+  padding: 0 32px;
+
+  .mfa-modal__body {
+    padding: sizes.$x24 0;
+  }
+}
+
+// Individual steps separeted out from parent for readability
+.mfa-modal__qrstep {
+  .mfa-modal__body {
+    display: flex;
+    justify-content: space-between;
+
+    .mfa-modal__qr {
+      flex: 20;
+
+      canvas {
+        padding: sizes.$x24;
+        border: sizes.$x1 solid colors.$kobo-gray-85;
+        border-radius: 5%;
+      }
+    }
+
+    .mfa-modal__token {
+      flex: 23;
+      display: grid;
+    }
+  }
+
+  .mfa-modal__manual__link {
+    cursor: pointer;
+  }
+}
+
+.mfa-modal__codes {
+  text-align: center;
+  background-color: colors.$kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-85;
+  border-radius: 5px;
+  padding: sizes.$x12;
+}
+
+.mfa-modal__footer {
+  display: flex;
+  justify-content: space-between;
+
+  .mfa-modal__footer-left {
+    width: 40%;
+  }
+
+  .mfa-modal__footer-right {
+    width: 40%;
+    margin-left: auto;
+    order: 2;
+  }
+}
+
+.mfa-modal {
+  .text-box__input {
+    text-align: center;
+    font-size: sizes.$x18 !important;
+    font-weight: 400 !important;
+  }
+}
+
+// HACK FIX: the following forces size of content to 366px for consistency of
+// footer buttons
+// FIXME: Due to how modals are created, the footer is part of
+// `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
+.mfa-modal__manualstep {
+  .mfa-modal__codes {
+    margin: 107px 0;
+  }
+}
+
+.mfa-modal__backupstep {
+  .mfa-modal__codes {
+    margin: 57px 0;
+  }
+}
+
+.mfa-modal__disclaimerstep {
+  .mfa-modal__body {
+    margin-bottom: 150px;
+  }
+}
+
+.mfa-modal__disclaimerstep--regenerate {
+  .mfa-modal__body {
+    margin-bottom: 260px;
+  }
+}
+
+.mfa-modal__tokenstep {
+  .text-box__input {
+    margin: 112px 0 !important;
+  }
+}

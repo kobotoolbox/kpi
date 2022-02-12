@@ -3,6 +3,8 @@ import json
 import os
 from mimetypes import guess_type
 from urllib.parse import parse_qs, unquote
+from tempfile import NamedTemporaryFile
+from typing import Optional
 
 from django.conf import settings
 from django.core.files import File
@@ -40,8 +42,10 @@ def enketo_view_instance_response(request):
     headers = {}
     return status.HTTP_201_CREATED, headers, json.dumps(resp_body)
 
+from kpi.mixins.mp3_converter import MP3ConverterMixin
 
-class MockAttachment:
+
+class MockAttachment(MP3ConverterMixin):
     """
     Mock object to simulate ReadOnlyKobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
@@ -68,3 +72,16 @@ class MockAttachment:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.media_file.close()
+
+    @property
+    def absolute_path(self):
+        return self.media_file.path
+
+    def protected_path(self, format_: Optional[str] = None):
+        if format_ == self.CONVERSION_AUDIO_FORMAT:
+            suffix = f'.{self.CONVERSION_AUDIO_FORMAT}'
+            with NamedTemporaryFile(suffix=suffix) as f:
+                self.content = self.get_mp3_content()
+            return f.name
+        else:
+            return self.absolute_path

@@ -206,21 +206,26 @@ $side-tabs-width-mobile: 70px;
     margin-top: 0;
   }
 
+  &.historyHidden,
+  &.historyExpanded {
+    transition-duration: 0.2s;
+    transition-property: max-height, margin-top, margin-bottom;
+  }
+
   &.historyHidden {
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
     overflow: hidden;
-    transition: 0.2s max-height;
     padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
     max-height: 99999px;
   }
 

@@ -2,7 +2,6 @@
 import json
 import re
 from io import StringIO, BytesIO
-from tempfile import NamedTemporaryFile
 from typing import Dict, Optional
 
 from dicttoxml import dicttoxml

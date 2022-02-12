@@ -56,6 +56,10 @@ class DeploymentNotFound(Exception):
         super().__init__(self.message)
 
 
+class FFMpegException(Exception):
+    pass
+
+
 class ImportAssetException(Exception):
     pass
 
@@ -108,6 +112,10 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
 
 
 class KobocatProfileException(Exception):
+    pass
+
+
+class NotSupportedFormatException(Exception):
     pass
 
 

@@ -1,6 +1,6 @@
 import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
-import {ROOT_URL} from 'js/constants';
+import {ROOT_URL} from 'js/constants'
 
 export type mfaErrorResponse = {
   non_field_errors: string
