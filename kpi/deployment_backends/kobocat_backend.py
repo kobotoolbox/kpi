@@ -8,13 +8,12 @@ import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Generator, Optional, Union
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
 import requests
 from django.conf import settings
-from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
@@ -30,6 +29,12 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionNotFoundException,
+    XPathNotFoundException,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -43,6 +48,7 @@ from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
     KobocatXForm,
+    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
 from .kc_access.utils import (
@@ -487,6 +493,55 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
 
+    def get_attachment(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> ReadOnlyKobocatAttachment:
+        """
+        Return an object which can be retrieved by its primary key or by XPath.
+        An exception is raised when the submission or the attachment is not found.
+        """
+
+        submission_xml = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+        )
+
+        if not submission_xml:
+            raise SubmissionNotFoundException
+
+        if xpath:
+            submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
+
+            try:
+                element = submission_tree.find(xpath)
+            except KeyError:
+                raise InvalidXPathException
+
+            try:
+                attachment_filename = element.text
+            except AttributeError:
+                raise XPathNotFoundException
+
+            filters = {
+                'instance_id': submission_id,
+                'media_file_basename': attachment_filename,
+            }
+        else:
+            filters = {
+                'instance_id': submission_id,
+                'pk': attachment_id,
+            }
+
+        try:
+            attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
+        except ReadOnlyKobocatAttachment.DoesNotExist:
+            raise AttachmentNotFoundException
+
+        return attachment
+
     def get_data_download_links(self):
         exports_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
@@ -620,60 +675,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             except KeyError:
                 pass
         return links
-
-    def get_signed_attachment_url_token(
-        self,
-        submission_id: int,
-        user: 'auth.User',
-        media_size: str,
-        media_file: str,
-    ) -> str:
-        """
-        Get a signed KoBoCAT attachment url which is granted once with a
-        one time authentication token (sent through querystring parameters)
-        If `user` has full access on submissions, the url is returned as-is.
-        """
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_VIEW_SUBMISSIONS,
-            submission_ids=[submission_id],
-        )
-
-        url = (
-            f'{settings.KOBOCAT_MEDIA_URL}{media_size}'
-            f"?{urlencode({'media_file':media_file})}"
-        )
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
-        if submission_ids:
-            # Validate that the attachment does really belong to the submission.
-            # We want to ensure the user is allowed to this media file.
-            submission = self.get_submission(submission_id, user)
-            try:
-                suffix = settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING[media_size]
-            except KeyError:
-                raise Http404
-
-            is_allowed = False
-            for attachment in submission['_attachments']:
-                try:
-                    kc_url = attachment[f'download{suffix}_url']
-                except KeyError:
-                    continue
-
-                if kc_url == url:
-                    is_allowed = True
-                    break
-
-            if not is_allowed:
-                raise Http404
-
-            token = KobocatOneTimeAuthToken.get_or_create_token(
-                user, method='GET', request_identifier=url
-            )
-            url += f'&{KobocatOneTimeAuthToken.QS_PARAM}={token.token}'
-
-        return url
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
@@ -1455,15 +1456,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
+                # We should use 'attachment-list' with `?xpath=` but we do not
+                # know what the XPath is here. Since the primary key is already
+                # exposed, let's use it to build the url with 'attachment-detail'
                 kpi_url = reverse(
-                    'submission-attachments',
-                    args=(self.asset.uid, submission['_id'], size),
+                    'attachment-detail',
+                    args=(self.asset.uid, submission['_id'], attachment['id']),
                     request=request
                 )
                 key = f'download{suffix}_url'
                 try:
-                    attachment[key] = attachment[key].replace(
-                        f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                    attachment[key] = kpi_url
                 except KeyError:
                     continue
 
