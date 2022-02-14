@@ -481,7 +481,7 @@ class KobocatUserProfile(ShadowModel):
         except cls.DoesNotExist:
             pass
         else:
-            user_profile.is_mfa_active = False
+            user_profile.is_mfa_active = int(is_active)
             user_profile.save(update_fields=['is_mfa_active'])
 
 
