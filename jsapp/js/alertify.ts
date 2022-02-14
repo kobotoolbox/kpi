@@ -148,20 +148,37 @@ export function multiConfirm(
   dialog.show();
 }
 
-/** A simple DRY confirmation wrapper function. */
-export function simpleConfirm(
-  title: string,
-  message: string,
-  okLabel: string,
-  okCallback: Function
+/**
+ * A DRY dialog wrapper for `alertifyjs` that will display a simple confirmation
+ * for destroying something. The fallback text is for deleting stuff, as most
+ * common case.
+ *
+ * Usually you would only need to pass `okCallback` and `title`.
+ */
+export function destroyConfirm(
+  okCallback: Function,
+  title: string = t('Delete?'),
+  okLabel: string = t('Delete'),
+  message: string = t('This action is not reversible'),
 ) {
   const dialog = alertify.dialog('confirm')
-  const opts = {
-    title: title,
-    message: message,
-    labels: {ok: okLabel, cancel: t('Cancel')},
-    onok: okCallback,
-    oncancel: dialog.destroy
-  }
-  dialog.set(opts).show()
+
+  dialog.elements.dialog.classList.add(`custom-alertify-dialog--dangerous-destroy`)
+
+  dialog.setting('title', title)
+  dialog.setting('message', message)
+  dialog.setting('labels', {ok: okLabel, cancel: t('Cancel')})
+  dialog.setting('onok', okCallback)
+  dialog.setting('oncancel', dialog.destroy)
+  dialog.setting('reverseButtons', true)
+  dialog.setting('movable', false)
+  dialog.setting('resizable', false)
+  dialog.setting('closable', false)
+  dialog.setting('closableByDimmer', false)
+  dialog.setting('maximizable', false)
+  dialog.setting('pinnable', false)
+
+  dialog.show()
+
+  return dialog
 }

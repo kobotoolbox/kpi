@@ -9,7 +9,7 @@ import LanguageSelector from 'js/components/languages/languageSelector'
 import languageSelectorActions from 'js/components/languages/languageSelectorActions'
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
-import {simpleConfirm} from 'js/alertify'
+import {destroyConfirm} from 'js/alertify'
 
 type TranscriptTabContentProps = {
   questionType: AnyRowTypeName | undefined
@@ -95,11 +95,10 @@ export default class TranscriptTabContent extends React.Component<
 
   discardDraft() {
     if (singleProcessingStore.hasUnsavedTranscriptDraftValue()) {
-      simpleConfirm(
+      destroyConfirm(
+        singleProcessingStore.deleteTranscriptDraft.bind(singleProcessingStore),
         t('Discard unsaved changes?'),
-        t('This action is not reversible'),
-        t('Discard'),
-        singleProcessingStore.deleteTranscriptDraft.bind(singleProcessingStore)
+        t('Discard')
       )
     } else {
       singleProcessingStore.deleteTranscriptDraft()
@@ -128,11 +127,9 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   deleteTranscript() {
-    simpleConfirm(
-      t('Delete transcript?'),
-      t('This action is not reversible'),
-      t('Delete'),
-      singleProcessingStore.deleteTranscript.bind(singleProcessingStore)
+    destroyConfirm(
+      singleProcessingStore.deleteTranscript.bind(singleProcessingStore),
+      t('Delete transcript?')
     )
   }
 
