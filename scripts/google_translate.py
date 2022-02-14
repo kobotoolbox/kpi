@@ -3,6 +3,7 @@ import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from os import environ
+from time import sleep
 from typing import (
     Dict,
     List,
@@ -83,7 +84,10 @@ class GoogleTranslationEngine(TranslationEngineBase):
                 raise TranslationException(e)
 
     def _get_content(self, path: str) -> str:
+        # Wait for job to complete
+        self._wait_for_result()
         return self.bucket.get_blob(path).download_as_text()
+
 
     def _get_output_filename(self, output_path: str) -> str:
         username, _uuid, target_lang, _ = output_path.split('/')
@@ -129,7 +133,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
         }
         output_config = {'gcs_destination': {'output_uri_prefix': output_uri}}
 
-        operation = self.client.batch_translate_text(
+        self.operation = self.client.batch_translate_text(
             request={
                 'parent': self.parent_async,
                 'source_language_code': source_lang,
@@ -139,7 +143,6 @@ class GoogleTranslationEngine(TranslationEngineBase):
                 'labels': {'user': username},
             }
         )
-        response = operation.result(TIMEOUT)
         content = self._get_content(output_filename)
 
         # Remove created files from GCP
@@ -171,6 +174,21 @@ class GoogleTranslationEngine(TranslationEngineBase):
             raise TranslationException(e.message)
 
         return response.translations[0].translated_text
+
+    def _wait_for_result(self):
+        duration = 0
+        wait = 5
+        # This can easily take a few minutes
+        while self.operation.running() and duration < TIMEOUT:
+            sleep(wait)
+            duration += wait
+        if not self.operation.done():
+            # Not sure if this is what we want to do?
+            self.operation.cancel()
+            raise TranslationException('Time limit reached')
+        else:
+            self.result = self.operation.result()
+            return True
 
 
 TranslationEngine = TypeVar('TranslationEngine')
