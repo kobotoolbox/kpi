@@ -5,6 +5,7 @@ from django.forms import ValidationError
 from django.forms.fields import CharField
 from django.utils.translation import gettext as t
 
+
 class JsonSchemaFormField(CharField):
     def __init__(self, *args, schema, **kwargs):
         self.schema = schema
@@ -30,7 +31,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
     properties, e.g.
         [
             {"name": "important_field", "required": true},
-            {"name": "whatever_field", "required": fals},
+            {"name": "whatever_field", "required": false},
             …
         ]
     """
@@ -47,5 +48,23 @@ class MetadataFieldsListField(JsonSchemaFormField):
                     'required': {'type': 'boolean'},
                 },
             },
+        }
+        super().__init__(*args, schema=schema, **kwargs)
+
+
+class MFAHelpTextsField(JsonSchemaFormField):
+    """
+    Validates that the input is an object which contains at least the 'default'
+    key.
+    """
+    def __init__(self, *args, **kwargs):
+        schema = {
+            'type': 'object',
+            'uniqueItems': True,
+            'properties': {
+                'default': {'type': 'string'},
+            },
+            'required': ['default'],
+            'additionalProperties': True,
         }
         super().__init__(*args, schema=schema, **kwargs)

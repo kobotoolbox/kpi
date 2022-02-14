@@ -41,7 +41,11 @@ class EnvironmentView(APIView):
             'MFA_I18N_HELP_TEXTS',
             lambda i18n_texts: {
                 lang: markdown(text)
-                for lang, text in json.loads(i18n_texts).items()
+                for lang, text in json.loads(
+                    i18n_texts.replace(
+                        '##support email##', constance.config.SUPPORT_EMAIL
+                    )
+                ).items()
             },
         ),
         'MFA_ENABLED',

@@ -54,8 +54,12 @@ class I18nUtils:
         # Get default value if lang is not specified
         language = lang if lang else get_language()
 
+        text = constance.config.MFA_I18N_HELP_TEXTS.replace(
+            '##support email##',
+            constance.config.SUPPORT_EMAIL,
+        )
         try:
-            i18n_mfa_help_texts = json.loads(constance.config.MFA_I18N_HELP_TEXTS)
+            i18n_mfa_help_texts = json.loads(text)
         except json.JSONDecodeError:
             logging.error('Could decode Constance.MFA_I18N_HELP_TEXTS')
             return ''
