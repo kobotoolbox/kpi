@@ -47,6 +47,7 @@
 }
 
 .processing-body__text {
+  white-space: pre-wrap;
   border-top: sizes.$x2 solid colors.$kobo-gray-96;
   padding-top: sizes.$x16;
   width: 100%;
