@@ -24,19 +24,19 @@ module.exports = {
   rules: {
     '@typescript-eslint/array-type': [1, {default: 'array-simple'}],
     '@typescript-eslint/ban-types': 1,
-    '@typescript-eslint/comma-dangle': 1,
+    '@typescript-eslint/comma-dangle': [1, 'always-multiline'],
     '@typescript-eslint/comma-spacing': [1, { 'before': false, 'after': true }],
     '@typescript-eslint/consistent-type-definitions': [1, 'interface'],
     '@typescript-eslint/consistent-type-imports': [1, {prefer: 'type-imports'}],
     '@typescript-eslint/func-call-spacing': [1, 'never'],
     '@typescript-eslint/keyword-spacing': [1, {before: true, after: true}],
     '@typescript-eslint/member-delimiter-style': [1, {
-      multiline: {delimiter: 'semi'}, 
+      multiline: {delimiter: 'semi'},
       singleline: {delimiter: 'semi'}
     }],
     '@typescript-eslint/method-signature-style': [1, 'property'],
-    '@typescript-eslint/naming-convention': [1, 
-      {selector: 'variableLike', format: ['camelCase']},
+    '@typescript-eslint/naming-convention': [1,
+      {selector: 'variableLike', format: ['camelCase', 'PascalCase']},
       {selector: 'memberLike', format: ['camelCase']},
       {selector: 'typeLike', format: ['PascalCase']},
       {selector: 'property', format: ['camelCase']},
@@ -70,8 +70,8 @@ module.exports = {
     '@typescript-eslint/semi': 1,
     '@typescript-eslint/sort-type-union-intersection-members': 1,
     '@typescript-eslint/space-before-function-paren': [1, {
-      anonymous: 'always', 
-      named: 'never', 
+      anonymous: 'always',
+      named: 'never',
       asyncArrow: 'never'
     }],
     '@typescript-eslint/type-annotation-spacing': [1, {before: false, after: true}],
