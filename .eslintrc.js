@@ -1,19 +1,26 @@
-{
-  "parser": "babel-eslint",
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
+module.exports = {
+  parser: "@typescript-eslint/parser",
+  env: {
+    browser: true,
+    node: true,
+    es6: true
   },
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
+  parserOptions: {
+    ecmaVersion: 6,
+    sourceType: "module",
+    ecmaFeatures: {
+      jsx: true
     }
   },
-  "extends": "eslint:recommended",
-  "rules": {
+  plugins: [
+    "react",
+    "@typescript-eslint"
+  ],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  rules: {
     "arrow-body-style": [1, "as-needed", {"requireReturnForObjectLiteral": true}],
     "arrow-parens": [1, "always"],
     "arrow-spacing": 1,
@@ -82,25 +89,22 @@
     "space-infix-ops": 1,
     "strict": 1
   },
-  "globals": {
-    "inject": false,
-    "module": false,
-    "describe": false,
-    "it": false,
-    "before": false,
-    "beforeEach": false,
-    "after": false,
-    "afterEach": false,
-    "expect": false,
-    "window": false,
-    "document": false,
-    "Parse": false,
-    "chai": true,
-    "t": "readonly",
-    "$": "readonly",
-    "ga": "readonly"
-  },
-  "plugins": [
-    "react"
-  ]
+  globals: {
+    inject: false,
+    module: false,
+    describe: false,
+    it: false,
+    before: false,
+    beforeEach: false,
+    after: false,
+    afterEach: false,
+    expect: false,
+    window: false,
+    document: false,
+    Parse: false,
+    chai: true,
+    t: "readonly",
+    $: "readonly",
+    ga: "readonly"
+  }
 }
