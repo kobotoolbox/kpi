@@ -2,7 +2,6 @@ import uuid
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from os import environ
 from time import sleep
 from typing import (
     Dict,
@@ -24,6 +23,7 @@ MAX_SYNC_CHARS = 30720
 PROJECT_ID = 'kobo-nlp-asr-mt'
 SOURCE_BASENAME = 'source'
 TIMEOUT = 360
+COST = 20/1000000 # https://cloud.google.com/translate/pricing
 
 
 class TranslationException(Exception):
@@ -57,6 +57,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
         self.parent_async = f'projects/{PROJECT_ID}/locations/{LOCATION}'
         self.storage_client = storage.Client()
         self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
+        self.cost = 0
 
     def get_languages(
         self, labels: bool = False, display_language: str = 'en'
@@ -83,11 +84,13 @@ class GoogleTranslationEngine(TranslationEngineBase):
             except Exception as e:
                 raise TranslationException(e)
 
+    def _calculate_cost(self, chars: int) -> None:
+        self.cost = COST * chars
+
     def _get_content(self, path: str) -> str:
         # Wait for job to complete
         self._wait_for_result()
         return self.bucket.get_blob(path).download_as_text()
-
 
     def _get_output_filename(self, output_path: str) -> str:
         username, _uuid, target_lang, _ = output_path.split('/')
@@ -143,12 +146,15 @@ class GoogleTranslationEngine(TranslationEngineBase):
                 'labels': {'user': username},
             }
         )
-        content = self._get_content(output_filename)
+
+        self._calculate_cost(chars=len(content))
+
+        translated_content = self._get_content(output_filename)
 
         # Remove created files from GCP
         self._cleanup(username, _uuid)
 
-        return content
+        return translated_content
 
     def _translate_sync(
         self,
@@ -172,6 +178,8 @@ class GoogleTranslationEngine(TranslationEngineBase):
             )
         except InvalidArgument as e:
             raise TranslationException(e.message)
+
+        self._calculate_cost(chars=len(content))
 
         return response.translations[0].translated_text
 
@@ -280,4 +288,6 @@ def run(*args):
         'source_lang': args[1],
         'target_lang': args[2],
     }
+    engine._calculate_cost(len(args[0]))
+    print(f'Total cost: ${engine.cost}')
     print(engine.translate(**options))
