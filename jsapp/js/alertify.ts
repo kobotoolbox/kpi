@@ -1,28 +1,29 @@
 // This is a collection of DRY wrappers for alertifyjs.
 import alertify from 'alertifyjs';
-import {KEY_CODES} from 'js/constants';
-import {IconName} from 'jsapp/fonts/k-icons'
+import type JQuery from 'jquery';
+import {KeyNames} from 'js/constants';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
 interface MultiConfirmButton {
-  label: string
+  label: string;
   /** Defaults to gray. */
-  color?: 'blue' | 'red'
-  icon?: IconName
-  isDisabled?: boolean
-  callback: Function
+  color?: 'blue' | 'red';
+  icon?: IconName;
+  isDisabled?: boolean;
+  callback: (() => void) | undefined;
 }
 
 interface AlertifyButton {
-  text: string
-  className: string
+  text: string;
+  className: string;
   /** primary is needed to not change for disabling below to work */
-  scope: 'primary'
-  element: any
-  index: number
+  scope: 'primary';
+  element?: HTMLElement;
+  index: number;
 }
 
 interface MultiConfirmButtonCloseEvent {
-  index: number
+  index: number;
 }
 
 /**
@@ -43,9 +44,9 @@ export function multiConfirm(
     // define new alertify dialog
     alertify.dialog(
       confirmId,
-      function() {
+      function () {
         return {
-          setup: function() {
+          setup: function () {
             const buttonsArray: AlertifyButton[] = [];
             buttons.forEach((button, i) => {
               let buttonLabel = button.label;
@@ -87,7 +88,7 @@ export function multiConfirm(
               },
             };
           },
-          prepare: function() {
+          prepare: function () {
             if (message && this.setContent) {
               this.setContent(message);
             }
@@ -95,7 +96,7 @@ export function multiConfirm(
           settings: {
             onclick: Function.prototype,
           },
-          callback: function(closeEvent: MultiConfirmButtonCloseEvent) {
+          callback: function (closeEvent: MultiConfirmButtonCloseEvent) {
             this.settings.onclick(closeEvent);
           },
         };
@@ -109,23 +110,24 @@ export function multiConfirm(
 
   // set up closing modal on ESC key
   const killMe = (evt: JQuery.KeyUpEvent) => {
-    if (evt.keyCode === KEY_CODES.ESC) {
+    if (evt.key === KeyNames.Escape) {
       dialog.destroy();
     }
   };
 
   dialog.set({
-    onclick: function(closeEvent: MultiConfirmButtonCloseEvent) {
+    onclick: function (closeEvent: MultiConfirmButtonCloseEvent) {
+      const foundButton = buttons[closeEvent.index];
       // button click operates on the button array indexes to know which
       // callback needs to be triggered
-      if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
-        buttons[closeEvent.index].callback();
+      if (foundButton?.callback !== undefined) {
+        foundButton.callback();
       }
     },
-    onshow: function() {
-      $(document).on('keyup', killMe)
+    onshow: function () {
+      $(document).on('keyup', killMe);
     },
-    onclose: function() {
+    onclose: function () {
       $(document).off('keyup', killMe);
     },
   });
@@ -156,29 +158,29 @@ export function multiConfirm(
  * Usually you would only need to pass `okCallback` and `title`.
  */
 export function destroyConfirm(
-  okCallback: Function,
+  okCallback: () => void,
   title: string = t('Delete?'),
   okLabel: string = t('Delete'),
   message: string = t('This action is not reversible'),
 ) {
-  const dialog = alertify.dialog('confirm')
+  const dialog = alertify.dialog('confirm');
 
-  dialog.elements.dialog.classList.add(`custom-alertify-dialog--dangerous-destroy`)
+  dialog.elements.dialog.classList.add('custom-alertify-dialog--dangerous-destroy');
 
-  dialog.setting('title', title)
-  dialog.setting('message', message)
-  dialog.setting('labels', {ok: okLabel, cancel: t('Cancel')})
-  dialog.setting('onok', okCallback)
-  dialog.setting('oncancel', dialog.destroy)
-  dialog.setting('reverseButtons', true)
-  dialog.setting('movable', false)
-  dialog.setting('resizable', false)
-  dialog.setting('closable', false)
-  dialog.setting('closableByDimmer', false)
-  dialog.setting('maximizable', false)
-  dialog.setting('pinnable', false)
+  dialog.setting('title', title);
+  dialog.setting('message', message);
+  dialog.setting('labels', {ok: okLabel, cancel: t('Cancel')});
+  dialog.setting('onok', okCallback);
+  dialog.setting('oncancel', dialog.destroy);
+  dialog.setting('reverseButtons', true);
+  dialog.setting('movable', false);
+  dialog.setting('resizable', false);
+  dialog.setting('closable', false);
+  dialog.setting('closableByDimmer', false);
+  dialog.setting('maximizable', false);
+  dialog.setting('pinnable', false);
 
-  dialog.show()
+  dialog.show();
 
-  return dialog
+  return dialog;
 }
