@@ -1,0 +1,22 @@
+html {
+  line-height: 1.25em;
+  font-size: calc(14px + 4 * ((100vw - 320px) / 680));
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-size: inherit;
+  margin: 0 auto;
+  padding: 1em 2em;
+  color: #414453;
+  background: #f6f7f8;
+  max-width: 800px;
+}
+
+a {
+  color: #2095f3;
+}
+
+a:hover {
+  color: #0a6dbc;
+}

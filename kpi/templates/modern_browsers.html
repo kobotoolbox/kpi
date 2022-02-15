@@ -1,0 +1,37 @@
+{% extends "base_simple.html" %}
+{% load i18n %}
+{% block title %}| {% trans "Modern Browsers" %}{% endblock %}
+{% block content %}
+<h1>{% trans "Modern Browsers" %}</h1>
+
+<p>
+  {% trans 'Ouch! Sorry, you were probably sent here because your browser is outdated or perhaps it has its key features disabled by using "private browsing" mode.' %}
+</p>
+
+<p>
+  {% trans "If you are using an outdated browser, we recommend upgrading to a recent version of one of the following excellent modern browsers:" %}
+</p>
+
+<ul>
+  <li>
+    <a href="https://www.mozilla.com/" title="{%trans 'Firefox download page' %}">
+      {% trans "Firefox" %}
+    </a>
+  </li>
+  <li>
+    <a href="https://www.google.com/chrome/" title="{%trans 'Chrome download page' %}">
+      {% trans "Chrome" %}
+    </a>
+  </li>
+  <li>
+    <a href="https://www.microsoft.com/edge" title="{%trans 'Edge download page' %}">
+      {% trans "Edge" %}
+    </a>
+  </li>
+  <li>
+    <a href="https://www.opera.com/" title="{%trans 'Opera download page' %}">
+      {% trans "Opera" %}
+    </a>
+  </li>
+</ul>
+{% endblock %}

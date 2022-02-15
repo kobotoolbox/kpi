@@ -13,10 +13,10 @@ from kobo.apps.superuser_stats.views import (
 )
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests, design_system
+from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
-from kpi.views.login import (
+from kobo.apps.mfa.views import (
     MFALoginView,
     MFATokenView,
 )
@@ -39,7 +39,7 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
-    re_path(r'^api/v2/auth/', include('trench.urls')),
+    re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     re_path(r'^accounts/login/mfa/', MFATokenView.as_view(), name='mfa_token'),
@@ -51,6 +51,7 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
+    path('modern_browsers/', modern_browsers),
     path('design-system/', design_system),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
@@ -75,4 +76,3 @@ if settings.DEBUG and settings.ENV == 'dev':
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
-
