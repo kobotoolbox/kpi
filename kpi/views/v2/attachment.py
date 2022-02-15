@@ -17,7 +17,11 @@ from kpi.exceptions import (
     XPathNotFoundException,
 )
 from kpi.permissions import SubmissionPermission
-from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
+from kpi.renderers import (
+    FLACConversionRenderer,
+    MediaFileRenderer,
+    MP3ConversionRenderer
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -50,6 +54,7 @@ class AttachmentViewSet(
     """
     renderer_classes = (
         MediaFileRenderer,
+        FLACConversionRenderer,
         MP3ConversionRenderer,
     )
     permission_classes = (SubmissionPermission,)
@@ -117,7 +122,7 @@ class AttachmentViewSet(
             # specify the content type for the response
             content_type = (
                 attachment.mimetype
-                if request.accepted_renderer.format != MP3ConversionRenderer.format
+                if request.accepted_renderer.format != MP3ConversionRenderer.format or request.accepted_renderer.format != FLACConversionRenderer.format
                 else None
             )
             return Response(
