@@ -39,7 +39,7 @@ module.exports = {
       {selector: 'variableLike', format: ['camelCase', 'PascalCase', 'UPPER_CASE']},
       {selector: 'memberLike', format: ['camelCase']},
       {selector: 'typeLike', format: ['PascalCase']},
-      {selector: 'property', format: ['camelCase', 'lower_case', 'UPPER_CASE']},
+      {selector: 'property', format: ['camelCase', 'snake_case', 'UPPER_CASE']},
       {selector: 'method', format: ['camelCase']}
     ],
     '@typescript-eslint/no-confusing-non-null-assertion': 1,
