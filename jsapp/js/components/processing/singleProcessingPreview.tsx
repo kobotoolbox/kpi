@@ -90,7 +90,6 @@ export default class SingleProcessingPreview extends React.Component {
         })
       })
 
-      // TODO: don't use Select because of styles issues, use KoboSelect
       return (
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
