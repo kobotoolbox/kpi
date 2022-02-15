@@ -88,7 +88,8 @@ export function buildUserUrl(username: string): string {
 
 declare global {
   interface Window {
-    log: any
+    log: any,
+    MFAEnabled: boolean,
   }
 }
 

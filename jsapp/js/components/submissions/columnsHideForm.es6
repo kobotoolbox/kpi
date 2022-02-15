@@ -48,7 +48,7 @@ class ColumnsHideForm extends React.Component {
   }
 
   prepareColumns() {
-    const allColumnsIds = [...tableStore.getAllColumns(this.props.submissions)];
+    const allColumnsIds = [...tableStore.getHideableColumns(this.props.submissions)];
 
     const allColumns = [];
     allColumnsIds.forEach((fieldId) => {

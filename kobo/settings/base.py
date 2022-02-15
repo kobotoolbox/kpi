@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import os
+import string
 import subprocess
 from mimetypes import add_type
 from datetime import timedelta
@@ -59,7 +60,8 @@ DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'kpi-root'
+LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
 
 # Application definition
 
@@ -81,7 +83,7 @@ INSTALLED_APPS = (
     'loginas',
     'webpack_loader',
     'registration',         # Order is important
-    'django.contrib.admin', # Must come AFTER registration
+    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
     'taggit',
     'rest_framework',
@@ -101,6 +103,8 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
+    'trench',
+    'kobo.apps.mfa.MfaAppConfig',
 )
 
 MIDDLEWARE = [
@@ -190,6 +194,14 @@ CONSTANCE_CONFIG = {
         'than the maximum, the maximum will be ignored',
         int
     ),
+    'MFA_ISSUER_NAME': (
+        'KoBoToolbox',
+        'Issuer name displayed in multi-factor applications'
+    ),
+    'MFA_ENABLED': (
+        True,
+        'Enable two-factor authentication',
+    ),
     'USER_METADATA_FIELDS': (
         json.dumps([
             {'name': 'organization', 'required': False},
@@ -241,6 +253,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ]
 }
+
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
@@ -390,8 +403,8 @@ REST_FRAMEWORK = {
         # SessionAuthentication and BasicAuthentication would be included by
         # default
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'kpi.authentication.BasicAuthentication',
+        'kpi.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
@@ -400,6 +413,8 @@ REST_FRAMEWORK = {
        'kpi.renderers.XMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    # Cannot be placed in kpi.exceptions.py because of circular imports
+    'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
 
 TEMPLATES = [
@@ -423,6 +438,7 @@ TEMPLATES = [
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
+                'kpi.context_processors.mfa',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
@@ -588,6 +604,14 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
 
+if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
+    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
+    KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
+    if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
+        KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
+else:
+    KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
 ''' Django error logging configuration '''
 # Need a default logger when sentry is not activated
@@ -802,3 +826,31 @@ KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
     'medium': '_medium',
     'small': '_small',
 }
+
+TRENCH_AUTH = {
+    'USER_MFA_MODEL': 'mfa.KoboMFAMethod',
+    'USER_ACTIVE_FIELD': 'is_active',
+    'BACKUP_CODES_QUANTITY': 5,
+    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
+    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
+    'DEFAULT_VALIDITY_PERIOD': 30,
+    'ENCRYPT_BACKUP_CODES': True,
+    'SECRET_KEY_LENGTH': 32,
+    'CONFIRM_DISABLE_WITH_CODE': True,
+    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
+    'ALLOW_BACKUP_CODES_REGENERATION': True,
+    'MFA_METHODS': {
+        'app': {
+            'VERBOSE_NAME': 'app',
+            'VALIDITY_PERIOD': os.getenv('MFA_CODE_VALIDITY_PERIOD', 30),
+            'USES_THIRD_PARTY_CLIENT': True,
+            'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
+        },
+    },
+    'CODE_LENGTH': os.getenv('MFA_CODE_LENGTH', 6),
+}
+
+# Session Authentication is supported by default.
+MFA_SUPPORTED_AUTH_CLASSES = [
+    'kpi.authentication.TokenAuthentication',
+]
