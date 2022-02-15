@@ -74,7 +74,16 @@ module.exports = {
       named: 'never',
       asyncArrow: 'never'
     }],
-    '@typescript-eslint/type-annotation-spacing': [1, {before: false, after: true}],
+    '@typescript-eslint/type-annotation-spacing': [1, {
+      before: false,
+      after: true,
+      overrides: {
+        arrow: {
+          before: true,
+          after: true
+        }
+      }
+    }],
     '@typescript-eslint/unified-signatures': 1,
     'arrow-body-style': [1, 'as-needed', {'requireReturnForObjectLiteral': true}],
     'arrow-parens': [1, 'always'],
