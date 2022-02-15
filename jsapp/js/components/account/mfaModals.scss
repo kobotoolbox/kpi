@@ -1,12 +1,21 @@
 @use "scss/_colors";
 @use "scss/sizes";
 
+// FIXME: should not depend on another header's CSS. Standardize modal headers
 .table-media-preview-header__title {
-  font-size: sizes.$x18;
+  font-size: sizes.$x14;
+  font-weight: 600;
+
+  .k-icon {
+    color: colors.$kobo-blue;
+    position: relative;
+    top: sizes.$x2;
+    padding-right: sizes.$x12;
+  }
 }
 
 .mfa-modal {
-  padding: 0 32px;
+  padding: 0 48px;
 
   .mfa-modal__body {
     padding: sizes.$x24 0;
@@ -16,27 +25,30 @@
 // Individual steps separeted out from parent for readability
 .mfa-modal__qrstep {
   .mfa-modal__body {
-    display: flex;
-    justify-content: space-between;
-
     .mfa-modal__qr {
-      flex: 20;
+      text-align: center;
+      padding-bottom: sizes.$x24;
 
       canvas {
-        padding: sizes.$x24;
+        padding: sizes.$x14;
         border: sizes.$x1 solid colors.$kobo-gray-85;
-        border-radius: 5%;
+        border-radius: 3%;
       }
-    }
-
-    .mfa-modal__token {
-      flex: 23;
-      display: grid;
     }
   }
 
   .mfa-modal__manual__link {
     cursor: pointer;
+  }
+}
+
+.mfa-modal__token {
+  p {
+    margin-bottom: sizes.$x12;
+  }
+
+  .mfa-modal__manual {
+    margin-top: sizes.$x12;
   }
 }
 
@@ -75,6 +87,11 @@
 // footer buttons
 // FIXME: Due to how modals are created, the footer is part of
 // `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
+.mfa-modal__qrstep {
+  .mfa-modal__body {
+    padding-bottom: 74px;
+  }
+}
 .mfa-modal__manualstep {
   .mfa-modal__codes {
     margin: 107px 0;

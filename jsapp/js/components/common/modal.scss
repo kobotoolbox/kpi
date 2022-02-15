@@ -364,12 +364,15 @@ $modal-custom-header-height: sizes.$x60;
 .modal.modal-mfa-setup {
   // FIXME: Fixed size for standardization
   width: 570px;
-  height: 500px;
+  height: 700px;
+  // Overwrite regular modal % based sizes
+  min-width: 0px;
+  min-height: 0px;
 
   .modal__header {
-    background-color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-98;
     font-size: 24px;
-    padding: 32px;
+    padding: 32px 32px 48px 32px;
 
     .modal__x {
       font-size: 12px;
@@ -899,6 +902,16 @@ $modal-custom-header-height: sizes.$x60;
       width: 100%;
       margin-left: 0px !important;
       margin-top: 12px;
+    }
+  }
+}
+
+// FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
+// on mobile until we standardize all modals (see comment on mfaModals.scss)
+@media screen and (max-width: 480px) {
+  .modal.modal-mfa-setup {
+    .mfa-body {
+      overflow: scroll;
     }
   }
 }

@@ -5,8 +5,8 @@ import QRCode from 'qrcode.react'
 import Button from 'js/components/common/button'
 import TextBox from 'js/components/common/textBox'
 import mfaActions, {
-  mfaActivatedResponse,
-  mfaBackupCodesResponse,
+  MfaActivatedResponse,
+  MfaBackupCodesResponse,
 } from 'js/actions/mfaActions'
 
 import './mfaModals.scss'
@@ -93,7 +93,7 @@ export default class MFAModals extends React.Component<
     this.unlisteners.forEach((clb) => {clb()})
   }
 
-  mfaActivated(response: mfaActivatedResponse) {
+  mfaActivated(response: MfaActivatedResponse) {
     this.setState({
       qrCode: response.details,
       currentStep: 'qr',
@@ -104,7 +104,7 @@ export default class MFAModals extends React.Component<
     mfaActions.confirm(this.state.inputString)
   }
 
-  mfaBackupCodes(response: mfaBackupCodesResponse) {
+  mfaBackupCodes(response: MfaBackupCodesResponse) {
     this.setState({
       backupCodes: response.backup_codes,
       currentStep: 'backups',
@@ -223,23 +223,27 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModals__qrstep>
         <bem.MFAModals__description>
-          {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection.')}
+          <p>
+            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection.')}
+          </p>
+
+          <strong>
+            {t('Scan QR code and enter the six-digit token from the application')}
+          </strong>
         </bem.MFAModals__description>
 
         <bem.MFAModals__body>
           <bem.MFAModals__qr>
             <QRCode
               value={this.state.qrCode || ''}
-              size={240}
+              size={170}
             />
           </bem.MFAModals__qr>
 
           <bem.MFAModals__token>
-            <strong>
-              {t('Scan QR code and enter the six-digit token from the application')}
-            </strong>
-
-            {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
+            <p>
+              {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
+            </p>
 
             <TextBox
               errors={this.state.errorText}

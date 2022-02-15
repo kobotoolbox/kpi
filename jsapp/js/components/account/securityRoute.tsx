@@ -2,10 +2,11 @@ import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import Button from 'js/components/common/button'
 import ToggleSwitch from 'js/components/common/toggleSwitch'
+import Icon from 'js/components/common/icon'
 import {stores} from 'js/stores'
 import mfaActions, {
-  mfaActiveResponse,
-  mfaActivatedResponse,
+  MfaActiveResponse,
+  MfaActivatedResponse,
 } from 'js/actions/mfaActions'
 import {MODAL_TYPES} from 'jsapp/js/constants'
 
@@ -59,11 +60,11 @@ export default class Security extends React.Component<
     this.unlisteners.forEach((clb) => {clb()})
   }
 
-  mfaActive(response: mfaActiveResponse) {
+  mfaActive(response: MfaActiveResponse) {
     this.setState({mfaActive: response.length >= 1})
   }
 
-  mfaActivating(response: mfaActivatedResponse) {
+  mfaActivating(response: MfaActivatedResponse) {
     if (response && !response.inModal) {
       stores.pageState.showModal({
         type: MODAL_TYPES.MFA_MODALS,
@@ -100,6 +101,10 @@ export default class Security extends React.Component<
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
+          <Icon
+            name='lock'
+            size='s'
+          />
           {t('Two-factor authentication')}
         </bem.TableMediaPreviewHeader__title>
       </bem.TableMediaPreviewHeader>
