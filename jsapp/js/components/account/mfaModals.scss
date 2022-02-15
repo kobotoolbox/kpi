@@ -63,10 +63,12 @@
   }
 }
 
-.text-box__input {
-  text-align: center;
-  font-size: sizes.$x18 !important;
-  font-weight: 400 !important;
+.mfa-modal {
+  .text-box__input {
+    text-align: center;
+    font-size: sizes.$x18 !important;
+    font-weight: 400 !important;
+  }
 }
 
 // HACK FIX: the following forces size of content to 366px for consistency of

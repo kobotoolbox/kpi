@@ -1,9 +1,11 @@
 # coding: utf-8
 import copy
+import os
 import time
 import uuid
 from datetime import datetime
 from typing import Optional
+from xml.etree import ElementTree as ET
 
 import pytz
 from deepmerge import always_merger
@@ -20,9 +22,16 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionNotFoundException,
+    XPathNotFoundException,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
+from kpi.tests.utils.mock import MockAttachment
 from .base_backend import BaseDeploymentBackend
 
 
@@ -200,6 +209,58 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
+
+    def get_attachment(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> MockAttachment:
+
+        submission_xml = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+        )
+
+        if not submission_xml:
+            raise SubmissionNotFoundException
+
+        if xpath:
+            submission_tree = ET.ElementTree(
+                ET.fromstring(submission_xml)
+            )
+            try:
+                element = submission_tree.find(xpath)
+            except KeyError:
+                raise InvalidXPathException
+
+            try:
+                attachment_filename = element.text
+            except AttributeError:
+                raise XPathNotFoundException
+
+        submission_json = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+        )
+        attachments = submission_json['_attachments']
+        for attachment in attachments:
+            filename = os.path.basename(attachment['filename'])
+
+            if xpath:
+                is_good_file = attachment_filename == filename
+            else:
+                is_good_file = int(attachment['id']) == int(attachment_id)
+
+            if is_good_file:
+                video_file = os.path.join(
+                    settings.BASE_DIR,
+                    'kpi',
+                    'tests',
+                    filename
+                )
+                return MockAttachment(video_file)
+
+        raise AttachmentNotFoundException
 
     def get_data_download_links(self):
         return {}
