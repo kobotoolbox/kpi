@@ -21,7 +21,8 @@ class UserListTests(test_api_users.UserListTests):
         xtradata['primarySector'] = 'camelCase Administration'
         user.extra_details.save()
         response = self.client.get(endpoint)
-        # lone string should be transformed to object with label and value
+        # …and non-empty lone string should be transformed to object with label
+        # and value
         assert response.data['extra_details']['sector'] == {
             'label': 'camelCase Administration',
             'value': 'camelCase Administration',
@@ -38,7 +39,7 @@ class UserListTests(test_api_users.UserListTests):
         }
         assert 'primarySector' not in response.data['extra_details']
 
-        # lone `country` string should also be transformed
+        # non-empty lone `country` string should also be transformed
         xtradata['country'] = 'KoBoLand'
         user.extra_details.save()
         response = self.client.get(endpoint)
@@ -46,3 +47,12 @@ class UserListTests(test_api_users.UserListTests):
             'label': 'KoBoLand',
             'value': 'KoBoLand',
         }
+
+        # empty lone strings should not be transformed
+        xtradata.clear()
+        xtradata['country'] = ''
+        xtradata['sector'] = ''
+        user.extra_details.save()
+        response = self.client.get(endpoint)
+        assert 'label' not in response.data['extra_details']['country']
+        assert 'label' not in response.data['extra_details']['sector']

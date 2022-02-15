@@ -1,0 +1,22 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/kpi_simple.css' %}">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>KoBoToolbox {% block title %}{% endblock %}</title>
+  <meta name="description" content="KoBoToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+  {% block content %}{% endblock %}
+</body>
+
+</html>
