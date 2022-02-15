@@ -204,12 +204,11 @@ CONSTANCE_CONFIG = {
     'MFA_I18N_HELP_TEXTS': (
         json.dumps({
             'default': (
-                'KoBoToolbox uses Multi-Factor Authentication. '
                 'If you no longer have access to the device registered '
                 'with your account and the backup codes, the support team '
                 'can assist you regaining access to the system.'
                 'To request this support, please contact us at '
-                '[##support email##](##support email##)'
+                '[##support email##](mailto:##support email##).'
             )
         }), (
             'Guidance texts to help users when they lock their account.\n'

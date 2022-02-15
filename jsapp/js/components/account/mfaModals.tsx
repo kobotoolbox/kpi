@@ -10,6 +10,8 @@ import mfaActions, {
 } from 'js/actions/mfaActions'
 
 import './mfaModals.scss'
+import {currentLang} from 'js/utils';
+import envStore from 'js/envStore';
 
 bem.MFAModals = makeBem(null, 'mfa-modal')
 bem.MFAModals__qrstep = makeBem(bem.MFAModals, 'qrstep')
@@ -29,6 +31,7 @@ bem.MFAModals__manual__link = makeBem(bem.MFAModals__token, 'manual__link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
 bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'item', 'ul')
 bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
+bem.MFAModals__help = makeBem(bem.MFAModals, 'help--text')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
 bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
@@ -50,6 +53,7 @@ type MFAModalsState = {
   backupCodes: null | string[],
   downloadClicked: boolean,
   errorText: undefined | string,
+  helpToggle: boolean,
 }
 
 export default class MFAModals extends React.Component<
@@ -67,6 +71,7 @@ export default class MFAModals extends React.Component<
       backupCodes: null,
       downloadClicked: false,
       errorText: undefined,
+      helpToggle: false,
     }
   }
 
@@ -91,6 +96,15 @@ export default class MFAModals extends React.Component<
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  getLocalizedMfaHelpText() {
+    const language = currentLang();
+    const texts = envStore.data.mfa_i18n_help_texts;
+    if (texts.hasOwnProperty(language)) {
+      return texts[language];
+    }
+    return texts['default'];
   }
 
   mfaActivated(response: mfaActivatedResponse) {
@@ -156,7 +170,6 @@ export default class MFAModals extends React.Component<
     }
   }
 
-
   handleTokenSubmit() {
     this.setState({inputString: ''})
 
@@ -171,6 +184,11 @@ export default class MFAModals extends React.Component<
         this.mfaDeactivate()
         break
     }
+  }
+
+  handleHelpClick(e: React.MouseEvent) {
+    e.preventDefault();
+    this.setState({helpToggle: true});
   }
 
   onInputChange(inputString: string) {
@@ -389,6 +407,23 @@ export default class MFAModals extends React.Component<
               onChange={this.onInputChange.bind(this)}
               customModifiers={'on-white'}
             />
+
+            <bem.MFAModals__help>
+              <a
+                href='#'
+                className=""
+                style={{display: this.state.helpToggle ? 'none': 'inline-block'}}
+                onClick={this.handleHelpClick.bind(this)}
+              >
+                {t('Problems with your token?')}
+              </a>
+              <div
+                style={{display: this.state.helpToggle ? 'block': 'none'}}
+                dangerouslySetInnerHTML={{__html: this.getLocalizedMfaHelpText()}}
+              />
+            </bem.MFAModals__help>
+
+
           </bem.MFAModals__token>
         </bem.MFAModals__body>
 
@@ -424,14 +459,14 @@ export default class MFAModals extends React.Component<
             ).replace(
               '##ACTION##',
               this.props.modalType === 'regenerate'
-                ? t('recovery codes from the previous set up will not be valid anymore')
-                : t('in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
+                ? t('recovery codes from the previous set up will not be valid anymore.')
+                : t('in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.')
             )}
           </strong>
 
           {this.props.modalType === 'reconfigure' &&
             <p>
-              {t('Once your 2FA has been deactivated, you\'ll be prompted to configure it again. If you cannot complete the process. two-factor authentication will remain disabled for your account. In this case, you can reenable it at any time through the usual process.')}
+              {t('Once your 2FA has been deactivated, you\'ll be prompted to configure it again. If you cannot complete the process, 2FA will remain disabled for your account. In this case, you can reenable it at any time through the usual process.')}
             </p>
           }
         </bem.MFAModals__body>

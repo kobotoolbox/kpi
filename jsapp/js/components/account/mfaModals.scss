@@ -13,7 +13,7 @@
   }
 }
 
-// Individual steps separeted out from parent for readability
+// Individual steps separated out from parent for readability
 .mfa-modal__qrstep {
   .mfa-modal__body {
     display: flex;
@@ -102,5 +102,17 @@
 .mfa-modal__tokenstep {
   .text-box__input {
     margin: 112px 0 !important;
+  }
+
+  .mfa-modal__help--text {
+    position: absolute;
+    text-align: right;
+    margin-top: -110px;
+    margin-bottom: 94px;
+    width: 506px;
+    font-size: sizes.$x12;
+    p {
+      text-align: left;
+    }
   }
 }
