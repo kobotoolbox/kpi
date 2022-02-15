@@ -1,7 +1,6 @@
 # coding: utf-8
 from django import forms
 from django.conf import settings
-from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import gettext_lazy as _
 from trench.serializers import CodeLoginSerializer
@@ -49,9 +48,16 @@ class MFATokenForm(forms.Form):
     Second (and last) step of login process when MFA is activated.
     """
     code = forms.CharField(
-        label=_('Insert your MFA code'),
+        label='',
         strip=True,
         required=True,
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': _(
+                    'Enter the ##token length##-character token'
+                ).replace('##token length##', str(settings.TRENCH_AUTH['CODE_LENGTH']))
+            }
+        )
     )
     ephemeral_token = forms.CharField(
         required=True,
@@ -60,7 +66,7 @@ class MFATokenForm(forms.Form):
 
     error_messages = {
         'invalid_code': _(
-            'Invalid MFA code.'
+            'Your token is invalid'
         )
     }
 
