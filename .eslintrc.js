@@ -36,10 +36,10 @@ module.exports = {
     }],
     '@typescript-eslint/method-signature-style': [1, 'property'],
     '@typescript-eslint/naming-convention': [1,
-      {selector: 'variableLike', format: ['camelCase', 'PascalCase']},
+      {selector: 'variableLike', format: ['camelCase', 'PascalCase', 'UPPER_CASE']},
       {selector: 'memberLike', format: ['camelCase']},
       {selector: 'typeLike', format: ['PascalCase']},
-      {selector: 'property', format: ['camelCase']},
+      {selector: 'property', format: ['camelCase', 'lower_case', 'UPPER_CASE']},
       {selector: 'method', format: ['camelCase']}
     ],
     '@typescript-eslint/no-confusing-non-null-assertion': 1,
