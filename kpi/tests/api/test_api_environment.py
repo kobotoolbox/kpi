@@ -55,8 +55,13 @@ class EnvironmentTests(BaseTestCase):
             'mfa_enabled': constance.config.MFA_ENABLED,
             'mfa_i18n_help_texts': lambda i18n_texts: {
                 lang: markdown(text)
-                for lang, text in json.loads(constance.config.MFA_I18N_HELP_TEXTS).items()
-            },
+                for lang, text in json.loads(
+                    constance.config.MFA_I18N_HELP_TEXTS.replace(
+                        '##support email##',
+                        constance.config.SUPPORT_EMAIL
+                    )
+                ).items()
+            }
         }
 
     def _check_response_dict(self, response_dict):
