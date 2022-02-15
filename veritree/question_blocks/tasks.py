@@ -89,6 +89,10 @@ def modify_amount_planted_group(forest_type_species_data: dict, survey: list, gr
     species = [format_question_name(species) for species in forest_type_species_data.keys()]
     while (question.get('type', '') != 'end_group'):
         question_name = question.get('name', '')
+        if PLACEHOLDER_QUESTION in question_name or PLACEHOLDER_QUESTION in question.get('$autoname', ''):
+            survey.remove(question)
+            question = survey[group_index]
+            continue
         if question_name[:len(name_prefix)] == name_prefix:
             formatted_species_name = question_name[len(name_prefix):]
             if question_name[len(name_prefix):] in species:
