@@ -10,6 +10,8 @@
     <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
 
+    {% include "./snippets/modern_browsers_redirect.html" %}
+
     {% if raven_js_dsn %}
       <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
       <script>
@@ -26,10 +28,6 @@
     <link rel="icon" href="{% static 'favicon.png' %}" />
 
     {% render_bundle 'app' 'css' %}
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-      <script>window.html5 || document.write('<script src="{% static 'js/vendor/html5shiv.js' %}"><\/script>')</script>
-    <![endif]-->
 
     {% if config.logo %}
       <style>
