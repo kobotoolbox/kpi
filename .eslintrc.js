@@ -3,48 +3,48 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-    es6: true
+    es6: true,
   },
   parserOptions: {
     ecmaVersion: 6,
     sourceType: 'module',
     ecmaFeatures: {
-      jsx: true
-    }
+      jsx: true,
+    },
   },
   ignorePatterns: ['**/*.scss'],
   plugins: [
     'react',
-    '@typescript-eslint'
+    '@typescript-eslint',
   ],
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended'
+    'plugin:@typescript-eslint/recommended',
   ],
   rules: {
     '@typescript-eslint/array-type': [1, {default: 'array-simple'}],
     '@typescript-eslint/ban-types': 1,
     '@typescript-eslint/comma-dangle': [1, 'always-multiline'],
-    '@typescript-eslint/comma-spacing': [1, { 'before': false, 'after': true }],
+    '@typescript-eslint/comma-spacing': [1, {'before': false, 'after': true}],
     '@typescript-eslint/consistent-type-definitions': [1, 'interface'],
     '@typescript-eslint/consistent-type-imports': [1, {prefer: 'type-imports'}],
     '@typescript-eslint/func-call-spacing': [1, 'never'],
     '@typescript-eslint/keyword-spacing': [1, {before: true, after: true}],
     '@typescript-eslint/member-delimiter-style': [1, {
       multiline: {delimiter: 'semi'},
-      singleline: {delimiter: 'semi'}
+      singleline: {delimiter: 'semi'},
     }],
     '@typescript-eslint/method-signature-style': [1, 'property'],
     '@typescript-eslint/naming-convention': [1,
       {selector: 'variableLike', format: ['camelCase', 'PascalCase', 'UPPER_CASE']},
-      {selector: 'memberLike', format: ['camelCase']},
+      {selector: 'memberLike', format: ['camelCase', 'PascalCase']},
       {selector: 'typeLike', format: ['PascalCase']},
-      {selector: 'property', format: ['camelCase', 'snake_case', 'UPPER_CASE']},
-      {selector: 'method', format: ['camelCase']}
+      {selector: 'property', format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE']},
+      {selector: 'method', format: ['camelCase']},
     ],
     '@typescript-eslint/no-confusing-non-null-assertion': 1,
     '@typescript-eslint/no-dupe-class-members': 1,
-    '@typescript-eslint/no-duplicate-imports': [1, { 'includeExports': true }],
+    '@typescript-eslint/no-duplicate-imports': [1, {'includeExports': true}],
     '@typescript-eslint/no-dynamic-delete': 1,
     '@typescript-eslint/no-empty-function': 1,
     '@typescript-eslint/no-empty-interface': 1,
@@ -72,7 +72,7 @@ module.exports = {
     '@typescript-eslint/space-before-function-paren': [1, {
       anonymous: 'always',
       named: 'never',
-      asyncArrow: 'never'
+      asyncArrow: 'never',
     }],
     '@typescript-eslint/type-annotation-spacing': [1, {
       before: false,
@@ -80,9 +80,9 @@ module.exports = {
       overrides: {
         arrow: {
           before: true,
-          after: true
-        }
-      }
+          after: true,
+        },
+      },
     }],
     '@typescript-eslint/unified-signatures': 1,
     'arrow-body-style': [1, 'as-needed', {'requireReturnForObjectLiteral': true}],
@@ -97,7 +97,7 @@ module.exports = {
     'eqeqeq': 1,
     'func-call-spacing': 'off',
     'jsx-quotes': ['warn', 'prefer-single'],
-    'key-spacing': [1, { 'beforeColon': false, 'afterColon': true, 'mode': 'strict' }],
+    'key-spacing': [1, {'beforeColon': false, 'afterColon': true, 'mode': 'strict'}],
     'max-nested-callbacks': [1, 6],
     'no-case-declarations': 1,
     'no-confusing-arrow': 1,
@@ -171,6 +171,6 @@ module.exports = {
     chai: true,
     t: 'readonly',
     $: 'readonly',
-    ga: 'readonly'
-  }
-}
+    ga: 'readonly',
+  },
+};
