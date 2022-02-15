@@ -25,6 +25,17 @@ interface GetProcessingSubmissionsCompletedDefinition extends Function {
   listen: (callback: (response: GetProcessingSubmissionsResponse) => void) => Function;
 }
 
+interface GetEnvironmentDefinition extends Function {
+  (): void;
+  completed: GetEnvironmentCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface GetEnvironmentCompletedDefinition extends Function {
+  (response: EnvironmentResponse): void;
+  listen: (callback: (response: EnvironmentResponse) => void) => Function;
+}
+
 interface LoadAssetDefinition extends Function {
   (params: {id: string}): void;
   completed: LoadAssetCompletedDefinition;
@@ -32,6 +43,17 @@ interface LoadAssetDefinition extends Function {
 }
 
 interface LoadAssetCompletedDefinition extends Function {
+  (response: AssetResponse): void;
+  listen: (callback: (response: AssetResponse) => void) => Function;
+}
+
+interface DeleteAssetDefinition extends Function {
+  (params: {id: string}): void;
+  completed: DeleteAssetCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface DeleteAssetCompletedDefinition extends Function {
   (response: AssetResponse): void;
   listen: (callback: (response: AssetResponse) => void) => Function;
 }
@@ -55,7 +77,9 @@ interface UpdateAssetCompletedDefinition extends Function {
 // TODO: as you use more actions in your ts files, please extend this namespace
 export namespace actions {
     const navigation: object;
-    const auth: object;
+    const auth: {
+      getEnvironment: GetEnvironmentDefinition;
+    };
     const survey: object;
     const search: object;
     const resources: {
@@ -65,7 +89,7 @@ export namespace actions {
       setDeploymentActive: Function;
       createSnapshot: Function;
       cloneAsset: Function;
-      deleteAsset: Function;
+      deleteAsset: DeleteAssetDefinition;
       listTags: Function;
       createResource: Function;
       updateAsset: UpdateAssetDefinition;

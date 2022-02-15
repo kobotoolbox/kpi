@@ -1,33 +1,36 @@
-import React from 'react'
-import {RouteComponentProps} from 'react-router'
-import {getSurveyFlatPaths} from 'js/assetUtils'
-import assetStore from 'js/assetStore'
-import {isRowProcessingEnabled} from 'js/assetUtils'
-import bem, {makeBem} from 'js/bem'
-import {AnyRowTypeName} from 'js/constants'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader'
-import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails'
-import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
-import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import WorkProtector from 'js/protector/workProtector'
-import './singleProcessing.scss'
+import React from 'react';
+import type {RouteComponentProps} from 'react-router';
+import {
+  getSurveyFlatPaths,
+  isRowProcessingEnabled,
+} from 'js/assetUtils';
+import assetStore from 'js/assetStore';
+import bem, {makeBem} from 'js/bem';
+import type {AnyRowTypeName} from 'js/constants';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
+import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
+import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
+import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import WorkProtector from 'js/protector/workProtector';
+import './singleProcessing.scss';
+import type AssetResponse from 'js/dataInterface';
 
-bem.SingleProcessing = makeBem(null, 'single-processing', 'section')
-bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section')
-bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section')
-bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section')
-bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section')
+bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
+bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
+bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section');
+bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
+bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
 
 type SingleProcessingRouteProps = RouteComponentProps<{
-  uid: string,
-  questionName: string,
-  submissionUuid: string,
-}, {}>
+  uid: string;
+  questionName: string;
+  submissionUuid: string;
+}, {}>;
 
-type SingleProcessingRouteState = {
-  asset: AssetResponse | undefined
+interface SingleProcessingRouteState {
+  asset: AssetResponse | undefined;
 }
 
 /**
@@ -39,22 +42,22 @@ export default class SingleProcessingRoute extends React.Component<
   SingleProcessingRouteState
 > {
   constructor(props: SingleProcessingRouteProps) {
-    super(props)
+    super(props);
     this.state = {
-      asset: assetStore.getAsset(this.props.params.uid)
-    }
+      asset: assetStore.getAsset(this.props.params.uid),
+    };
   }
 
-  private unlisteners: Function[] = []
+  private unlisteners: Array<() => void> = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /**
@@ -63,42 +66,37 @@ export default class SingleProcessingRoute extends React.Component<
   * store changes :shrug:.
   */
   onSingleProcessingStoreChange() {
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   getQuestionPath() {
-    let questionFlatPath: string | undefined = undefined
+    let questionFlatPath: string | undefined;
     if (this.state.asset?.content?.survey !== undefined) {
-      const flatPaths = getSurveyFlatPaths(this.state.asset.content.survey)
-      questionFlatPath = flatPaths[this.props.params.questionName]
+      const flatPaths = getSurveyFlatPaths(this.state.asset.content.survey);
+      questionFlatPath = flatPaths[this.props.params.questionName];
     }
-    return questionFlatPath
+    return questionFlatPath;
   }
 
   getQuestionType(): AnyRowTypeName | undefined {
     if (this.state.asset?.content?.survey) {
-      const foundRow = this.state.asset.content.survey.find((row) => {
-        return [
-          row.name,
-          row.$autoname,
-          row.$kuid
-        ].includes(this.props.params.questionName)
-      })
+      const foundRow = this.state.asset.content.survey.find((row) =>
+        [row.name, row.$autoname, row.$kuid].includes(this.props.params.questionName)
+      );
       if (foundRow) {
-        return foundRow.type
+        return foundRow.type;
       }
     }
-    return undefined
+    return undefined;
   }
 
   /** Whether the question and submission uuid pair make sense for processing. */
   isDataValid() {
-    const uuids = singleProcessingStore.getSubmissionsUuids()
+    const uuids = singleProcessingStore.getSubmissionsUuids();
     const hasSubmissionAnyProcessableData = (
       uuids &&
-      uuids[this.props.params.questionName] &&
-      uuids[this.props.params.questionName].includes(this.props.params.submissionUuid)
-    )
+      uuids[this.props.params.questionName]?.includes(this.props.params.submissionUuid)
+    );
 
     return (
       // To prepare UI for questions that are not processing-enabled.
@@ -108,7 +106,7 @@ export default class SingleProcessingRoute extends React.Component<
       ) &&
       // To prepare UI for submissions (uuids) that don't contain any processable data.
       hasSubmissionAnyProcessableData
-    )
+    );
   }
 
   render() {
@@ -120,7 +118,7 @@ export default class SingleProcessingRoute extends React.Component<
         <bem.SingleProcessing>
           <LoadingSpinner/>
         </bem.SingleProcessing>
-      )
+      );
     }
 
     return (
@@ -171,6 +169,6 @@ export default class SingleProcessingRoute extends React.Component<
           }
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
-    )
+    );
   }
 }

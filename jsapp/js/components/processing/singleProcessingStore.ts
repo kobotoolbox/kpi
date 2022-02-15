@@ -1,21 +1,22 @@
-import Reflux from 'reflux'
-import {hashHistory} from 'react-router'
-import {Location} from 'history'
-import {FORM_PROCESSING_BASE} from 'js/router/routerConstants'
+import Reflux from 'reflux';
+import {hashHistory} from 'react-router';
+import type {Location} from 'history';
+import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
 import {
   isFormSingleProcessingRoute,
   getSingleProcessingRouteParameters,
-} from 'js/router/routerUtils'
+} from 'js/router/routerUtils';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
   isAssetProcessingActivated,
   getAssetAdvancedFeatures,
-} from 'js/assetUtils'
-import {SurveyFlatPaths} from 'js/assetUtils'
-import assetStore from 'js/assetStore'
-import {actions} from 'js/actions'
-import processingActions, {ProcessingDataResponse} from 'js/components/processing/processingActions'
+} from 'js/assetUtils';
+import type {SurveyFlatPaths} from 'js/assetUtils';
+import assetStore from 'js/assetStore';
+import {actions} from 'js/actions';
+import processingActions from 'js/components/processing/processingActions';
+import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 
 export enum SingleProcessingTabs {
   Transcript,

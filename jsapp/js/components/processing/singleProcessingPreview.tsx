@@ -1,25 +1,26 @@
-import React from 'react'
-import envStore from 'js/envStore'
-import {formatTime} from 'js/utils'
-import bem, {makeBem} from 'js/bem'
-import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
-import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
-import './singleProcessingPreview.scss'
+import React from 'react';
+import envStore from 'js/envStore';
+import {formatTime} from 'js/utils';
+import bem, {makeBem} from 'js/bem';
+import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
+import KoboSelect from 'js/components/common/koboSelect';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import './singleProcessingPreview.scss';
 
-bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section')
+bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section');
 
 /** This component is handling the tabs for switching the content. */
 export default class SingleProcessingPreview extends React.Component {
-  private unlisteners: Function[] = []
+  private unlisteners: Array<() => void> = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   onSingleProcessingStoreChange() {
@@ -27,23 +28,23 @@ export default class SingleProcessingPreview extends React.Component {
      * Don't want to store a duplicate of `activeTab` here, so we need to make
      * the component re-render itself when the store changes :shrug:.
      */
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   renderLanguageAndDate() {
-    const source = singleProcessingStore.getSourceData()
+    const source = singleProcessingStore.getSourceData();
 
-    const contentLanguageCode = source?.languageCode
+    const contentLanguageCode = source?.languageCode;
     if (contentLanguageCode === undefined) {
-      return null
+      return null;
     }
 
-    let dateText = ''
+    let dateText = '';
     if (source) {
       if (source.dateCreated !== source?.dateModified) {
-        dateText = t('last modified ##date##').replace('##date##', formatTime(source.dateModified))
+        dateText = t('last modified ##date##').replace('##date##', formatTime(source.dateModified));
       } else {
-        dateText = t('created ##date##').replace('##date##', formatTime(source.dateCreated))
+        dateText = t('created ##date##').replace('##date##', formatTime(source.dateCreated));
       }
     }
 
@@ -57,16 +58,16 @@ export default class SingleProcessingPreview extends React.Component {
           </bem.ProcessingBody__transxHeaderDate>
         }
       </React.Fragment>
-    )
+    );
   }
 
   /** Renders a text or a selector of translations. */
   renderLanguage() {
-    const sources = singleProcessingStore.getSources()
-    const sourceData = singleProcessingStore.getSourceData()
+    const sources = singleProcessingStore.getSources();
+    const sourceData = singleProcessingStore.getSourceData();
 
     if (sources.length === 0 || sourceData?.languageCode === undefined) {
-      return null
+      return null;
     }
 
     // If there is only one source, we display it as a text.
@@ -78,17 +79,17 @@ export default class SingleProcessingPreview extends React.Component {
             {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
-      )
+      );
     }
 
     if (sources.length >= 2) {
-      const selectOptions: KoboSelectOption[] = []
+      const selectOptions: KoboSelectOption[] = [];
       sources.forEach((source) => {
         selectOptions.push({
           id: source,
-          label: envStore.getLanguageDisplayLabel(source)
-        })
-      })
+          label: envStore.getLanguageDisplayLabel(source),
+        });
+      });
 
       return (
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
@@ -101,19 +102,19 @@ export default class SingleProcessingPreview extends React.Component {
               selectedOption={sourceData.languageCode}
               options={selectOptions}
               onChange={(newSelectedOption: string) => {
-                singleProcessingStore.setSource(newSelectedOption)
+                singleProcessingStore.setSource(newSelectedOption);
               }}
             />
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
-      )
+      );
     }
 
-    return null
+    return null;
   }
 
   render() {
-    const source = singleProcessingStore.getSourceData()
+    const source = singleProcessingStore.getSourceData();
 
     if (
       source &&
@@ -131,9 +132,9 @@ export default class SingleProcessingPreview extends React.Component {
             </bem.ProcessingBody__text>
           </bem.ProcessingBody>
         </bem.SingleProcessingPreview>
-      )
+      );
     }
 
-    return null
+    return null;
   }
 }

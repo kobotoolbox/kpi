@@ -1,30 +1,32 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import {AnyRowTypeName} from 'js/constants'
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import type {AnyRowTypeName} from 'js/constants';
 import {
   getRowType,
   getRowTypeIcon,
-  getTranslatedRowLabel
-} from 'js/assetUtils'
-import {ROUTES} from 'js/router/routerConstants'
-import {hashHistory} from 'react-router'
-import Button from 'js/components/common/button'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
-import './singleProcessingHeader.scss'
+  getTranslatedRowLabel,
+} from 'js/assetUtils';
+import {ROUTES} from 'js/router/routerConstants';
+import {hashHistory} from 'react-router';
+import Button from 'js/components/common/button';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import KoboSelect from 'js/components/common/koboSelect';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import './singleProcessingHeader.scss';
+import type {AssetContent} from 'js/dataInterface';
 
-bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
-bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section')
-bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 'submissions', 'nav')
-bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
-bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number')
+bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header');
+bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section');
+bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 'submissions', 'nav');
+bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count');
+bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number');
 
-type SingleProcessingHeaderProps = {
-  questionType: AnyRowTypeName | undefined
-  questionName: string
-  submissionUuid: string
-  assetUid: string
-  assetContent: AssetContent
+interface SingleProcessingHeaderProps {
+  questionType: AnyRowTypeName | undefined;
+  questionName: string;
+  submissionUuid: string;
+  assetUid: string;
+  assetContent: AssetContent;
 }
 
 /**
@@ -32,19 +34,18 @@ type SingleProcessingHeaderProps = {
  * submissions.
  */
 export default class SingleProcessingHeader extends React.Component<
-  SingleProcessingHeaderProps,
-  {}
+  SingleProcessingHeaderProps
 > {
-  private unlisteners: Function[] = []
+  private unlisteners: Array<() => void> = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /**
@@ -53,55 +54,55 @@ export default class SingleProcessingHeader extends React.Component<
   * store changes :shrug:.
   */
   onSingleProcessingStoreChange() {
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   onQuestionSelectChange(newQuestionName: string) {
-    const uuids = singleProcessingStore.getSubmissionsUuids()
+    const uuids = singleProcessingStore.getSubmissionsUuids();
     if (uuids) {
-      const questionUuids = uuids[newQuestionName]
+      const questionUuids = uuids[newQuestionName];
       // We use the first available one as the default one. User can select
       // other submission after question is loaded.
-      const firstUuid = questionUuids.find((uuidOrNull) => uuidOrNull !== null)
+      const firstUuid = questionUuids.find((uuidOrNull) => uuidOrNull !== null);
       if (firstUuid) {
-        this.goToSubmission(newQuestionName, firstUuid)
+        this.goToSubmission(newQuestionName, firstUuid);
       }
     }
   }
 
   getQuestionSelectorOptions() {
-    const options: KoboSelectOption[] = []
-    const uuids = singleProcessingStore.getSubmissionsUuids()
+    const options: KoboSelectOption[] = [];
+    const uuids = singleProcessingStore.getSubmissionsUuids();
     if (uuids) {
       Object.keys(uuids).forEach((questionName) => {
         // At this point we want to find out whether the question has at least
         // one uuid (i.e. there is at least one transcriptable response to
         // the question). Otherwise there's no point in having the question as
         // selectable option.
-        const questionUuids = uuids[questionName]
-        const hasAtLeastOneUuid = Boolean(questionUuids.find((uuidOrNull) => uuidOrNull !== null))
+        const questionUuids = uuids[questionName];
+        const hasAtLeastOneUuid = Boolean(questionUuids.find((uuidOrNull) => uuidOrNull !== null));
         if (hasAtLeastOneUuid) {
-          const questionType = getRowType(this.props.assetContent, questionName)
+          const questionType = getRowType(this.props.assetContent, questionName);
           const translatedLabel = getTranslatedRowLabel(
             questionName,
             this.props.assetContent.survey,
             0
-          )
+          );
           options.push({
             id: questionName,
             label: translatedLabel !== null ? translatedLabel : questionName,
-            icon: getRowTypeIcon(questionType)
-          })
+            icon: getRowTypeIcon(questionType),
+          });
         }
-      })
+      });
     }
-    return options
+    return options;
   }
 
   /** Goes back to table view for given asset. */
   onDone() {
-    const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid)
-    hashHistory.push(newRoute)
+    const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
+    hashHistory.push(newRoute);
   }
 
   /** Goes to another submission. */
@@ -109,21 +110,21 @@ export default class SingleProcessingHeader extends React.Component<
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
       .replace(':questionName', questionName)
-      .replace(':submissionUuid', targetSubmissionUuid)
-    hashHistory.push(newRoute)
+      .replace(':submissionUuid', targetSubmissionUuid);
+    hashHistory.push(newRoute);
   }
 
   goPrev() {
-    const prevUuid = this.getPrevSubmissionUuid()
+    const prevUuid = this.getPrevSubmissionUuid();
     if (prevUuid !== null) {
-      this.goToSubmission(this.props.questionName, prevUuid)
+      this.goToSubmission(this.props.questionName, prevUuid);
     }
   }
 
   goNext() {
-    const nextUuid = this.getNextSubmissionUuid()
+    const nextUuid = this.getNextSubmissionUuid();
     if (nextUuid !== null) {
-      this.goToSubmission(this.props.questionName, nextUuid)
+      this.goToSubmission(this.props.questionName, nextUuid);
     }
   }
 
@@ -132,11 +133,11 @@ export default class SingleProcessingHeader extends React.Component<
    * is not ready yet.
    */
   getCurrentSubmissionNumber(): number | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
     if (Array.isArray(uuids)) {
-      return uuids.indexOf(this.props.submissionUuid) + 1
+      return uuids.indexOf(this.props.submissionUuid) + 1;
     }
-    return null
+    return null;
   }
 
   /**
@@ -145,33 +146,33 @@ export default class SingleProcessingHeader extends React.Component<
    * found, simply returns `null`.
    */
   getPrevSubmissionUuid(): string | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
     if (!Array.isArray(uuids)) {
-      return null
+      return null;
     }
-    const currentIndex = uuids.indexOf(this.props.submissionUuid)
+    const currentIndex = uuids.indexOf(this.props.submissionUuid);
 
     // If not found current submissionUuid in the array,
     // we don't know what is next.
     if (currentIndex === -1) {
-      return null
+      return null;
     }
     // If on first element already, there is no previous.
     if (currentIndex === 0) {
-      return null
+      return null;
     }
 
     // Finds the closest non-`null` submissionUuid going backwards from
     // the current one.
-    const leftSubmissionsIds = uuids.slice(0, currentIndex)
-    let foundId: string | null = null
+    const leftSubmissionsIds = uuids.slice(0, currentIndex);
+    let foundId: string | null = null;
     leftSubmissionsIds.forEach((id) => {
       if (id !== null) {
-        foundId = id
+        foundId = id;
       }
-    })
+    });
 
-    return foundId
+    return foundId;
   }
 
   /**
@@ -180,39 +181,39 @@ export default class SingleProcessingHeader extends React.Component<
    * found, simply returns `null`.
    */
   getNextSubmissionUuid(): string | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
     if (!Array.isArray(uuids)) {
-      return null
+      return null;
     }
-    const currentIndex = uuids.indexOf(this.props.submissionUuid)
+    const currentIndex = uuids.indexOf(this.props.submissionUuid);
 
     // If not found current submissionUuid in the array,
     // we don't know what is next.
     if (currentIndex === -1) {
-      return null
+      return null;
     }
     // If on last element already, there is no next.
     if (currentIndex === uuids.length - 1) {
-      return null
+      return null;
     }
 
     // Finds the closest non-`null` submissionUuid going forwards from
     // the current one.
-    const rightSubmissionsIds = uuids.slice(currentIndex + 1)
-    let foundId: string | null = null
+    const rightSubmissionsIds = uuids.slice(currentIndex + 1);
+    let foundId: string | null = null;
     rightSubmissionsIds.find((id) => {
       if (id !== null) {
-        foundId = id
-        return true
+        foundId = id;
+        return true;
       }
-      return false
-    })
+      return false;
+    });
 
-    return foundId
+    return foundId;
   }
 
   render() {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
 
     return (
       <bem.SingleProcessingHeader>
@@ -271,6 +272,6 @@ export default class SingleProcessingHeader extends React.Component<
           />
         </bem.SingleProcessingHeader__column>
       </bem.SingleProcessingHeader>
-    )
+    );
   }
 }

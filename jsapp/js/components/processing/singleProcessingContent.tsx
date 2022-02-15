@@ -1,40 +1,35 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import {AnyRowTypeName} from 'js/constants'
-import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
-import TranscriptTabContent from 'js/components/processing/transcriptTabContent'
-import TranslationsTabContent from 'js/components/processing/translationsTabContent'
-import protectorHelpers from 'js/protector/protectorHelpers'
-import './singleProcessingContent.scss'
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import type {AnyRowTypeName} from 'js/constants';
+import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
+import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
+import TranslationsTabContent from 'js/components/processing/translationsTabContent';
+import protectorHelpers from 'js/protector/protectorHelpers';
+import './singleProcessingContent.scss';
 
-bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
-bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs', 'ul')
-bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li')
-bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section')
+bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section');
+bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs', 'ul');
+bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li');
+bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section');
 
-type SingleProcessingContentProps = {
-  questionType: AnyRowTypeName | undefined
+interface SingleProcessingContentProps {
+  questionType: AnyRowTypeName | undefined;
 }
 
 /** This component is handling the tabs for switching the content. */
 export default class SingleProcessingContent extends React.Component<
-  SingleProcessingContentProps,
-  {}
+  SingleProcessingContentProps
 > {
-  private unlisteners: Function[] = []
-
-  constructor(props: SingleProcessingContentProps) {
-    super(props)
-  }
+  private unlisteners: Array<() => void> = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   onSingleProcessingStoreChange() {
@@ -42,16 +37,16 @@ export default class SingleProcessingContent extends React.Component<
      * Don't want to store a duplicate of `activeTab` here, so we need to make
      * the component re-render itself when the store changes :shrug:.
      */
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   /** DRY wrapper for protector function. */
-  safeExecute(callback: Function) {
-    protectorHelpers.safeExecute(singleProcessingStore.hasAnyUnsavedWork(), callback)
+  safeExecute(callback: () => void) {
+    protectorHelpers.safeExecute(singleProcessingStore.hasAnyUnsavedWork(), callback);
   }
 
   activateTab(tabName: SingleProcessingTabs) {
-    singleProcessingStore.activateTab(tabName)
+    singleProcessingStore.activateTab(tabName);
   }
 
   renderTabContent() {
@@ -61,13 +56,13 @@ export default class SingleProcessingContent extends React.Component<
           <TranscriptTabContent
             questionType={this.props.questionType}
           />
-        )
+        );
       case SingleProcessingTabs.Translations:
-        return <TranslationsTabContent/>
+        return <TranslationsTabContent/>;
       case SingleProcessingTabs.Analysis:
-        return 'TODO analysis tab content'
+        return 'TODO analysis tab content';
       default:
-        return null
+        return null;
     }
   }
 
@@ -104,6 +99,6 @@ export default class SingleProcessingContent extends React.Component<
           {this.renderTabContent()}
         </bem.SingleProcessingContent__body>
       </bem.SingleProcessingContent>
-    )
+    );
   }
 }
