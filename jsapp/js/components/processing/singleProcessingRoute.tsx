@@ -27,7 +27,7 @@ type SingleProcessingRouteProps = RouteComponentProps<{
   uid: string;
   questionName: string;
   submissionUuid: string;
-}, {}>;
+}>;
 
 interface SingleProcessingRouteState {
   asset: AssetResponse | undefined;
@@ -93,10 +93,7 @@ export default class SingleProcessingRoute extends React.Component<
   /** Whether the question and submission uuid pair make sense for processing. */
   isDataValid() {
     const uuids = singleProcessingStore.getSubmissionsUuids();
-    const hasSubmissionAnyProcessableData = (
-      uuids &&
-      uuids[this.props.params.questionName]?.includes(this.props.params.submissionUuid)
-    );
+    const hasSubmissionAnyProcessableData = uuids?.[this.props.params.questionName]?.includes(this.props.params.submissionUuid);
 
     return (
       // To prepare UI for questions that are not processing-enabled.
