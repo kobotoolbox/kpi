@@ -92,7 +92,7 @@
   }
 }
 
-// HACK FIX: the following forces size of content to 510px for consistency of
+// HACK FIX: the following forces size of `mfa-modal__body` to 560px for consistency of
 // footer buttons
 // FIXME: Due to how modals are created, the footer is part of
 // `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
@@ -101,6 +101,7 @@
     padding-bottom: 74px;
   }
 }
+
 .mfa-modal__manualstep {
   .mfa-modal__codes {
     margin-top: 37px;
@@ -116,18 +117,34 @@
 
 .mfa-modal__disclaimerstep {
   .mfa-modal__body {
-    margin-bottom: 150px;
+    margin-bottom: 318px;
   }
 }
 
 .mfa-modal__disclaimerstep--regenerate {
   .mfa-modal__body {
-    margin-bottom: 260px;
+    margin-bottom: 448px;
   }
 }
 
 .mfa-modal__tokenstep {
   .text-box__input {
-    margin: 112px 0 !important;
+    margin-top: 112px !important;
+    margin-bottom: 300px !important;
+  }
+}
+
+// Adjust hard coded padding for small screens
+@media screen and (max-height: 800px) {
+  .mfa-modal__disclaimerstep .mfa-modal__disclaimerstep--regenerate{
+    .mfa-modal__body {
+      margin-bottom: 100px;
+    }
+  }
+
+  .mfa-modal__tokenstep {
+    .text-box__input {
+      margin: 100px 0 !important;
+    }
   }
 }

@@ -331,7 +331,7 @@ export default class MFAModals extends React.Component<
               color='blue'
               size='l'
               isFullWidth={true}
-              label={t('Finish')}
+              label={t('I saved my codes')}
               onClick={this.closeModal.bind(this)}
               isDisabled={!this.state.downloadClicked}
             />
