@@ -9,7 +9,7 @@ from google.api_core.exceptions import InvalidArgument
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import translate_v3 as translate, storage
 
-from .translate import TranslationEngineBase, TranslationException
+from ..misc import TranslationEngineBase, TranslationException
 
 
 BUCKET_NAME = 'kobo-translations-test-qwerty12345'
@@ -52,8 +52,8 @@ class GoogleTranslationEngine(TranslationEngineBase):
         return [lang.language_code for lang in response.languages]
 
     def translate(self, content: str, *args: List, **kwargs: Dict) -> str:
-         if len(content) < MAX_SYNC_CHARS:
-            return self._translate_sync(content, *args, **kwargs)
+        #if len(content) < MAX_SYNC_CHARS:
+        #   return self._translate_sync(content, *args, **kwargs)
         return self._translate_async(content, *args, **kwargs)
 
     def _cleanup(self) -> None:
@@ -72,8 +72,6 @@ class GoogleTranslationEngine(TranslationEngineBase):
         return self.bucket.get_blob(self.output_filename).download_as_text()
 
     def callback(self, future: 'google.api_core.operation_async.AsyncOperation') -> None:
-        # Not sure if this is necessary
-        self.result = await future.result()
         # Do something with the result
         with open('/tmp/result.txt', 'w') as f:
             f.write(self._get_content())
