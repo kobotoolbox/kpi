@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as t
 from django_digest import HttpDigestAuthenticator
 from rest_framework.authentication import (
     BaseAuthentication,
@@ -53,7 +53,7 @@ class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
 
             return request.user, None
         else:
-            raise AuthenticationFailed(_('Invalid username/password'))
+            raise AuthenticationFailed(t('Invalid username/password'))
 
     def authenticate_header(self, request):
         response = self.build_challenge_response()
