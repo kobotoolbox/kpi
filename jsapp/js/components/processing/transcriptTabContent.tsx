@@ -16,8 +16,7 @@ interface TranscriptTabContentProps {
 }
 
 export default class TranscriptTabContent extends React.Component<
-  TranscriptTabContentProps,
-  {}
+  TranscriptTabContentProps
 > {
   private unlisteners: Function[] = [];
 

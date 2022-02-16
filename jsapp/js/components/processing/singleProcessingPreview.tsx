@@ -11,7 +11,7 @@ bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'sectio
 
 /** This component is handling the tabs for switching the content. */
 export default class SingleProcessingPreview extends React.Component {
-  private unlisteners: Array<() => void> = [];
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(

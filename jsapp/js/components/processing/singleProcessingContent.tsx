@@ -20,7 +20,7 @@ interface SingleProcessingContentProps {
 export default class SingleProcessingContent extends React.Component<
   SingleProcessingContentProps
 > {
-  private unlisteners: Array<() => void> = [];
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(

@@ -75,7 +75,7 @@ class SingleProcessingStore extends Reflux.Store {
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
-  private abortFetchData: () => undefined | void;
+  private abortFetchData?: Function;
   private previousPath: string | undefined;
   // For the store to work we need all three: asset, submission, and uuids. The
   // (ability to fetch) processing data is being unlocked by having'em all.
@@ -233,11 +233,9 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       this.fetchProcessingData();
       this.fetchSubmissionData();
-    }
-
-    // Case 2: switching into processing route out of other place (most
-    // probably from assets data table route).
-    else if (
+    } else if (
+      // Case 2: switching into processing route out of other place (most
+      // probably from assets data table route).
       this.previousPath !== data.pathname &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
@@ -354,7 +352,7 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  private onFetchProcessingDataStarted(abort: Function) {
+  private onFetchProcessingDataStarted(abort: () => void) {
     this.abortFetchData = abort;
     this.isFetchingData = true;
     this.trigger(this.data);
@@ -622,8 +620,7 @@ class SingleProcessingStore extends Reflux.Store {
   hasUnsavedTranscriptDraftValue() {
     const draft = this.getTranscriptDraft();
     return (
-      draft !== undefined &&
-      draft.value !== undefined &&
+      draft?.value !== undefined &&
       draft.value !== this.getTranscript()?.value
     );
   }
@@ -631,8 +628,7 @@ class SingleProcessingStore extends Reflux.Store {
   hasUnsavedTranslationDraftValue() {
     const draft = this.getTranslationDraft();
     return (
-      draft !== undefined &&
-      draft.value !== undefined &&
+      draft?.value !== undefined &&
       draft.value !== this.getTranslation(draft?.languageCode)?.value
     );
   }

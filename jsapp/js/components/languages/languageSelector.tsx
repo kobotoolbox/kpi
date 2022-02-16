@@ -1,60 +1,61 @@
-import React from 'react'
-import Fuse from 'fuse.js'
-import bem, {makeBem} from 'js/bem'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import envStore, {EnvStoreDataItem} from 'js/envStore'
-import {FUSE_OPTIONS} from 'js/constants'
+import React from 'react';
+import Fuse from 'fuse.js';
+import bem, {makeBem} from 'js/bem';
+import Icon from 'js/components/common/icon';
+import Button from 'js/components/common/button';
+import type {EnvStoreDataItem} from 'js/envStore';
+import envStore from 'js/envStore';
+import {FUSE_OPTIONS} from 'js/constants';
 import languageSelectorActions from './languageSelectorActions';
-import './languageSelector.scss'
+import './languageSelector.scss';
 
-bem.LanguageSelector = makeBem(null, 'language-selector', 'section')
-bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1')
-bem.LanguageSelector__line = makeBem(bem.LanguageSelector, 'line', 'hr')
-bem.LanguageSelector__source = makeBem(bem.LanguageSelector, 'source')
-bem.LanguageSelector__sourceLanguage = makeBem(bem.LanguageSelector, 'source-language')
-bem.LanguageSelector__sourceLabel = makeBem(bem.LanguageSelector, 'source-label', 'label')
-bem.LanguageSelector__searchBoxRow = makeBem(bem.LanguageSelector, 'search-box-row')
-bem.LanguageSelector__searchBoxWrapper = makeBem(bem.LanguageSelector, 'search-box-wrapper')
-bem.LanguageSelector__searchBox = makeBem(bem.LanguageSelector, 'search-box')
-bem.LanguageSelector__searchBoxLabel = makeBem(bem.LanguageSelector, 'search-box-label', 'label')
-bem.LanguageSelector__searchBoxInput = makeBem(bem.LanguageSelector, 'search-box-input', 'input')
-bem.LanguageSelector__clearSearchBox = makeBem(bem.LanguageSelector, 'clear-search-box', 'button')
-bem.LanguageSelector__selectedLanguage = makeBem(bem.LanguageSelector, 'selected-language')
-bem.LanguageSelector__selectedLanguageLabel = makeBem(bem.LanguageSelector, 'selected-language-label')
-bem.LanguageSelector__clearSelectedLanguage = makeBem(bem.LanguageSelector, 'clear-selected-language', 'button')
-bem.LanguageSelector__list = makeBem(bem.LanguageSelector, 'list', 'ol')
-bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'li')
-bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'footer')
+bem.LanguageSelector = makeBem(null, 'language-selector', 'section');
+bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1');
+bem.LanguageSelector__line = makeBem(bem.LanguageSelector, 'line', 'hr');
+bem.LanguageSelector__source = makeBem(bem.LanguageSelector, 'source');
+bem.LanguageSelector__sourceLanguage = makeBem(bem.LanguageSelector, 'source-language');
+bem.LanguageSelector__sourceLabel = makeBem(bem.LanguageSelector, 'source-label', 'label');
+bem.LanguageSelector__searchBoxRow = makeBem(bem.LanguageSelector, 'search-box-row');
+bem.LanguageSelector__searchBoxWrapper = makeBem(bem.LanguageSelector, 'search-box-wrapper');
+bem.LanguageSelector__searchBox = makeBem(bem.LanguageSelector, 'search-box');
+bem.LanguageSelector__searchBoxLabel = makeBem(bem.LanguageSelector, 'search-box-label', 'label');
+bem.LanguageSelector__searchBoxInput = makeBem(bem.LanguageSelector, 'search-box-input', 'input');
+bem.LanguageSelector__clearSearchBox = makeBem(bem.LanguageSelector, 'clear-search-box', 'button');
+bem.LanguageSelector__selectedLanguage = makeBem(bem.LanguageSelector, 'selected-language');
+bem.LanguageSelector__selectedLanguageLabel = makeBem(bem.LanguageSelector, 'selected-language-label');
+bem.LanguageSelector__clearSelectedLanguage = makeBem(bem.LanguageSelector, 'clear-selected-language', 'button');
+bem.LanguageSelector__list = makeBem(bem.LanguageSelector, 'list', 'ol');
+bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'li');
+bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'footer');
 
 const LANGUAGE_SELECTOR_SUPPORT_URL = 'TODO.html';
 
-type LanguageSelectorProps = {
+interface LanguageSelectorProps {
   /** Replaces the title on top. */
-  titleOverride?: string
+  titleOverride?: string;
   /** Jumpstarts the selector with a pre-selected language. */
-  preselectedLanguage?: string
+  preselectedLanguage?: string;
   /**
    * Useful for translations (adds some UI). Also the source language is
    * not selectable from the list.
    */
-  sourceLanguage?: string
+  sourceLanguage?: string;
   /**
    * A list of languages that should be displayed in front of other languages.
    * Most possibly these languages were already chosen for other parts of given
    * feature or can be found in existing data.
    */
-  suggestedLanguages?: string[]
+  suggestedLanguages?: string[];
   /** A list of languages that should be omitted from display. */
-  hiddenLanguages?: string[]
+  hiddenLanguages?: string[];
   /** Triggered after language is selected or cleared. */
-  onLanguageChange: (selectedLanguage: string | undefined) => void
+  onLanguageChange: (selectedLanguage: string | undefined) => void;
 }
 
-type LanguageSelectorState = {
-  filterPhrase: string
-  selectedLanguage?: string
-  allLanguages: EnvStoreDataItem[]
+interface LanguageSelectorState {
+  filterPhrase: string;
+  selectedLanguage?: string;
+  allLanguages: EnvStoreDataItem[];
 }
 
 /**
@@ -64,26 +65,26 @@ class LanguageSelector extends React.Component<
   LanguageSelectorProps,
   LanguageSelectorState
 > {
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   constructor(props: LanguageSelectorProps){
-    super(props)
+    super(props);
     this.state = {
       filterPhrase: '',
       selectedLanguage: props.preselectedLanguage,
-      allLanguages: envStore.getLanguages()
-    }
+      allLanguages: envStore.getLanguages(),
+    };
   }
 
   componentDidMount() {
     this.unlisteners.push(
       envStore.listen(this.onEnvStoreChange.bind(this), this),
       languageSelectorActions.resetAll.requested.listen(this.clearSelectedLanguage.bind(this))
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /**
@@ -91,15 +92,15 @@ class LanguageSelector extends React.Component<
    * gets its languages.
    */
   onEnvStoreChange() {
-    this.setState({allLanguages: envStore.getLanguages()})
+    this.setState({allLanguages: envStore.getLanguages()});
   }
 
   notifyParentComponent() {
-    this.props.onLanguageChange(this.state.selectedLanguage)
+    this.props.onLanguageChange(this.state.selectedLanguage);
   }
 
   openSupportPage() {
-    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank')
+    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank');
   }
 
   isCustomLanguageVisible() {
@@ -111,81 +112,78 @@ class LanguageSelector extends React.Component<
       envStore.getLanguage(this.state.filterPhrase) === undefined &&
       // the typed thing is not a known language label
       envStore.getLanguageByName(this.state.filterPhrase) === undefined
-    )
+    );
   }
 
   onFilterPhraseChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({filterPhrase: evt.target.value})
+    this.setState({filterPhrase: evt.target.value});
   }
 
   clearFilterPhrase() {
-    this.setState({filterPhrase: ''})
+    this.setState({filterPhrase: ''});
   }
 
   selectLanguage(code: string) {
     this.setState({
       selectedLanguage: code,
-      filterPhrase: ''
-    }, this.notifyParentComponent.bind(this))
+      filterPhrase: '',
+    }, this.notifyParentComponent.bind(this));
   }
 
   clearSelectedLanguage() {
-    this.setState({selectedLanguage: undefined}, this.notifyParentComponent.bind(this))
+    this.setState({selectedLanguage: undefined}, this.notifyParentComponent.bind(this));
   }
-
 
 
   /** Return two lists of languages. */
   getFilteredLanguages(): {
-    suggested: Fuse.FuseResult<EnvStoreDataItem>[] | EnvStoreDataItem[]
-    other: Fuse.FuseResult<EnvStoreDataItem>[] | EnvStoreDataItem[]
+    suggested: Array<Fuse.FuseResult<EnvStoreDataItem>> | EnvStoreDataItem[];
+    other: Array<Fuse.FuseResult<EnvStoreDataItem>> | EnvStoreDataItem[];
   } {
-    let hiddenLanguages = this.props.hiddenLanguages || []
-    let suggestedLanguages = this.props.suggestedLanguages || []
+    const hiddenLanguages = this.props.hiddenLanguages || [];
+    const suggestedLanguages = this.props.suggestedLanguages || [];
 
     // Filter out the source language and hidden languages first. They should
     // not be displayed to user.
-    const visible = [...this.state.allLanguages].filter((language) => {
-      return (
+    const visible = [...this.state.allLanguages].filter((language) => (
         language.value !== this.props.sourceLanguage &&
         !hiddenLanguages.includes(language.value)
-      )
-    })
+      ));
 
     // Split languages into suggested and the rest.
-    const suggested = [...visible].filter((language) => suggestedLanguages.includes(language.value))
-    const fuseSuggested = new Fuse(suggested, {...FUSE_OPTIONS, keys: ['value', 'label']})
+    const suggested = [...visible].filter((language) => suggestedLanguages.includes(language.value));
+    const fuseSuggested = new Fuse(suggested, {...FUSE_OPTIONS, keys: ['value', 'label']});
 
-    const other = [...visible].filter((language) => !suggestedLanguages.includes(language.value))
-    const fuseOther = new Fuse(other, {...FUSE_OPTIONS, keys: ['value', 'label']})
+    const other = [...visible].filter((language) => !suggestedLanguages.includes(language.value));
+    const fuseOther = new Fuse(other, {...FUSE_OPTIONS, keys: ['value', 'label']});
 
     if (this.state.filterPhrase !== '') {
       return {
         suggested: fuseSuggested.search(this.state.filterPhrase),
-        other: fuseOther.search(this.state.filterPhrase)
-      }
+        other: fuseOther.search(this.state.filterPhrase),
+      };
     }
     return {
       suggested,
-      other
-    }
+      other,
+    };
   }
 
   renderLanguageItem(
     languageObj: EnvStoreDataItem | Fuse.FuseResult<EnvStoreDataItem>
   ) {
-    let value
-    let label
+    let value;
+    let label;
     if ('value' in languageObj) {
-      value = languageObj.value
-      label = languageObj.label
+      value = languageObj.value;
+      label = languageObj.label;
     } else if ('item' in languageObj) {
-      value = languageObj.item.value
-      label = languageObj.item.label
+      value = languageObj.item.value;
+      label = languageObj.item.label;
     }
 
     if (!value) {
-      return null
+      return null;
     }
 
     return (
@@ -198,12 +196,12 @@ class LanguageSelector extends React.Component<
           onClick={this.selectLanguage.bind(this, value)}
         />
       </li>
-    )
+    );
   }
 
   renderSelectedLanguage() {
     if (!this.state.selectedLanguage) {
-      return null
+      return null;
     }
 
     return (
@@ -220,12 +218,12 @@ class LanguageSelector extends React.Component<
           <Icon name='close' size='s'/>
         </bem.LanguageSelector__clearSelectedLanguage>
       </bem.LanguageSelector__selectedLanguage>
-    )
+    );
   }
 
   renderSourceLanguage() {
     if (!this.props.sourceLanguage) {
-      return null
+      return null;
     }
 
     return (
@@ -239,7 +237,7 @@ class LanguageSelector extends React.Component<
           <span>{envStore.getLanguageDisplayLabel(this.props.sourceLanguage)}</span>
         </bem.LanguageSelector__sourceLanguage>
       </bem.LanguageSelector__source>
-    )
+    );
   }
 
   renderSearchBox() {
@@ -269,14 +267,14 @@ class LanguageSelector extends React.Component<
           }
         </bem.LanguageSelector__searchBox>
       </bem.LanguageSelector__searchBoxWrapper>
-    )
+    );
   }
 
   renderSuggestedLanguages() {
-    const filteredLanguages = this.getFilteredLanguages()
+    const filteredLanguages = this.getFilteredLanguages();
 
     if (filteredLanguages.suggested.length === 0) {
-      return null
+      return null;
     }
 
     return (
@@ -284,11 +282,11 @@ class LanguageSelector extends React.Component<
         {filteredLanguages.suggested.map(this.renderLanguageItem.bind(this))}
         <bem.LanguageSelector__line/>
       </React.Fragment>
-    )
+    );
   }
 
   renderSearchForm() {
-    const filteredLanguages = this.getFilteredLanguages()
+    const filteredLanguages = this.getFilteredLanguages();
 
     return (
       <React.Fragment>
@@ -343,7 +341,7 @@ class LanguageSelector extends React.Component<
           />
         </bem.LanguageSelector__helpBar>
       </React.Fragment>
-    )
+    );
   }
 
   render() {
@@ -357,8 +355,8 @@ class LanguageSelector extends React.Component<
 
         {!this.state.selectedLanguage && this.renderSearchForm() }
       </bem.LanguageSelector>
-    )
+    );
   }
 }
 
-export default LanguageSelector
+export default LanguageSelector;

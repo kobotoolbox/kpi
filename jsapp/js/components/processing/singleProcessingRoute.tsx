@@ -15,7 +15,6 @@ import SingleProcessingPreview from 'js/components/processing/singleProcessingPr
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import WorkProtector from 'js/protector/workProtector';
 import './singleProcessing.scss';
-import type AssetResponse from 'js/dataInterface';
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
 bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
@@ -27,7 +26,7 @@ type SingleProcessingRouteProps = RouteComponentProps<{
   uid: string;
   questionName: string;
   submissionUuid: string;
-}>;
+}, unknown>;
 
 interface SingleProcessingRouteState {
   asset: AssetResponse | undefined;
@@ -48,7 +47,7 @@ export default class SingleProcessingRoute extends React.Component<
     };
   }
 
-  private unlisteners: Array<() => void> = [];
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(

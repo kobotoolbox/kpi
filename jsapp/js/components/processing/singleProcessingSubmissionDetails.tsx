@@ -1,7 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import type {
-  AnyRowTypeName} from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
@@ -41,10 +40,6 @@ interface SingleProcessingSubmissionDetailsProps {
 export default class SingleProcessingSubmissionDetails extends React.Component<
   SingleProcessingSubmissionDetailsProps
 > {
-  constructor(props: SingleProcessingSubmissionDetailsProps) {
-    super(props);
-  }
-
   private unlisteners: Function[] = [];
 
   componentDidMount() {

@@ -13,7 +13,6 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import './singleProcessingHeader.scss';
-import type {AssetContent} from 'js/dataInterface';
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header');
 bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section');
@@ -36,7 +35,7 @@ interface SingleProcessingHeaderProps {
 export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps
 > {
-  private unlisteners: Array<() => void> = [];
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(

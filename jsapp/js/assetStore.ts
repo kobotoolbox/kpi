@@ -5,7 +5,7 @@ import {actions} from './actions';
 export interface AssetStoreData {[uid: string]: AssetResponse}
 
 interface WhenLoadedListeners {
-  [assetUid: string]: Array<() => void>;
+  [assetUid: string]: Array<(foundAsset: AssetResponse) => void>;
 }
 
 /**
@@ -23,7 +23,7 @@ class AssetStore extends Reflux.Store {
   }
 
   onDeleteAssetCompleted(resp: AssetResponse) {
-    this.data[resp.uid] = undefined;
+    delete this.data[resp.uid];
     this.trigger(this.data);
   }
 
@@ -54,7 +54,7 @@ class AssetStore extends Reflux.Store {
    * `stores.allAssets.whenLoaded`, but is a bit broken due to how `allAssets`
    * was written (plus not typed).
    */
-  whenLoaded(assetUid: string, callback: () => void) {
+  whenLoaded(assetUid: string, callback: (foundAsset: AssetResponse) => void) {
     const foundAsset = this.getAsset(assetUid);
     if (foundAsset) {
       callback(foundAsset);

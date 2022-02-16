@@ -6,7 +6,6 @@ import {
   getAssetAdvancedFeatures,
   getAssetProcessingUrl,
 } from 'js/assetUtils';
-import type {AssetAdvancedFeatures} from 'js/dataInterface';
 
 const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!');
 
