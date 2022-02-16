@@ -5,7 +5,7 @@ from django.utils.http import urlencode
 from rest_framework import status
 from trench.utils import get_mfa_model
 
-from .kpi_test_case import KpiTestCase
+from kpi.tests.kpi_test_case import KpiTestCase
 
 
 class LoginTests(KpiTestCase):
@@ -38,7 +38,7 @@ class LoginTests(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            'Insert your MFA code'
+            'Please enter your verification token'
             in response.content.decode()
         )
 
@@ -55,7 +55,7 @@ class LoginTests(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            'Insert your MFA code'
+            'Please enter your verification token'
             in response.content.decode()
         )
 

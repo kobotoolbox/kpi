@@ -6,20 +6,16 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from taggit.models import Tag
-from trench.utils import get_mfa_model
 
 from kobo.apps.hook.models.hook import Hook
 from kobo.celery import update_concurrency_from_constance
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
-    KobocatUserProfile,
 )
 from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
 from kpi.models import Asset, TagUid
 from kpi.utils.permissions import grant_default_model_level_perms
-
-MFAMethod = get_mfa_model()
 
 
 @receiver(config_updated)
@@ -118,26 +114,3 @@ def post_delete_asset(sender, instance, **kwargs):
     else:
         if parent:
             parent.update_languages()
-
-
-@receiver(post_save, sender=MFAMethod)
-def post_save_mfa_model(instance, created, **kwargs):
-    """
-    Update user's profile in KoBoCAT database.
-    """
-    if not settings.TESTING:
-        if not created:
-            KobocatUserProfile.set_mfa_status(
-                user_id=instance.user.pk, is_active=instance.is_active
-            )
-
-
-@receiver(post_delete, sender=MFAMethod)
-def post_delete_mfa_model(instance, **kwargs):
-    """
-    Update user's profile in KoBoCAT database.
-    """
-    if not settings.TESTING:
-        KobocatUserProfile.set_mfa_status(
-            user_id=instance.user.pk, is_active=False
-        )
