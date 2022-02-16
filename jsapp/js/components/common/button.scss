@@ -86,6 +86,13 @@ $button-border-radius: sizes.$x6;
   &.k-button--has-label {
     padding-left: $height * 0.4;
     padding-right: $height * 0.4;
+
+    .k-button__label {
+      // For long labels, to avoid squashed button when the text wraps into
+      // multiple lines
+      margin-top: $height * 0.2;
+      margin-bottom: $height * 0.2;
+    }
   }
 
   &.k-button--has-start-icon.k-button--has-label {
@@ -149,9 +156,7 @@ $button-border-radius: sizes.$x6;
 
 .k-button__label {
   cursor: inherit;
-  line-height: inherit;
-  display: inline-block;
-  vertical-align: top;
+  line-height: 1;
 }
 
 .k-button.k-button--has-start-icon:not(.k-button--has-label),
