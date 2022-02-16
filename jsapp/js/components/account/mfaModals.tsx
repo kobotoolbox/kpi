@@ -27,7 +27,7 @@ bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
 bem.MFAModals__manual__link = makeBem(bem.MFAModals__token, 'manual__link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
-bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'item', 'ul')
+bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'list', 'ul')
 bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
@@ -290,7 +290,9 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModals__backupstep>
         <bem.MFAModals__description>
-          {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
+          <p>
+            {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
+          </p>
         </bem.MFAModals__description>
 
         <bem.MFAModals__body>
@@ -329,7 +331,7 @@ export default class MFAModals extends React.Component<
               color='blue'
               size='l'
               isFullWidth={true}
-              label={t('I have saved my recovery codes')}
+              label={t('Finish')}
               onClick={this.closeModal.bind(this)}
               isDisabled={!this.state.downloadClicked}
             />

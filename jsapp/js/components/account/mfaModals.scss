@@ -59,6 +59,14 @@
   border-radius: 5px;
   padding: sizes.$x12;
   line-break: anywhere;
+
+  .mfa-modal__list {
+    padding-top: sizes.$x24;
+
+    > li {
+      padding-bottom: sizes.$x24;
+    }
+  }
 }
 
 .mfa-modal__footer {
@@ -102,7 +110,7 @@
 
 .mfa-modal__backupstep {
   .mfa-modal__codes {
-    margin: 57px 0;
+    margin: 64px 0;
   }
 }
 
