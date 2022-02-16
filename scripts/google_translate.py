@@ -23,7 +23,7 @@ MAX_SYNC_CHARS = 30720
 PROJECT_ID = 'kobo-nlp-asr-mt'
 SOURCE_BASENAME = 'source'
 TIMEOUT = 360
-COST = 20/1000000 # https://cloud.google.com/translate/pricing
+COST = 20 / 1000000  # https://cloud.google.com/translate/pricing
 
 
 class TranslationException(Exception):
@@ -57,6 +57,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
         self.parent_async = f'projects/{PROJECT_ID}/locations/{LOCATION}'
         self.storage_client = storage.Client()
         self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
+        self.state = 'BARDO'
         self.cost = 0
 
     def get_languages(
@@ -73,12 +74,14 @@ class GoogleTranslationEngine(TranslationEngineBase):
         return [lang.language_code for lang in response.languages]
 
     def translate(self, content: str, *args: List, **kwargs: Dict) -> str:
-        if len(content) < MAX_SYNC_CHARS:
-            return self._translate_sync(content, *args, **kwargs)
+        # if len(content) < MAX_SYNC_CHARS:
+        #    return self._translate_sync(content, *args, **kwargs)
         return self._translate_async(content, *args, **kwargs)
 
-    def _cleanup(self, username: str, _uuid: str) -> None:
-        for blob in self.bucket.list_blobs(prefix=f'{username}/{_uuid}'):
+    def _cleanup(self) -> None:
+        for blob in self.bucket.list_blobs(
+            prefix=f'{self.username}/{self._uuid}'
+        ):
             try:
                 blob.delete()
             except Exception as e:
@@ -87,10 +90,15 @@ class GoogleTranslationEngine(TranslationEngineBase):
     def _calculate_cost(self, chars: int) -> None:
         self.cost = COST * chars
 
-    def _get_content(self, path: str) -> str:
-        # Wait for job to complete
-        self._wait_for_result()
-        return self.bucket.get_blob(path).download_as_text()
+    def _get_content(self) -> str:
+        return self.bucket.get_blob(self.output_filename).download_as_text()
+
+    def callback(self, future):
+        # Do something with the result
+        with open('/tmp/result.txt', 'w') as f:
+            f.write(self._get_content())
+        self.state = 'SUCCEEDED'
+        self._cleanup()
 
     def _get_output_filename(self, output_path: str) -> str:
         username, _uuid, target_lang, _ = output_path.split('/')
@@ -118,6 +126,9 @@ class GoogleTranslationEngine(TranslationEngineBase):
         source_lang: str,
         target_lang: str,
     ) -> str:
+        self.username = username
+        self._uuid = _uuid
+
         source_path = f'{username}/{_uuid}/{SOURCE_BASENAME}{EXTENSION}'
         output_path = f'{username}/{_uuid}/{target_lang}/'
 
@@ -128,7 +139,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
 
         input_uri = f'{self.uri_base}/{source_path}'
         output_uri = f'{self.uri_base}/{output_path}'
-        output_filename = self._get_output_filename(output_path)
+        self.output_filename = self._get_output_filename(output_path)
 
         input_configs_element = {
             'gcs_source': {'input_uri': input_uri},
@@ -136,6 +147,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
         }
         output_config = {'gcs_destination': {'output_uri_prefix': output_uri}}
 
+        self._calculate_cost(chars=len(content))
         self.operation = self.client.batch_translate_text(
             request={
                 'parent': self.parent_async,
@@ -146,15 +158,8 @@ class GoogleTranslationEngine(TranslationEngineBase):
                 'labels': {'user': username},
             }
         )
-
-        self._calculate_cost(chars=len(content))
-
-        translated_content = self._get_content(output_filename)
-
-        # Remove created files from GCP
-        self._cleanup(username, _uuid)
-
-        return translated_content
+        self.operation.add_done_callback(self.callback)
+        self.state = 'RUNNING'
 
     def _translate_sync(
         self,
@@ -290,4 +295,7 @@ def run(*args):
     }
     engine._calculate_cost(len(args[0]))
     print(f'Total cost: ${engine.cost}')
-    print(engine.translate(**options))
+    engine.translate(**options)
+
+    # Keep the script running so that callback be called
+    sleep(1000)
