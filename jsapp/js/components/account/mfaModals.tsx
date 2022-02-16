@@ -25,10 +25,12 @@ bem.MFAModals__body = makeBem(bem.MFAModals, 'body')
 bem.MFAModals__qr = makeBem(bem.MFAModals, 'qr')
 bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
-bem.MFAModals__manual__link = makeBem(bem.MFAModals__token, 'manual__link', 'a')
+bem.MFAModals__manual__link = makeBem(bem.MFAModals__manual, 'manual__link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
 bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'list', 'ul')
 bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
+bem.MFAModals__help = makeBem(bem.MFAModals, 'help')
+bem.MFAModals__help__link = makeBem(bem.MFAModals__help, 'help')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
 bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
@@ -138,10 +140,15 @@ export default class MFAModals extends React.Component<
 
   getSecretKey(): string {
     // We expect backend to not change the way the secret key is returned
-    return (
-      this.props?.qrCode?.split('=')[1].split('&')[0] ||
-      t('Could not generate secret key')
-    )
+    const keyFromBackend = this.props.qrCode || this.state.qrCode
+
+    if (keyFromBackend) {
+      return (
+        keyFromBackend.split('=')[1].split('&')[0]
+      )
+    } else {
+      return (t('Could not generate secret key'))
+    }
   }
 
   getInitalModalStep(): modalSteps {
