@@ -142,9 +142,6 @@ class SingleProcessingStore extends Reflux.Store {
     // processing endpoint url from asset JSON). We try to startup store
     // immediately and also listen to asset loads.
     this.startupStore();
-
-    // This comes back with data after `processingActions.activateAsset` call.
-    assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this));
   }
 
   /** This is making sure the asset processing features are activated. */
@@ -185,7 +182,15 @@ class SingleProcessingStore extends Reflux.Store {
         this.currentSubmissionUuid,
       )
     ) {
-      this.fetchAllInitialDataForAsset();
+      const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
+      if (isAssetLoaded) {
+        this.fetchAllInitialDataForAsset();
+      } else {
+        // This would happen when user is opening the processing URL directly,
+        // thus asset might not be loaded yet. We need to wait for it and try
+        // starting up again (through `onAssetLoad`).
+        assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this));
+      }
     }
   }
 
