@@ -50,6 +50,8 @@ interface LanguageSelectorProps {
   hiddenLanguages?: string[];
   /** Triggered after language is selected or cleared. */
   onLanguageChange: (selectedLanguage: string | undefined) => void;
+  /** Enables custom language feature. Disabled by default. */
+  isCustomAllowed?: boolean;
 }
 
 interface LanguageSelectorState {
@@ -315,7 +317,7 @@ class LanguageSelector extends React.Component<
             filteredLanguages.other.map(this.renderLanguageItem.bind(this))
           }
 
-          {this.isCustomLanguageVisible() &&
+          {this.props.isCustomAllowed && this.isCustomLanguageVisible() &&
             <li key='custom'>
               <Button
                 type='bare'

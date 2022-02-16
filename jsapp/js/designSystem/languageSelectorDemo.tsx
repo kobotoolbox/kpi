@@ -1,32 +1,38 @@
-import React from 'react'
+import React from 'react';
 import bem from 'js/bem';
-import Checkbox from 'js/components/common/checkbox'
-import LanguageSelector from 'js/components/languages/languageSelector'
+import Checkbox from 'js/components/common/checkbox';
+import LanguageSelector from 'js/components/languages/languageSelector';
 
-type LanguageSelectorDemoState = {
-  demoHasSourceLanguage: boolean
-  demoHasSuggestedLanguages: boolean
+interface LanguageSelectorDemoState {
+  demoHasSourceLanguage: boolean;
+  demoHasSuggestedLanguages: boolean;
+  demoIsCustomAllowed: boolean;
 }
 
 export default class LanguageSelectorDemo extends React.Component<{}, LanguageSelectorDemoState> {
   constructor(props: {}) {
-    super(props)
+    super(props);
     this.state = {
       demoHasSourceLanguage: false,
-      demoHasSuggestedLanguages: false
-    }
+      demoHasSuggestedLanguages: false,
+      demoIsCustomAllowed: false,
+    };
   }
 
   onLanguageChange(selectedLanguage: string | undefined) {
-    console.log('language change', selectedLanguage)
+    console.log('language change', selectedLanguage);
   }
 
   onHasSourceLanguageChange(isChecked: boolean) {
-    this.setState({demoHasSourceLanguage: isChecked})
+    this.setState({demoHasSourceLanguage: isChecked});
   }
 
   onHasSuggestedLanguagesChange(isChecked: boolean) {
-    this.setState({demoHasSuggestedLanguages: isChecked})
+    this.setState({demoHasSuggestedLanguages: isChecked});
+  }
+
+  onIsCustomAllowedChange(isChecked: boolean) {
+    this.setState({demoIsCustomAllowed: isChecked});
   }
 
   render() {
@@ -66,6 +72,16 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                       />
                     </div>
                   </div>
+
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='is custom language allowed'
+                        onChange={this.onIsCustomAllowedChange.bind(this)}
+                        checked={this.state.demoIsCustomAllowed}
+                      />
+                    </div>
+                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
@@ -74,6 +90,7 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                     sourceLanguage={this.state.demoHasSourceLanguage ? 'en' : undefined}
                     suggestedLanguages={this.state.demoHasSuggestedLanguages ? ['pl', 'fr'] : undefined}
                     onLanguageChange={this.onLanguageChange.bind(this)}
+                    isCustomAllowed={this.state.demoIsCustomAllowed}
                   />
                 </div>
               </bem.SimpleTable__cell>
@@ -81,6 +98,6 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
           </bem.SimpleTable__body>
         </bem.SimpleTable>
       </section>
-    )
+    );
   }
 }
