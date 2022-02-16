@@ -623,8 +623,12 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
             attachment_file_path = self.absolute_path
 
         if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
-            protected_url = attachment_file_path.replace(
-                settings.KOBOCAT_MEDIA_PATH, '/protected'
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            protected_url = urlquote(attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_PATH, '/protected')
             )
         else:
             # Double-encode the S3 URL to take advantage of NGINX's
