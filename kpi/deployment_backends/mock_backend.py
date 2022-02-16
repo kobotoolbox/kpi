@@ -252,7 +252,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 is_good_file = int(attachment['id']) == int(attachment_id)
 
             if is_good_file:
-                return MockAttachment(**attachment)
+                return MockAttachment(pk=attachment_id, **attachment)
 
         raise AttachmentNotFoundException
 
@@ -266,7 +266,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         if len(attachments) == 0:
             return []
 
-        return [MockAttachment(**attachment) for attachment in attachments]
+        return [
+            MockAttachment(pk=attachment['id'], **attachment)
+            for attachment in attachments
+        ]
 
     def get_data_download_links(self):
         return {}

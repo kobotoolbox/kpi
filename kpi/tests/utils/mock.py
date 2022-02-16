@@ -50,9 +50,10 @@ class MockAttachment(MP3ConverterMixin):
     Mock object to simulate ReadOnlyKobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
     """
-    def __init__(self, id: int, filename: str, mimetype: str = None, **kwargs):
+    def __init__(self, pk: int, filename: str, mimetype: str = None, **kwargs):
 
-        self.id = id
+        self.id = pk
+        self.pk = pk
         basename = os.path.basename(filename)
         file_ = os.path.join(
             settings.BASE_DIR,
@@ -60,11 +61,10 @@ class MockAttachment(MP3ConverterMixin):
             'tests',
             basename
         )
-        self.pk = id
-        self.id = id
+
         self.media_file = File(open(file_, 'rb'), basename)
         self.media_file.path = file_
-        #self.content = self.media_file.read()
+        self.content = self.media_file.read()
         self.media_file_basename = basename
         if not mimetype:
             self.mimetype, _ = guess_type(file_)
