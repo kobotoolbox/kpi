@@ -380,8 +380,6 @@ $modal-custom-header-height: sizes.$x60;
     }
   }
   .modal__body {
-    overflow: hidden;
-
     .mfa-setup {
       padding: 0 32px 32px 32px;
       margin: auto;
@@ -908,9 +906,10 @@ $modal-custom-header-height: sizes.$x60;
 
 // FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
 // on mobile until we standardize all modals (see comment on mfaModals.scss)
-@media screen and (max-width: 480px) {
+@media screen and (max-height: 800px) {
   .modal.modal-mfa-setup {
-    .mfa-body {
+    .modal__body {
+      height: 80%;
       overflow: scroll;
     }
   }
