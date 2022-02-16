@@ -19,23 +19,23 @@ import processingActions from 'js/components/processing/processingActions';
 import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 
 export enum SingleProcessingTabs {
-  Transcript,
-  Translations,
-  Analysis,
+  Transcript = 'trc',
+  Translations = 'trl',
+  Analysis = 'an',
 }
 
 /** Shared interface for transcript and translations. */
 export interface Transx {
-  value: string
-  languageCode: string
-  dateCreated: string
-  dateModified: string
+  value: string;
+  languageCode: string;
+  dateCreated: string;
+  dateModified: string;
 }
 
 /** Transcript or translation draft. */
 interface TransxDraft {
-  value?: string
-  languageCode?: string
+  value?: string;
+  languageCode?: string;
 }
 
 /**
@@ -51,23 +51,23 @@ interface TransxDraft {
  * ones with any meaningful data.
  */
 interface SubmissionsUuids {
-  [questionName: string]: (string | null)[]
+  [questionName: string]: Array<string | null>;
 }
 
 interface SingleProcessingStoreData {
-  transcript?: Transx
-  transcriptDraft?: TransxDraft
-  translations: Transx[]
-  translationDraft?: TransxDraft
+  transcript?: Transx;
+  transcriptDraft?: TransxDraft;
+  translations: Transx[];
+  translationDraft?: TransxDraft;
   /** Being displayed on the left side of the screen during translation editing. */
-  source?: string
-  activeTab: SingleProcessingTabs
-  submissionData?: SubmissionResponse
+  source?: string;
+  activeTab: SingleProcessingTabs;
+  submissionData?: SubmissionResponse;
   /**
    * A list of all submissions ids, we store `null` for submissions that don't
    * have a response for the question.
    */
-  submissionsUuids?: SubmissionsUuids
+  submissionsUuids?: SubmissionsUuids;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -75,39 +75,39 @@ class SingleProcessingStore extends Reflux.Store {
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
-  private abortFetchData: Function | undefined
-  private previousPath: string | undefined
+  private abortFetchData: () => void | undefined;
+  private previousPath: string | undefined;
   // For the store to work we need all three: asset, submission, and uuids. The
   // (ability to fetch) processing data is being unlocked by having'em all.
-  private areUuidsLoaded: boolean = false
-  private isSubmissionLoaded: boolean = false
-  private isProcessingDataLoaded: boolean = false
+  private areUuidsLoaded = false;
+  private isSubmissionLoaded = false;
+  private isProcessingDataLoaded = false;
 
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
     translations: [],
-    activeTab: SingleProcessingTabs.Transcript
-  }
+    activeTab: SingleProcessingTabs.Transcript,
+  };
   /** Marks some backend calls being in progress. */
-  public isFetchingData: boolean = false
+  public isFetchingData = false;
 
   private resetProcessingData() {
-    this.isProcessingDataLoaded = false
+    this.isProcessingDataLoaded = false;
 
-    this.data.transcript = undefined
-    this.data.transcriptDraft = undefined
-    this.data.translations = []
-    this.data.translationDraft = undefined
-    this.data.source = undefined
-    this.data.activeTab = SingleProcessingTabs.Transcript
+    this.data.transcript = undefined;
+    this.data.transcriptDraft = undefined;
+    this.data.translations = [];
+    this.data.translationDraft = undefined;
+    this.data.source = undefined;
+    this.data.activeTab = SingleProcessingTabs.Transcript;
   }
 
   private get currentAssetUid(): string {
-    return getSingleProcessingRouteParameters().uid
+    return getSingleProcessingRouteParameters().uid;
   }
 
   private get currentQuestionName(): string {
-    return getSingleProcessingRouteParameters().questionName
+    return getSingleProcessingRouteParameters().questionName;
   }
 
   private get currentSubmissionUuid(): string {
