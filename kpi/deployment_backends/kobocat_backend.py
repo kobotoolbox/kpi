@@ -33,6 +33,7 @@ from kpi.constants import (
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
+    SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
@@ -488,15 +489,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         xform_uuid_matches = re.search(r'uuid>([^<]+)', stripped_xml)
 
         if not instance_uuid_matches and not xform_uuid_matches:
-            # ToDo Create exception
-            raise Exception('NO UUID FOUNDS')
+            raise SubmissionIntegrityError
 
         try:
             deprecated_uuid = instance_uuid_matches.groups()[0]
             xform_uuid = xform_uuid_matches.groups()[0]
         except IndexError:
-            # ToDo Create exception
-            raise Exception('NO UUID FOUNDS')
+            raise SubmissionIntegrityError
 
         try:
             instance = ReadOnlyKobocatInstance.objects.get(
