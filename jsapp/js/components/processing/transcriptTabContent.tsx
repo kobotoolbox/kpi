@@ -1,34 +1,34 @@
-import React from 'react'
-import clonedeep from 'lodash.clonedeep'
-import envStore from 'js/envStore'
-import bem from 'js/bem'
-import {formatTime} from 'js/utils'
-import {AnyRowTypeName} from 'js/constants'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import LanguageSelector from 'js/components/languages/languageSelector'
-import languageSelectorActions from 'js/components/languages/languageSelectorActions'
-import Button from 'js/components/common/button'
-import 'js/components/processing/processingBody'
-import {destroyConfirm} from 'js/alertify'
+import React from 'react';
+import clonedeep from 'lodash.clonedeep';
+import envStore from 'js/envStore';
+import bem from 'js/bem';
+import {formatTime} from 'js/utils';
+import type {AnyRowTypeName} from 'js/constants';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import LanguageSelector from 'js/components/languages/languageSelector';
+import languageSelectorActions from 'js/components/languages/languageSelectorActions';
+import Button from 'js/components/common/button';
+import 'js/components/processing/processingBody';
+import {destroyConfirm} from 'js/alertify';
 
-type TranscriptTabContentProps = {
-  questionType: AnyRowTypeName | undefined
+interface TranscriptTabContentProps {
+  questionType: AnyRowTypeName | undefined;
 }
 
 export default class TranscriptTabContent extends React.Component<
   TranscriptTabContentProps,
   {}
 > {
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /**
@@ -37,35 +37,35 @@ export default class TranscriptTabContent extends React.Component<
   * store changes :shrug:.
   */
   onSingleProcessingStoreChange() {
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   /** Changes the draft language, preserving the other draft properties. */
   onLanguageChange(newVal: string | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
-    newDraft.languageCode = newVal
-    singleProcessingStore.setTranscriptDraft(newDraft)
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    newDraft.languageCode = newVal;
+    singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
   /** Changes the draft value, preserving the other draft properties. */
   setDraftValue(newVal: string | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
-    newDraft.value = newVal
-    singleProcessingStore.setTranscriptDraft(newDraft)
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    newDraft.value = newVal;
+    singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
   onDraftValueChange(evt: React.ChangeEvent<HTMLTextAreaElement>) {
-    this.setDraftValue(evt.target.value)
+    this.setDraftValue(evt.target.value);
   }
 
   begin() {
     // Make an empty draft.
-    singleProcessingStore.setTranscriptDraft({})
+    singleProcessingStore.setTranscriptDraft({});
   }
 
   selectModeManual() {
     // Initialize draft value.
-    this.setDraftValue('')
+    this.setDraftValue('');
   }
 
   selectModeAuto() {
@@ -74,13 +74,13 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   back() {
-    const draft = singleProcessingStore.getTranscriptDraft()
+    const draft = singleProcessingStore.getTranscriptDraft();
     if (
       draft !== undefined &&
       draft?.languageCode === undefined &&
       draft?.value === undefined
     ) {
-      this.discardDraft()
+      this.discardDraft();
     }
 
     if (
@@ -88,8 +88,8 @@ export default class TranscriptTabContent extends React.Component<
       draft?.languageCode !== undefined &&
       draft?.value === undefined
     ) {
-      singleProcessingStore.setTranslationDraft({})
-      languageSelectorActions.resetAll()
+      singleProcessingStore.setTranslationDraft({});
+      languageSelectorActions.resetAll();
     }
   }
 
@@ -99,14 +99,14 @@ export default class TranscriptTabContent extends React.Component<
         singleProcessingStore.deleteTranscriptDraft.bind(singleProcessingStore),
         t('Discard unsaved changes?'),
         t('Discard')
-      )
+      );
     } else {
-      singleProcessingStore.deleteTranscriptDraft()
+      singleProcessingStore.deleteTranscriptDraft();
     }
   }
 
   saveDraft() {
-    const draft = singleProcessingStore.getTranscriptDraft()
+    const draft = singleProcessingStore.getTranscriptDraft();
     if (
       draft?.languageCode !== undefined &&
       draft?.value !== undefined
@@ -114,15 +114,15 @@ export default class TranscriptTabContent extends React.Component<
       singleProcessingStore.setTranscript(
         draft.languageCode,
         draft.value
-      )
+      );
     }
   }
 
   openEditor() {
-    const transcript = singleProcessingStore.getTranscript()
+    const transcript = singleProcessingStore.getTranscript();
     if (transcript) {
       // Make new draft using existing transcript.
-      singleProcessingStore.setTranscriptDraft(transcript)
+      singleProcessingStore.setTranscriptDraft(transcript);
     }
   }
 
@@ -130,23 +130,23 @@ export default class TranscriptTabContent extends React.Component<
     destroyConfirm(
       singleProcessingStore.deleteTranscript.bind(singleProcessingStore),
       t('Delete transcript?')
-    )
+    );
   }
 
   renderLanguageAndDate() {
-    const storeTranscript = singleProcessingStore.getTranscript()
-    const draft = singleProcessingStore.getTranscriptDraft()
-    const valueLanguageCode = draft?.languageCode || storeTranscript?.languageCode
+    const storeTranscript = singleProcessingStore.getTranscript();
+    const draft = singleProcessingStore.getTranscriptDraft();
+    const valueLanguageCode = draft?.languageCode || storeTranscript?.languageCode;
     if (valueLanguageCode === undefined) {
-      return null
+      return null;
     }
 
-    let dateText = ''
+    let dateText = '';
     if (storeTranscript) {
       if (storeTranscript.dateCreated !== storeTranscript?.dateModified) {
-        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranscript.dateModified))
+        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranscript.dateModified));
       } else {
-        dateText = t('created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))
+        dateText = t('created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated));
       }
     }
 
@@ -165,11 +165,11 @@ export default class TranscriptTabContent extends React.Component<
           </bem.ProcessingBody__transxHeaderDate>
         }
       </React.Fragment>
-    )
+    );
   }
 
   renderStepBegin() {
-    let typeLabel = this.props.questionType || t('source file')
+    const typeLabel = this.props.questionType || t('source file');
     return (
       <bem.ProcessingBody m='begin'>
         <p>{t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}</p>
@@ -182,14 +182,14 @@ export default class TranscriptTabContent extends React.Component<
           onClick={this.begin.bind(this)}
         />
       </bem.ProcessingBody>
-    )
+    );
   }
 
   renderStepConfig() {
-    const draft = singleProcessingStore.getTranscriptDraft()
+    const draft = singleProcessingStore.getTranscriptDraft();
 
-    let typeLabel = this.props.questionType || t('source file')
-    const languageSelectorTitle = t('Please selet the original language of the ##type##').replace('##type##', typeLabel)
+    const typeLabel = this.props.questionType || t('source file');
+    const languageSelectorTitle = t('Please selet the original language of the ##type##').replace('##type##', typeLabel);
 
     return (
       <bem.ProcessingBody m='config'>
@@ -231,16 +231,16 @@ export default class TranscriptTabContent extends React.Component<
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
-    )
+    );
   }
 
   renderStepEditor() {
-    const draft = singleProcessingStore.getTranscriptDraft()
+    const draft = singleProcessingStore.getTranscriptDraft();
 
     // The discard button will become a back button when there are no unsaved changes.
-    let discardLabel = t('Back')
+    let discardLabel = t('Back');
     if (singleProcessingStore.hasUnsavedTranscriptDraftValue()) {
-      discardLabel = t('Discard')
+      discardLabel = t('Discard');
     }
 
     return (
@@ -276,7 +276,7 @@ export default class TranscriptTabContent extends React.Component<
           disabled={singleProcessingStore.isFetchingData}
         />
       </bem.ProcessingBody>
-    )
+    );
   }
 
   renderStepViewer() {
@@ -312,19 +312,19 @@ export default class TranscriptTabContent extends React.Component<
           {singleProcessingStore.getTranscript()?.value}
         </bem.ProcessingBody__text>
       </bem.ProcessingBody>
-    )
+    );
   }
 
   /** Identifies what step should be displayed based on the data itself. */
   render() {
-    const draft = singleProcessingStore.getTranscriptDraft()
+    const draft = singleProcessingStore.getTranscriptDraft();
 
     // Step 1: Begin - the step where there is nothing yet.
     if (
       singleProcessingStore.getTranscript() === undefined &&
       draft === undefined
     ) {
-      return this.renderStepBegin()
+      return this.renderStepBegin();
     }
 
     // Step 2: Config - for selecting the transcript language and mode.
@@ -335,12 +335,12 @@ export default class TranscriptTabContent extends React.Component<
         draft.value === undefined
       )
     ) {
-      return this.renderStepConfig()
+      return this.renderStepConfig();
     }
 
     // Step 3: Editor - display editor of draft transcript.
     if (draft !== undefined) {
-      return this.renderStepEditor()
+      return this.renderStepEditor();
     }
 
     // Step 4: Viewer - display existing (on backend) transcript.
@@ -348,10 +348,10 @@ export default class TranscriptTabContent extends React.Component<
       singleProcessingStore.getTranscript() !== undefined &&
       draft === undefined
     ) {
-      return this.renderStepViewer()
+      return this.renderStepViewer();
     }
 
     // Should not happen, but we need to return something.
-    return null
+    return null;
   }
 }

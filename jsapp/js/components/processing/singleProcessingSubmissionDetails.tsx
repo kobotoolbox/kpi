@@ -1,59 +1,60 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import type {
+  AnyRowTypeName} from 'js/constants';
 import {
-  AnyRowTypeName,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
-} from 'js/constants'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import SubmissionDataList from 'js/components/submissions/submissionDataList'
+} from 'js/constants';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import {
   getRowData,
   getMediaAttachment,
-} from 'js/components/submissions/submissionUtils'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import './singleProcessingSubmissionDetails.scss'
+} from 'js/components/submissions/submissionUtils';
+import AudioPlayer from 'js/components/common/audioPlayer';
+import './singleProcessingSubmissionDetails.scss';
 
 bem.SingleProcessingVideoPreview = makeBem(
   null,
   'single-processing-video-preview',
   'video'
-)
+);
 bem.SingleProcessingMediaWrapper = makeBem(
   null,
   'single-processing-media-wrapper',
   'section'
-)
+);
 bem.SingleProcessingDataListWrapper = makeBem(
   null,
   'single-processing-data-list-wrapper',
   'section'
-)
+);
 
-type SingleProcessingSubmissionDetailsProps = {
-  questionType: AnyRowTypeName | undefined
-  questionName: string
-  assetContent: AssetContent
+interface SingleProcessingSubmissionDetailsProps {
+  questionType: AnyRowTypeName | undefined;
+  questionName: string;
+  assetContent: AssetContent;
 }
 
 export default class SingleProcessingSubmissionDetails extends React.Component<
   SingleProcessingSubmissionDetailsProps
 > {
   constructor(props: SingleProcessingSubmissionDetailsProps) {
-    super(props)
+    super(props);
   }
 
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /**
@@ -62,7 +63,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   * store changes :shrug:.
   */
   onSingleProcessingStoreChange() {
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   /** We want only the processing related data (the actual form questions) */
@@ -70,20 +71,20 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     return [
       this.props.questionName,
       ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
-      ...Object.keys(META_QUESTION_TYPES)
-    ]
+      ...Object.keys(META_QUESTION_TYPES),
+    ];
   }
 
   renderMedia() {
     // We need submission data.
-    const submissionData = singleProcessingStore.getSubmissionData()
+    const submissionData = singleProcessingStore.getSubmissionData();
     if (!submissionData) {
-      return null
+      return null;
     }
 
     // We need asset with content.
     if (!this.props.assetContent.survey) {
-      return null
+      return null;
     }
 
     // We need row data.
@@ -91,15 +92,15 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       this.props.questionName,
       this.props.assetContent.survey,
       submissionData
-    )
+    );
     if (rowData === null) {
-      return null
+      return null;
     }
 
     // Attachment needs to be object with urls.
-    const attachment = getMediaAttachment(submissionData, rowData)
+    const attachment = getMediaAttachment(submissionData, rowData);
     if (typeof attachment === 'string') {
-      return
+      return;
     }
 
     switch (this.props.questionType) {
@@ -109,7 +110,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
           <bem.SingleProcessingMediaWrapper m='audio' key='audio'>
             <AudioPlayer mediaURL={attachment.download_url} />
           </bem.SingleProcessingMediaWrapper>
-        )
+        );
       case QUESTION_TYPES.video.id:
         return (
           <bem.SingleProcessingMediaWrapper m='video' key='video'>
@@ -118,24 +119,24 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
               controls
             />
           </bem.SingleProcessingMediaWrapper>
-        )
+        );
       default:
-        return null
+        return null;
     }
   }
 
   renderDataList() {
-    const submissionData = singleProcessingStore.getSubmissionData()
+    const submissionData = singleProcessingStore.getSubmissionData();
 
     // If submission data is not ready yet, just don't render the list.
     if (!submissionData) {
-      return null
+      return null;
     }
 
     // If there is a source, we don't want to display these submission details,
     // as we want the most space possible for the source text.
     if (singleProcessingStore.getSourceData() !== undefined) {
-      return null
+      return null;
     }
 
     return (
@@ -147,15 +148,15 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
           hideGroups
         />
       </bem.SingleProcessingDataListWrapper>
-    )
+    );
   }
 
   render() {
     return (
       [
         this.renderMedia(),
-        this.renderDataList()
+        this.renderDataList(),
       ]
-    )
+    );
   }
 }

@@ -1,23 +1,24 @@
-import React from 'react'
-import clonedeep from 'lodash.clonedeep'
-import envStore from 'js/envStore'
-import {formatTime} from 'js/utils'
-import bem from 'js/bem'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import LanguageSelector from 'js/components/languages/languageSelector'
-import languageSelectorActions from 'js/components/languages/languageSelectorActions'
-import Button from 'js/components/common/button'
-import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
-import 'js/components/processing/processingBody'
-import {destroyConfirm} from 'js/alertify'
+import React from 'react';
+import clonedeep from 'lodash.clonedeep';
+import envStore from 'js/envStore';
+import {formatTime} from 'js/utils';
+import bem from 'js/bem';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import LanguageSelector from 'js/components/languages/languageSelector';
+import languageSelectorActions from 'js/components/languages/languageSelectorActions';
+import Button from 'js/components/common/button';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import KoboSelect from 'js/components/common/koboSelect';
+import 'js/components/processing/processingBody';
+import {destroyConfirm} from 'js/alertify';
 
-type TranslationsTabContentProps = {}
+interface TranslationsTabContentProps {}
 
-type TranslationsTabContentState = {
+interface TranslationsTabContentState {
   /** Uses languageCode. */
-  selectedTranslation?: string
+  selectedTranslation?: string;
   /** Uses languageCode, useful for back button. */
-  previousSelectedTranslation?: string
+  previousSelectedTranslation?: string;
 }
 
 export default class TranslationsTabContent extends React.Component<
@@ -25,31 +26,31 @@ export default class TranslationsTabContent extends React.Component<
   TranslationsTabContentState
 > {
   constructor(props: TranslationsTabContentProps) {
-    super(props)
+    super(props);
 
     // We want to always have a translation selected when there is at least one
     // so we preselect it on the initialization.
-    let selected
-    const storedTranslations = singleProcessingStore.getTranslations()
+    let selected;
+    const storedTranslations = singleProcessingStore.getTranslations();
     if (storedTranslations.length >= 1) {
-      selected = storedTranslations[0].languageCode
+      selected = storedTranslations[0].languageCode;
     }
 
     this.state = {
-      selectedTranslation: selected
-    }
+      selectedTranslation: selected,
+    };
   }
 
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /**
@@ -58,12 +59,12 @@ export default class TranslationsTabContent extends React.Component<
   * store changes :shrug:.
   */
   onSingleProcessingStoreChange() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     // When we save a new translation, we can preselect it, as it already exist
     // in the store.
     if (draft?.languageCode) {
-      this.selectTranslation(draft.languageCode)
+      this.selectTranslation(draft.languageCode);
     }
 
     // When we delete a translation, we want to select another one.
@@ -74,43 +75,43 @@ export default class TranslationsTabContent extends React.Component<
     ) {
       // We want to always have a translation selected when there is at least one
       // so we preselect it on the initialization.
-      let selected
-      const storedTranslations = singleProcessingStore.getTranslations()
+      let selected;
+      const storedTranslations = singleProcessingStore.getTranslations();
       if (storedTranslations.length >= 1) {
-        selected = storedTranslations[0].languageCode
+        selected = storedTranslations[0].languageCode;
       }
-      this.setState({selectedTranslation: selected})
+      this.setState({selectedTranslation: selected});
     }
 
-    this.forceUpdate()
+    this.forceUpdate();
   }
 
   /** Changes the draft language, preserving the other draft properties. */
   onLanguageChange(newVal: string | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {}
-    newDraft.languageCode = newVal
-    singleProcessingStore.setTranslationDraft(newDraft)
+    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
+    newDraft.languageCode = newVal;
+    singleProcessingStore.setTranslationDraft(newDraft);
   }
 
   /** Changes the draft value, preserving the other draft properties. */
   setDraftValue(newVal: string | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {}
-    newDraft.value = newVal
-    singleProcessingStore.setTranslationDraft(newDraft)
+    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
+    newDraft.value = newVal;
+    singleProcessingStore.setTranslationDraft(newDraft);
   }
 
   onDraftValueChange(evt: React.ChangeEvent<HTMLTextAreaElement>) {
-    this.setDraftValue(evt.target.value)
+    this.setDraftValue(evt.target.value);
   }
 
   begin() {
     // Make an empty draft.
-    singleProcessingStore.setTranslationDraft({})
+    singleProcessingStore.setTranslationDraft({});
   }
 
   selectModeManual() {
     // Initialize draft value.
-    this.setDraftValue('')
+    this.setDraftValue('');
   }
 
   selectModeAuto() {
@@ -119,14 +120,14 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   back() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     if (
       draft !== undefined &&
       draft?.languageCode === undefined &&
       draft?.value === undefined
     ) {
-      this.discardDraft()
+      this.discardDraft();
     }
 
     if (
@@ -134,8 +135,8 @@ export default class TranslationsTabContent extends React.Component<
       draft?.languageCode !== undefined &&
       draft?.value === undefined
     ) {
-      singleProcessingStore.setTranslationDraft({})
-      languageSelectorActions.resetAll()
+      singleProcessingStore.setTranslationDraft({});
+      languageSelectorActions.resetAll();
     }
   }
 
@@ -146,33 +147,33 @@ export default class TranslationsTabContent extends React.Component<
         this.discardDraftInnerMethod.bind(this),
         t('Discard unsaved changes?'),
         t('Discard')
-      )
+      );
     } else {
-      this.discardDraftInnerMethod()
+      this.discardDraftInnerMethod();
     }
   }
 
   discardDraftInnerMethod() {
-    let preselectedTranslation = undefined
+    let preselectedTranslation;
     if (this.state.previousSelectedTranslation) {
-      preselectedTranslation = this.state.previousSelectedTranslation
+      preselectedTranslation = this.state.previousSelectedTranslation;
     } else {
-      const storedTranslations = singleProcessingStore.getTranslations()
+      const storedTranslations = singleProcessingStore.getTranslations();
       if (storedTranslations.length >= 1) {
-        preselectedTranslation = storedTranslations[0].languageCode
+        preselectedTranslation = storedTranslations[0].languageCode;
       }
     }
 
-    singleProcessingStore.deleteTranslationDraft()
+    singleProcessingStore.deleteTranslationDraft();
 
     this.setState({
       selectedTranslation: preselectedTranslation,
-      previousSelectedTranslation: undefined
-    })
+      previousSelectedTranslation: undefined,
+    });
   }
 
   saveDraft() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     if (
       draft?.languageCode !== undefined &&
@@ -181,19 +182,19 @@ export default class TranslationsTabContent extends React.Component<
       singleProcessingStore.setTranslation(
         draft.languageCode,
         draft.value
-      )
+      );
     }
   }
 
   openEditor(languageCode: string) {
-    const translation = singleProcessingStore.getTranslation(languageCode)
+    const translation = singleProcessingStore.getTranslation(languageCode);
 
     if (translation) {
       // Make new draft using existing translation.
-      singleProcessingStore.setTranslationDraft(translation)
+      singleProcessingStore.setTranslationDraft(translation);
       this.setState({
-        selectedTranslation: languageCode
-      })
+        selectedTranslation: languageCode,
+      });
     }
   }
 
@@ -207,41 +208,41 @@ export default class TranslationsTabContent extends React.Component<
         '##language name##',
         envStore.getLanguageDisplayLabel(languageCode)
       )
-    )
+    );
   }
 
   addTranslation() {
     // Make an empty draft to make the language selector appear. Unselect the current translation.
-    singleProcessingStore.setTranslationDraft({})
+    singleProcessingStore.setTranslationDraft({});
     this.setState({
       selectedTranslation: undefined,
-      previousSelectedTranslation: this.state.selectedTranslation
-    })
+      previousSelectedTranslation: this.state.selectedTranslation,
+    });
   }
 
   selectTranslation(languageCode: string) {
-    this.setState({selectedTranslation: languageCode})
+    this.setState({selectedTranslation: languageCode});
   }
 
   /** Returns languages of all translations */
   getTranslationsLanguages() {
-    const translations = singleProcessingStore.getTranslations()
-    const languages: string[] = []
+    const translations = singleProcessingStore.getTranslations();
+    const languages: string[] = [];
     translations.forEach((translation) => {
-      languages.push(translation.languageCode)
-    })
-    return languages
+      languages.push(translation.languageCode);
+    });
+    return languages;
   }
 
   renderLanguageAndDate() {
-    const storeTranslation = singleProcessingStore.getTranslation(this.state.selectedTranslation)
+    const storeTranslation = singleProcessingStore.getTranslation(this.state.selectedTranslation);
 
-    let dateText = ''
+    let dateText = '';
     if (storeTranslation) {
       if (storeTranslation.dateCreated !== storeTranslation?.dateModified) {
-        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranslation.dateModified))
+        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranslation.dateModified));
       } else {
-        dateText = t('created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))
+        dateText = t('created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated));
       }
     }
 
@@ -255,12 +256,12 @@ export default class TranslationsTabContent extends React.Component<
           </bem.ProcessingBody__transxHeaderDate>
         }
       </React.Fragment>
-    )
+    );
   }
 
   /** Renders a text or a selector of translations. */
   renderLanguage() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     // When editing we want to display just a text
     if (draft?.languageCode) {
@@ -271,10 +272,10 @@ export default class TranslationsTabContent extends React.Component<
             {envStore.getLanguageDisplayLabel(draft.languageCode)}
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
-      )
+      );
     }
 
-    const translations = singleProcessingStore.getTranslations()
+    const translations = singleProcessingStore.getTranslations();
 
     // When viewing the only translation we want to display just a text
     if (!draft && translations.length === 1) {
@@ -285,19 +286,19 @@ export default class TranslationsTabContent extends React.Component<
             {envStore.getLanguageDisplayLabel(translations[0].languageCode)}
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
-      )
+      );
     }
 
     // When viewing one of translations we want to have an option to select some
     // other translation.
     if (!draft && translations.length >= 2) {
-      const selectOptions: KoboSelectOption[] = []
+      const selectOptions: KoboSelectOption[] = [];
       translations.forEach((translation) => {
         selectOptions.push({
           id: translation.languageCode,
-          label: envStore.getLanguageDisplayLabel(translation.languageCode)
-        })
-      })
+          label: envStore.getLanguageDisplayLabel(translation.languageCode),
+        });
+      });
 
       return (
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
@@ -310,15 +311,15 @@ export default class TranslationsTabContent extends React.Component<
               selectedOption={this.state.selectedTranslation ? this.state.selectedTranslation : null}
               options={selectOptions}
               onChange={(newSelectedOption: string) => {
-                this.selectTranslation(newSelectedOption)
+                this.selectTranslation(newSelectedOption);
               }}
             />
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
-      )
+      );
     }
 
-    return null
+    return null;
   }
 
   renderStepBegin() {
@@ -334,11 +335,11 @@ export default class TranslationsTabContent extends React.Component<
           onClick={this.begin.bind(this)}
         />
       </bem.ProcessingBody>
-    )
+    );
   }
 
   renderStepConfig() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     return (
       <bem.ProcessingBody m='config'>
@@ -382,16 +383,16 @@ export default class TranslationsTabContent extends React.Component<
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
-    )
+    );
   }
 
   renderStepEditor() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     // The discard button will become a back button when there are no unsaved changes.
-    let discardLabel = t('Back')
+    let discardLabel = t('Back');
     if (singleProcessingStore.hasUnsavedTranslationDraftValue()) {
-      discardLabel = t('Discard')
+      discardLabel = t('Discard');
     }
 
     return (
@@ -427,13 +428,13 @@ export default class TranslationsTabContent extends React.Component<
           disabled={singleProcessingStore.isFetchingData}
         />
       </bem.ProcessingBody>
-    )
+    );
   }
 
   /** Displays an existing translation. */
   renderStepSingleViewer() {
     if (!this.state.selectedTranslation) {
-      return null
+      return null;
     }
 
     return (
@@ -478,19 +479,19 @@ export default class TranslationsTabContent extends React.Component<
           {singleProcessingStore.getTranslation(this.state.selectedTranslation)?.value}
         </bem.ProcessingBody__text>
       </bem.ProcessingBody>
-    )
+    );
   }
 
   /** Identifies what step should be displayed based on the data itself. */
   render() {
-    const draft = singleProcessingStore.getTranslationDraft()
+    const draft = singleProcessingStore.getTranslationDraft();
 
     // Step 1: Begin - the step where there is nothing yet.
     if (
       singleProcessingStore.getTranslations().length === 0 &&
       draft === undefined
     ) {
-      return this.renderStepBegin()
+      return this.renderStepBegin();
     }
 
     // Step 2: Config - for selecting the translation language and mode.
@@ -501,12 +502,12 @@ export default class TranslationsTabContent extends React.Component<
         draft.value === undefined
       )
     ) {
-      return this.renderStepConfig()
+      return this.renderStepConfig();
     }
 
     // Step 3: Editor - display editor of draft translation.
     if (draft !== undefined) {
-      return this.renderStepEditor()
+      return this.renderStepEditor();
     }
 
     // Step 4: Viewer - display existing (on backend) and selected translation.
@@ -517,10 +518,10 @@ export default class TranslationsTabContent extends React.Component<
       ) &&
       draft === undefined
     ) {
-      return this.renderStepSingleViewer()
+      return this.renderStepSingleViewer();
     }
 
     // Should not happen, but we need to return something.
-    return null
+    return null;
   }
 }

@@ -75,7 +75,7 @@ class SingleProcessingStore extends Reflux.Store {
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
-  private abortFetchData: () => void | undefined;
+  private abortFetchData: () => undefined | void;
   private previousPath: string | undefined;
   // For the store to work we need all three: asset, submission, and uuids. The
   // (ability to fetch) processing data is being unlocked by having'em all.
@@ -111,40 +111,40 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private get currentSubmissionUuid(): string {
-    return getSingleProcessingRouteParameters().submissionUuid
+    return getSingleProcessingRouteParameters().submissionUuid;
   }
 
   init() {
-    this.resetProcessingData()
+    this.resetProcessingData();
 
-    hashHistory.listen(this.onRouteChange.bind(this))
+    hashHistory.listen(this.onRouteChange.bind(this));
 
-    actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this))
-    actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this))
-    actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this))
-    actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this))
+    actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this));
+    actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this));
+    actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this));
+    actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this));
 
-    processingActions.getProcessingData.started.listen(this.onFetchProcessingDataStarted.bind(this))
-    processingActions.getProcessingData.completed.listen(this.onFetchProcessingDataCompleted.bind(this))
-    processingActions.getProcessingData.failed.listen(this.onAnyCallFailed.bind(this))
-    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this))
-    processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this))
-    processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this))
-    processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this))
-    processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this))
-    processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this))
+    processingActions.getProcessingData.started.listen(this.onFetchProcessingDataStarted.bind(this));
+    processingActions.getProcessingData.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
+    processingActions.getProcessingData.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this));
+    processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
+    processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
+    processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
-    processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this))
-    processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this))
-    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
+    processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
+    processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this));
 
     // We need the asset to be loaded for the store to work (we get the
     // processing endpoint url from asset JSON). We try to startup store
     // immediately and also listen to asset loads.
-    this.startupStore()
+    this.startupStore();
 
     // This comes back with data after `processingActions.activateAsset` call.
-    assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this))
+    assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this));
   }
 
   /** This is making sure the asset processing features are activated. */
@@ -158,19 +158,19 @@ class SingleProcessingStore extends Reflux.Store {
       this.currentAssetUid === asset.uid
     ) {
       if (!isAssetProcessingActivated(this.currentAssetUid)) {
-        this.activateAsset()
+        this.activateAsset();
       } else {
-        this.fetchAllInitialDataForAsset()
+        this.fetchAllInitialDataForAsset();
       }
     }
   }
 
   onActivateAssetCompleted() {
-    this.fetchAllInitialDataForAsset()
+    this.fetchAllInitialDataForAsset();
   }
 
   activateAsset() {
-    processingActions.activateAsset(this.currentAssetUid, true, [])
+    processingActions.activateAsset(this.currentAssetUid, true, []);
   }
 
   /**
@@ -185,7 +185,7 @@ class SingleProcessingStore extends Reflux.Store {
         this.currentSubmissionUuid,
       )
     ) {
-      this.fetchAllInitialDataForAsset()
+      this.fetchAllInitialDataForAsset();
     }
   }
 
@@ -199,28 +199,28 @@ class SingleProcessingStore extends Reflux.Store {
     // JUST A NOTE: we don't need to load asset ourselves, as it is already
     // taken care of in `PermProtectedRoute`. It can happen so that this method
     // is being called sooner than the mentioned component does its thing.
-    const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid))
+    const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
 
     // Without asset we can't do anything yet.
     if (!isAssetLoaded) {
-      return
+      return;
     }
 
     if (!isAssetProcessingActivated(this.currentAssetUid)) {
-      this.activateAsset()
+      this.activateAsset();
     } else {
-      this.fetchSubmissionData()
-      this.fetchUuids()
-      this.fetchProcessingData()
+      this.fetchSubmissionData();
+      this.fetchUuids();
+      this.fetchProcessingData();
     }
   }
 
   private onRouteChange(data: Location) {
     if (this.previousPath === data.pathname) {
-      return
+      return;
     }
 
-    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(':uid', this.currentAssetUid)
+    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(':uid', this.currentAssetUid);
 
     // Case 1: switching from a processing route to a processing route.
     // This means that we are changing either the question and the submission
@@ -231,8 +231,8 @@ class SingleProcessingStore extends Reflux.Store {
       this.previousPath.startsWith(baseProcessingRoute) &&
       data.pathname.startsWith(baseProcessingRoute)
     ) {
-      this.fetchProcessingData()
-      this.fetchSubmissionData()
+      this.fetchProcessingData();
+      this.fetchSubmissionData();
     }
 
     // Case 2: switching into processing route out of other place (most
@@ -245,29 +245,29 @@ class SingleProcessingStore extends Reflux.Store {
         this.currentSubmissionUuid,
       )
     ) {
-      this.fetchAllInitialDataForAsset()
+      this.fetchAllInitialDataForAsset();
     }
 
-    this.previousPath = data.pathname
+    this.previousPath = data.pathname;
   }
 
   private fetchSubmissionData(): void {
-    this.isSubmissionLoaded = false
-    this.data.submissionData = undefined
-    this.trigger(this.data)
+    this.isSubmissionLoaded = false;
+    this.data.submissionData = undefined;
+    this.trigger(this.data);
 
-    actions.submissions.getSubmissionByUuid(this.currentAssetUid, this.currentSubmissionUuid)
+    actions.submissions.getSubmissionByUuid(this.currentAssetUid, this.currentSubmissionUuid);
   }
 
   private onGetSubmissionByUuidCompleted(response: SubmissionResponse): void {
-    this.isSubmissionLoaded = true
-    this.data.submissionData = response
-    this.trigger(this.data)
+    this.isSubmissionLoaded = true;
+    this.data.submissionData = response;
+    this.trigger(this.data);
   }
 
   private onGetSubmissionByUuidFailed(): void {
-    this.isSubmissionLoaded = true
-    this.trigger(this.data)
+    this.isSubmissionLoaded = true;
+    this.trigger(this.data);
   }
 
   /**
@@ -275,157 +275,157 @@ class SingleProcessingStore extends Reflux.Store {
    * processing view is opened, submissions will not be deleted or added.
    */
   private fetchUuids(): void {
-    this.areUuidsLoaded = false
-    this.data.submissionsUuids = undefined
-    this.trigger(this.data)
+    this.areUuidsLoaded = false;
+    this.data.submissionsUuids = undefined;
+    this.trigger(this.data);
 
-    const processingRows = getAssetProcessingRows(this.currentAssetUid)
-    const asset = assetStore.getAsset(this.currentAssetUid)
-    let flatPaths: SurveyFlatPaths = {}
+    const processingRows = getAssetProcessingRows(this.currentAssetUid);
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    let flatPaths: SurveyFlatPaths = {};
 
     if (asset?.content?.survey) {
-      flatPaths = getSurveyFlatPaths(asset.content.survey)
+      flatPaths = getSurveyFlatPaths(asset.content.survey);
     }
 
-    const processingRowsPaths: string[] = []
+    const processingRowsPaths: string[] = [];
     if (processingRows) {
       processingRows.forEach((row) => {
         if (flatPaths[row]) {
-          processingRowsPaths.push(flatPaths[row])
+          processingRowsPaths.push(flatPaths[row]);
         }
-      })
+      });
     }
 
     actions.submissions.getProcessingSubmissions(
       this.currentAssetUid,
       processingRowsPaths
-    )
+    );
   }
 
   private onGetProcessingSubmissionsCompleted(
     response: GetProcessingSubmissionsResponse
   ) {
-    const submissionsUuids: SubmissionsUuids = {}
-    const processingRows = getAssetProcessingRows(this.currentAssetUid)
+    const submissionsUuids: SubmissionsUuids = {};
+    const processingRows = getAssetProcessingRows(this.currentAssetUid);
 
-    const asset = assetStore.getAsset(this.currentAssetUid)
-    let flatPaths: SurveyFlatPaths = {}
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    let flatPaths: SurveyFlatPaths = {};
 
     if (asset?.content?.survey) {
-      flatPaths = getSurveyFlatPaths(asset.content.survey)
+      flatPaths = getSurveyFlatPaths(asset.content.survey);
     }
 
     if (processingRows !== undefined) {
       processingRows.forEach((processingRow) => {
-        submissionsUuids[processingRow] = []
-      })
+        submissionsUuids[processingRow] = [];
+      });
 
       response.results.forEach((result) => {
         processingRows.forEach((processingRow) => {
           if (Object.keys(result).includes(flatPaths[processingRow])) {
-            submissionsUuids[processingRow].push(result._uuid)
+            submissionsUuids[processingRow].push(result._uuid);
           } else {
-            submissionsUuids[processingRow].push(null)
+            submissionsUuids[processingRow].push(null);
           }
-        })
-      })
+        });
+      });
     }
 
-    this.areUuidsLoaded = true
-    this.data.submissionsUuids = submissionsUuids
-    this.trigger(this.data)
+    this.areUuidsLoaded = true;
+    this.data.submissionsUuids = submissionsUuids;
+    this.trigger(this.data);
   }
 
   private onGetProcessingSubmissionsFailed(): void {
-    this.areUuidsLoaded = true
-    this.trigger(this.data)
+    this.areUuidsLoaded = true;
+    this.trigger(this.data);
   }
 
   private fetchProcessingData() {
     if (this.abortFetchData !== undefined) {
-      this.abortFetchData()
+      this.abortFetchData();
     }
 
-    this.resetProcessingData()
+    this.resetProcessingData();
 
     processingActions.getProcessingData(
       this.currentAssetUid,
       this.currentSubmissionUuid
-    )
+    );
   }
 
   private onFetchProcessingDataStarted(abort: Function) {
-    this.abortFetchData = abort
-    this.isFetchingData = true
-    this.trigger(this.data)
+    this.abortFetchData = abort;
+    this.isFetchingData = true;
+    this.trigger(this.data);
   }
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionName]?.transcript
+    const transcriptResponse = response[this.currentQuestionName]?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one
-    this.data.transcript = undefined
+    this.data.transcript = undefined;
     if (
       transcriptResponse?.value &&
       transcriptResponse?.languageCode
     ) {
-      this.data.transcript = transcriptResponse
+      this.data.transcript = transcriptResponse;
     }
 
-    const translationsResponse = response[this.currentQuestionName]?.translated
-    const translationsArray: Transx[] = []
+    const translationsResponse = response[this.currentQuestionName]?.translated;
+    const translationsArray: Transx[] = [];
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: string) => {
-        const translation = translationsResponse[languageCode]
+        const translation = translationsResponse[languageCode];
         if (translation.languageCode) {
           translationsArray.push({
             value: translation.value,
             languageCode: translation.languageCode,
             dateModified: translation.dateModified,
-            dateCreated: translation.dateCreated
-          })
+            dateCreated: translation.dateCreated,
+          });
         }
-      })
+      });
     }
-    this.data.translations = translationsArray
+    this.data.translations = translationsArray;
 
-    delete this.abortFetchData
-    this.isProcessingDataLoaded = true
-    this.isFetchingData = false
+    delete this.abortFetchData;
+    this.isProcessingDataLoaded = true;
+    this.isFetchingData = false;
 
-    this.trigger(this.data)
+    this.trigger(this.data);
   }
 
   private onAnyCallFailed() {
-    delete this.abortFetchData
-    this.isFetchingData = false
-    this.trigger(this.data)
+    delete this.abortFetchData;
+    this.isFetchingData = false;
+    this.trigger(this.data);
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionName]?.transcript
+    const transcriptResponse = response[this.currentQuestionName]?.transcript;
 
-    this.isFetchingData = false
+    this.isFetchingData = false;
 
     if (transcriptResponse) {
-      this.data.transcript = transcriptResponse
+      this.data.transcript = transcriptResponse;
     }
     // discard draft after saving (exit the editor)
-    this.data.transcriptDraft = undefined
-    this.trigger(this.data)
+    this.data.transcriptDraft = undefined;
+    this.trigger(this.data);
   }
 
   private onDeleteTranscriptCompleted() {
-    this.isFetchingData = false
-    this.data.transcript = undefined
-    this.trigger(this.data)
+    this.isFetchingData = false;
+    this.data.transcript = undefined;
+    this.trigger(this.data);
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
-    this.isFetchingData = false
-    this.data.translations = newTranslations
+    this.isFetchingData = false;
+    this.data.translations = newTranslations;
     // discard draft after saving (exit the editor)
-    this.data.translationDraft = undefined
-    this.trigger(this.data)
+    this.data.translationDraft = undefined;
+    this.trigger(this.data);
   }
 
   /**
@@ -433,81 +433,81 @@ class SingleProcessingStore extends Reflux.Store {
    * Omits the one currently being edited.
    */
   getSources(): string[] {
-    const sources = []
+    const sources = [];
 
     if (this.data.transcript?.languageCode) {
-      sources.push(this.data.transcript?.languageCode)
+      sources.push(this.data.transcript?.languageCode);
     }
 
     this.data.translations.forEach((translation: Transx) => {
       if (translation.languageCode !== this.data.translationDraft?.languageCode) {
-        sources.push(translation.languageCode)
+        sources.push(translation.languageCode);
       }
-    })
+    });
 
-    return sources
+    return sources;
   }
 
   setSource(languageCode: string) {
-    this.data.source = languageCode
-    this.trigger(this.data)
+    this.data.source = languageCode;
+    this.trigger(this.data);
   }
 
   /** Returns whole transcript/translation for selected source. */
   getSourceData(): Transx | undefined {
     if (!this.data.source) {
-      return undefined
+      return undefined;
     }
 
     if (this.data.source === this.data.transcript?.languageCode) {
-      return this.data.transcript
+      return this.data.transcript;
     } else {
       const found = this.data.translations.find((translation) =>
         translation.languageCode === this.data.source
-      )
-      return found
+      );
+      return found;
     }
   }
 
   /** Returns a local cached transcript data. */
   getTranscript() {
-    return this.data.transcript
+    return this.data.transcript;
   }
 
   setTranscript(languageCode: string, value: string) {
-    this.isFetchingData = true
+    this.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
       this.currentQuestionName,
       this.currentSubmissionUuid,
       languageCode,
       value
-    )
-    this.trigger(this.data)
+    );
+    this.trigger(this.data);
   }
 
   deleteTranscript() {
-    this.isFetchingData = true
+    this.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
       this.currentQuestionName,
       this.currentSubmissionUuid
-    )
-    this.trigger(this.data)
+    );
+    this.trigger(this.data);
   }
 
   getTranscriptDraft() {
-    return this.data.transcriptDraft
+    return this.data.transcriptDraft;
   }
 
   setTranscriptDraft(newTranscriptDraft: TransxDraft) {
-    this.data.transcriptDraft = newTranscriptDraft
-    this.trigger(this.data)
+    this.data.transcriptDraft = newTranscriptDraft;
+    this.trigger(this.data);
   }
 
   deleteTranscriptDraft() {
-    this.data.transcriptDraft = undefined
-    this.trigger(this.data)
+    this.data.transcriptDraft = undefined;
+    this.trigger(this.data);
   }
 
   /**
@@ -515,65 +515,65 @@ class SingleProcessingStore extends Reflux.Store {
    * advanced_features.transcript
    */
   getAssetTranscriptableLanguages() {
-    const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid)
+    const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid);
     if (advancedFeatures?.transcript?.languages) {
-      return advancedFeatures.transcript.languages
+      return advancedFeatures.transcript.languages;
     }
-    return []
+    return [];
   }
 
   /** Returns a local cached translation data. */
   getTranslation(languageCode: string | undefined) {
     return this.data.translations.find(
       (translation) => translation.languageCode === languageCode
-    )
+    );
   }
 
   /** Returns a local cached translations list. */
   getTranslations() {
-    return this.data.translations
+    return this.data.translations;
   }
 
   /** This stores the translation on backend. */
   setTranslation(languageCode: string, value: string) {
-    this.isFetchingData = true
+    this.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
       this.currentQuestionName,
       this.currentSubmissionUuid,
       languageCode,
       value
-    )
-    this.trigger(this.data)
+    );
+    this.trigger(this.data);
   }
 
   deleteTranslation(languageCode: string) {
-    this.isFetchingData = true
+    this.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
       this.currentQuestionName,
       this.currentSubmissionUuid,
       languageCode
-    )
-    this.trigger(this.data)
+    );
+    this.trigger(this.data);
   }
 
   getTranslationDraft() {
-    return this.data.translationDraft
+    return this.data.translationDraft;
   }
 
   setTranslationDraft(newTranslationDraft: TransxDraft) {
-    this.data.translationDraft = newTranslationDraft
+    this.data.translationDraft = newTranslationDraft;
     // We use transcript as source by default.
-    this.data.source = this.data.transcript?.languageCode
-    this.trigger(this.data)
+    this.data.source = this.data.transcript?.languageCode;
+    this.trigger(this.data);
   }
 
   deleteTranslationDraft() {
-    this.data.translationDraft = undefined
+    this.data.translationDraft = undefined;
     // If we clear the draft, we remove the source too.
-    this.data.source = undefined
-    this.trigger(this.data)
+    this.data.source = undefined;
+    this.trigger(this.data);
   }
 
   /**
@@ -581,67 +581,67 @@ class SingleProcessingStore extends Reflux.Store {
    * advanced_features.translated
    */
   getAssetTranslatableLanguages() {
-    const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid)
+    const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid);
     if (advancedFeatures?.translated?.languages) {
-      return advancedFeatures.translated.languages
+      return advancedFeatures.translated.languages;
     }
-    return []
+    return [];
   }
 
   activateTab(tab: SingleProcessingTabs) {
-    this.data.activeTab = tab
+    this.data.activeTab = tab;
 
     // When changing tab, discard all drafts and the selected source.
-    this.data.transcriptDraft = undefined
-    this.data.translationDraft = undefined
-    this.data.source = undefined
+    this.data.transcriptDraft = undefined;
+    this.data.translationDraft = undefined;
+    this.data.source = undefined;
 
-    this.trigger(this.data)
+    this.trigger(this.data);
   }
 
   getSubmissionData() {
-    return this.data.submissionData
+    return this.data.submissionData;
   }
 
   /** NOTE: Returns uuids for current question name, not for all of them. */
   getCurrentQuestionSubmissionsUuids() {
     if (this.data.submissionsUuids !== undefined) {
-      return this.data.submissionsUuids[this.currentQuestionName]
+      return this.data.submissionsUuids[this.currentQuestionName];
     }
-    return undefined
+    return undefined;
   }
 
   getSubmissionsUuids() {
-    return this.data.submissionsUuids
+    return this.data.submissionsUuids;
   }
 
   getActiveTab() {
-    return this.data.activeTab
+    return this.data.activeTab;
   }
 
   hasUnsavedTranscriptDraftValue() {
-    const draft = this.getTranscriptDraft()
+    const draft = this.getTranscriptDraft();
     return (
       draft !== undefined &&
       draft.value !== undefined &&
       draft.value !== this.getTranscript()?.value
-    )
+    );
   }
 
   hasUnsavedTranslationDraftValue() {
-    const draft = this.getTranslationDraft()
+    const draft = this.getTranslationDraft();
     return (
       draft !== undefined &&
       draft.value !== undefined &&
       draft.value !== this.getTranslation(draft?.languageCode)?.value
-    )
+    );
   }
 
   hasAnyUnsavedWork() {
     return (
       this.hasUnsavedTranscriptDraftValue() ||
       this.hasUnsavedTranslationDraftValue()
-    )
+    );
   }
 
   isReady() {
@@ -650,12 +650,12 @@ class SingleProcessingStore extends Reflux.Store {
       this.areUuidsLoaded &&
       this.isSubmissionLoaded &&
       this.isProcessingDataLoaded
-    )
+    );
   }
 }
 
 /** Handles content state and data for editors */
-const singleProcessingStore = new SingleProcessingStore()
-singleProcessingStore.init()
+const singleProcessingStore = new SingleProcessingStore();
+singleProcessingStore.init();
 
-export default singleProcessingStore
+export default singleProcessingStore;
