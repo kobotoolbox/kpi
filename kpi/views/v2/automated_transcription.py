@@ -28,9 +28,9 @@ class AutomatedTranscription(
     def list(self, request, *args, **kwargs):
         # create new automated translation
         # Parameters:
-        # - Source Language
-        # - Audio/video to transcribe
-        # - Engine
+        # - source - Source Language
+        # - xpath - Audio/video to transcribe
+        # - engine - Transcription engine to be used
 
         # Should this an endpoint nested in the data endpoint like attachments? --- Probably yes
 
