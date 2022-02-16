@@ -330,7 +330,8 @@ class LanguageSelector extends React.Component<
           }
         </bem.LanguageSelector__list>
 
-        <bem.LanguageSelector__helpBar>
+      {/* TODO: disabled until we get that help article. */}
+        {/*<bem.LanguageSelector__helpBar>
           <Button
             type='bare'
             color='blue'
@@ -339,7 +340,7 @@ class LanguageSelector extends React.Component<
             onClick={this.openSupportPage.bind(this)}
             label={t('I cannot find my language')}
           />
-        </bem.LanguageSelector__helpBar>
+        </bem.LanguageSelector__helpBar>*/}
       </React.Fragment>
     );
   }
