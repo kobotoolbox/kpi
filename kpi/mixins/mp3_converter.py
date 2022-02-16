@@ -36,6 +36,7 @@ class MP3ConverterMixin:
             '/usr/bin/ffmpeg',
             '-i',
             self.absolute_path,
+            '-vn',
             '-f',
             self.CONVERSION_AUDIO_FORMAT,
             'pipe:1',
@@ -56,7 +57,7 @@ class MP3ConverterMixin:
 
 class FLACConversionMixin:
 
-    CONVERSION_AUDIO_FORMAT = 'flac'
+    CONVERSION_AUDIO_FORMAT_FLAC = 'flac'
     SUPPORTED_CONVERTED_FORMAT = (
         'audio',
         'video',
@@ -85,8 +86,9 @@ class FLACConversionMixin:
             '/usr/bin/ffmpeg',
             '-i',
             self.absolute_path,
+            '-vn',
             '-f',
-            self.CONVERSION_AUDIO_FORMAT,
+            self.CONVERSION_AUDIO_FORMAT_FLAC,
             'pipe:1',
         ]
 
