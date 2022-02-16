@@ -25,7 +25,10 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
-from kpi.mixins.mp3_converter import MP3ConverterMixin
+from kpi.mixins.mp3_converter import (
+    FLACConversionMixin,
+    MP3ConverterMixin,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
 from .storage import (
@@ -574,6 +577,24 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
     )
 
     @property
+    def absolute_flac_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.flac_storage_path):
+            content = self.get_flac_content()
+            kobocat_storage.save(self.flac_storage_path, ContentFile(content))
+
+        if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
+            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
+
+        return kobocat_storage.url(self.flac_storage_path)
+
+    @property
     def absolute_mp3_path(self):
         """
         Return the absolute path on local file system of the converted version of
@@ -601,6 +622,15 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
             return self.media_file.path
 
         return self.media_file.url
+
+    @property
+    def flac_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.flac
+        """
+        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT}'
 
     @property
     def mp3_storage_path(self):
