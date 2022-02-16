@@ -50,7 +50,7 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': 1,
     'no-empty-pattern': 1,
     '@typescript-eslint/no-explicit-any': 1,
-    '@typescript-eslint/no-extra-parens': 1,
+    '@typescript-eslint/no-extra-parens': 'off',
     '@typescript-eslint/no-extra-semi': 1,
     '@typescript-eslint/no-inferrable-types': 1,
     '@typescript-eslint/no-invalid-void-type': 1,
