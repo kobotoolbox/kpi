@@ -23,7 +23,8 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/array-type': [1, {default: 'array-simple'}],
-    '@typescript-eslint/ban-types': 1,
+    // Would be good to enable in future, when most of codebase is TS.
+    '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/comma-dangle': [1, 'always-multiline'],
     '@typescript-eslint/comma-spacing': [1, {'before': false, 'after': true}],
     '@typescript-eslint/consistent-type-definitions': [1, 'interface'],
@@ -155,6 +156,16 @@ module.exports = {
     'space-infix-ops': 1,
     'strict': 1,
   },
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        // It is recommended that this check is disabled for TS files, see:
+        // https://typescript-eslint.io/docs/linting/troubleshooting/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
+        'no-undef': 'off',
+      },
+    },
+  ],
   globals: {
     inject: false,
     module: false,
