@@ -36,10 +36,10 @@
       }
     }
   }
+}
 
-  .mfa-modal__manual__link {
-    cursor: pointer;
-  }
+.mfa-modal__manual__link {
+  cursor: pointer;
 }
 
 .mfa-modal__token {
@@ -58,6 +58,7 @@
   border: 1px solid colors.$kobo-gray-85;
   border-radius: 5px;
   padding: sizes.$x12;
+  line-break: anywhere;
 }
 
 .mfa-modal__footer {
@@ -83,18 +84,19 @@
   }
 }
 
-// HACK FIX: the following forces size of content to 366px for consistency of
+// HACK FIX: the following forces size of content to 510px for consistency of
 // footer buttons
 // FIXME: Due to how modals are created, the footer is part of
 // `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
-.mfa-modal__qrstep {
+.mfa-modal__qrstep .mfa-modal__manualstep {
   .mfa-modal__body {
     padding-bottom: 74px;
   }
 }
 .mfa-modal__manualstep {
   .mfa-modal__codes {
-    margin: 107px 0;
+    margin-top: 37px;
+    margin-bottom: 125px;
   }
 }
 

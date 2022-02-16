@@ -343,13 +343,41 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModals__manualstep>
         <bem.MFAModals__description>
-          {t('Enter the following key into your authentication app to generate the six digit token')}
+          <p>
+            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection.')}
+          </p>
+
+          <strong>
+            {t('Enter this key into your authentication app to generate a six digit token')}
+          </strong>
         </bem.MFAModals__description>
 
         <bem.MFAModals__body>
           <bem.MFAModals__codes>
             {this.getSecretKey()}
           </bem.MFAModals__codes>
+
+          <bem.MFAModals__token>
+            <p>
+              {t('Once your authentication app is set up, generate a temporary six digit token and enter it in the field below.')}
+            </p>
+
+            <TextBox
+              errors={this.state.errorText}
+              value={this.state.inputString}
+              onChange={this.onInputChange.bind(this)}
+              customModifiers={'on-white'}
+            />
+            <bem.MFAModals__manual>
+              <bem.MFAModals__manual__link
+                onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                  this.changeStep(evt, 'qr')
+                }}
+              >
+                {t('Take me back to QR code')}
+              </bem.MFAModals__manual__link>
+            </bem.MFAModals__manual>
+          </bem.MFAModals__token>
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
@@ -359,10 +387,9 @@ export default class MFAModals extends React.Component<
               color='blue'
               size='l'
               isFullWidth={true}
-              label={t('Continue')}
-              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'qr')
-              }}
+              label={t('Next')}
+              onClick={this.mfaConfirm.bind(this)}
+              isDisabled={!this.isTokenValid()}
             />
           </bem.MFAModals__footer__right>
         </bem.MFAModals__footer>
