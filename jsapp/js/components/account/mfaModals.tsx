@@ -17,6 +17,8 @@ bem.MFAModals__backupstep = makeBem(bem.MFAModals, 'backupstep')
 bem.MFAModals__manualstep = makeBem(bem.MFAModals, 'manualstep')
 bem.MFAModals__tokenstep = makeBem(bem.MFAModals, 'tokenstep')
 bem.MFAModals__disclaimerstep = makeBem(bem.MFAModals, 'disclaimerstep')
+bem.MFAModals__helptextstep = makeBem(bem.MFAModals, 'help-text-step')
+bem.MFAModals__helptextstep__email = makeBem(bem.MFAModals__helptextstep, 'email')
 
 bem.MFAModals__title = makeBem(bem.MFAModals, 'title', 'h4')
 bem.MFAModals__description = makeBem(bem.MFAModals, 'description')
@@ -25,18 +27,19 @@ bem.MFAModals__body = makeBem(bem.MFAModals, 'body')
 bem.MFAModals__qr = makeBem(bem.MFAModals, 'qr')
 bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
-bem.MFAModals__manual__link = makeBem(bem.MFAModals__manual, 'manual__link', 'a')
+bem.MFAModals__link = makeBem(bem.MFAModals, 'link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
 bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'list', 'ul')
 bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
-bem.MFAModals__help = makeBem(bem.MFAModals, 'help')
-bem.MFAModals__help__link = makeBem(bem.MFAModals__help, 'help')
+bem.MFAModals__linkwrapper = makeBem(bem.MFAModals, 'linkwrapper')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
 bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
 bem.MFAModals__footer__right = makeBem(bem.MFAModals__footer, 'footer-right')
 
-type modalSteps = 'qr' | 'backups' | 'manual' | 'token' | 'disclaimer'
+const SUPPORT_EMAIL = 'support@kobotoolbox.org'
+
+type modalSteps = 'qr' | 'backups' | 'manual' | 'token' | 'disclaimer' | 'help-text'
 
 type MFAModalsProps = {
   onModalClose: Function,
@@ -263,13 +266,13 @@ export default class MFAModals extends React.Component<
 
               &nbsp;
 
-              <bem.MFAModals__manual__link
+              <bem.MFAModals__link
                 onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                   this.changeStep(evt, 'manual')
                 }}
               >
                 {t('Enter key manually')}
-              </bem.MFAModals__manual__link>
+              </bem.MFAModals__link>
             </bem.MFAModals__manual>
           </bem.MFAModals__token>
         </bem.MFAModals__body>
@@ -378,13 +381,13 @@ export default class MFAModals extends React.Component<
               customModifiers={'on-white'}
             />
             <bem.MFAModals__manual>
-              <bem.MFAModals__manual__link
+              <bem.MFAModals__link
                 onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                   this.changeStep(evt, 'qr')
                 }}
               >
                 {t('Take me back to QR code')}
-              </bem.MFAModals__manual__link>
+              </bem.MFAModals__link>
             </bem.MFAModals__manual>
           </bem.MFAModals__token>
         </bem.MFAModals__body>
@@ -423,12 +426,22 @@ export default class MFAModals extends React.Component<
               )}
             </strong>
 
-            <TextBox
-              errors={this.state.errorText}
-              value={this.state.inputString}
-              onChange={this.onInputChange.bind(this)}
-              customModifiers={'on-white'}
-            />
+            <bem.MFAModals__linkwrapper>
+              <TextBox
+                errors={this.state.errorText}
+                value={this.state.inputString}
+                onChange={this.onInputChange.bind(this)}
+                customModifiers={'on-white'}
+              />
+
+              <bem.MFAModals__link
+                onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                  this.changeStep(evt, 'help-text')
+                }}
+              >
+                {t('Problems with the token')}
+              </bem.MFAModals__link>
+            </bem.MFAModals__linkwrapper>
           </bem.MFAModals__token>
         </bem.MFAModals__body>
 
@@ -494,6 +507,76 @@ export default class MFAModals extends React.Component<
     )
   }
 
+  renderHelpTextStep() {
+    return (
+      <bem.MFAModals__helptextstep>
+        <bem.MFAModals__body>
+          <strong>
+            {t('Issues with the token')}
+          </strong>
+
+          <p>
+            {t('If you have problems with your verification token, please try the following')}
+          </p>
+
+          <bem.MFAModals__list>
+            <bem.MFAModals__list__item>
+              {t('Double check you are using the token generator for the right instance of KoboToolbox')}
+            </bem.MFAModals__list__item>
+
+            <bem.MFAModals__list__item>
+              {t('Try using one of your back up security codes instead')}
+            </bem.MFAModals__list__item>
+          </bem.MFAModals__list>
+
+          <bem.MFAModals__helptextstep__email>
+            <p>
+              {t('If you are still experiencing issues logging in, or have lost your device and recovery codes, please send an email to')}
+            </p>
+
+              &nbsp;
+
+            <bem.MFAModals__link href={'mailto:' + SUPPORT_EMAIL}>
+              {SUPPORT_EMAIL}
+            </bem.MFAModals__link>
+
+              &nbsp;
+
+            <p>
+              {t('with the subject "2FA issues"')}
+            </p>
+          </bem.MFAModals__helptextstep__email>
+        </bem.MFAModals__body>
+
+        <bem.MFAModals__footer>
+          <bem.MFAModals__footer__left>
+            <Button
+              type='frame'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('Back')}
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'token')
+              }}
+            />
+          </bem.MFAModals__footer__left>
+
+          <bem.MFAModals__footer__right>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('OK')}
+              onClick={this.closeModal.bind(this)}
+            />
+          </bem.MFAModals__footer__right>
+        </bem.MFAModals__footer>
+      </bem.MFAModals__helptextstep>
+    )
+  }
+
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
@@ -520,6 +603,10 @@ export default class MFAModals extends React.Component<
 
         {(this.state.currentStep === 'disclaimer') &&
           this.renderDisclaimerStep()
+        }
+
+        {(this.state.currentStep === 'help-text') &&
+          this.renderHelpTextStep()
         }
       </bem.MFAModals>
     )

@@ -38,7 +38,7 @@
   }
 }
 
-.mfa-modal__manual__link {
+.mfa-modal__link {
   cursor: pointer;
 }
 
@@ -65,6 +65,28 @@
 
     > li {
       padding-bottom: sizes.$x24;
+    }
+  }
+}
+
+.mfa-modal__linkwrapper {
+  .mfa-modal__link {
+    float: right;
+    padding-top: sizes.$x16;
+  }
+}
+
+.mfa-modal__help-text-step {
+  .mfa-modal__list {
+    list-style: disc;
+    padding-left: sizes.$x40;
+  }
+
+  .mfa-modal__email {
+    margin-top: sizes.$x14;
+
+    > * {
+      display: inline;
     }
   }
 }
@@ -128,9 +150,15 @@
 }
 
 .mfa-modal__tokenstep {
-  .text-box__input {
-    margin-top: 112px !important;
-    margin-bottom: 236px !important;
+  .mfa-modal__linkwrapper {
+    margin-top: 112px;
+    margin-bottom: 236px;
+  }
+}
+
+.mfa-modal__help-text-step {
+  .mfa-modal__email {
+    margin-bottom: 218px;
   }
 }
 

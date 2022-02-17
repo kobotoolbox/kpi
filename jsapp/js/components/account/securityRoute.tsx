@@ -32,6 +32,8 @@ type SecurityState = {
   mfaActive: boolean,
 }
 
+type EditModalTypes = 'regenerate' | 'reconfigure'
+
 export default class Security extends React.Component<
   {},
   SecurityState
@@ -97,6 +99,20 @@ export default class Security extends React.Component<
     }
   }
 
+  showEditModal(
+    evt: React.ChangeEvent<HTMLInputElement>,
+    type: EditModalTypes
+  ) {
+    evt.preventDefault()
+
+    stores.pageState.showModal({
+        type: MODAL_TYPES.MFA_MODALS,
+        modalType: type,
+        customModalHeader: this.renderCustomHeader(),
+        disableBackdrop: true,
+    })
+  }
+
   renderCustomHeader() {
     return (
       <bem.TableMediaPreviewHeader>
@@ -146,13 +162,8 @@ export default class Security extends React.Component<
                   color='storm'
                   label='Reconfigure'
                   size='l'
-                  onClick={() => {
-                    stores.pageState.showModal({
-                      type: MODAL_TYPES.MFA_MODALS,
-                      modalType: 'reconfigure',
-                      customModalHeader: this.renderCustomHeader(),
-                      disableBackdrop: true,
-                    })
+                  onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                    this.showEditModal(evt, 'reconfigure')
                   }}
                 />
               </bem.MFAOptions__buttons>
@@ -169,13 +180,8 @@ export default class Security extends React.Component<
                   color='storm'
                   label='Generate new'
                   size='l'
-                  onClick={() => {
-                    stores.pageState.showModal({
-                      type: MODAL_TYPES.MFA_MODALS,
-                      modalType: 'regenerate',
-                      customModalHeader: this.renderCustomHeader(),
-                      disableBackdrop: true,
-                    })
+                  onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                    this.showEditModal(evt, 'regenerate')
                   }}
                 />
               </bem.MFAOptions__buttons>
