@@ -52,8 +52,8 @@ class GoogleTranslationEngine(TranslationEngineBase):
         return [lang.language_code for lang in response.languages]
 
     def translate(self, content: str, *args: List, **kwargs: Dict) -> str:
-        #if len(content) < MAX_SYNC_CHARS:
-        #   return self._translate_sync(content, *args, **kwargs)
+        if len(content) < MAX_SYNC_CHARS:
+           return self._translate_sync(content, *args, **kwargs)
         return self._translate_async(content, *args, **kwargs)
 
     def _cleanup(self) -> None:
