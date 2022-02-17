@@ -555,7 +555,7 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
+class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin, FLACConversionMixin):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
@@ -590,7 +590,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
             kobocat_storage.save(self.flac_storage_path, ContentFile(content))
 
         if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
-            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
+            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT_FLAC}'
 
         return kobocat_storage.url(self.flac_storage_path)
 
@@ -630,7 +630,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         the conversion audio format extension concatenated.
         E.g: file.mp4 and file.mp4.flac
         """
-        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT}'
+        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT_FLAC}'
 
     @property
     def mp3_storage_path(self):
@@ -648,6 +648,8 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
 
         if format_ == self.CONVERSION_AUDIO_FORMAT:
             attachment_file_path = self.absolute_mp3_path
+        elif format_ == self.CONVERSION_AUDIO_FORMAT_FLAC:
+            attachment_file_path = self.absolute_flac_path
         else:
             attachment_file_path = self.absolute_path
 
