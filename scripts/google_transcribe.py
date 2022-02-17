@@ -56,7 +56,6 @@ class GoogleTranscribeEngine(AutoTranscription):
 
     def transcribe_file(
             self,
-            # request: object,
             asset_uid: str,
             xpath: str,
             submission_id: int,
@@ -85,12 +84,8 @@ class GoogleTranscribeEngine(AutoTranscription):
             enable_automatic_punctuation=True,
         )
 
-        transcript = []
         speech_results = speech_client.long_running_recognize(config=config, audio=audio)
         results = speech_results.result()
-
-        for result in results.results:
-            transcript.append(result)
 
         # self.store_transcript(transcript)
         self.delete_google_file()
@@ -108,19 +103,3 @@ def run(*args):
     transcript = google.transcribe_file(asset_uid, xpath, submission_id, source, user)
     print("Here is the transcript: ", transcript)
     return transcript
-
-    # try:
-    #     file_path = args[0]
-    #     if not os.path.isfile(file_path):
-    #         raise Exception('A filepath is required for arg 1')
-    # except Exception:
-    #     print(args, flush=True)
-    #     raise Exception('A filepath and language-region pair are required')
-    #
-    # try:
-    #     language_pair = args[1]
-    # except Exception:
-    #     raise Exception('A language-region pair is required for arg 2')
-    #
-    # transcript = GoogleTranscriptEngine(file_path, language_pair)
-    # transcript.transcribe()
