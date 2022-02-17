@@ -1,9 +1,13 @@
+import json
 from celery import shared_task
 
-from kobo.apps.subsequences.integrations import google
+from kobo.apps.subsequences.integrations.google import (
+    google_transcribe,
+    google_translate,
+)
 
-GoogleTranscribeEngine = google.google_transcribe.GoogleTranscribeEngine
-GoogleTranslationEngine = google.google_transcribe.GoogleTranslationEngine
+GoogleTranscribeEngine = google_transcribe.GoogleTranscribeEngine
+GoogleTranslationEngine = google_translate.GoogleTranslationEngine
 
 
 @shared_task
