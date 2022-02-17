@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+# coding: utf-8
 from google.cloud import speech_v1
 from google.cloud import storage
 
@@ -88,9 +88,12 @@ class GoogleTranscribeEngine(AutoTranscription):
         results = speech_results.result()
 
         transcript = []
-        for result in results:
+        for result in results.results:
             alternatives = result.alternatives
-            transcript.append(alternatives[0])
+            transcript.append({
+                'transcript': alternatives[0].transcript,
+                'confidence': alternatives[0].confidence,
+            })
 
         # delete the audio file from storage
         self.delete_google_file()
