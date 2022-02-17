@@ -89,7 +89,8 @@ export function buildUserUrl(username: string): string {
 
 declare global {
   interface Window {
-    log: any
+    log: any,
+    MFAEnabled: boolean,
   }
 }
 
@@ -171,6 +172,14 @@ export function getLangString(obj: LangObject): string | undefined {
   } else {
     return undefined;
   }
+}
+
+export function addRequiredToLabel(label: string, isRequired: boolean = true): string {
+  if (!isRequired) {
+    return label;
+  }
+  const requiredTemplate = t('##field_label## (required)');
+  return requiredTemplate.replace('##field_label##', label);
 }
 
 export function stringToColor(str: string, prc: number) {

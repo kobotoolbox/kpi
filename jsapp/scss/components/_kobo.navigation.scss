@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // header and navigation styling
 
 // This element handles stretched background of app header
@@ -25,14 +27,16 @@
     margin-left: auto;
   }
 
-  .mdl-layout-title {
-    width: 244px;
+  .mdl-layout__title {
+    // This makes sure the search box is aligned with right side content.
+    // We subtract the header bar paddings and the left margin of search box.
+    width: $s-drawer-width - 20px - 6px;
   }
 
   .header__logo {
-    width: 175px;
+    width: 180px;
     height: 40px;
-    background: url("../img/kobologo.svg") no-repeat left bottom;
+    background: url("../img/kobologo.svg") no-repeat 50% 50%;
     background-size: contain;
     display: block;
   }
@@ -41,7 +45,7 @@
     text-align: right;
   }
 
-  .mdl-layout-title + .login-box {
+  .mdl-layout__title + .login-box {
     flex: 1;
   }
 
@@ -262,10 +266,6 @@
       max-width: 85%;
     }
 
-    .mdl-layout-title {
-      width: 160px;
-    }
-
     .mdl-layout__header-row {
       padding: 0px 12px;
     }
@@ -305,7 +305,7 @@
     font-size: 18px;
 
     &.main-header__title--long input {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
     }
 
     input {
@@ -343,7 +343,7 @@
   }
 
   .main-header__counter {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     margin-right: 20px;
     color: $kobo-gray-65;
   }
@@ -358,7 +358,7 @@
   }
 
   .mdl-layout__header {
-    .mdl-layout-title {
+    .mdl-layout__title {
       width: 40px;
     }
 
@@ -367,8 +367,7 @@
     }
 
     .header__logo {
-      background: url("../img/kobologoS.svg") no-repeat left center;
-      background-size: 125%;
+      background-image: url("../img/kobologo_symbol.svg");
       width: 40px;
     }
   }

@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
@@ -98,7 +100,7 @@ $side-tabs-width-mobile: 70px;
     border: none;
     padding: 6px;
     border-left: 2px solid transparent;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
     color: $kobo-gray-40;
@@ -204,21 +206,26 @@ $side-tabs-width-mobile: 70px;
     margin-top: 0;
   }
 
+  &.historyHidden,
+  &.historyExpanded {
+    transition-duration: 0.2s;
+    transition-property: max-height, margin-top, margin-bottom;
+  }
+
   &.historyHidden {
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
     overflow: hidden;
-    transition: 0.2s max-height;
     padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
     max-height: 99999px;
   }
 
@@ -337,7 +344,7 @@ $side-tabs-width-mobile: 70px;
 
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     color: $kobo-gray-24;
     font-weight: 500;
 
@@ -831,7 +838,7 @@ $side-tabs-width-mobile: 70px;
     height: 39px;
 
     a.form-view__tab {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
     }
   }
 

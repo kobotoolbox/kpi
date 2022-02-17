@@ -2,9 +2,11 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kpi.forms import USERNAME_REGEX
-from kpi.forms import USERNAME_MAX_LENGTH
-from kpi.forms import USERNAME_INVALID_MESSAGE
+from kpi.forms.registration import (
+    USERNAME_INVALID_MESSAGE,
+    USERNAME_MAX_LENGTH,
+    USERNAME_REGEX,
+)
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
