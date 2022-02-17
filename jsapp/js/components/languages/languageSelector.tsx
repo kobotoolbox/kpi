@@ -28,7 +28,7 @@ bem.LanguageSelector__list = makeBem(bem.LanguageSelector, 'list', 'ol');
 bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'li');
 bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'footer');
 
-const LANGUAGE_SELECTOR_SUPPORT_URL = 'TODO.html';
+const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-list';
 
 interface LanguageSelectorProps {
   /** Replaces the title on top. */
@@ -332,8 +332,7 @@ class LanguageSelector extends React.Component<
           }
         </bem.LanguageSelector__list>
 
-      {/* TODO: disabled until we get that help article. */}
-        {/*<bem.LanguageSelector__helpBar>
+        <bem.LanguageSelector__helpBar>
           <Button
             type='bare'
             color='blue'
@@ -342,7 +341,7 @@ class LanguageSelector extends React.Component<
             onClick={this.openSupportPage.bind(this)}
             label={t('I cannot find my language')}
           />
-        </bem.LanguageSelector__helpBar>*/}
+        </bem.LanguageSelector__helpBar>
       </React.Fragment>
     );
   }
