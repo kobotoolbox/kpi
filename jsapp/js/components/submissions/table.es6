@@ -29,6 +29,7 @@ import {
   getRowName,
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
+  getSurveyFlatPaths,
 } from 'js/assetUtils';
 import {
   getRepeatGroupAnswers,
@@ -541,6 +542,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
+    const flatPaths = getSurveyFlatPaths(survey);
     allColumns.forEach((key) => {
       var q;
       if (key.includes('/')) {
@@ -631,8 +633,9 @@ export class DataTable extends React.Component {
           ) {
             const supplementalColumnSource = key.split('/')[1];
             const sourceColumn = columnsToRender.find((columnToRender) =>
-              columnToRender.id === supplementalColumnSource
+              columnToRender.id === flatPaths[supplementalColumnSource]
             );
+
             if (sourceColumn) {
               // This way if we have a source column with index `2`, we will set
               // the supplemental details column to `2__supplementalDetails/…`
