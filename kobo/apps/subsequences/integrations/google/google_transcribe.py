@@ -30,12 +30,11 @@ class GoogleTranscribeEngine(AutoTranscription):
 
     def get_converted_audio(
             self,
+            asset,
             xpath: str,
-            asset_uid: str,
             submission_id: int,
             user: object
     ):
-        asset = Asset.objects.get(uid=asset_uid)
         attachment = asset.deployment.get_attachment(submission_id, user, xpath=xpath)
         attachment_path = attachment.absolute_flac_path
         filepath = attachment.media_file.name
@@ -56,7 +55,7 @@ class GoogleTranscribeEngine(AutoTranscription):
 
     def transcribe_file(
             self,
-            asset_uid: str,
+            asset,
             xpath: str,
             submission_id: int,
             source: str,
@@ -65,7 +64,7 @@ class GoogleTranscribeEngine(AutoTranscription):
         # get the audio file in a Google supported format
         path, filename = self.get_converted_audio(
             xpath=xpath,
-            asset_uid=asset_uid,
+            asset=asset,
             submission_id=submission_id,
             user=user
         )

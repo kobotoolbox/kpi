@@ -11,6 +11,8 @@ from google.cloud import translate_v3 as translate, storage
 
 from ..misc import TranslationEngineBase, TranslationException
 
+from kobo.apps.subsequences.tasks.handle_translation import handle_translation
+
 
 BUCKET_NAME = 'kobo-translations-test-qwerty12345'
 EXTENSION = '.txt'
@@ -87,9 +89,13 @@ class GoogleTranslationEngine(TranslationEngineBase):
     def callback(self, future: 'google.api_core.operation_async.AsyncOperation') -> None:
         # Do something with the result
         self.result = future.result()
-        with open('/tmp/result.txt', 'w') as f:
-            f.write(self._get_content())
         self.state = 'SUCCEEDED'
+        result = self._get_content()
+
+        # xpath = 'path/to/question'
+        # submission_uuid = 'submisisonuuid'
+        # handle_translation(submission_uuid, xpath, result)
+
         self._cleanup()
 
     def _get_output_filename(self, output_path: str) -> str:

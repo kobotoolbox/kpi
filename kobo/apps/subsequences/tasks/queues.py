@@ -11,22 +11,31 @@ GoogleTranslationEngine = google_translate.GoogleTranslationEngine
 
 
 @shared_task
-def queue_transcript(asset_uid, submission_uuid, service, lang_code):
-    # GoogleTranscribeEngine()
+def queue_transcript(**params):
+    asset = params['asset']
+    submission_uuid = params.get('submission_uuid')
+    submission_id = params.get('submission_id')
+    service = params['service']
+    lang_code = params['lang_code']
 
-    data = {'asset': asset_uid, 'submission': submission_uuid,
-            'service': service, 'lang_code': lang_code,}
-    with open('TLOG.txt', 'a') as ff:
-        ff.write(json.dumps(data))
-        ff.write('\n')
+    engine = GoogleTranscribeEngine()
+
+    xpath = 'path/to/question'
+    submission_id = 1
+    source = 'en-US'
+    user = asset.owner
+    transcript = engine.transcribe_file(asset, xpath, submission_id,
+                                        source, user)
 
 
 @shared_task
-def queue_translate(asset_uid, submission_uuid, service, lang_code):
-    # GoogleTranslationEngine
+def queue_translate(asset, submission_uuid, service, lang_code):
+    engine = GoogleTranslationEngine()
 
-    data = {'asset': asset_uid, 'submission': submission_uuid,
-            'service': service, 'lang_code': lang_code,}
-    with open('TLOG.txt', 'a') as ff:
-        ff.write(json.dumps(data))
-        ff.write('\n')
+    params = {'username': asset.owner.username,
+              '_uuid': submission_uuid,
+              'source_lang': 'en',
+              'target_lang': 'af',
+              'content': 'How do you say zebra in afrikaans?',
+              }
+    engine.translate(**params)
