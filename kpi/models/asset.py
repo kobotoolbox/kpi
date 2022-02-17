@@ -6,6 +6,8 @@ from functools import reduce
 from operator import add
 from typing import Optional, Union
 
+from jsonschema import validate as jsonschema_validate
+
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.fields import JSONField as JSONBField
@@ -19,6 +21,14 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
+from kobo.apps.subsequences.utils import advanced_submission_jsonschema
+from kobo.apps.subsequences.utils import advanced_feature_instances
+
+from django.core.exceptions import ObjectDoesNotExist
+
+from kobo.apps.subsequences.advanced_features_params_schema import (
+    ADVANCED_FEATURES_PARAMS_SCHEMA,
+)
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
@@ -143,6 +153,7 @@ class Asset(ObjectPermissionMixin,
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
+    advanced_features = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey('Asset', related_name='children',
@@ -386,6 +397,69 @@ class Asset(ObjectPermissionMixin,
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
+
+    def get_advanced_feature_instances(self):
+        return advanced_feature_instances(self.content, self.advanced_features)
+
+    @property
+    def has_advanced_features(self):
+        if self.advanced_features is None:
+            return False
+        return len(self.advanced_features) > 0
+
+    def _get_additional_fields(self):
+        for instance in self.get_advanced_feature_instances():
+            for field in instance.addl_fields():
+                yield field
+
+    def _get_engines(self):
+        for instance in self.get_advanced_feature_instances():
+            for key, val in instance.engines():
+                yield key, val
+
+    def analysis_form_json(self):
+        additional_fields = list(self._get_additional_fields())
+        engines = dict(self._get_engines())
+        return {'engines': engines, 'additional_fields': additional_fields}
+
+    def validate_advanced_features(self):
+        if self.advanced_features is None:
+            self.advanced_features = {}
+        jsonschema_validate(instance=self.advanced_features,
+                            schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
+
+    def update_submission_extra(self, content, user=None):
+        uuid = content.get('submission')
+        try:
+            sub = self.submission_extras.get(uuid=uuid)
+        except ObjectDoesNotExist:
+            sub = self.submission_extras.model(asset=self, uuid=uuid)
+        instances = self.get_advanced_feature_instances()
+        compiled_content = {**sub.content}
+        for instance in instances:
+            compiled_content = instance.compile_revised_record(compiled_content,
+                                                               edits=content)
+        sub.content = compiled_content
+        sub.save()
+        return sub
+
+    def get_advanced_submission_schema(self, url=None,
+                                       content=False):
+        if len(self.advanced_features) == 0:
+            NO_FEATURES_MSG = 'no advanced features activated for this form'
+            return {'type': 'object', '$description': NO_FEATURES_MSG}
+        last_deployed_version = self.deployed_versions.last()
+        if content:
+            return advanced_submission_jsonschema(content,
+                                                  self.advanced_features,
+                                                  url=url)
+        if last_deployed_version is None:
+            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
+            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
+        content = last_deployed_version.version_content
+        return advanced_submission_jsonschema(content,
+                                              self.advanced_features,
+                                              url=url)
 
     def adjust_content_on_save(self):
         """
@@ -706,6 +780,8 @@ class Asset(ObjectPermissionMixin,
         # be altered on save. (e.g. on asset.deploy())
         if adjust_content:
             self.adjust_content_on_save()
+
+        self.validate_advanced_features()
 
         # populate summary
         self._populate_summary()

@@ -93,6 +93,7 @@ INSTALLED_APPS = (
     'django_digest',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
+    'kobo.apps.subsequences',
     'constance',
     'constance.backends.database',
     'kobo.apps.hook',

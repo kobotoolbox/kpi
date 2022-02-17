@@ -1,9 +1,14 @@
+import _ from 'lodash';
 import {
   getRowName,
   getTranslatedRowLabel,
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
+  isRowProcessingEnabled,
+  getSupplementalTranscriptPath,
+  getSupplementalTranslationPath,
 } from 'js/assetUtils';
+import {getColumnLabel} from 'js/components/submissions/tableUtils'
 import {
   createEnum,
   SCORE_ROW_TYPE,
@@ -59,18 +64,9 @@ class DisplayGroup {
   }
 }
 
-/**
- * @typedef {Object} DisplayResponse
- * @property {string} type - One of QUESTION_TYPES
- * @property {string} label - Localized display label
- * @property {string} name - Unique identifier
- * @property {string|undefined} listName - Unique identifier of a choices list,
- *                                         only applicable for question types
- *                                         that uses choices lists
- * @property {string|null} data - User response, `null` for no response
- */
 class DisplayResponse {
-  public type: AnyRowTypeName;
+  /** One of QUESTION_TYPES or `null` for supplemental details */
+  public type: AnyRowTypeName | null;
   /** Localized display label */
   public label: string | null;
   /** Unique identifier */
@@ -84,7 +80,7 @@ class DisplayResponse {
   public data: string | null = null;
 
   constructor(
-    type: AnyRowTypeName,
+    type: AnyRowTypeName | null,
     label: string | null,
     name: string,
     listName: string | undefined,
@@ -106,16 +102,18 @@ class DisplayResponse {
  * Returns a root group with everything inside
  */
 export function getSubmissionDisplayData(
-  survey: SurveyRow[],
-  choices: SurveyChoice[],
+  asset: AssetResponse,
   /** for choosing label to display */
   translationIndex: number,
   submissionData: SubmissionResponse
 ) {
-  const flatPaths = getSurveyFlatPaths(survey, true);
-
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
+
+  const survey = asset?.content?.survey || []
+  const choices = asset?.content?.choices || []
+
+  const flatPaths = getSurveyFlatPaths(survey, true);
 
   /**
    * Recursively generates a nested architecture of survey with data.
@@ -261,6 +259,13 @@ export function getSubmissionDisplayData(
           rowData
         );
         parentGroup.addChild(rowObj);
+
+        const rowSupplementalResponses = getRowSupplementalResponses(
+          asset,
+          submissionData,
+          rowName,
+        )
+        rowSupplementalResponses.forEach((resp) => {parentGroup.addChild(resp)})
       }
     }
   }
@@ -354,7 +359,7 @@ function populateMatrixData(
  * Returns data for given row, works for groups too. Returns `null` for no
  * answer, array for repeat groups and object for regular groups
  */
-function getRowData(
+export function getRowData(
   name: string,
   survey: SurveyRow[],
   data: SubmissionResponse
@@ -490,6 +495,112 @@ export function getMediaAttachment(
   });
 
   return mediaAttachment;
+}
+
+/**
+ * Returns supplemental details for given path,
+ * e.g. `_supplementalDetails/question_name/transcript/pl` or
+ * e.g. `_supplementalDetails/question_name/translated/pl`.
+ *
+ * NOTE: transcripts are actually not nested on language level (because there
+ * can be only one transcript), but we need to use paths with languages in it
+ * to build Submission Modal and Data Table properly.
+ */
+export function getSupplementalDetailsContent(
+  submission: SubmissionResponse,
+  path: string
+) {
+  const pathArray = path.split('/')
+
+  if (pathArray[2] === 'transcript') {
+    // There is always one transcript, not nested in language code object, thus
+    // we don't need the language code in the path.
+    const transcriptLanguageCode = pathArray.pop()
+    const transcriptObj = _.get(submission, pathArray, '')
+    if (
+      transcriptObj.languageCode === transcriptLanguageCode &&
+      typeof transcriptObj.value === 'string'
+    ) {
+      return transcriptObj.value
+    }
+    return t('N/A')
+  }
+
+  pathArray.push('value')
+  // Moments like these makes you really apprecieate the beauty of lodash.
+  const value = _.get(submission, pathArray, '')
+  // If there is no value it could be either WIP or intentional. We want to be
+  // clear about the fact it could be intentionally empty.
+  return value || t('N/A')
+}
+
+/**
+ * Returns all supplemental details (as rows) for given row. Includes transcript
+ * and all translations.
+ *
+ * Returns empty array if row is not enabled to have supplemental details.
+ *
+ * If there is potential for details, then it will return a full list of
+ * DisplayResponses with existing values (falling back to empty strings).
+ */
+function getRowSupplementalResponses(
+  asset: AssetResponse,
+  submissionData: SubmissionResponse,
+  rowName: string,
+): DisplayResponse[] {
+  const output: DisplayResponse[] = []
+  if (isRowProcessingEnabled(asset.uid, rowName)) {
+    const advancedFeatures = asset.advanced_features
+
+    if (
+      advancedFeatures.transcript !== undefined &&
+      advancedFeatures.transcript.languages !== undefined
+    ) {
+      advancedFeatures.transcript.languages.forEach((languageCode: string) => {
+        output.push(
+          new DisplayResponse(
+            null,
+            getColumnLabel(
+              asset,
+              getSupplementalTranscriptPath(rowName, languageCode),
+              false
+            ),
+            `${rowName}/transcript/${languageCode}`,
+            undefined,
+            getSupplementalDetailsContent(
+              submissionData,
+              getSupplementalTranscriptPath(rowName, languageCode)
+            )
+          )
+        )
+      })
+    }
+
+    if (
+      advancedFeatures.translated !== undefined &&
+      advancedFeatures.translated.languages !== undefined
+    ) {
+      advancedFeatures.translated.languages.forEach((languageCode: string) => {
+        output.push(
+          new DisplayResponse(
+            null,
+            getColumnLabel(
+              asset,
+              getSupplementalTranslationPath(rowName, languageCode),
+              false
+            ),
+            `${rowName}/transcript/${languageCode}`,
+            undefined,
+            getSupplementalDetailsContent(
+              submissionData,
+              getSupplementalTranslationPath(rowName, languageCode)
+            )
+          )
+        )
+      })
+    }
+  }
+  return output
 }
 
 export default {

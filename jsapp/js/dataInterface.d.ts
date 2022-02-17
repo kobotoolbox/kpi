@@ -7,6 +7,13 @@ interface FailResponse {
   statusText: string
 }
 
+interface GetProcessingSubmissionsResponse extends PaginatedResponse {
+  results: {
+    [questionName: string]: any
+    _uuid: string
+  }[]
+}
+
 interface SubmissionAttachment {
   download_url: string
   download_large_url: string
@@ -17,6 +24,39 @@ interface SubmissionAttachment {
   instance: number
   xform: number
   id: number
+}
+
+interface SubmissionSupplementalDetails {
+  [questionName: string]: {
+    transcript?: {
+      languageCode: string
+      value: string
+      dateCreated: string
+      dateModified: string
+      engine?: string
+      revisions?: {
+        dateModified: string
+        engine?: string
+        languageCode: string
+        value: string
+      }[]
+    }
+    translated?: {
+      [languageCode: string]: {
+        languageCode: string
+        value: string
+        dateCreated: string
+        dateModified: string
+        engine?: string
+        revisions?: {
+          dateModified: string
+          engine?: string
+          languageCode: string
+          value: string
+        }[]
+      }
+    }
+  }
 }
 
 interface SubmissionResponse {
@@ -44,6 +84,7 @@ interface SubmissionResponse {
   subscriberid?: string
   today?: string
   username?: string
+  _supplementalDetails?: SubmissionSupplementalDetails
 }
 
 interface AssignablePermission {
@@ -119,6 +160,8 @@ interface SurveyRow {
   'kobo--rank-items'?: string
   'kobo--score-choices'?: string
   'kobo--locking-profile'?: string
+  /** HXL tags. */
+  tags: string[]
 }
 
 interface SurveyChoice {
@@ -168,8 +211,43 @@ interface AssetReportStylesKuidNames {
   [name: string]: {}
 }
 
+interface AdvancedSubmissionSchema {
+  type: 'string' | 'object'
+  $description: string
+  url?: string
+  properties?: AdvancedSubmissionSchemaDefinition
+  additionalProperties?: boolean
+  required?: string[]
+  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
+}
+
+interface AssetAdvancedFeatures {
+  transcript?: {
+    /** List of question names */
+    values?: string[]
+    /** List of transcript enabled languages. */
+    languages?: string[]
+  }
+  translated?: {
+    /** List of question names */
+    values?: string[]
+    /** List of translations enabled languages. */
+    languages?: string[]
+  }
+}
+
+interface AdvancedSubmissionSchemaDefinition {
+  [name: string]: {
+    type: 'string' | 'object'
+    description: string
+    properties?: {[name: string]: {}}
+    additionalProperties?: boolean
+    required?: string[]
+  }
+}
+
 /**
- * This is the backend's asset.
+ * This is the backends asset.
  */
 interface AssetResponse {
   url: string
@@ -293,6 +371,9 @@ interface AssetResponse {
   access_types: string[]|null
   data_sharing: {}
   paired_data: string
+
+  advanced_features: AssetAdvancedFeatures
+  advanced_submission_schema: AdvancedSubmissionSchema
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend. Here are some properties we add to the response:

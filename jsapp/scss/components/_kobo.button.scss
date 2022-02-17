@@ -4,7 +4,6 @@
 
 @use "scss/_colors";
 @use "scss/sizes";
-@use "sass:color";
 
 /*
   This is a simple colored button.
@@ -53,15 +52,13 @@
   &[disabled] {
     pointer-events: none;
     color: rgba(colors.$kobo-white, 0.75);
-    // 1px black transparent png with 10% opacity (png-pixel.com)
     // We have it so it works with every `background-color` we use.
-    background-image: url("data:image/png;base64,  iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkkAQAAB8AG7jymN8AAAAASUVORK5CYII= ");
+    background-image: $png-black-10;
   }
 
   &:hover {
-    // 1px black transparent png with 6% opacity (png-pixel.com)
     // We have it so it works with every `background-color` we use.
-    background-image: url("data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk4AcAABUAET9MVpIAAAAASUVORK5CYII=");
+    background-image: $png-black-6;
   }
 
   &:active {

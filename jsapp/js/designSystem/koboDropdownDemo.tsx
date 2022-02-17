@@ -1,11 +1,10 @@
 import React from 'react'
 import bem from 'js/bem';
-import KoboDropdown, {KoboDropdownThemes, KoboDropdownPlacements} from 'js/components/common/koboDropdown'
+import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown'
 import Checkbox from 'js/components/common/checkbox'
 import Radio from 'js/components/common/radio'
 
 type KoboDropdownDemoState = {
-  demoTheme: KoboDropdownThemes
   demoPlacement: KoboDropdownPlacements
   demoIsDisabled: boolean
   demoHideOnMenu: boolean
@@ -14,16 +13,6 @@ type KoboDropdownDemoState = {
 interface Option {
   value: string
   label: string
-}
-
-const themesOptions: Option[] = []
-for (let theme in KoboDropdownThemes) {
-  // Hacking TypeScript: https://stackoverflow.com/a/51281023/2311247
-  const typedTheme: KoboDropdownThemes = KoboDropdownThemes[theme as keyof typeof KoboDropdownThemes]
-  themesOptions.push({
-    label: typedTheme,
-    value: typedTheme
-  })
 }
 
 const placementsOptions: Option[] = []
@@ -40,15 +29,10 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
   constructor(props: {}) {
     super(props)
     this.state = {
-      demoTheme: KoboDropdownThemes.dark,
       demoPlacement: KoboDropdownPlacements['down-center'],
       demoIsDisabled: false,
       demoHideOnMenu: true,
     }
-  }
-
-  onThemeChange({}: any, newTheme: KoboDropdownThemes) {
-    this.setState({demoTheme: newTheme})
   }
 
   onPlacementChange({}: any, newPlacement: KoboDropdownPlacements) {
@@ -82,16 +66,6 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
                       <Radio
-                        title='type'
-                        name='type'
-                        selected={this.state.demoTheme}
-                        options={themesOptions}
-                        onChange={this.onThemeChange.bind(this)}
-                      />
-                    </div>
-
-                    <div className='demo__form-config'>
-                      <Radio
                         title='color'
                         name='color'
                         selected={this.state.demoPlacement}
@@ -123,7 +97,7 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <KoboDropdown
-                    theme={this.state.demoTheme}
+                    name='kobo-dropdown-demo'
                     placement={this.state.demoPlacement}
                     isDisabled={this.state.demoIsDisabled}
                     hideOnMenuClick={this.state.demoHideOnMenu}

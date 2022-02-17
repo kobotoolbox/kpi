@@ -14,15 +14,15 @@ import {
   PATHS,
 } from 'js/router/routerConstants';
 
-export function redirectToLogin() {
+export function redirectToLogin(): void {
   window.location.replace(getLoginUrl());
 }
 
 /**
- * @returns {string} login url with a `next` parameter - after logging in, the
+ * Returns login url with a `next` parameter - after logging in, the
  * app will redirect to the next url
  */
-export function getLoginUrl() {
+export function getLoginUrl(): string {
   let url = PATHS.LOGIN;
   const currentLoc = hashHistory.getCurrentLocation();
   if (currentLoc?.pathname) {
@@ -169,6 +169,17 @@ export function isFormKobocatRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_KOBOCAT.replace(':uid', uid);
 }
 
+export function isFormSingleProcessingRoute(
+  uid: string,
+  questionName: string,
+  submissionUuid: string
+): boolean {
+  return getCurrentPath() === ROUTES.FORM_PROCESSING
+    .replace(':uid', uid)
+    .replace(':questionName', questionName)
+    .replace(':submissionUuid', submissionUuid);
+}
+
 export function isFormResetRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
 }
@@ -211,5 +222,19 @@ export function getRouteAssetUid(): string|void {
 
   if (isAnyLibraryItemRoute()) {
     return getCurrentPath().split('/')[3];
+  }
+}
+
+/** Returns parameters from path for single processing route. */
+export function getSingleProcessingRouteParameters(): {
+  uid: string,
+  questionName: string,
+  submissionUuid: string,
+} {
+  const splitPath = getCurrentPath().split('/');
+  return {
+    uid: splitPath[2],
+    questionName: splitPath[5],
+    submissionUuid: splitPath[6],
   }
 }

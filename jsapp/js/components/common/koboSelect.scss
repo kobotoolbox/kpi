@@ -1,0 +1,295 @@
+@use "scss/colors";
+@use "scss/mixins";
+@use "scss/sizes";
+@use "js/components/common/button";
+
+.k-select {
+  font-size: sizes.$x13;
+
+  .kobo-dropdown__menu {
+    width: 100%;
+  }
+}
+
+.k-select__trigger {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  font-weight: 400;
+  text-align: left;
+  border-width: button.$button-border-width;
+  border-style: solid;
+  border-color: transparent;
+  border-radius: button.$button-border-radius;
+  background-color: transparent;
+  color: colors.$kobo-gray-40;
+  position: relative; // Needed for pending state.
+  padding: 0 sizes.$x16;
+
+  .k-select__search-box,
+  .k-select__trigger-selected-option {
+    flex: 1;
+  }
+}
+
+.k-select__trigger .k-icon + input,
+.k-select__trigger .k-icon + label,
+.k-select__option .k-icon + label {
+  margin-left: sizes.$x6;
+}
+
+.k-select__clear {
+  margin-left: sizes.$x6;
+  margin-right: sizes.$x6;
+}
+
+// Styles for when menu is opened.
+.k-select .kobo-dropdown--menu-visible .k-select__trigger {
+  color: colors.$kobo-gray-24;
+}
+
+.k-select__clear {
+  @include mixins.centerRowFlex;
+}
+
+.k-select__search-box,
+.k-select__trigger-selected-option {
+  @include mixins.centerRowFlex;
+  max-width: 80%;
+  margin-right: auto;
+}
+
+.k-select__trigger-selected-option:not(.k-select__trigger-selected-option--empty) label {
+  color: colors.$kobo-gray-24;
+}
+
+.k-select__search-box {
+  max-width: 70%;
+}
+
+.k-select__menu {
+  display: block;
+  width: 100%;
+  margin: sizes.$x2 0 0;
+  padding: sizes.$x6 sizes.$x3;
+  border-radius: button.$button-border-radius;
+  background-color: colors.$kobo-white;
+  box-shadow: 0 0 sizes.$x6 rgba(colors.$kobo-storm, 0.3);
+}
+
+.k-select__option {
+  @include mixins.buttonReset;
+
+  .k-icon {
+    color: colors.$kobo-gray-85;
+  }
+}
+
+.k-select__option,
+.k-select__menu-message {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  width: 100%;
+  height: sizes.$x36;
+  color: colors.$kobo-gray-40;
+  padding: 0 #{sizes.$x16 - sizes.$x2};
+  text-align: left;
+}
+
+.k-select__menu-message {
+  font-style: italic;
+  margin: 0;
+}
+
+.k-select__option {
+  font-weight: 500;
+
+  &:hover ,
+  &.k-select__option--selected {
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
+  }
+}
+
+.k-select__option label,
+.k-select__trigger label {
+  @include mixins.textEllipsis;
+  cursor: inherit;
+  flex: 1;
+}
+
+.k-select__search-box {
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+
+  &::placeholder {
+    @include mixins.textEllipsis;
+    color: inherit;
+    opacity: 1;
+  }
+}
+
+// When menu is opened and searchable, we replace the trigger with text input.
+.k-select.k-select--is-searchable.k-select--is-menu-visible {
+  // We need it to disappear, but also to be still a child node for the opening
+  // functionality to work.
+  .k-select__trigger-selected-option {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+  }
+}
+
+// The always takes all the available space.
+.k-select {
+  width: 100%;
+
+  .kobo-dropdown,
+  .kobo-dropdown__trigger {
+    width: 100%;
+  }
+}
+
+.k-select.k-select--is-pending {
+  .kobo-dropdown__trigger {
+    pointer-events: none;
+  }
+
+  // Note: this assumes a `spinner` icon is present inside the button (already
+  // handled by `koboSelect.tsx` code).
+  .k-select__trigger {
+    // Hide button text.
+    color: transparent !important;
+
+    .k-select__clear .k-icon,
+    .k-icon.k-icon-caret-down,
+    .k-icon.k-icon-caret-up,
+    .k-select__trigger-selected-option label,
+    .k-select__trigger-selected-option .k-icon {
+      color: transparent !important;
+    }
+
+    // Disable any interactions (and hover effects).
+    pointer-events: none;
+
+    .k-icon.k-icon-spinner {
+      display: block;
+      position: absolute;
+      line-height: 1;
+    }
+  }
+
+  .k-select__menu {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+.k-select.k-select--type-blue,
+.k-select.k-select--type-gray {
+  &.k-select--is-menu-visible {
+    .k-select__trigger {
+      border-color: colors.$kobo-alt-blue;
+      box-shadow: 0 0 0 sizes.$x2 rgba(colors.$kobo-alt-blue, 0.5);
+
+      .k-icon.k-icon-caret-down,
+      .k-icon.k-icon-caret-up {
+        color: colors.$kobo-blue;
+      }
+    }
+  }
+
+  .k-select__trigger .k-icon {
+    color: colors.$kobo-gray-65;
+  }
+}
+
+.k-select.k-select--type-blue {
+  .k-select__trigger {
+    background-color: colors.$kobo-light-blue;
+  }
+
+  &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
+  &.k-select--is-pending .k-select__trigger {
+    color: colors.$kobo-gray-24;
+    background-color: darken(colors.$kobo-light-blue, 2);
+  }
+}
+
+.k-select.k-select--type-gray {
+  .k-select__trigger {
+    background-color: colors.$kobo-cloud;
+  }
+
+  &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
+  &.k-select--is-pending .k-select__trigger {
+    color: colors.$kobo-gray-24;
+    background-color: darken(colors.$kobo-cloud, 2);
+  }
+}
+
+.k-select.k-select--type-outline {
+  .k-select__trigger {
+    border-color: colors.$kobo-gray-92;
+  }
+
+  &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
+  &.k-select--is-pending .k-select__trigger {
+    border-color: colors.$kobo-gray-85;
+    color: colors.$kobo-gray-24;
+  }
+
+  &.k-select--is-menu-visible {
+    .k-select__trigger {
+      border-color: colors.$kobo-blue;
+      box-shadow: 0 0 0 sizes.$x2 rgba(colors.$kobo-alt-blue, 0.5);
+
+      .k-icon.k-icon-caret-down,
+      .k-icon.k-icon-caret-up {
+        color: colors.$kobo-blue;
+      }
+    }
+  }
+
+  .k-select__trigger .k-icon {
+    color: colors.$kobo-gray-85;
+  }
+}
+
+// Sets the different sizes for given size of a trigger button.
+@mixin triggerSize($height, $font, $icon) {
+  min-height: $height;
+  line-height: $height - 2 * button.$button-border-width; // Subtracting the border.
+  font-size: $font;
+
+  // Position the spinner icon in the center;
+  .k-icon.k-icon-spinner.k-spin {
+    top: calc(50% - #{$icon * 0.5});
+    left: calc(50% - #{$icon * 0.5});
+  }
+}
+
+.k-select--size-s .k-select__trigger {
+  @include triggerSize(
+    button.$button-height-s,
+    button.$button-font-s,
+    button.$button-icon-s
+  );
+}
+
+.k-select--size-m .k-select__trigger {
+  @include triggerSize(
+    button.$button-height-m,
+    button.$button-font-m,
+    button.$button-icon-m
+  );
+}
+
+.k-select--size-l .k-select__trigger {
+  @include triggerSize(
+    button.$button-height-l,
+    button.$button-font-l,
+    button.$button-icon-l
+  );
+}

@@ -4,12 +4,18 @@ import assetStore from 'js/assetStore';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/router/routerUtils';
-import {getSurveyFlatPaths} from 'js/assetUtils';
+import {
+  getRowName,
+  getSurveyFlatPaths,
+  getSupplementalDetailsPaths,
+} from 'js/assetUtils';
 import {
   PERMISSIONS_CODENAMES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
+  SUPPLEMENTAL_DETAILS_PROP,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import {
   EXCLUDED_COLUMNS,
@@ -153,11 +159,19 @@ const tableStore = Reflux.createStore({
     // add all questions from the survey definition
     let output = Object.values(flatPaths);
 
-    // Gather unique columns from all visible submissions and add them to output
+    // Gather unique columns from all provided submissions and add them to output
     const dataKeys = Object.keys(submissions.reduce(function (result, obj) {
       return Object.assign(result, obj);
     }, {}));
-    output = [...new Set([...dataKeys, ...output])];
+    output = [...new Set([...output, ...dataKeys])];
+
+    // Put `start` and `end` first
+    if (output.indexOf(META_QUESTION_TYPES.end)) {
+      output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0]);
+    }
+    if (output.indexOf(META_QUESTION_TYPES.start)) {
+      output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0]);
+    }
 
     // exclude some technical non-data columns
     output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
@@ -168,7 +182,6 @@ const tableStore = Reflux.createStore({
         (pathKey) => flatPaths[pathKey] === key
       );
 
-
       // no path means this definitely is not a note type
       if (!foundPathKey) {
         return true;
@@ -177,7 +190,7 @@ const tableStore = Reflux.createStore({
       const foundNoteRow = asset.content.survey.find(
         (row) =>
           typeof foundPathKey !== 'undefined' &&
-          (foundPathKey === row.name || foundPathKey === row.$autoname) &&
+          (foundPathKey === getRowName(row)) &&
           row.type === QUESTION_TYPES.note.id
       );
 
@@ -199,7 +212,7 @@ const tableStore = Reflux.createStore({
       } else if (row.type === GROUP_TYPES_END.end_kobomatrix) {
         isInsideKoboMatrix = false;
       } else if (isInsideKoboMatrix) {
-        const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
+        const rowPath = flatPaths[getRowName(row)];
         excludedMatrixKeys.push(rowPath);
       }
     });
@@ -217,11 +230,25 @@ const tableStore = Reflux.createStore({
         row.type === GROUP_TYPES_BEGIN.begin_repeat ||
         row.type === GROUP_TYPES_BEGIN.begin_group
       ) {
-        const rowPath = flatPathsWithGroups[row.name] || flatPathsWithGroups[row.$autoname];
+        const rowPath = flatPathsWithGroups[getRowName(row)];
         excludedGroups.push(rowPath);
       }
     });
     output = output.filter((key) => excludedGroups.includes(key) === false);
+
+    // Handle supplemental details
+    output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
+    const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+    Object.keys(supplementalDetailsPaths).forEach((rowName) => {
+      // In supplementalDetailsPaths we get row names, in output we already have
+      // row paths. We need to find a matching row and put all paths immediately
+      // after it.
+      const rowPath = flatPathsWithGroups[rowName];
+      const sourceRowIndex = output.indexOf(rowPath);
+      if (sourceRowIndex !== -1) {
+        output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
+      }
+    });
 
     return output;
   },

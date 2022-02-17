@@ -7,7 +7,10 @@ import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import Button from 'js/components/common/button';
+import {ROUTES} from 'js/router/routerConstants';
 import {truncateString} from 'js/utils';
+import {hashHistory} from 'react-router';
 import './mediaCell.scss';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
@@ -41,6 +44,9 @@ bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
                               content of a text question
  * @prop {string} submissionIndex - Index of the submission for text questions
  * @prop {string} submissionTotal - Total submissions for text questions
+ * @prop {string} assetUid
+ * @prop {string} questionName
+ * @prop {string} submissionUuid
  */
 class MediaCell extends React.Component {
   constructor(props) {
@@ -77,6 +83,14 @@ class MediaCell extends React.Component {
     }
 
     return iconClassNames.join(' ');
+  }
+
+  openProcessing() {
+    const finalRoute = ROUTES.FORM_PROCESSING
+      .replace(':uid', this.props.assetUid)
+      .replace(':questionName', this.props.questionName)
+      .replace(':submissionUuid', this.props.submissionUuid);
+    hashHistory.push(finalRoute);
   }
 
   launchMediaModal(evt) {
@@ -141,18 +155,16 @@ class MediaCell extends React.Component {
             </a>
           }
 
-          {/*
-            TODO: Uncomment this buttton after single processing view is done
-
-            <a
-              className='kobo-light-button kobo-light-button--gray'
-              href={'#'}
-            >
-              {t('process')}
-
-              <i className='k-icon k-icon-arrow-up-right'/>
-            </a>
-          */}
+          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
+            <Button
+              type='frame'
+              size='s'
+              color='storm'
+              endIcon='arrow-up-right'
+              label={t('process')}
+              onClick={this.openProcessing.bind(this)}
+            />
+          }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );

@@ -181,7 +181,6 @@ class AssetActionButtons extends React.Component {
   viewContainingCollection() {
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
-    hashHistory.push(`/library/asset/${parentAssetUid}`);
     hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
   }
 

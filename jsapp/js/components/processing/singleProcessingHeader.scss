@@ -1,0 +1,36 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "scss/mixins";
+@use "js/components/common/button";
+
+.single-processing-header {
+  @include mixins.centerRowFlex;
+  height: 100%;
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-white;
+  padding: 0 sizes.$x18;
+}
+
+.single-processing-header__submissions {
+  @include mixins.centerRowFlex;
+  height: button.$button-height-l;
+  border-radius: button.$button-border-radius;
+  border-style: solid;
+  border-width: button.$button-border-width;
+  border-color: colors.$kobo-gray-92;
+  padding: 0 sizes.$x4;
+}
+
+.single-processing-header__count {
+  margin: 0 sizes.$x50;
+}
+
+.single-processing-header__column {
+  &.single-processing-header__column--main {
+    flex: 1;
+  }
+
+  & + & {
+    margin-left: sizes.$x10;
+  }
+}

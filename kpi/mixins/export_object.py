@@ -3,6 +3,7 @@ from os.path import split
 from typing import List, Dict, Optional, Tuple, Generator
 
 import formpack
+from formpack.constants import EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -13,6 +14,7 @@ from formpack.schema.fields import (
 from rest_framework import exceptions
 
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
@@ -95,9 +97,16 @@ class ExportObjectMixin:
             query=query,
         )
 
+        if source.has_advanced_features:
+            extr = dict(source.submission_extras.values_list('uuid', 'content'))
+            submission_stream = stream_with_extras(submission_stream, extr)
+
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
+
+        if source.has_advanced_features:
+            pack.extend_survey(source.analysis_form_json())
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp
@@ -121,6 +130,9 @@ class ExportObjectMixin:
         fields = self.data.get('fields', [])
         xls_types_as_text = self.data.get('xls_types_as_text', True)
         include_media_url = self.data.get('include_media_url', False)
+        include_analysis_fields = self.data.get(
+            EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS, False
+        )
         force_index = True if not fields or '_index' in fields else False
         try:
             # If applicable, substitute the constants that formpack expects for
@@ -142,6 +154,7 @@ class ExportObjectMixin:
             'filter_fields': fields,
             'xls_types_as_text': xls_types_as_text,
             'include_media_url': include_media_url,
+            EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS: include_analysis_fields,
         }
 
     @property
@@ -165,7 +178,7 @@ class ExportObjectMixin:
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments']
+        additional_fields = ['_attachments', '_supplementalDetails']
 
         field_groups = set()
         for field in fields:

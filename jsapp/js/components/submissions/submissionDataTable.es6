@@ -313,8 +313,7 @@ class SubmissionDataTable extends React.Component {
 
   render() {
     const displayData = getSubmissionDisplayData(
-      this.props.asset.content.survey,
-      this.props.asset.content.choices,
+      this.props.asset,
       this.props.translationIndex,
       this.props.submissionData
     );
