@@ -38,6 +38,13 @@ class GoogleTranslationEngine(TranslationEngineBase):
         self.state = 'BARDO'
         self.cost = 0
 
+    def cancel(self) -> bool:
+        self.operation.cancel()
+        self._cleanup()
+        self.state = 'CANCELLED'
+        self.cost= 0
+        return True
+
     def get_languages(
         self, labels: bool = False, display_language: str = 'en'
     ) -> Union[Dict, List]:
@@ -51,9 +58,15 @@ class GoogleTranslationEngine(TranslationEngineBase):
             }
         return [lang.language_code for lang in response.languages]
 
-    def translate(self, content: str, *args: List, **kwargs: Dict) -> str:
-        if len(content) < MAX_SYNC_CHARS:
-           return self._translate_sync(content, *args, **kwargs)
+    def translate(
+        self,
+        content: str,
+        force_async: bool = False,
+        *args: List,
+        **kwargs: Dict
+    ) -> str:
+        if len(content) < MAX_SYNC_CHARS and not force_async:
+            return self._translate_sync(content, *args, **kwargs)
         return self._translate_async(content, *args, **kwargs)
 
     def _cleanup(self) -> None:
@@ -73,6 +86,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
 
     def callback(self, future: 'google.api_core.operation_async.AsyncOperation') -> None:
         # Do something with the result
+        self.result = future.result()
         with open('/tmp/result.txt', 'w') as f:
             f.write(self._get_content())
         self.state = 'SUCCEEDED'
@@ -137,6 +151,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
             }
         )
         self.operation.add_done_callback(self.callback)
+        self.operation.set_exception(TranslationException)
         self.state = 'RUNNING'
 
     def _translate_sync(
