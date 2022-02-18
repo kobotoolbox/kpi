@@ -40,8 +40,9 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         except TypeError as e:
             # https://github.com/kobotoolbox/kpi/issues/1361
             logging.error(
-                f'Failed to get formpack schema for version: {repr(e)}',
-                exc_info=True
+                'Failed to get formpack schema for version: %s'
+                    % repr(e),
+                 exc_info=True
             )
         else:
             fp_schema['version_id_key'] = INFERRED_VERSION_ID_KEY
@@ -59,7 +60,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     # Find the AssetVersion UID for each deprecated reversion ID
     _reversion_ids = dict([
         (str(v._reversion_version_id), v.uid)
-        for v in _versions if v._reversion_version_id
+            for v in _versions if v._reversion_version_id
     ])
 
     # A submission often contains many version keys, e.g. `__version__`,

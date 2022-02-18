@@ -1487,7 +1487,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 kpi_url = reverse(
                     'attachment-detail',
                     args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request,
+                    request=request
                 )
                 key = f'download{suffix}_url'
                 try:
