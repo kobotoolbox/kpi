@@ -567,12 +567,13 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
                                   db_index=True)
     media_file_basename = models.CharField(
         max_length=260, null=True, blank=True, db_index=True)
-    # `PositiveIntegerField` will only accomodate 2 GiB, so we should consider
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
     # `PositiveBigIntegerField` after upgrading to Django 3.1+
     media_file_size = models.PositiveIntegerField(blank=True, null=True)
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
+    replaced_at = models.DateTimeField(blank=True, null=True)
 
     @property
     def absolute_mp3_path(self):

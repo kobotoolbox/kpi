@@ -588,11 +588,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
             filters = {
+                'replaced_at': None,
                 'instance_id': submission_id,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
+                'replaced_at': None,
                 'instance_id': submission_id,
                 'pk': attachment_id,
             }
