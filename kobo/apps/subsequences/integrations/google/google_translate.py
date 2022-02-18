@@ -6,6 +6,7 @@ from typing import (
 )
 
 from google.api_core.exceptions import InvalidArgument
+from google.api_core.operation_async import AsyncOperation
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import translate_v3 as translate, storage
 
@@ -63,17 +64,25 @@ class GoogleTranslationEngine(TranslationEngineBase):
     def translate(
         self,
         content: str,
+        submission_uuid: str,
+        username: str,
+        xpath: str,
         force_async: bool = False,
         *args: List,
         **kwargs: Dict
     ) -> str:
+
+        self.submission_uuid = submission_uuid
+        self.username = username
+        self.xpath = xpath
+
         if len(content) < MAX_SYNC_CHARS and not force_async:
             return self._translate_sync(content, *args, **kwargs)
         return self._translate_async(content, *args, **kwargs)
 
     def _cleanup(self) -> None:
         for blob in self.bucket.list_blobs(
-            prefix=f'{self.username}/{self._uuid}'
+            prefix=f'{self.username}/{self.submission_uuid}'
         ):
             try:
                 blob.delete()
@@ -83,28 +92,23 @@ class GoogleTranslationEngine(TranslationEngineBase):
     def _calculate_cost(self, chars: int) -> None:
         self.cost = COST * chars
 
+    def _callback(self) -> None:
+        self.result = self.operation.result()
+        self.state = 'SUCCEEDED'
+        result = self._get_content()
+        self._cleanup()
+        return result
+
     def _get_content(self) -> str:
         return self.bucket.get_blob(self.output_filename).download_as_text()
 
-    def callback(self, future: 'google.api_core.operation_async.AsyncOperation') -> None:
-        # Do something with the result
-        self.result = future.result()
-        self.state = 'SUCCEEDED'
-        result = self._get_content()
-
-        # xpath = 'path/to/question'
-        # submission_uuid = 'submisisonuuid'
-        # handle_translation(submission_uuid, xpath, result)
-
-        self._cleanup()
-
     def _get_output_filename(self, output_path: str) -> str:
-        username, _uuid, target_lang, _ = output_path.split('/')
+        username, submission_uuid, target_lang, _ = output_path.split('/')
         return output_path + '_'.join(
             [
                 BUCKET_NAME,
                 username,
-                _uuid,
+                submission_uuid,
                 SOURCE_BASENAME,
                 target_lang,
                 f'translations{EXTENSION}',
@@ -119,16 +123,12 @@ class GoogleTranslationEngine(TranslationEngineBase):
     def _translate_async(
         self,
         content: str,
-        username: str,
-        _uuid: str,
         source_lang: str,
         target_lang: str,
     ) -> str:
-        self.username = username
-        self._uuid = _uuid
 
-        source_path = f'{username}/{_uuid}/{SOURCE_BASENAME}{EXTENSION}'
-        output_path = f'{username}/{_uuid}/{target_lang}/'
+        source_path = f'{self.username}/{self.submission_uuid}/{SOURCE_BASENAME}{EXTENSION}'
+        output_path = f'{self.username}/{self.submission_uuid}/{target_lang}/'
 
         storage_response = self._store_content(content, source_path)
 
@@ -153,17 +153,21 @@ class GoogleTranslationEngine(TranslationEngineBase):
                 'target_language_codes': [target_lang],
                 'input_configs': [input_configs_element],
                 'output_config': output_config,
-                'labels': {'user': username},
+                'labels': {'user': self.username},
             }
         )
-        self.operation.add_done_callback(self.callback)
-        self.operation.set_exception(TranslationException)
+        #self.operation.add_done_callback(self._callback)
+        #self.operation.set_exception(TranslationException)
         self.state = 'RUNNING'
+        handle_translation(
+            submission_uuid=self.submission_uuid,
+            xpath=self.xpath,
+            callback=self._callback,
+        )
 
     def _translate_sync(
         self,
         content: str,
-        username: str,
         target_lang: str,
         source_lang: Optional[str] = None,
         *args: List,
@@ -177,7 +181,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
                     'target_language_code': target_lang,
                     'parent': self.parent,
                     'mime_type': self.mime_type,
-                    'labels': {'user': username},
+                    'labels': {'user': self.username},
                 }
             )
         except InvalidArgument as e:
@@ -185,4 +189,8 @@ class GoogleTranslationEngine(TranslationEngineBase):
 
         self._calculate_cost(chars=len(content))
 
-        return response.translations[0].translated_text
+        handle_translation(
+            submission_uuid=self.submission_uuid,
+            xpath=self.xpath,
+            result=response.translations[0].translated_text,
+        )
