@@ -1,7 +1,4 @@
 # coding: utf-8
-import os
-from collections import defaultdict
-
 import requests
 from django.conf import settings
 from django.http import Http404
@@ -29,7 +26,6 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatAttachment
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.paginators import DataPagination
@@ -596,7 +592,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             snapshot = self.asset.versioned_snapshot(version_uid=version_uid)
         except AssetVersion.DoesNotExist:
             raise serializers.ValidationError(
-                {'version': gettext_lazy('Version not found')}
+                {'version': t('Version not found')}
             )
 
         data = {
