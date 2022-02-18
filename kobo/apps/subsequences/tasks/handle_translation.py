@@ -1,9 +1,24 @@
+from typing import Optional
+
 from celery import shared_task
 
+from ..integrations.misc import (
+    GoogleTranslationEngineAsyncResult,
+)
+
+
 @shared_task
-def handle_translation(submission_uuid, xpath, result=None, callback=None):
-    if callback is not None:
-        result = callback()
-    # this is where we will store the translation in the SubmissionExtras model
-    with open('/tmp/translation_out.txt', 'a') as f:
-        f.write(f'{submission_uuid}, {xpath}, {result}')
+def handle_translation(
+    submission_uuid: str,
+    xpath: str,
+    result: Optional[str] = None,
+    _async: bool = False,
+    *args,
+    **kwargs
+) -> None:
+    if _async:
+        result = GoogleTranslationEngineAsyncResult(
+            submission_uuid=submission_uuid, *args, **kwargs
+        ).result()
+    with open('/tmp/translation-result.txt', 'a') as f:
+        f.write(f'{result}\n')

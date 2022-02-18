@@ -1,3 +1,4 @@
+import time
 from typing import (
     Dict,
     List,
@@ -6,12 +7,12 @@ from typing import (
 )
 
 from google.api_core.exceptions import InvalidArgument
-from google.api_core.operation_async import AsyncOperation
-from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import translate_v3 as translate, storage
 
-from ..misc import TranslationEngineBase, TranslationException
-
+from ..misc import (
+    GoogleTranslationBase,
+    TranslationEngineBase,
+    TranslationException,
+)
 from kobo.apps.subsequences.tasks.handle_translation import handle_translation
 
 
@@ -21,37 +22,23 @@ LOCATION = 'us-central1'
 MAX_SYNC_CHARS = 30720
 PROJECT_ID = 'kobo-nlp-asr-mt'
 SOURCE_BASENAME = 'source'
-TIMEOUT = 360
 COST = 20 / 1000000  # https://cloud.google.com/translate/pricing
 
 
-class GoogleTranslationEngine(TranslationEngineBase):
+class GoogleTranslationEngine(TranslationEngineBase, GoogleTranslationBase):
     def __init__(self):
+        super().__init__()
         self.parent = f'projects/{PROJECT_ID}'
         self.mime_type = 'text/plain'
-        try:
-            self.client = translate.TranslationServiceClient()
-        except DefaultCredentialsError as e:
-            raise TranslationException(e)
-
         self.uri_base = f'gs://{BUCKET_NAME}'
         self.parent_async = f'projects/{PROJECT_ID}/locations/{LOCATION}'
-        self.storage_client = storage.Client()
-        self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
         self.state = 'BARDO'
         self.cost = 0
-
-    def cancel(self) -> bool:
-        self.operation.cancel()
-        self._cleanup()
-        self.state = 'CANCELLED'
-        self.cost= 0
-        return True
 
     def get_languages(
         self, labels: bool = False, display_language: str = 'en'
     ) -> Union[Dict, List]:
-        response = self.client.get_supported_languages(
+        response = self.translate_client.get_supported_languages(
             parent=self.parent, display_language_code=display_language
         )
         if labels:
@@ -80,27 +67,8 @@ class GoogleTranslationEngine(TranslationEngineBase):
             return self._translate_sync(content, *args, **kwargs)
         return self._translate_async(content, *args, **kwargs)
 
-    def _cleanup(self) -> None:
-        for blob in self.bucket.list_blobs(
-            prefix=f'{self.username}/{self.submission_uuid}'
-        ):
-            try:
-                blob.delete()
-            except Exception as e:
-                raise TranslationException(e)
-
     def _calculate_cost(self, chars: int) -> None:
         self.cost = COST * chars
-
-    def _callback(self) -> None:
-        self.result = self.operation.result()
-        self.state = 'SUCCEEDED'
-        result = self._get_content()
-        self._cleanup()
-        return result
-
-    def _get_content(self) -> str:
-        return self.bucket.get_blob(self.output_filename).download_as_text()
 
     def _get_output_filename(self, output_path: str) -> str:
         username, submission_uuid, target_lang, _ = output_path.split('/')
@@ -146,7 +114,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
         output_config = {'gcs_destination': {'output_uri_prefix': output_uri}}
 
         self._calculate_cost(chars=len(content))
-        self.operation = self.client.batch_translate_text(
+        self.operation = self.translate_client.batch_translate_text(
             request={
                 'parent': self.parent_async,
                 'source_language_code': source_lang,
@@ -156,14 +124,16 @@ class GoogleTranslationEngine(TranslationEngineBase):
                 'labels': {'user': self.username},
             }
         )
-        #self.operation.add_done_callback(self._callback)
-        #self.operation.set_exception(TranslationException)
         self.state = 'RUNNING'
-        handle_translation(
+        task = handle_translation.delay(
             submission_uuid=self.submission_uuid,
             xpath=self.xpath,
-            callback=self._callback,
+            operation_name=self.operation.operation.name,
+            output_filename=self.output_filename,
+            username=self.username,
+            _async=True
         )
+        return task.id
 
     def _translate_sync(
         self,
@@ -174,7 +144,7 @@ class GoogleTranslationEngine(TranslationEngineBase):
         **kwargs: Dict,
     ) -> str:
         try:
-            response = self.client.translate_text(
+            response = self.translate_client.translate_text(
                 request={
                     'contents': [content],
                     'source_language_code': source_lang,
