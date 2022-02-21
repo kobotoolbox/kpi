@@ -17,14 +17,14 @@ export type MfaActivatedResponse = {
 }
 
 export type MfaBackupCodesResponse = {
-  backup_codes: Array<string>
+  backup_codes: string[]
 }
 
 const mfaActions = Reflux.createActions({
   activate: {children: ['completed', 'failed']},
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
-  confirm: {children: ['completed', 'failed']},
+  confirmCode: {children: ['completed', 'failed']},
   regenerate: {children: ['completed', 'failed']},
 })
 
@@ -66,21 +66,20 @@ mfaActions.activate.listen((inModal?: boolean) => {
   })
 })
 
-mfaActions.confirm.listen((mfaCode: string) => {
+mfaActions.confirmCode.listen((mfaCode: string) => {
   $.ajax({
     data: {code: mfaCode},
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/activate/confirm/`,
-  }).done((response) => {
-    mfaActions.confirm.completed(response)
-  }).fail((response: MfaErrorResponse | any) => {
+  }).done(mfaActions.confirmCode.completed)
+  .fail((response: MfaErrorResponse | any) => {
     let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
     }
     notify(errorText, 'error')
-    mfaActions.confirm.failed(response)
+    mfaActions.confirmCode.failed(response)
   })
 })
 
@@ -90,9 +89,8 @@ mfaActions.deactivate.listen((mfaCode: string) => {
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/deactivate/`,
-  }).done((response) => {
-    mfaActions.deactivate.completed(response)
-  }).fail((response: MfaErrorResponse | any) => {
+  }).done(mfaActions.deactivate.completed)
+  .fail((response: MfaErrorResponse | any) => {
     let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
@@ -108,9 +106,8 @@ mfaActions.regenerate.listen((mfaCode: string) => {
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/codes/regenerate/`,
-  }).done((response) => {
-    mfaActions.regenerate.completed(response)
-  }).fail((response: MfaErrorResponse | any) => {
+  }).done(mfaActions.regenerate.completed)
+  .fail((response: MfaErrorResponse | any) => {
     let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors

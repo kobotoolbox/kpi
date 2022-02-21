@@ -29,7 +29,7 @@ bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
 
 type SecurityState = {
-  mfaActive: boolean,
+  mfaActive: boolean
 }
 
 type EditModalTypes = 'regenerate' | 'reconfigure'
@@ -51,7 +51,7 @@ export default class Security extends React.Component<
     this.unlisteners.push(
       mfaActions.isActive.completed.listen(this.mfaActive.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
-      mfaActions.confirm.completed.listen(this.mfaActivated.bind(this)),
+      mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
 
@@ -73,7 +73,7 @@ export default class Security extends React.Component<
         qrCode: response.details,
         modalType: 'qr',
         customModalHeader: this.renderCustomHeader(),
-        disableBackdrop: true,
+        disableBackdropClose: true,
       })
     }
   }
@@ -86,15 +86,15 @@ export default class Security extends React.Component<
     this.setState({mfaActive: false})
   }
 
-  onToggleChange(response: boolean) {
-    if (response) {
+  onToggleChange(isActive: boolean) {
+    if (isActive) {
       mfaActions.activate();
     } else {
       stores.pageState.showModal({
         type: MODAL_TYPES.MFA_MODALS,
         modalType: 'deactivate',
         customModalHeader: this.renderCustomHeader(),
-        disableBackdrop: true,
+        disableBackdropClose: true,
       })
     }
   }
@@ -109,7 +109,7 @@ export default class Security extends React.Component<
         type: MODAL_TYPES.MFA_MODALS,
         modalType: type,
         customModalHeader: this.renderCustomHeader(),
-        disableBackdrop: true,
+        disableBackdropClose: true,
     })
   }
 
@@ -137,7 +137,7 @@ export default class Security extends React.Component<
 
           <bem.SecurityRow__buttons>
             <ToggleSwitch
-              label={this.state.mfaActive ? 'Enabled' : 'Disabled'}
+              label={this.state.mfaActive ? t('Enabled') : t('Disabled')}
               checked={this.state.mfaActive}
               onChange={this.onToggleChange.bind(this)}
             />
@@ -160,7 +160,7 @@ export default class Security extends React.Component<
                 <Button
                   type='frame'
                   color='storm'
-                  label='Reconfigure'
+                  label={t('Reconfigure')}
                   size='l'
                   onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                     this.showEditModal(evt, 'reconfigure')
@@ -178,7 +178,7 @@ export default class Security extends React.Component<
                 <Button
                   type='frame'
                   color='storm'
-                  label='Generate new'
+                  label={t('Generate new')}
                   size='l'
                   onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                     this.showEditModal(evt, 'regenerate')

@@ -39,22 +39,22 @@ bem.MFAModals__footer__right = makeBem(bem.MFAModals__footer, 'footer-right')
 
 const SUPPORT_EMAIL = 'support@kobotoolbox.org'
 
-type modalSteps = 'qr' | 'backups' | 'manual' | 'token' | 'disclaimer' | 'help-text'
+type ModalSteps = 'qr' | 'backups' | 'manual' | 'token' | 'disclaimer' | 'help-text'
 
 type MFAModalsProps = {
-  onModalClose: Function,
-  qrCode?: string,
+  onModalClose: Function
+  qrCode?: string
   modalType: 'qr' | 'regenerate' | 'reconfigure' | 'deactivate'
 }
 
 type MFAModalsState = {
-  isLoading: boolean,
-  currentStep: modalSteps,
-  qrCode: null | string,
-  inputString: string,
-  backupCodes: null | string[],
-  downloadClicked: boolean,
-  errorText: undefined | string,
+  currentStep: ModalSteps
+  qrCode: null | string
+  /** Currently input code, used for confirmCode */
+  inputString: string
+  backupCodes: null | string[]
+  downloadClicked: boolean
+  errorText: undefined | string
 }
 
 export default class MFAModals extends React.Component<
@@ -64,10 +64,8 @@ export default class MFAModals extends React.Component<
   constructor(props: MFAModalsProps) {
     super(props)
     this.state = {
-      isLoading: true,
       qrCode: this.props.qrCode || null,
       currentStep: this.getInitalModalStep(),
-      // Currently input code, used for confirm
       inputString: '',
       backupCodes: null,
       downloadClicked: false,
@@ -78,17 +76,13 @@ export default class MFAModals extends React.Component<
   private unlisteners: Function[] = []
 
   componentDidMount() {
-    this.setState({
-      isLoading: false,
-    })
-
     this.unlisteners.push(
       mfaActions.activate.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.confirm.completed.listen(this.mfaBackupCodes.bind(this)),
+      mfaActions.confirmCode.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
 
-      mfaActions.confirm.failed.listen(this.updateErrorText.bind(this)),
+      mfaActions.confirmCode.failed.listen(this.updateErrorText.bind(this)),
       mfaActions.regenerate.failed.listen(this.updateErrorText.bind(this)),
       mfaActions.deactivate.failed.listen(this.updateErrorText.bind(this)),
     )
@@ -106,7 +100,7 @@ export default class MFAModals extends React.Component<
   }
 
   mfaConfirm() {
-    mfaActions.confirm(this.state.inputString)
+    mfaActions.confirmCode(this.state.inputString)
   }
 
   mfaBackupCodes(response: MfaBackupCodesResponse) {
@@ -154,7 +148,7 @@ export default class MFAModals extends React.Component<
     }
   }
 
-  getInitalModalStep(): modalSteps {
+  getInitalModalStep(): ModalSteps {
     switch (this.props.modalType) {
       case 'qr':
         return 'qr'
@@ -189,7 +183,7 @@ export default class MFAModals extends React.Component<
 
   changeStep(
     evt: React.ChangeEvent<HTMLInputElement>,
-    nextStep: modalSteps
+    nextStep: ModalSteps
   ) {
     evt.preventDefault()
 
@@ -234,7 +228,7 @@ export default class MFAModals extends React.Component<
       <bem.MFAModals__qrstep>
         <bem.MFAModals__description>
           <p>
-            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection.')}
+            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
           </p>
 
           <strong>
@@ -283,7 +277,7 @@ export default class MFAModals extends React.Component<
               type='full'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('Next')}
               onClick={this.mfaConfirm.bind(this)}
               isDisabled={!this.isTokenValid()}
@@ -329,7 +323,7 @@ export default class MFAModals extends React.Component<
               type='frame'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('Download codes')}
               onClick={this.downloadCodes.bind(this)}
             />
@@ -340,7 +334,7 @@ export default class MFAModals extends React.Component<
               type='full'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('I saved my codes')}
               onClick={this.closeModal.bind(this)}
               isDisabled={!this.state.downloadClicked}
@@ -356,7 +350,7 @@ export default class MFAModals extends React.Component<
       <bem.MFAModals__manualstep>
         <bem.MFAModals__description>
           <p>
-            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection.')}
+            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
           </p>
 
           <strong>
@@ -398,7 +392,7 @@ export default class MFAModals extends React.Component<
               type='full'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('Next')}
               onClick={this.mfaConfirm.bind(this)}
               isDisabled={!this.isTokenValid()}
@@ -416,14 +410,13 @@ export default class MFAModals extends React.Component<
           <bem.MFAModals__token>
             <strong>
               {/*This is safe as this step only shows if not on qr step*/}
-              {t(
-                'Please enter your six-digit authenticator token to ##ACTION##'
-              ).replace(
-                '##ACTION##',
-                this.props.modalType === 'regenerate'
-                  ? t('regenerate your backup codes.')
-                  : t('deactivate two-factor authentication.')
-              )}
+              {this.props.modalType === 'regenerate' &&
+                t('Please enter your six-digit authenticator token to regenerate your backup codes.')
+              }
+
+              {this.props.modalType != 'regenerate' &&
+                t('Please enter your six-digit authenticator token to deactivate two-factor authentication.')
+              }
             </strong>
 
             <bem.MFAModals__linkwrapper>
@@ -451,7 +444,7 @@ export default class MFAModals extends React.Component<
               type='full'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('Next')}
               onClick={
                 this.handleTokenSubmit.bind(this)
@@ -472,19 +465,18 @@ export default class MFAModals extends React.Component<
         <bem.MFAModals__body>
           <strong>
             {/*This is safe as this step only shows if on reconfigure or regenerate*/}
-            {t(
-              'Please note that ##ACTION##'
-            ).replace(
-              '##ACTION##',
-              this.props.modalType === 'regenerate'
-                ? t('recovery codes from the previous set up will not be valid anymore')
-                : t('in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
-            )}
+            {this.props.modalType === 'regenerate' &&
+              t('Please note that recovery codes from the previous set up will not be valid anymore')
+            }
+
+            {this.props.modalType != 'regenerate' &&
+              t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
+            }
           </strong>
 
           {this.props.modalType === 'reconfigure' &&
             <p>
-              {t('Once your 2FA has been deactivated, you\'ll be prompted to configure it again. If you cannot complete the process. two-factor authentication will remain disabled for your account. In this case, you can reenable it at any time through the usual process.')}
+              {t("Once your 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process. two-factor authentication will remain disabled for your account. In this case, you can reenable it at any time through the usual process.")}
             </p>
           }
         </bem.MFAModals__body>
@@ -495,7 +487,7 @@ export default class MFAModals extends React.Component<
               type='full'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('Next')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                 this.changeStep(evt, 'token')
@@ -521,7 +513,7 @@ export default class MFAModals extends React.Component<
 
           <bem.MFAModals__list>
             <bem.MFAModals__list__item>
-              {t('Double check you are using the token generator for the right instance of KoboToolbox')}
+              {t('Double check you are using the token generator for the right instance of KoBoToolbox')}
             </bem.MFAModals__list__item>
 
             <bem.MFAModals__list__item>
@@ -554,7 +546,7 @@ export default class MFAModals extends React.Component<
               type='frame'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('Back')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                 this.changeStep(evt, 'token')
@@ -567,7 +559,7 @@ export default class MFAModals extends React.Component<
               type='full'
               color='blue'
               size='l'
-              isFullWidth={true}
+              isFullWidth
               label={t('OK')}
               onClick={this.closeModal.bind(this)}
             />

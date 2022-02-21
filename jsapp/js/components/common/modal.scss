@@ -337,7 +337,7 @@ $modal-custom-header-height: sizes.$x60;
 
 // TODO: Make a better generic modal component
 // Refactor common CSS for modals with custom headers
-.modal.modal-custom-header {
+.modal.modal--custom-header {
   border-radius: 6px;
 
   .modal__content {
@@ -361,7 +361,7 @@ $modal-custom-header-height: sizes.$x60;
   }
 }
 
-.modal.modal-mfa-setup {
+.modal.modal--mfa-setup {
   // FIXME: Fixed size for standardization
   width: 570px;
   height: 700px;
@@ -389,7 +389,7 @@ $modal-custom-header-height: sizes.$x60;
   }
 }
 
-.modal.modal-media-preview {
+.modal.modal--media-preview {
   min-width: 25%;
 
   .modal__content {
@@ -909,7 +909,7 @@ $modal-custom-header-height: sizes.$x60;
 // FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
 // on mobile until we standardize all modals (see comment on mfaModals.scss)
 @media screen and (max-height: 800px) {
-  .modal.modal-mfa-setup {
+  .modal.modal--mfa-setup {
     .modal__body {
       height: 80%;
       overflow: scroll;

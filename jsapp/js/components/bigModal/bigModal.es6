@@ -188,7 +188,7 @@ class BigModal extends React.Component {
       case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
         // Size and title will depend on its props
         this.setState({
-          modalClass: 'modal-custom-header modal-media-preview'
+          modalClass: 'modal--custom-header modal--media-preview'
         });
         break;
 
@@ -200,7 +200,7 @@ class BigModal extends React.Component {
       case MODAL_TYPES.MFA_MODALS:
         // Size and title will depend on its props
         this.setState({
-          modalClass: 'modal-custom-header modal-mfa-setup'
+          modalClass: 'modal--custom-header modal--mfa-setup'
         });
         break;
 
@@ -302,7 +302,7 @@ class BigModal extends React.Component {
         className={this.state.modalClass}
         isDuplicated={this.props.params.isDuplicated}
         customModalHeader={this.props.params.customModalHeader}
-        disableBackdrop={this.props.params.disableBackdrop}
+        disableBackdropClose={this.props.params.disableBackdropClose}
       >
         <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
