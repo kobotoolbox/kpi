@@ -2,7 +2,7 @@
 import pytz
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django_request_cache import cache_for_request
 from rest_framework import serializers
@@ -15,10 +15,23 @@ from kpi.models.object_permission import ObjectPermission
 from .asset import AssetUrlListSerializer
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
+    class Meta:
+        model = Group
+        fields = ('id', 'url', 'name')
+
+
+class PermissionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ('id', 'url', 'name', 'codename')
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
     url = HyperlinkedIdentityField(
         lookup_field='username', view_name='user-detail')
+
     assets = PaginatedApiField(
         serializer_class=AssetUrlListSerializer
     )
@@ -28,13 +41,29 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url',
-                  'username',
-                  'assets',
-                  'date_joined',
-                  'public_collection_subscribers_count',
-                  'public_collections_count',
-                  )
+        fields = (
+            'url',
+            'username',
+            'password',
+            'first_name',
+            'last_name',
+            'email',
+            'is_active',
+            'is_superuser',
+            'is_staff',
+            'assets',
+            'date_joined',
+            'public_collection_subscribers_count',
+            'public_collections_count',
+            'groups',
+            'user_permissions'
+        )
+
+        read_only_fields = ('assets', 'date_joined', 'public_collection_subscribers_count', 'public_collections_count')
+
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+        }
 
     def get_date_joined(self, obj):
         return obj.date_joined.astimezone(pytz.UTC).strftime(

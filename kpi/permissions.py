@@ -383,3 +383,18 @@ class XMLExternalDataPermission(permissions.BasePermission):
             raise Http404
 
         return True
+
+
+class UserActionPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        try:
+            if view.action in ['list', 'retrieve']:
+                return True
+            else:   # ['create', 'update', 'partial_update', 'destroy']
+                if request.user.is_authenticated and request.user.is_superuser:
+                    return True
+                else:
+                    return False
+        except:
+            return False

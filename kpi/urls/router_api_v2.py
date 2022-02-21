@@ -17,6 +17,7 @@ from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
+from kpi.views.v2.user import GroupViewSet, PermissionViewSet as UserPermissionViewSet
 
 
 URL_NAMESPACE = 'api_v2'
@@ -90,6 +91,8 @@ router_api_v2.register(
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'imports', ImportTaskViewSet)
+router_api_v2.register(r'groups', GroupViewSet)
+router_api_v2.register(r'user_permissions', UserPermissionViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
