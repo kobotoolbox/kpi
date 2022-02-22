@@ -1,7 +1,9 @@
 # coding: utf-8
+from xml.etree import ElementTree as ET
+
+import requests
 from django.conf import settings
 from django.http import Http404
-from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as t
 from rest_framework import (
     renderers,
@@ -11,17 +13,23 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetExportSettings
+from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -376,7 +384,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='(enketo\/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
-        return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
+        submission_id = positive_int(pk)
+        return self._get_enketo_link(request, submission_id, 'edit')
 
     @action(
         detail=True,
@@ -386,7 +395,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='enketo/view',
     )
     def enketo_view(self, request, pk, *args, **kwargs):
-        return self._enketo_request(request, pk, action_='view', *args, **kwargs)
+        submission_id = positive_int(pk)
+        return self._get_enketo_link(request, submission_id, 'view')
 
     @action(
         detail=False,
@@ -510,17 +520,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return Response(**json_response)
 
-    def _enketo_request(self, request, pk, action_, *args, **kwargs):
-        deployment = self._get_deployment()
-        submission_id = positive_int(pk)
-        json_response = deployment.get_enketo_submission_url(
-            submission_id,
-            user=request.user,
-            action_=action_,
-            params=request.GET
-        )
-        return Response(**json_response)
-
     def _filter_mongo_query(self, request):
         """
         Build filters to pass to Mongo query.
@@ -549,3 +548,112 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         return filters
+
+    def _get_enketo_link(
+        self, request: Request, submission_id: int, action_: str
+    ) -> Response:
+
+        deployment = self._get_deployment()
+        user = request.user
+
+        if action_ == 'edit':
+            enketo_endpoint = settings.ENKETO_EDIT_INSTANCE_ENDPOINT
+            partial_perm = PERM_CHANGE_SUBMISSIONS
+        elif action_ == 'view':
+            enketo_endpoint = settings.ENKETO_VIEW_INSTANCE_ENDPOINT
+            partial_perm = PERM_VIEW_SUBMISSIONS
+
+        # User's permissions are validated by the permission class. This extra step
+        # is needed to validate at a row level for users with partial permissions.
+        # A `PermissionDenied` error will be raised if it is not the case.
+        # `validate_access_with_partial_perms()` is called no matter what are the
+        # user's permissions. The first check inside the method is the user's
+        # permissions. `submission_ids` should be equal to `None` if user has
+        # regular permissions.
+        deployment.validate_access_with_partial_perms(
+            user=user,
+            perm=partial_perm,
+            submission_ids=[submission_id],
+        )
+
+        # The XML version is needed for Enketo
+        submission_xml = deployment.get_submission(
+            submission_id, user, SUBMISSION_FORMAT_TYPE_XML
+        )
+        # The JSON version is needed to detect its version
+        submission_json = deployment.get_submission(
+            submission_id, user, request=request
+        )
+
+        # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
+        # it into some utility file
+        _, submissions_stream = build_formpack(
+            self.asset,
+            submission_stream=[submission_json],
+            use_all_form_versions=True
+        )
+        version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+
+        # Retrieve the XML root node name from the submission. The instance's
+        # root node name specified in the form XML (i.e. the first child of
+        # `<instance>`) must match the root node name of the submission XML,
+        # otherwise Enketo will refuse to open the submission.
+        xml_root_node_name = ET.fromstring(submission_xml).tag
+
+        # This will raise `AssetVersion.DoesNotExist` if the inferred version
+        # of the submission disappears between the call to `build_formpack()`
+        # and here, but allow a 500 error in that case because there's nothing
+        # the client can do about it
+        snapshot = self.asset.versioned_snapshot(
+            version_uid=version_uid, root_node_name=xml_root_node_name
+        )
+
+        data = {
+            'server_url': reverse(
+                viewname='assetsnapshot-detail',
+                kwargs={'uid': snapshot.uid},
+                request=request,
+            ),
+            'instance': submission_xml,
+            'instance_id': submission_json['_uuid'],
+            'form_id': snapshot.uid,
+            'return_url': 'false'  # String to be parsed by EE as a boolean
+        }
+
+        # Add attachments if any.
+        attachments = deployment.get_attachment_objects_from_dict(submission_json)
+        for attachment in attachments:
+            key_ = f'instance_attachments[{attachment.media_file_basename}]'
+            data[key_] = reverse(
+                'attachment-detail',
+                args=(self.asset.uid, submission_id, attachment.pk),
+                request=request,
+            )
+
+        response = requests.post(
+            f'{settings.ENKETO_URL}/{enketo_endpoint}',
+            # bare tuple implies basic auth
+            auth=(settings.ENKETO_API_TOKEN, ''),
+            data=data
+        )
+        if response.status_code != status.HTTP_201_CREATED:
+            # Some Enketo errors are useful to the client. Attempt to pass them
+            # along if possible
+            try:
+                parsed_resp = response.json()
+            except ValueError:
+                parsed_resp = None
+            if parsed_resp and 'message' in parsed_resp:
+                message = parsed_resp['message']
+            else:
+                message = response.reason
+            return Response(
+                # This doesn't seem worth translating
+                {'detail': 'Enketo error: ' + message},
+                status=response.status_code,
+            )
+
+        json_response = response.json()
+        enketo_url = json_response.get(f'{action_}_url')
+
+        return Response({'url': enketo_url})

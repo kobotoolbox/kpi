@@ -512,7 +512,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
                                   asset_type='survey')
         export = a1.snapshot
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
-        self.assertTrue('<data id="xid_stringx">' in export.xml)
+        self.assertTrue(f'<{a1.uid} id="xid_stringx">' in export.xml)
 
 
 # TODO: test values of "valid_xlsform_content"

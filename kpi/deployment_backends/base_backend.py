@@ -68,6 +68,33 @@ class BaseDeploymentBackend(abc.ABC):
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
+    @abc.abstractmethod
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+        pass
+
+    @abc.abstractmethod
+    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def duplicate_submission(
+        self,  submission_id: int, user: 'auth.User'
+    ) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def get_attachment(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> tuple:
+        pass
+
+    def get_attachment_objects_from_dict(self, submission: dict) -> list:
+        pass
+
     def get_data(
         self, dotted_path: str = None, default=None
     ) -> Union[None, int, str, dict]:
@@ -99,51 +126,21 @@ class BaseDeploymentBackend(abc.ABC):
         return value
 
     @abc.abstractmethod
-    def get_attachment(
-        self,
-        submission_id: int,
-        user: 'auth.User',
-        attachment_id: Optional[int] = None,
-        xpath: Optional[str] = None,
-    ) -> tuple:
-        pass
-
-    @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
-        pass
-
-    @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
-        pass
-
-    @abc.abstractmethod
-    def duplicate_submission(
-        self,  submission_id: int, user: 'auth.User'
-    ) -> dict:
-        pass
-
-    @abc.abstractmethod
     def get_data_download_links(self):
-        pass
-
-    @abc.abstractmethod
-    def get_enketo_submission_url(
-        self, submission_id: int, user: 'auth.User', params: dict = None
-    ) -> dict:
-        """
-        Return a formatted dict to be passed to a Response object
-        """
         pass
 
     @abc.abstractmethod
     def get_enketo_survey_links(self):
         pass
 
-    def get_submission(self,
-                       submission_id: int,
-                       user: 'auth.User',
-                       format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
-                       **mongo_query_params: dict) -> Union[dict, str, None]:
+    def get_submission(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        request: Optional['rest_framework.request.Request'] = None,
+        **mongo_query_params: dict
+    ) -> Union[dict, str, None]:
         """
         Retrieve the corresponding submission whose id equals `submission_id`
         and which `user` is allowed to access.
@@ -163,7 +160,11 @@ class BaseDeploymentBackend(abc.ABC):
 
         submissions = list(
             self.get_submissions(
-                user, format_type, [int(submission_id)], **mongo_query_params
+                user,
+                format_type,
+                [int(submission_id)],
+                request,
+                **mongo_query_params
             )
         )
         try:

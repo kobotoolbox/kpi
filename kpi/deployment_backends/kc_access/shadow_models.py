@@ -530,6 +530,7 @@ class KobocatXForm(ShadowModel):
     uuid = models.CharField(max_length=32, default='')
     last_submission_time = models.DateTimeField(blank=True, null=True)
     num_of_submissions = models.IntegerField(default=0)
+    kpi_asset_uid = models.CharField(max_length=32, null=True)
 
     @property
     def md5_hash(self):
@@ -566,12 +567,15 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
                                   db_index=True)
     media_file_basename = models.CharField(
         max_length=260, null=True, blank=True, db_index=True)
-    # `PositiveIntegerField` will only accomodate 2 GiB, so we should consider
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
     # `PositiveBigIntegerField` after upgrading to Django 3.1+
     media_file_size = models.PositiveIntegerField(blank=True, null=True)
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
+    # TODO: hide attachments that were deleted or replaced; see
+    # kobotoolbox/kobocat#792
+    # replaced_at = models.DateTimeField(blank=True, null=True)
 
     @property
     def absolute_mp3_path(self):
@@ -666,6 +670,7 @@ def safe_kc_read(func):
         try:
             return func(*args, **kwargs)
         except ProgrammingError as e:
-            raise ProgrammingError('kc_access error accessing kobocat '
-                                   'tables: {}'.format(e.message))
+            raise ProgrammingError(
+                'kc_access error accessing kobocat tables: {}'.format(str(e))
+            )
     return _wrapper

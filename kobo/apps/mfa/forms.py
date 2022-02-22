@@ -2,7 +2,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from trench.serializers import CodeLoginSerializer
 from trench.utils import (
     get_mfa_model,
@@ -53,7 +53,7 @@ class MFATokenForm(forms.Form):
         required=True,
         widget=forms.TextInput(
             attrs={
-                'placeholder': _(
+                'placeholder': t(
                     'Enter the ##token length##-character token'
                 ).replace('##token length##', str(settings.TRENCH_AUTH['CODE_LENGTH']))
             }
@@ -65,7 +65,7 @@ class MFATokenForm(forms.Form):
     )
 
     error_messages = {
-        'invalid_code': _(
+        'invalid_code': t(
             'Your token is invalid'
         )
     }
