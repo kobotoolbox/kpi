@@ -69,6 +69,29 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+        pass
+
+    @abc.abstractmethod
+    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def duplicate_submission(
+        self,  submission_id: int, user: 'auth.User'
+    ) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def get_attachment(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> tuple:
+        pass
+
     def get_attachment_objects_from_dict(self, submission: dict) -> list:
         pass
 
@@ -101,30 +124,6 @@ class BaseDeploymentBackend(abc.ABC):
             nested_dict = value
 
         return value
-
-    @abc.abstractmethod
-    def get_attachment(
-        self,
-        submission_id: int,
-        user: 'auth.User',
-        attachment_id: Optional[int] = None,
-        xpath: Optional[str] = None,
-    ) -> tuple:
-        pass
-
-    @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
-        pass
-
-    @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
-        pass
-
-    @abc.abstractmethod
-    def duplicate_submission(
-        self,  submission_id: int, user: 'auth.User'
-    ) -> dict:
-        pass
 
     @abc.abstractmethod
     def get_data_download_links(self):
