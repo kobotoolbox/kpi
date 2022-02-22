@@ -52,7 +52,7 @@ class MockAttachment(MP3ConverterMixin):
     """
     def __init__(self, pk: int, filename: str, mimetype: str = None, **kwargs):
 
-        self.id = pk
+        self.id = pk  # To mimic Django model instances
         self.pk = pk
         basename = os.path.basename(filename)
         file_ = os.path.join(

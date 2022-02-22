@@ -38,11 +38,12 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             kwargs = {'username': username, 'password': password}
         self.assertEqual(self.client.login(**kwargs), expect_success)
 
-    def _url_to_uid(self, url):
+    @staticmethod
+    def _url_to_uid(url):
         return re.match(r'.+/(.+)/.*$', url).groups()[0]
 
     def url_to_obj(self, url):
-        uid = re.match(r'.+/(.+)/.*$', url).groups()[0]
+        uid = self._url_to_uid(url)
         if uid.startswith('a'):
             klass = Asset
         elif uid.startswith('p'):

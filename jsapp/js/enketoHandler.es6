@@ -59,23 +59,19 @@ const enketoHandler = {
         resolve();
       } else {
         dataIntMethod(aid, sid)
-          .done((enketoData) => {
+          .always((enketoData) => {
             if (enketoData.url) {
               this._saveEnketoUrl(urlId, enketoData.url);
               this._openEnketoUrl(urlId);
               resolve();
             } else {
               let errorMsg = t('There was an error loading Enketo.');
-              if (enketoData.detail) {
-                errorMsg += `<br><code>${enketoData.detail}</code>`;
+              if (enketoData?.responseJSON?.detail) {
+                errorMsg += `<br><code>${enketoData.responseJSON.detail}</code>`;
               }
               notify(errorMsg, 'error');
               reject();
             }
-          })
-          .fail(() => {
-            notify(t('There was an error getting Enketo link'), 'error');
-            reject();
           });
       }
     }).catch(() => {

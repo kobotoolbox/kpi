@@ -1,8 +1,6 @@
 # coding: utf-8
-from django.conf.urls import url
-from django.urls import re_path
+from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
-from rest_framework.urlpatterns import format_suffix_patterns
 
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
@@ -23,78 +21,43 @@ from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 
-class OptionalSlashRouter(ExtendedDefaultRouter):
+class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
     """
-    Add support to OpenRosa endpoints which should not end with a trailing slash.
+    Historically, all of this application's endpoints have used trailing
+    slashes (the DRF default). Requests missing their trailing slashes have
+    been automatically redirected by Django's `APPEND_SLASH` setting, which
+    defaults to `True`.
 
-    `ExtendedDefaultRouter` redirects routes without trailing slash to their
-    counterparts with a trailing slash. This behaviour should be avoided with
-    OpenRosa endpoints because clients POST requests will be redirected, losing
-    their payload.
+    That behavior is unacceptable for OpenRosa endpoints, which do *not* end
+    with slashes and cannot be redirected without losing their POST payloads.
+
+    This router explicitly adds URL patterns without trailing slashes for
+    OpenRosa endpoints so that their responses can be served directly, without
+    redirection.
     """
-
-    def get_urls(self):
-        """
-        Overwrite parent `get_urls()` to support `trailing_slash` argument of
-        DRF `@action` decorator
-        """
-        urls = []
-
-        for prefix, viewset, basename in self.registry:
-            lookup = self.get_lookup_regex(viewset)
-            routes = self.get_routes(viewset)
-
-            for route in routes:
-
-                # Only actions which actually exist on the viewset will be bound
-                mapping = self.get_method_map(viewset, route.mapping)
-                if not mapping:
-                    continue
-
-                try:
-                    trailing_slash = route.initkwargs['trailing_slash']
-                except KeyError:
-                    trailing_slash = self.trailing_slash
-
-                # Build the url pattern
-                regex = route.url.format(
-                    prefix=prefix,
-                    lookup=lookup,
-                    trailing_slash=trailing_slash
+    def get_urls(self, *args, **kwargs):
+        urls = super().get_urls(*args, **kwargs)
+        names_to_alias_paths = {
+            'assetsnapshot-form-list': 'asset_snapshots/<uid>/formList',
+            'assetsnapshot-manifest': 'asset_snapshots/<uid>/manifest',
+            'assetsnapshot-submission': 'asset_snapshots/<uid>/submission',
+        }
+        alias_urls = []
+        for url in urls:
+            if url.name in names_to_alias_paths:
+                alias_paths = names_to_alias_paths[url.name]
+                # only consider the first match
+                del names_to_alias_paths[url.name]
+                alias_urls.append(
+                    path(alias_paths, url.callback, name=f'{url.name}-alias')
                 )
-
-                # If there is no prefix, the first part of the url is probably
-                #   controlled by project's urls.py and the router is in an app,
-                #   so a slash in the beginning will (A) cause Django to give
-                #   warnings and (B) generate URLS that will require using '//'.
-                if not prefix and regex[:2] == '^/':
-                    regex = '^' + regex[2:]
-
-                initkwargs = route.initkwargs.copy()
-                initkwargs.update({
-                    'basename': basename,
-                    'detail': route.detail,
-                })
-
-                view = viewset.as_view(mapping, **initkwargs)
-                name = route.name.format(basename=basename)
-                urls.append(re_path(regex, view, name=name))
-
-        # Need to apply `ExtendedDefaultRouter.get_urls()` extra code
-        if self.include_root_view:
-            view = self.get_api_root_view(api_urls=urls)
-            root_url = url(r'^$', view, name=self.root_view_name)
-            urls.append(root_url)
-
-        if self.include_format_suffixes:
-            urls = format_suffix_patterns(urls)
-
+        urls.extend(alias_urls)
         return urls
 
 
 URL_NAMESPACE = 'api_v2'
 
-router_api_v2 = OptionalSlashRouter()
+router_api_v2 = ExtendedDefaultRouterWithPathAliases()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
 asset_routes.register(r'files',

@@ -69,7 +69,6 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    @abc.abstractmethod
     def get_attachment_objects_from_dict(self, submission: dict) -> list:
         pass
 

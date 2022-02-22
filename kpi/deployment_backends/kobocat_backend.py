@@ -480,23 +480,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         The returned Response should be in XML (expected format by Enketo Express)
         """
-        submission_xml = xml_submission_file.read().decode()
-        # Keep only relevant nodes before parsing with regex.
-        stripped_xml = strip_nodes(
-            submission_xml, ['meta/deprecatedID', 'formhub/uuid'], use_xpath=True
-        )
-        instance_uuid_matches = re.search(r'uuid:([^<]+)', stripped_xml)
-        xform_uuid_matches = re.search(r'uuid>([^<]+)', stripped_xml)
-
-        if not instance_uuid_matches and not xform_uuid_matches:
-            raise SubmissionIntegrityError
-
+        submission_xml = xml_submission_file.read()
         try:
-            deprecated_uuid = instance_uuid_matches.groups()[0]
-            xform_uuid = xform_uuid_matches.groups()[0]
-        except IndexError:
-            raise SubmissionIntegrityError
-
+            xml_root = ET.fromstring(submission_xml)
+        except ET.ParseError:
+            raise SubmissionIntegrityError(
+                t('Your submission XML is malformed.')
+            )
+        try:
+            deprecated_uuid = xml_root.find('.//meta/deprecatedID').text
+            xform_uuid = xml_root.find('.//formhub/uuid').text
+        except AttributeError:
+            raise SubmissionIntegrityError(
+                t('Your submission XML is missing critical elements.')
+            )
+        # Remove UUID prefix
+        deprecated_uuid = deprecated_uuid[len('uuid:'):]
         try:
             instance = ReadOnlyKobocatInstance.objects.get(
                 uuid=deprecated_uuid,
@@ -504,8 +503,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 xform__kpi_asset_uid=self.asset.uid,
             )
         except ReadOnlyKobocatInstance.DoesNotExist:
-            # ToDo Create exception
-            raise Exception('Invalid INSTANCE')
+            raise SubmissionIntegrityError(
+                t(
+                    'The submission you attempted to edit could not be found, '
+                    'or you do not have access to it.'
+                )
+            )
 
         # Validate write access for users with partial permissions
         self.validate_access_with_partial_perms(
@@ -588,13 +591,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
             filters = {
-                'replaced_at': None,
+                # TODO: hide attachments that were deleted or replaced
+                # 'replaced_at': None,
                 'instance_id': submission_id,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
-                'replaced_at': None,
+                # TODO: hide attachments that were deleted or replaced
+                # 'replaced_at': None,
                 'instance_id': submission_id,
                 'pk': attachment_id,
             }
@@ -608,14 +613,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def get_attachment_objects_from_dict(self, submission: dict) -> QuerySet:
 
-        # First test with there are attachments to avoid a call to the DB for
+        # First test that there are attachments to avoid a call to the DB for
         # nothing
-        try:
-            attachments = submission['_attachments']
-        except KeyError:
-            return []
-
-        if len(attachments) == 0:
+        if not submission.get('_attachments'):
             return []
 
         # Get filenames from DB because Mongo does not contain the

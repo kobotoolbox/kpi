@@ -1,4 +1,6 @@
 # coding: utf-8
+from xml.etree import ElementTree as ET
+
 import requests
 from django.conf import settings
 from django.http import Http404
@@ -555,8 +557,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         user = request.user
 
         if action_ == 'edit':
+            enketo_endpoint = settings.ENKETO_EDIT_INSTANCE_ENDPOINT
             partial_perm = PERM_CHANGE_SUBMISSIONS
         elif action_ == 'view':
+            enketo_endpoint = settings.ENKETO_VIEW_INSTANCE_ENDPOINT
             partial_perm = PERM_VIEW_SUBMISSIONS
 
         # User's permissions are validated by the permission class. This extra step
@@ -581,6 +585,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_id, user, request=request
         )
 
+        # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
+        # it into some utility file
         _, submissions_stream = build_formpack(
             self.asset,
             submission_stream=[submission_json],
@@ -588,12 +594,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
         version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
 
-        try:
-            snapshot = self.asset.versioned_snapshot(version_uid=version_uid)
-        except AssetVersion.DoesNotExist:
-            raise serializers.ValidationError(
-                {'version': t('Version not found')}
-            )
+        # Retrieve the XML root node name from the submission. The instance's
+        # root node name specified in the form XML (i.e. the first child of
+        # `<instance>`) must match the root node name of the submission XML,
+        # otherwise Enketo will refuse to open the submission.
+        xml_root_node_name = ET.fromstring(submission_xml).tag
+
+        # This will raise `AssetVersion.DoesNotExist` if the inferred version
+        # of the submission disappears between the call to `build_formpack()`
+        # and here, but allow a 500 error in that case because there's nothing
+        # the client can do about it
+        snapshot = self.asset.versioned_snapshot(
+            version_uid=version_uid, root_node_name=xml_root_node_name
+        )
 
         data = {
             'server_url': reverse(
@@ -617,16 +630,28 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 request=request,
             )
 
-        enketo_endpoint = getattr(
-            settings, f'ENKETO_{action_}_INSTANCE_ENDPOINT'.upper()
-        )
         response = requests.post(
             f'{settings.ENKETO_URL}/{enketo_endpoint}',
             # bare tuple implies basic auth
             auth=(settings.ENKETO_API_TOKEN, ''),
             data=data
         )
-        response.raise_for_status()
+        if response.status_code != status.HTTP_201_CREATED:
+            # Some Enketo errors are useful to the client. Attempt to pass them
+            # along if possible
+            try:
+                parsed_resp = response.json()
+            except ValueError:
+                parsed_resp = None
+            if parsed_resp and 'message' in parsed_resp:
+                message = parsed_resp['message']
+            else:
+                message = response.reason
+            return Response(
+                # This doesn't seem worth translating
+                {'detail': 'Enketo error: ' + message},
+                status=response.status_code,
+            )
 
         json_response = response.json()
         enketo_url = json_response.get(f'{action_}_url')

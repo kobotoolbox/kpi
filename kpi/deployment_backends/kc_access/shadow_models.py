@@ -573,7 +573,8 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
-    replaced_at = models.DateTimeField(blank=True, null=True)
+    # TODO: hide attachments that were deleted or replaced
+    # replaced_at = models.DateTimeField(blank=True, null=True)
 
     @property
     def absolute_mp3_path(self):
