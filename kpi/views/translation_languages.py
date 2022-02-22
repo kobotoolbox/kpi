@@ -51,12 +51,12 @@ class TranslationLanguagesView(APIView):
 
     #### Engines available
     * Google Translate API [Google]
-    * Amazon Translate [Amazon]
-    * IBM Cloud Translation [IBM]
-    * Microsoft Translator [Microsoft]
-    * Translators without Borders API [TWB]
 
     """
+    # * Amazon Translate [Amazon]
+    # * IBM Cloud Translation [IBM]
+    # * Microsoft Translator [Microsoft]
+    # * Translators without Borders API [TWB]
 
     def get(self, request):
         keys = translation_languages.keys()
@@ -70,9 +70,11 @@ class TranslationLanguagesView(APIView):
     def post(self, request):
 
         if 'language_code' in request.data:
-
-            data = {'options': translation_languages.get(
-                request.data['language_code'])['options']}
+            try:
+                data = {'options': translation_languages.get(
+                    request.data['language_code'])['options']}
+            except TypeError:
+                data = {"selection_error": "Language is not supported"}
             return Response(data)
 
         elif "engine" in request.data:

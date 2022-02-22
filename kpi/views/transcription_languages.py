@@ -49,8 +49,11 @@ class TranscriptionLanguagesView(APIView):
     def post(self, request, *args, **kwargs):
 
         if 'language_code' in request.data:
-            data = {'options': transcription_languages.get(
-                request.data['language_code'])['options']}
+            try:
+                data = {'options': transcription_languages.get(
+                    request.data['language_code'])['options']}
+            except TypeError:
+                data = {"selection_error": "Language is not supported"}
             return Response(data)
 
         else:
