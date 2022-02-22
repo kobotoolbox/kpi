@@ -797,10 +797,10 @@ EXTERNAL_SERVICE_LANGUAGE_ALIASES = {
 split_values = lambda o: dict([(k,v.split(' ')) for k,v in o.items()])
 
 TRANSCRIPTION_SERVICES = split_values({
-    'AMZN': 'af-ZA ar-SA ar-AE yue-Hant-HK zh-TW da-DK nl-NL en-AU en-IN '
-                 'en-IE en-NZ en-AB en-ZA en-GB en-US en-WL fr-CA fr-FR de-DE '
-                 'de-CH iw-IL hi-IN id-ID it-IT ja-JP ko-KR ms-MY fa-IR pt-BR '
-                 'pt-PT ru-RU es-ES es-US ta-IN te-IN th-TH tr-TR',
+    # 'AMZN': 'af-ZA ar-SA ar-AE yue-Hant-HK zh-TW da-DK nl-NL en-AU en-IN '
+    #              'en-IE en-NZ en-AB en-ZA en-GB en-US en-WL fr-CA fr-FR de-DE '
+    #              'de-CH iw-IL hi-IN id-ID it-IT ja-JP ko-KR ms-MY fa-IR pt-BR '
+    #              'pt-PT ru-RU es-ES es-US ta-IN te-IN th-TH tr-TR',
     'GOOG': 'af-ZA sq-AL am-ET ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW '
                  'ar-LB ar-MA ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE hy-AM '
                  'az-AZ eu-ES bn-BD bn-IN bs-BA bg-BG my-MM ca-ES yue-Hant-HK '
@@ -815,43 +815,43 @@ TRANSCRIPTION_SERVICES = split_values({
                  'es-GT es-HN es-MX es-NI es-PA es-PY es-PE es-PR es-ES es-US '
                  'es-UY es-VE su-ID sw-KE sw-TZ sv-SE ta-IN ta-MY ta-SG ta-LK '
                  'te-IN th-TH tr-TR uk-UA ur-IN ur-PK uz-UZ vi-VN zu-ZA',
-    'IBM': 'ar-SA zh cs-CZ nl-BE nl-NL en-AU en-IN en-GB en-US fr-CA '
-                 'fr-FR de-DE hi-IN it-IT ja-JP ko-KR pt-BR es-AR es-CL es-CO '
-                 'es-MX es-PE es-ES',
-    'MSFT': 'ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW ar-LB ar-LY ar-MA '
-                 'ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE bg-BG ca-ES '
-                 'yue-Hant-HK zh zh-TW hr-HR cs-CZ da-DK nl-NL en-AU en-CA '
-                 'en-GH en-HK en-IN en-IE en-KE en-NZ en-NG en-PH en-SG en-ZA '
-                 'en-TZ en-GB en-US et-EE fil-PH fi-FI fr-CA fr-FR fr-CH de-AT '
-                 'de-DE el-GR gu-IN iw-IL hi-IN hu-HU id-ID ge-IE it-IT ja-JP '
-                 'kn-IN ko-KR lv-LV lt-LT ms-MY mt-IN mr-IN no-NO fa-IR pl-PL '
-                 'pt-BR pt-PT ro-RO ru-RU sl-SI es-AR es-BO es-CL es-CO es-CR '
-                 'es-DO es-EC es-SV es-GT es-HN es-MX es-NI es-PA es-PY es-PE '
-                 'es-PR es-ES es-US es-UY es-VE sw-KE ta-IN te-IN th-TH tr-TR '
-                 'vi-VN',
-    'TWB': 'en-US fr-FR sw-cd',
+    # 'IBM': 'ar-SA zh cs-CZ nl-BE nl-NL en-AU en-IN en-GB en-US fr-CA '
+    #              'fr-FR de-DE hi-IN it-IT ja-JP ko-KR pt-BR es-AR es-CL es-CO '
+    #              'es-MX es-PE es-ES',
+    # 'MSFT': 'ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW ar-LB ar-LY ar-MA '
+    #              'ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE bg-BG ca-ES '
+    #              'yue-Hant-HK zh zh-TW hr-HR cs-CZ da-DK nl-NL en-AU en-CA '
+    #              'en-GH en-HK en-IN en-IE en-KE en-NZ en-NG en-PH en-SG en-ZA '
+    #              'en-TZ en-GB en-US et-EE fil-PH fi-FI fr-CA fr-FR fr-CH de-AT '
+    #              'de-DE el-GR gu-IN iw-IL hi-IN hu-HU id-ID ge-IE it-IT ja-JP '
+    #              'kn-IN ko-KR lv-LV lt-LT ms-MY mt-IN mr-IN no-NO fa-IR pl-PL '
+    #              'pt-BR pt-PT ro-RO ru-RU sl-SI es-AR es-BO es-CL es-CO es-CR '
+    #              'es-DO es-EC es-SV es-GT es-HN es-MX es-NI es-PA es-PY es-PE '
+    #              'es-PR es-ES es-US es-UY es-VE sw-KE ta-IN te-IN th-TH tr-TR '
+    #              'vi-VN',
+    # 'TWB': 'en-US fr-FR sw-cd',
 })
 
 TRANSLATION_SERVICES = split_values({
-    'AMZN': 'af sq am ar hy az bn bs bg ca zh zh-TW hr cs fa-Af da nl en '
-                 'et fi fr fr-CA ka de el gu ht ha he hi hu is id ga it ja kn '
-                 'kk ko lv lt mk ms ml mt mr mn no ps fa pl pt pa ro ru sr si '
-                 'sk sl so es sw sv tl ta te th tr uk ur uz vi cy',
+    # 'AMZN': 'af sq am ar hy az bn bs bg ca zh zh-TW hr cs fa-Af da nl en '
+    #              'et fi fr fr-CA ka de el gu ht ha he hi hu is id ga it ja kn '
+    #              'kk ko lv lt mk ms ml mt mr mn no ps fa pl pt pa ro ru sr si '
+    #              'sk sl so es sw sv tl ta te th tr uk ur uz vi cy',
     'GOOG': 'af sq am ar hy az bn eu be bs bg ca ceb zh zh-TW co hr cs da '
                  'nl en eo et fi fr fy gl ka de el gu ht ha haw he hi hmn hu '
                  'is ig id ga it ja jv kn kk km rw ko ku ky lo lv lt lb mk mg '
                  'ms ml mt mi mr mn my ne no ny or ps fa pl pt pa ro ru sm gd '
                  'sr st sn sd si sk sl so es su sw sv tl tg ta tt te th tr tk '
                  'uk ur ug uz vi cy xh yi yo zu',
-    'IBM': 'ar bn eu bs bg ca zh zh-TW hr cs da nl en et fi fr fr-CA de '
-                 'el gu he hi hu id ga it ja ko lv lt ms ml mt cnr ne no pl pt '
-                 'ro ru sr si sk sl es sv ta te th tr uk ur vi cy',
-    'MSFT': 'af sq am ar hy as az ba bs bg yue ca zh zh-TW hr cs fa-Af da '
-                 'dv nl en et fj fi fr fr-CA ka de el gu ht he hi hmn hu is id '
-                 'iu ga it ja kn kk km tlh-Latn tlh-Piqd ko ku kmr ky lo lv lt '
-                 'mk mg ms ml mt mi mr mn-Cyrl mn-Mong my ne no or ps fa pl pt '
-                 'pt-pt pa otq ro ru sm sr-Cyrl sr-Latn sk sl es sw sv tl ta '
-                 'tt te th bo ti tr tk uk ur ug uz vi cy yua'
+    # 'IBM': 'ar bn eu bs bg ca zh zh-TW hr cs da nl en et fi fr fr-CA de '
+    #              'el gu he hi hu id ga it ja ko lv lt ms ml mt cnr ne no pl pt '
+    #              'ro ru sr si sk sl es sv ta te th tr uk ur vi cy',
+    # 'MSFT': 'af sq am ar hy as az ba bs bg yue ca zh zh-TW hr cs fa-Af da '
+    #              'dv nl en et fj fi fr fr-CA ka de el gu ht he hi hmn hu is id '
+    #              'iu ga it ja kn kk km tlh-Latn tlh-Piqd ko ku kmr ky lo lv lt '
+    #              'mk mg ms ml mt mi mr mn-Cyrl mn-Mong my ne no or ps fa pl pt '
+    #              'pt-pt pa otq ro ru sm sr-Cyrl sr-Latn sk sl es sw sv tl ta '
+    #              'tt te th bo ti tr tk uk ur ug uz vi cy yua'
 })
 
 SERVICES = {
@@ -861,6 +861,7 @@ SERVICES = {
     'MSFT': {'name': 'Microsoft'},
     'TWB': {'name': 'TWB'},
 }
+
 
 def repack(obj):
     # Rearrange these dicts to the representation expeced by the API viewset
@@ -876,6 +877,7 @@ def repack(obj):
                 alias = EXTERNAL_SERVICE_LANGUAGE_ALIASES[lang][0]
                 out[lang]['alternate_code'] = alias
     return out
+
 
 translation_languages = repack(TRANSLATION_SERVICES)
 transcription_languages = repack(TRANSCRIPTION_SERVICES)
