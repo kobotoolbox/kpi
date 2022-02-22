@@ -591,14 +591,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
             filters = {
-                # TODO: hide attachments that were deleted or replaced
+                # TODO: hide attachments that were deleted or replaced; see
+                # kobotoolbox/kobocat#792
                 # 'replaced_at': None,
                 'instance_id': submission_id,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
-                # TODO: hide attachments that were deleted or replaced
                 # 'replaced_at': None,
                 'instance_id': submission_id,
                 'pk': attachment_id,

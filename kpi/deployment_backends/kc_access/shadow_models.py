@@ -573,7 +573,8 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
-    # TODO: hide attachments that were deleted or replaced
+    # TODO: hide attachments that were deleted or replaced; see
+    # kobotoolbox/kobocat#792
     # replaced_at = models.DateTimeField(blank=True, null=True)
 
     @property
