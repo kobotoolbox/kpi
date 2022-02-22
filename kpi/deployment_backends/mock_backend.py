@@ -258,12 +258,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def get_attachment_objects_from_dict(self, submission: dict) -> list:
 
-        try:
-            attachments = submission['_attachments']
-        except KeyError:
-            return []
-
-        if len(attachments) == 0:
+        if not submission.get('_attachments'):
             return []
 
         return [

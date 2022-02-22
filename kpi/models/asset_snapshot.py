@@ -146,12 +146,11 @@ class AssetSnapshot(
         self._strip_empty_rows(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)
+        # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})
         form_title = _settings.get('form_title')
         id_string = _settings.get('id_string')
-        # ToDo Figure out whether we need to persist `root_node_name` in
-        #  settings?
-        root_node_name = _settings.pop('root_node_name', 'data')
+        root_node_name = _settings.get('name')
         self.xml, self.details = self.generate_xml_from_source(
             _source,
             include_note=_note,
@@ -165,14 +164,24 @@ class AssetSnapshot(
     def generate_xml_from_source(self,
                                  source,
                                  include_note=False,
-                                 root_node_name='snapshot_xml',
+                                 root_node_name=None,
                                  form_title=None,
                                  id_string=None):
 
-        if form_title is None:
-            form_title = 'Snapshot XML'
+        if not root_node_name:
+            if self.asset and self.asset.uid:
+                root_node_name = self.asset.uid
+            else:
+                root_node_name = 'snapshot_xml'
+
+        if not form_title:
+            if self.asset and self.asset.name:
+                form_title = self.asset.name
+            else:
+                form_title = 'Snapshot XML'
+
         if id_string is None:
-            id_string = 'snapshot_xml'
+            id_string = root_node_name
 
         if include_note and 'survey' in source:
             _translations = source.get('translations', [])

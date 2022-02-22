@@ -4,13 +4,14 @@ import copy
 import requests
 from django.http import HttpResponseRedirect
 from django.conf import settings
-from rest_framework import renderers
+from rest_framework import renderers, serializers, status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from kpi.authentication import DigestAuthentication
+from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetSnapshot, AssetFile, PairedData
@@ -76,7 +77,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         detail=True,
         renderer_classes=[OpenRosaFormListRenderer],
         url_path='formList',
-        trailing_slash='',
     )
     def form_list(self, request, *args, **kwargs):
         """
@@ -92,7 +92,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     @action(
         detail=True,
         renderer_classes=[OpenRosaManifestRenderer],
-        trailing_slash='',
     )
     def manifest(self, request, *args, **kwargs):
         """
@@ -144,7 +143,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
             json_response = response.json()
             preview_url = json_response.get('preview_url')
-            
+
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
@@ -152,15 +151,19 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     @action(
         detail=True,
-        trailing_slash='',
         permission_classes=[EditSubmissionPermission],
         methods=['HEAD', 'POST'],
         authentication_classes=[DigestAuthentication],
     )
     def submission(self, request, *args, **kwargs):
         if request.method == 'HEAD':
-            # ToDo figure out what's the valid response
-            return Response({})
+            # Return an empty response with OpenRosa headers
+            # See https://docs.getodk.org/openrosa-form-submission/#extended-transmission-considerations
+            return Response(
+                '',
+                headers=self.get_headers(),
+                status=status.HTTP_204_NO_CONTENT,
+            )
 
         asset_snapshot = self.get_object()
 
@@ -176,9 +179,12 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             for name, attachment in request.FILES.items():
                 attachments[name] = attachment
 
-        xml_response = asset_snapshot.asset.deployment.edit_submission(
-            xml_submission_file, request.user, attachments
-        )
+        try:
+            xml_response = asset_snapshot.asset.deployment.edit_submission(
+                xml_submission_file, request.user, attachments
+            )
+        except SubmissionIntegrityError as e:
+            raise serializers.ValidationError(str(e))
 
         # Add OpenRosa headers to response
         xml_response['headers'].update(self.get_headers())

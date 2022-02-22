@@ -929,7 +929,6 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             },
         )
         response = self.client.get(url, {'format': 'json'})
-        print('RESPONSE', response.content, flush=True)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
