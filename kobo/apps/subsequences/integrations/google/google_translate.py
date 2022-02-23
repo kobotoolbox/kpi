@@ -13,7 +13,7 @@ from ..misc import (
     TranslationEngineBase,
     TranslationException,
 )
-from kobo.apps.subsequences.tasks.handle_translation import handle_translation
+from kobo.apps.subsequences.tasks.handlers import handle_translation
 
 
 BUCKET_NAME = 'kobo-translations-test-qwerty12345'
@@ -159,8 +159,9 @@ class GoogleTranslationEngine(TranslationEngineBase, GoogleTranslationBase):
 
         self._calculate_cost(chars=len(content))
 
-        handle_translation(
+        task = handle_translation.delay(
             submission_uuid=self.submission_uuid,
             xpath=self.xpath,
             result=response.translations[0].translated_text,
         )
+        return task.id
