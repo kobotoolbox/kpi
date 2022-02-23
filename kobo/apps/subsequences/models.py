@@ -1,14 +1,27 @@
 from django.db import models
-from kpi.models import Asset
 from django.contrib.postgres.fields import JSONField
 
+from kpi.models import Asset
+from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
+
+
+from pprint import pformat
 
 def request_transcript(*args, **kwargs):
     # trigger transcript here
+    with open('TMP_GOOGLE.log', 'a') as ff:
+        ff.write(f'''
+        Requested a transcript from google with params:
+        {pformat(kwargs)}
+        ''')
     return
 
 def request_translation(*args, **kwargs):
-    # trigger translation here
+    with open('TMP_GOOGLE.log', 'a') as ff:
+        ff.write(f'''
+        Requested a translation from google with params:
+        {pformat(kwargs)}
+        ''')
     return
 
 
@@ -26,26 +39,38 @@ class SubmissionExtras(models.Model):
         if 'transcript' in features:
             for key, vals in self.content.items():
                 try:
-                    status = vals['googlets']['status']
+                    autoparams = vals[GOOGLETS]
+                    status = autoparams['status']
                     if status == 'requested':
+                        username = self.asset.owner.username
                         request_transcript(asset_uid=self.asset.uid,
+                                           user=username,
                                            submission_uuid=self.uuid,
                                            xpath=key)
-                        vals['googlets'] = {
+                        vals[GOOGLETS] = {
                             'status': 'in_progress',
+                            'languageCode': autoparams.get('languageCode'),
                         }
                 except KeyError as err:
                     continue
-        if 'translate' in features:
+        if 'translated' in features:
             for key, vals in self.content.items():
                 try:
-                    status = vals['googletx']['status']
+                    autoparams = vals[GOOGLETX]
+                    status = autoparams['status']
                     if status == 'requested':
+                        source = vals['transcript']['value']
+                        language_code = autoparams.get('languageCode')
+                        username = self.asset.owner.username
                         request_translation(asset_uid=self.asset.uid,
+                                            user=username,
+                                            source=source,
+                                            language_code=language_code,
                                             submission_uuid=self.uuid,
                                             xpath=key)
-                        vals['googletx'] = {
+                        vals[GOOGLETX] = {
                             'status': 'in_progress',
+                            'languageCode': language_code,
                         }
                 except KeyError as err:
                     continue

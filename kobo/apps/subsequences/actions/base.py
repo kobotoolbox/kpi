@@ -2,6 +2,8 @@ import datetime
 import pytz
 from django.utils import timezone
 
+from kobo.apps.subsequences.constants import (GOOGLETS, GOOGLETX)
+
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
 
@@ -44,13 +46,18 @@ class BaseAction:
 
             erecord = vals.get(self.ID)
             o_keyval = content.get(field_name, {})
-            for extra in ['googletx', 'googlets']:
+            for extra in [GOOGLETX, GOOGLETS]:
                 if extra in vals:
                     o_keyval[extra] = vals[extra]
                     content[field_name] = o_keyval
 
             orecord = o_keyval.get(self.ID)
             if erecord is None:
+                continue
+            if self.is_auto_request(erecord):
+                content[field_name].update(
+                    self.auto_request_repr(erecord)
+                )
                 continue
             if orecord is None:
                 compiled_record = self.init_field(erecord)
@@ -61,6 +68,12 @@ class BaseAction:
             o_keyval[self.ID] = compiled_record
             content[field_name] = o_keyval
         return content
+
+    def auto_request_repr(self, erecord):
+        raise NotImplementedError()
+
+    def is_auto_request(self, erecord):
+        return self.record_repr(erecord) == 'GOOGLE'
 
     def init_field(self, edit):
         edit[self.DATE_CREATED_FIELD] = \

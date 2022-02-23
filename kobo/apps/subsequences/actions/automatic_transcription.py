@@ -1,3 +1,4 @@
+from kobo.apps.subsequences.constants import GOOGLETS
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 NOT_REQUESTED = 'NOT_REQUESTED'
@@ -65,7 +66,7 @@ class AutomaticTranscriptionAction(BaseAction):
             'additionalProperties': False,
             'required': ['value'],
         }
-        defs['googlets'] = {
+        defs['_googlets'] = {
             'type': 'object',
             'properties': {
                 'status': {'enum': ['requested', 'in_progress', 'complete']},
@@ -80,8 +81,8 @@ class AutomaticTranscriptionAction(BaseAction):
             field_def['properties'][self.ID] = {
                 '$ref': '#/definitions/transcript'
             }
-            field_def['properties']['googlets'] = {
-                '$ref': '#/definitions/googlets',
+            field_def['properties'][GOOGLETS] = {
+                '$ref': '#/definitions/_googlets',
             }
             schema['properties'][field] = field_def
         schema['definitions'] = defs
@@ -141,3 +142,11 @@ class AutomaticTranscriptionAction(BaseAction):
 
     def run_change(self, submission):
         pass
+
+    def auto_request_repr(self, erecord):
+        return {
+            GOOGLETS: {
+                'status': 'requested',
+                'languageCode': erecord['languageCode'],
+            }
+        }
