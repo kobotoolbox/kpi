@@ -70,6 +70,7 @@ class SubmissionExtras(models.Model):
                                             xpath=key)
                         vals[GOOGLETX] = {
                             'status': 'in_progress',
+                            'source': source,
                             'languageCode': language_code,
                         }
                 except KeyError as err:
