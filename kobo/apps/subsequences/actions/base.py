@@ -41,8 +41,14 @@ class BaseAction:
         for field_name, vals in edits.items():
             if field_name == 'submission':
                 continue
+
             erecord = vals.get(self.ID)
             o_keyval = content.get(field_name, {})
+            for extra in ['googletx', 'transcript_google']:
+                if extra in vals:
+                    o_keyval[extra] = vals[extra]
+                    content[field_name] = o_keyval
+
             orecord = o_keyval.get(self.ID)
             if erecord is None:
                 continue

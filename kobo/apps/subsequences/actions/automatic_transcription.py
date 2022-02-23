@@ -11,9 +11,6 @@ DT_CREATED = BaseAction.DATE_CREATED_FIELD
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'transcript'
     MANUAL = 'user_transcribed'
-    TRANSCRIPTION_SERVICES = (
-        'transcript_acme',
-    )
 
     @classmethod
     def build_params(kls, params, content):
@@ -21,7 +18,7 @@ class AutomaticTranscriptionAction(BaseAction):
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
                 possible_transcribed_fields.append(kls.get_name(kls, row))
-        params = {'values': possible_transcribed_fields, 'services': kls.TRANSCRIPTION_SERVICES}
+        params = {'values': possible_transcribed_fields, 'services': []}
         return params
 
     @classmethod
@@ -68,6 +65,12 @@ class AutomaticTranscriptionAction(BaseAction):
             'additionalProperties': False,
             'required': ['value'],
         }
+        defs['googletx'] = {
+            'type': 'object',
+            'properties': {
+                'status': {'enum': ['requested', 'in_progress', 'complete']},
+            }
+        }
         for field in self.possible_transcribed_fields:
             field_def = schema['properties'].get(field, {
                 'type': 'object',
@@ -77,6 +80,9 @@ class AutomaticTranscriptionAction(BaseAction):
             field_def['properties'][self.ID] = {
                 '$ref': '#/definitions/transcript'
             }
+            field_def['properties']['googletx'] = {
+                '$ref': '#/definitions/googletx',
+            }
             schema['properties'][field] = field_def
         schema['definitions'] = defs
         return schema
@@ -84,14 +90,6 @@ class AutomaticTranscriptionAction(BaseAction):
     def check_submission_status(self, submission):
         if self._destination_field not in submission:
             return ACTION_NEEDED
-        supp_data = submission[self._destination_field]
-
-        for (field, service, fs_key) in self.field_service_matrix():
-            if fs_key not in supp_data:
-                return ACTION_NEEDED
-            status = supp_data.get(fs_key)
-            if status == REQUESTED_BY_USER:
-                return ACTION_NEEDED
         return PASSES
 
     def addl_fields(self):
@@ -142,14 +140,4 @@ class AutomaticTranscriptionAction(BaseAction):
                 yield (field, service, fs_key)
 
     def run_change(self, submission):
-        supp_data = submission.get(self._destination_field, {})
-        for field, service, fs_key in self.field_service_matrix():
-            if fs_key not in supp_data:
-                supp_data[fs_key] = NOT_REQUESTED
-                continue
-            field_service_status = supp_data[fs_key]
-            if field_service_status == REQUESTED_BY_USER:
-                # self.initiate_async_request(submission, field, service)
-                supp_data[fs_key] = PENDING
-                continue
-        return {**submission, self._destination_field: supp_data}
+        pass

@@ -101,6 +101,14 @@ class TranslationAction(BaseAction):
                 '$ref': '#/definitions/translationRevision'
             }}
         }
+        defs['googletx'] = {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'enum': ['requested', 'in_progress', 'complete'],
+                }
+            }
+        }
         defs['xtranslation'] = {
             'type': 'object',
             'additionalProperties': False,
@@ -136,6 +144,9 @@ class TranslationAction(BaseAction):
             })
             field_def['properties'][self.ID] = {
                 '$ref': '#/definitions/translation'
+            }
+            field_def['properties']['googletx'] = {
+                '$ref': '#/definitions/googletx',
             }
             schema['properties'][field] = field_def
         schema['definitions'] = defs
