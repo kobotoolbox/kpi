@@ -26,12 +26,12 @@ class SubmissionExtras(models.Model):
         if 'transcript' in features:
             for key, vals in self.content.items():
                 try:
-                    status = vals['transcript_google']['status']
+                    status = vals['googlets']['status']
                     if status == 'requested':
                         request_transcript(asset_uid=self.asset.uid,
                                            submission_uuid=self.uuid,
                                            xpath=key)
-                        vals['transcript_google'] = {
+                        vals['googlets'] = {
                             'status': 'in_progress',
                         }
                 except KeyError as err:

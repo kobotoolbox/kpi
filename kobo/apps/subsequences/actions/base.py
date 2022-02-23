@@ -44,7 +44,7 @@ class BaseAction:
 
             erecord = vals.get(self.ID)
             o_keyval = content.get(field_name, {})
-            for extra in ['googletx', 'transcript_google']:
+            for extra in ['googletx', 'googlets']:
                 if extra in vals:
                     o_keyval[extra] = vals[extra]
                     content[field_name] = o_keyval

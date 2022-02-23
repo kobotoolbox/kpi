@@ -65,7 +65,7 @@ class AutomaticTranscriptionAction(BaseAction):
             'additionalProperties': False,
             'required': ['value'],
         }
-        defs['googletx'] = {
+        defs['googlets'] = {
             'type': 'object',
             'properties': {
                 'status': {'enum': ['requested', 'in_progress', 'complete']},
@@ -80,8 +80,8 @@ class AutomaticTranscriptionAction(BaseAction):
             field_def['properties'][self.ID] = {
                 '$ref': '#/definitions/transcript'
             }
-            field_def['properties']['googletx'] = {
-                '$ref': '#/definitions/googletx',
+            field_def['properties']['googlets'] = {
+                '$ref': '#/definitions/googlets',
             }
             schema['properties'][field] = field_def
         schema['definitions'] = defs
