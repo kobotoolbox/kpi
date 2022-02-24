@@ -217,17 +217,30 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         xpath: Optional[str] = None,
     ) -> MockAttachment:
 
+        submission_json = None
+        # First try to get the json version of the submission.
+        # It helps to retrieve the id if `submission_id_or_uuid` is a `UUIDv4`
         try:
             submission_id_or_uuid = int(submission_id_or_uuid)
         except ValueError:
-            raise NotImplementedError('Mock backend only supports primary key')
+            submissions = self.get_submissions(
+                user,
+                format_type=SUBMISSION_FORMAT_TYPE_JSON,
+                query={'_uuid': submission_id_or_uuid},
+            )
+            if submissions:
+                submission_json = submissions[0]
+        else:
+            submission_json = self.get_submission(
+                submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+            )
+
+        if not submission_json:
+            raise SubmissionNotFoundException
 
         submission_xml = self.get_submission(
-            submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+            submission_json['_id'], user, format_type=SUBMISSION_FORMAT_TYPE_XML
         )
-
-        if not submission_xml:
-            raise SubmissionNotFoundException
 
         if xpath:
             submission_tree = ET.ElementTree(
@@ -243,9 +256,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             except AttributeError:
                 raise XPathNotFoundException
 
-        submission_json = self.get_submission(
-            submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
-        )
         attachments = submission_json['_attachments']
         for attachment in attachments:
             filename = os.path.basename(attachment['filename'])
