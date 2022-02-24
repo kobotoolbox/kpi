@@ -31,7 +31,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import Asset, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -137,6 +137,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     </pre>
 
     It is also possible to specify the format.
+
+    <sup>*</sup>`id` can be the primary key of the submission or its `uuid`.
+    Please note that using the `uuid` may match **several** submissions, only
+    the first match will be returned.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.xml
