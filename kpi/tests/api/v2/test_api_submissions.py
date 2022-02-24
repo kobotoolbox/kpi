@@ -610,6 +610,18 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
 
+    def test_retrieve_submission_by_uuid(self):
+        """
+        someuser is the owner of the project.
+        someuser can view one of their submission.
+        """
+        submission = self.submissions[0]
+        url = self.asset.deployment.get_submission_detail_url(submission['_uuid'])
+
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, submission)
+
     def test_retrieve_submission_not_shared_as_anotheruser(self):
         """
         someuser is the owner of the project.
