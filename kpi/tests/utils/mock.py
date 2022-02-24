@@ -6,10 +6,10 @@ from typing import Optional
 
 from django.core.files import File
 
-from kpi.mixins.mp3_converter import MP3ConverterMixin
+from kpi.mixins.audio_converter import ConverterMixin
 
 
-class MockAttachment(MP3ConverterMixin):
+class MockAttachment(ConverterMixin):
     """
     Mock object to simulate ReadOnlyKobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
@@ -27,10 +27,10 @@ class MockAttachment(MP3ConverterMixin):
         return self.media_file.path
 
     def protected_path(self, format_: Optional[str] = None):
-        if format_ == self.CONVERSION_AUDIO_FORMAT:
-            suffix = f'.{self.CONVERSION_AUDIO_FORMAT}'
+        if format_ in self.AVAILABLE_CONVERSIONS:
+            suffix = f'.{format_}'
             with NamedTemporaryFile(suffix=suffix) as f:
-                self.content = self.get_mp3_content()
+                self.content = self.get_converter_content(format_)
             return f.name
         else:
             return self.absolute_path
