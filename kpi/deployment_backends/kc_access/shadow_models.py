@@ -25,10 +25,7 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
-from kpi.mixins.mp3_converter import (
-    FLACConversionMixin,
-    MP3ConverterMixin,
-)
+from kpi.mixins.audio_converter import ConverterMixin
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
 from .storage import (
@@ -555,7 +552,7 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin, FLACConversionMixin):
+class ReadOnlyKobocatAttachment(ReadOnlyModel, ConverterMixin):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
@@ -577,42 +574,6 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin, FLACConversion
     )
 
     @property
-    def absolute_flac_path(self):
-        """
-        Return the absolute path on local file system of the converted version of
-        attachment. Otherwise, return the AWS url (e.g. https://...)
-        """
-
-        kobocat_storage = get_kobocat_storage()
-
-        if not kobocat_storage.exists(self.flac_storage_path):
-            content = self.get_flac_content()
-            kobocat_storage.save(self.flac_storage_path, ContentFile(content))
-
-        if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
-            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT_FLAC}'
-
-        return kobocat_storage.url(self.flac_storage_path)
-
-    @property
-    def absolute_mp3_path(self):
-        """
-        Return the absolute path on local file system of the converted version of
-        attachment. Otherwise, return the AWS url (e.g. https://...)
-        """
-
-        kobocat_storage = get_kobocat_storage()
-
-        if not kobocat_storage.exists(self.mp3_storage_path):
-            content = self.get_mp3_content()
-            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
-
-        if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
-            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
-
-        return kobocat_storage.url(self.mp3_storage_path)
-
-    @property
     def absolute_path(self):
         """
         Return the absolute path on local file system of the attachment.
@@ -623,33 +584,31 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin, FLACConversion
 
         return self.media_file.url
 
-    @property
-    def flac_storage_path(self):
+    def get_or_create_conversion(self, filepath):
         """
-        Return the path of file after conversion. It is the exact same name, plus
-        the conversion audio format extension concatenated.
-        E.g: file.mp4 and file.mp4.flac
-        """
-        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT_FLAC}'
 
-    @property
-    def mp3_storage_path(self):
         """
-        Return the path of file after conversion. It is the exact same name, plus
-        the conversion audio format extension concatenated.
-        E.g: file.mp4 and file.mp4.mp3
-        """
-        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT}'
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(filepath):
+            content = self.get_converter_content(self.format)
+            kobocat_storage.save(filepath, ContentFile(content))
+
+        if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
+            return filepath
+
+        return kobocat_storage.url(self.mp3_storage_path)
 
     def protected_path(self, format_: Optional[str] = None):
         """
         Return path to be served as protected file served by NGINX
         """
+        self.set_format(format_)
 
-        if format_ == self.CONVERSION_AUDIO_FORMAT:
-            attachment_file_path = self.absolute_mp3_path
-        elif format_ == self.CONVERSION_AUDIO_FORMAT_FLAC:
-            attachment_file_path = self.absolute_flac_path
+        if format_ in self.AVAILABLE_CONVERSIONS:
+            attachment_file_path = f'{self.absolute_path}.{format_}'
+            self.get_or_create_conversion(attachment_file_path)
+
         else:
             attachment_file_path = self.absolute_path
 
@@ -667,6 +626,9 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin, FLACConversion
     @property
     def storage_path(self):
         return str(self.media_file)
+
+    def set_format(self, file_format):
+        self.format = file_format
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
