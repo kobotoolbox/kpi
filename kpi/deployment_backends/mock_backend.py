@@ -1,9 +1,11 @@
 # coding: utf-8
 import copy
+import os
 import time
 import uuid
 from datetime import datetime
 from typing import Optional
+from xml.etree import ElementTree as ET
 
 import pytz
 from deepmerge import always_merger
@@ -20,9 +22,16 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionNotFoundException,
+    XPathNotFoundException,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
+from kpi.tests.utils.mock import MockAttachment
 from .base_backend import BaseDeploymentBackend
 
 
@@ -201,40 +210,64 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
-    def get_data_download_links(self):
-        return {}
-
-    def get_enketo_submission_url(
+    def get_attachment(
         self,
         submission_id: int,
         user: 'auth.User',
-        params: dict = None,
-        action_: str = 'edit',
-    ) -> dict:
-        """
-        Gets URL of the submission in a format FE can understand
-        """
-        if action_ == 'edit':
-            partial_perm = PERM_CHANGE_SUBMISSIONS
-        elif action_ == 'view':
-            partial_perm = PERM_VIEW_SUBMISSIONS
-        else:
-            raise NotImplementedError(
-                "Only 'view' and 'edit' actions are currently supported"
-            )
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> MockAttachment:
 
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=partial_perm,
-            submission_ids=[submission_id],
+        submission_xml = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
         )
 
-        return {
-            'content_type': 'application/json',
-            'data': {
-                'url': f'http://server.mock/enketo/{action_}/{submission_id}'
-            }
-        }
+        if not submission_xml:
+            raise SubmissionNotFoundException
+
+        if xpath:
+            submission_tree = ET.ElementTree(
+                ET.fromstring(submission_xml)
+            )
+            try:
+                element = submission_tree.find(xpath)
+            except KeyError:
+                raise InvalidXPathException
+
+            try:
+                attachment_filename = element.text
+            except AttributeError:
+                raise XPathNotFoundException
+
+        submission_json = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+        )
+        attachments = submission_json['_attachments']
+        for attachment in attachments:
+            filename = os.path.basename(attachment['filename'])
+
+            if xpath:
+                is_good_file = attachment_filename == filename
+            else:
+                is_good_file = int(attachment['id']) == int(attachment_id)
+
+            if is_good_file:
+                return MockAttachment(pk=attachment_id, **attachment)
+
+        raise AttachmentNotFoundException
+
+    def get_attachment_objects_from_dict(self, submission: dict) -> list:
+
+        if not submission.get('_attachments'):
+            return []
+
+        return [
+            MockAttachment(pk=attachment['id'], **attachment)
+            for attachment in attachments
+        ]
+
+    def get_data_download_links(self):
+        return {}
 
     def get_enketo_survey_links(self):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
