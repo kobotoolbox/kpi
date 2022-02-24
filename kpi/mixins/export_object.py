@@ -10,7 +10,7 @@ from formpack.schema.fields import (
     TagsCopyField,
     ValidationStatusCopyField,
 )
-from rest_framework import exceptions
+from django.http import Http404
 
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -70,13 +70,7 @@ class ExportObjectMixin:
             PERM_VIEW_SUBMISSIONS not in source_perms
             and PERM_PARTIAL_SUBMISSIONS not in source_perms
         ):
-            # Unsure if DRF exceptions make sense here since we're not
-            # returning a HTTP response
-            raise exceptions.PermissionDenied(
-                '{user} cannot export {source}'.format(
-                    user=self.user, source=source
-                )
-            )
+            raise Http404
 
         if not source.has_deployment:
             raise Exception('the source must be deployed prior to export')

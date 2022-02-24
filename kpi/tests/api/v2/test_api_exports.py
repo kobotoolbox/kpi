@@ -309,6 +309,19 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             name=settings_name,
             export_settings=export_settings,
         )
+
+        # test anonymous export gives 404
+        synchronous_exports_url = reverse(
+            self._get_endpoint('submission-exports'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        synchronous_export_response = self.client.get(synchronous_exports_url)
+        assert synchronous_export_response.status_code == status.HTTP_404_NOT_FOUND
+
         self.client.login(username='someuser', password='someuser')
         synchronous_exports_url = reverse(
             self._get_endpoint('submission-exports'),
