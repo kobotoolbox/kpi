@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import Optional
+from typing import Optional, Union
 
 from django.conf import settings
 from django.shortcuts import Http404
@@ -57,11 +57,11 @@ class AttachmentViewSet(
     def retrieve(self, request, pk, *args, **kwargs):
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
         # Mongo attachments URL with their primary keys (instead of their XPath)
-        submission_id = kwargs['parent_lookup_data']
-        return self._get_response(request, submission_id, attachment_id=pk)
+        submission_id_or_uuid = kwargs['parent_lookup_data']
+        return self._get_response(request, submission_id_or_uuid, attachment_id=pk)
 
     def list(self, request, *args, **kwargs):
-        submission_id = kwargs['parent_lookup_data']
+        submission_id_or_uuid = kwargs['parent_lookup_data']
         try:
             xpath = request.query_params['xpath']
         except KeyError:
@@ -69,19 +69,62 @@ class AttachmentViewSet(
                 'detail': t('`xpath` query parameter is required')
             }, 'xpath_missing')
 
-        return self._get_response(request, submission_id, xpath=xpath)
+        return self._get_response(request, submission_id_or_uuid, xpath=xpath)
 
     def _get_response(
         self,
         request,
-        submission_id: int,
+        submission_id_or_uuid: Union[str, int],
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> Response:
 
+        """
+              format_type = kwargs.get('format', request.GET.get('format', 'json'))
+        deployment = self._get_deployment()
+        params = {
+            'user': request.user,
+            'format_type': format_type,
+            'request': request,
+        }
+        filters = self._filter_mongo_query(request)
+
+        # Unfortunately, Django expects that the URL parameter is `pk`,
+        # its name cannot be changed (easily).
+        submission_id_or_uuid = pk
+        try:
+            submission_id_or_uuid = positive_int(submission_id_or_uuid)
+        except ValueError:
+            if not re.match(r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', pk):
+                raise serializers.ValidationError({
+                    'detail': t(
+                        'Submission identifier must be its primary key or its UUID'
+                    )}
+                )
+            try:
+                query = json.loads(filters.pop('query', '{}'))
+            except json.JSONDecodeError:
+                raise serializers.ValidationError({
+                    'detail': t(
+                        'Wrong query syntax'
+                    )}
+                )
+            query['_uuid'] = submission_id_or_uuid
+            filters['query'] = json.dumps(query)
+        else:
+            params['submission_id'] = submission_id_or_uuid
+
+        # Join all parameters to be passed to `deployment.get_submissions()`
+        params.update(filters)
+        try:
+            submission = next(deployment.get_submissions(**params))
+        except StopIteration:
+            raise Http404
+        """
+
         try:
             attachment = self.asset.deployment.get_attachment(
-                submission_id, request.user, attachment_id, xpath
+                submission_id_or_uuid, request.user, attachment_id, xpath
             )
         except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404

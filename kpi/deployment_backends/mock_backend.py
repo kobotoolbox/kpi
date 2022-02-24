@@ -4,7 +4,7 @@ import os
 import time
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
 import pytz
@@ -20,7 +20,6 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
-    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -212,14 +211,19 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def get_attachment(
         self,
-        submission_id: int,
+        submission_id_or_uuid: Union[int, str],
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> MockAttachment:
 
+        try:
+            submission_id_or_uuid = int(submission_id_or_uuid)
+        except ValueError:
+            raise NotImplementedError('Mock backend only supports primary key')
+
         submission_xml = self.get_submission(
-            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+            submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_XML
         )
 
         if not submission_xml:
@@ -240,7 +244,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 raise XPathNotFoundException
 
         submission_json = self.get_submission(
-            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+            submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
         )
         attachments = submission_json['_attachments']
         for attachment in attachments:
