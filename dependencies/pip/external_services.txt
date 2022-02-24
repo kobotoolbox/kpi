@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@ad78349d259dfce5f01e7dd308ee78f9b0e80315#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@56951080f64eae16542fd88349a69cf1f225252a#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -146,7 +146,7 @@ importlib-metadata==1.7.0
     # via
     #   jsonschema
     #   kombu
-    #   path.py
+    #   path-py
 jmespath==0.9.4
     # via
     #   boto3
@@ -176,7 +176,7 @@ oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
-path.py==12.0.2
+path-py==12.0.2
     # via formpack
 pillow==6.2.1
     # via django-markdownx
