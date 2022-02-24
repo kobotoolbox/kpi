@@ -503,15 +503,21 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             query['_uuid'] = submission_id_or_uuid
             filters['query'] = query
         else:
-            params['submission_id'] = submission_id_or_uuid
+            params['submission_ids'] = [submission_id_or_uuid]
 
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
-        try:
-            submission = next(deployment.get_submissions(**params))
-        except StopIteration:
+
+        # The `get_submissions()` is a generator in KobocatDeploymentBackend
+        # class but a list in MockDeploymentBackend. We cast the result as a list
+        # no matter what is the deployment back-end class to make it work with
+        # both. Since the number of submissions is be very small, it should not
+        # have a big impact on memory (i.e. list vs generator)
+        submissions = list(deployment.get_submissions(**params))
+        if not submissions:
             raise Http404
 
+        submission = submissions[0]
         return Response(submission)
 
     @action(detail=True, methods=['POST'],
