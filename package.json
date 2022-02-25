@@ -44,7 +44,6 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "kobo-common": "https://github.com/kobotoolbox/kobo-common.git#semver:1.0.2",
     "@babel/core": "^7.9.6",
     "@babel/polyfill": "^7.8.7",
     "@babel/preset-env": "^7.9.6",
