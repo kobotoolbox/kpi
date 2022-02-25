@@ -259,6 +259,10 @@ class ProjectSettings extends React.Component {
 
   // archive flow
 
+  isArchivable() {
+    return this.state.formAsset.has_deployment && this.state.formAsset.deployment__active;
+  }
+
   isArchived() {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
   }
@@ -898,7 +902,7 @@ class ProjectSettings extends React.Component {
             <Checkbox
               checked={this.state['share-metadata']}
               onChange={this.onShareMetadataChange}
-              label={t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              label={t('Help KoBoToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             />
           </bem.FormModal__item>
 
@@ -934,7 +938,7 @@ class ProjectSettings extends React.Component {
                   </bem.KoboButton>
                 }
 
-                {!this.isArchived() &&
+                {this.isArchivable() &&
                   <bem.KoboButton
                     m='orange'
                     onClick={this.archiveProject}
@@ -944,9 +948,17 @@ class ProjectSettings extends React.Component {
                 }
               </bem.FormModal__item>
 
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
-              </bem.FormModal__item>
+              {this.isArchivable() &&
+                <bem.FormModal__item m='inline'>
+                  {t('Archive project to stop accepting submissions.')}
+                </bem.FormModal__item>
+              }
+              {this.isArchived() &&
+                <bem.FormModal__item m='inline'>
+                  {t('Unarchive project to resume accepting submissions.')}
+                </bem.FormModal__item>
+              }
+
             </bem.FormModal__item>
           }
 

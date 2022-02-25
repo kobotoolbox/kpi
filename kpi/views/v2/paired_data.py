@@ -75,7 +75,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >        {
     >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
     >           "filename": "external-data.xml",
-    >           "fields": []",
+    >           "fields": [],
     >        }
     >
     >
