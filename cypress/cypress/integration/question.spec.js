@@ -2,15 +2,15 @@ describe('Create questions', function () {
 
     before(() => {
       cy.fixture('accounts').then((accounts) => {
-        return accounts.question_creation
+        return accounts.question_creator
       }).then(($acct) => {
-        cy.login($acct)
+        cy.login($acct, "question_creator")
       })
     })
   
     it('Creates questions', function () { 
         cy.fixture('questions').then((data) => {
-            cy.get('[data-cy="question"]') //TODO: replace with cy-data='question'
+            cy.get('[data-cy="question"]')
                 .click()
                 
             cy.get('[data-cy="edit"]')
@@ -34,6 +34,7 @@ describe('Create questions', function () {
                 if (data[question].hasOwnProperty('options')) {
                     for (var i = 0; i < data[question].options.length - 2; i++) {
                         cy.get('[data-cy="add_option"]')
+                            .should('have.length', 1)
                             .click()
                     }
 

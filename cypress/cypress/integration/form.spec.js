@@ -4,9 +4,9 @@ describe('Create Form', function () {
 
   before(() => {
     cy.fixture('accounts').then((accounts) => {
-      return accounts.form_creation
+      return accounts.form_creator
     }).then(($acct) => {
-      cy.login($acct)
+      cy.login($acct, "form_creator")
     })
   })
 

@@ -1,11 +1,9 @@
 {
-  "form_creation" : {
-    "name" : "form_creation",
+  "form_creator" : {
     "password" : "Avacad0",
     "description" : "Opens an empty account to test form creation."
   },
-  "question_creation" : {
-    "name" : "question_creation",
+  "question_creator" : {
     "password" : "Avacad0",
     "description" : "Adds questions to empty forms from questions.json."
   }
