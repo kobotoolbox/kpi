@@ -1,4 +1,5 @@
-import time
+from hashlib import md5
+from datetime import date
 from typing import (
     Dict,
     List,
@@ -9,139 +10,99 @@ from typing import (
 from google.api_core.exceptions import InvalidArgument
 
 from ..misc import (
-    GoogleTranslationBase,
-    TranslationEngineBase,
     TranslationException,
 )
-from kobo.apps.subsequences.tasks.handlers import handle_translation
-
 
 BUCKET_NAME = 'kobo-translations-test-qwerty12345'
+GS_URI = f'gs://${BUCKET_NAME}'
 EXTENSION = '.txt'
 LOCATION = 'us-central1'
 MAX_SYNC_CHARS = 30720
 PROJECT_ID = 'kobo-nlp-asr-mt'
+PARENT = f'projects/{PROJECT_ID}'
+PARENT_ASYNC = f'projects/{PROJECT_ID}/locations/{LOCATION}'
 SOURCE_BASENAME = 'source'
-COST = 20 / 1000000  # https://cloud.google.com/translate/pricing
+COST_PER_CHAR = 20 / 1000000  # https://cloud.google.com/translate/pricing
+
+def _hashed_strings(self, *strings):
+    return md5(''.join(strings).encode()).hexdigest()[0:10]
 
 
-class GoogleTranslationEngine(TranslationEngineBase, GoogleTranslationBase):
+class GoogleTranslationEngine(TranslationEngineBase):
     def __init__(self):
+        self.translate_client = translate.TranslationServiceClient()
+        self.storage_client = storage.Client()
+        self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
+
         super().__init__()
-        self.parent = f'projects/{PROJECT_ID}'
-        self.mime_type = 'text/plain'
-        self.uri_base = f'gs://{BUCKET_NAME}'
-        self.parent_async = f'projects/{PROJECT_ID}/locations/{LOCATION}'
-        self.state = 'BARDO'
-        self.cost = 0
+        self.date_string = date.today().isoformat()
 
-    def get_languages(
-        self, labels: bool = False, display_language: str = 'en'
-    ) -> Union[Dict, List]:
-        response = self.translate_client.get_supported_languages(
-            parent=self.parent, display_language_code=display_language
-        )
-        if labels:
-            return {
-                lang.language_code: lang.display_name
-                for lang in response.languages
-            }
-        return [lang.language_code for lang in response.languages]
+    def translate(self, *args, **kwargs):
+        raise NotImplementedError('moved to translate_sync and translate_async')
 
-    def translate(
+    def translation_must_be_async(self, content):
+        return len(content) > MAX_SYNC_CHARS
+
+    def translate_async(
         self,
-        content: str,
         submission_uuid: str,
         username: str,
         xpath: str,
-        force_async: bool = False,
-        *args: List,
-        **kwargs: Dict
-    ) -> str:
-
-        self.submission_uuid = submission_uuid
-        self.username = username
-        self.xpath = xpath
-
-        if len(content) < MAX_SYNC_CHARS and not force_async:
-            return self._translate_sync(content, *args, **kwargs)
-        return self._translate_async(content, *args, **kwargs)
-
-    def _calculate_cost(self, chars: int) -> None:
-        self.cost = COST * chars
-
-    def _get_output_filename(self, output_path: str) -> str:
-        username, submission_uuid, target_lang, _ = output_path.split('/')
-        return output_path + '_'.join(
-            [
-                BUCKET_NAME,
-                username,
-                submission_uuid,
-                SOURCE_BASENAME,
-                target_lang,
-                f'translations{EXTENSION}',
-            ]
-        )
-
-    def _store_content(self, content: str, path: str) -> bool:
-        dest = self.bucket.blob(path)
-        dest.upload_from_string(content)
-        return True
-
-    def _translate_async(
-        self,
         content: str,
         source_lang: str,
         target_lang: str,
     ) -> str:
+        self.submission_uuid = submission_uuid
+        self.username = username
+        self.xpath = xpath
+        _uniq_path = _hashed_strings(self.submission_uuid, self.xpath)
+        _uniq_dir = f'{self.date_string}/{_uniq_path}'
+        source_path = f'{_uniq_dir}/source.txt'
+        output_dir = f'{_uniq_dir}/completed/'
 
-        source_path = f'{self.username}/{self.submission_uuid}/{SOURCE_BASENAME}{EXTENSION}'
-        output_path = f'{self.username}/{self.submission_uuid}/{target_lang}/'
+        dest = self.bucket.blob(source_path)
+        if not dest.exists():
+            dest.upload_from_string(content)
 
-        storage_response = self._store_content(content, source_path)
-
-        if not storage_response:
-            raise TranslationException('Unable to store content in GCP')
-
-        input_uri = f'{self.uri_base}/{source_path}'
-        output_uri = f'{self.uri_base}/{output_path}'
-        self.output_filename = self._get_output_filename(output_path)
-
-        input_configs_element = {
-            'gcs_source': {'input_uri': input_uri},
-            'mime_type': self.mime_type,
+        req_params = {
+            'parent': PARENT_ASYNC,
+            'source_language_code': source_lang,
+            'target_language_codes': [target_lang],
+            'input_configs': [{
+                'gcs_source': {
+                    'input_uri': f'gs://{BUCKET_NAME}/{source_path}'
+                },
+                'mime_type': 'text/plain',
+            }],
+            'output_config': {
+                'gcs_destination': {
+                    'output_uri_prefix': f'gs://{BUCKET_NAME}/{output_dir}'
+                }
+            },
+            'labels': {
+                'username': self.username,
+                'submission': self.submission_uuid,
+                'blahblah': 'bblahblah',
+                'xpath': self.xpath,
+            },
         }
-        output_config = {'gcs_destination': {'output_uri_prefix': output_uri}}
+        operation = self.translate_client.batch_translate_text(
+            request=req_params
+        ).operation
+        operation_name = operation.name
+        return {
+            'name': operation_name,
+            'dir': output_dir,
+            'target_lang': target_lang,
+            'blob_name_includes': f'_{target_lang}_translations',
+        }
 
-        self._calculate_cost(chars=len(content))
-        self.operation = self.translate_client.batch_translate_text(
-            request={
-                'parent': self.parent_async,
-                'source_language_code': source_lang,
-                'target_language_codes': [target_lang],
-                'input_configs': [input_configs_element],
-                'output_config': output_config,
-                'labels': {'user': self.username},
-            }
-        )
-        self.state = 'RUNNING'
-        task = handle_translation.delay(
-            submission_uuid=self.submission_uuid,
-            xpath=self.xpath,
-            operation_name=self.operation.operation.name,
-            output_filename=self.output_filename,
-            username=self.username,
-            _async=True
-        )
-        return task.id
-
-    def _translate_sync(
+    def translate_sync(
         self,
         content: str,
+        username: str,
         target_lang: str,
-        source_lang: Optional[str] = None,
-        *args: List,
-        **kwargs: Dict,
+        source_lang: str,
     ) -> str:
         try:
             response = self.translate_client.translate_text(
@@ -149,19 +110,11 @@ class GoogleTranslationEngine(TranslationEngineBase, GoogleTranslationBase):
                     'contents': [content],
                     'source_language_code': source_lang,
                     'target_language_code': target_lang,
-                    'parent': self.parent,
-                    'mime_type': self.mime_type,
-                    'labels': {'user': self.username},
+                    'parent': PARENT,
+                    'mime_type': 'text/plain',
+                    'labels': {'username': username},
                 }
             )
         except InvalidArgument as e:
             raise TranslationException(e.message)
-
-        self._calculate_cost(chars=len(content))
-
-        task = handle_translation.delay(
-            submission_uuid=self.submission_uuid,
-            xpath=self.xpath,
-            result=response.translations[0].translated_text,
-        )
-        return task.id
+        return response.translations[0].translated_text

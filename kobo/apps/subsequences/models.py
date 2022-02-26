@@ -3,26 +3,23 @@ from django.contrib.postgres.fields import JSONField
 
 from kpi.models import Asset
 from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
+from kobo.apps.subsequences.integrations.google.google_translate import  (
+    GoogleTranslationEngine,
+)
 
+from kobo.apps.subsequences.tasks import (
+    handle_translation_operation,
+)
 
-from pprint import pformat
 
 def request_transcript(*args, **kwargs):
+    from pprint import pformat
     # trigger transcript here
     with open('TMP_GOOGLE.log', 'a') as ff:
         ff.write(f'''
         Requested a transcript from google with params:
         {pformat(kwargs)}
         ''')
-    return
-
-def request_translation(*args, **kwargs):
-    with open('TMP_GOOGLE.log', 'a') as ff:
-        ff.write(f'''
-        Requested a translation from google with params:
-        {pformat(kwargs)}
-        ''')
-    return
 
 
 class SubmissionExtras(models.Model):
@@ -59,20 +56,44 @@ class SubmissionExtras(models.Model):
                     autoparams = vals[GOOGLETX]
                     status = autoparams['status']
                     if status == 'requested':
-                        source = vals['transcript']['value']
-                        language_code = autoparams.get('languageCode')
-                        username = self.asset.owner.username
-                        request_translation(asset_uid=self.asset.uid,
-                                            user=username,
-                                            source=source,
-                                            language_code=language_code,
-                                            submission_uuid=self.uuid,
-                                            xpath=key)
-                        vals[GOOGLETX] = {
-                            'status': 'in_progress',
-                            'source': source,
-                            'languageCode': language_code,
-                        }
+                        content = vals['transcript']['value']
+                        source_lang = vals['transcript']['languageCode']
+                        target_lang = autoparams.get('languageCode')
+                        tx_engine = GoogleTranslationEngine()
+                        if tx_engine.translation_must_be_async(content):
+                            # must queue
+                            followup_params = tx_engine.translate_async(
+                                # the string to translate
+                                content=content,
+                                # field IDs to tell us where to save results
+                                asset_uid=self.asset.uid,
+                                submission_uuid=self.uuid,
+                                xpath=key,
+                                # username is used in the label of the request
+                                username=self.asset.owner.username,
+                                # the rest
+                                source_lang=source_lang,
+                                target_lang=target_lang,
+                            )
+                            handle_translation_operation(**followup_params,
+                                                         countdown=8)
+                            vals[GOOGLETX] = {
+                                'status': 'in_progress',
+                                'source': source,
+                                'languageCode': target_lang,
+                            }
+                        else:
+                            results = tx_engine.translate_sync(
+                                content=content,
+                                source_lang=source_lang,
+                                target_lang=target_lang,
+                                username=self.asset.owner.username,
+                            )
+                            vals[GOOGLETX] = {
+                                'status': 'complete',
+                                'languageCode': target_lang,
+                                'value': results,
+                            }
                 except KeyError as err:
                     continue
         super(SubmissionExtras, self).save()
