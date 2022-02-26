@@ -36,7 +36,7 @@ class GoogleTranscribeEngine(AutoTranscription):
             user: object
     ):
         attachment = asset.deployment.get_attachment(submission_id, user, xpath=xpath)
-        attachment_path = attachment.absolute_flac_path
+        attachment_path = attachment.protected_path('flac')
         filepath = attachment.media_file.name
         return attachment_path, filepath
 
