@@ -321,7 +321,8 @@ class Asset(ObjectPermissionMixin,
     HERITABLE_PERMISSIONS = {
         # parent permission: child permission
         PERM_VIEW_ASSET: PERM_VIEW_ASSET,
-        PERM_CHANGE_ASSET: PERM_CHANGE_ASSET
+        PERM_CHANGE_ASSET: PERM_CHANGE_ASSET,
+        PERM_MANAGE_ASSET: PERM_MANAGE_ASSET,
     }
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {

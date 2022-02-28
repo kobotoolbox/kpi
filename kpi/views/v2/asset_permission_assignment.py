@@ -173,6 +173,109 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         """
 
         assignments = request.data
+        ### SLOP
+        asset = self.asset
+        import time
+        t0 = time.time()
+        context_ = dict(self.get_serializer_context())
+        context_['bulk'] = True
+        new_assignment_serializers = []
+        searchable_new_assigns = []
+        from collections import defaultdict
+        new_a_s_by_user = defaultdict(list)
+        from kpi.constants import PERM_PARTIAL_SUBMISSIONS
+        for assignment in assignments:
+            context_.pop('partial_permissions', None)
+            if 'partial_permissions' in assignment:
+                context_['partial_permissions'] = assignment['partial_permissions']
+
+            serializer = AssetBulkInsertPermissionSerializer(
+                data=assignment,
+                context=context_
+            )
+            serializer.is_valid()
+            validated_data = serializer.validated_data
+            new_assignment_serializers.append(serializer)
+            new_a_s_by_user[serializer.validated_data['user'].pk].append(serializer)
+            searchable_new_assigns.append((
+                serializer.validated_data['user'].pk,
+                serializer.validated_data['permission'].pk
+                # WHOA PARTIAL PERMISSIONS EH?
+            ))
+
+        t1 = time.time()
+
+        from kpi.utils.object_permission import (
+            get_user_permission_assignments_queryset,
+        )
+        old_assignments = list(get_user_permission_assignments_queryset(asset, request.user).exclude(user=asset.owner))
+
+        t2 = time.time()
+
+        old_assign_idxs_to_del = []
+        for old_assign_idx, old_assign in enumerate(old_assignments):
+            try:
+                new_assign_idx = searchable_new_assigns.index(
+                    (old_assign.user_id, old_assign.permission_id)
+                )
+            except ValueError:
+                # An old assignment that has been removed
+                old_assign_idxs_to_del.append(old_assign_idx)
+            else:
+                # An old assigment that should be kept; remove from list of
+                # potential new assignments to search and add
+                # …unless it's a partial permission; unconditionally re-assign
+                # those to avoid diffing them
+                if (
+                    new_assignment_serializers[new_assign_idx]
+                    .validated_data['permission']
+                    .codename
+                    != PERM_PARTIAL_SUBMISSIONS
+                ):
+                    # KEEP THOSE INDEXES IN SYNC!
+                    del searchable_new_assigns[new_assign_idx]
+                    del new_assignment_serializers[new_assign_idx]
+
+        t3 = time.time()
+
+        # let's do the removals first
+        # …in case they remove something implied by a new assignment (?)
+        users_to_redo = set()
+        for del_idx in old_assign_idxs_to_del:
+            perm = old_assignments[del_idx]
+            print('---', perm)
+            users_to_redo.add(perm.user.pk)
+            self.asset.remove_perm(perm.user, perm.permission.codename)
+
+        t4 = time.time()
+
+        for ser in new_assignment_serializers:
+            if ser.validated_data['user'].pk in users_to_redo:
+                # gonna have to deal with you later anyway
+                continue
+            perm = serializer.save(asset=self.asset)
+            print('+++', perm)
+
+        # whoops, you had manage and got reduced to change
+        # the BE had manage, change, view
+        # the FE sent change
+        # we removed manage and view but added nothin'
+        #
+        # ideas…
+        # do all deletions, then re-query db?
+        # do a per-user diff?
+
+        # how about: re-add all extant perms for users who had deletions
+        for user in users_to_redo:
+            extant_assigns = new_a_s_by_user[user]
+            for serializer in extant_assigns:
+                perm = serializer.save(asset=self.asset)
+                print('++++++', perm)
+
+        t5 = time.time()
+        print(t1 - t0, t2 - t1, t3 - t2, t4 - t3, t5 - t4)
+        return self.list(request, *args, **kwargs)
+        ### SLOP
 
         # We don't want to lock tables, only queries to rollback in case
         # one assignment fails.
