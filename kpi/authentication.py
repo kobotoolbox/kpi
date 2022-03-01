@@ -1,4 +1,9 @@
 # coding: utf-8
+import os
+
+import jwt
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.utils.translation import gettext as t
 from django_digest import HttpDigestAuthenticator
 from rest_framework.authentication import (
@@ -61,6 +66,68 @@ class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
 
     def build_challenge_response(self):
         return self.authenticator.build_challenge_response()
+
+
+class EnketoCookieAuthentication(BaseAuthentication):
+    """
+    Authenticate users with Enketo Express cookie content
+
+    Enketo Express caches credentials in a cookie (see `settings.ENKETO_AUTH_COOKIE_NAME`)
+    as an encoded string. JWT is used to encode/decode the content with HS256
+    algorithm.
+    """
+    verbose_name = 'Enketo Express Cookie authentication'
+
+    def authenticate(self, request):
+        """
+        Read Enketo Express cookie and, if it is valid, get the user from it.
+        """
+        ee_auth_cookie = request.COOKIES.get(settings.ENKETO_AUTH_COOKIE_NAME)
+        if not ee_auth_cookie:
+            return None
+
+        try:
+            payload = jwt.decode(
+                ee_auth_cookie,
+                os.getenv('ENKETO_ENCRYPTION_KEY'),
+                algorithms=['HS256'],
+            )
+        except (jwt.DecodeError, jwt.InvalidSignatureError):
+            raise AuthenticationFailed('Invalid token.')
+
+        try:
+            user = User.objects.get(username=payload['user'])
+        except User.DoesNotExist:
+            raise AuthenticationFailed(t('Invalid username.'))
+
+        if not user.is_active:
+            raise AuthenticationFailed(t('User inactive or deleted.'))
+
+        # return a tuple like other authentication classes
+        return user, None
+
+    @staticmethod
+    def get_encoded_credentials(request) -> str:
+        """
+        Return an encoded string representing credentials Enketo Express
+        would need to authenticate user against KPI API with this class.
+        """
+        # Django middleware reads the session id directly from the cookie, but
+        # the session could have not been created yet.Here, we want to be sure
+        # that the session exists before setting the cookie for Enketo
+        if not request.session.session_key:
+            request.session.create()
+
+        payload = {
+            'user': request.user.username,
+            'pass': request.session.session_key,
+        }
+
+        # Encode payload as Enketo Express would do.
+        # https://github.com/enketo/enketo-express/blob/926f905d75488d167aa1b450d93d2ac903be826f/app/controllers/authentication-controller.js#L79-L82
+        return jwt.encode(
+            payload, os.getenv('ENKETO_ENCRYPTION_KEY'), algorithm='HS256'
+        )
 
 
 class TokenAuthentication(MFABlockerMixin, DRFTokenAuthentication):
