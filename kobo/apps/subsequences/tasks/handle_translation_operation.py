@@ -12,7 +12,6 @@ DELAY_INTERVAL = 5
 def handle_translation_operation(
     operation_name: str,
     operation_dir: str,
-    target_lang: str,
     blob_name_includes: str,
 
     submission_uuid: str,
