@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.models import Asset, ObjectPermission
@@ -91,19 +92,20 @@ class Command(BaseCommand):
 
             if options['mirror_kpi']:
 
-                kc_user_obj_perm_qs = (
-                    KobocatUserObjectPermission.objects.filter(
-                        object_pk=asset.deployment.xform_id
-                    ).exclude(user_id=asset.owner_id)
-                )
-                if kc_user_obj_perm_qs.exists():
-                    if self._verbosity >= 1:
-                        self.stdout.write(
-                            f'\tDeleting all KoBoCAT permissions...'
-                        )
-                    kc_user_obj_perm_qs.delete()
+                with transaction.atomic(using='kobocat'):
+                    kc_user_obj_perm_qs = (
+                        KobocatUserObjectPermission.objects.filter(
+                            object_pk=asset.deployment.xform_id
+                        ).exclude(user_id=asset.owner_id)
+                    )
+                    if kc_user_obj_perm_qs.exists():
+                        if self._verbosity >= 1:
+                            self.stdout.write(
+                                f'\tDeleting all KoBoCAT permissions...'
+                            )
+                        kc_user_obj_perm_qs.delete()
 
-                self._copy_perms_from_kpi_to_kc(asset)
+                    self._copy_perms_from_kpi_to_kc(asset)
             else:
 
                 if self._verbosity >= 1:
@@ -116,7 +118,8 @@ class Command(BaseCommand):
                         f'\t\tAffected users: {affected_users}'
                     )
 
-                self._copy_perms_from_kpi_to_kc(asset)
+                with transaction.atomic(using='kobocat'):
+                    self._copy_perms_from_kpi_to_kc(asset)
 
         if self._verbosity >= 1:
             self.stdout.write('')

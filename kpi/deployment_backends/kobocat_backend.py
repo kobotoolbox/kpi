@@ -16,6 +16,7 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
+from django.db import transaction
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
@@ -44,7 +45,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.xml import edit_submission_xml, strip_nodes
+from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
@@ -95,10 +96,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
-        for user, perms in users_with_perms.items():
-            if user.id == self.asset.owner_id:
-                continue
-            assign_applicable_kc_permissions(self.asset, user, perms)
+        with transaction.atomic(using='kobocat'):
+            for user, perms in users_with_perms.items():
+                if user.id == self.asset.owner_id:
+                    continue
+                assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
         self, data: dict, user: 'auth.User'

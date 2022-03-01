@@ -76,6 +76,7 @@ class ObjectPermissionMixin:
         return assignable_permissions
 
     @transaction.atomic
+    @transaction.atomic(using='kobocat')
     def copy_permissions_from(self, source_object):
         """
         Copies permissions from `source_object` to `self` object.
@@ -421,6 +422,7 @@ class ObjectPermissionMixin:
         }
 
     @transaction.atomic
+    @transaction.atomic(using='kobocat')
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
                     skip_kc=False, partial_perms=None):
         r"""
@@ -610,6 +612,7 @@ class ObjectPermissionMixin:
         return fn(perm in perms for perm in self.get_perms(user_obj))
 
     @transaction.atomic
+    @transaction.atomic(using='kobocat')
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
         """
             Revoke the given `perm` on this object from `user_obj`. By default,

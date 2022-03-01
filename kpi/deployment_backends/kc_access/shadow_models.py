@@ -15,6 +15,7 @@ from django.db import (
     connections,
     models,
     router,
+    transaction,
 )
 from django.utils import timezone
 from django.utils.http import urlquote
@@ -121,6 +122,7 @@ class KobocatDigestPartial(ShadowModel):
         db_table = "django_digest_partialdigest"
 
     @classmethod
+    @transaction.atomic(using='kobocat')
     def sync(cls, user):
         """
         Mimics the behavior of `django_digest.models._store_partial_digests()`,
@@ -341,6 +343,7 @@ class KobocatUser(ShadowModel):
         db_table = 'auth_user'
 
     @classmethod
+    @transaction.atomic(using='kobocat')
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT

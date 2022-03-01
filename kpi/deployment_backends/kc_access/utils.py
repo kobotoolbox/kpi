@@ -126,8 +126,8 @@ def set_kc_require_auth(user_id, require_auth):
     """
     user = User.objects.get(pk=user_id)
     _trigger_kc_profile_creation(user)
-    token, _ = Token.objects.get_or_create(user=user)
     with transaction.atomic():
+        token, _ = Token.objects.get_or_create(user=user)
         try:
             KobocatUserProfile.objects.filter(user_id=user_id).update(
                 require_auth=require_auth
@@ -295,7 +295,6 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
     KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 
-@transaction.atomic()
 def assign_applicable_kc_permissions(
     obj: Model,
     user: Union[AnonymousUser, User, int],
@@ -347,7 +346,6 @@ def assign_applicable_kc_permissions(
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)
 
 
-@transaction.atomic()
 def remove_applicable_kc_permissions(
     obj: Model,
     user: Union[AnonymousUser, User, int],
