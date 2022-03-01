@@ -29,6 +29,6 @@ deploy-beta:
   only:
     refs:
       - master
-      - gitlab-ci-build
+      - enable-hsts-conf
     variables:
       - $CI_COMMIT_REF_PROTECTED
