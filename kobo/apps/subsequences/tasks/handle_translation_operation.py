@@ -9,7 +9,7 @@ DELAY_INTERVAL = 5
 
 
 @shared_task
-def handle_translation_operation(
+def handle_google_translation_operation(
     operation_name: str,
     operation_dir: str,
     blob_name_includes: str,
@@ -35,7 +35,7 @@ def handle_translation_operation(
         save_async_translation(text, submission_uuid, xpath, target_lang)
     else:
         # check back in DELAY_INTERVAL seconds
-        handle_translation_operation.apply_async((
+        handle_google_translation_operation.apply_async((
             operation_name,
             operation_dir,
             target_lang,

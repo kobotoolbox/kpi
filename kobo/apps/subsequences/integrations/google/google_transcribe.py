@@ -36,7 +36,7 @@ class GoogleTranscribeEngine(AutoTranscription):
             user: object
     ):
         attachment = asset.deployment.get_attachment(submission_id, user, xpath=xpath)
-        attachment_path = attachment.absolute_flac_path
+        attachment_path = attachment.protected_path('flac').replace('/protected/', '/srv/src/kobocat/media/')
         filepath = attachment.media_file.name
         return attachment_path, filepath
 
@@ -79,7 +79,6 @@ class GoogleTranscribeEngine(AutoTranscription):
         config = speech_v1.RecognitionConfig(
             encoding=speech_v1.RecognitionConfig.AudioEncoding.FLAC,
             language_code=source,
-            audio_channel_count=2,
             enable_automatic_punctuation=True,
         )
 
