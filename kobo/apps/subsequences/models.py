@@ -59,43 +59,45 @@ class SubmissionExtras(models.Model):
                         content = vals['transcript']['value']
                         source_lang = vals['transcript']['languageCode']
                         target_lang = autoparams.get('languageCode')
-                        tx_engine = GoogleTranslationEngine()
-                        if tx_engine.translation_must_be_async(content):
-                            # must queue
-                            followup_params = tx_engine.translate_async(
-                                # the string to translate
-                                content=content,
-                                # field IDs to tell us where to save results
-                                asset_uid=self.asset.uid,
-                                submission_uuid=self.uuid,
-                                xpath=key,
-                                # username is used in the label of the request
-                                username=self.asset.owner.username,
-                                # the rest
-                                source_lang=source_lang,
-                                target_lang=target_lang,
-                            )
-                            handle_translation_operation(**followup_params,
-                                                         countdown=8)
-                            vals[GOOGLETX] = {
-                                'status': 'in_progress',
-                                'source': source,
-                                'languageCode': target_lang,
-                            }
-                        else:
-                            results = tx_engine.translate_sync(
-                                content=content,
-                                source_lang=source_lang,
-                                target_lang=target_lang,
-                                username=self.asset.owner.username,
-                            )
-                            vals[GOOGLETX] = {
-                                'status': 'complete',
-                                'languageCode': target_lang,
-                                'value': results,
-                            }
                 except KeyError as err:
+                    content = False
+                if not content:
                     continue
+                tx_engine = GoogleTranslationEngine()
+                if tx_engine.translation_must_be_async(content):
+                    # must queue
+                    followup_params = tx_engine.translate_async(
+                        # the string to translate
+                        content=content,
+                        # field IDs to tell us where to save results
+                        asset_uid=self.asset.uid,
+                        submission_uuid=self.uuid,
+                        xpath=key,
+                        # username is used in the label of the request
+                        username=self.asset.owner.username,
+                        # the rest
+                        source_lang=source_lang,
+                        target_lang=target_lang,
+                    )
+                    handle_translation_operation(**followup_params,
+                                                 countdown=8)
+                    vals[GOOGLETX] = {
+                        'status': 'in_progress',
+                        'source': source,
+                        'languageCode': target_lang,
+                    }
+                else:
+                    results = tx_engine.translate_sync(
+                        content=content,
+                        source_lang=source_lang,
+                        target_lang=target_lang,
+                        username=self.asset.owner.username,
+                    )
+                    vals[GOOGLETX] = {
+                        'status': 'complete',
+                        'languageCode': target_lang,
+                        'value': results,
+                    }
         super(SubmissionExtras, self).save()
 
     @property
