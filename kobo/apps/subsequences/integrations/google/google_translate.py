@@ -7,6 +7,7 @@ from typing import (
     Union,
 )
 
+from google.cloud import translate_v3 as translate, storage
 from google.api_core.exceptions import InvalidArgument
 
 from ..misc import (
@@ -28,7 +29,7 @@ def _hashed_strings(self, *strings):
     return md5(''.join(strings).encode()).hexdigest()[0:10]
 
 
-class GoogleTranslationEngine(TranslationEngineBase):
+class GoogleTranslationEngine:
     def __init__(self):
         self.translate_client = translate.TranslationServiceClient()
         self.storage_client = storage.Client()
@@ -82,7 +83,6 @@ class GoogleTranslationEngine(TranslationEngineBase):
             'labels': {
                 'username': self.username,
                 'submission': self.submission_uuid,
-                'blahblah': 'bblahblah',
                 'xpath': self.xpath,
             },
         }

@@ -33,15 +33,7 @@ class TranslationEngineBase(ABC):
     ) -> str:
         pass
 
-
-class GoogleTranslationBase:
-    def __init__(self):
-        self.translate_client = translate.TranslationServiceClient()
-        self.storage_client = storage.Client()
-        self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
-
-
-class GoogleTranslationEngineAsyncResult(GoogleTranslationBase):
+class GoogleTranslationEngineAsyncResult:
     def __init__(
         self,
         username: str,
