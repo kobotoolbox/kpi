@@ -7,16 +7,18 @@ from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
-import dj_database_url
 import django.conf.locale
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
+import environ
 from pymongo import MongoClient
 
-from kpi.utils.redis_helper import RedisHelper
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
+
+
+env = environ.Env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -25,40 +27,34 @@ BASE_DIR = os.path.abspath(os.path.dirname(parent_dirname))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
+SECRET_KEY = env.str('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
 
 # Optionally treat proxied connections as secure.
 # See: https://docs.djangoproject.com/en/1.8/ref/settings/#secure-proxy-ssl-header.
 # Example environment: `export SECURE_PROXY_SSL_HEADER='HTTP_X_FORWARDED_PROTO, https'`.
 # SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
-if 'SECURE_PROXY_SSL_HEADER' in os.environ:
-    SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
-                                     os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
+SECURE_PROXY_SSL_HEADER = env.tuple("SECURE_PROXY_SSL_HEADER", str, None)
 
-if (
-    os.environ.get('PUBLIC_REQUEST_SCHEME', '').lower() == 'https'
-    or 'SECURE_PROXY_SSL_HEADER' in os.environ
-):
+if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
-if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
-    USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if os.environ.get('SESSION_COOKIE_DOMAIN'):
-    SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
+SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
+if SESSION_COOKIE_DOMAIN:
     SESSION_COOKIE_NAME = 'kobonaut'
 
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = 604800
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
+DEBUG = env.bool("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', str, ['*'])
 
 LOGIN_REDIRECT_URL = 'kpi-root'
 LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
@@ -121,7 +117,7 @@ MIDDLEWARE = [
 ]
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
     SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Configuration options that superusers can modify in the Django admin
@@ -142,17 +138,16 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        os.environ.get('KOBO_SUPPORT_EMAIL')
-        or os.environ.get('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        os.environ.get('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
         'URL for "KoBoToolbox Help Center"',
     ),
     'COMMUNITY_URL': (
-        os.environ.get(
+        env.str(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
         'URL for "KoBoToolbox Community Forum"',
@@ -294,17 +289,17 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 
 # run heavy migration scripts by default
 # NOTE: this should be set to False for major deployments. This can take a long time
-SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'True'
+SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
-kobocat_database_url = os.getenv('KC_DATABASE_URL')
+kobocat_database_url = env.db_url('KC_DATABASE_URL', default=None)
 if kobocat_database_url:
-    DATABASES['kobocat'] = dj_database_url.parse(kobocat_database_url)
+    DATABASES['kobocat'] = kobocat_database_url
 
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
@@ -315,8 +310,7 @@ django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
-        for lang_code in os.environ.get(
-            'DJANGO_LANGUAGE_CODES', 'en').split(' ')
+        for lang_code in env.str('DJANGO_LANGUAGE_CODES', 'en').split(' ')
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -368,7 +362,7 @@ PUBLIC_MEDIA_PATH = '__public/'
 
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
-KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
+KPI_PREFIX = env.str('KPI_PREFIX', 'False')
 if KPI_PREFIX.lower() == 'false':
     KPI_PREFIX = False
 else:
@@ -789,7 +783,7 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 1000
 
 SESSION_ENGINE = "redis_sessions.session"
-SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+SESSION_REDIS = env.cache_url("REDIS_SESSION_URL", default="redis://redis_cache:6380/2")
 
 ENV = None
 
@@ -843,12 +837,12 @@ TRENCH_AUTH = {
     'MFA_METHODS': {
         'app': {
             'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': os.getenv('MFA_CODE_VALIDITY_PERIOD', 30),
+            'VALIDITY_PERIOD': env.int('MFA_CODE_VALIDITY_PERIOD', 30),
             'USES_THIRD_PARTY_CLIENT': True,
             'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
         },
     },
-    'CODE_LENGTH': os.getenv('MFA_CODE_LENGTH', 6),
+    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
 }
 
 # Session Authentication is supported by default.
