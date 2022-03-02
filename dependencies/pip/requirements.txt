@@ -61,6 +61,7 @@ django==2.2.7
     #   -r dependencies/pip/requirements.in
     #   django-amazon-ses
     #   django-cors-headers
+    #   django-csp
     #   django-debug-toolbar
     #   django-markdownx
     #   django-mptt
@@ -81,6 +82,8 @@ django-celery-beat==1.5.0
 django-constance[database]==2.4.0
     # via -r dependencies/pip/requirements.in
 django-cors-headers==3.1.1
+    # via -r dependencies/pip/requirements.in
+django-csp==3.7
     # via -r dependencies/pip/requirements.in
 django-debug-toolbar==2.1
     # via -r dependencies/pip/requirements.in

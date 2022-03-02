@@ -32,6 +32,7 @@ django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
+django-csp
 django-debug-toolbar
 django-environ
 django-extensions
