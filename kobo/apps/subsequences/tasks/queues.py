@@ -1,10 +1,11 @@
 import json
 from celery import shared_task
 
+# note this is not currently imported from tasks/__init__.py
 @shared_task
 def queue_transcript(**params):
     from kobo.apps.subsequences.integrations.google.google_transcribe import GoogleTranscribeEngine
-    asset = params['asset']
+    asset_uuid = params['asset_uid']
     submission_uuid = params.get('submission_uuid')
     submission_id = params.get('submission_id')
     service = params['service']
@@ -15,20 +16,6 @@ def queue_transcript(**params):
     xpath = 'path/to/question'
     submission_id = 1
     source = 'en-US'
-    user = asset.owner
-    transcript = engine.transcribe_file(asset, xpath, submission_id,
+    # user = asset.owner
+    transcript = engine.transcribe_file(asset_uuid, xpath, submission_id,
                                         source, user)
-
-
-@shared_task
-def queue_translate(asset, submission_uuid, service, lang_code):
-    from kobo.apps.subsequences.integrations.google.google_translate import GoogleTranslationEngine
-    engine = GoogleTranslationEngine()
-
-    params = {'username': asset.owner.username,
-              '_uuid': submission_uuid,
-              'source_lang': 'en',
-              'target_lang': 'af',
-              'content': 'How do you say zebra in afrikaans?',
-              }
-    engine.translate(**params)

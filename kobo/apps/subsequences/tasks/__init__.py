@@ -1,2 +1,1 @@
-from .queues import queue_translate, queue_transcript
-from .handlers import handle_transcript, handle_translation
+from .handle_translation_operation import handle_google_translation_operation
