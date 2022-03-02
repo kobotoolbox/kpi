@@ -245,11 +245,6 @@ CONSTANCE_CONFIG = {
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
     ),
-    'ENKETO_AUTH_COOKIE_MAX_AGE': (
-        30 * 24 * 60 * 60,  # one month
-        'In seconds. It should match what Enketo Express sets.\n'
-        '(see https://tinyurl.com/mtc7zr2y)'
-    ),
 }
 CONSTANCE_ADDITIONAL_FIELDS = {
     'metadata_fields_jsonschema': [
@@ -483,8 +478,6 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
-
-ENKETO_AUTH_COOKIE_NAME = '__enketo_meta_username'
 
 
 ''' Celery configuration '''

@@ -1,7 +1,6 @@
 # coding: utf-8
 from xml.etree import ElementTree as ET
 
-import constance
 import requests
 from django.conf import settings
 from django.http import Http404
@@ -21,7 +20,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
-from kpi.authentication import EnketoCookieAuthentication
+from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -388,18 +387,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
         enketo_response = self._get_enketo_link(request, submission_id, 'edit')
-        if enketo_response.status_code in [
+        if enketo_response.status_code in (
             status.HTTP_201_CREATED, status.HTTP_200_OK
-        ]:
-            # Only set cookie on successful response from Enketo Express.
-            enketo_response.set_cookie(
-                key=settings.ENKETO_AUTH_COOKIE_NAME,
-                value=EnketoCookieAuthentication.get_encoded_credentials(request),
-                max_age=constance.config.ENKETO_AUTH_COOKIE_MAX_AGE,
-                domain=settings.SESSION_COOKIE_DOMAIN,
-                secure=settings.SESSION_COOKIE_SECURE or None,
+        ):
+            # See https://github.com/enketo/enketo-express/issues/187
+            EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
+                request, enketo_response
             )
-
         return enketo_response
 
     @action(

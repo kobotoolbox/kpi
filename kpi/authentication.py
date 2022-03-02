@@ -1,19 +1,18 @@
 # coding: utf-8
-import os
-
-import jwt
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.template import context_processors
 from django.utils.translation import gettext as t
 from django_digest import HttpDigestAuthenticator
 from rest_framework.authentication import (
     BaseAuthentication,
     BasicAuthentication as DRFBasicAuthentication,
     TokenAuthentication as DRFTokenAuthentication,
+    SessionAuthentication,
     get_authorization_header,
 )
 from rest_framework.exceptions import AuthenticationFailed
 
+from kpi.constants import ENKETO_CSRF_COOKIE_NAME
 from kpi.mixins.mfa import MFABlockerMixin
 
 
@@ -68,65 +67,43 @@ class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
         return self.authenticator.build_challenge_response()
 
 
-class EnketoCookieAuthentication(BaseAuthentication):
+class EnketoSessionAuthentication(SessionAuthentication):
     """
-    Authenticate users with Enketo Express cookie content
+    Enketo Express uses `__csrf` as both the cookie from which to read the CSRF
+    token and as the field in the POST data where it returns the token when it
+    makes requests. By default, Django expects the cookie, to be called
+    `csrftoken` and compares this to the value of a HTTP header called
+    `X-CSRFToken`. This class handles translating between these expectations.
 
-    Enketo Express caches credentials in a cookie (see `settings.ENKETO_AUTH_COOKIE_NAME`)
-    as an encoded string. JWT is used to encode/decode the content with HS256
-    algorithm.
+    See https://github.com/enketo/enketo-express/issues/187.
     """
-    verbose_name = 'Enketo Express Cookie authentication'
-
-    def authenticate(self, request):
+    def enforce_csrf(self, request, *args, **kwargs):
         """
-        Read Enketo Express cookie and, if it is valid, get the user from it.
+        Copy the CSRF token from where Enketo sends it in a cookie and the
+        POST data into the places expected by Django. Then, call the super-
+        class to handle CSRF enforcement.
         """
-        ee_auth_cookie = request.COOKIES.get(settings.ENKETO_AUTH_COOKIE_NAME)
-        if not ee_auth_cookie:
-            return None
+        enketo_post_data_token = request.POST.get(ENKETO_CSRF_COOKIE_NAME)
+        enketo_cookie_token = request.COOKIES.get(ENKETO_CSRF_COOKIE_NAME)
+        if enketo_post_data_token and enketo_cookie_token:
+            request.META[settings.CSRF_HEADER_NAME] = enketo_post_data_token
+            request.COOKIES[settings.CSRF_COOKIE_NAME] = enketo_cookie_token
 
-        try:
-            payload = jwt.decode(
-                ee_auth_cookie,
-                os.getenv('ENKETO_ENCRYPTION_KEY'),
-                algorithms=['HS256'],
-            )
-        except (jwt.DecodeError, jwt.InvalidSignatureError):
-            raise AuthenticationFailed('Invalid token.')
-
-        try:
-            user = User.objects.get(username=payload['user'])
-        except User.DoesNotExist:
-            raise AuthenticationFailed(t('Invalid username.'))
-
-        if not user.is_active:
-            raise AuthenticationFailed(t('User inactive or deleted.'))
-
-        # return a tuple like other authentication classes
-        return user, None
+        return super().enforce_csrf(request, *args, **kwargs)
 
     @staticmethod
-    def get_encoded_credentials(request) -> str:
+    def prepare_response_with_csrf_cookie(request, response):
         """
-        Return an encoded string representing credentials Enketo Express
-        would need to authenticate user against KPI API with this class.
+        Prepare `response` for use with Enketo's CSRF mechanism by setting
+        a special cookie from which Enketo will read the CSRF token and include
+        in its POST data.
         """
-        # Django middleware reads the session id directly from the cookie, but
-        # the session could have not been created yet.Here, we want to be sure
-        # that the session exists before setting the cookie for Enketo
-        if not request.session.session_key:
-            request.session.create()
-
-        payload = {
-            'user': request.user.username,
-            'pass': request.session.session_key,
-        }
-
-        # Encode payload as Enketo Express would do.
-        # https://github.com/enketo/enketo-express/blob/926f905d75488d167aa1b450d93d2ac903be826f/app/controllers/authentication-controller.js#L79-L82
-        return jwt.encode(
-            payload, os.getenv('ENKETO_ENCRYPTION_KEY'), algorithm='HS256'
+        csrf_token = context_processors.csrf(request)['csrf_token']
+        response.set_cookie(
+            key=ENKETO_CSRF_COOKIE_NAME,
+            value=csrf_token,
+            domain=settings.SESSION_COOKIE_DOMAIN,
+            secure=settings.SESSION_COOKIE_SECURE or None,
         )
 
 

@@ -9,10 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kpi.authentication import (
-    DigestAuthentication,
-    EnketoCookieAuthentication,
-)
+from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -157,7 +154,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         methods=['HEAD', 'POST'],
         authentication_classes=[
             DigestAuthentication,
-            EnketoCookieAuthentication,
+            EnketoSessionAuthentication,
         ],
     )
     def submission(self, request, *args, **kwargs):
