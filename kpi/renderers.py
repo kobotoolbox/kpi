@@ -5,6 +5,7 @@ from io import StringIO, BytesIO
 from typing import Dict, Optional
 
 from dicttoxml import dicttoxml
+from django.http import Http404
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers
 from rest_framework import status
@@ -155,10 +156,14 @@ class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
         # allowing an export to succeed
         self.user = view.request.user
         self.data = data
-        export, submission_stream = self.get_export_object(
-            source=view.asset,
-            _async=False,
-        )
+        try:
+            export, submission_stream = self.get_export_object(
+                source=view.asset,
+                _async=False,
+            )
+        except self.InaccessibleData as e:
+            raise Http404(str(e))
+
         stream = BytesIO()
         export.to_xlsx(stream, submission_stream)
         stream.seek(0)
@@ -180,10 +185,14 @@ class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
         # allowing an export to succeed
         self.user = view.request.user
         self.data = data
-        export, submission_stream = self.get_export_object(
-            source=view.asset,
-            _async=False,
-        )
+        try:
+            export, submission_stream = self.get_export_object(
+                source=view.asset,
+                _async=False,
+            )
+        except self.InaccessibleData as e:
+            raise Http404(str(e))
+
         stream = StringIO()
         for line in export.to_csv(submission_stream):
             stream.write(line + '\r\n')

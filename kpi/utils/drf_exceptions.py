@@ -18,7 +18,12 @@ def custom_exception_handler(exc, context):
         MP3ConversionRenderer.format,
     ]
 
-    if context['request'].accepted_renderer.format in force_json_error_formats:
+    try:
+        accepted_renderer = context['request'].accepted_renderer
+    except AttributeError:
+        return response
+
+    if accepted_renderer.format in force_json_error_formats:
         context['request'].accepted_renderer = JSONRenderer()
 
     return response
