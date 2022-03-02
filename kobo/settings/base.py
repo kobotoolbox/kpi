@@ -54,7 +54,7 @@ SESSION_COOKIE_AGE = 604800
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', str, ['*'])
+ALLOWED_HOSTS = env.str('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = 'kpi-root'
 LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
