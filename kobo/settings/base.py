@@ -297,9 +297,8 @@ SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 DATABASES = {
     'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
-kobocat_database_url = env.db_url('KC_DATABASE_URL', default=None)
-if kobocat_database_url:
-    DATABASES['kobocat'] = kobocat_database_url
+if 'KC_DATABASE_URL' in os.environ:
+    DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
 
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
