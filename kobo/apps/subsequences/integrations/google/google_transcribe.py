@@ -57,6 +57,7 @@ class GoogleTranscribeEngine(AutoTranscription):
             self,
             asset,
             xpath: str,
+            # note: this works with a uuid string ontop of cdd172b
             submission_id: int,
             source: str,
             user: object,

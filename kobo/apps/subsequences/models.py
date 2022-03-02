@@ -48,8 +48,7 @@ class SubmissionExtras(models.Model):
                             asset=self.asset,
                             xpath=key,
                             source=language_code,
-                            # need way to pass submission uuid
-                            submission_id=0,
+                            submission_id=self.uuid,
                             user=self.asset.owner,
                         )
                         result_string = ' '.join(
