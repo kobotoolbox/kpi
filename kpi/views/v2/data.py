@@ -20,6 +20,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
+from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -29,7 +30,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import Asset, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -385,7 +386,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
-        return self._get_enketo_link(request, submission_id, 'edit')
+        enketo_response = self._get_enketo_link(request, submission_id, 'edit')
+        if enketo_response.status_code in (
+            status.HTTP_201_CREATED, status.HTTP_200_OK
+        ):
+            # See https://github.com/enketo/enketo-express/issues/187
+            EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
+                request, enketo_response
+            )
+        return enketo_response
 
     @action(
         detail=True,
