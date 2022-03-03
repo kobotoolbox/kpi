@@ -79,7 +79,7 @@ type KoboSelectState = {
  * A select component. Uses `KoboDropdown` as base.
  */
 class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
-  constructor(props: KoboSelectProps){
+  constructor(props: KoboSelectProps) {
     super(props)
     this.state = {
       filterPhrase: '',
