@@ -9,7 +9,7 @@ import {actions} from 'js/actions';
  */
 export default class ExportFetcher {
   private MIN_WAIT = 4; // seconds
-  private MAX_WAIT = 1 * 60 * 60 * 2; // 2 hours (in seconds)
+  private MAX_WAIT = 60 * 15; // 15 minutes (in seconds)
   private callCount = 0;
   private timeoutId = -1;
   private assetUid: string;
