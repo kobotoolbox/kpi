@@ -19,9 +19,10 @@ import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  validFileTypes,
-  isAValidUrl,
+  addRequiredToLabel,
   escapeHtml,
+  isAValidUrl,
+  validFileTypes,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
@@ -898,7 +899,7 @@ class ProjectSettings extends React.Component {
                 value={this.state.fields.name}
                 onChange={this.onNameChange.bind(this)}
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
-                label={this.getNameInputLabel(this.state.fields.name)}
+                label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
               />
             </bem.FormModal__item>
@@ -918,7 +919,7 @@ class ProjectSettings extends React.Component {
           {sectorField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
               <WrappedSelect
-                label={t('Sector')}
+                label={addRequiredToLabel(t('Sector'), sectorField.required)}
                 value={this.state.fields.sector}
                 onChange={this.onAnyFieldChange.bind(this, 'sector')}
                 options={sectors}
@@ -932,7 +933,7 @@ class ProjectSettings extends React.Component {
           {countryField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
               <WrappedSelect
-                label={t('Country')}
+                label={addRequiredToLabel(t('Country'), countryField.required)}
                 isMulti
                 value={this.state.fields.country}
                 onChange={this.onAnyFieldChange.bind(this, 'country')}
@@ -947,7 +948,7 @@ class ProjectSettings extends React.Component {
           {operationalPurposeField &&
             <bem.FormModal__item>
               <WrappedSelect
-                label={t('Operational Purpose of Data')}
+                label={addRequiredToLabel(t('Operational Purpose of Data'), operationalPurposeField.required)}
                 value={this.state.fields.operational_purpose}
                 onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
                 options={operationalPurposes}
@@ -961,7 +962,7 @@ class ProjectSettings extends React.Component {
           {collectsPiiField &&
             <bem.FormModal__item>
               <WrappedSelect
-                label={t('Does this project collect personally identifiable information?')}
+                label={addRequiredToLabel(t('Does this project collect personally identifiable information?'), collectsPiiField.required)}
                 value={this.state.fields.collects_pii}
                 onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
                 options={[

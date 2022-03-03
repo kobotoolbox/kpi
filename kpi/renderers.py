@@ -2,7 +2,7 @@
 import json
 import re
 from io import StringIO, BytesIO
-from typing import Dict, Generator, Tuple, Optional
+from typing import Dict, Optional
 
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
@@ -21,6 +21,22 @@ from kpi.utils.xml import add_xml_declaration
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'json'
+
+
+class MediaFileRenderer(renderers.BaseRenderer):
+    media_type = '*/*'
+    format = None
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data
+
+
+class MP3ConversionRenderer(MediaFileRenderer):
+
+    media_type = 'audio/mpeg'
+    format = 'mp3'
 
 
 class OpenRosaRenderer(DRFXMLRenderer):
@@ -222,10 +238,12 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         results_data_str = ''.join(map(cls.__cleanup_submission, results))
         closing_root_node = cls._node_generator(cls.root_tag_name, closing=True)
 
-        xml_2_str += f'{opening_results_node}' \
-                     f'{results_data_str}' \
-                     f'{closing_results_node}' \
-                     f'{closing_root_node}'
+        xml_2_str += (
+            f'{opening_results_node}'
+            f'{results_data_str}'
+            f'{closing_results_node}'
+            f'{closing_root_node}'
+        )
 
         return xml_2_str.encode()  # Should return bytes
 

@@ -42,6 +42,7 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 
 RUN apt-get -qq update && \
     apt-get -qq -y install \
+        ffmpeg \
         gdal-bin \
         gettext \
         gosu \

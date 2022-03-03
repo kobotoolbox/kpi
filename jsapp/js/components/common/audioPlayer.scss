@@ -10,19 +10,5 @@
     // this % calculates to around 8px for regular modal size, will be a bit
     // smaller on mobile
     margin-right: 2.3%;
-
-    i.k-icon {
-      font-size: 36px;
-      border-radius: 4px;
-      cursor: pointer;
-
-      &:hover {
-        background-color: colors.$kobo-gray-92;
-      }
-    }
-
-    i.k-icon-caret-right, i.k-icon-pause {
-      color: colors.$kobo-blue;
-    }
   }
 }

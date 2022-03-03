@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 
 import pytz
+import responses
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -26,6 +27,10 @@ from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
+from kpi.tests.utils.mock import (
+    enketo_edit_instance_response,
+    enketo_view_instance_response,
+)
 
 
 class BaseSubmissionTestCase(BaseTestCase):
@@ -92,11 +97,13 @@ class BaseSubmissionTestCase(BaseTestCase):
 
         for i in range(20):
             submitted_by = random.choice(['', 'someuser', 'anotheruser'])
+            uuid_ = uuid.uuid4()
             submission = {
                 '__version__': v_uid,
                 'q1': ''.join(random.choice(letters) for l in range(10)),
                 'q2': ''.join(random.choice(letters) for l in range(10)),
-                'meta/instanceID': f'uuid:{uuid.uuid4()}',
+                'meta/instanceID': f'uuid:{uuid_}',
+                '_uuid': str(uuid_),
                 '_validation_status': {
                     'by_whom': 'someuser',
                     'timestamp': int(time.time()),
@@ -787,29 +794,51 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'edit', 'enketo/edit'
         )
 
+    @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can retrieve enketo edit link through old API endpoint
         """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_url_legacy, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/edit/{}'.format(self.submission['_id'])
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
         }
         assert response.data == expected_response
 
+    @responses.activate
     def test_get_edit_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can retrieve enketo edit link
         """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
-
-        url = f"http://server.mock/enketo/edit/{self.submission['_id']}"
-        expected_response = {'url': url}
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
+        }
         self.assertEqual(response.data, expected_response)
 
     def test_get_edit_link_submission_as_anonymous(self):
@@ -847,6 +876,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # FIXME if anotheruser has view permissions, they should receive a 403
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @responses.activate
     def test_get_edit_link_submission_shared_with_edit_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -855,9 +885,22 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         self._log_in_as_another_user()
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
+    @responses.activate
     def test_get_edit_link_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -897,9 +940,20 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
                 'pk': submission['_id'],
             },
         )
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"http://server.mock/enketo/edit/{submission['_id']}"
+        url = f"{settings.ENKETO_URL}/edit/{submission['_uuid']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
@@ -917,16 +971,28 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             },
         )
 
+    @responses.activate
     def test_get_view_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can get enketo view link
         """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/view/{}'.format(self.submission['_id'])
+            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}"
         }
         assert response.data == expected_response
 
@@ -952,6 +1018,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @responses.activate
     def test_get_view_link_submission_shared_with_view_only_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -960,9 +1027,21 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
+    @responses.activate
     def test_get_view_link_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -1003,9 +1082,20 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
                 'pk': submission['_id'],
             },
         )
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"http://server.mock/enketo/view/{submission['_id']}"
+        url = f"{settings.ENKETO_URL}/view/{submission['_uuid']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
