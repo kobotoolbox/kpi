@@ -7,7 +7,11 @@ from kpi.utils.log import logging
 
 class ConverterMixin:
 
-    AVAILABLE_CONVERSIONS = ('mp3', 'flac')
+    AVAILABLE_CONVERSIONS = (
+        'mp3',
+        'flac',
+        'wav'
+    )
     SUPPORTED_CONVERTED_FORMAT = (
         'audio',
         'video',
