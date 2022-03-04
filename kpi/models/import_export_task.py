@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.db import models, transaction
+from django.utils.translation import gettext as t
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
@@ -111,6 +112,10 @@ class ImportExportTask(models.Model):
             # This method must be implemented by a subclass
             self._run_task(msgs)
             self.status = self.COMPLETE
+        except ExportObjectMixin.InaccessibleData as e:
+            msgs['error_type'] = t('Cannot access data')
+            msg['error'] = str(e)
+            self.status = self.ERROR
         except Exception as err:
             msgs['error_type'] = type(err).__name__
             msgs['error'] = str(err)

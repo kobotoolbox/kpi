@@ -10,7 +10,7 @@ from formpack.schema.fields import (
     TagsCopyField,
     ValidationStatusCopyField,
 )
-from django.http import Http404
+from django.utils.translation import gettext as t
 
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -22,6 +22,11 @@ from kpi.utils.models import resolve_url_to_asset
 
 
 class ExportObjectMixin:
+
+    class InaccessibleData(Exception):
+        def __str__(self):
+            return t('This data does not exist or you do not have access to it')
+
     COPY_FIELDS = (
         IdCopyField,
         '_uuid',
@@ -63,14 +68,17 @@ class ExportObjectMixin:
             source_url = self.data.get('source', False)
             if not source_url:
                 raise Exception('no source specified for the export')
-            source = resolve_url_to_asset(source_url)
+            try:
+                source = resolve_url_to_asset(source_url)
+            except Asset.DoesNotExist:
+                raise self.InaccessibleData
 
         source_perms = source.get_perms(self.user)
         if (
             PERM_VIEW_SUBMISSIONS not in source_perms
             and PERM_PARTIAL_SUBMISSIONS not in source_perms
         ):
-            raise Http404
+            raise self.InaccessibleData
 
         if not source.has_deployment:
             raise Exception('the source must be deployed prior to export')
