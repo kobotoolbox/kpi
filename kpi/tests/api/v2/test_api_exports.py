@@ -66,6 +66,17 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             export_settings=export_settings,
         )
 
+    def _get_synchrounous_export_url(self, export_settings_uid, _format='csv'):
+        params = f'export_settings_uid={export_settings_uid}'
+        data_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'format': _format,
+            },
+        )
+        return f'{data_url}?{params}'
+
     def test_export_task_list(self):
         new_asset = self._create_cloned_asset()
         for _type in ['csv', 'xls', 'spss_labels']:
@@ -315,14 +326,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         es = self._create_export_settings()
 
         self.client.login(username='someuser', password='someuser')
-        synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
-                'format': 'csv',
-            },
-        )
+        synchronous_exports_url = self._get_synchrounous_export_url(es.uid)
         synchronous_export_response = self.client.get(synchronous_exports_url)
         assert synchronous_export_response.status_code == status.HTTP_200_OK
 
@@ -351,14 +355,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
     def test_synchronous_csv_export_anonymous_without_permission(self):
         es = self._create_export_settings()
-        synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
-                'format': 'csv',
-            },
-        )
+        synchronous_exports_url = self._get_synchrounous_export_url(es.uid)
         response = self.client.get(synchronous_exports_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -367,14 +364,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
         es = self._create_export_settings()
 
-        synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
-                'format': 'csv',
-            },
-        )
+        synchronous_exports_url = self._get_synchrounous_export_url(es.uid)
         response = self.client.get(synchronous_exports_url)
         assert response.status_code == status.HTTP_200_OK
 
@@ -385,14 +375,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         es = self._create_export_settings()
 
         self.client.login(username='anotheruser', password='anotheruser')
-        synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
-                'format': 'csv',
-            },
-        )
+        synchronous_exports_url = self._get_synchrounous_export_url(es.uid)
         response = self.client.get(synchronous_exports_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -408,14 +391,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         es = self._create_export_settings()
 
         self.client.login(username='anotheruser', password='anotheruser')
-        synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
-                'format': 'csv',
-            },
-        )
+        synchronous_exports_url = self._get_synchrounous_export_url(es.uid)
         response = self.client.get(synchronous_exports_url)
         assert response.status_code == status.HTTP_200_OK
 

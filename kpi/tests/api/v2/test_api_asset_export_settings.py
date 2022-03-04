@@ -101,15 +101,6 @@ class AssetExportSettingsApiTest(BaseTestCase):
             data['export_settings'] == self.valid_export_settings
         )
 
-        exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': data['uid'],
-            },
-        )
-        assert exports_url in data['exports_url']
-
     def test_api_create_extended_asset_export_settings_for_owner(self):
         export_settings = {
             **self.valid_export_settings,
