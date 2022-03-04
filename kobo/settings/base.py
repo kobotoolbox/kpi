@@ -337,6 +337,9 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 # endpoint. This overrides any `?limit=` query parameter sent by a client
 SUBMISSION_LIST_LIMIT = 30000
 
+# Limit the number submissions included in the synchronous export
+SUBMISSIONS_SYNCHRONOUS_EXPORT_LIMIT = 1000
+
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 

@@ -29,7 +29,6 @@ from kpi.utils.export_task import format_exception_values
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
-    exports_url = serializers.SerializerMethodField()
     name = serializers.CharField(allow_blank=True)
     date_modified = serializers.CharField(read_only=True)
     export_settings = WritableJSONField()
@@ -39,7 +38,6 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         fields = (
             'uid',
             'url',
-            'exports_url',
             'name',
             'date_modified',
             'export_settings',
@@ -159,11 +157,3 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             args=(obj.asset.uid, obj.uid),
             request=self.context.get('request', None),
         )
-
-    def get_exports_url(self, obj: Asset) -> str:
-        return reverse(
-            'submission-exports',
-            args=(obj.asset.uid, obj.uid),
-            request=self.context.get('request', None),
-        )
-

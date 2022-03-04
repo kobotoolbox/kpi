@@ -152,6 +152,8 @@ class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
         renderer_context: Optional[Dict] = None,
     ) -> BytesIO:
         view = renderer_context['view']
+        if renderer_context['response'].status_code != status.HTTP_200_OK:
+            return None
         # `self.user` required to check for valid (partial) permissions before
         # allowing an export to succeed
         self.user = view.request.user
@@ -181,6 +183,8 @@ class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
         renderer_context: Optional[Dict] = None,
     ) -> str:
         view = renderer_context['view']
+        if renderer_context['response'].status_code != status.HTTP_200_OK:
+            return None
         # `self.user` required to check for valid (partial) permissions before
         # allowing an export to succeed
         self.user = view.request.user

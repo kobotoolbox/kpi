@@ -100,12 +100,43 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":"value"}</b>
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":{"op": "value"}}"</b>
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":{"op": "value"}}</b>
     </pre>
     > Example
     >
     >       curl -X GET 'https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?query={"__version__": "vWvkKzNE8xCtfApJvabfjG"}'
     >       curl -X GET 'https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?query={"_submission_time": {"$gt": "2019-09-01T01:02:03"}}'
+
+    ## Synchronous data export
+
+    The use of synchronous exports requires an existing export setting for the
+    current asset, accessible at:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
+    </pre>
+
+    The export settings associated with the `export_settings_uid` is used to
+    configure the output of the synchronous export. It is advisable to create
+    specific export settings to be used for synchronous exports, tailored to
+    the desired output format.
+
+    <span class='label label-warning'>Note that synchronous exports are limited
+    to the latest 1000 submissions.</span>
+
+    Both XLSX and CSV export options are available:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.xlsx?export_settings_uid=<code>{export_settings_uid}</code>
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.csv?export_settings_uid=<code>{export_settings_uid}</code>
+    </pre>
+
+    or
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data?format=xlsx&export_settings_uid=<code>{export_settings_uid}</code>
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data?format=csv&export_settings_uid=<code>{export_settings_uid}</code>
+    </pre>
 
     ## About the GeoJSON format
 
@@ -287,38 +318,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
-    ## Synchronous data export
-
-    The use of synchronous exports requires an existing export setting for the
-    current asset, accessible at:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
-    </pre>
-
-    The export settings associated with the `export_setting_uid` is used to
-    configure the output of the synchronous export. It is advisable to create
-    specific export settings to be used for synchronous exports, tailored to
-    the desired output format.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
-    </pre>
-
-    By default, XLSX format is used, but CSV is also available:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
-    </pre>
-
-    or
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
-    </pre>
-
 
     ### CURRENT ENDPOINT
     """
@@ -398,19 +397,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'view')
 
-    @action(
-        detail=False,
-        methods=['GET'],
-        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
-        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
-    )
-    def exports(self, request, uid, *args, **kwargs):
-        try:
-            obj = AssetExportSettings.objects.get(uid=uid)
-        except AssetExportSettings.DoesNotExist:
-            raise Http404
-        return Response(obj.export_settings)
-
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
         # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
@@ -433,6 +419,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                     **filters
                 )
             )
+
+        if format_type in ['xlsx', 'csv']:
+            uid = request.GET.get('export_settings_uid')
+            try:
+                obj = AssetExportSettings.objects.get(uid=uid)
+            except AssetExportSettings.DoesNotExist:
+                raise Http404
+
+            return Response(obj.export_settings)
 
         submissions = deployment.get_submissions(request.user,
                                                  format_type=format_type,

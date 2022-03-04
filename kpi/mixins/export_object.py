@@ -11,6 +11,7 @@ from formpack.schema.fields import (
     ValidationStatusCopyField,
 )
 from django.utils.translation import gettext as t
+from django.conf import settings
 
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -63,6 +64,10 @@ class ExportObjectMixin:
         fields = self.data.get('fields', [])
         query = self.data.get('query', {})
         submission_ids = self.data.get('submission_ids', [])
+        limit = (
+            None if _async else settings.SUBMISSIONS_SYNCHRONOUS_EXPORT_LIMIT
+        )
+        sort = {'_id': 1 if _async else -1}
 
         if source is None:
             source_url = self.data.get('source', False)
@@ -95,7 +100,14 @@ class ExportObjectMixin:
             fields=fields,
             submission_ids=submission_ids,
             query=query,
+            limit=limit,
+            sort=sort,
         )
+
+        if not _async:
+            # Since the submissions are limited for synchronous exports,
+            # hopefully this won't cause memory issues
+            submission_stream = reversed(list(submission_stream))
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
