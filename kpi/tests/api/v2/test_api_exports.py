@@ -348,7 +348,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             line.decode() for line in export_content_response.streaming_content
         )
         assert synchronous_export_response.content.decode() == export_content
-        print(synchronous_export_response.content.decode())
 
     def test_synchronous_csv_export_anonymous_without_permission(self):
         es = self._create_export_settings()
