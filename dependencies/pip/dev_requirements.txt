@@ -78,8 +78,6 @@ defusedxml==0.6.0
     # via djangorestframework-xml
 dicttoxml==1.7.4
     # via -r dependencies/pip/requirements.in
-dj-database-url==0.5.0
-    # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 django==2.2.7
@@ -109,6 +107,8 @@ django-constance[database]==2.4.0
 django-cors-headers==3.1.1
     # via -r dependencies/pip/requirements.in
 django-debug-toolbar==2.1
+    # via -r dependencies/pip/requirements.in
+django-environ==0.8.1
     # via -r dependencies/pip/requirements.in
 django-extensions==2.2.5
     # via -r dependencies/pip/requirements.in

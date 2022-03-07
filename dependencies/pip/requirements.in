@@ -28,12 +28,12 @@ celery>=4.0,<5.0
 celery[redis]
 dicttoxml
 dj-static
-dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
 django-debug-toolbar
+django-environ
 django-extensions
 django-oauth-toolkit
 django-registration-redux
