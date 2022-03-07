@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import logging
 import os
 import string
 import subprocess
@@ -613,7 +614,6 @@ else:
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
 ''' Django error logging configuration '''
-# Need a default logger when sentry is not activated
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -648,23 +648,29 @@ LOGGING = {
 }
 
 
-''' Sentry (error log collection service) configuration '''
-if os.environ.get('RAVEN_DSN', False):
+################################
+# Sentry settings              #
+################################
+
+if (os.getenv("RAVEN_DSN") or "") != "":
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
 
-    server_name = os.environ.get('RAVEN_SERVER_NAME')
-    server_name = server_name or '.'.join(filter(None, (
-        os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', None),
-        os.environ.get('PUBLIC_DOMAIN_NAME', None)
-    )))
-
+    # All of this is already happening by default!
+    sentry_logging = LoggingIntegration(
+        level=logging.INFO,  # Capture info and above as breadcrumbs
+        event_level=logging.ERROR  # Send errors as events
+    )
     sentry_sdk.init(
-        dsn=os.environ["RAVEN_DSN"],
-        integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
-        send_default_pii=True,
-        server_name=server_name
+        dsn=os.environ['RAVEN_DSN'],
+        integrations=[
+            DjangoIntegration(),
+            CeleryIntegration(),
+            sentry_logging
+        ],
+        send_default_pii=True
     )
 
 
