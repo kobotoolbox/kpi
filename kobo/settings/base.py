@@ -661,7 +661,7 @@ if (os.getenv("RAVEN_DSN") or "") != "":
     # All of this is already happening by default!
     sentry_logging = LoggingIntegration(
         level=logging.INFO,  # Capture info and above as breadcrumbs
-        event_level=logging.ERROR  # Send errors as events
+        event_level=logging.WARNING  # Send warnings as events
     )
     sentry_sdk.init(
         dsn=os.environ['RAVEN_DSN'],
