@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+import re
 from xml.etree import ElementTree as ET
 
 import requests
@@ -29,7 +31,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import Asset, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -135,6 +137,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     </pre>
 
     It is also possible to specify the format.
+
+    <sup>*</sup>`id` can be the primary key of the submission or its `uuid`.
+    Please note that using the `uuid` may match **several** submissions, only
+    the first match will be returned.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.xml
@@ -417,6 +423,22 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # `retrieve()` don't need Django Queryset, we only need return `None`.
         return None
 
+    def get_submission(self):
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        print('LOOKUP _URL KWARGS', self.lookup_url_kwarg, flush=True)
+        print('LOOKUP _URL KWARGS', self.lookup_field, flush=True)
+
+        assert lookup_url_kwarg in self.kwargs, (
+                'Expected view %s to be called with a URL keyword argument '
+                'named "%s". Fix your URL conf, or set the `.lookup_field` '
+                'attribute on the view correctly.' %
+                (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        print('FILTER KWARGS', filter_kwargs)
+
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
@@ -449,22 +471,57 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
+        """
+        Retrieve a submission by its primary key or its UUID.
+
+        Warning when using the UUID. Submissions can have the same uuid because
+        there is no unique constraint on this field. The first occurrence
+        will be returned.
+        """
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
+        params = {
+            'user': request.user,
+            'format_type': format_type,
+            'request': request,
+        }
         filters = self._filter_mongo_query(request)
+
+        # Unfortunately, Django expects that the URL parameter is `pk`,
+        # its name cannot be changed (easily).
+        submission_id_or_uuid = pk
         try:
-            submission = deployment.get_submission(
-                positive_int(pk),
-                user=request.user,
-                format_type=format_type,
-                request=request,
-                **filters,
-            )
+            submission_id_or_uuid = positive_int(submission_id_or_uuid)
         except ValueError:
-            raise Http404
-        else:
-            if not submission:
+            if not re.match(
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
+            ):
                 raise Http404
+
+            try:
+                query = json.loads(filters.pop('query', '{}'))
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    {'query': t('Value must be valid JSON.')}
+                )
+            query['_uuid'] = submission_id_or_uuid
+            filters['query'] = query
+        else:
+            params['submission_ids'] = [submission_id_or_uuid]
+
+        # Join all parameters to be passed to `deployment.get_submissions()`
+        params.update(filters)
+
+        # The `get_submissions()` is a generator in KobocatDeploymentBackend
+        # class but a list in MockDeploymentBackend. We cast the result as a list
+        # no matter what is the deployment back-end class to make it work with
+        # both. Since the number of submissions is be very small, it should not
+        # have a big impact on memory (i.e. list vs generator)
+        submissions = list(deployment.get_submissions(**params))
+        if not submissions:
+            raise Http404
+
+        submission = submissions[0]
         return Response(submission)
 
     @action(detail=True, methods=['POST'],
