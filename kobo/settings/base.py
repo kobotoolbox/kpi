@@ -670,6 +670,7 @@ if (os.getenv("RAVEN_DSN") or "") != "":
             CeleryIntegration(),
             sentry_logging
         ],
+        traces_sample_rate=0.2,
         send_default_pii=True
     )
 
