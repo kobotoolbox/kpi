@@ -493,7 +493,6 @@ class ExportTask(ImportExportTask, ExportObjectMixin):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-
         source_url = self.data.get('source', False)
         flatten = self.data.get('flatten', True)
         export_type = self.data.get('type', '').lower()
