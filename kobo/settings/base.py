@@ -39,6 +39,10 @@ if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_H
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
+
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
 USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
@@ -104,6 +108,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',

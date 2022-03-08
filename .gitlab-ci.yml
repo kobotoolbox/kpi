@@ -29,6 +29,5 @@ deploy-beta:
   only:
     refs:
       - master
-      - gitlab-ci-build
     variables:
       - $CI_COMMIT_REF_PROTECTED
