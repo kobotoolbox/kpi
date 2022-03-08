@@ -29,6 +29,5 @@ deploy-beta:
   only:
     refs:
       - master
-      - enable-hsts-conf
     variables:
       - $CI_COMMIT_REF_PROTECTED
