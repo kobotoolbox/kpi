@@ -7,6 +7,10 @@ from kpi.fields import KpiUidField
 
 
 class AssetExportSettings(models.Model):
+    """
+    For a description of `export_settings`, see docstring of
+    kpi.views.v2.asset_export_settings.AssetExportSettingsViewSet
+    """
     uid = KpiUidField(uid_prefix='es')
     asset = models.ForeignKey('Asset', related_name='asset_export_settings',
                               on_delete=models.CASCADE)
@@ -23,5 +27,5 @@ class AssetExportSettings(models.Model):
         unique_together = ('asset', 'name')
 
     def __str__(self):
-        return f'{self.name} {self.uid}'
+        return f'{self.name} ({self.uid})'
 

@@ -316,15 +316,20 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
         self.client.login(username='someuser', password='someuser')
         synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
+            self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'uid': es.uid,
                 'format': 'csv',
             },
         )
-        synchronous_export_response = self.client.get(synchronous_exports_url)
+        synchronous_export_response = self.client.get(
+            synchronous_exports_url, follow=True
+        )
         assert synchronous_export_response.status_code == status.HTTP_200_OK
+        synchronous_export_content = b''.join(
+            synchronous_export_response.streaming_content
+        )
 
         exports_list_url = reverse(
             self._get_endpoint('asset-export-list'),
@@ -347,12 +352,12 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         export_content = ''.join(
             line.decode() for line in export_content_response.streaming_content
         )
-        assert synchronous_export_response.content.decode() == export_content
+        assert synchronous_export_content.decode() == export_content
 
     def test_synchronous_csv_export_anonymous_without_permission(self):
         es = self._create_export_settings()
         synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
+            self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'uid': es.uid,
@@ -368,14 +373,14 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         es = self._create_export_settings()
 
         synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
+            self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'uid': es.uid,
                 'format': 'csv',
             },
         )
-        response = self.client.get(synchronous_exports_url)
+        response = self.client.get(synchronous_exports_url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
     def test_synchronous_csv_export_anotheruser_without_permission(self):
@@ -386,14 +391,14 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
         self.client.login(username='anotheruser', password='anotheruser')
         synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
+            self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'uid': es.uid,
                 'format': 'csv',
             },
         )
-        response = self.client.get(synchronous_exports_url)
+        response = self.client.get(synchronous_exports_url, follow=True)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_synchronous_csv_export_anotheruser_with_partial_permission(self):
@@ -409,19 +414,20 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
         self.client.login(username='anotheruser', password='anotheruser')
         synchronous_exports_url = reverse(
-            self._get_endpoint('submission-exports'),
+            self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'uid': es.uid,
                 'format': 'csv',
             },
         )
-        response = self.client.get(synchronous_exports_url)
+        response = self.client.get(synchronous_exports_url, follow=True)
         assert response.status_code == status.HTTP_200_OK
 
         # Submissions start after header and hxl rows
+        content = b''.join(response.streaming_content)
         exported_submissions = (
-            response.content.decode().strip().split('\r\n')[2:]
+            content.decode().strip().split('\r\n')[2:]
         )
         actual_submissions = self.asset.deployment.get_submissions(
             user=anotheruser
