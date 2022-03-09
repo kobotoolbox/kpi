@@ -827,57 +827,54 @@ class SynchronousExport(ExportTaskBase):
     A synchronous export, with significant limitations on processing time, but
     offered for user convenience
     """
-    # `data` already holds settings, but it gets polluted with things like
-    # 'processing_time_seconds'. Plus, it's nicer to deal with a real foreign
-    # key when querying
+    FORMAT_TYPE_CHOICES = (('csv', 'csv'), ('xlsx', 'xlsx'))
+    # these fields duplicate information already in `data`, but a
+    # `unique_together` cannot reference things inside a json object
     asset_export_settings = models.ForeignKey(
         'kpi.AssetExportSettings', on_delete=models.CASCADE
     )
+    format_type = models.CharField(choices=FORMAT_TYPE_CHOICES, max_length=32)
+
+    class Meta:
+        unique_together = (('user', 'asset_export_settings', 'format_type'),)
 
     @classmethod
     def generate_or_return_existing(cls, user, asset_export_settings):
-        ALREADY_PROCESSING_CHECK_INTERVAL = 2
         age_cutoff = utcnow() - datetime.timedelta(
             seconds=constance.config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
         )
-        exports_with_same_settings = cls.objects.filter(
-            user=user,
-            asset_export_settings=asset_export_settings,
-            data__type=asset_export_settings.export_settings['type'],
-        )
-        # Clean up old exports regardless of status, assuming that synchronous
-        # exports aren't allowed to run longer than the maximum export age
-        exports_with_same_settings.filter(date_created__lt=age_cutoff).delete()
-        recent_enough_exports = exports_with_same_settings.filter(
-            date_created__gte=age_cutoff
-        )
-        # Is there a recently begun export that's still processing?
-        time_slept = 0
-        while recent_enough_exports.filter(status=cls.PROCESSING).exists():
-            if time_slept > settings.SYNCHRONOUS_REQUEST_TIME_LIMIT:
-                # A backstop; it's likely we'll be killed before this (for
-                # example, by a uWSGI timeout)
-                break
-            time.sleep(ALREADY_PROCESSING_CHECK_INTERVAL)
-            time_slept += ALREADY_PROCESSING_CHECK_INTERVAL
-        # Is there a recent-enough complete export?
-        already_complete_export = (
-            recent_enough_exports.filter(status=cls.COMPLETE)
-            .order_by('-date_created')
-            .first()
-        )
-        if already_complete_export:
-            return already_complete_export
-        # Start a new export
+        format_type = asset_export_settings.export_settings['type']
         data = asset_export_settings.export_settings.copy()
         data['source'] = reverse(
             'asset-detail', args=[asset_export_settings.asset.uid]
         )
-        new_export = cls.objects.create(
-            user=user, asset_export_settings=asset_export_settings, data=data
-        )
-        new_export.run()
-        return new_export
+        criteria = {
+            'user': user,
+            'asset_export_settings': asset_export_settings,
+            'format_type': format_type,
+        }
+
+        # An object (a row) must be created (inserted) before it can be locked
+        cls.objects.get_or_create(**criteria, defaults={'data': data})
+
+        with transaction.atomic():
+            # Lock the object (and block until a lock can be obtained) to
+            # prevent the same export from running concurrently
+            export = cls.objects.select_for_update().get(**criteria)
+
+            if (
+                export.status == cls.COMPLETE
+                and export.date_created >= age_cutoff
+            ):
+                return export
+
+            export.data = data
+            export.status = cls.CREATED
+            export.date_created = utcnow()
+            export.result.delete(save=False)
+            export.save()
+            export.run()
+            return export
 
 
 def _b64_xls_to_dict(base64_encoded_upload):
