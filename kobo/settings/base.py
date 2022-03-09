@@ -198,6 +198,18 @@ CONSTANCE_CONFIG = {
         'than the maximum, the maximum will be ignored',
         int
     ),
+    'FRONTEND_MIN_RETRY_TIME': (
+        2,
+        'Minimum number of seconds the front end waits before retrying a '
+        'failed request to the back end',
+        int,
+    ),
+    'FRONTEND_MAX_RETRY_TIME': (
+        120,
+        'Maximum number of seconds the front end waits before retrying a '
+        'failed request to the back end',
+        int,
+    ),
     'MFA_ISSUER_NAME': (
         'KoBoToolbox',
         'Issuer name displayed in multi-factor applications'
