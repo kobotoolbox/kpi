@@ -6,6 +6,13 @@
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="../node_modules/chai/chai.js"></script>
+    <!--
+      MAGICAL HACK: setting `kpi-root-path` is not needed, but it fixes a crash
+      `Resource Failed to Load` on `/me` and `/environment` endpoints. The cause
+      is not known, the fix works, but don't know why. Please implement
+      https://github.com/kobotoolbox/kpi/issues/3719.
+    -->
+    <meta name="kpi-root-path" content="http://test.test">
 </head>
 <body>
     <div id="mocha"></div>
