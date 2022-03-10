@@ -42,10 +42,6 @@ if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_H
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
 SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "*.bootstrapcdn.com")
-CSP_FONT_SRC = ("'self'", "*.bootstrapcdn.com")
-CSP_IMG_SRC = ("'self'", "data:",)
 
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
@@ -482,6 +478,12 @@ ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 
+# Content Security Policy (CSP)
+CSP_DEFAULT_SRC = ("'self'", KOBOCAT_URL)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", '*.bootstrapcdn.com')
+CSP_FONT_SRC = ("'self'", '*.bootstrapcdn.com')
+CSP_IMG_SRC = ("'self'", 'data:',)
 
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
