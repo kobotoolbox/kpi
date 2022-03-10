@@ -39,16 +39,13 @@ if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_H
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-<<<<<<< HEAD
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
 SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
-=======
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'",)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "*.bootstrapcdn.com")
 CSP_FONT_SRC = ("'self'", "*.bootstrapcdn.com")
 CSP_IMG_SRC = ("'self'", "data:",)
->>>>>>> 7a2c24b5f (Install django-csp)
 
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
@@ -115,11 +112,8 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-<<<<<<< HEAD
     'django.middleware.security.SecurityMiddleware',
-=======
     'csp.middleware.CSPMiddleware',
->>>>>>> 7a2c24b5f (Install django-csp)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
