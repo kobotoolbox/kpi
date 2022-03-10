@@ -791,7 +791,11 @@ SESSION_ENGINE = 'redis_sessions.session'
 redis_session_url = env.cache_url(
     'REDIS_SESSION_URL', default='redis://redis_cache:6380/2'
 )
-SESSION_REDIS = {'url': redis_session_url['LOCATION']}
+SESSION_REDIS = {
+    'url': redis_session_url['LOCATION'],
+    'prefix': env.str('REDIS_SESSION_PREFIX', 'session'),
+    'socket_timeout': env.int('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+}
 
 ENV = None
 
