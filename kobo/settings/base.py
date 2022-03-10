@@ -504,6 +504,7 @@ if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
 csp_report_uri = env.url('CSP_REPORT_URI', None)
 if csp_report_uri:  # Let environ validate uri, but set as string
     CSP_REPORT_URI = csp_report_uri.geturl()
+CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
 
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
