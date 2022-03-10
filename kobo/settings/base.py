@@ -444,7 +444,10 @@ TEMPLATES = [
 ]
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
+RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
+RAVEN_JS_DSN = None
+if RAVEN_JS_DSN_URL:
+    RAVEN_JS_DSN = RAVEN_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
@@ -479,11 +482,28 @@ ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 
 # Content Security Policy (CSP)
-CSP_DEFAULT_SRC = ("'self'", KOBOCAT_URL)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", '*.bootstrapcdn.com')
-CSP_FONT_SRC = ("'self'", '*.bootstrapcdn.com')
-CSP_IMG_SRC = ("'self'", 'data:',)
+# CSP should "just work" by allowing any possible configuration
+# however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
+CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCAT_URL, ENKETO_URL]
+CSP_CONNECT_SRC = CSP_DEFAULT_SRC
+CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
+CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_IMG_SRC = CSP_DEFAULT_SRC + ['data:']
+
+if GOOGLE_ANALYTICS_TOKEN:
+    google_domain = '*.google-analytics.com'
+    CSP_SCRIPT_SRC.append(google_domain)
+    CSP_CONNECT_SRC.append(google_domain)
+if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
+    raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
+    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
+    CSP_SCRIPT_SRC.append(raven_js_url)
+    CSP_CONNECT_SRC.append(raven_js_url)
+
+csp_report_uri = env.url('CSP_REPORT_URI', None)
+if csp_report_uri:  # Let environ validate uri, but set as string
+    CSP_REPORT_URI = csp_report_uri.geturl()
 
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
