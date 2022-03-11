@@ -1,6 +1,6 @@
 {
   "name": "kpi",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "KoBoToolbox frontend interface.",
   "devDependencies": {
     "@babel/core": "^7.9.6",
