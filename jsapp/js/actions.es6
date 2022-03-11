@@ -503,7 +503,10 @@ actions.auth.getApiToken.failed.listen(() => {
 actions.resources.loadAsset.listen(function(params){
   dataInterface.getAsset(params)
     .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+    .fail(() => {
+      alertify.alert('404', t('Asset could not be found. This asset might have been: moved, deleted, or you do not have access'))
+      actions.resources.loadAsset.failed
+    });
 });
 
 actions.resources.loadAssetContent.listen(function(params){

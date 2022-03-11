@@ -86,11 +86,13 @@
     "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
-    "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"
+    "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons",
+    "generate_build_version": "node ./scripts/generate_build_version.js",
+    "prebuild": "npm run ./scripts/generate_build_version"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
   "license": "AGPL-3.0",
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
-  "homepage": "https://github.com/kobotoolbox/kpi"
+  "homepage": "https://monitoring.veritree.com/"
 }

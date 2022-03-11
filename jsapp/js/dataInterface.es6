@@ -38,7 +38,7 @@ export var dataInterface;
             serverMessage += ': ' + request.responseJSON.detail;
           }
           errorMessage = errorMessage.replace('##server_message##', serverMessage);
-          alertify.alert(t('You are not logged in'), errorMessage);
+          alertify.alert(t('You are not logged in to the monitoring application, please login'), errorMessage);
         }
       });
     }
