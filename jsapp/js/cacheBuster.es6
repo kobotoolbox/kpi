@@ -41,7 +41,7 @@ const semverGreaterThan = (versionA, versionB) => {
     }
   
     componentDidMount() {
-      fetch('/meta.json')
+      fetch('/static/meta.json')
         .then((response) => response.json())
         .then((meta) => {
           const latestVersion = meta.version;
