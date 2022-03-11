@@ -10,6 +10,9 @@ import React from 'react';
 import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
 
+import packageJson from '../../package.json';
+global.appVersion = packageJson.version;
+
 require('../scss/main.scss');
 
 var el = (function(){

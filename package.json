@@ -88,7 +88,7 @@
     "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons",
     "generate_build_version": "node ./scripts/generate_build_version.js",
-    "prebuild": "npm run ./scripts/generate_build_version"
+    "prebuild": "npm run generate_build_version"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",

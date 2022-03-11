@@ -51,6 +51,7 @@ import {
   currentLang,
 } from 'utils';
 import FormsSearchableList from './lists/forms';
+import CacheBuster from './cacheBuster.es6';
 import permConfig from 'js/components/permissions/permConfig';
 import {ROUTES} from 'js/constants';
 
@@ -334,7 +335,10 @@ export default class RunRoutes extends React.Component {
 
   render() {
     return (
-      <Router history={hashHistory} ref={(ref) => {return this.router = ref;}} routes={this.props.routes} />
+      <>
+        <CacheBuster />
+        <Router history={hashHistory} ref={(ref) => {return this.router = ref;}} routes={this.props.routes} />
+      </>
     );
   }
 }
