@@ -109,7 +109,6 @@ INSTALLED_APPS = (
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -484,7 +483,17 @@ ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
 # however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
+if env.bool("ENABLE_CSP", False):
+    MIDDLEWARE.append('csp.middleware.CSPMiddleware')
+local_unsafe_allows = [
+    "'unsafe-eval'",
+    'http://localhost:3000',
+    'http://kf.kobo.local:3000',
+    'ws://kf.kobo.local:3000'
+]
 CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCAT_URL, ENKETO_URL]
+if env.str("FRONTEND_DEV_MODE", None) == "host":
+    CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
