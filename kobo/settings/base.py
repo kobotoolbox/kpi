@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import logging
 import os
 import string
 import subprocess
@@ -613,7 +614,6 @@ else:
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
 ''' Django error logging configuration '''
-# Need a default logger when sentry is not activated
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -648,79 +648,31 @@ LOGGING = {
 }
 
 
-''' Sentry (error log collection service) configuration '''
-if os.environ.get('RAVEN_DSN', False):
-    import raven
-    INSTALLED_APPS = INSTALLED_APPS + (
-        'raven.contrib.django.raven_compat',
+################################
+# Sentry settings              #
+################################
+
+if (os.getenv("RAVEN_DSN") or "") != "":
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    # All of this is already happening by default!
+    sentry_logging = LoggingIntegration(
+        level=logging.INFO,  # Capture info and above as breadcrumbs
+        event_level=logging.WARNING  # Send warnings as events
     )
-    RAVEN_CONFIG = {
-        'dsn': os.environ['RAVEN_DSN'],
-    }
-
-    # Set the `server_name` attribute. See https://docs.sentry.io/hosted/clients/python/advanced/
-    server_name = os.environ.get('RAVEN_SERVER_NAME')
-    server_name = server_name or '.'.join(filter(None, (
-        os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', None),
-        os.environ.get('PUBLIC_DOMAIN_NAME', None)
-    )))
-    if server_name:
-        RAVEN_CONFIG.update({'name': server_name})
-
-    try:
-        RAVEN_CONFIG['release'] = raven.fetch_git_sha(BASE_DIR)
-    except raven.exceptions.InvalidGitRepository:
-        pass
-    # The below is NOT required for Sentry to log unhandled exceptions, but it
-    # is necessary for capturing messages sent via the `logging` module.
-    # https://docs.getsentry.com/hosted/clients/python/integrations/django/#integration-with-logging
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False, # Was `True` in Sentry documentation
-        'root': {
-            'level': 'WARNING',
-            'handlers': ['sentry'],
-        },
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s '
-                          '%(process)d %(thread)d %(message)s'
-            },
-        },
-        'handlers': {
-            'sentry': {
-                'level': 'WARNING',
-                'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-            },
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose'
-            }
-        },
-        'loggers': {
-            'django.db.backends': {
-                'level': 'ERROR',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'raven': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'sentry.errors': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'console_logger': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': True
-            },
-        },
-    }
+    sentry_sdk.init(
+        dsn=os.environ['RAVEN_DSN'],
+        integrations=[
+            DjangoIntegration(),
+            CeleryIntegration(),
+            sentry_logging
+        ],
+        traces_sample_rate=0.2,
+        send_default_pii=True
+    )
 
 
 ''' Try to identify the running codebase for informational purposes '''
