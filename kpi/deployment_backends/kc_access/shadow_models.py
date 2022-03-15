@@ -303,7 +303,7 @@ class KobocatPermission(ShadowModel):
 class KobocatSubmissionCounter(ShadowModel):
     user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateField()
 
     class Meta(ShadowModel.Meta):
         app_label = 'superuser_stats'
@@ -323,7 +323,6 @@ class KobocatSubmissionCounter(ShadowModel):
         if not queryset.exists():
             # Todo: Handle race conditions
             cls.objects.create(user_id=user.pk, timestamp=first)
-
 
 class KobocatUser(ShadowModel):
 
