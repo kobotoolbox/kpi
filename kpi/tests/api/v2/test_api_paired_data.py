@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
+from hub.models import ExtraUserDetail
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -390,6 +391,19 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # When owner's destination asset does not require any authentications,
         # everybody can see their data
         self.client.logout()
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_external_from_owner_with_extra_detail(self):
+        self.deploy_source()
+        # When owner's destination asset does not require any authentications,
+        # everybody can see their data
+        self.client.logout()
+
+        # Remove owner's extra detail
+        ExtraUserDetail.objects.filter(user=self.anotheruser).delete()
+        self.anotheruser.refresh_from_db()
+
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
