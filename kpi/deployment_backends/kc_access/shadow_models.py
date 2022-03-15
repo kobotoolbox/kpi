@@ -1,5 +1,5 @@
 # coding: utf-8
-from datetime import datetime
+from datetime import date, datetime
 from secrets import token_urlsafe
 from typing import Optional
 
@@ -19,7 +19,6 @@ from django.db import (
 from django.utils import timezone
 from django.utils.http import urlquote
 from django_digest.models import PartialDigest
-from trench.utils import get_mfa_model
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
@@ -317,10 +316,13 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        today = datetime.today()
-        first = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        today = date.today()
+        first = today.replace(day=1)
 
-        cls.objects.get_or_create(user_id=user.pk, timestamp=first)
+        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
+        if not queryset.exists():
+            # Todo: Handle race conditions
+            cls.objects.create(user_id=user.pk, timestamp=first)
 
 
 class KobocatUser(ShadowModel):
