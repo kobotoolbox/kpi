@@ -466,6 +466,7 @@ class ProjectSettings extends React.Component {
         'share-metadata': this.state['share-metadata'],
         veritree_form_type: this.state.veritreeFormType
       }),
+      content: JSON.stringify({ settings: { default_language: "English (en)" }, translations: ["English (en)"], translated: ['label'] }), // Default language to english here
       asset_type: 'survey',
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);

@@ -98,6 +98,12 @@ export class TranslationTable extends React.Component {
         Header: t('Original string'),
         accessor: 'original',
         minWidth: 130,
+        filterMethod: (filter, row) => {
+          if (row?.original && row.original.includes(filter.value)) {
+            return true
+          }
+          return false
+        },
         Cell: (cellInfo) => {
           // Disabling has no effect on this cell, but we do it to gray out the
           // text to indicate that the label is locked
@@ -131,6 +137,12 @@ export class TranslationTable extends React.Component {
             </React.Fragment>
           );
         },
+        filterMethod: (filter, row) => {
+          if (row?._original?.value && row._original.value.includes(filter.value)) {
+            return true
+          }
+          return false
+        }, 
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {
@@ -342,6 +354,7 @@ export class TranslationTable extends React.Component {
             minRows={1}
             loadingText={<LoadingSpinner />}
             sorted={[{id: 'questionNumber', desc: false }]}
+            filterable
           />
         </div>
 
