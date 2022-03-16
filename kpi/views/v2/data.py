@@ -426,8 +426,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def get_submission(self):
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        print('LOOKUP _URL KWARGS', self.lookup_url_kwarg, flush=True)
-        print('LOOKUP _URL KWARGS', self.lookup_field, flush=True)
 
         assert lookup_url_kwarg in self.kwargs, (
                 'Expected view %s to be called with a URL keyword argument '
