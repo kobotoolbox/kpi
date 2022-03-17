@@ -13,6 +13,7 @@ from rest_framework import (
     status,
     viewsets,
 )
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -22,6 +23,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
+from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -31,7 +33,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetExportSettings
+from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -41,9 +43,7 @@ from kpi.permissions import (
     ViewSubmissionPermission,
 )
 from kpi.renderers import (
-    SubmissionCSVRenderer,
     SubmissionGeoJsonRenderer,
-    SubmissionXLSXRenderer,
     SubmissionXMLRenderer,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -293,38 +293,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
-    ## Synchronous data export
-
-    The use of synchronous exports requires an existing export setting for the
-    current asset, accessible at:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
-    </pre>
-
-    The export settings associated with the `export_setting_uid` is used to
-    configure the output of the synchronous export. It is advisable to create
-    specific export settings to be used for synchronous exports, tailored to
-    the desired output format.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
-    </pre>
-
-    By default, XLSX format is used, but CSV is also available:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
-    </pre>
-
-    or
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
-    </pre>
-
 
     ### CURRENT ENDPOINT
     """
@@ -335,8 +303,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         renderers.JSONRenderer,
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
-        SubmissionXLSXRenderer,
-        SubmissionCSVRenderer,
     )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
@@ -391,7 +357,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
-        return self._get_enketo_link(request, submission_id, 'edit')
+        enketo_response = self._get_enketo_link(request, submission_id, 'edit')
+        if enketo_response.status_code in (
+            status.HTTP_201_CREATED, status.HTTP_200_OK
+        ):
+            # See https://github.com/enketo/enketo-express/issues/187
+            EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
+                request, enketo_response
+            )
+        return enketo_response
 
     @action(
         detail=True,
@@ -403,19 +377,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def enketo_view(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'view')
-
-    @action(
-        detail=False,
-        methods=['GET'],
-        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
-        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
-    )
-    def exports(self, request, uid, *args, **kwargs):
-        try:
-            obj = AssetExportSettings.objects.get(uid=uid)
-        except AssetExportSettings.DoesNotExist:
-            raise Http404
-        return Response(obj.export_settings)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is

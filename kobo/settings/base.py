@@ -52,6 +52,9 @@ USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
 SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
 if SESSION_COOKIE_DOMAIN:
     SESSION_COOKIE_NAME = 'kobonaut'
+    # The trusted CSRF origins must encompass Enketo's subdomain. See
+    # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
+    CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
 
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = 604800
@@ -158,6 +161,11 @@ CONSTANCE_CONFIG = {
         ),
         'URL for "KoBoToolbox Community Forum"',
     ),
+    'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
+        300,
+        'A synchronus export request will return the last export generated '
+        'with the same settings unless it is older than this value (seconds)'
+    ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,
         'Allow the use of unsecured endpoints for hooks. '
@@ -193,6 +201,18 @@ CONSTANCE_CONFIG = {
         'Minimum number of asynchronous worker processes to run. If larger '
         'than the maximum, the maximum will be ignored',
         int
+    ),
+    'FRONTEND_MIN_RETRY_TIME': (
+        2,
+        'Minimum number of seconds the front end waits before retrying a '
+        'failed request to the back end',
+        int,
+    ),
+    'FRONTEND_MAX_RETRY_TIME': (
+        120,
+        'Maximum number of seconds the front end waits before retrying a '
+        'failed request to the back end',
+        int,
     ),
     'MFA_ISSUER_NAME': (
         'KoBoToolbox',
@@ -335,6 +355,10 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 # Impose a limit on the number of records returned by the submission list
 # endpoint. This overrides any `?limit=` query parameter sent by a client
 SUBMISSION_LIST_LIMIT = 30000
+
+# uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
+# Set this value to match their limits
+SYNCHRONOUS_REQUEST_TIME_LIMIT = 120  # seconds
 
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
@@ -497,10 +521,13 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Default to a 30-minute soft time limit and a 35-minute hard time limit
-CELERY_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
+CELERY_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100)  # seconds
+)
 
-CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
-    'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
+CELERY_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERYD_TASK_SOFT_TIME_LIMIT', 1800)  # seconds
+)
 
 CELERY_BEAT_SCHEDULE = {
     # Schedule every day at midnight UTC. Can be customized in admin section
@@ -517,7 +544,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
     # TODO figure out how to pass `Constance.HOOK_MAX_RETRIES` or `HookLog.get_remaining_seconds()
     # Otherwise hardcode `HOOK_MAX_RETRIES` in Settings
-    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService
+    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService (seconds)
 }
 
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
@@ -550,8 +577,8 @@ REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'jsapp/compiled/',
-        'POLL_INTERVAL': 0.5,
-        'TIMEOUT': 5,
+        'POLL_INTERVAL': 0.5,  # seconds
+        'TIMEOUT': 5,  # seconds
     }
 }
 
@@ -736,7 +763,10 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
-MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 1000
+# If a request or task makes a database query and then times out, the database
+# server should not spin forever attempting to fulfill that query.
+MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
+MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
 SESSION_ENGINE = 'redis_sessions.session'
 # django-redis-session expects a dictionary with `url`
@@ -764,7 +794,7 @@ OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 # Should match KoBoCAT setting
-PAIRED_DATA_EXPIRATION = 300
+PAIRED_DATA_EXPIRATION = 300  # seconds
 
 # Minimum size (in bytes) of files to allow fast calculation of hashes
 # Should match KoBoCAT setting
@@ -801,7 +831,9 @@ TRENCH_AUTH = {
     'MFA_METHODS': {
         'app': {
             'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int('MFA_CODE_VALIDITY_PERIOD', 30),
+            'VALIDITY_PERIOD': env.int(
+                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
+            ),
             'USES_THIRD_PARTY_CLIENT': True,
             'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
         },
