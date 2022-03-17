@@ -51,6 +51,9 @@ if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
 if os.environ.get('SESSION_COOKIE_DOMAIN'):
     SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
     SESSION_COOKIE_NAME = 'kobonaut'
+    # The trusted CSRF origins must encompass Enketo's subdomain. See
+    # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
+    CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
 
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = 604800
