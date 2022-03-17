@@ -13,7 +13,7 @@
     "fuse.js": "^6.4.3",
     "immutable": "^3.8.2",
     "jquery": "^3.5.1",
-    "jquery-ui": "1.12.1",
+    "jquery-ui": "1.13.0",
     "jszip": "^3.4.0",
     "leaflet": "^1.6.0",
     "leaflet.heat": "^0.2.0",
