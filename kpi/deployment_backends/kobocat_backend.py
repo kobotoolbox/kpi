@@ -6,16 +6,18 @@ import posixpath
 import re
 import uuid
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
 import requests
+import environ
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
@@ -48,7 +50,9 @@ from kpi.utils.xml import edit_submission_xml, strip_nodes
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
+    KobocatSubmissionCounter,
     KobocatXForm,
+    KobocatXFormSubmissionCounter,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
@@ -881,6 +885,50 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             filters['user_id'] = user_id
 
         ObjectPermission.objects.filter(**filters).delete()
+
+    def service_usage(self, request):
+        env = environ.Env()
+        data = {
+            'asset': '',
+            'asset__name': '',
+            'submission_count_current_month': '',
+            'submission_count_all_time': '',
+            'storage_bytes': '',
+        }
+
+        url = env.ENVIRON.get('KOBOFORM_URL') + reverse('api_v2:asset-detail', {self.asset.uid})
+        data['asset'] = url
+        data['asset__name'] = self.asset.name
+
+        current_month = self.asset.deployment.current_month_submission_counter
+        data['submission_count_current_month'] = current_month
+
+        all_time = self.asset.deployment.submission_count
+        data['submission_count_all_time'] = all_time
+
+        attachments_queryset = ReadOnlyKobocatAttachment.objects.filter(
+            instance__xform__user__username=request.user.username,
+            instance__xform__id_string=self.asset.uid
+        )
+        if attachments_queryset.exists():
+            attachments_usage = attachments_queryset.aggregate(count_sum=Sum('media_file_size'))
+            attachments_usage_total = attachments_usage['count_sum']
+        else:
+            attachments_usage_total = 0
+        data['storage_bytes'] = attachments_usage_total
+
+        return data
+
+    @property
+    def current_month_submission_counter(self):
+        today = date.today()
+        monthly_counter = KobocatXFormSubmissionCounter.objects.get(
+            xform__id_string=str(self.asset.uid),
+            timestamp__year=today.year,
+            timestamp__month=today.month,
+        )
+        count = monthly_counter.count
+        return count
 
     def set_active(self, active):
         """
