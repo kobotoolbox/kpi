@@ -546,14 +546,20 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_id, user, request=request
         )
 
-        # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
-        # it into some utility file
-        _, submissions_stream = build_formpack(
-            self.asset,
-            submission_stream=[submission_json],
-            use_all_form_versions=True
-        )
-        version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+        # Do not use version_uid from the submission until UI gives users the
+        # possibility to choose which version they want to use
+
+        # # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
+        # # it into some utility file
+        # _, submissions_stream = build_formpack(
+        #     self.asset,
+        #     submission_stream=[submission_json],
+        #     use_all_form_versions=True
+        # )
+        # version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+
+        # Let's use the latest version uid temporarily
+        version_uid = self.asset.latest_version.uid
 
         # Retrieve the XML root node name from the submission. The instance's
         # root node name specified in the form XML (i.e. the first child of
