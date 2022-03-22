@@ -1,16 +1,16 @@
 # coding: utf-8
 import os
-from datetime import datetime
+from datetime import date, datetime
 from secrets import token_urlsafe
 from typing import Optional
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
-from django.core.signing import Signer
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
+from django.core.files.base import ContentFile
+from django.core.signing import Signer
 from django.db import (
     ProgrammingError,
     connections,
@@ -19,6 +19,7 @@ from django.db import (
 )
 from django.utils import timezone
 from django.utils.text import get_valid_filename
+from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 from formpack.constants import UNTRANSLATED
 from jsonfield import JSONField
@@ -26,8 +27,13 @@ from jsonfield import JSONField
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException, ReadOnlyModelError
+from kpi.mixins.mp3_converter import MP3ConverterMixin
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
+from .storage import (
+    get_kobocat_storage,
+    KobocatS3Boto3Storage,
+)
 
 
 def update_autofield_sequence(model):
@@ -300,7 +306,7 @@ class KobocatPermission(ShadowModel):
 class KobocatSubmissionCounter(ShadowModel):
     user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateField()
 
     class Meta(ShadowModel.Meta):
         app_label = 'superuser_stats'
@@ -313,8 +319,13 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        cls.objects.create(user_id=user.pk)
+        today = date.today()
+        first = today.replace(day=1)
 
+        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
+        if not queryset.exists():
+            # Todo: Handle race conditions
+            cls.objects.create(user_id=user.pk, timestamp=first)
 
 class KobocatUser(ShadowModel):
 
@@ -385,10 +396,7 @@ class KobocatUserObjectPermission(ShadowModel):
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
     object_pk = models.CharField('object ID', max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
-    # It's okay not to use `KobocatUser` as long as PKs are synchronized
-    user = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
-        on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
 
     class Meta(ShadowModel.Meta):
         db_table = 'guardian_userobjectpermission'
@@ -460,10 +468,25 @@ class KobocatUserProfile(ShadowModel):
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(User, null=True, blank=True,
+    created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
+    # We need to cast `is_active` to an (positive small) integer because KoBoCAT
+    # is using `LazyBooleanField` which is an integer behind the scene.
+    # We do not want to port this class to KPI only for one line of code.
+    is_mfa_active = models.PositiveSmallIntegerField(default=False)
+
+    @classmethod
+    def set_mfa_status(cls, user_id: int, is_active: bool):
+
+        try:
+            user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        except cls.DoesNotExist:
+            pass
+        else:
+            user_profile.is_mfa_active = int(is_active)
+            user_profile.save(update_fields=['is_mfa_active'])
 
 
 class KobocatToken(ShadowModel):
@@ -511,7 +534,9 @@ class KobocatXForm(ShadowModel):
     uuid = models.CharField(max_length=32, default='')
     last_submission_time = models.DateTimeField(blank=True, null=True)
     num_of_submissions = models.IntegerField(default=0)
+    kpi_asset_uid = models.CharField(max_length=32, null=True)
 
+    ### TMP CODE from Gallery
     @property
     def questions(self):
         try:
@@ -535,6 +560,7 @@ class KobocatXForm(ShadowModel):
             return _questions
         except ValueError:
             return []
+    ### TMP CODE from Gallery
 
     @property
     def pack(self):
@@ -580,47 +606,63 @@ class ReadOnlyModel(ShadowModel):
         raise ReadOnlyModelError('Cannot use read-only-model to upload assets')
 
 
-class ReadOnlyKobocatAttachment(ReadOnlyModel):
+class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
-        verbose_name = 'attachment'
-        verbose_name_plural = 'attachments'
 
     instance = models.ForeignKey(
         'superuser_stats.ReadOnlyKobocatInstance',
         related_name='attachments',
         on_delete=models.CASCADE,
     )
-    media_file = models.FileField(upload_to=ReadOnlyModel.upload_to,
-                                  max_length=380)
-    mimetype = models.CharField(max_length=50, null=False, blank=True,
-                                default='')
+    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
+                                  db_index=True)
+    media_file_basename = models.CharField(
+        max_length=260, null=True, blank=True, db_index=True)
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
+    # `PositiveBigIntegerField` after upgrading to Django 3.1+
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(
+        max_length=100, null=False, blank=True, default=''
+    )
+    # TODO: hide attachments that were deleted or replaced; see
+    # kobotoolbox/kobocat#792
+    # replaced_at = models.DateTimeField(blank=True, null=True)
 
+    @property
+    def absolute_mp3_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.mp3_storage_path):
+            content = self.get_mp3_content()
+            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
+
+        if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
+            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
+
+        return kobocat_storage.url(self.mp3_storage_path)
+
+    @property
+    def absolute_path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+            return self.media_file.path
+
+        return self.media_file.url
+
+    ### TMP CODE from Gallery
     @property
     def filename(self):
         return os.path.basename(self.media_file.name)
-
-    @property
-    def question_name(self):
-
-        qa_dict = self.instance.json
-        filename = self.filename
-        if filename in qa_dict.values():
-            return list(qa_dict)[
-                list(qa_dict.values()).index(filename)]
-
-        # Kludgy way to find a match when filename contains a space.
-        # Django saves the name without any spaces
-        # Need some optimizations.
-        questions = self.instance.xform.questions
-        for key, value in qa_dict.items():
-            for question in questions:
-                if key == question['name'] and question['type'] == 'image':
-                    if get_valid_filename(value) == filename:
-                        return key
-
-        return None
 
     @property
     def question(self):
@@ -643,6 +685,66 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
 
         return self.question['number']
 
+    @property
+    def question_name(self):
+
+        qa_dict = self.instance.json
+        filename = self.filename
+        if filename in qa_dict.values():
+            return list(qa_dict)[
+                list(qa_dict.values()).index(filename)]
+
+        # Kludgy way to find a match when filename contains a space.
+        # Django saves the name without any spaces
+        # Need some optimizations.
+        questions = self.instance.xform.questions
+        for key, value in qa_dict.items():
+            for question in questions:
+                if key == question['name'] and question['type'] == 'image':
+                    if get_valid_filename(value) == filename:
+                        return key
+
+        return None
+    ### END TMP CODE from Gallery
+
+    @property
+    def mp3_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT}'
+
+    def protected_path(self, format_: Optional[str] = None):
+        """
+        Return path to be served as protected file served by NGINX
+        """
+
+        if format_ == self.CONVERSION_AUDIO_FORMAT:
+            attachment_file_path = self.absolute_mp3_path
+        else:
+            attachment_file_path = self.absolute_path
+
+        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            protected_url = urlquote(attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_PATH, '/protected')
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    @property
+    def storage_path(self):
+        return str(self.media_file)
+
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
@@ -654,7 +756,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     xml = models.TextField()
     json = JSONField(default={}, null=False)
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
@@ -687,6 +789,7 @@ def safe_kc_read(func):
         try:
             return func(*args, **kwargs)
         except ProgrammingError as e:
-            raise ProgrammingError('kc_access error accessing kobocat '
-                                   'tables: {}'.format(e.message))
+            raise ProgrammingError(
+                'kc_access error accessing kobocat tables: {}'.format(str(e))
+            )
     return _wrapper

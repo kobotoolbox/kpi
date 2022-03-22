@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from formpack.constants import (
@@ -29,6 +29,8 @@ from kpi.utils.export_task import format_exception_values
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
+    data_url_csv = serializers.SerializerMethodField()
+    data_url_xlsx = serializers.SerializerMethodField()
     name = serializers.CharField(allow_blank=True)
     date_modified = serializers.CharField(read_only=True)
     export_settings = WritableJSONField()
@@ -38,6 +40,8 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         fields = (
             'uid',
             'url',
+            'data_url_csv',
+            'data_url_xlsx',
             'name',
             'date_modified',
             'export_settings',
@@ -56,7 +60,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         for required in REQUIRED_EXPORT_SETTINGS:
             if required not in export_settings:
                 raise serializers.ValidationError(
-                    _(
+                    t(
                         "`export_settings` must contain all the following "
                         "required keys: {}"
                     ).format(
@@ -67,7 +71,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         for key in export_settings:
             if key not in VALID_EXPORT_SETTINGS:
                 raise serializers.ValidationError(
-                    _(
+                    t(
                         "`export_settings` can contain only the following "
                         "valid keys: {}"
                     ).format(
@@ -80,14 +84,14 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             not in VALID_MULTIPLE_SELECTS
         ):
             raise serializers.ValidationError(
-                _("`multiple_select` must be either {}").format(
+                t("`multiple_select` must be either {}").format(
                     format_exception_values(VALID_MULTIPLE_SELECTS)
                 )
             )
 
         if export_settings[EXPORT_SETTING_TYPE] not in VALID_EXPORT_TYPES:
             raise serializers.ValidationError(
-                _("`type` must be either {}").format(
+                t("`type` must be either {}").format(
                     format_exception_values(VALID_EXPORT_TYPES)
                 )
             )
@@ -97,12 +101,12 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             and len(export_settings[EXPORT_SETTING_GROUP_SEP]) == 0
         ):
             raise serializers.ValidationError(
-                _('`group_sep` must be a non-empty value')
+                t('`group_sep` must be a non-empty value')
             )
 
         if export_settings[EXPORT_SETTING_LANG] not in all_valid_languages:
             raise serializers.ValidationError(
-                _("`lang` for this asset must be either {}").format(
+                t("`lang` for this asset must be either {}").format(
                     format_exception_values(all_valid_languages)
                 )
             )
@@ -112,7 +116,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             and not isinstance(export_settings[EXPORT_SETTING_QUERY], dict)
         ):
             raise serializers.ValidationError(
-                {EXPORT_SETTING_QUERY: _('Must be a JSON object')}
+                {EXPORT_SETTING_QUERY: t('Must be a JSON object')}
             )
 
         submission_ids = export_settings.get(EXPORT_SETTING_SUBMISSION_IDS, [])
@@ -126,7 +130,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(
                 {
-                    EXPORT_SETTING_SUBMISSION_IDS: _(
+                    EXPORT_SETTING_SUBMISSION_IDS: t(
                         'All values in the array must be integers'
                     )
                 }
@@ -138,11 +142,11 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         fields = export_settings[EXPORT_SETTING_FIELDS]
         if not isinstance(fields, list):
-            raise serializers.ValidationError(_('`fields` must be an array'))
+            raise serializers.ValidationError(t('`fields` must be an array'))
 
         if not all((isinstance(field, str) for field in fields)):
             raise serializers.ValidationError(
-                _('All values in the `fields` array must be strings')
+                t('All values in the `fields` array must be strings')
             )
 
         # `flatten` is used for geoJSON exports only and is ignored otherwise
@@ -151,10 +155,32 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         return export_settings
 
-    def get_url(self, obj: Asset) -> str:
+    def get_url(self, obj: AssetExportSettings) -> str:
         return reverse(
             'asset-export-settings-detail',
             args=(obj.asset.uid, obj.uid),
+            request=self.context.get('request', None),
+        )
+
+    def get_data_url_csv(self, obj: AssetExportSettings) -> str:
+        return reverse(
+            'asset-export-settings-synchronous-data',
+            kwargs={
+                'parent_lookup_asset': obj.asset.uid,
+                'uid': obj.uid,
+            },
+            format='csv',
+            request=self.context.get('request', None),
+        )
+
+    def get_data_url_xlsx(self, obj: AssetExportSettings) -> str:
+        return reverse(
+            'asset-export-settings-synchronous-data',
+            kwargs={
+                'parent_lookup_asset': obj.asset.uid,
+                'uid': obj.uid,
+            },
+            format='xlsx',
             request=self.context.get('request', None),
         )
 

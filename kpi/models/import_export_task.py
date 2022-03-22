@@ -1,28 +1,32 @@
 # coding: utf-8
+
 import base64
 import datetime
+import dateutil.parser
 import posixpath
+import pytz
 import re
 import tempfile
+import time
 from collections import defaultdict
 from io import BytesIO
-from os.path import splitext
-from urllib.parse import urlparse
+from os.path import split, splitext
+from typing import List, Dict, Optional, Tuple, Generator
 
-import dateutil.parser
-import pytz
+import constance
 import requests
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
-from django.urls import Resolver404, resolve
 from django.db import models, transaction
+from django.urls import reverse
+from django.utils.translation import gettext as t
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
-import formpack.constants
+import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -31,8 +35,8 @@ from formpack.schema.fields import (
     TagsCopyField,
     ValidationStatusCopyField,
 )
-from formpack.utils.string import ellipsize
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
+from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
@@ -40,20 +44,24 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     PERM_CHANGE_ASSET,
-    PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
+from kpi.fields import KpiUidField
+from kpi.models import Asset
 from kpi.utils.log import logging
-from kpi.utils.strings import to_str
-from kpi.utils.rename_xls_sheet import (
-    rename_xls_sheet, NoFromSheetError, ConflictSheetError,
+from kpi.utils.models import (
+    _load_library_content,
+    create_assets,
+    resolve_url_to_asset,
 )
-
-from ..fields import KpiUidField
-from kpi.utils.models import create_assets, _load_library_content, \
-    remove_string_prefix
-from ..models import Asset
-from ..zip_importer import HttpContentParse
+from kpi.utils.rename_xls_sheet import (
+    rename_xls_sheet,
+    NoFromSheetError,
+    ConflictSheetError,
+)
+from kpi.utils.strings import to_str
+from kpi.zip_importer import HttpContentParse
 
 
 def utcnow(*args, **kwargs):
@@ -61,22 +69,7 @@ def utcnow(*args, **kwargs):
     Stupid, and exists only to facilitate mocking during unit testing.
     If you know of a better way, please remove this.
     """
-    return datetime.datetime.utcnow()
-
-
-def _resolve_url_to_asset(item_path):
-    # TODO: is this still necessary now that `Collection` has been removed?
-    if item_path.startswith(('http', 'https')):
-        item_path = urlparse(item_path).path
-    try:
-        match = resolve(item_path)
-    except Resolver404:
-        # If the app is mounted in uWSGI with a path prefix, try to resolve
-        # again after removing the prefix
-        match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
-
-    uid = match.kwargs.get('uid')
-    return Asset.objects.get(uid=uid)
+    return datetime.datetime.now(tz=pytz.UTC)
 
 
 class ImportExportTask(models.Model):
@@ -134,6 +127,12 @@ class ImportExportTask(models.Model):
             # This method must be implemented by a subclass
             self._run_task(msgs)
             self.status = self.COMPLETE
+        except ExportTaskBase.InaccessibleData as e:
+            msgs['error_type'] = t('Cannot access data')
+            msg['error'] = str(e)
+            self.status = self.ERROR
+        # TODO: continue to make more specific exceptions as above until this
+        # catch-all can be removed entirely
         except Exception as err:
             msgs['error_type'] = type(err).__name__
             msgs['error'] = str(err)
@@ -172,7 +171,7 @@ class ImportTask(ImportExportTask):
 
         if 'destination' in self.data and self.data['destination']:
             _d = self.data.get('destination')
-            dest_item = _resolve_url_to_asset(_d)
+            dest_item = resolve_url_to_asset(_d)
             if not dest_item.has_perm(self.user, PERM_CHANGE_ASSET):
                 raise exceptions.PermissionDenied('user cannot update asset')
             else:
@@ -395,7 +394,7 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class ExportTask(ImportExportTask):
+class ExportTaskBase(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
@@ -461,24 +460,13 @@ class ExportTask(ImportExportTask):
     # Above 244 seems to cause 'Download error' in Chrome 64/Linux
     MAXIMUM_FILENAME_LENGTH = 240
 
+    class InaccessibleData(Exception):
+        def __str__(self):
+            return t('This data does not exist or you do not have access to it')
+
     class Meta:
+        abstract = True
         ordering = ['-date_created']
-
-    @property
-    def _hierarchy_in_labels(self):
-        hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
-        # v1 exports expects a string
-        if isinstance(hierarchy_in_labels, str):
-            return hierarchy_in_labels.lower() == 'true'
-        return hierarchy_in_labels
-
-    @property
-    def _fields_from_all_versions(self):
-        fields_from_versions = self.data.get('fields_from_all_versions', True)
-        # v1 exports expects a string
-        if isinstance(fields_from_versions, str):
-            return fields_from_versions.lower() == 'true'
-        return fields_from_versions
 
     def _build_export_filename(self, export, export_type):
         """
@@ -528,7 +516,7 @@ class ExportTask(ImportExportTask):
         filename = filename_template.format(title=title, lang=lang)
         return filename
 
-    def _build_export_options(self, pack):
+    def _build_export_options(self, pack: formpack.FormPack) -> Dict:
         """
         Internal method to build formpack `Export` constructor arguments based
         on the options set in `self.data`
@@ -563,6 +551,51 @@ class ExportTask(ImportExportTask):
             'include_media_url': include_media_url,
         }
 
+    @property
+    def _fields_from_all_versions(self) -> bool:
+        fields_from_versions = self.data.get('fields_from_all_versions', True)
+        # v1 exports expects a string
+        if isinstance(fields_from_versions, str):
+            return fields_from_versions.lower() == 'true'
+        return fields_from_versions
+
+    @staticmethod
+    def _get_fields_and_groups(fields: List[str]) -> List[str]:
+        """
+        Ensure repeat groups are included when filtering for specific fields by
+        appending the path items. For example, a field with path of
+        `group1/group2/field` will be added to the list as:
+        ['group1/group2/field', 'group1/group2', 'group1']
+        """
+        if not fields:
+            return []
+
+        # Some fields are attached to the submission and must be included in
+        # addition to the user-selected fields
+        additional_fields = ['_attachments']
+
+        field_groups = set()
+        for field in fields:
+            if '/' not in field:
+                continue
+            items = []
+            while field:
+                _path = split(field)[0]
+                if _path:
+                    items.append(_path)
+                field = _path
+            field_groups.update(items)
+        fields += list(field_groups) + additional_fields
+        return fields
+
+    @property
+    def _hierarchy_in_labels(self) -> bool:
+        hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
+        # v1 exports expects a string
+        if isinstance(hierarchy_in_labels, str):
+            return hierarchy_in_labels.lower() == 'true'
+        return hierarchy_in_labels
+
     def _record_last_submission_time(self, submission_stream):
         """
         Internal generator that yields each submission in the given
@@ -593,62 +626,20 @@ class ExportTask(ImportExportTask):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-        fields = self.data.get('fields', [])
-        flatten = self.data.get('flatten', True)
-        query = self.data.get('query', {})
         source_url = self.data.get('source', False)
-        submission_ids = self.data.get('submission_ids', [])
-
-        if not source_url:
-            raise Exception('no source specified for the export')
-        source = _resolve_url_to_asset(source_url)
-        source_perms = source.get_perms(self.user)
-
-        if (PERM_VIEW_SUBMISSIONS not in source_perms and
-                PERM_PARTIAL_SUBMISSIONS not in source_perms):
-            # Unsure if DRF exceptions make sense here since we're not
-            # returning a HTTP response
-            raise exceptions.PermissionDenied(
-                '{user} cannot export {source}'.format(
-                    user=self.user, source=source)
-            )
-
-        if not source.has_deployment:
-            raise Exception('the source must be deployed prior to export')
-
+        flatten = self.data.get('flatten', True)
         export_type = self.data.get('type', '').lower()
+        if export_type == 'xlsx':
+            # Excel exports are always returned in XLSX format, but they're
+            # referred to internally as `xls`
+            export_type = 'xls'
         if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
             raise NotImplementedError(
                 'only `xls`, `csv`, `geojson`, and `spss_labels` '
                 'are valid export types'
             )
 
-        # Take this opportunity to do some housekeeping
-        self.log_and_mark_stuck_as_errored(self.user, source_url)
-
-        # Include the group name in `fields` for Mongo to correctly filter
-        # for repeat groups
-        if fields:
-            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
-            fields += list(field_groups)
-
-        submission_stream = source.deployment.get_submissions(
-            user=self.user,
-            fields=fields,
-            submission_ids=submission_ids,
-            query=query,
-        )
-
-        pack, submission_stream = build_formpack(
-            source, submission_stream, self._fields_from_all_versions)
-
-        # Wrap the submission stream in a generator that records the most
-        # recent timestamp
-        submission_stream = self._record_last_submission_time(
-            submission_stream)
-
-        options = self._build_export_options(pack)
-        export = pack.export(**options)
+        export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
         self.result.save(filename, ContentFile(''))
         # FileField files are opened read-only by default and must be
@@ -694,9 +685,63 @@ class ExportTask(ImportExportTask):
         self.result.open('rb')
         self.save(update_fields=['last_submission_time'])
 
-        # Now that a new export has completed successfully, remove any old
-        # exports in excess of the per-user, per-form limit
-        self.remove_excess(self.user, source_url)
+    def delete(self, *args, **kwargs):
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
+
+    def get_export_object(
+        self, source: Optional[Asset] = None
+    ) -> Tuple[formpack.reporting.Export, Generator]:
+        """
+        Get the formpack Export object and submission stream for processing.
+        """
+
+        fields = self.data.get('fields', [])
+        query = self.data.get('query', {})
+        submission_ids = self.data.get('submission_ids', [])
+
+        if source is None:
+            source_url = self.data.get('source', False)
+            if not source_url:
+                raise Exception('no source specified for the export')
+            try:
+                source = resolve_url_to_asset(source_url)
+            except Asset.DoesNotExist:
+                raise self.InaccessibleData
+
+        source_perms = source.get_perms(self.user)
+        if (
+            PERM_VIEW_SUBMISSIONS not in source_perms
+            and PERM_PARTIAL_SUBMISSIONS not in source_perms
+        ):
+            raise self.InaccessibleData
+
+        if not source.has_deployment:
+            raise Exception('the source must be deployed prior to export')
+
+        # Include the group name in `fields` for Mongo to correctly filter
+        # for repeat groups
+        fields = self._get_fields_and_groups(fields)
+        submission_stream = source.deployment.get_submissions(
+            user=self.user,
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
+        )
+
+        pack, submission_stream = build_formpack(
+            source, submission_stream, self._fields_from_all_versions
+        )
+
+        # Wrap the submission stream in a generator that records the most
+        # recent timestamp
+        submission_stream = self._record_last_submission_time(
+            submission_stream
+        )
+
+        options = self._build_export_options(pack)
+        return pack.export(**options), submission_stream
 
     @classmethod
     @transaction.atomic
@@ -754,10 +799,81 @@ class ExportTask(ImportExportTask):
         for export in excess_exports:
             export.delete()
 
-    def delete(self, *args, **kwargs):
-        # removing exported file from storage
-        self.result.delete(save=False)
-        super().delete(*args, **kwargs)
+
+
+class ExportTask(ExportTaskBase):
+    """
+    An asynchronous export task, to be run with Celery
+    """
+    def _run_task(self, messages):
+        try:
+            source_url = self.data['source']
+        except KeyError:
+            raise Exception('no source specified for the export')
+
+        # Take this opportunity to do some housekeeping
+        self.log_and_mark_stuck_as_errored(self.user, source_url)
+
+        super()._run_task(messages)
+
+        # Now that a new export has completed successfully, remove any old
+        # exports in excess of the per-user, per-form limit
+        self.remove_excess(self.user, source_url)
+
+
+class SynchronousExport(ExportTaskBase):
+    """
+    A synchronous export, with significant limitations on processing time, but
+    offered for user convenience
+    """
+    FORMAT_TYPE_CHOICES = (('csv', 'csv'), ('xlsx', 'xlsx'))
+    # these fields duplicate information already in `data`, but a
+    # `unique_together` cannot reference things inside a json object
+    asset_export_settings = models.ForeignKey(
+        'kpi.AssetExportSettings', on_delete=models.CASCADE
+    )
+    format_type = models.CharField(choices=FORMAT_TYPE_CHOICES, max_length=32)
+
+    class Meta:
+        unique_together = (('user', 'asset_export_settings', 'format_type'),)
+
+    @classmethod
+    def generate_or_return_existing(cls, user, asset_export_settings):
+        age_cutoff = utcnow() - datetime.timedelta(
+            seconds=constance.config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
+        )
+        format_type = asset_export_settings.export_settings['type']
+        data = asset_export_settings.export_settings.copy()
+        data['source'] = reverse(
+            'asset-detail', args=[asset_export_settings.asset.uid]
+        )
+        criteria = {
+            'user': user,
+            'asset_export_settings': asset_export_settings,
+            'format_type': format_type,
+        }
+
+        # An object (a row) must be created (inserted) before it can be locked
+        cls.objects.get_or_create(**criteria, defaults={'data': data})
+
+        with transaction.atomic():
+            # Lock the object (and block until a lock can be obtained) to
+            # prevent the same export from running concurrently
+            export = cls.objects.select_for_update().get(**criteria)
+
+            if (
+                export.status == cls.COMPLETE
+                and export.date_created >= age_cutoff
+            ):
+                return export
+
+            export.data = data
+            export.status = cls.CREATED
+            export.date_created = utcnow()
+            export.result.delete(save=False)
+            export.save()
+            export.run()
+            return export
 
 
 def _b64_xls_to_dict(base64_encoded_upload):

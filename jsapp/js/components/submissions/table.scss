@@ -178,7 +178,7 @@ $z-table-frozen: 10;
 
       input.checkbox__input {
         // override the very specific styles that react-table gives to header filter `input`s that is causing our Checkbox component to fail
-        @extend .checkbox__input;
+        @extend .checkbox__input !optional; // ADDED by Olivier Leger to fix conflicts. TODO Review
       }
     }
 
@@ -327,7 +327,7 @@ $z-table-frozen: 10;
       }
 
       &:hover {
-        color: colors.$kobo-blue-dark;
+        color: colors.$kobo-dark-blue;
         background: transparent;
       }
 
@@ -462,11 +462,11 @@ $z-table-frozen: 10;
   }
 
   .rt-th.is-sorted {
-    background-color: colors.$kobo-teal-white;
+    background-color: rgba(colors.$kobo-light-teal, 0.5);
   }
 
   .rt-td.is-sorted {
-    background-color: colors.$kobo-teal-white-light;
+    background-color: rgba(colors.$kobo-light-teal, 0.2);
   }
 
   // NOTE: submissions actions column is always frozen as first column

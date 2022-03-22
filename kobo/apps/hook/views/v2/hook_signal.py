@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.http import Http404
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.pagination import _positive_int as positive_int
@@ -51,7 +51,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 request.data.get('submission_id'), strict=True)
         except ValueError:
             raise serializers.ValidationError(
-                {'submission_id': _('A positive integer is required.')})
+                {'submission_id': t('A positive integer is required.')})
 
         # Check if instance really belongs to Asset.
         try:
@@ -67,7 +67,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # Follow Open Rosa responses by default
             response_status_code = status.HTTP_202_ACCEPTED
             response = {
-                "detail": _(
+                "detail": t(
                     "We got and saved your data, but may not have "
                     "fully processed it. You should not try to resubmit.")
             }
@@ -76,7 +76,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # instance already has a `HookLog`
             response_status_code = status.HTTP_409_CONFLICT
             response = {
-                "detail": _(
+                "detail": t(
                     "Your data for instance {} has been already "
                     "submitted.".format(submission_id))
             }

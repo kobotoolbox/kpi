@@ -1,4 +1,6 @@
+@use "scss/sizes";
 @use "scss/_colors";
+@use "scss/_variables";
 
 // TODO: cleanup the other places
 // this copies a lot of global styles defined in _kobo.bem.ui.scss
@@ -10,9 +12,10 @@ label.text-box {
   &.text-box--error {
     color: colors.$kobo-red;
 
+    textarea.text-box__input,
     input.text-box__input {
       // Don't type red if there is an error
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-24;
       border-bottom-color: colors.$kobo-red;
     }
   }
@@ -20,15 +23,17 @@ label.text-box {
   &.text-box--on-white input.text-box__input,
   &.text-box--on-white textarea.text-box__input {
     border-color: colors.$kobo-gray-92;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 6px;
 
     &:focus {
       border-color: colors.$kobo-blue;
     }
   }
 
-  &.text-box--on-white.text-box--error input.text-box__input {
+  &.text-box--on-white.text-box--error input.text-box__input,
+  &.text-box--on-white.text-box--error textarea.text-box__input {
     border-color: colors.$kobo-red;
   }
 
@@ -43,11 +48,23 @@ label.text-box {
     }
   }
 
+  .text-box__label {
+    font-size: sizes.$x13;
+    line-height: sizes.$x16;
+  }
+
+  .text-box__label + textarea.text-box__input,
+  .text-box__label + input.text-box__input {
+    margin-top: 5px;
+  }
+
+  textarea.text-box__input,
   input.text-box__input {
     width: 100%;
     padding: 5px 0px;
-    font-size: 14px;
-    color: inherit;
+    margin: 0;
+    font-size: variables.$base-font-size;
+    color: colors.$kobo-gray-24;
     background-color: transparent;
     border: 1px solid transparent;
     border-bottom-color: colors.$kobo-gray-85;
@@ -68,7 +85,8 @@ label.text-box {
     }
 
     &::placeholder {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-65;
+      opacity: 1;
     }
   }
 
@@ -85,4 +103,11 @@ label.text-box {
       border-bottom-color: colors.$kobo-blue;
     }
   }
+
+  .text-box__error {
+    font-size: 13px;
+    font-weight: 400;
+    font-style: normal;
+  }
+
 }

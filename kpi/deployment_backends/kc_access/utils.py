@@ -6,7 +6,7 @@ from typing import Union
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError, ProgrammingError, transaction
 from django.db.models import Model
@@ -66,7 +66,7 @@ def last_submission_time(xform_id_string, user_id):
 @safe_kc_read
 def get_kc_profile_data(user_id):
     """
-    Retrieve all fields from the user's KC profile and  return them in a
+    Retrieve all fields from the user's KC profile and return them in a
     dictionary
     """
     try:
@@ -308,15 +308,16 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
 
 
 @transaction.atomic()
-def assign_applicable_kc_permissions(obj, user, kpi_codenames):
-    r"""
-        Assign the `user` the applicable KC permissions to `obj`, if any
-        exists, given one KPI permission codename as a single string or many
-        codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
-        not have a deployment, take no action.
-        :param obj: Any Django model instance
-        :type user: :py:class:`User` or :py:class:`AnonymousUser`
-        :type kpi_codenames: str or list(str)
+def assign_applicable_kc_permissions(
+    obj: Model,
+    user: Union[AnonymousUser, User, int],
+    kpi_codenames: Union[str, list]
+):
+    """
+    Assign the `user` the applicable KC permissions to `obj`, if any
+    exists, given one KPI permission codename as a single string or many
+    codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
+    not have a deployment, take no action.
     """
     if not obj._meta.model_name == 'asset':
         return
@@ -326,20 +327,33 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if is_user_anonymous(user):
+
+    # Retrieve primary key from user object and use it on subsequent queryset.
+    # It avoids loading the object when `user` is passed as an integer.
+    if not isinstance(user, int):
+        if is_user_anonymous(user):
+            user_id = settings.ANONYMOUS_USER_ID
+        else:
+            user_id = user.pk
+    else:
+        user_id = user
+
+    if user_id == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
+
     xform_content_type = KobocatContentType.objects.get(
         **obj.KC_CONTENT_TYPE_KWARGS)
+
     kc_permissions_already_assigned = KobocatUserObjectPermission.objects.filter(
-        user=user, permission__in=permissions, object_pk=xform_id,
+        user_id=user.pk, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(KobocatUserObjectPermission(
-            user=user, permission=permission, object_pk=xform_id,
+            user_id=user.pk, permission=permission, object_pk=xform_id,
             content_type=xform_content_type
         ))
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)

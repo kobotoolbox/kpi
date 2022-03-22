@@ -11,6 +11,10 @@ class KpiConfig(AppConfig):
     name = 'kpi'
 
     def ready(self, *args, **kwargs):
+        # Register signals only when the app is ready to avoid issues with models
+        # not loaded yet.
+        import kpi.signals
+
         # Once it's okay to read from the database, apply the user-desired
         # autoscaling configuration for Celery workers
         from kobo.celery import update_concurrency_from_constance
