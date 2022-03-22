@@ -1,5 +1,6 @@
 @use "scss/_colors";
-@use "js/components/common/checkbox-and-radio";
+
+@import "js/components/common/checkbox-and-radio";
 
 // These are custom styles for Table View table.
 
@@ -178,7 +179,7 @@ $z-table-frozen: 10;
 
       input.checkbox__input {
         // override the very specific styles that react-table gives to header filter `input`s that is causing our Checkbox component to fail
-        @extend .checkbox__input !optional; // TODO Review `!optional` added by Olivier Léger to fix conflicts.
+        @extend .checkbox__input;
       }
     }
 
