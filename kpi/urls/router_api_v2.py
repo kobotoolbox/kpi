@@ -11,7 +11,7 @@ from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
-from kpi.views.v2.attachment import AttachmentViewSet
+from kpi.views.v2.attachment import AttachmentViewSet, GalleryAttachmentViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
@@ -60,9 +60,9 @@ URL_NAMESPACE = 'api_v2'
 router_api_v2 = ExtendedDefaultRouterWithPathAliases()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
-asset_routes.register(r'attachments',
-                      AttachmentViewSet,
-                      basename='asset-attachment',
+asset_routes.register(r'gallery-attachments',
+                      GalleryAttachmentViewSet,
+                      basename='asset-gallery-attachment',
                       parents_query_lookups=['asset'],
                       )
 

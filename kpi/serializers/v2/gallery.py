@@ -205,7 +205,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         asset_uid = self.context.get('asset_uid')
         url = reverse(
-            'asset-attachment-detail',
+            'asset-gallery-attachment-detail',
             args=(
                 asset_uid,
                 obj.id,

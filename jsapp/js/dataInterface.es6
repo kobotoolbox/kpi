@@ -595,8 +595,12 @@ export var dataInterface;
       });
     },
     filterGalleryImages(uid, filter_by, page_size, sort='asc', all_versions=true){
+      /*
+        Temporary change: `/attachments/` to `/gallery-attachments/`
+        TODO revert when back end is fixed
+      */
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/gallery-attachments/`,
         method: 'GET',
         data: {
           type: 'image',
@@ -608,8 +612,12 @@ export var dataInterface;
       });
     },
     loadMoreAttachments(uid, filter_by, index, page, page_size, sort='asc', all_versions=true){
+      /*
+        Temporary change: `/attachments/` to `/gallery-attachments/`
+        TODO revert when back end is fixed
+      */
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/gallery-attachments/`,
         method: 'GET',
         data: {
           type: 'image',
@@ -623,8 +631,12 @@ export var dataInterface;
       });
     },
     loadMoreRecords(uid, filter_by, page, page_size, all_versions=true){
+      /*
+        Temporary change: `/attachments/` to `/gallery-attachments/`
+        TODO revert when back end is fixed
+      */
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/gallery-attachments/`,
         method: 'GET',
         data: {
           type: 'image',
