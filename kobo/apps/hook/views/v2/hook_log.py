@@ -6,14 +6,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.hook.constants import (
-    HOOK_LOG_FAILED,
-    HOOK_LOG_PENDING,
-    HOOK_LOG_SUCCESS,
-    KOBO_INTERNAL_ERROR_STATUS_CODE,
-)
+from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from kobo.apps.hook.models.hook_log import HookLog
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
+from kobo.apps.hook.filters import HookLogFilter
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -84,7 +80,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     serializer_class = HookLogSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     pagination_class = TinyPaginated
-    VALID_STATUSES = [HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS]
+    filter_backends = (HookLogFilter,)
 
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get("hook")
@@ -95,42 +91,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # Django 1.9+, "select_related() prohibits non-relational fields for
         # nested relations."
         queryset = queryset.select_related('hook__asset')
-
-        # Filter on status
-        status = self.request.GET.get('status')
-        if status is not None:
-            if status not in map(str, self.VALID_STATUSES):
-                raise serializers.ValidationError(
-                    {'status': t('Value must be one of: ' +
-                                 ', '.join(map(str, self.VALID_STATUSES)))}
-                )
-            else:
-                queryset = queryset.filter(status=status)
-
-        # Filter on date range
-        start = self.request.GET.get('start')
-        if start is not None:
-            try:
-                start_date = datetime.fromisoformat(start)
-                if not start_date.tzname():
-                    start_date = start_date.replace(tzinfo=timezone.utc)
-                queryset = queryset.filter(date_modified__gte=start_date)
-            except ValueError:
-                raise serializers.ValidationError(
-                    {'start': t('Value must be a valid ISO-8601 date')}
-                )
-
-        end = self.request.GET.get('end')
-        if end is not None:
-            try:
-                end_date = datetime.fromisoformat(end)
-                if not end_date.tzname():
-                    end_date = end_date.replace(tzinfo=timezone.utc)
-                queryset = queryset.filter(date_modified__lt=end_date)
-            except ValueError:
-                raise serializers.ValidationError(
-                    {'end': t('Value must be a valid ISO-8601 date')}
-                )
 
         return queryset
 
