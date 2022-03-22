@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import logging
+from contextlib import ContextDecorator
 from typing import Union
 
 import requests
@@ -9,6 +10,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError, ProgrammingError, transaction
 from django.db.models import Model
+from django.db.transaction import Atomic
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
@@ -422,3 +424,40 @@ def delete_kc_users(deleted_pks: list) -> bool:
         return False
 
     return True
+
+
+def kc_transaction_atomic(using=None, savepoint=True):
+    """
+    KoBoCAT database does not exist in testing environment.
+    `transaction.atomic(using='kobocat') cannot be called without raising errors.
+
+    This utility returns an a context manager which does nothing if environment
+    is set to `TESTING`. Otherwise, it returns a real context manager which
+    provides transactions support.
+    """
+    class DummyAtomic(ContextDecorator):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            pass
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            pass
+
+    if settings.TESTING:
+        # Bare decorator: @atomic -- although the first argument is called
+        # `using`, it's actually the function being decorated.
+        if callable(using):
+            return DummyAtomic()(using)
+        else:
+            return DummyAtomic()
+
+    # Copied from django.db.transaction.atomic
+    # Bare decorator: @atomic -- although the first argument is called
+    # `using`, it's actually the function being decorated.
+    if callable(using):
+        return Atomic('kobocat', savepoint)(using)
+    # Decorator: @atomic(...) or context manager: with atomic(...): ...
+    else:
+        return Atomic('kobocat', savepoint)

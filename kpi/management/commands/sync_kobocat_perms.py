@@ -3,12 +3,12 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.models import Asset, ObjectPermission
 from kpi.deployment_backends.kc_access.utils import (
-    assign_applicable_kc_permissions
+    assign_applicable_kc_permissions,
+    kc_transaction_atomic,
 )
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserObjectPermission
@@ -92,7 +92,7 @@ class Command(BaseCommand):
 
             if options['mirror_kpi']:
 
-                with transaction.atomic(using='kobocat'):
+                with kc_transaction_atomic():
                     kc_user_obj_perm_qs = (
                         KobocatUserObjectPermission.objects.filter(
                             object_pk=asset.deployment.xform_id
@@ -118,7 +118,7 @@ class Command(BaseCommand):
                         f'\t\tAffected users: {affected_users}'
                     )
 
-                with transaction.atomic(using='kobocat'):
+                with kc_transaction_atomic():
                     self._copy_perms_from_kpi_to_kc(asset)
 
         if self._verbosity >= 1:

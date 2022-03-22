@@ -5,7 +5,10 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.db import transaction
 
-from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
+from kpi.deployment_backends.kc_access.utils import (
+    grant_kc_model_level_perms,
+    kc_transaction_atomic,
+)
 from kpi.utils.permissions import grant_default_model_level_perms
 
 
@@ -17,7 +20,7 @@ class Command(BaseCommand):
         last_progress_message_length = 0
         for user in existing_users:
             with transaction.atomic():
-                with transaction.atomic(using='kobocat'):
+                with kc_transaction_atomic():
                     grant_default_model_level_perms(user)
                     grant_kc_model_level_perms(user)
                     counter += 1

@@ -33,7 +33,6 @@ from .storage import (
     KobocatS3Boto3Storage,
 )
 
-
 def update_autofield_sequence(model):
     """
     Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
@@ -122,22 +121,26 @@ class KobocatDigestPartial(ShadowModel):
         db_table = "django_digest_partialdigest"
 
     @classmethod
-    @transaction.atomic(using='kobocat')
     def sync(cls, user):
         """
         Mimics the behavior of `django_digest.models._store_partial_digests()`,
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
+        # Because of circular imports, we cannot decorate the method with
+        # `@kc_transaction_atomic`
+        from .utils import kc_transaction_atomic
+
+        with kc_transaction_atomic():
+            cls.objects.filter(user=user).delete()
+            # Query for `user_id` since user PKs are synchronized
+            for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+                cls.objects.create(
+                    user=user,
+                    login=partial_digest.login,
+                    confirmed=partial_digest.confirmed,
+                    partial_digest=partial_digest.partial_digest,
+                )
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -343,7 +346,7 @@ class KobocatUser(ShadowModel):
         db_table = 'auth_user'
 
     @classmethod
-    @transaction.atomic(using='kobocat')
+    @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT

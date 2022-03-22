@@ -18,7 +18,8 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
-    assign_applicable_kc_permissions
+    assign_applicable_kc_permissions,
+    kc_transaction_atomic,
 )
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
@@ -76,7 +77,7 @@ class ObjectPermissionMixin:
         return assignable_permissions
 
     @transaction.atomic
-    @transaction.atomic(using='kobocat')
+    @kc_transaction_atomic
     def copy_permissions_from(self, source_object):
         """
         Copies permissions from `source_object` to `self` object.
@@ -422,7 +423,7 @@ class ObjectPermissionMixin:
         }
 
     @transaction.atomic
-    @transaction.atomic(using='kobocat')
+    @kc_transaction_atomic
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
                     skip_kc=False, partial_perms=None):
         r"""
@@ -612,7 +613,7 @@ class ObjectPermissionMixin:
         return fn(perm in perms for perm in self.get_perms(user_obj))
 
     @transaction.atomic
-    @transaction.atomic(using='kobocat')
+    @kc_transaction_atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
         """
             Revoke the given `perm` on this object from `user_obj`. By default,

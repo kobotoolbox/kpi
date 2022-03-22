@@ -16,7 +16,6 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
-from django.db import transaction
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
@@ -56,7 +55,8 @@ from .kc_access.shadow_models import (
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     instance_count,
-    last_submission_time
+    last_submission_time,
+    kc_transaction_atomic,
 )
 from ..exceptions import (
     BadFormatException,
@@ -96,7 +96,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
-        with transaction.atomic(using='kobocat'):
+        with kc_transaction_atomic():
             for user, perms in users_with_perms.items():
                 if user.id == self.asset.owner_id:
                     continue
