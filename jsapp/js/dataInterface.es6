@@ -630,23 +630,6 @@ export var dataInterface;
         }
       });
     },
-    loadMoreRecords(uid, filter_by, page, page_size, all_versions=true){
-      /*
-        Temporary change: `/attachments/` to `/gallery-attachments/`
-        TODO revert when back end is fixed
-      */
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/gallery-attachments/`,
-        method: 'GET',
-        data: {
-          type: 'image',
-          group_by: filter_by,
-          limit: page_size,
-          page: page,
-          all: all_versions
-        }
-      });
-    },
     loadNextPageUrl(nextPageUrl){
       return $ajax({
         url: nextPageUrl,
