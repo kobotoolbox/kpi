@@ -104,10 +104,10 @@ export default class GalleryMediaModal extends React.Component {
           m='left'
         >
           {this.state.selectedMedia.isFirstInGallery &&
-            <i className='k-icon k-icon-arrow-first'/>
+            <i className='k-icon k-icon-arrow-left'/>
           }
           {!this.state.selectedMedia.isFirstInGallery &&
-            <i className='k-icon k-icon-prev'/>
+            <i className='k-icon k-icon-angle-left'/>
           }
         </bem.GalleryMediaModal__contentArrow>
 
@@ -132,10 +132,10 @@ export default class GalleryMediaModal extends React.Component {
           m='right'
         >
           {this.state.selectedMedia.isLastInGallery &&
-            <i className='k-icon k-icon-arrow-last'/>
+            <i className='k-icon k-icon-arrow-right'/>
           }
           {!this.state.selectedMedia.isLastInGallery &&
-            <i className='k-icon k-icon-next'/>
+            <i className='k-icon k-icon-angle-right'/>
           }
         </bem.GalleryMediaModal__contentArrow>
       </React.Fragment>
