@@ -34,6 +34,7 @@ django-constance[database]
 django-cors-headers
 django-debug-toolbar
 django-environ
+django-filter
 django-extensions
 django-oauth-toolkit
 django-registration-redux

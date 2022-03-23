@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'registration',         # Order is important
     'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
+    'django_filters',
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',

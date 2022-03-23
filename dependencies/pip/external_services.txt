@@ -64,6 +64,7 @@ django==2.2.7
     #   django-amazon-ses
     #   django-cors-headers
     #   django-debug-toolbar
+    #   django-filter
     #   django-markdownx
     #   django-mptt
     #   django-oauth-toolkit
@@ -89,6 +90,8 @@ django-debug-toolbar==2.1
 django-environ==0.8.1
     # via -r dependencies/pip/requirements.in
 django-extensions==2.2.5
+    # via -r dependencies/pip/requirements.in
+django-filter==21.1
     # via -r dependencies/pip/requirements.in
 django-js-asset==1.2.2
     # via django-mptt

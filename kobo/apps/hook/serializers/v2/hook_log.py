@@ -6,6 +6,7 @@ from kobo.apps.hook.models.hook_log import HookLog
 
 
 class HookLogSerializer(serializers.ModelSerializer):
+    status_str = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = HookLog

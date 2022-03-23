@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
-from datetime import datetime, timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -80,7 +80,8 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     serializer_class = HookLogSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     pagination_class = TinyPaginated
-    filter_backends = (HookLogFilter,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = HookLogFilter
 
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get("hook")
