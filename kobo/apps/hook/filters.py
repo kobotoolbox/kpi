@@ -1,5 +1,3 @@
-from django.utils.translation import gettext as t
-from rest_framework import serializers
 from django_filters import rest_framework as filters
 from .models import HookLog
 
