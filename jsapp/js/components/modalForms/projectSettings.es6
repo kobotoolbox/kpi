@@ -420,7 +420,7 @@ class ProjectSettings extends React.Component {
         formAsset: asset,
         name: asset.name,
         description: asset.settings.description,
-        veritreeFormType: asset.settings.veritreeFormType,
+        veritreeFormType: asset.settings.veritree_form_type,
         sector: asset.settings.sector,
         country: asset.settings.country,
         'share-metadata': asset.settings['share-metadata'] || false,
@@ -504,7 +504,7 @@ class ProjectSettings extends React.Component {
         this.state.formAsset.uid,
         {
           clone_from: this.state.chosenTemplateUid,
-          name: this.state.formAsset.name
+          name: this.state.formAsset.name,
         }
       );
     } else {

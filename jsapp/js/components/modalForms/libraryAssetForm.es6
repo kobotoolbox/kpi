@@ -38,7 +38,8 @@ export class LibraryAssetForm extends React.Component {
         country: null,
         sector: null,
         tags: '',
-        description: ''
+        description: '',
+        veritreeFormType: null,
       },
       isPending: false
     };
@@ -83,6 +84,9 @@ export class LibraryAssetForm extends React.Component {
     if (this.props.asset.settings.description) {
       this.state.data.description = this.props.asset.settings.description;
     }
+    if (this.props.asset.settings.veritree_form_type) {
+      this.state.data.veritreeFormType = this.props.asset.settings.veritree_form_type ;
+    }
   }
 
   onCreateResourceCompleted(response) {
@@ -124,7 +128,8 @@ export class LibraryAssetForm extends React.Component {
             organization: this.state.data.organization,
             country: this.state.data.country,
             sector: this.state.data.sector,
-            description: this.state.data.description
+            description: this.state.data.description,
+            veritree_form_type: this.state.data.veritreeFormType,
           }),
           tag_string: this.state.data.tags,
         }
@@ -137,7 +142,8 @@ export class LibraryAssetForm extends React.Component {
           organization: this.state.data.organization,
           country: this.state.data.country,
           sector: this.state.data.sector,
-          description: this.state.data.description
+          description: this.state.data.description,
+          veritree_form_type: this.state.data.veritreeFormType,
         }),
         tag_string: this.state.data.tags,
       };
@@ -170,6 +176,7 @@ export class LibraryAssetForm extends React.Component {
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
   onTagsChange(newValue) {this.onPropertyChange('tags', newValue);}
   onDescriptionChange(evt) {this.onPropertyChange('description', assetUtils.removeInvalidChars(evt.target.value));}
+  onVeritreeFormTypeChange(newValue) {this.onPropertyChange('veritreeFormType', newValue);}
 
   /**
    * @returns existing asset type or desired asset type
@@ -203,6 +210,8 @@ export class LibraryAssetForm extends React.Component {
 
     const SECTORS = stores.session.environment.available_sectors;
     const COUNTRIES = stores.session.environment.available_countries;
+    const veritreeFormTypes = stores.session.environment.veritree_form_types;
+
 
     return (
       <bem.FormModal__form className='project-settings'>
@@ -256,7 +265,21 @@ export class LibraryAssetForm extends React.Component {
               isClearable
             />
           </bem.FormModal__item>
-
+          <bem.FormModal__item m='form_type'>
+            <label htmlFor='form_type'>
+              {t('Form Type')}
+            </label>
+            <Select
+              id='form_type'
+              value={this.state.data.veritreeFormType}
+              onChange={this.onVeritreeFormTypeChange}
+              options={veritreeFormTypes}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
+              isClearable
+            />
+          </bem.FormModal__item>
           <bem.FormModal__item>
             <KoboTagsInput
               tags={this.state.data.tags}
