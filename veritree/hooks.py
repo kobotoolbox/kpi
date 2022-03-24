@@ -60,12 +60,11 @@ def get_country_name(submission_data: dict) -> str:
 
 def get_submission_link(submission_data: dict) -> str:
     form_uuid = submission_data['_xform_id_string']
-    submission_id = submission_data['_id']
-    return f"{settings.KPI_URL}/api/v2/assets/{form_uuid}/data/{submission_id}/"
+    return f"{settings.KPI_URL}/api/v2/assets/{form_uuid}/data/{submission_data['_id']}/"
 
 def get_project_link(submission_data: dict) -> str:
     form_uuid = submission_data['_xform_id_string']
-    return f"{settings.KPI_URL}/#/forms/{form_uuid}/data/table"
+    return f"{settings.KPI_URL}/#/forms/{form_uuid}/data/table?sid={submission_data['_id']}"
 
 def get_point(submission_data: dict) -> tuple or None:
     potential_keys_string = ['GPS', 'gps']
@@ -92,7 +91,7 @@ def get_planting_amount(submission_data: dict, org_id: int, access_token: str) -
 
         for form_species in species_names_and_keys:
             for api_species in species_names_and_ids_from_api:
-                if api_species['name'] == form_species['name']:
+                if api_species['name'].lower() == form_species['name'].lower():
                     species_amount_list.append({"forest_type_species_id": api_species['id'], "amount_planted": submission_data[form_species["key"]]})
         return {
             "species_amount": species_amount_list

@@ -731,6 +731,7 @@ export class DataTable extends React.Component {
     actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
     actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted);
     actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
+    this.handleSidQueryParam()
   }
 
   refreshSubmissionValidationStatus(result, sid) {
@@ -764,6 +765,16 @@ export class DataTable extends React.Component {
       fetchInstance: instance,
     });
     this.requestData(instance);
+  }
+  handleSidQueryParam() {
+    // Grab the submission id, and then autoload the modal if it exists
+    const queryParams = window.location.href.split('?')[1]
+    if (queryParams && queryParams.includes('sid=')) {
+      const maybeSid = queryParams.split('&')?.find(param => param.includes('sid'))?.split('=')[1]
+      if (maybeSid) {
+        this.submissionModalProcessing(maybeSid, this.state.tableData)
+      }
+    }
   }
   launchSubmissionModal(evt) {
     let el = $(evt.target).closest('[data-sid]').get(0);
