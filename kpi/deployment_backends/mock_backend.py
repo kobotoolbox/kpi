@@ -529,6 +529,35 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         }
 
+    def service_usage(self, request):
+        data = {
+            'asset': '/asset/' + self.asset.uid,
+            'asset__name': self.asset.name,
+            'submission_count_current_month': '',
+            'submission_count_all_time': 0,
+            'storage_bytes': ''
+        }
+
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+
+        current_month = sum(1 for submission in submissions)
+        data['submission_count_current_month'] = current_month
+
+        data['submission_count_all_time'] = self.asset.deployment.submission_count
+
+        file_size = 0
+        for submission in submissions:
+            attachments_dict = submission['_attachments']
+            if attachments_dict:
+                for attachments in attachments_dict:
+                    filename = attachments['filename']
+                    file = self.get_attachment(submission['_id'], self.asset.owner, attachment_id=attachments['id'])
+                    file_size += file.media_file_size
+
+        data['storage_bytes'] = file_size
+
+        return data
+
     @property
     def submission_list_url(self):
         # This doesn't really need to be implemented.
