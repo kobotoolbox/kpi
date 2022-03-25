@@ -13,7 +13,9 @@ from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
+from kobo.apps.hook.models.hook import Hook
+from kobo.apps.hook.serializers.v2.hook import HookSerializer
+from kpi.utils.log import logging
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
@@ -24,6 +26,7 @@ from kpi.constants import (
     CLONE_FROM_VERSION_ID_ARG_NAME,
     PERM_FROM_KC_ONLY,
 )
+from kobo.static_lists import VERITREE_FORM_TYPES_DICT
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
 from kpi.filters import (
@@ -364,6 +367,37 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 serializer.save()
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
+                # Create a hook based on the type of asset it is
+                veritree_form_type = serializer.data['asset']['settings'].get('veritree_form_type', {}).get('value', None)
+                if veritree_form_type and veritree_form_type in VERITREE_FORM_TYPES_DICT:
+                    data = {
+                        'asset': asset,
+                        'endpoint': 'https://placeholder',
+                        'name': 'Veritree Hook',
+                        'veritree_type': Hook.NONE,
+                        'auth_level': Hook.VERITREE_AUTH,
+                        'settings': {
+                            'username': 'monitoring.hooks@veritree.com', #TODO: make this an environment variable
+                            'password': 'riwS4mHFxd0g' #TODO: Make this an environment variable
+                        }
+                    }
+                    if veritree_form_type.lower() == VERITREE_FORM_TYPES_DICT['planting'].lower():
+                        data['name'] = 'Field Update - Veritree<Auto>'
+                        data['veritree_type'] = Hook.FIELD_UPDATE
+                    elif veritree_form_type.lower() != VERITREE_FORM_TYPES_DICT['none'].lower():
+                        data['name'] = 'Form Metadata - Veritree<Auto>'
+                        data['veritree_type'] = Hook.FORM_METADATA
+
+                    try:
+                        Hook.objects.create(
+                            asset=asset, endpoint=data['endpoint'], name=data['name'],
+                            veritree_type=data['veritree_type'], auth_level=data['auth_level'],
+                            settings=data['settings']
+                        )
+                    except Exception as e:
+                        logging.error("Error creating Hook on deploy {}".format(str(e)),
+                              exc_info=True)
+
                 return Response(dict(serializer.data))
 
         elif request.method == 'PATCH':

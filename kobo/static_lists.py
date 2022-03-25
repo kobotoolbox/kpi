@@ -519,3 +519,4 @@ VERITREE_FORM_TYPES = (
     ('planting', _('Planting')),
     ('none', _('None'))
 )
+VERITREE_FORM_TYPES_DICT = dict(VERITREE_FORM_TYPES)

@@ -190,7 +190,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                               exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
-                    "An error occurred when sending data to external endpoint")
+                    "An error occurred when sending data to external endpoint: {}".format(str(e)))
         else:
             self.save_log(
                 KOBO_INTERNAL_ERROR_STATUS_CODE,
