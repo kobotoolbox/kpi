@@ -437,7 +437,6 @@ class ApiHookTestCase(HookTestCase):
         tzoffset = '-02:00'
 
         # There should be a success log around now
-        print(f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}')
         response = self.client.get(f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}', format='json')
         self.assertEqual(response.data.get('count'), 1)
 
