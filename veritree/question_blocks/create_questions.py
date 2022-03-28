@@ -27,6 +27,6 @@ def create_amount_planted_question(species_label, name_prefix, forest_type, lang
         'name': f"{name_prefix}{format_question_name(species_label)}"
     }
     if forest_type and forest_type['forest_type']: # Bad nesting
-        question['relevant'] = f"${{{FOREST_TYPE_BY_ORG_NAME_PREFIX}}} = '{forest_type['forest_type']}' and ${{{enter_by_question}}} = '{by_species_option}'"
+        question['relevant'] = f"${{{FOREST_TYPE_BY_ORG_NAME_PREFIX}}} = '{format_question_name(forest_type['forest_type'])}' and ${{{enter_by_question}}} = '{by_species_option}'"
 
     return question

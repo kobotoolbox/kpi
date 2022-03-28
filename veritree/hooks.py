@@ -75,7 +75,7 @@ def get_point(submission_data: dict) -> tuple or None:
             return tuple([gps_data[0], gps_data[1]])
         elif key in submission_data and key in potential_keys_tuple:
             return submission_data[key]
-    return None
+    return tuple([0, 0])
 
 
 def get_planting_amount(submission_data: dict, org_id: int, access_token: str) -> dict:
