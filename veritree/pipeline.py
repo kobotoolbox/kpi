@@ -1,9 +1,8 @@
-from django.contrib.auth.models import Permission
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from kobo.settings.base import ANONYMOUS_USER_ID
 
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_ASSET
-from kpi.serializers.v2 import permission
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_ASSET, PERM_DISCOVER_ASSET, ASSET_TYPE_COLLECTION
+from kpi.models import Asset, UserAssetSubscription
 from veritree.models import Organization
 from kpi.models import ObjectPermission
 
@@ -129,3 +128,18 @@ def veritree_org_asset_unlink(user, asset):
         return
     
     ObjectPermission.objects.filter(asset=asset, user=user).delete()
+
+def veritree_subscribe_public_collections(backend, user, response, *args, **kwargs):
+    """
+    Pipeline function to auto-subscribe each user to the Veritree Public Collections
+    So the user does not have to remember to do this. Helps new users get accustomed to the platform
+    """
+    veritree_collections = Asset.objects.filter(
+            asset_type=ASSET_TYPE_COLLECTION, settings__organization='Veritree',
+            permissions__user_id=ANONYMOUS_USER_ID,
+            permissions__permission__codename=PERM_DISCOVER_ASSET
+        )
+
+    for veritree_collection in veritree_collections:
+        UserAssetSubscription.objects.get_or_create(user=user, asset=veritree_collection)
+    
