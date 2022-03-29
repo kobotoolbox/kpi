@@ -450,7 +450,7 @@ export class SupportHelpBubble extends HelpBubble {
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
-          <i className='k-icon k-icon-prev'/>
+          <i className='k-icon k-icon-angle-left'/>
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__popupContent>

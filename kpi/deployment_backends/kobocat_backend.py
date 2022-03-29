@@ -8,15 +8,16 @@ import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Generator, Optional, Union
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
 import requests
 from django.conf import settings
-from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import ugettext_lazy as _
+from django.core.files import File
+from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -28,7 +29,13 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
-    PERM_VIEW_SUBMISSIONS,
+)
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionIntegrityError,
+    SubmissionNotFoundException,
+    XPathNotFoundException,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -37,12 +44,12 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.datetime import several_minutes_from_now
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import edit_submission_xml, strip_nodes
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
     KobocatXForm,
+    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
 from .kc_access.utils import (
@@ -139,7 +146,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if not self.current_submissions_count:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
+                detail=t('No submissions match the given `submission_ids`')
             )
 
         update_data = self.__prepare_bulk_update_data(data['data'])
@@ -464,6 +471,70 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             raise KobocatDuplicateSubmissionException
 
+    def edit_submission(
+        self, xml_submission_file: File, user: 'auth.User', attachments: dict = None
+    ):
+        """
+        Edit a submission through KoBoCAT proxy on behalf of `user`.
+        Attachments can be uploaded by passing a dictionary (name, File object)
+
+        The returned Response should be in XML (expected format by Enketo Express)
+        """
+        submission_xml = xml_submission_file.read()
+        try:
+            xml_root = ET.fromstring(submission_xml)
+        except ET.ParseError:
+            raise SubmissionIntegrityError(
+                t('Your submission XML is malformed.')
+            )
+        try:
+            deprecated_uuid = xml_root.find('.//meta/deprecatedID').text
+            xform_uuid = xml_root.find('.//formhub/uuid').text
+        except AttributeError:
+            raise SubmissionIntegrityError(
+                t('Your submission XML is missing critical elements.')
+            )
+        # Remove UUID prefix
+        deprecated_uuid = deprecated_uuid[len('uuid:'):]
+        try:
+            instance = ReadOnlyKobocatInstance.objects.get(
+                uuid=deprecated_uuid,
+                xform__uuid=xform_uuid,
+                xform__kpi_asset_uid=self.asset.uid,
+            )
+        except ReadOnlyKobocatInstance.DoesNotExist:
+            raise SubmissionIntegrityError(
+                t(
+                    'The submission you attempted to edit could not be found, '
+                    'or you do not have access to it.'
+                )
+            )
+
+        # Validate write access for users with partial permissions
+        self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=[instance.pk]
+        )
+
+        # Set the In-Memory file’s current position to 0 before passing it to
+        # Request.
+        xml_submission_file.seek(0)
+        files = {'xml_submission_file': xml_submission_file}
+
+        # Combine all files altogether
+        if attachments:
+            files.update(attachments)
+
+        kc_request = requests.Request(
+            method='POST', url=self.submission_url, files=files
+        )
+        # ToDo use system account instead of asset.owner
+        kc_response = self.__kobocat_proxy_request(kc_request, self.asset.owner)
+        return self.__prepare_as_drf_response_signature(
+            kc_response, expected_response_format='xml'
+        )
+
     @staticmethod
     def external_to_internal_url(url):
         """
@@ -486,6 +557,101 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
+
+    def get_attachment(
+        self,
+        submission_id_or_uuid: Union[int, str],
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> ReadOnlyKobocatAttachment:
+        """
+        Return an object which can be retrieved by its primary key or by XPath.
+        An exception is raised when the submission or the attachment is not found.
+        """
+        try:
+            submission_id_or_uuid = int(submission_id_or_uuid)
+        except ValueError:
+            if not re.match(
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
+            ):
+                raise SubmissionNotFoundException
+
+            # Get first occurrence of the `get_submissions()` generator.
+            try:
+                submission_xml = next(
+                    self.get_submissions(
+                        user,
+                        format_type=SUBMISSION_FORMAT_TYPE_XML,
+                        query={'_uuid': submission_id_or_uuid},
+                    )
+                )
+            except StopIteration:
+                raise SubmissionNotFoundException
+            django_orm_filter = 'instance__uuid'
+
+        else:
+            submission_xml = self.get_submission(
+                submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+            )
+            django_orm_filter = 'instance_id'
+            if not submission_xml:
+                raise SubmissionNotFoundException
+
+        if xpath:
+            submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
+
+            try:
+                element = submission_tree.find(xpath)
+            except KeyError:
+                raise InvalidXPathException
+
+            try:
+                attachment_filename = element.text
+            except AttributeError:
+                raise XPathNotFoundException
+
+            filters = {
+                # TODO: hide attachments that were deleted or replaced; see
+                # kobotoolbox/kobocat#792
+                # 'replaced_at': None,
+                django_orm_filter: submission_id_or_uuid,
+                'media_file_basename': attachment_filename,
+            }
+        else:
+            filters = {
+                # 'replaced_at': None,
+                django_orm_filter: submission_id_or_uuid,
+                'pk': attachment_id,
+            }
+
+        try:
+            attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
+        except ReadOnlyKobocatAttachment.DoesNotExist:
+            raise AttachmentNotFoundException
+
+        return attachment
+
+    def get_attachment_objects_from_dict(self, submission: dict) -> QuerySet:
+
+        # First test that there are attachments to avoid a call to the DB for
+        # nothing
+        if not submission.get('_attachments'):
+            return []
+
+        # Get filenames from DB because Mongo does not contain the
+        # original basename.
+        # EE excepts the original basename before Django renames it and
+        # stores it in Mongo
+        # E.g.:
+        # - XML filename: Screenshot 2022-01-19 222028-13_45_57.jpg
+        # - Mongo: Screenshot_2022-01-19_222028-13_45_57.jpg
+
+        # ToDo What about adding the original basename and the question
+        #  name in Mongo to avoid another DB query?
+        return ReadOnlyKobocatAttachment.objects.filter(
+            instance_id=submission['_id']
+        )
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
@@ -517,76 +683,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'csv': '/'.join((reports_base_url, 'export.csv')),
         }
         return links
-
-    def get_enketo_submission_url(
-        self,
-        submission_id: int,
-        user: 'auth.User',
-        params: dict = None,
-        action_: str = 'edit',
-    ) -> dict:
-        """
-        Get URLs of the submission from KoBoCAT through proxy
-        """
-        if action_ == 'edit':
-            partial_perm = PERM_CHANGE_SUBMISSIONS
-        elif action_ == 'view':
-            partial_perm = PERM_VIEW_SUBMISSIONS
-        else:
-            raise NotImplementedError(
-                "Only 'view' and 'edit' actions are currently supported"
-            )
-
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=partial_perm,
-            submission_ids=[submission_id],
-        )
-
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
-        headers = {}
-        use_partial_perms = False
-        if submission_ids:
-            use_partial_perms = True
-            headers.update(
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user,
-                    method='GET',
-                    request_identifier=f'get_enketo_submission_url_{action_}',
-                ).get_header()
-            )
-        url = '{detail_url}/enketo_{action}'.format(
-            detail_url=self.get_submission_detail_url(submission_id),
-            action=action_,
-        )
-        kc_request = requests.Request(
-            method='GET', url=url, params=params, headers=headers
-        )
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-
-        # if `headers` is not empty, user has partial permissions. We need to
-        # allow Enketo Express to communicate with KoBoCAT when data is
-        # submitted. We whitelist the URL through KobocatOneTimeAuthToken
-        # to make KoBoCAT accept the edited submission from this user
-        if use_partial_perms and kc_response.status_code == status.HTTP_200_OK:
-            json_response = kc_response.json()
-            try:
-                url = json_response['url']
-            except KeyError:
-                pass
-            else:
-                # Give the token a longer life in case the edit takes longer
-                # than `KobocatOneTimeAuthToken` default expiration time
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user=user,
-                    method='POST',
-                    request_identifier=url,
-                    use_identifier_as_token=True,
-                    expiration_time=several_minutes_from_now(24 * 60)
-                )
-
-        return self.__prepare_as_drf_response_signature(kc_response)
 
     def get_enketo_survey_links(self):
         data = {
@@ -620,60 +716,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             except KeyError:
                 pass
         return links
-
-    def get_signed_attachment_url_token(
-        self,
-        submission_id: int,
-        user: 'auth.User',
-        media_size: str,
-        media_file: str,
-    ) -> str:
-        """
-        Get a signed KoBoCAT attachment url which is granted once with a
-        one time authentication token (sent through querystring parameters)
-        If `user` has full access on submissions, the url is returned as-is.
-        """
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_VIEW_SUBMISSIONS,
-            submission_ids=[submission_id],
-        )
-
-        url = (
-            f'{settings.KOBOCAT_MEDIA_URL}{media_size}'
-            f"?{urlencode({'media_file':media_file})}"
-        )
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
-        if submission_ids:
-            # Validate that the attachment does really belong to the submission.
-            # We want to ensure the user is allowed to this media file.
-            submission = self.get_submission(submission_id, user)
-            try:
-                suffix = settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING[media_size]
-            except KeyError:
-                raise Http404
-
-            is_allowed = False
-            for attachment in submission['_attachments']:
-                try:
-                    kc_url = attachment[f'download{suffix}_url']
-                except KeyError:
-                    continue
-
-                if kc_url == url:
-                    is_allowed = True
-                    break
-
-            if not is_allowed:
-                raise Http404
-
-            token = KobocatOneTimeAuthToken.get_or_create_token(
-                user, method='GET', request_identifier=url
-            )
-            url += f'&{KobocatOneTimeAuthToken.QS_PARAM}={token.token}'
-
-        return url
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
@@ -1340,7 +1382,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return server, parsed_identifier.path
 
     @staticmethod
-    def __prepare_as_drf_response_signature(requests_response):
+    def __prepare_as_drf_response_signature(
+        requests_response, expected_response_format='json'
+    ):
         """
         Prepares a dict from `Requests` response.
         Useful to get response from KoBoCAT and use it as a dict or pass it to
@@ -1365,9 +1409,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             prepared_drf_response['data'] = json.loads(
                 requests_response.content)
         except ValueError as e:
-            if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
+            if (
+                not requests_response.status_code == status.HTTP_204_NO_CONTENT
+                and expected_response_format == 'json'
+            ):
                 prepared_drf_response['data'] = {
-                    'detail': _(
+                    'detail': t(
                         'KoBoCAT returned an unexpected response: {}'.format(
                             str(e))
                     )
@@ -1420,7 +1467,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     .text
                 )
             except ET.ParseError:
-                message = _('Something went wrong')
+                message = t('Something went wrong')
 
             results.append(
                 {
@@ -1455,14 +1502,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         for attachment in submission['_attachments']:
             for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
+                # We should use 'attachment-list' with `?xpath=` but we do not
+                # know what the XPath is here. Since the primary key is already
+                # exposed, let's use it to build the url with 'attachment-detail'
                 kpi_url = reverse(
-                    'submission-attachments',
-                    args=(self.asset.uid, submission['_id'], size),
-                    request=request
+                    'attachment-detail',
+                    args=(self.asset.uid, submission['_id'], attachment['id']),
+                    request=request,
                 )
                 key = f'download{suffix}_url'
-                attachment[key] = attachment[key].replace(
-                    f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                try:
+                    attachment[key] = kpi_url
+                except KeyError:
+                    continue
 
         return submission
 

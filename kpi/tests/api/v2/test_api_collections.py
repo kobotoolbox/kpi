@@ -3,7 +3,7 @@ import re
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.urls import reverse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -469,7 +469,7 @@ class CollectionsTests(BaseTestCase):
         # It should fail because of a lack of permissions on `some_collection`
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert str(response.data['parent'][0]) \
-               == _('User cannot update target parent collection')
+               == t('User cannot update target parent collection')
 
         # Try with no permissions on source parent. Message should be different
         response = self._move_child_to_collection(
@@ -479,7 +479,7 @@ class CollectionsTests(BaseTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert str(response.data['parent'][0]) \
-               == _('Target collection not found')
+               == t('Target collection not found')
 
     def test_move_child_to_writable_target_collection(self):
 

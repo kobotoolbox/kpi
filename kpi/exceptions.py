@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import exceptions
 
 
@@ -17,6 +17,10 @@ class AbstractPropertyError(NotImplementedError):
         super().__init__(
             'This property should be implemented in subclasses', *args, **kwargs
         )
+
+
+class AttachmentNotFoundException(Exception):
+    pass
 
 
 class BadAssetTypeException(Exception):
@@ -45,10 +49,15 @@ class DeploymentDataException(Exception):
 
 class DeploymentNotFound(Exception):
 
-    def __init__(self,
-                 message=_('Must call `asset.connect_deployment()` first')):
+    def __init__(
+        self, message=t('Must call `asset.connect_deployment()` first')
+    ):
         self.message = message
         super().__init__(self.message)
+
+
+class FFMpegException(Exception):
+    pass
 
 
 class ImportAssetException(Exception):
@@ -57,19 +66,23 @@ class ImportAssetException(Exception):
 
 class InvalidSearchException(exceptions.APIException):
     status_code = 400
-    default_detail = _('Invalid search. Please try again')
+    default_detail = t('Invalid search. Please try again')
     default_code = 'invalid_search'
+
+
+class InvalidXPathException(Exception):
+    pass
 
 
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
     # This is message should be overridden with something more specific
-    default_detail = _('Invalid payload for bulk updating of submissions')
+    default_detail = t('Invalid payload for bulk updating of submissions')
     default_code = 'bulk_update_submissions_client_error'
 
 
 class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
     status_code = 500
-    default_detail = _(
+    default_detail = t(
         'An error occurred trying to bulk update the submissions.')
     default_code = 'bulk_update_submissions_error'
 
@@ -94,7 +107,7 @@ class KobocatDeploymentException(exceptions.APIException):
 
 class KobocatDuplicateSubmissionException(exceptions.APIException):
     status_code = 500
-    default_detail = _('An error occurred trying to duplicate the submission')
+    default_detail = t('An error occurred trying to duplicate the submission')
     default_code = 'submission_duplication_error'
 
 
@@ -102,9 +115,13 @@ class KobocatProfileException(Exception):
     pass
 
 
+class NotSupportedFormatException(Exception):
+    pass
+
+
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = 400
-    default_detail = _('The specified object has not been deployed')
+    default_detail = t('The specified object has not been deployed')
     default_code = 'deployment_does_not_exist'
 
 
@@ -119,5 +136,17 @@ class ReadOnlyModelError(Exception):
 
 
 class SearchQueryTooShortException(InvalidSearchException):
-    default_detail = _('Your query is too short')
+    default_detail = t('Your query is too short')
     default_code = 'query_too_short'
+
+
+class SubmissionIntegrityError(Exception):
+    pass
+
+
+class SubmissionNotFoundException(Exception):
+    pass
+
+
+class XPathNotFoundException(Exception):
+    pass

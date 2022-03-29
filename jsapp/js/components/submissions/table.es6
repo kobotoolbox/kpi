@@ -739,7 +739,6 @@ export class DataTable extends React.Component {
           }
           if (typeof(row.value) === 'object' || row.value === undefined) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
-
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
               return (

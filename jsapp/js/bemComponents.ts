@@ -14,6 +14,9 @@ bem.KoboTextButton = makeBem(null, 'kobo-text-button', 'button');
 bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
 
 bem.KoboSelect = makeBem(null, 'kobo-select');
+bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper');
+bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'span');
+bem.KoboSelect__error = makeBem(bem.KoboSelect, 'error');
 bem.KoboSelect__optionWrapper = makeBem(bem.KoboSelect, 'option-wrapper');
 bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge');
 
@@ -241,7 +244,6 @@ bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
-bem.AccountSettings__desc = makeBem(bem.AccountSettings, 'desc');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 bem.UserRow = makeBem(null, 'user-row');
@@ -256,6 +258,7 @@ bem.UserRow__editor = makeBem(bem.UserRow, 'editor');
 bem.uiPanel = makeBem(null, 'ui-panel');
 bem.uiPanel__body = makeBem(bem.uiPanel, 'body');
 
+bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper');
 bem.FormSidebar = makeBem(null, 'form-sidebar');
 bem.FormSidebar__item = makeBem(bem.FormSidebar, 'item', 'a');
 bem.FormSidebar__itemText = makeBem(bem.FormSidebar, 'item-text');

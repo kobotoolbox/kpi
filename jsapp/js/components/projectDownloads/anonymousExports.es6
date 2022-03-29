@@ -4,12 +4,12 @@ import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {
   EXPORT_STATUSES,
-  EXPORT_REFRESH_TIME,
   DEFAULT_EXPORT_SETTINGS,
 } from 'js/components/projectDownloads/exportsConstants';
 import {getContextualDefaultExportFormat} from 'js/components/projectDownloads/exportsUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
+import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
 
 /**
  * A compontent that ROUTES.FORM_DOWNLOADS route is displayint for not logged in
@@ -25,7 +25,6 @@ export default class AnonymousExports extends React.Component {
       exportUrl: null,
     };
     this.unlisteners = [];
-    this.fetchIntervalId = null;
     autoBind(this);
   }
 
@@ -53,7 +52,7 @@ export default class AnonymousExports extends React.Component {
   }
 
   onGetExportCompleted(exportData) {
-    this.prepareFetchInterval(exportData.uid, exportData.status);
+    this.checkExportFetcher(exportData.uid, exportData.status);
 
     if (exportData.status === EXPORT_STATUSES.complete) {
       this.setState({
@@ -92,16 +91,13 @@ export default class AnonymousExports extends React.Component {
     }
   }
 
-  prepareFetchInterval(exportUid, exportStatus) {
-    // if the export is not complete yet, and there is no fetch interval
-    // fetch it in some time again and again
+  checkExportFetcher(exportUid, exportStatus) {
     if (
       exportStatus !== EXPORT_STATUSES.error &&
       exportStatus !== EXPORT_STATUSES.complete &&
       !this.fetchIntervalId
     ) {
-      const intervalId = setInterval(this.fetchExport.bind(this, exportUid), EXPORT_REFRESH_TIME);
-      this.fetchIntervalId = intervalId;
+      this.exportFetcher = new ExportFetcher(this.props.asset.uid, exportUid);
     }
 
     // clean up after it is completed
@@ -109,13 +105,11 @@ export default class AnonymousExports extends React.Component {
       exportStatus === EXPORT_STATUSES.error ||
       exportStatus === EXPORT_STATUSES.complete
     ) {
-      this.removeFetchInterval();
+      if (this.exportFetcher) {
+        this.exportFetcher.stop();
+        delete this.exportFetcher;
+      }
     }
-  }
-
-  removeFetchInterval() {
-    clearInterval(this.fetchIntervalId);
-    this.fetchIntervalId = null;
   }
 
   fetchExport(exportUid) {
