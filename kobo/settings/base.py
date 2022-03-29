@@ -215,7 +215,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'MFA_ISSUER_NAME': (
-        'KoBoToolbox',
+        'KoboToolbox',
         'Issuer name displayed in multi-factor applications'
     ),
     'MFA_ENABLED': (

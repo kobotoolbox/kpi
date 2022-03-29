@@ -381,7 +381,7 @@ export class SupportHelpBubble extends HelpBubble {
             >
               <i className='k-icon k-icon-help-articles'/>
               <header>{t('KoboToolbox Help Center')}</header>
-              <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+              <p>{t('A vast collection of user support articles and tutorials related to Kobo')}</p>
             </bem.HelpBubble__rowAnchor>
           }
 
@@ -395,7 +395,7 @@ export class SupportHelpBubble extends HelpBubble {
             >
               <i className='k-icon k-icon-forum'/>
               <header>{t('KoboToolbox Community Forum')}</header>
-              <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+              <p>{t('Post your questions to get answers from experienced Kobo users around the world')}</p>
             </bem.HelpBubble__rowAnchor>
           }
 
