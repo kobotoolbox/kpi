@@ -35,6 +35,7 @@ django-cors-headers
 django-csp
 django-debug-toolbar
 django-environ
+django-filter
 django-extensions
 django-oauth-toolkit
 django-registration-redux
