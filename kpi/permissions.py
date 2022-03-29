@@ -330,6 +330,15 @@ class EditSubmissionPermission(SubmissionPermission):
         'POST': ['%(app_label)s.change_%(model_name)s'],
     }
 
+    def has_permission(self, request, view):
+        try:
+            return super().has_permission(request, view)
+        except Http404:
+            # When we receive a 404, we want to force a 401 to let the user
+            # log in with different credentials. Enketo Express will prompt
+            # the credential form only if it receives a 401.
+            raise exceptions.AuthenticationFailed()
+
     def has_object_permission(self, request, view, obj):
         # Authentication validation has already been made in `has_permission()`
         # because we validate the permissions on the `obj`'s parent, i.e. the asset.

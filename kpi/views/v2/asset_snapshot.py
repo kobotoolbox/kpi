@@ -153,8 +153,8 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         permission_classes=[EditSubmissionPermission],
         methods=['HEAD', 'POST'],
         authentication_classes=[
-            DigestAuthentication,
             EnketoSessionAuthentication,
+            DigestAuthentication,
         ],
     )
     def submission(self, request, *args, **kwargs):
