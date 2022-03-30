@@ -10,9 +10,12 @@ LOGGING['handlers']['console'] = {
 INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
+
 def show_toolbar(request):
-    return env.bool("DEBUG_TOOLBAR", False)
-DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": show_toolbar}
+    return env.bool('DEBUG_TOOLBAR', False)
+
+
+DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': show_toolbar}
 
 ENV = 'dev'
 
