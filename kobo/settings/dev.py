@@ -10,8 +10,9 @@ LOGGING['handlers']['console'] = {
 INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
-# Comment out the line below to use `Django Debug Toolbar`
-# INTERNAL_IPS = ['172.28.0.4']  # Change IP to KPI container's IP
+def show_toolbar(request):
+    return env.bool("DEBUG_TOOLBAR", False)
+DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": show_toolbar}
 
 ENV = 'dev'
 
