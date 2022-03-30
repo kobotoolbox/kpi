@@ -56,11 +56,14 @@ class DisplayGroup {
  * @property {string|null} data - User response, `null` for no response
  */
 class DisplayResponse {
-  constructor(type, label, name, listName, data = null) {
+  constructor(type, label, name, listName, data = null, relevant = false) {
     this.type = type;
     this.label = label;
     this.name = name;
     this.data = data;
+    if (relevant) {
+      this.skipLogicExists = !!relevant
+    }
     if (listName) {
       this.listName = listName;
     }
@@ -214,7 +217,8 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
           rowLabel,
           rowName,
           rowListName,
-          rowData
+          rowData,
+          row.relevant
         );
         parentGroup.addChild(rowObj);
       }

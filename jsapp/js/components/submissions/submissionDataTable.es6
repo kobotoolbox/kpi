@@ -84,6 +84,9 @@ class SubmissionDataTable extends React.Component {
    * @prop {number} itemIndex
    */
   renderResponse(item, itemIndex) {
+    if (item.skipLogicExists && !item.data) {
+      return null
+    }
     return (
       <bem.SubmissionDataTable__row
         m={['columns', 'response', `type-${item.type}`]}
