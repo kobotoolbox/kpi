@@ -615,11 +615,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         data = {
             'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',
-            'format': 'json'
+            'format': 'json',
         }
         response = self.client.get(self.submission_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('count'), 1)
+        self.assertEqual(response.data[0].get('_uuid'), submission['_uuid'])
 
     def test_retrieve_submission_as_owner(self):
         """
