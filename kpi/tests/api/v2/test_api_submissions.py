@@ -619,7 +619,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         }
         response = self.client.get(self.submission_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0].get('_uuid'), submission['_uuid'])
+        if isinstance(response.data, list):
+            response_count = len(response.data)
+        else:
+            response_count = response.data.get('count')
+        self.assertEqual(response_count, 1)
 
     def test_retrieve_submission_as_owner(self):
         """
