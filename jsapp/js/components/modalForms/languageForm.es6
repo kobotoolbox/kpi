@@ -1,12 +1,15 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
-import TextBox from 'js/components/textBox';
-import {t, getLangAsObject} from 'utils';
+import bem from 'js/bem';
+import TextBox from 'js/components/common/textBox';
+import {
+  getLangAsObject,
+  toTitleCase
+} from 'utils';
 
 /*
 Properties:
-- langString <string>: follows pattern "NAME (CODE)"
+- langString <string>: follows pattern "Name (code)"
 - langIndex <string>
 - onLanguageChange <function>: required
 - existingLanguages <langString[]>: for validation purposes
@@ -108,13 +111,13 @@ class LanguageForm extends React.Component {
       }, langIndex);
     }
   }
-  onNameChange (newName) {
-    this.setState({name: newName.trim()});
+  onNameChange(newName) {
+    this.setState({name: toTitleCase(newName.trim().toLowerCase())});
   }
-  onCodeChange (newCode) {
-    this.setState({code: newCode.trim()});
+  onCodeChange(newCode) {
+    this.setState({code: newCode.trim().toLowerCase()});
   }
-  render () {
+  render() {
     let isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
 
     return (
@@ -142,13 +145,13 @@ class LanguageForm extends React.Component {
         </bem.FormView__cell>
 
         <bem.FormView__cell m='submit-button'>
-          <button
-            className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+          <bem.KoboButton
+            m='blue'
             onClick={this.onSubmit} type='submit'
             disabled={isAnyFieldEmpty}
           >
             {this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
-          </button>
+          </bem.KoboButton>
         </bem.FormView__cell>
       </bem.FormView__form>
       );

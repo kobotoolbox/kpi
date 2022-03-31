@@ -1,7 +1,6 @@
 # coding: utf-8
 from django.conf import settings
 from rest_framework import serializers
-from rest_framework import exceptions
 
 from .asset import AssetSerializer
 
@@ -37,8 +36,6 @@ class DeploymentSerializer(serializers.Serializer):
         # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
-        asset.save(create_version=False,
-                   adjust_content=False)
         return asset.deployment
 
     def update(self, instance, validated_data):
@@ -52,7 +49,7 @@ class DeploymentSerializer(serializers.Serializer):
 
         if 'backend' in validated_data and \
                 validated_data['backend'] != deployment.backend:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'backend': 'This field cannot be modified after the initial '
                             'deployment.'})
 
@@ -66,8 +63,11 @@ class DeploymentSerializer(serializers.Serializer):
                 active=validated_data.get('active', deployment.active)
             )
         elif 'active' in validated_data:
+            active = validated_data['active']
             # Set the `active` flag without touching the rest of the deployment
-            deployment.set_active(validated_data['active'])
+            deployment.set_active(active)
+            # If we (re)activate the asset, let's synchronize its media files
+            if active:
+                asset.async_media_files(force=False)
 
-        asset.save(create_version=False, adjust_content=False)
         return deployment

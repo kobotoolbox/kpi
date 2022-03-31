@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='UserCollectionSubscription',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('uid', kpi.fields.KpiUidField(uid_prefix=b'b')),
+                ('uid', kpi.fields.KpiUidField(uid_prefix='b')),
             ],
         ),
         migrations.AddField(

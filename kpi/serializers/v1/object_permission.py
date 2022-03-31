@@ -6,9 +6,8 @@ from django.db import transaction
 from rest_framework import serializers
 
 from kpi.constants import PERM_FROM_KC_ONLY
-from kpi.fields import GenericHyperlinkedRelatedField, \
-    RelativePrefixHyperlinkedRelatedField
-from kpi.models import ObjectPermission
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
+from kpi.models import Asset, ObjectPermission
 
 
 class ObjectPermissionSerializer(serializers.ModelSerializer):
@@ -26,8 +25,11 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         slug_field='codename',
         queryset=Permission.objects.all()
     )
-    content_object = GenericHyperlinkedRelatedField(
+    content_object = RelativePrefixHyperlinkedRelatedField(
+        source='asset',
+        view_name='asset-detail',
         lookup_field='uid',
+        queryset=Asset.objects.all(),
         style={'base_template': 'input.html'}  # Render as a simple text box
     )
     inherited = serializers.ReadOnlyField()
@@ -51,19 +53,16 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        content_object = validated_data['content_object']
+        asset = validated_data['content_object']
         user = validated_data['user']
         perm = validated_data['permission'].codename
-        with transaction.atomic():
-            # TEMPORARY Issue #1161: something other than KC is setting a
-            # permission; clear the `from_kc_only` flag
-            ObjectPermission.objects.filter(
-                user=user,
-                permission__codename=PERM_FROM_KC_ONLY,
-                object_id=content_object.id,
-                content_type=ContentType.objects.get_for_model(content_object)
-            ).delete()
-            return content_object.assign_perm(user, perm)
+        # TODO: Remove after kobotoolbox/kobocat#642
+        # I'm looking forward to the merge conflict this creates, aren't you?
+        if getattr(asset, 'has_deployment', False):
+            asset.deployment.remove_from_kc_only_flag(
+                specific_user=user
+            )
+        return asset.assign_perm(user, perm)
 
 
 class ObjectPermissionNestedSerializer(ObjectPermissionSerializer):

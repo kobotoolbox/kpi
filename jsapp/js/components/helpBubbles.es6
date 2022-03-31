@@ -1,13 +1,13 @@
 import _ from 'underscore';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {actions} from '../actions';
 import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
-import {t} from '../utils';
 import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
+import './helpBubbles.scss';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
 
@@ -40,11 +40,6 @@ class HelpBubble extends React.Component {
     // we want to close all the other HelpBubbles whenever one opens
     this.cancelHelpBubbleEventCloseWatch();
     this.watchHelpBubbleEventClose();
-
-    // counts how many times have this bubble been opened
-    if (this.bubbleName) {
-      this.bumpNewCounter(this.bubbleName);
-    }
   }
 
   close() {
@@ -63,13 +58,13 @@ class HelpBubble extends React.Component {
   watchHelpBubbleEventClose() {
     const helpBubbleEventHandler = (evt) => {
       if (evt.detail !== this.bubbleName) {this.close();}
-    }
+    };
 
     document.addEventListener(BUBBLE_OPENED_EVT_NAME, helpBubbleEventHandler);
 
     this.cancelHelpBubbleEventCloseWatch = () => {
       document.removeEventListener(BUBBLE_OPENED_EVT_NAME, helpBubbleEventHandler);
-    }
+    };
   }
 
   watchOutsideClose() {
@@ -84,18 +79,18 @@ class HelpBubble extends React.Component {
       ) {
         this.close();
       }
-    }
+    };
 
     const escHandler = (evt) => {
       if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
         this.close();
       }
-    }
+    };
 
     this.cancelOutsideCloseWatch = () => {
       document.removeEventListener('click', outsideClickHandler);
       document.removeEventListener('keydown', escHandler);
-    }
+    };
 
     document.addEventListener('click', outsideClickHandler);
     document.addEventListener('keydown', escHandler);
@@ -104,27 +99,6 @@ class HelpBubble extends React.Component {
   getStorageName(bubbleName) {
     const currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     return `kobo.${currentUsername}.${bubbleName}`;
-  }
-
-  // we display "NEW" badge for first 5 times user interacts with bubble
-  isNew(bubbleName) {
-    const storageName = this.getStorageName(bubbleName);
-    const storageItem = window.localStorage.getItem(storageName);
-    if (storageItem !== null) {
-      return parseInt(storageItem) <= 5;
-    } else {
-      return true;
-    }
-  }
-
-  bumpNewCounter(bubbleName) {
-    const storageName = this.getStorageName(bubbleName);
-    const storageItem = window.localStorage.getItem(storageName);
-    if (storageItem === null) {
-      window.localStorage.setItem(storageName, 0);
-    } else {
-      window.localStorage.setItem(storageName, parseInt(storageItem) + 1);
-    }
   }
 }
 
@@ -137,7 +111,7 @@ class HelpBubbleTrigger extends React.Component {
   render() {
     const iconClass = `k-icon k-icon-${this.props.icon}`;
     const hasCounter = typeof this.props.counter === 'number' && this.props.counter !== 0;
-    const attrs = {}
+    const attrs = {};
 
     if (this.props.htmlId) {
       attrs['id'] = this.props.htmlId;
@@ -156,12 +130,6 @@ class HelpBubbleTrigger extends React.Component {
             {this.props.counter}
           </bem.HelpBubble__triggerCounter>
         }
-
-        {this.props.isNew &&
-          <bem.HelpBubble__triggerBadge>
-            {t('new')}
-          </bem.HelpBubble__triggerBadge>
-        }
       </bem.HelpBubble__trigger>
     );
   }
@@ -174,7 +142,7 @@ class HelpBubbleClose extends React.Component {
   }
 
   render() {
-    const attrs = {}
+    const attrs = {};
 
     if (this.props.messageUid) {
       attrs['data-message-uid'] = this.props.messageUid;
@@ -223,11 +191,6 @@ export class IntercomHelpBubble extends HelpBubble {
       return null;
     }
 
-    const attrs = {};
-    if (this.isNew(this.bubbleName)) {
-      attrs.isNew = true;
-    }
-
     const modifiers = ['intercom'];
     if (this.state.isOpen) {
       modifiers.push('open');
@@ -241,7 +204,6 @@ export class IntercomHelpBubble extends HelpBubble {
           onClick={this.toggle.bind(this)}
           htmlId='custom_intercom_launcher'
           counter={this.state.intercomUnreadCount}
-          {...attrs}
         />
       </bem.HelpBubble>
     );
@@ -409,27 +371,33 @@ export class SupportHelpBubble extends HelpBubble {
             {t('Help Resources')}
           </bem.HelpBubble__row>
 
-          <bem.HelpBubble__rowAnchor
-            m='link'
-            target='_blank'
-            href='https://support.kobotoolbox.org/'
-            onClick={this.close.bind(this)}
-          >
-            <i className='k-icon k-icon-help-articles'/>
-            <header>{t('KoBoToolbox Help Center')}</header>
-            <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
-          </bem.HelpBubble__rowAnchor>
+          { envStore.isReady &&
+            envStore.data.support_url &&
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={envStore.data.support_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-help-articles'/>
+              <header>{t('KoBoToolbox Help Center')}</header>
+              <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+            </bem.HelpBubble__rowAnchor>
+          }
 
-          <bem.HelpBubble__rowAnchor
-            m='link'
-            target='_blank'
-            href='https://community.kobotoolbox.org/'
-            onClick={this.close.bind(this)}
-          >
-            <i className='k-icon k-icon-forum'/>
-            <header>{t('KoBoToolbox Community Forum')}</header>
-            <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
-          </bem.HelpBubble__rowAnchor>
+          { envStore.isReady &&
+            envStore.data.community_url &&
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={envStore.data.community_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-forum'/>
+              <header>{t('KoBoToolbox Community Forum')}</header>
+              <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+            </bem.HelpBubble__rowAnchor>
+          }
 
           {this.state.messages.length > 0 &&
             <bem.HelpBubble__row m='header'>
@@ -482,7 +450,7 @@ export class SupportHelpBubble extends HelpBubble {
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
-          <i className='k-icon k-icon-prev'/>
+          <i className='k-icon k-icon-angle-left'/>
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__popupContent>
@@ -500,11 +468,6 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   render() {
-    const attrs = {};
-    if (this.isNew(this.bubbleName)) {
-      attrs.isNew = true;
-    }
-
     let popupRenderFn;
     const modifiers = ['support'];
     if (this.state.isOpen) {
@@ -516,9 +479,9 @@ export class SupportHelpBubble extends HelpBubble {
         popupRenderFn = this.renderDefaultPopup;
         modifiers.push('list-with-header');
       }
-    }  else if (this.state.hasUnacknowledgedMessages) {
+    } else if (this.state.hasUnacknowledgedMessages) {
       popupRenderFn = this.renderUnacknowledgedListPopup;
-      modifiers.push('list')
+      modifiers.push('list');
     }
 
     return (
@@ -528,7 +491,6 @@ export class SupportHelpBubble extends HelpBubble {
           tooltipLabel={t('Help')}
           onClick={this.toggle.bind(this)}
           counter={this.getUnreadMessagesCount()}
-          {...attrs}
         />
 
         {popupRenderFn &&

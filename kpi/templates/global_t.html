@@ -1,0 +1,11 @@
+<script type="text/javascript">
+  // This is a global t() function for handling translations. I moved it out
+  // of webpack config, as webpack turned out to be chaotic-evil in this case.
+  window.t = function(str) {
+    if (window.gettext) {
+      return window.gettext(str);
+    } else {
+      return str;
+    }
+  };
+</script>

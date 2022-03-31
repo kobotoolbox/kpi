@@ -1,21 +1,30 @@
 # coding: utf-8
+from constance.signals import config_updated
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django_digest.models import PartialDigest
 from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
 from kobo.apps.hook.models.hook import Hook
+from kobo.celery import update_concurrency_from_constance
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
-    KobocatDigestPartial
 )
 from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
-from kpi.models import Asset, Collection, ObjectPermission, TagUid
+from kpi.models import Asset, TagUid
 from kpi.utils.permissions import grant_default_model_level_perms
+
+
+@receiver(config_updated)
+def constance_updated(sender, key, old_value, new_value, **kwargs):
+    if key in (
+        'CELERY_WORKER_MAX_CONCURRENCY',
+        'CELERY_WORKER_MIN_CONCURRENCY',
+    ):
+        update_concurrency_from_constance()
 
 
 @receiver(post_save, sender=User)
@@ -88,22 +97,20 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
 @receiver(post_save, sender=Hook)
 def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     """
-    Updates `kc.XForm` instance as soon as Asset.Hook list is updated.
+    Updates KoBoCAT XForm instance as soon as Asset.Hook list is updated.
     """
     asset = instance.asset
     if asset.has_deployment:
         asset.deployment.set_has_kpi_hooks()
 
 
-@receiver(post_delete, sender=Collection)
-def post_delete_collection(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted
-
-
 @receiver(post_delete, sender=Asset)
 def post_delete_asset(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted
+    # Update parent's languages if this object is a child of another asset.
+    try:
+        parent = instance.parent
+    except Asset.DoesNotExist:  # `parent` may exists in DJANGO models cache but not in DB
+        pass
+    else:
+        if parent:
+            parent.update_languages()

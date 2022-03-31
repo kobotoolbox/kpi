@@ -4,16 +4,12 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
-import TextBox from './textBox';
+import TextBox from 'js/components/common/textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
-import ui from '../ui';
-import {
-  t,
-  stringToColor,
-} from '../utils';
+import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
 
 export default class ChangePassword extends React.Component {
@@ -85,21 +81,8 @@ export default class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session || !stores.session.currentAccount) {
-      return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
-      );
+    if(!stores.session.isLoggedIn) {
+      return null;
     }
 
     var accountName = stores.session.currentAccount.username;
@@ -109,15 +92,14 @@ export default class ChangePassword extends React.Component {
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
-      <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <button
+            <bem.KoboButton
               onClick={this.changePassword}
-              className='mdl-button mdl-button--raised mdl-button--colored'
+              m={['blue']}
             >
               {t('Save Password')}
-            </button>
+            </bem.KoboButton>
 
             <button
               onClick={this.close}
@@ -142,6 +124,7 @@ export default class ChangePassword extends React.Component {
 
               <bem.AccountSettings__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Current Password')}
                   type='password'
                   errors={this.state.errors.currentPassword}
@@ -159,6 +142,7 @@ export default class ChangePassword extends React.Component {
 
               <bem.AccountSettings__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('New Password')}
                   type='password'
                   errors={this.state.errors.newPassword}
@@ -176,6 +160,7 @@ export default class ChangePassword extends React.Component {
 
               <bem.AccountSettings__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Verify Password')}
                   type='password'
                   errors={this.state.errors.verifyPassword}
@@ -186,7 +171,6 @@ export default class ChangePassword extends React.Component {
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
-      </ui.Panel>
       </DocumentTitle>
     );
   }

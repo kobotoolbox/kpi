@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 /* ==========================================================================
  * Base
  * ========================================================================== */
@@ -8,25 +10,36 @@
   box-sizing: border-box;
 }
 
-html, body {
+html {
   height: 100%;
+  color: $kobo-gray-24;
 }
 
 body {
-  padding: 0px;
-  margin: 0px;
+  height: 100%;
+  background: $root-background;
+  padding: 0;
+  margin: 0;
 }
 
-input[type="text"] {
+html, body, input, textarea, select, button {
   font-family: $font;
-}
-
-textarea {
-  font-family: $font;
+  font-size: variables.$base-font-size;
+  font-weight: 400;
+  line-height: 20px;
 }
 
 a {
+  color: $kobo-blue;
   text-decoration: none;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+h3, h4, h5, h6 {
+  font-weight: 400;
 }
 
 ul {
@@ -40,7 +53,7 @@ hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid $kobo-gray-65;
   margin: 1em 0;
   padding: 0;
 }
@@ -66,12 +79,7 @@ textarea {
   outline: none;
 }
 
-// ::-moz-selection {
-//     background: #b3d4fc;
-//     text-shadow: none;
-// }
-
-// ::selection {
-//     background: #b3d4fc;
-//     text-shadow: none;
-// }
+i {
+  // we use <i> for icons and we want to avoid any focus styles
+  outline: none !important;
+}

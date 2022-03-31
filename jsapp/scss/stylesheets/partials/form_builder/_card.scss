@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // ==========================================================================
 // Card (incl. Header and Expanded)
 // ==========================================================================
@@ -11,26 +13,32 @@
     margin-bottom: 4px;
     position: relative;
 
-    &.card--movable {
-      cursor: move;
-    }
     &.card--error {
         padding: 12px 20px;
-        background-color: rgb(255, 176, 176);
-    }
-    .card__header {
-        border: $cardBorderStyle;
-        padding: 20px 40px 20px 75px;
-        display: block;
-        background: white;
-        cursor: move;
-        position: relative;
+        background-color: rgba($kobo-red, 0.5);
     }
 
-    .bleeding-edge .card__header {
-        padding-top: 5px;
-        padding-bottom: 5px;
-        border-width: 1px;
+    .card__header {
+        border: $cardBorderStyle;
+        // right padding needs to make space for absolute positioned icons
+        padding: 20px #{15px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width} 20px 75px;
+        min-height: 82px; // to fit all icons in
+        display: block;
+        background: $kobo-white;
+        position: relative;
+
+        // don't show move cursor if not inside an enabled sortable instance
+        // HACK: `.ui-sortable-disabled` only applies to a group, so not to the
+        // root form sortable - we apply move cursor to all enabled
+        .ui-sortable.js-sortable-enabled & {
+          cursor: move;
+        }
+        // … but then we remove it from all disabled ones :)
+        // This is because root form sortable is not created when locking is on
+        // but groups sortable is always created, but disabled later
+        .ui-sortable.ui-sortable-disabled & {
+          cursor: initial !important;
+        }
     }
 
     .card__text {
@@ -41,7 +49,7 @@
         position: relative;
 
         &.activated {
-            color: #8595A5;
+            color: $kobo-gray-40;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -54,9 +62,9 @@
             margin-top:-30px;
             padding-top: 22px;
             padding-bottom: 22px;
-            .fa {
-                width: 12px;
-                font-size: 15px;
+
+            .k-icon {
+              font-size: 15px;
             }
         }
     }
@@ -69,16 +77,16 @@
     }
 
     .card__header-title {
-        color: $cool-gray;
+        color: $kobo-gray-40;
 
         &:focus {
-            color: $black;
+            color: $kobo-gray-24;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
          &::placeholder {
-            color: $cool-red;
-            background-color: rgba($cool-red, 0.075);
+            color: $kobo-red;
+            background-color: rgba($kobo-red, 0.075);
         }
     }
 
@@ -87,26 +95,9 @@
         font-weight: 400;
 
         &::placeholder {
-            color: $cool-silver;
+            color: $kobo-gray-40;
             font-style: italic;
         }
-    }
-
-    .card__header-subtitle {
-        margin: 10px 0 0 0;
-        color: #aaa;
-        font-size: 12px;
-
-        &:before {
-            content: '+ ';
-            opacity: 0.5;
-        }
-    }
-    .card__header-subtitle-empty-value {
-        border: 1px solid #ffdbdb;
-        padding: 2px 3px;
-        border-radius: 3px;
-        background-color: #fff8f8;
     }
     .card__option-translation {
         &--empty {
@@ -123,7 +114,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: #bbb;
+            color: $kobo-gray-40;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -137,10 +128,6 @@
     }
 }
 
-.bleeding-edge .card {
-    margin-bottom: 0;
-}
-
 // pseudo-rule used only to increase card hover area to the left of the card
 .no-touch .card:before {
     content: " ";
@@ -148,17 +135,6 @@
     left: -60px;
     position: absolute;
     width: 80px;
-}
-
-.card--placeholder {
-    background-color: transparent;
-    color:#8695A5;
-    border:2px solid #8695A5;
-    text-align: center;
-    font-family: $font;
-    font-weight: 600;
-    padding: 20px;
-    margin:20px 0px;
 }
 
 .sortable-active {
@@ -170,7 +146,7 @@
     }
 }
 .card--error {
-    background-color: rgb(255, 176, 176);
+    background-color: rgba($kobo-red, 0.5);
 }
 
 // ==========================================================================
@@ -197,31 +173,14 @@ $cardIndicatorIconWidth: 21px;
 .card__indicator__icon {
     position: absolute;
     top: 50%;
-    margin-top: -($cardIndicatorIconHeight/2);
+    margin-top: -($cardIndicatorIconHeight*0.5);
     left: 8px;
     width: $cardIndicatorIconHeight;
     height: $cardIndicatorIconHeight;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $indicatorColor;
-
-    .fa.invert {
-        padding: 3px 1px;
-        font-size: 0.95em;
-        background-color: #8595A5;
-    }
-    .fa-lato-range,
-    .fa-lato-calculate,
-    .fa-lato-decimal,
-    .fa-lato-integer,
-    .fa-lato-text {
-        font-size: 15px;
-        width: $cardIndicatorIconWidth;
-    }
-    .fa-lato-decimal {
-        margin-left:2px;
-    }
+    color: $kobo-gray-40;
 }
 
 // ==========================================================================
@@ -232,24 +191,20 @@ $cardIndicatorIconWidth: 21px;
     border: $cardBorderStyle;
     border-width: 0 0 0 1px;
     position: absolute;
-    top: 0px;
-    right: 2px;
-    width: 25px;
+    top: 0;
+    right: 0;
+    width: $s-fb-row-buttons-width;
     height: 100%;
-    cursor: pointer;
     z-index: 3;
-
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .card--shaded .card__buttons {
-    border:none;
+    border-color: transparent;
 }
 
-.bleeding-edge .card__buttons {
-    width: 169px;
-    right: -181px;
-    background-color: white;
-}
 // ==========================================================================
 // Card Shade (displays on hover above the card header)
 // ==========================================================================
@@ -280,16 +235,16 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba(#858F98, 0.6);
+    background: rgba($kobo-gray-40, 0.5);
 }
 .card__header.delete .card__header--shade {
-    background: rgba(#D08B8C, 0.6);
+    background: rgba($kobo-red, 0.5);
 }
 .card__header.duplicate .card__header--shade {
-    background:rgba($linkColor, 0.6);
+    background: rgba($kobo-blue, 0.5);
 }
 .card__header.add-to-library .card__header--shade {
-    background: rgba(#39BF6E, 0.6);
+    background: rgba($kobo-green, 0.5);
 }
 
 .card--insort {
@@ -297,78 +252,44 @@ $cardIndicatorIconWidth: 21px;
         border-left: $cardInSortThinBorderStyle;
     }
 }
+
 .card__buttons__button {
     height: 20px;
     line-height: 20px;
-    width: 26px;
-    position: absolute;
-    right: -2px;
-    bottom: 0px;
+    width: $s-fb-row-buttons-width;
     text-align: center;
+    position: relative;
+    cursor: pointer;
+
     &.card__buttons__button--gray {
-        color: #858F98;
-        top:0px;
+        color: $kobo-gray-40;
     }
+
     &.card__buttons__button--red {
-        color: #D08B8C;
-        top:37%;
-        margin-top:-10px;
+        color: $kobo-red;
     }
+
     &.card__buttons__button--blue {
-        color:$linkColor;
+        color: $kobo-blue;
     }
-    // &.card__buttons__button--add {
-    //   bottom: 22%;
-    // }
-    &.card__buttons__button--copy {
-        bottom: 26%;
+
+    &.card__buttons__button--teal {
+        color: $kobo-teal;
     }
+
     &.card__buttons__button--activated {
-        // trying to transition this into %activated-card-button
-        color: #646D75;
-        background-color: #D9DDE1;
+        color: $kobo-gray-40;
+        background-color: $kobo-gray-92;
         opacity: 1;
     }
-    &:hover, &.card__buttons__button--activated:hover {
+
+    &:hover,
+    &.card__buttons__button--activated:hover {
         opacity: 0.5;
-        // @extend %activated-card-button;
-        // background: none;
-        // color: white;
     }
 
-}
-
-.bleeding-edge .card__buttons__button {
-    position: relative;
-    float: left;
-    width: 30px;
-    display: block;
-    margin: 5px;
-    &.card__buttons__button--red,
-      &.card__buttons__button--gray,
-      &.card__buttons__button--blue,
-      &.card__buttons__button--gray-green,
-      &.card__buttons__button--copy {
-        top: 0;
-    }
-}
-// Misc...
-
-.placeholder {
-    height: 80px;
-    margin-bottom: 10px;
-    border: 2px solid #B4C1CD;
-    border-radius: 4px;
-    position: relative;
-    &:before {
-        content: "Drag and drop to reorder. ";
-        position: absolute;
-        font-weight: bold;
-        color: #8595A5;
-        width: 100%;
-        text-align: center;
-        line-height: 75px;
-        font-size: 14px;
+    .k-icon {
+      font-size: 18px;
     }
 }
 

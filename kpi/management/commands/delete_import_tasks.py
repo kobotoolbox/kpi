@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from .delete_base_command import DeleteBaseCommand
+from kpi.management.delete_base_command import DeleteBaseCommand
 from kpi.models import ImportTask
 
 

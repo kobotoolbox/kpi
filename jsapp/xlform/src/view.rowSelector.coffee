@@ -11,6 +11,7 @@ module.exports = do ->
   class viewRowSelector.RowSelector extends $baseView
     events:
       "click .js-close-row-selector": "shrink"
+
     initialize: (opts)->
       @options = opts
       @ngScope = opts.ngScope
@@ -19,6 +20,7 @@ module.exports = do ->
       @line = @$el.find(".line")
       if opts.action is "click-add-row"
         @expand()
+      return
 
     expand: ->
       @$el.parents('.survey-editor__null-top-row--hidden').removeClass('survey-editor__null-top-row--hidden')
@@ -29,6 +31,7 @@ module.exports = do ->
         evt.preventDefault()
         $namer_form.submit()
       @$('input').eq(0).focus()
+      return
 
     show_namer: () ->
       $surveyViewEl = @options.surveyView.$el
@@ -59,6 +62,7 @@ module.exports = do ->
           if $(evt.target).closest('.line.expanded').length == 0
             evt.preventDefault()
             @$('input').eq(0).focus()
+      return
 
     show_picker: (evt) ->
       evt.preventDefault()
@@ -132,6 +136,8 @@ module.exports = do ->
         if evt.which == $ENTER
           currentListRow.eq(columnIndex).children().eq(rowIndex).trigger('click')
 
+      return
+
     shrink: ->
       # click .js-close-row-selector
       $(window).off 'keydown.cancel_add_question'
@@ -145,12 +151,15 @@ module.exports = do ->
       @line.animate height: "0"
       if @reversible
         @button.removeClass('btn--hidden')
+      return
+
     hide: ->
       @button.removeClass('btn--hidden')
       @line.empty().removeClass("expanded").css "height": 0
       @line.parents(".survey-editor__null-top-row")
           .removeClass("expanded")
           .addClass("survey-editor__null-top-row--hidden")
+      return
 
     onSelectNewQuestionType: (evt)->
       @question_name = @line.find('input').val()
@@ -171,7 +180,6 @@ module.exports = do ->
         type: rowType
 
       if rowType is 'calculate'
-
         rowDetails.calculation = questionLabelValue
       else
         rowDetails.label = questionLabelValue
@@ -187,15 +195,22 @@ module.exports = do ->
       newRow = survey.addRow(rowDetails, options)
       newRow.linkUp(warnings: [], errors: [])
       @hide()
+      return
 
+    ###
+    # Scrolls the newly opened element into the screen if it is being opened
+    # below the fold. Calling the function doesn't cause the scrolling
+    # to happen unless it passes the checks.
+    ###
     scrollFormBuilder: (scrollBy)->
       $row = @$el.parents('.survey__row')
       if !$row.length
         return
 
-      $fbC = @$el.parents('.formBuilder__contents')
+      $fbC = @$el.parents('.form-builder__contents')
 
       if $row.height() + $row.position().top + 50 > $fbC.height() + $fbC.prop('scrollTop')
         $fbC.animate scrollTop: scrollBy
+      return
 
   viewRowSelector

@@ -1,6 +1,5 @@
 {expect} = require('../helper/fauxChai')
 
-$ = require "jquery"
 $survey = require("../../jsapp/xlform/src/model.survey")
 $choices = require("../../jsapp/xlform/src/model.choices")
 _ = require "underscore"

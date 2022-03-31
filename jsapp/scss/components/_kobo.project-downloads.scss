@@ -1,0 +1,264 @@
+@keyframes processing {
+  0% {
+    opacity: 1;
+  }
+
+  25% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.project-downloads {
+  hr {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: $kobo-gray-92;
+    margin: 0;
+    border: 0;
+  }
+
+  > .form-view__cell.form-view__cell--box:last-child {
+    margin-bottom: 40px;
+  }
+
+  .project-downloads__selector-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+
+    > * {
+      width: 33%;
+
+      &:not(:last-child) {
+        margin-right: 20px;
+      }
+    }
+  }
+
+  .kobo-select {
+    .kobo-select__control {
+      border: 1px solid $kobo-gray-92;
+    }
+  }
+
+  .text-box {
+    .text-box__input {
+      padding: 8px 16px;
+    }
+
+    &.text-box--group-separator {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .text-box__input {
+        flex: 1;
+        margin-left: 10px;
+      }
+
+      &.text-box--group-separator-disabled {
+        .text-box__label {
+          opacity: 0.5;
+        }
+      }
+    }
+
+    &.text-box--group-separator,
+    &.text-box--custom-export {
+      margin-left: 28px;
+      margin-top: 4px;
+    }
+
+    &.text-box--custom-export {
+      display: block;
+    }
+  }
+
+  .project-downloads__text-button {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
+    display: inline-block;
+    color: $kobo-blue;
+    cursor: pointer;
+    font-weight: 700;
+
+    &:hover {
+      color: $kobo-dark-blue;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &[disabled] {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .k-icon {
+      vertical-align: middle;
+      margin-left: 3px;
+    }
+  }
+
+  .project-downloads__advanced-view {
+    display: flex;
+    align-items: stretch; // needed for questions list stretching
+    flex-wrap: wrap;
+    padding-top: 12px;
+  }
+
+  .project-downloads__title {
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  .project-downloads__column {
+    margin-bottom: 20px;
+
+    &.project-downloads__column--left {
+      margin-right: 20px;
+      width: 33%;
+    }
+
+    &.project-downloads__column--right {
+      flex: 1;
+      position: relative; // needed to stretch question list with GeoJSON checkbox visible
+    }
+
+    .project-downloads__column-row {
+      display: block;
+
+      &:not(:last-child) {
+        margin-bottom: 20px;
+      }
+
+      &.project-downloads__column-row--rows-selector-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .toggle-switch {
+          flex: 1;
+        }
+
+        .project-downloads__vr {
+          width: 1px;
+          height: 1em;
+          display: block;
+          vertical-align: middle;
+          margin: 0 10px;
+          background-color: $kobo-gray-92;
+        }
+      }
+    }
+  }
+
+  .multi-checkbox {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-top: 6px;
+  }
+
+  .project-downloads__submit-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    align-content: flex-end;
+    margin-top: 20px;
+
+    .project-downloads__exports-selector {
+      width: 33%;
+      position: relative;
+    }
+
+    .project-downloads__delete-settings-button {
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      color: $kobo-red;
+      display: inline-block;
+      vertical-align: middle;
+      background: transparent;
+      font-size: 24px;
+
+      // positioning
+      position: absolute;
+      left: 100%;
+      margin-left: 8px;
+      bottom: 0;
+      height: 38px;
+      line-height: 38px;
+
+      &:hover {
+        color: $kobo-dark-red;
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+  }
+
+  .project-downloads__anonymous-row {
+    display: flex;
+    align-items: flex-end;
+    align-content: flex-end;
+
+    .project-downloads__exports-selector {
+      width: 33%;
+      margin-right: 20px;
+    }
+  }
+
+  .form-view__cell.form-view__cell--warning {
+    margin-bottom: 20px;
+  }
+
+  .project-downloads__legacy-iframe-wrapper {
+    iframe {
+      width: 100%;
+      height: 250px;
+      border: 1px solid $kobo-gray-92;
+      border-radius: 4px;
+    }
+  }
+
+  .project-downloads__exports-creator {
+    &.project-downloads__exports-creator--loading {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
+  .simple-table.simple-table--project-exports {
+    // __row selector to not include __message-row
+    .simple-table__row .simple-table__cell {
+      &:last-child() {
+        text-align: right;
+      }
+
+      .kobo-light-button:not(:first-child) {
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .animate-processing {
+    animation: processing 1.5s infinite;
+  }
+}

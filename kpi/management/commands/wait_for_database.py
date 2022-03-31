@@ -36,4 +36,6 @@ class Command(BaseCommand):
                     return
             time.sleep(2)
 
-        raise CommandError('Retries exceeded; failed to connect')
+        raise CommandError(
+            'Retries exceeded; failed to connect to default database'
+        )

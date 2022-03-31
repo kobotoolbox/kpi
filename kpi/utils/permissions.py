@@ -16,14 +16,13 @@ shouldn't incur a penalty:
 
 def grant_default_model_level_perms(user):
     """
-    Gives `user` unrestricted model-level access to Collections and Assets.
+    Gives `user` unrestricted model-level access to Assets.
     Without this, actions on individual instances are immediately denied and
     object-level permissions are never considered.
     """
-    from kpi.models import Asset, Collection
+    from kpi.models import Asset
 
-    grant_all_model_level_perms(
-        user, models_or_content_types=[Collection, Asset])
+    grant_all_model_level_perms(user, models_or_content_types=[Asset])
 
 
 def grant_all_model_level_perms(
@@ -43,7 +42,7 @@ def grant_all_model_level_perms(
         permissions_manager (django.db.models.Manager)
         content_type_manager (django.db.models.Manager)
     """
-    from kpi.models.object_permission import perm_parse
+    from kpi.utils.object_permission import perm_parse
 
     try:
         iter(models_or_content_types)
@@ -76,3 +75,9 @@ def grant_all_model_level_perms(
         permissions_to_assign = permissions_to_assign.filter(q_query)
 
     user.user_permissions.add(*permissions_to_assign)
+
+
+def is_user_anonymous(user):
+    return user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID
+
+

@@ -1,5 +1,7 @@
 # coding: utf-8
 # 😇
+import json
+
 import constance
 from django.urls import reverse
 from django.http import HttpRequest
@@ -19,15 +21,26 @@ class EnvironmentTests(BaseTestCase):
             'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
             'source_code_url': constance.config.SOURCE_CODE_URL,
-            'support_url': constance.config.SUPPORT_URL,
             'support_email': constance.config.SUPPORT_EMAIL,
-            'available_sectors': lambda x: \
+            'support_url': constance.config.SUPPORT_URL,
+            'community_url': constance.config.COMMUNITY_URL,
+            'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
+            'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
+            'project_metadata_fields': lambda x: \
+                self.assertEqual(len(x), len(json.loads(constance.config.PROJECT_METADATA_FIELDS))) \
+                and self.assertIn({'name': 'organization', 'required': False}, x),
+            'user_metadata_fields': lambda x: \
+                self.assertEqual(
+                    len(x), len(json.loads(constance.config.USER_METADATA_FIELDS))
+                ) and self.assertIn({'name': 'sector', 'required': False}, x),
+            'sector_choices': lambda x: \
                 self.assertGreater(len(x), 10) and self.assertIn(
                     ("Humanitarian - Sanitation, Water & Hygiene",
                      "Humanitarian - Sanitation, Water & Hygiene"),
                     x
                 ),
-            'available_countries': lambda x: \
+            'operational_purpose_choices': (('', ''),),
+            'country_choices': lambda x: \
                 self.assertGreater(len(x), 200) and self.assertIn(
                     ('KEN', 'Kenya'), x
                 ),

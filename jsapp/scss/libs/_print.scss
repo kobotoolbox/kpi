@@ -31,6 +31,10 @@
     display: none;
   }
 
+  .k-drawer + .mdl-layout__content {
+    margin: 0;
+  }
+
   .form-view__reportButtons {
     display: none;
   }
@@ -62,6 +66,10 @@
     page-break-inside: avoid;
   }
 
+  .report-view__item {
+    break-inside: avoid;
+  }
+
   // Fix Chrome printing headers overlap bug
   thead {
     display: table-row-group;
@@ -90,6 +98,19 @@
       left: auto;
       transform: none;
       max-height: none;
+    }
+  }
+
+  .form-view.form-view--fullscreen {
+    position: static;
+  }
+
+  .page-wrapper {
+    &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
+      .form-view.form-view--table {
+        // hide table, when displaying submission modal and user is printing
+        display: none;
+      }
     }
   }
 }

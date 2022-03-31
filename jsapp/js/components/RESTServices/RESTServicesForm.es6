@@ -1,17 +1,18 @@
-import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
-import TagsInput from 'react-tagsinput';
+import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
-import {bem} from '../../bem';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
-import Select from 'react-select';
-import Checkbox from '../checkbox';
-import Radio from '../radio';
-import TextBox from '../textBox';
-import {t} from '../../utils';
+import WrappedSelect from 'js/components/common/wrappedSelect';
+import Checkbox from 'js/components/common/checkbox';
+import Radio from 'js/components/common/radio';
+import TextBox from 'js/components/common/textBox';
+import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
 
 const EXPORT_TYPES = {
   json: {
@@ -292,11 +293,11 @@ export default class RESTServicesForm extends React.Component {
    */
 
  onCustomHeaderInputKeyPress(evt) {
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerName') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
      evt.preventDefault();
      $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
    }
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerValue') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
      evt.preventDefault();
      this.addNewCustomHeaderRow();
    }
@@ -357,24 +358,25 @@ export default class RESTServicesForm extends React.Component {
                 onKeyPress={this.onCustomHeaderInputKeyPress}
               />
 
-              <button
+              <bem.Button
+                m='icon'
                 className='http-header-row-remove'
                 data-index={n}
                 onClick={this.removeCustomHeaderRow}
               >
                 <i className='k-icon k-icon-trash'/>
-              </button>
+              </bem.Button>
             </bem.FormModal__item>
           );
         })}
 
-        <button
-          className='http-header-add'
+        <bem.KoboButton
+          m='small'
           onClick={this.addNewCustomHeaderRow}
         >
           <i className='k-icon k-icon-plus' />
           {t('Add header')}
-        </button>
+        </bem.KoboButton>
       </bem.FormModal__item>
     );
   }
@@ -383,26 +385,18 @@ export default class RESTServicesForm extends React.Component {
    * handle fields
    */
 
-  onSubsetFieldsChange(evt) {
-    this.setState({subsetFields: evt});
+  onSubsetFieldsChange(newValue) {
+    this.setState({subsetFields: newValue.split(',')});
   }
 
   renderFieldsSelector() {
-    const inputProps = {
-      placeholder: t('Add field(s)'),
-      id: 'subset-fields-input'
-    };
-
     return (
       <bem.FormModal__item>
-        <label htmlFor='subset-fields-input'>
-          {t('Select fields subset')}
-        </label>
-
-        <TagsInput
-          value={this.state.subsetFields}
-          onChange={this.onSubsetFieldsChange.bind(this)}
-          inputProps={inputProps}
+        <KoboTagsInput
+          tags={this.state.subsetFields.join(',')}
+          onChange={this.onSubsetFieldsChange}
+          placeholder={t('Add field(s)')}
+          label={t('Select fields subset')}
         />
       </bem.FormModal__item>
     );
@@ -416,18 +410,11 @@ export default class RESTServicesForm extends React.Component {
     const isEditingExistingHook = Boolean(this.state.hookUid);
 
     if (this.state.isLoadingHook) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else {
       let submissionPlaceholder = '%SUBMISSION%';
-      if (stores.session.environment && stores.session.environment.submission_placeholder) {
-        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      if (envStore.isReady && envStore.data.submission_placeholder) {
+        submissionPlaceholder = envStore.data.submission_placeholder;
       }
 
       return (
@@ -435,6 +422,7 @@ export default class RESTServicesForm extends React.Component {
           <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
               <TextBox
+                customModifiers='on-white'
                 label={t('Name')}
                 type='text'
                 placeholder={t('Service Name')}
@@ -446,6 +434,7 @@ export default class RESTServicesForm extends React.Component {
 
             <bem.FormModal__item>
               <TextBox
+                customModifiers='on-white'
                 label={t('Endpoint URL')}
                 type='text'
                 placeholder={t('https://')}
@@ -458,7 +447,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='isActive'
-                id='active-checkbox'
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
@@ -468,7 +456,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='emailNotification'
-                id='email-checkbox'
                 onChange={this.handleEmailNotificationChange.bind(this)}
                 checked={this.state.emailNotification}
                 label={t('Receive emails notifications')}
@@ -486,25 +473,22 @@ export default class RESTServicesForm extends React.Component {
             </bem.FormModal__item>
 
             <bem.FormModal__item>
-              <label htmlFor='rest-service-form--security'>
-                {t('Security')}
-              </label>
-
-              <Select
+              <WrappedSelect
+                label={t('Security')}
                 value={this.state.authLevel}
                 options={this.state.authOptions}
                 onChange={this.handleAuthTypeChange.bind(this)}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
                 id='rest-service-form--security'
                 name='authLevel'
-                menuPlacement='auto'
+                isSearchable={false}
+                isLimitedHeight
               />
             </bem.FormModal__item>
 
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Username')}
                   type='text'
                   value={this.state.authUsername}
@@ -512,6 +496,7 @@ export default class RESTServicesForm extends React.Component {
                 />
 
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Password')}
                   type='text'
                   value={this.state.authPassword}
@@ -527,6 +512,7 @@ export default class RESTServicesForm extends React.Component {
             {this.state.type === EXPORT_TYPES.json.value &&
               <bem.FormModal__item m='rest-custom-wrapper'>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
                   type='text-multiline'
                   placeholder={t('Add Custom Wrapper')}
@@ -539,13 +525,13 @@ export default class RESTServicesForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.Modal__footer>
-            <bem.Modal__footerButton
-              m='primary'
+            <bem.KoboButton
+              m='blue'
               onClick={this.onSubmit}
               disabled={this.state.isSubmitPending}
             >
               { isEditingExistingHook ? t('Save') : t('Create') }
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         </bem.FormModal__form>
       );

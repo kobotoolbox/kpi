@@ -7,11 +7,18 @@
   <title>KPI tests</title>
   <link rel="stylesheet" href="{% static 'mocha/mocha.css' %}"/>
   <script src="{% static 'mocha/mocha.js' %}"></script>
+  <script src="{% static 'chai/chai.js' %}"></script>
 </head>
 <body>
+    <script>
+      // need "t" defined for tests to pass
+      function t (str) { return str; }
+      var expect = chai.expect;
+    </script>
     <script>mocha.setup('bdd')</script>
     <div id="mocha"></div>
-    {% render_bundle 'tests' 'js' %}
+    {% render_bundle 'browsertests' 'js' %}
+    {% render_bundle 'vendors' 'js' %}
     <script>mocha.run();</script>
 </body>
 </html>

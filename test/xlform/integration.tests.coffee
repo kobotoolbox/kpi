@@ -235,12 +235,6 @@ do ->
           )
       it 'can have a ranking q', ->
         @create_rank_survey()
-      # it 'can edit settings of a ranking q', ->
-      #   @create_rank_survey()
-      #   last_row = @div.find('.survey-editor__list').children('.survey__row').eq(-1)
-      #   last_row.find('.card__buttons').find('.card__buttons__button[data-button-name=settings]').click()
-      #   sl_tab = last_row.find('.card__settings__tabs').find('[data-card-settings-tab-id=skip-logic]')
-      #   last_row.find('.skiplogic__button.skiplogic__select-builder').click()
 
     describe 'grouping selected rows', ->
       beforeEach ->

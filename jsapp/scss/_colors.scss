@@ -1,0 +1,79 @@
+// This is our current pallete of colors.
+//
+// It should be the only source of colors in styles (i.e. no one-shot colors,
+// all `color`, `background-color` etc. should use variables defined here).
+
+/*
+ * The KoBo gray scale
+ *
+ * NOTE: the list constist of colors with same hue (225) and saturation (16).
+ */
+
+// (accessible) our black, very very rare, only use if necessary for contrast
+$kobo-gray-14: hsl(225, 16%, 14%); // #1e2129
+
+// (accessible) active text, important text, text on background, top navigation
+// background
+$kobo-gray-24: hsl(225, 16%, 24%); // #333847
+
+// (accessible) default text, inactive text, options text, buttons text,
+// tabs text, notifications background, hover for popups and dropdowns
+$kobo-gray-40: hsl(225, 16%, 40%); // #565e76
+
+// (readable) clickable icons on hover
+$kobo-gray-55: hsl(225, 16%, 55%); // #7a839f
+
+// icons default (clickable), arrows and indicators default
+$kobo-gray-65: hsl(225, 16%, 65%); // #979fb4
+
+// inactive icons, some decorative icons
+$kobo-gray-85: hsl(225, 16%, 85%); // #d3d6df
+
+// scroll bars, table lines, dividers, background of clickable icons on hover
+// when also in a highlighted table row
+$kobo-gray-92: hsl(225, 16%, 92%); // #e7e9ee
+
+// default light background, icons on hover, sidebar menu, table headings, …
+$kobo-gray-96: hsl(225, 16%, 96%); // #f3f4f6
+
+// table row highlight on hover
+$kobo-gray-98: hsl(225, 16%, 98%); // #f9f9fb
+
+// white background
+$kobo-white: hsl(225, 16%, 100%); // #ffffff
+
+/*
+ * Primary colours & shades
+ */
+
+$kobo-blue: hsl(206, 90%, 55%); // # 2095f3
+$kobo-alt-blue: hsl(206, 100%, 71%); // #64c0ff
+$kobo-mid-blue: hsl(206, 85%, 80%); // #a1d2f7
+$kobo-light-blue: hsl(206, 100%, 95%); // #e8f4ff
+$kobo-dark-blue: hsl(206, 90%, 31%); // #00599d
+
+$kobo-teal: hsl(185, 57%, 57%); // #52c5d0
+$kobo-dark-teal: hsl(185, 61%, 28%); // #1c6d74
+$kobo-light-teal: hsl(185, 56%, 89%); // #d4f0f3
+
+/*
+ * Secondary & tertiary colors
+ */
+
+$kobo-red: hsl(352, 100%, 70%); // #fe6b7d
+$kobo-dark-red: hsl(352, 30%, 44%); // #924f58
+$kobo-light-red: hsl(352, 100%, 92%); // #ffd5da
+
+$kobo-dark-amber: hsl(30, 20%, 35%); // #6c5a49
+$kobo-amber: hsl(30, 100%, 72%); // #fdb670
+$kobo-light-amber: hsl(30, 100%, 90%); // #ffe8cc
+
+// For big general backgrounds as an alternative to desaturated grays.
+$kobo-storm: hsl(225, 33%, 59%); // #7386b9
+$kobo-cloud: hsl(225, 65%, 97%); // #f1f4fc
+
+$kobo-violet: hsl(271, 92%, 85%); // #dab6fc
+$kobo-pink: hsl(290, 53%, 93%); // #f4e5f7
+
+$kobo-green: hsl(126, 68%, 75%); // #96eb9e
+$kobo-lime: hsl(104, 71%, 92%); // #e3f9db

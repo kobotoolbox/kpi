@@ -22,8 +22,8 @@ class Migration(migrations.Migration):
             name='AssetFile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('uid', kpi.fields.KpiUidField(uid_prefix=b'af')),
-                ('file_type', models.CharField(max_length=32, choices=[(b'map_layer', b'map_layer')])),
+                ('uid', kpi.fields.KpiUidField(uid_prefix='af')),
+                ('file_type', models.CharField(max_length=32, choices=[('map_layer', 'map_layer')])),
                 ('name', models.CharField(max_length=255)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('content', private_storage.fields.PrivateFileField(storage=private_storage.storage.files.PrivateFileSystemStorage(),

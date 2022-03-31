@@ -164,3 +164,157 @@ export const surveyWithGroups = [
     'label': ['Comments']
   }
 ];
+
+export const surveyWithAllPossibleGroups = [{
+  'name': 'start',
+  'type': 'start',
+  '$kuid': 'yIzTq1EhT',
+  '$autoname': 'start'
+}, {
+  'name': 'end',
+  'type': 'end',
+  '$kuid': 'vrOUh8w2q',
+  '$autoname': 'end'
+}, {
+  'name': 'today',
+  'type': 'today',
+  '$kuid': 'eXoXxQQNi',
+  '$autoname': 'today'
+}, {
+  'name': 'username',
+  'type': 'username',
+  '$kuid': 'plYTFwZ63',
+  '$autoname': 'username'
+}, {
+  'name': 'simserial',
+  'type': 'simserial',
+  '$kuid': 'cDTRJ5D78',
+  '$autoname': 'simserial'
+}, {
+  'name': 'subscriberid',
+  'type': 'subscriberid',
+  '$kuid': 'Nt06yZ7th',
+  '$autoname': 'subscriberid'
+}, {
+  'name': 'deviceid',
+  'type': 'deviceid',
+  '$kuid': '1W3n5pkGF',
+  '$autoname': 'deviceid'
+}, {
+  'name': 'phonenumber',
+  'type': 'phonenumber',
+  '$kuid': 'GFKDd8m18',
+  '$autoname': 'phonenumber'
+}, {
+  'name': 'group_people',
+  'type': 'begin_repeat',
+  '$kuid': 'fs1km00',
+  'label': ['People'],
+  '$autoname': 'group_people'
+}, {
+  'type': 'text',
+  '$kuid': 'sr97c95',
+  'label': ['First name'],
+  'required': false,
+  '$autoname': 'First_name'
+}, {
+  'type': 'end_repeat',
+  '$kuid': '/fs1km00'
+}, {
+  'name': 'group_location',
+  'type': 'begin_group',
+  '$kuid': 'lq0th66',
+  'label': ['Location'],
+  '$autoname': 'group_location'
+}, {
+  'type': 'geopoint',
+  '$kuid': 'ug36q69',
+  'label': ['Original location'],
+  'required': false,
+  '$autoname': 'Original_location'
+}, {
+  'type': 'geopoint',
+  '$kuid': 'kw6zd49',
+  'label': ['Current location'],
+  'required': false,
+  '$autoname': 'Current_location'
+}, {
+  'type': 'end_group',
+  '$kuid': '/lq0th66'
+}, {
+  'type': 'begin_score',
+  '$kuid': 'rd0zi80',
+  'label': ['Are you vegan?'],
+  'required': false,
+  '$autoname': 'Are_you_vegan',
+  'kobo--score-choices': 'cv0ok80'
+}, {
+  'type': 'score__row',
+  '$kuid': 'as5gb66',
+  'label': ['Killing humans'],
+  '$autoname': 'Killing_humans'
+}, {
+  'type': 'score__row',
+  '$kuid': 'kv3uq84',
+  'label': ['Killing nonhumans'],
+  '$autoname': 'Killing_nonhumans'
+}, {
+  'type': 'end_score',
+  '$kuid': '/rd0zi80'
+}, {
+  'type': 'begin_rank',
+  '$kuid': 'bj3zo95',
+  'label': ['Best things in life'],
+  'required': false,
+  '$autoname': 'Best_things_in_life',
+  'kobo--rank-items': 'oe89v01',
+  'kobo--rank-constraint-message': 'Items cannot be selected more than once'
+}, {
+  'type': 'rank__level',
+  '$kuid': 'yy8lt23',
+  'label': ['1st choice'],
+  '$autoname': '_1st_choice'
+}, {
+  'type': 'rank__level',
+  '$kuid': 'll0ky89',
+  'label': ['2nd choice'],
+  '$autoname': '_2nd_choice'
+}, {
+  'type': 'rank__level',
+  '$kuid': 'cz6uz72',
+  'label': ['3rd choice'],
+  '$autoname': '_3rd_choice'
+}, {
+  'type': 'end_rank',
+  '$kuid': '/bj3zo95'
+}, {
+  'name': 'group_crossbreeding',
+  'type': 'begin_kobomatrix',
+  '$kuid': 'vs75w20',
+  'label': ['Crossbreeding'],
+  '$autoname': 'group_crossbreeding',
+  '_isRepeat': 'false',
+  'appearance': 'field-list',
+  'kobo--matrix_list': 'matrix_go11n34'
+}, {
+  'hint': [''],
+  'name': 'human',
+  'type': 'text',
+  '$kuid': 'ji8zj93',
+  'label': ['Human'],
+  'required': false,
+  '$autoname': 'human',
+  'appearance': 'w1'
+}, {
+  'hint': [''],
+  'name': 'nonhuman',
+  'type': 'text',
+  '$kuid': 'on6ec28',
+  'label': ['Nonhuman'],
+  'required': false,
+  '$autoname': 'nonhuman',
+  'appearance': 'w1'
+}, {
+  'type': 'end_kobomatrix',
+  '$kuid': '/vs75w20'
+}];

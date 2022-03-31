@@ -1,0 +1,140 @@
+// DEPRECATED: please don't use this component. From now on, we will only use
+// the `Button` component (from `js/components/common/button`) as it covers
+// all possible cases.
+
+@use "scss/_colors";
+@use "scss/sizes";
+
+/*
+ * This is a smaller alternative to kobo-button. Modifiers to use:
+ * - icon-only
+ * - full-width
+ * - pending
+ * - blue
+ * - red
+ * - gray
+ */
+
+@mixin koboLightButtonVariant($mainColor) {
+  color: $mainColor;
+  border-color: $mainColor;
+
+  &:hover,
+  &.kobo-light-button--pending {
+    color: colors.$kobo-white;
+    background-color: $mainColor;
+    border-color: $mainColor;
+  }
+
+  // Note: `pending` modifier uses the same base look as hover state.
+  &.kobo-light-button--pending .k-icon.k-icon-spinner.k-spin {
+    color: colors.$kobo-white;
+  }
+}
+
+.kobo-light-button,
+.kobo-light-badge {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative; // needed for tooltips etc.
+  font-size: sizes.$x14;
+  font-weight: 400;
+  text-decoration: none;
+  text-align: center;
+  border-radius: sizes.$x4;
+  height: sizes.$x28;
+  line-height: sizes.$x14;
+  padding: sizes.$x6 sizes.$x12;
+  margin: 0;
+  border-width: sizes.$x1;
+  border-style: solid;
+  white-space: nowrap; // for smaller screens
+
+  // TODO: this assumes that icon goes before button text
+  // icon inside is bigger than the button, so we need cleverness to position it
+  i,
+  .k-icon {
+    vertical-align: top;
+    font-size: sizes.$x18;
+    position: relative;
+    top: -2px;
+    margin-right: sizes.$x4;
+  }
+
+  &.kobo-light-button--icon-only,
+  &.kobo-light-badge--icon-only {
+    // ideally we want a square here
+    padding-left: sizes.$x4;
+    padding-right: sizes.$x4;
+
+    & i,
+    & .k-icon {
+      margin-right: 0;
+    }
+  }
+
+  &.kobo-light-button--full-width {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.kobo-light-badge {
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-92;
+  white-space: nowrap;
+  padding-left: sizes.$x8;
+  padding-right: sizes.$x8;
+}
+
+.kobo-light-button {
+  cursor: pointer;
+  color: colors.$kobo-gray-40;
+  background-color: transparent;
+  border-color: currentColor;
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  &:hover,
+  &.kobo-light-button--pending {
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-40;
+    border-color: colors.$kobo-gray-40;
+  }
+
+  &:active {
+    // moves button down by small bit to make it look pressed-in
+    transform: translateY(#{sizes.$x1});
+  }
+
+  &.kobo-light-button--blue {
+    @include koboLightButtonVariant(colors.$kobo-blue)
+  }
+
+  &.kobo-light-button--red {
+    @include koboLightButtonVariant(colors.$kobo-red)
+  }
+
+  // NOTE: this requires `<Icon name='spinner' className='k-spin'/>` to
+  // be present inside the button (ideally rendered only when necessary).
+  &.kobo-light-button--pending {
+    // hide button text
+    color: transparent !important;
+    position: relative;
+
+    // Disable any interactions (and hover effects).
+    pointer-events: none;
+
+    .k-icon.k-icon-spinner.k-spin {
+      color: colors.$kobo-white;
+      display: block;
+      position: absolute;
+      top: calc(50% - 9px);
+      left: calc(50% - 9px);
+    }
+  }
+}

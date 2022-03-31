@@ -5,21 +5,20 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import {buildUserUrl} from 'utils';
 import {
-  t,
-  buildUserUrl
-} from 'js/utils';
-import {
-  ASSET_KINDS,
-  ANON_USERNAME
+  ASSET_TYPES,
+  ANON_USERNAME,
 } from 'js/constants';
-
+import './sharingForm.scss';
+import {ROUTES} from 'js/router/routerConstants';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
-import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
 import {permParser} from './permParser';
@@ -30,16 +29,15 @@ class SharingForm extends React.Component {
     autoBind(this);
     this.state = {
       allAssetsCount: 0,
-      isAddUserEditorVisible: false
+      isAddUserEditorVisible: false,
     };
   }
 
-  componentDidMount () {
-    this.listenTo(stores.asset, this.onAssetChange);
+  componentDidMount() {
+    this.listenTo(assetStore, this.onAssetChange);
     this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);
-    this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onCollectionPermissionsUpdated);
 
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
@@ -65,46 +63,24 @@ class SharingForm extends React.Component {
     this.setState({
       permissions: parsedPerms,
       nonOwnerPerms: nonOwnerPerms,
-      publicPerms: publicPerms
+      publicPerms: publicPerms,
     });
   }
 
-  onCollectionPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
-    let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
-      return perm.user !== buildUserUrl(this.state.asset.owner);
-    });
-
-    this.setState({
-      permissions: parsedPerms,
-      nonOwnerPerms: nonOwnerPerms
-    });
-  }
-
-  onAssetChange (data) {
+  onAssetChange(data) {
     const uid = this.props.uid || this.currentAssetID;
     const asset = data[uid];
 
     if (asset) {
-      this.setState({
-        asset: asset,
-        kind: asset.kind
-      });
+      this.setState({asset: asset});
     }
 
-    // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
-    if (asset.kind === ASSET_KINDS.get('asset')) {
-      this.setState({
-        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
-      });
-      // we need to fetch permissions after asset has loaded,
-      // as we need the owner username to parse permissions
-      actions.permissions.getAssetPermissions(uid);
-    } else if (asset.kind === ASSET_KINDS.get('collection')) {
-      this.setState({
-        permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
-      });
-    }
+    this.setState({
+      assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
+    });
+    // we need to fetch permissions after asset has loaded,
+    // as we need the owner username to parse permissions
+    actions.permissions.getAssetPermissions(uid);
   }
 
   getAssignablePermsMap(backendPerms) {
@@ -125,24 +101,12 @@ class SharingForm extends React.Component {
     }
   }
 
-  renderLoadingMessage() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
-  render () {
+  render() {
     if (!this.state.permissions) {
-      return this.renderLoadingMessage();
+      return (<LoadingSpinner/>);
     }
 
     let uid = this.state.asset.uid,
-        kind = this.state.asset.kind,
         asset_type = this.state.asset.asset_type,
         objectUrl = this.state.asset.url;
 
@@ -151,6 +115,21 @@ class SharingForm extends React.Component {
         <bem.Modal__subheader>
           {this.state.asset.name}
         </bem.Modal__subheader>
+
+        {stores.session.currentAccount.extra_details?.require_auth !== true &&
+          <bem.FormModal__item>
+            <bem.FormView__cell m='warning'>
+              <i className='k-icon k-icon-alert' />
+              <p>
+                {t('Anyone can see this blank form and add submissions to it because you have not set ')}
+                <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
+                  {t('your account')}
+                </a>
+                {t(' to require authentication.')}
+              </p>
+            </bem.FormView__cell>
+          </bem.FormModal__item>
+        }
 
         {/* list of users and their permissions */}
         <bem.FormModal__item>
@@ -166,18 +145,18 @@ class SharingForm extends React.Component {
               uid={uid}
               nonOwnerPerms={this.state.nonOwnerPerms}
               assignablePerms={this.state.assignablePerms}
-              kind={kind}
+              assetType={asset_type}
               {...perm}
             />;
           })}
 
           {!this.state.isAddUserEditorVisible &&
-            <bem.Button
-              m={['raised', 'colored']}
+            <bem.KoboButton
+              m='blue'
               onClick={this.toggleAddUserEditor}
             >
               {t('Add user')}
-            </bem.Button>
+            </bem.KoboButton>
           }
 
           {this.state.isAddUserEditorVisible &&
@@ -190,29 +169,19 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-              {kind === ASSET_KINDS.get('asset') &&
-                <UserAssetPermsEditor
-                  uid={uid}
-                  assignablePerms={this.state.assignablePerms}
-                  nonOwnerPerms={this.state.nonOwnerPerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-                />
-              }
-              {kind === ASSET_KINDS.get('collection') &&
-                <UserCollectionPermsEditor
-                  uid={uid}
-                  assignablePerms={this.state.assignablePerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-                />
-              }
+              <UserAssetPermsEditor
+                uid={uid}
+                assignablePerms={this.state.assignablePerms}
+                nonOwnerPerms={this.state.nonOwnerPerms}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              />
 
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
 
         {/* public sharing settings */}
-        { kind !== 'collection' && asset_type === 'survey' &&
+        { asset_type === ASSET_TYPES.survey.id &&
           <React.Fragment>
             <bem.Modal__hr/>
 
@@ -222,7 +191,6 @@ class SharingForm extends React.Component {
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
                 uid={uid}
-                kind={kind}
                 objectUrl={objectUrl}
                 deploymentActive={this.state.asset.deployment__active}
               />
@@ -231,13 +199,13 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { kind !== 'collection' && this.state.allAssetsCount === 0 &&
+        { asset_type !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 &&
           <React.Fragment>
             <bem.Modal__hr/>
             {t('Waiting for all projects to load…')}
           </React.Fragment>
         }
-        { kind !== 'collection' && this.state.allAssetsCount >= 2 &&
+        { asset_type !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 &&
           <React.Fragment>
             <bem.Modal__hr/>
             <CopyTeamPermissions uid={uid}/>
@@ -248,9 +216,7 @@ class SharingForm extends React.Component {
   }
 }
 
-SharingForm.contextTypes = {
-  router: PropTypes.object
-};
+SharingForm.contextTypes = {router: PropTypes.object};
 
 reactMixin(SharingForm.prototype, mixins.permissions);
 reactMixin(SharingForm.prototype, mixins.contextRouter);

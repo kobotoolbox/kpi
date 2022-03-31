@@ -1,33 +1,42 @@
-$z-form-view-fullscreen: 101;
+@use "scss/_variables";
 
-.form-view__toptabs {
-  background: white;
-  text-align: center;
-  height: 48px;
-  border-bottom: 1px solid $divider-color;
-}
+// TODO: This file is too big and it lost it's original purpose.
+// It was supposed to be a general form view layout (AKA "the content"), but
+// over time it accumulated many small unique modifiers.
+//
+// Best things to do here:
+// 1. For sure don't add anything new, unless it really makes sense to be part
+//    of the Form View. It is really tempting to add new modifier when writing
+//    JSX `<FormView__cell m='new-modifier'>`, but try not to do this.
+// 2. Try to split out logical parts of it that are unique to only single place
+//    in app. You can easily leave them as form-view__… for now.
+// 3. Add comments describing what you're adding.
+// 4. We should migrate form-view layout to flex box to avoid all those calc()
+//    and to make it context independent.
 
-.form-view__sidetabs {
-  border-right: 1px solid $divider-color;
-  width: 170px;
-  height: 100%;
-  max-height: calc(100% - 48px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  float: left;
-  background: white;
-  padding-top: 20px;
+$side-tabs-width: 180px;
+$side-tabs-width-mobile: 70px;
+
+////////////////////////////////////////////////////////////////////////////////
+// Main parts
+////////////////////////////////////////////////////////////////////////////////
+
+// form landing takes .form-view__toptabs into account
+.page-wrapper__content--form-landing {
+  .form-view {
+    height: calc(100% - 48px);
+  }
 }
 
 .form-view {
   width: 100%;
-  height: calc(100% - 48px);
+  height: 100%;
   overflow-y: auto;
-  background: $cool-whitegray;
+  background: $kobo-gray-96;
 
   &.form-view--fullscreen {
     position: fixed;
-    z-index: $z-form-view-fullscreen;
+    z-index: $z-fullscreen;
     top: 0;
     left: 0;
     bottom: 0;
@@ -42,91 +51,96 @@ $z-form-view-fullscreen: 101;
   }
 }
 
-.form-view__sidetabs + .form-view,
-.form-view__sidetabs + .report-view,
-.form-view__sidetabs + .loading {
-  width: calc(100% - 170px);
-  height: calc(100% - 48px);
-  overflow: auto;
-  overflow-x: hidden;
-}
-
-.form-view__sidetabs + .loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
-
-  .loading__inner code {
-    margin: 20px auto;
+@media not print {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view,
+  .form-view__sidetabs + .loading,
+  .form-view__sidetabs + .access-denied {
+    width: calc(100% - 170px);
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
   }
 }
 
-.form-view__sidetabs + .form-view.form-view--table {
-  overflow: hidden;
-}
-
-.form-view__toptabs {
-  position: relative;
-
-  a.form-view__tab {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    padding: 13px 30px;
-    text-transform: uppercase;
-    margin-right: 10px;
-    font-size: 15px;
-    cursor: pointer;
-    position: relative;
-    color: lighten($cool-gray, 10%);
-    font-weight: normal;
-    display: inline-block;
-
-    &.active {
-      color: $black;
-      border-bottom: 2px solid $cool-green;
-    }
-
-    &:hover {
-      color: $black;
-    }
-  }
-
-  a.form-view__link--close {
-    position: absolute;
-    right: 0;
-    top: 5px;
-  }
-}
-
+// The additional side menu tabs on the left
 .form-view__sidetabs {
+  width: $side-tabs-width;
+  height: 100%;
+  max-height: calc(100% - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  float: left;
+  background: $kobo-white;
+  border-right: 1px solid $kobo-gray-92;
+
+  & + .form-view,
+  & + .report-view,
+  & + .loading,
+  & + .access-denied {
+    width: calc(100% - #{$side-tabs-width});
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
+
+  & + .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+
+    .loading__inner code {
+      margin: 20px auto;
+    }
+  }
+
   a.form-view__tab {
     background: transparent;
     border: none;
     padding: 6px;
     border-left: 2px solid transparent;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
-    color: lighten($cool-gray, 10%);
+    color: $kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
-    display: block;
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+
+    &:hover,
+    &.active {
+      color: $kobo-gray-24;
+    }
 
     &.active {
-      color: $cool-green;
-      border-left: 2px solid $cool-green;
+      font-weight: 700;
+
+      // left border is detached from horizontal lines,
+      // so we need to make it a separate element
+      &::before {
+        content: "";
+        position: absolute;
+        width: 4px;
+        height: 100%;
+        top: 0;
+        left: -10px;
+        background-color: $kobo-teal;
+      }
     }
 
-    &:hover {
-      color: $cool-green;
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
     }
 
-    i {
-      font-size: 36px;
-      vertical-align: middle;
-      margin-right: 4px;
+    .k-icon {
+      font-size: 26px;
+      vertical-align: -7px;
+      line-height: 36px;
+      margin: 0 9px 0 5px;
     }
 
     span {
@@ -135,28 +149,83 @@ $z-form-view-fullscreen: 101;
   }
 }
 
+// The main tabs on top
+.form-view__toptabs {
+  background: $kobo-white;
+  border-bottom: 1px solid $kobo-gray-92;
+  text-align: center;
+  height: 48px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+
+  a.form-view__tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    text-transform: uppercase;
+    line-height: 48px;
+    margin: 0 30px;
+    font-size: 15px;
+    cursor: pointer;
+    position: relative;
+    color: $kobo-gray-40;
+    font-weight: normal;
+
+    &:hover,
+    &.active {
+      color: $kobo-gray-24;
+    }
+
+    &.active {
+      font-weight: 700;
+      border-bottom: 4px solid $kobo-teal;
+    }
+
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  }
+
+  a.form-view__link--close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    padding: 5px;
+    font-size: 18px;
+  }
+}
+
 .form-view__row {
   margin: 40px;
-  margin-right: 44px;
 
   + .form-view__row {
     margin-top: 0;
   }
 
+  &.historyHidden,
+  &.historyExpanded {
+    transition-duration: 0.2s;
+    transition-property: max-height, margin-top, margin-bottom;
+  }
+
   &.historyHidden {
-    margin-top: -15px;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
     overflow: hidden;
-    transition: 0.2s max-height;
+    padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
     max-height: 99999px;
   }
 
@@ -165,41 +234,133 @@ $z-form-view-fullscreen: 101;
   }
 }
 
+.form-view__row--history {
+  .form-view__cell--history-table {
+    margin-bottom: 20px;
+  }
+}
+
+.form-view__cell-label {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
 .form-view__cell {
   &.form-view__cell--box {
-    @include box-shadow;
+    background-color: $kobo-white;
+  }
 
-    background-color: $white;
+  &.form-view__cell--bordered {
+    border: 1px solid $kobo-gray-92;
+  }
+
+  &.form-view__cell--page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 30px 0 15px;
+  }
+
+  &.form-view__cell--page-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 30px 0 15px;
   }
 
   &.form-view__cell--columns {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    &.form-view__cell--columns-right {
+      justify-content: flex-end;
+    }
+
+    &.form-view__cell--columns-top {
+      align-items: flex-start;
+    }
+
+    .form-view__cell--stretch {
+      flex: 1;
+    }
+  }
+
+  &.form-view__cell--column-1 {
+    flex: 1;
+  }
+
+  &.form-view__cell--column-2 {
+    flex: 2;
+  }
+
+  &.form-view__cell--column-icon {
+    width: 30px;
+    margin-right: 10px;
+    text-align: center;
+    color: $kobo-gray-40;
+
+    .k-icon {
+      font-size: 24px;
+      display: block;
+    }
+  }
+
+  &.form-view__cell--toggle-details button {
+    cursor: pointer;
+    color: $kobo-blue;
+    background: transparent;
+    border: 0;
+    padding: 5px;
+    text-align: center;
+
+    &:hover {
+      color: $kobo-dark-blue;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .k-icon {
+      font-size: 18px;
+      vertical-align: -5px;
+    }
+  }
+
+  &.form-view__cell--asset-content-summary-name {
+    line-height: 1;
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--padding {
     padding: 20px;
   }
 
+  &.form-view__cell--padding-small {
+    padding: 10px 20px;
+  }
+
+  // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
-    font-size: 14px;
-    color: $black;
+    font-size: variables.$base-font-size;
+    color: $kobo-gray-24;
     font-weight: 500;
-    padding-bottom: 20px;
 
     span {
       display: block;
-      color: $cool-gray;
+      color: $kobo-gray-40;
       font-size: 12px;
+    }
+
+    &::first-letter {
+      text-transform: uppercase;
     }
   }
 
   &.form-view__cell--first {
+    padding-bottom: 20px;
     position: relative;
 
     .form-view__group {
@@ -212,6 +373,8 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--buttons {
+    text-align: right;
+
     a.mdl-button {
       text-transform: uppercase;
       padding-left: 30px;
@@ -228,11 +391,42 @@ $z-form-view-fullscreen: 101;
     display: inline-block;
   }
 
+  &.form-view__cell--back-button {
+    margin-right: 20px;
+
+    &:first-child {
+      .k-icon {
+        margin-left: -7px;
+      }
+    }
+  }
+
+  &.form-view__cell--subscribed-badge {
+    margin-left: 20px;
+    margin-right: 20px;
+    line-height: 32px;
+
+    .k-icon {
+      font-size: 24px;
+      margin: 0 3px;
+      vertical-align: top;
+      color: $kobo-teal;
+    }
+  }
+
+  // visually take same amount of white space as without buttons
+  &.form-view__cell--label + &.form-view__cell--action-buttons {
+    margin: -8px 0;
+  }
+
   &.form-view__cell--date {
     font-weight: normal;
     opacity: 0.8;
     display: inline-block;
-    margin-left: 6px;
+
+    &:not(:first-child) {
+      margin-left: 6px;
+    }
   }
 
   &.form-view__cell--translation-list {
@@ -251,7 +445,7 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--thin-label {
-    color: $cool-gray;
+    color: $kobo-gray-40;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -270,31 +464,60 @@ $z-form-view-fullscreen: 101;
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    color: $white;
-    background-color: $warm-green;
+    background-color: $kobo-green;
     border-radius: 2px;
   }
 
   &.form-view__cell--warning {
-    margin: 10px 20px;
-    margin-top: 0;
-    border-top: 15px solid $white;
+    background-color: $kobo-light-amber;
+    color: $kobo-dark-amber;
     padding: 10px;
-    background: $cool-whitegray;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 
     i {
-      color: $cool-orange;
-      font-size: 32px;
-      margin-right: 10px;
-      vertical-align: middle;
+      color: inherit;
+      font-size: 28px;
+      margin-right: 5px;
+      vertical-align: -11px;
       display: inline-block;
     }
 
-    span {
-      vertical-align: middle;
-      display: inline-block;
-      width: calc(100% - 48px);
+    p {
+      margin: 0;
     }
+
+    a {
+      color: inherit;
+      font-weight: bold;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
+  &.form-view__cell--error {
+    background-color: $kobo-light-red;
+    color: $kobo-dark-red;
+    border: 1px solid $kobo-red;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    i {
+      color: $kobo-red;
+      font-size: 28px;
+      margin-right: 5px;
+      // If used in a dropzone, need to overwrite left margin
+      margin-left: 0px;
+    }
+  }
+
+
+  &.form-view__cell--translation-modal-warning {
+    margin-bottom: 20px;
   }
 }
 
@@ -303,56 +526,46 @@ $z-form-view-fullscreen: 101;
 
   overflow: visible;
   padding: 0;
+  height: 32px;
+  line-height: 32px;
+  min-height: 32px;
+
+  > i {
+    vertical-align: -0.34375em;
+  }
 }
 
 // buttons in forms
 .form-view__link {
-  font-size: 36px;
+  font-size: 26px;
   line-height: 18px;
   padding: 0 5px;
-  color: $cool-gray;
+  color: $kobo-gray-40;
   cursor: pointer;
   vertical-align: middle;
+  display: inline-block;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &--disabled,
   &--disabled:hover {
-    color: lighten($cool-gray, 15%);
+    color: $kobo-gray-65;
   }
 }
 
 @keyframes recent {
   0% {
-    background-color: $white;
+    background-color: $kobo-white;
   }
 
   10% {
-    background-color: lighten($cool-blue, 20%);
+    background-color: lighten($kobo-blue, 20%);
   }
 
   100% {
-    background-color: lighten($cool-blue, 40%);
-  }
-}
-
-@keyframes processing {
-  0% {
-    opacity: 1;
-  }
-
-  25% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
+    background-color: lighten($kobo-blue, 40%);
   }
 }
 
@@ -361,11 +574,15 @@ $z-form-view-fullscreen: 101;
     display: inline;
   }
 
-  &--items {
+  &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-gray-92;
     display: flex;
     align-items: center;
+
+    &:first-child {
+      border-top: none;
+    }
 
     > .form-view__label {
       text-align: right;
@@ -391,32 +608,30 @@ $z-form-view-fullscreen: 101;
     .form-view__link--export-delete {
       opacity: 0.9;
       vertical-align: middle;
-      color: lighten($cool-red, 10%);
+      color: lighten($kobo-red, 10%);
       font-size: 24px;
 
       &:hover {
-        color: $cool-red;
+        color: $kobo-red;
         opacity: 1;
       }
     }
 
     &.recent {
-      background-color: lighten($cool-blue, 40%);
+      background-color: lighten($kobo-blue, 40%);
       animation: recent 5s 1;
     }
 
-    .animate-processing {
-      animation: processing 1.5s infinite;
-    }
+
   }
 
-  &--deployments {
+  .form-view__group--deployments {
     .form-view__group--items:hover {
       background: $hover-asset-row;
     }
   }
 
-  &--headings {
+  .form-view__group--headings {
     font-weight: 600;
     border-top: none;
 
@@ -428,7 +643,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view--form-settings,
 .form-view--settings-sharing {
-  background: $white;
+  background: $kobo-white;
   padding: 40px;
 }
 
@@ -441,7 +656,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view.form-view--form-settings-sharing {
   .form-modal {
-    background: white;
+    background: $kobo-white;
     padding: 40px;
     height: 100%;
     overflow: auto;
@@ -530,13 +745,26 @@ $z-form-view-fullscreen: 101;
   }
 }
 
+.form-view__cell--collect-header {
+  .collect-link-missing {
+    color: $kobo-dark-amber;
+    display: block;
+    line-height: 24px;
+
+    .k-icon {
+      vertical-align: top;
+      font-size: 24px;
+    }
+  }
+}
+
 .form-view__cell--collect-meta {
   pre {
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $divider-color;
-    background: $cool-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     font-size: 13px;
     white-space: normal;
   }
@@ -552,17 +780,17 @@ $z-form-view-fullscreen: 101;
       padding: 5px;
     }
 
-    i {
-      margin: 0 6px;
-      font-size: 18px;
+    .k-icon.k-icon-more-vertical {
+      font-size: 20px;
       display: inline-block;
+      vertical-align: top;
     }
   }
 
   code {
     padding: 4px;
-    border: 1px solid $divider-color;
-    background: $cool-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     margin-left: 5px;
     margin-right: 5px;
   }
@@ -585,20 +813,23 @@ $z-form-view-fullscreen: 101;
 
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
-    width: 50px;
-    padding-top: 0;
+    width: $side-tabs-width-mobile;
 
     a.form-view__tab {
-      padding: 3px;
+      padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
-      line-height: 1.5em;
+      line-height: 1;
       text-align: center;
       display: block;
       letter-spacing: -0.05em;
 
-      span {
-        display: none;
+      .k-icon {
+        margin: 0;
+      }
+
+      .form-view__tab-name {
+        display: block;
       }
     }
   }
@@ -607,29 +838,17 @@ $z-form-view-fullscreen: 101;
     height: 39px;
 
     a.form-view__tab {
-      font-size: 12px;
-      padding: 8px 14px;
-    }
-
-    a.form-view__link {
-      font-size: 28px;
+      font-size: variables.$base-font-size;
     }
   }
 
-  .form-view__sidetabs + .form-view,
-  .form-view__sidetabs + .report-view {
-    width: calc(100% - 50px);
+  .form-view__sidetabs + .form-view {
+    width: calc(100% - #{$side-tabs-width-mobile});
     overflow-x: hidden;
   }
 
-  .form-view {
+  .form-view__toptabs + .form-view {
     height: calc(100% - 39px);
-    overflow-x: hidden;
-
-    a.form-view__link {
-      font-size: 32px;
-      padding: 0 3px;
-    }
   }
 
   .form-view__row {
@@ -654,4 +873,59 @@ $z-form-view-fullscreen: 101;
     display: block;
     margin-left: 0;
   }
+}
+
+.form-modal__form.form-modal__form--bulk-edit-submissions {
+  // text links
+  .form-modal__item--wrapper > a:hover {
+    text-decoration: underline;
+  }
+
+  h2 {
+    font-size: inherit;
+    font-weight: 600;
+    margin: 0 auto 10px;
+  }
+
+  i.blue-response-dot {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    background: $kobo-blue;
+    border-radius: 100%;
+    margin-right: 6px;
+  }
+
+  .text-box.text-box--bulk-edit-response .text-box__input {
+    min-height: 90px;
+  }
+
+  .modal__footer .footer-back-button {
+    float: left;
+  }
+}
+
+// Compensate for when sidebar(s) messes up modal a bit
+
+// TODO: Clean this up via PR changes
+@media
+  (min-width: 770px) and (max-width: 1020px),
+  (max-width: 560px) {
+    .bulk-options {
+      display: block !important;
+
+      .bulk-options__buttons {
+        margin-top: 6px;
+        text-align: center;
+      }
+    }
+
+    .multi-checkbox {
+      overflow-x: scroll !important;
+    }
+}
+
+.form-view--library-asset {
+  background: $kobo-white;
 }

@@ -1,7 +1,8 @@
+const BundleTracker = require('webpack-bundle-tracker');
+const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
+const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
-const BundleTracker = require('webpack-bundle-tracker');
-var merge = require('lodash.merge');
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -10,16 +11,23 @@ const postCssLoader = {
   loader: 'postcss-loader',
   options: {
     sourceMap: true,
-    config: {
-       path: path.resolve(__dirname, '../postcss.config.js')
-    },
-    plugins: [
-      require('autoprefixer')
-    ]
+    postcssOptions: {
+      plugins: [
+        'autoprefixer'
+      ]
+    }
   }
 };
 
-var defaultOptions = {
+const babelLoader = {
+  loader: 'babel-loader',
+  options: {
+    presets: ['@babel/preset-env', '@babel/preset-react'],
+    plugins: ['react-hot-loader/babel']
+  }
+}
+
+var commonOptions = {
   module: {
     rules: [
       {
@@ -32,15 +40,40 @@ var defaultOptions = {
         }
       },
       {
+        enforce: 'pre',
+        test: /\.coffee$/,
+        exclude: /node_modules/,
+        loader: 'less-terrible-coffeelint-loader',
+        options: {
+          failOnErrors: true,
+          failOnWarns: false,
+          // custom reporter function that only returns errors (no warnings)
+          reporter: function(errors) {
+            errors.forEach((error) => {
+              if (error.level === 'error') {
+                this.emitError([
+                  error.lineNumber,
+                  error.message,
+                ].join(' ') + '\n');
+              }
+            });
+          },
+        },
+      },
+      {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env', '@babel/preset-react'],
-            plugins: ['react-hot-loader/babel']
+        use: babelLoader
+      },
+      {
+        test: /\.(ts|tsx)$/,
+        exclude: /node_modules/,
+        use: [
+          babelLoader,
+          {
+            loader: 'ts-loader'
           }
-        }
+        ]
       },
       {
         test: /\.css$/,
@@ -68,20 +101,35 @@ var defaultOptions = {
     ]
   },
   resolve: {
-    extensions: ['.jsx', '.js', '.es6', '.coffee'],
+    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx'],
     alias: {
       app: path.join(__dirname, '../app'),
+      jsapp: path.join(__dirname, '../jsapp'),
       js: path.join(__dirname, '../jsapp/js'),
+      scss: path.join(__dirname, '../jsapp/scss'),
       utils: path.join(__dirname, '../jsapp/js/utils'),
       test: path.join(__dirname, '../test'),
     }
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
+    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new ExtractTranslationKeysPlugin({
+      functionName: 't',
+      output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
+    }),
+    new webpack.ProvidePlugin({
+      '$': 'jquery'
+    })
   ]
 };
 
 module.exports = function (options) {
-  options = merge(defaultOptions, options || {});
+  options = lodash.mergeWith(
+    commonOptions, options || {},
+    (objValue, srcValue) => {
+      if (lodash.isArray(objValue)) {
+        return objValue.concat(srcValue);
+    }
+  });
   return options;
 };

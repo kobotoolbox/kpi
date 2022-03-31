@@ -7,17 +7,25 @@ import { Link } from 'react-router';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';
-import {bem} from '../bem';
-import ui from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import DocumentTitle from 'react-document-title';
+import Icon from 'js/components/common/icon';
 import moment from 'moment';
 import Chart from 'chart.js';
-
+import {getFormDataTabs} from './formViewTabs';
+import assetUtils from 'js/assetUtils';
 import {
-  t, formatTime, formatDate, stringToColor
-} from '../utils';
-
-import {MODAL_TYPES} from '../constants';
+  formatTime,
+  formatDate,
+  stringToColor,
+  getUsernameFromUrl,
+} from 'utils';
+import {
+  MODAL_TYPES,
+  ANON_USERNAME,
+} from 'js/constants';
+import './formSummary.scss';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -44,8 +52,9 @@ class FormSummary extends React.Component {
     }
   }
   prep() {
-    this.getLatestSubmissionTime(this.props.params.assetid);
-    this.prepSubmissions(this.props.params.assetid);
+    const uid = this.props.params.assetid || this.props.params.uid;
+    this.getLatestSubmissionTime(uid);
+    this.prepSubmissions(uid);
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -143,7 +152,7 @@ class FormSummary extends React.Component {
   renderSubmissionsGraph() {
     return (
       <bem.FormView__row m='summary-submissions'>
-        <bem.FormView__cell m='label'>
+        <bem.FormView__cell m={['label', 'first']}>
           {t('Submissions')}
         </bem.FormView__cell>
         <bem.FormView__cell m={['box']}>
@@ -206,50 +215,46 @@ class FormSummary extends React.Component {
       <bem.FormView__cell m='data-tabs'>
         <Link
           to={`/forms/${this.state.uid}/landing`}
-          key={'landing'}
-          className={'form-view__tab'}
+          key='landing'
           data-path={`/forms/${this.state.uid}/landing`}
-          onClick={this.triggerRefresh}>
-            <i className='k-icon-projects' />
+          onClick={this.triggerRefresh}
+        >
+            <i className='k-icon k-icon-projects' />
             {t('Collect data')}
-            <i className='fa fa-angle-right' />
+            <Icon name='angle-right' size='s'/>
         </Link>
+
         {this.userCan('change_asset', this.state) &&
-          <bem.PopoverMenu__link onClick={this.sharingModal}>
-            <i className='k-icon-share'/>
+          <button onClick={this.sharingModal}>
+            <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
-            <i className='fa fa-angle-right' />
-          </bem.PopoverMenu__link>
+            <Icon name='angle-right' size='s'/>
+          </button>
         }
+
         {this.userCan('change_asset', this.state) &&
           <Link
             to={`/forms/${this.state.uid}/edit`}
-            key={'edit'}
-            className={'form-view__tab'}
+            key='edit'
             data-path={`/forms/${this.state.uid}/edit`}
-            onClick={this.triggerRefresh}>
-              <i className='k-icon-edit' />
-              {t('Edit form')}
-              <i className='fa fa-angle-right' />
+            onClick={this.triggerRefresh}
+          >
+            <i className='k-icon k-icon-edit' />
+            {t('Edit form')}
+            <Icon name='angle-right' size='s'/>
           </Link>
         }
-        <bem.PopoverMenu__link onClick={this.enketoPreviewModal}>
-          <i className='k-icon-view' />
+
+        <button onClick={this.enketoPreviewModal}>
+          <i className='k-icon k-icon-view' />
           {t('Preview form')}
-          <i className='fa fa-angle-right' />
-        </bem.PopoverMenu__link>
+          <Icon name='angle-right' size='s'/>
+        </button>
       </bem.FormView__cell>
     );
   }
   renderDataTabs() {
-    const sideTabs = [
-      {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report`},
-      {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report-legacy`, className: 'is-edge'},
-      {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.uid}/data/table`},
-      {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.uid}/data/gallery`},
-      {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.uid}/data/downloads`},
-      {label: t('Map'), icon: 'k-icon-map-view', path: `/forms/${this.state.uid}/data/map`},
-    ];
+    const sideTabs = getFormDataTabs(this.state.uid);
 
     return (
       <bem.FormView__cell m='data-tabs'>
@@ -259,12 +264,12 @@ class FormSummary extends React.Component {
             key={ind}
             activeClassName='active'
             onlyActiveOnIndex
-            className={`form-view__tab ${item.className || ''}`}
             data-path={item.path}
-            onClick={this.triggerRefresh}>
-              <i className={item.icon} />
-              {item.label}
-              <i className={'fa fa-angle-right'} />
+            onClick={this.triggerRefresh}
+          >
+            <i className={`k-icon ${item.icon}`} />
+            {item.label}
+            <Icon name='angle-right' size='s'/>
           </Link>
         )}
       </bem.FormView__cell>
@@ -284,24 +289,32 @@ class FormSummary extends React.Component {
       assetid: this.state.uid
     });
   }
+
   renderTeam() {
-    var team = [];
-    this.state.permissions.forEach(function(p){
-      if (p.user__username && !team.includes(p.user__username) && p.user__username != 'AnonymousUser')
-        team.push(p.user__username);
+    const team = [];
+    this.state.permissions.forEach((perm) => {
+      let username = null;
+      if (perm.user) {
+        username = getUsernameFromUrl(perm.user);
+      }
+
+      if (username && !team.includes(username) && username !== ANON_USERNAME) {
+        team.push(username);
+      }
     });
 
-    if (team.length < 2)
+    if (team.length < 2) {
       return false;
+    }
 
     return (
       <bem.FormView__row m='team'>
-        <bem.FormView__cell m='label'>
+        <bem.FormView__cell m={['label', 'first']}>
           {t('Team members')}
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
-            <i className='k-icon-share' />
+            <i className='k-icon k-icon-user-share' />
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>
@@ -320,64 +333,87 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
-    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
+    let hasCountry = (
+      this.state.settings?.country &&
+      (
+        !Array.isArray(this.state.settings?.country) ||
+        !!this.state.settings?.country.length
+      )
+    );
+    let hasProjectInfo = (
+      this.state.settings &&
+      (
+        hasCountry ||
+        this.state.settings.sector ||
+        this.state.settings.operational_purpose ||
+        this.state.settings.collects_pii
+      )
+    );
 
     if (!this.state.permissions) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
-    }
-
-    if (!permAccess) {
-      return (<ui.AccessDeniedMessage/>);
+      return (<LoadingSpinner/>);
     }
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) &&
+            {hasProjectInfo &&
               <bem.FormView__row m='summary-description'>
-                <bem.FormView__cell m='label'>
-                  {t('Description')}
+                <bem.FormView__cell m={['label', 'first']}>
+                  {t('Project information')}
                 </bem.FormView__cell>
-                <bem.FormView__cell m={['box']}>
-                  {(this.state.settings.country || this.state.settings.sector) &&
+                <bem.FormView__cell m={['box', 'padding']}>
+                  {(hasCountry || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
-                      {this.state.settings.country &&
-                        <bem.FormView__cell>
-                          <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
-                          {this.state.settings.country.label}
+                      {hasCountry &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='country'>{t('Country')}</bem.FormView__label>
+                          {assetUtils.getCountryDisplayString(this.state)}
                         </bem.FormView__cell>
                       }
                       {this.state.settings.sector &&
-                        <bem.FormView__cell>
+                        <bem.FormView__cell m='padding'>
                           <bem.FormView__label m='sector'>{t('Sector')}</bem.FormView__label>
-                          {this.state.settings.sector.label}
+                          {assetUtils.getSectorDisplayString(this.state)}
+                        </bem.FormView__cell>
+                      }
+                    </bem.FormView__group>
+                  }
+                  {(this.state.settings.operational_purpose || this.state.settings.collects_pii) &&
+                    <bem.FormView__group m={['items', 'description-cols']}>
+                      {this.state.settings.operational_purpose &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='operational-purpose'>{t('Operational purpose of data')}</bem.FormView__label>
+                          {this.state.settings.operational_purpose.label}
+                        </bem.FormView__cell>
+                      }
+                      {this.state.settings.collects_pii &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='collects-pii'>{t('Collects personally identifiable information')}</bem.FormView__label>
+                          {this.state.settings.collects_pii.label}
                         </bem.FormView__cell>
                       }
                     </bem.FormView__group>
                   }
                   {this.state.settings.description &&
-                    <bem.FormView__cell m='description'>
-                      {this.state.settings.description}
-                    </bem.FormView__cell>
+                    <bem.FormView__group m='items'>
+                      <bem.FormView__cell m={['padding', 'description']}>
+                        <bem.FormView__label m='description'>{t('Description')}</bem.FormView__label>
+                        {this.state.settings.description}
+                      </bem.FormView__cell>
+                    </bem.FormView__group>
                   }
                 </bem.FormView__cell>
               </bem.FormView__row>
             }
             {this.renderSubmissionsGraph()}
             <bem.FormView__row m='summary-details'>
-              <bem.FormView__cell m='label'>
+              <bem.FormView__cell m={['label', 'first']}>
                 {t('Form details')}
               </bem.FormView__cell>
               <bem.FormView__cell m={['box']}>
-                <bem.FormView__group m={['items', 'summary-details-cols']}>
+                <bem.FormView__group m='summary-details-cols'>
                   <bem.FormView__cell>
                     <bem.FormView__label>{t('Last modified')}</bem.FormView__label>
                     {formatTime(this.state.date_modified)}
@@ -414,7 +450,7 @@ class FormSummary extends React.Component {
 
           <bem.FormView__column m='right'>
             <bem.FormView__row m='quick-links'>
-              <bem.FormView__cell m='label'>
+              <bem.FormView__cell m={['label', 'first']}>
                 {t('Quick Links')}
               </bem.FormView__cell>
               <bem.FormView__cell m='box'>
@@ -424,7 +460,7 @@ class FormSummary extends React.Component {
 
             {this.state.deployment__submission_count > 0 &&
               <bem.FormView__row m='data-links'>
-                <bem.FormView__cell m='label'>
+                <bem.FormView__cell m={['label', 'first']}>
                   {t('Data')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m='box'>

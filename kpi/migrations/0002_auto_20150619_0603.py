@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('xform_pk', models.IntegerField(null=True)),
                 ('xform_id_string', models.CharField(max_length=100)),
                 ('data', jsonfield.fields.JSONField()),
-                ('uid', models.CharField(default=b'', max_length=22)),
+                ('uid', models.CharField(default='', max_length=22)),
                 ('asset', models.ForeignKey(to='kpi.Asset', on_delete=models.CASCADE)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='asset_type',
-            field=models.CharField(default=b'text', max_length=20, choices=[(b'text', b'text'), (b'question', b'question'), (b'block', b'block'), (b'survey', b'survey'), (b'empty', b'empty')]),
+            field=models.CharField(default='text', max_length=20, choices=[('text', 'text'), ('question', 'question'), ('block', 'block'), ('survey', 'survey'), ('empty', 'empty')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='uid',
-            field=models.CharField(default=b'', max_length=22, blank=True),
+            field=models.CharField(default='', max_length=22, blank=True),
             preserve_default=True,
         ),
     ]

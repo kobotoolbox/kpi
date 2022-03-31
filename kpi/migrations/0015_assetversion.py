@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             name='AssetVersion',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('uid', kpi.fields.KpiUidField(uid_prefix=b'v')),
+                ('uid', kpi.fields.KpiUidField(uid_prefix='v')),
                 ('name', models.CharField(max_length=255, null=True)),
                 ('date_modified', models.DateTimeField(default=timezone.now)),
                 ('version_content', JSONBField()),

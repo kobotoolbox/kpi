@@ -3,78 +3,84 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {searches} from '../searches';
-import mixins from '../mixins';
-import {stores} from '../stores';
-import {dataInterface} from '../dataInterface';
-import {bem} from '../bem';
+import {searches} from 'js/searches';
+import mixins from 'js/mixins';
+import {stores} from 'js/stores';
+import {dataInterface} from 'js/dataInterface';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
-import $ from 'jquery';
 import Dropzone from 'react-dropzone';
-import {t, validFileTypes} from '../utils';
-import {ASSET_TYPES} from '../constants';
+import {validFileTypes} from 'utils';
+import {redirectToLogin} from 'js/router/routerUtils';
+import {
+  ASSET_TYPES,
+  COMMON_QUERIES,
+  ACCESS_TYPES,
+  DEPLOYMENT_CATEGORIES,
+} from 'js/constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
     super(props);
-    var selectedCategories = {
-      'Draft': true,
-      'Deployed': true,
-      'Archived': true
-    };
     this.state = {
-      selectedCategories: selectedCategories,
       ownedCollections: [],
       fixedHeadings: '',
-      fixedHeadingsWidth: 'auto'
+      fixedHeadingsWidth: 'auto',
     };
     this.store = stores.selectedAsset;
+    this.unlisteners = [];
     autoBind(this);
   }
-  componentDidMount () {
-    this.listenTo(this.searchStore, this.searchChanged);
+  componentDidMount() {
+    this.unlisteners.push(
+      this.searchStore.listen(this.searchChanged)
+    );
     this.queryCollections();
   }
-  searchChanged (searchStoreState) {
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+  searchChanged(searchStoreState) {
     this.setState(searchStoreState);
     if (searchStoreState.searchState === 'done') {
       this.queryCollections();
     }
   }
-  queryCollections () {
-    if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
-      dataInterface.listCollections().then((collections)=>{
+  queryCollections() {
+    if (this.props.searchContext.store.filterTags !== COMMON_QUERIES.s) {
+      dataInterface.getCollections().then((collections) => {
         this.setState({
           ownedCollections: collections.results.filter((value) => {
-            if (value.access_type === 'shared') {
+            if (value.access_types && value.access_types.includes(ACCESS_TYPES.shared)) {
               // TODO: include shared assets with edit (change) permission for current user
               // var hasChangePermission = false;
               // value.permissions.forEach((perm, index) => {
-              //   if (perm.permission == 'change_collection')
+              //   if (perm.permission == 'change_asset')
               //     hasChangePermission = true;
               // });
               // return hasChangePermission;
               return false;
             } else {
-              return value.access_type === 'owned';
+              return value.access_types && value.access_types.includes(ACCESS_TYPES.owned);
             }
           })
         });
       });
     }
   }
-  handleScroll (event) {
-    if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
+  handleScroll(event) {
+    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.s) {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
-        fixedHeadings: offset < -105 ? 'fixed-headings' : '',
-        fixedHeadingsWidth: offset < -105 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
+        fixedHeadings: offset < 30 ? 'fixed-headings' : '',
+        fixedHeadingsWidth: offset < 30 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
       });
     }
   }
 
-  renderAssetRow (resource) {
+  renderAssetRow(resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     var isSelected = stores.selectedAsset.uid === resource.uid;
     var ownedCollections = this.state.ownedCollections;
@@ -88,7 +94,7 @@ class SearchCollectionList extends Reflux.Component {
       resource.summary.labels &&
       resource.summary.labels.length > 0
     ) {
-      firstQuestionLabel = resource.summary.labels[0]
+      firstQuestionLabel = resource.summary.labels[0];
     }
 
     return (
@@ -103,7 +109,7 @@ class SearchCollectionList extends Reflux.Component {
       />
     );
   }
-  renderHeadings () {
+  renderHeadings() {
     return [
       (
         <bem.List__heading key='1'>
@@ -113,7 +119,7 @@ class SearchCollectionList extends Reflux.Component {
 
           {this.state.parentName &&
             <span>
-              <i className='k-icon-next' />
+              <i className='k-icon k-icon-angle-right' />
               <span>{this.state.parentName}</span>
             </span>
           }
@@ -136,7 +142,7 @@ class SearchCollectionList extends Reflux.Component {
         </bem.AssetListSorts>
       )];
   }
-  renderGroupedHeadings () {
+  renderGroupedHeadings() {
     return (
         <bem.AssetListSorts className='mdl-grid' style={{width: this.state.fixedHeadingsWidth}}>
           <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone'>
@@ -157,26 +163,27 @@ class SearchCollectionList extends Reflux.Component {
         </bem.AssetListSorts>
       );
   }
-  renderGroupedResults () {
+  renderGroupedResults() {
     var searchResultsBucket = 'defaultQueryCategorizedResultsLists';
-    if (this.state.searchResultsDisplayed)
+    if (this.state.searchResultsDisplayed) {
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
+    }
 
-    var results = ['Deployed', 'Draft', 'Archived'].map(
+    var results = Object.keys(DEPLOYMENT_CATEGORIES).map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
-          return []
+          return [];
         }
         return [
           <bem.List__subheading key={i}>
-            {t(category)}
+            {DEPLOYMENT_CATEGORIES[category].label}
           </bem.List__subheading>,
-          <bem.AssetItems m={i+1} key={i+2}>
+
+          <bem.AssetItems m={i + 1} key={i + 2}>
             {this.renderGroupedHeadings()}
             {
               (() => {
-                return this.state[[searchResultsBucket]][category].map(
-                  this.renderAssetRow)
+                return this.state[[searchResultsBucket]][category].map(this.renderAssetRow);
               })()
             }
           </bem.AssetItems>
@@ -184,18 +191,19 @@ class SearchCollectionList extends Reflux.Component {
       }
     );
 
-    return [
-      <bem.List__heading key='h1' className='is-edge'>
-        {t('Active Projects')}
-      </bem.List__heading>,
-      results];
+    return results;
   }
 
-  render () {
+  render() {
+    if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
+      redirectToLogin();
+      return null;
+    }
+
     var s = this.state;
     var docTitle = '';
     let display;
-    if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.s) {
       display = 'grouped';
       docTitle = t('Projects');
     } else {
@@ -214,25 +222,18 @@ class SearchCollectionList extends Reflux.Component {
         >
           <bem.List m={display} onScroll={this.handleScroll}>
             {
-              (()=>{
-                if (display == 'regular') {
+              (() => {
+                if (display === 'regular') {
                   return this.renderHeadings();
                 }
               })()
             }
             <bem.AssetList m={this.state.fixedHeadings}>
             {
-              (()=>{
+              (() => {
                 if (s.searchResultsDisplayed) {
                   if (s.searchState === 'loading') {
-                    return (
-                      <bem.Loading>
-                        <bem.Loading__inner>
-                          <i />
-                          {t('loading...')}
-                        </bem.Loading__inner>
-                      </bem.Loading>
-                    );
+                    return (<LoadingSpinner/>);
                   } else if (s.searchState === 'done') {
                     if (s.searchResultsCount === 0) {
                       return (
@@ -242,7 +243,7 @@ class SearchCollectionList extends Reflux.Component {
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
-                    } else if (display == 'grouped') {
+                    } else if (display === 'grouped') {
                       return this.renderGroupedResults();
                     } else {
                       return s.searchResultsList.map(this.renderAssetRow);
@@ -250,17 +251,10 @@ class SearchCollectionList extends Reflux.Component {
                   }
                 } else {
                   if (s.defaultQueryState === 'loading') {
-                    return (
-                      <bem.Loading>
-                        <bem.Loading__inner>
-                          <i />
-                          {t('loading...')}
-                        </bem.Loading__inner>
-                      </bem.Loading>
-                    );
+                    return (<LoadingSpinner/>);
                   } else if (s.defaultQueryState === 'done') {
                     if (s.defaultQueryCount < 1) {
-                      if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                      if (s.defaultQueryFor.assetType === COMMON_QUERIES.s) {
                         return (
                           <bem.Loading>
                             <bem.Loading__inner>
@@ -282,7 +276,7 @@ class SearchCollectionList extends Reflux.Component {
                       }
                     }
 
-                    if (display == 'grouped') {
+                    if (display === 'grouped') {
                       return this.renderGroupedResults();
                     } else {
                       return s.defaultQueryResultsList.map(this.renderAssetRow);
@@ -295,7 +289,7 @@ class SearchCollectionList extends Reflux.Component {
             }
             </bem.AssetList>
             <div className='dropzone-active-overlay'>
-              <i className='k-icon-upload' />
+              <i className='k-icon k-icon-upload' />
               {t('Drop files to upload')}
             </div>
           </bem.List>
@@ -303,7 +297,7 @@ class SearchCollectionList extends Reflux.Component {
       </DocumentTitle>
       );
   }
-};
+}
 
 SearchCollectionList.defaultProps = {
   assetRowClass: AssetRow,

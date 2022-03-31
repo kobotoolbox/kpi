@@ -1,16 +1,17 @@
-import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {bem} from '../bem';
-import ui from '../ui';
+import bem from 'js/bem';
+import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
 import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
-import { QUERY_LIMIT_DEFAULT } from './map';
-import { t } from '../utils';
+import {
+  QUERY_LIMIT_DEFAULT,
+  ASSET_FILE_TYPES,
+} from 'js/constants';
 import { dataInterface } from '../dataInterface';
 
 // see kobo.map.marker-colors.scss for styling details of each set
@@ -129,7 +130,7 @@ class MapSettings extends React.Component {
   }
 
   componentDidMount() {
-    actions.resources.getAssetFiles(this.props.asset.uid);
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id);
     this.listenTo(actions.resources.getAssetFiles.completed, this.updateFileList);
   }
 
@@ -194,9 +195,9 @@ class MapSettings extends React.Component {
   dropFiles(files, rejectedFiles) {
     let uid = this.props.asset.uid,
       _this = this,
-      name = this.state.layerName;
+      description = this.state.layerName;
 
-    if (!name) {
+    if (!description) {
       alertify.error(t('Please add a name for your layer file.'));
       return false;
     }
@@ -208,13 +209,13 @@ class MapSettings extends React.Component {
       };
       let data = {
         content: file,
-        name: name,
+        description: description,
         file_type: 'map_layer',
         metadata: JSON.stringify(metadata)
       };
       dataInterface.uploadAssetFile(uid, data).done(() => {
         _this.setState({ layerName: '' });
-        actions.resources.getAssetFiles(this.props.asset.uid);
+        actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
       }).fail((jqxhr) => {
         var errMsg = t('Upload error: ##error_message##.').replace('##error_message##', jqxhr.statusText);
         alertify.error(errMsg);
@@ -243,7 +244,7 @@ class MapSettings extends React.Component {
       labels: { ok: t('Delete'), cancel: t('Cancel') },
       onok: () => {
         dataInterface.deleteAssetFile(this.props.asset.uid, uid).done(() => {
-          actions.resources.getAssetFiles(this.props.asset.uid);
+          actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
           dialog.destroy();
         });
       },
@@ -282,8 +283,8 @@ class MapSettings extends React.Component {
     }, this);
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
-        <ui.Modal.Body>
+        <Modal.Tabs>{modalTabs}</Modal.Tabs>
+        <Modal.Body>
           <div className='tabs-content map-settings'>
             {activeTab === TABS.get('geoquestion').id && (
               <div className='map-settings__GeoQuestions'>
@@ -325,14 +326,14 @@ class MapSettings extends React.Component {
                           <span className='file-type'>
                             {file.metadata.type}
                           </span>
-                          <span className='file-layer-name'>{file.name}</span>
+                          <span className='file-layer-name'>{file.description}</span>
                           <span
                             className='file-delete'
                             onClick={this.deleteFile}
                             data-tip={t('Delete layer')}
                             data-uid={file.uid}
                           >
-                            <i className='k-icon-trash' />
+                            <i className='k-icon k-icon-trash' />
                           </span>
                         </div>
                       );
@@ -356,9 +357,9 @@ class MapSettings extends React.Component {
                     className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <button className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.KoboButton m='blue'>
                       {t('Upload')}
-                    </button>
+                    </bem.KoboButton>
                   </Dropzone>
                 </bem.FormModal__item>
               </div>
@@ -397,18 +398,18 @@ class MapSettings extends React.Component {
               </bem.FormModal__item>
             )}
           </div>
-        </ui.Modal.Body>
+        </Modal.Body>
 
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.Modal__footerButton onClick={this.resetMapSettings}>
+              <bem.KoboButton m='storm' onClick={this.resetMapSettings}>
                 {t('Reset')}
-              </bem.Modal__footerButton>
+              </bem.KoboButton>
             }
-            <bem.Modal__footerButton m='primary' onClick={this.onSave}>
+            <bem.KoboButton m='blue' onClick={this.onSave}>
               {t('Save')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         }
       </bem.GraphSettings>

@@ -1,0 +1,72 @@
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: pytest
+
+on:
+  push:
+    branches: [ master, beta ]
+  pull_request:
+    branches: [ master, beta ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    env:
+      DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test
+      DJANGO_LANGUAGE_CODES: "en ar es fr hi ku pl pt zh-hans"
+      DJANGO_SECRET_KEY: notSecretJustForTestingYep
+      DJANGO_SETTINGS_MODULE: kobo.settings.testing
+      REDIS_SESSION_URL: redis://localhost:6379
+    strategy:
+      matrix:
+        python-version: ['3.8']
+    services:
+      postgres:
+        image: postgis/postgis:9.5-2.5
+        env:
+          POSTGRES_USER: kobo
+          POSTGRES_PASSWORD: kobo
+          POSTGRES_DB: kpi_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis_cache:
+        image: redis:3.2
+        ports:
+          - 6379:6379
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+        cache: 'npm'
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Upgrade pip
+      run: python -m pip install --upgrade pip
+    - name: Install pip-tools
+      run: python -m pip install pip-tools
+    - name: Update Debian package lists
+      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+    - name: Install Debian dependencies
+      # All about YAML line breaks: https://stackoverflow.com/a/21699210
+      run: >-
+        sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
+        gdal-bin gettext libproj-dev postgresql-client ffmpeg
+    - name: Install Python dependencies
+      run: pip-sync dependencies/pip/dev_requirements.txt
+    - name: Install JavaScript dependencies
+      run: npm install
+    - name: Update translations
+      run: git submodule init && git submodule update --remote && python manage.py compilemessages
+    # Intercom tests in Python fail if the front-end code has not been built
+    - name: Build front-end code
+      run: npm run copy-fonts && npm run build
+    - name: Test back-end code
+      # Explicitly name the directories where coverage should be measured;
+      # specifying just `--cov=.` includes `src`, which contains third-party packages
+      run: pytest --cov=hub --cov=kobo --cov=kpi -ra
+    - name: Run coveralls for back-end code
+      uses: AndreMiras/coveralls-python-action@develop

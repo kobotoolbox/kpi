@@ -1,19 +1,27 @@
 # coding: utf-8
 import private_storage.urls
-from django.contrib.auth import logout
+from django.conf import settings
 from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from hub.views import PasswordResetFormWithUsernameView
-from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
+from kobo.apps.superuser_stats.views import (
+    user_report,
+    country_report,
+    retrieve_reports,
+)
 from kpi.forms import PasswordResetFormWithUsername
-from kpi.forms import RegistrationForm
+from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests
+from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
+from kobo.apps.mfa.views import (
+    MFALoginView,
+    MFATokenView,
+)
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
@@ -33,17 +41,19 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
-    re_path(r'^api-auth/', include('rest_framework.urls',
-                                   namespace='rest_framework')),
+    re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
-    re_path(r'^accounts/logout/', logout, {'next_page': '/'}),
-    path('accounts/password/reset/',
+    path(
+        'accounts/password/reset/',
         PasswordResetFormWithUsernameView.as_view(
             form_class=PasswordResetFormWithUsername
-        ), name='password_reset'
+        ),
+        name='password_reset',
     ),
     path('', include('django.contrib.auth.urls')),
+    re_path(r'^accounts/login/mfa/', MFATokenView.as_view(), name='mfa_token'),
+    re_path(r'^accounts/login/', MFALoginView.as_view(), name='kobo_login'),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
@@ -51,6 +61,8 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
+    path('modern_browsers/', modern_browsers),
+    path('design-system/', design_system),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
@@ -64,5 +76,13 @@ urlpatterns = [
     # Statistics for superusers
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_user_report),
+            retrieve_reports),
+    path('superuser_stats/country_report/', country_report),
+    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
 ]
+
+if settings.DEBUG and settings.ENV == 'dev':
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

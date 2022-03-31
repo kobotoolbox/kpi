@@ -1,13 +1,12 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kpi.models.asset import Asset
-from kpi.models.collection import Collection
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -39,8 +38,6 @@ class PermissionSerializer(serializers.ModelSerializer):
 
         self.__asset_key = self.__get_key(Asset._meta.app_label,
                                           Asset._meta.model_name)
-        self.__collection_key = self.__get_key(Collection._meta.app_label,
-                                               Collection._meta.model_name)
         # Prepare dicts for later purpose
         # (i.e. `get_implied` & `get_contradictory`)
         self.__init_implied_permissions()
@@ -57,7 +54,7 @@ class PermissionSerializer(serializers.ModelSerializer):
         return []
 
     def get_name(self, permission):
-        return _(permission.name)
+        return t(permission.name)
 
     def get_implied(self, permission):
         permission_key = self.__get_key(permission.content_type.app_label,
@@ -124,23 +121,19 @@ class PermissionSerializer(serializers.ModelSerializer):
     def __init_contradictory_permissions(self):
         """
         Prepares `self.__contradictory_permissions` for serializing
-        It will contain all contradictory permissions for `Asset` and `Collection`
-        classes.
+        It will contain all contradictory permissions for the `Asset` class.
 
         :return: dict
         """
         self.__contradictory_permissions = {
             self.__asset_key: self.__get_hyperlinked_permissions(
                 Asset.CONTRADICTORY_PERMISSIONS),
-            self.__collection_key: self.__get_hyperlinked_permissions(
-                Collection.CONTRADICTORY_PERMISSIONS)
         }
 
     def __init_implied_permissions(self):
         """
         Prepares `self.__implied_permissions` for serializing
-        It will contain all implied permissions for `Asset` and `Collection`
-        classes.
+        It will contain all implied permissions for the `Asset` class.
 
         :return: dict
         """
@@ -148,6 +141,4 @@ class PermissionSerializer(serializers.ModelSerializer):
         self.__implied_permissions = {
             self.__asset_key: self.__get_hyperlinked_permissions(
                 Asset.get_all_implied_perms()),
-            self.__collection_key: self.__get_hyperlinked_permissions(
-                Collection.get_all_implied_perms()),
         }

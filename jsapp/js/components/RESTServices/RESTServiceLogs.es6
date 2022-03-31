@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -6,14 +5,12 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
-import {bem} from '../../bem';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
-import {
-  t,
-  formatTime
-} from '../../utils';
+import {formatTime} from 'utils';
 import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES
@@ -170,7 +167,7 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   showLogInfo(log) {
-    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.instance_id);
+    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.submission_id);
     const escapedMessage = $('<div/>').text(log.message).html();
     alertify.alert(title, `<pre>${escapedMessage}</pre>`);
   }
@@ -179,9 +176,9 @@ export default class RESTServiceLogs extends React.Component {
     const currentAsset = this.currentAsset();
     stores.pageState.switchModal({
       type: MODAL_TYPES.SUBMISSION,
-      sid: log.instance_id,
+      sid: log.submission_id,
       asset: currentAsset,
-      ids: [log.instance_id]
+      ids: [log.submission_id]
     });
   }
 
@@ -210,7 +207,7 @@ export default class RESTServiceLogs extends React.Component {
           className='rest-services-list__header-back-button'
           href={`/#/forms/${this.state.assetUid}/settings/rest`}
         >
-          <i className='k-icon-prev' />
+          <i className='k-icon k-icon-angle-left' />
           {t('Back to REST Services')}
         </a>
 
@@ -269,7 +266,7 @@ export default class RESTServiceLogs extends React.Component {
                     data-tip={t('Retry all submissions')}
                     disabled={!this.state.isHookActive}
                   >
-                    <i className='k-icon-replace-all'/>
+                    <i className='k-icon k-icon-replace'/>
                   </bem.ServiceRow__actionButton>
                 }
               </bem.ServiceRow__column>
@@ -304,7 +301,7 @@ export default class RESTServiceLogs extends React.Component {
               return (
                 <bem.ServiceRow {...rowProps}>
                   <bem.ServiceRow__column m='submission'>
-                    {log.instance_id}
+                    {log.submission_id}
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column
@@ -318,7 +315,7 @@ export default class RESTServiceLogs extends React.Component {
                         onClick={this.retryLog.bind(this, log)}
                         data-tip={t('Retry submission')}
                       >
-                        <i className='k-icon-replace' />
+                        <i className='k-icon k-icon-replace' />
                       </bem.ServiceRow__actionButton>
                     }
 
@@ -327,7 +324,7 @@ export default class RESTServiceLogs extends React.Component {
                         onClick={this.showLogInfo.bind(this, log)}
                         data-tip={t('More info')}
                       >
-                        <i className='k-icon-information' />
+                        <i className='k-icon k-icon-information' />
                       </bem.ServiceRow__actionButton>
                     }
                   </bem.ServiceRow__column>
@@ -348,14 +345,7 @@ export default class RESTServiceLogs extends React.Component {
 
   render() {
     if (this.state.isLoadingHook || (this.state.isLoadingLogs && this.state.logs.length === 0)) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else if (this.state.logs.length === 0) {
       return this.renderEmptyView();
     } else {

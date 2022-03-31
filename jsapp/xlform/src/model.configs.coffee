@@ -61,6 +61,11 @@ module.exports = do ->
       label: "audit"
       description: "Records the behavior of enumerators as they navigate through a form"
       default: false
+    bg_aud:
+      name: "background-audio"
+      label: "background audio"
+      description: "record bg audio"
+      default: false
 
   do ->
     class SurveyDetailSchemaItem extends Backbone.Model
@@ -144,6 +149,12 @@ module.exports = do ->
       required:
         value: false
         _hideUnlessChanged: true
+    hidden:
+      label:
+        value: "hidden"
+      required:
+        value: false
+        _hideUnlessChanged: true
     datetime:
       label:
         value: "Enter a date and time"
@@ -153,6 +164,12 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+    'xml-external':
+      label:
+        value: "File_name"
+      required:
+        value: false
+        _hideUnlessChanged: true
 
   configs.paramTypes = {
     number: 'number',
@@ -230,6 +247,7 @@ module.exports = do ->
       ["video", "Video", isMedia: true], # Can use phone camera to record video
       ["file", "File"],
       ["calculate", "Calculate"],
+      ["hidden", "Hidden"],
       ["select_one", "Select", orOtherOption: true, specifyChoice: true],
       ["score", "Score"],
       ["score__row", "Score Row"],
@@ -237,6 +255,7 @@ module.exports = do ->
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
+      ["xml-external", "External XML"],
     ]
 
     class Type

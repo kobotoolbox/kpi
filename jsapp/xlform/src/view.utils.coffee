@@ -1,5 +1,4 @@
 _ = require 'underscore'
-jQuery = require 'jquery'
 Validator = require './view.utils.validator'
 
 module.exports = do ->
@@ -100,7 +99,7 @@ module.exports = do ->
         <div class='enketo-iframe-icon'></div>
         <div class="enketo-loading-message">
           <p>
-          <i class="fa fa-spin fa-spinner"></i>
+          <i class="k-spin k-icon k-icon-spinner"></i>
           <br/>
           Loading Preview
         </p>
@@ -153,20 +152,5 @@ module.exports = do ->
             onError "SurveyPreview response JSON is not recognized"
 
     launch
-
-  class viewUtils.ViewComposer
-    add: (view, id) ->
-      @views.push view
-    remove: (id) -> throw 'not implemented'
-    get: (id) -> throw 'not implemented'
-    render: () ->
-      for view in @views
-        view.render()
-    attach_to: (destination) ->
-      for view in @views
-        view.attach_to destination
-    bind_event: (event_name, callback) -> throw 'not implemented'
-    constructor: () ->
-      @views = []
 
   viewUtils

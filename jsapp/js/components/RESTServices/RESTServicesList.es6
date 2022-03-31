@@ -5,11 +5,12 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
-import {bem} from '../../bem';
-import {t} from '../../utils';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {MODAL_TYPES} from '../../constants';
+import envStore from 'js/envStore';
 
-const RESTServicesSupportUrl = 'http://help.kobotoolbox.org/managing-your-project-s-data/rest-services';
+const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
 
 export default class RESTServicesList extends React.Component {
   constructor(props){
@@ -67,10 +68,12 @@ export default class RESTServicesList extends React.Component {
     const hookUid = evt.currentTarget.dataset.hookUid;
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
+      const title = t('Are you sure you want to delete ##target?')
+        .replace('##target', hookName);
       const message = t('You are about to delete ##target. This action cannot be undone.')
         .replace('##target', `<strong>${hookName}</strong>`);
       let dialogOptions = {
-        title: t(`Are you sure you want to delete ${hookName}?`),
+        title: title,
         message: message,
         labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {
@@ -92,14 +95,20 @@ export default class RESTServicesList extends React.Component {
     });
   }
 
-  renderModalButton(additionalClassNames) {
+  getSupportUrl() {
+    if (envStore.isReady && envStore.data.support_url) {
+      return envStore.data.support_url + REST_SERVICES_SUPPORT_URL;
+    }
+  }
+
+  renderModalButton() {
     return (
-      <button
-        className={`mdl-button mdl-button--raised mdl-button--colored ${additionalClassNames}`}
+      <bem.KoboButton
+        m='blue'
         onClick={this.openNewRESTServiceModal}
       >
         {t('Register a New Service')}
-      </button>
+      </bem.KoboButton>
     );
   }
 
@@ -107,7 +116,7 @@ export default class RESTServicesList extends React.Component {
     return (
       <bem.FormView m={'form-settings'} className='rest-services rest-services--empty'>
         <bem.EmptyContent>
-          <bem.EmptyContent__icon className='k-icon-data-sync' />
+          <bem.EmptyContent__icon className='k-icon k-icon-data-sync' />
 
           <bem.EmptyContent__title>
             {t("This project doesn't have any REST Services yet!")}
@@ -116,10 +125,10 @@ export default class RESTServicesList extends React.Component {
           <bem.EmptyContent__message>
             {t('You can use REST Services to automatically post submissions to a third-party application.')}
             &nbsp;
-            <a href={RESTServicesSupportUrl} target='_blank'>{t('Learn more')}</a>
+            <a href={this.getSupportUrl()} target='_blank'>{t('Learn more')}</a>
           </bem.EmptyContent__message>
 
-          {this.renderModalButton('empty-content__button')}
+          {this.renderModalButton()}
         </bem.EmptyContent>
       </bem.FormView>
     );
@@ -136,7 +145,7 @@ export default class RESTServicesList extends React.Component {
 
             <a
               className='rest-services-list__header-help-link rest-services-list__header-right'
-              href={RESTServicesSupportUrl}
+              href={this.getSupportUrl()}
               target='_blank'
             >
               <i className='k-icon k-icon-help' />
@@ -173,7 +182,7 @@ export default class RESTServicesList extends React.Component {
                       data-hook-uid={hook.uid}
                       data-tip={t('Edit')}
                     >
-                      <i className='k-icon-edit' />
+                      <i className='k-icon k-icon-edit' />
                     </bem.ServiceRow__actionButton>
 
                     <bem.ServiceRow__actionButton
@@ -182,7 +191,7 @@ export default class RESTServicesList extends React.Component {
                       data-hook-uid={hook.uid}
                       data-tip={t('Delete')}
                     >
-                      <i className='k-icon-trash' />
+                      <i className='k-icon k-icon-trash' />
                     </bem.ServiceRow__actionButton>
                   </bem.ServiceRow__column>
                 </bem.ServiceRow>
@@ -198,14 +207,7 @@ export default class RESTServicesList extends React.Component {
 
   render() {
     if (this.state.isLoadingHooks) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      )
+      return (<LoadingSpinner/>);
     } else if (this.state.hooks.length === 0) {
       return this.renderEmptyView();
     } else {

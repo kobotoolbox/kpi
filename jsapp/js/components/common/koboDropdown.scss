@@ -1,0 +1,69 @@
+$z-kobo-dropdown-menu: 100;
+
+.kobo-dropdown {
+  display: inline-block;
+  position: relative;
+
+  &.kobo-dropdown--disabled .kobo-dropdown__trigger {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .kobo-dropdown__trigger {
+    display: inline-block;
+    vertical-align: top;
+    appearance: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  .kobo-dropdown__menu {
+    display: block;
+    position: absolute;
+    z-index: $z-kobo-dropdown-menu;
+    border-radius: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/*
+ * PLACEMENTS
+ */
+
+.kobo-dropdown.kobo-dropdown--up-left .kobo-dropdown__menu {
+  bottom: 100%;
+  left: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--up-center .kobo-dropdown__menu {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kobo-dropdown.kobo-dropdown--up-right .kobo-dropdown__menu {
+  bottom: 100%;
+  right: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--down-left .kobo-dropdown__menu {
+  top: 100%;
+  left: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--down-center .kobo-dropdown__menu {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kobo-dropdown.kobo-dropdown--down-right .kobo-dropdown__menu {
+  top: 100%;
+  right: 0;
+}

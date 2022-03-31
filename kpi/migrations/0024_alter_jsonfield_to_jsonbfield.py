@@ -10,7 +10,43 @@ import private_storage.fields
 import private_storage.storage.s3boto3
 
 
-NULL_CHAR = '\\u0000'
+JSON_NULL_CHAR = '\\u0000'
+PYTHON_NULL_CHAR = '\0'
+
+
+def eliminate_nulls(thing):
+    """
+    Recurse through `thing` and remove `PYTHON_NULL_CHAR` from any string
+    where it appears. Python's `json.JSONEncoder` supports the iterables
+    `dict`, `list`, and `tuple`, so we do too.
+    """
+    if isinstance(thing, dict):
+        for key, value in thing.items():
+            value = eliminate_nulls(value)
+            if PYTHON_NULL_CHAR in key:
+                fixed_key = eliminate_nulls(key)
+                if fixed_key in thing:
+                    raise ValueError(
+                        f'key collision while removing nulls: {fixed_key}'
+                    )
+                thing[fixed_key] = value
+                del thing[key]
+            else:
+                thing[key] = value
+        return thing
+    if isinstance(thing, list):
+        for index, value in enumerate(thing):
+            thing[index] = eliminate_nulls(value)
+        return thing
+    if isinstance(thing, tuple):
+        temp_list = []
+        for value in thing:
+            temp_list.append(eliminate_nulls(value))
+        return tuple(temp_list)
+    if isinstance(thing, str):
+        # yes! i have a purpose!
+        return thing.replace(PYTHON_NULL_CHAR, '')
+    return thing
 
 
 def forwards(apps, schema_editor):
@@ -29,14 +65,13 @@ def forwards(apps, schema_editor):
     for (modelname, modelfield) in model_fields:
         # e.g. Asset
         orm_model = apps.get_model('kpi', modelname)
-        qparams = {('{}__contains'.format(modelfield)): NULL_CHAR}
-        # e.g. Asset.objects.filter(content__contains=NULL_CHAR)
+        qparams = {('{}__contains'.format(modelfield)): JSON_NULL_CHAR}
+        # e.g. Asset.objects.filter(content__contains=JSON_NULL_CHAR)
         records_with_null_chars = orm_model.objects.filter(**qparams)
         changed_records = []
         for record in records_with_null_chars:
             unfixed = getattr(record, modelfield)
-            dumped = json.dumps(unfixed).replace(NULL_CHAR, '')
-            fixed = json.loads(dumped)
+            fixed = eliminate_nulls(unfixed)
             setattr(record, modelfield, fixed)
             changed_records.append(record)
         model_name_plus_field = '{}.{}'.format(modelname, modelfield).ljust(22)

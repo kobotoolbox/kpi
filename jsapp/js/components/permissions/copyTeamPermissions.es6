@@ -2,13 +2,14 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import {bem} from '../../bem';
+import bem from 'js/bem';
 import classNames from 'classnames';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
+import assetStore from 'js/assetStore';
 import {actions} from '../../actions';
-import { t, notify } from '../../utils';
+import {notify} from 'utils';
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
@@ -25,7 +26,7 @@ class CopyTeamPermissions extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
     this.listenTo(actions.permissions.copyPermissionsFrom.completed, this.onPermissionsCopied);
   }
 
@@ -95,12 +96,6 @@ class CopyTeamPermissions extends React.Component {
     let isImportButtonEnabled =
       this.state.sourceUid !== null && !this.state.isAwaitingAssetChange;
 
-    const importButtonClasses = classNames(
-      'mdl-button',
-      'mdl-button--raised',
-      isImportButtonEnabled ? 'mdl-button--colored' : 'mdl-button--disabled'
-    );
-
     const availableOptions = [];
     for (const assetUid in stores.allAssets.byUid) {
       if (stores.allAssets.byUid.hasOwnProperty(assetUid)) {
@@ -121,14 +116,14 @@ class CopyTeamPermissions extends React.Component {
 
     return (
       <bem.FormModal__item className={rootButtonClasses}>
-        <bem.Button
-          m='copy-team-permissions-opener'
+        <button
+          className='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
           {t('Copy team from another project')}
 
-          <i className='k-icon k-icon-next'/>
-        </bem.Button>
+          <i className='k-icon k-icon-angle-right'/>
+        </button>
 
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>
@@ -149,14 +144,14 @@ class CopyTeamPermissions extends React.Component {
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
               />
-              <button
+              <bem.KoboButton
                 id='copyTeamPermissionsImportButton'
-                className={importButtonClasses}
+                m='blue'
                 disabled={!isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
                 {t('copy')}
-              </button>
+              </bem.KoboButton>
             </bem.FormModal__item>
           </bem.FormView__cell>
         )}

@@ -36,6 +36,7 @@ class EmailTestCase(HookTestCase):
             "assets": {
                 self.asset.uid: {
                     "name": self.asset.name,
+                    "hook_uid": self.hook.uid,
                     "max_length": len(self.hook.name),
                     "logs": [{
                         "hook_name": self.hook.name,
@@ -53,7 +54,7 @@ class EmailTestCase(HookTestCase):
         variables = {
             "username": expected_record.get("username"),
             "assets": expected_record.get("assets"),
-            'kpi_base_url': settings.KPI_URL
+            'kpi_base_url': settings.KOBOFORM_URL
         }
         # Localize templates
         translation.activate(expected_record.get("language"))

@@ -1,0 +1,865 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "scss/libs/_mdl";
+@use "scss/_variables";
+
+$z-modal-backdrop: 1101;
+$z-enketo-iframe-icon: 1100;
+$z-modal-x: 10;
+
+// -----------------------------------------------------------------------------
+// common modal parts
+// -----------------------------------------------------------------------------
+
+.modal__backdrop {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  z-index: $z-modal-backdrop;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(colors.$kobo-gray-24, 0.4) !important;
+}
+
+.modal {
+  @include mdl.box-shadow-top;
+
+  align-items: stretch;
+  display: flex;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 40%;
+  max-width: 90%;
+  max-height: 95%;
+  overflow-x: auto;
+  visibility: hidden;
+
+  &.modal--open {
+    visibility: visible;
+  }
+
+  &.modal--large {
+    height: 80%;
+    width: 80%;
+    max-width: 1240px;
+
+    &.modal--large-shorter {
+      max-width: 960px;
+    }
+
+    .modal__content {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal__body {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+
+      .enketo-holder {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      iframe {
+        flex-grow: 1;
+        border: 1px solid white;
+        width: 100%;
+      }
+
+      .modal__footer {
+        margin-bottom: 30px;
+      }
+    }
+  }
+}
+
+.modal__body {
+  // we use margin for bottom to make it stack with modal__footer
+  padding: 30px 30px 0;
+  margin-bottom: 30px;
+
+  // in some cases adding custom footer requires it to be inside modal__body and
+  // then padding is not needed (it is partially needed when in .modal--large)
+  .modal__footer {
+    padding: 0;
+  }
+}
+
+.modal__content {
+  overflow: auto;
+  background-color: colors.$kobo-white;
+  width: 100%;
+}
+
+.modal__tabs {
+  background: colors.$kobo-blue;
+  color: colors.$kobo-white;
+}
+
+.modal__header {
+  min-height: 70px;
+  background: colors.$kobo-blue;
+  color: colors.$kobo-white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal__title {
+  margin: 0px;
+  padding: 24px 30px;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.modal__x {
+  z-index: $z-modal-x;
+  color: inherit;
+  background-color: inherit;
+  padding: 8px;
+  margin: 11px 15px 11px 11px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+
+  i {
+    display: block;
+    font-size: 24px;
+  }
+
+  &:hover {opacity: 0.7;}
+}
+
+.modal__done {
+  @extend .modal__x;
+  padding: 24px;
+  margin: 0px;
+  font-size: 18px;
+  font-weight: 600;
+  color: colors.$kobo-blue;
+}
+
+// NOTE: Subheader element is weirdly positioned because it is inside a padded
+// containter but has to appear as if it was outside of it.
+// Unfortunately we can't rely on `overflow: hidden` being there, so negative
+// margins hack isn't good enough. Other hacks are no good too.
+.modal__subheader {
+  background: colors.$kobo-gray-96;
+  padding: 20px 30px;
+  margin: -30px -30px 20px;
+  color: colors.$kobo-gray-40;
+
+  i {
+    margin: 5px 10px 10px 3px;
+    font-size: 24px;
+    float: left;
+  }
+}
+
+.modal__footer {
+  padding: 0 30px 30px;
+  margin-top: 20px;
+  text-align: right;
+
+  &::before,
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
+  &:first-child {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+
+  button:not(:first-of-type) {
+    margin-left: 10px;
+  }
+}
+
+.modal__hr {
+  margin: 20px -30px;
+  border: 0;
+  background-color: colors.$kobo-gray-92;
+  height: 1px;
+}
+
+// -----------------------------------------------------------------------------
+// custom parts and overrides
+// -----------------------------------------------------------------------------
+
+.modal.modal-submission {
+  .modal__header {
+    background-color: colors.$kobo-gray-96;
+    color: mdl.$layout-text-color;
+  }
+
+  .form-modal {
+    text-align: right;
+    padding-bottom: 20px;
+  }
+
+  .mdl-button--raised + .mdl-button--icon {
+    margin-left: 30px;
+    overflow: visible;
+  }
+
+  .form-modal__group {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+
+    .submission-modal-dropdowns:only-child {
+      width: 100%;
+    }
+
+    .submission-modal-dropdowns {
+      width: 50%;
+      display: flex;
+      justify-content: space-between;
+
+      .switch--label-language,
+      .switch--validation-status {
+        width: 45%;
+        text-align: left;
+
+        label, .kobo-select {
+          display: inline-block;
+          vertical-align: middle;
+        }
+
+        label {
+          margin-right: 12px;
+        }
+      }
+
+      .switch--validation-status {
+        width: 100%;
+        text-align: right;
+        .kobo-select {
+          text-align: left;
+        }
+      }
+
+      .switch--label-language + .switch--validation-status {
+        width: 50%;
+      }
+
+      .kobo-select input {
+        min-width: 100px;
+      }
+
+      .kobo-select {
+        min-width: 120px;
+      }
+    }
+  }
+
+  .submission-pager {
+    a {
+      display: inline-block;
+      cursor: pointer;
+
+      &:first-child {
+        padding-left: 0;
+      }
+
+      .k-icon {
+        display: inline-block;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .submission-actions {
+    .checkbox {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 40px;
+    }
+
+    .checkbox__label {
+      white-space: nowrap;
+    }
+
+    .mdl-button--icon {
+      padding-left: 6px;
+      padding-right: 6px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .submission-duplicate__actions {
+    @extend .submission-actions;
+    margin: auto;
+    a {
+      width: 120px;
+    }
+  }
+
+  .submission-duplicate__button {
+    margin-left: 12px;
+  }
+
+  .submission-duplicate__text {
+    max-width: 60%;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 24px;
+  }
+
+  .submission-duplicate__header {
+    @extend .submission-duplicate__text;
+    margin-bottom: 12px;
+    color: colors.$kobo-blue;
+  }
+
+  .submission--warning {
+    margin-bottom: 30px;
+    padding: 10px;
+    background: colors.$kobo-gray-96;
+    text-align: center;
+    line-height: 1em;
+  }
+}
+
+$modal-media-preview-header-height: sizes.$x60;
+
+.modal.modal-media-preview {
+  border-radius: 6px;
+  min-width: 25%;
+
+  .modal__content {
+    background-color: colors.$kobo-gray-98;
+    overflow: hidden;
+  }
+
+  .modal__header {
+    min-height: 0;
+    padding: 16px;
+    background-color: colors.$kobo-white;
+    color: colors.$kobo-gray-24;
+    height: $modal-media-preview-header-height;
+
+    .modal__x {
+      padding: 0;
+      margin: 0;
+    }
+
+    .table-media-preview-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: variables.$base-font-size;
+      font-weight: 600;
+      margin-right: 12px;
+
+      .table-media-preview-header__title {
+        padding-top: 3px;
+        margin-right: 6px;
+
+        .table-media-preview-header__label {
+          vertical-align: top;
+        }
+
+        i.k-icon {
+          color: colors.$kobo-gray-65;
+          margin-right: 6px;
+          font-size: 20px;
+        }
+      }
+
+      .kobo-light-button {
+        padding-right: 0px;
+        i.k-icon-download {
+          font-weight: 800;
+          margin-left: 3px;
+        }
+
+        &:not(:last-child) {
+          margin-right: 12px;
+        }
+      }
+    }
+  }
+
+  .modal__body {
+    padding: 0;
+    margin: 0;
+    max-height: 600px;
+    height: calc(100% - #{$modal-media-preview-header-height});
+    overflow: auto;
+  }
+}
+
+.enketo-holder {
+  // resets modal window paddings
+  margin: -30px -30px;
+
+  .enketo-loading-message {
+    p {
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .k-icon {
+      color: colors.$kobo-blue;
+      font-size: 24px;
+    }
+  }
+
+  .touch & {
+    width: 94%;
+    left: 3%;
+    margin-left: 0px;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+  }
+}
+
+.enketo-iframe-icon {
+  color: colors.$kobo-white;
+  background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
+  background-color: colors.$kobo-gray-65;
+  background-position: -81px -129px;
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  border-radius: 3px;
+  z-index: $z-enketo-iframe-icon;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.project-settings {
+  // make sure it doesn't get too small (but only inside modal)
+  .modal & {
+    width: 100%;
+
+    @media screen and (min-width: 768px) {
+      min-width: 600px;
+    }
+  }
+
+  .form-view & {
+    margin-bottom: 30px;
+  }
+
+  .intro {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .form-modal__item[disabled] {
+    pointer-events: none;
+  }
+
+  // override two columns to rows
+  &.project-settings--narrow {
+    .form-modal__item--sector,
+    .form-modal__item--country {
+      width: 100%;
+      float: none;
+
+      .kobo-select {
+        margin-right: 0;
+      }
+    }
+  }
+
+  $buttons-spacing: 10px;
+
+  .form-modal__item--form-source-buttons {
+    margin: 0 auto;
+    max-width: 500px;
+
+    button {
+      display: inline-block;
+      vertical-align: top;
+      border: none;
+      background: colors.$kobo-gray-96;
+      border-radius: 6px;
+      color: colors.$kobo-gray-40;
+      cursor: pointer;
+      margin: 0.5*$buttons-spacing;
+      padding: $buttons-spacing;
+      width: calc(50% - #{$buttons-spacing});
+      min-height: 120px;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+
+      @media screen and (min-width: 768px) {
+        margin: $buttons-spacing;
+        padding: 2*$buttons-spacing;
+        width: calc(50% - #{2*$buttons-spacing});
+      }
+
+      i {
+        display: block;
+        margin: 3px auto;
+        font-size: 34px;
+        color: currentColor;
+      }
+
+      &:hover {
+        color: colors.$kobo-gray-24;
+        background-color: colors.$kobo-gray-92;
+      }
+
+      &:active {
+        // makes the shadow smaller and moves button down by small bit
+        // to make it look pressed-in
+        transform: translateY(1px);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+      }
+    }
+  }
+  .dropzone {
+    background: colors.$kobo-gray-96;
+    padding: 30px;
+    border: 2px dashed colors.$kobo-gray-92;
+    cursor: pointer;
+    border-radius: 6px;
+    text-align: center;
+
+    i {
+      display: block;
+      margin: 5px auto;
+      font-size: 52px;
+      opacity: 0.5;
+    }
+
+    .loading {
+      font-size: inherit;
+    }
+
+    .loading i {
+      font-size: 36px;
+      margin-top: 20px;
+      margin-bottom: 16px;
+    }
+
+    &:hover {border-color: colors.$kobo-blue;}
+    &.dropzone-active {border-color: colors.$kobo-blue;}
+    &.dropzone-reject {border-color: colors.$kobo-red;}
+  }
+}
+
+@media screen and (min-height: 600px) {
+  // on bigger screens make templates-list scrollable to always display back/next buttons
+  .project-settings.project-settings--choose-template {
+    .templates-list {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+  }
+}
+
+.form-modal__item--http-headers {
+  .form-modal__item--http-header-row {
+    margin-top: 10px;
+
+    input[type="text"] {
+      width: calc(50% - 20px);
+      background-color: rgba(colors.$kobo-gray-24, 0.05);
+      padding-left: 5px;
+      padding-right: 5px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .http-header-row-remove {
+    height: 30px;
+    min-height: 30px;
+    line-height: 30px;
+    width: 30px;
+    vertical-align: top;
+    padding: 0;
+    &:hover {color: colors.$kobo-red;}
+
+    .k-icon {
+      font-size: 1.2em;
+      vertical-align: middle;
+    }
+  }
+}
+
+.form-modal--translation-settings {
+  @media (min-width: 600px) {
+    min-width: 500px;
+  }
+
+  .form-view__cell--label {
+    padding-bottom: 10px;
+  }
+
+  .form-view__cell--translation-note {
+    padding-bottom: 20px;
+
+    p {
+      margin: 0;
+    }
+  }
+  .form-view__cell--translation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid colors.$kobo-gray-92;
+    padding: 6px 0px;
+
+    .form-view__cell--translation-name {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .form-view__cell--translation-name .form-view__icon-button {
+      opacity: 0;
+      visibility: hidden;
+      transition: 250ms;
+    }
+
+    &:hover .form-view__cell--translation-name .form-view__icon-button {
+      opacity: 1;
+      visibility: visible;
+
+      // Hide the on hover button completely if disabled
+      &:disabled {
+        display: none;
+      }
+    }
+
+    .form-view__icon-button.right-tooltip {
+      &:disabled {
+        color: colors.$kobo-gray-65;
+      }
+    }
+  }
+
+  .form-view__cell--translation-actions {
+    white-space: nowrap;
+  }
+
+  .form-view__label--default-language {
+    display: inline;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+
+  .form-view__cell--add-language {
+    padding-top: 20px;
+    text-align: right;
+    border-top: 1px solid colors.$kobo-gray-92;
+  }
+
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: colors.$kobo-gray-96;
+    padding: 15px;
+    position: relative;
+
+    .form-view__link--close {
+      position: absolute;
+      right: 0px;
+      top: 6px;
+
+      i {
+        font-size: 18px;
+        margin: 3px;
+      }
+    }
+  }
+
+  .form-view__cell--add-language-form {
+    margin-top: 20px;
+  }
+
+  .form-view__form--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+
+    .form-view__cell {
+      &:not(:first-child) {margin-left: 10px;}
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+      &.form-view__cell--submit-button {padding-top: 10px;}
+    }
+  }
+}
+
+.form-modal--translation-table {
+  // assumption: parent is display flex
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+
+  .translation-table-container {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid colors.$kobo-gray-92;
+  }
+
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: colors.$kobo-gray-96;
+    padding: 15px;
+    position: relative;
+
+    .form-view__link--close {
+      position: absolute;
+      right: 0px;
+      top: 6px;
+
+      i {
+        font-size: 18px;
+        margin: 3px;
+      }
+    }
+  }
+
+  .form-view__cell--update-language-form {
+    max-width: 70%;
+    margin-left: auto;
+  }
+
+  .form-view__form--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+
+    .form-view__cell {
+      &:not(:first-child) {margin-left: 10px;}
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+      &.form-view__cell--submit-button {padding-top: 10px;}
+    }
+  }
+
+  .ReactTable {
+    width: 100%;
+
+    .rt-thead.-header {
+      box-shadow: none;
+      border-bottom: 2px solid colors.$kobo-gray-92;
+    }
+
+    .rt-thead > .rt-tr,
+    .rt-tr-group > .rt-tr {
+      .rt-td {
+        white-space: normal;
+
+        .rt-td--disabled {
+          color: colors.$kobo-gray-65;
+        }
+      }
+      > .rt-th:first-child,
+      > .rt-td:first-child {
+        min-width: 30%;
+        color: colors.$kobo-gray-40;
+      }
+
+      > .rt-th:last-child,
+      > .rt-td:last-child {
+        min-width: 70%;
+      }
+      .translation {
+        padding: 0px;
+        color: colors.$kobo-gray-40;
+        textarea {
+          background: colors.$kobo-lime;
+          display: block;
+          padding: 10px;
+          border: none;
+          width: 100%;
+          height: 100% !important;
+          color: colors.$kobo-gray-24;
+          &:focus {
+            background: colors.$kobo-white;
+          }
+          &:disabled {
+            color: colors.$kobo-gray-65;
+            background-color: colors.$kobo-gray-96;
+          }
+        }
+      }
+    }
+  }
+}
+
+.form-view__cell--encrypt-key {
+  padding-bottom: 12px;
+}
+
+.encrypt-help {
+  color: colors.$kobo-gray-40;
+  background: transparent;
+  border: 0;
+  font-size: 28px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.remove-encryption {
+  float: right;
+}
+@media screen and (max-width: 480px) {
+  .table-media-preview-header {
+    margin-right: 0 !important;
+    display: block !important;
+
+    .table-media-preview-header__title {
+      display: flex;
+    }
+
+    .kobo-light-button {
+      display: block;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 12px;
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .modal.modal--open {
+    min-width: 90%;
+    max-width: 90%;
+  }
+}
+
+@media screen and (max-width: 1175px) {
+  .form-media__upload-url {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 597px) {
+  .form-media__upload-url {
+    width: 100%;
+    padding-left: 0px;
+    label.text-box {
+      width: 100%;
+    }
+    button {
+      width: 100%;
+      margin-left: 0px !important;
+      margin-top: 12px;
+    }
+  }
+}
