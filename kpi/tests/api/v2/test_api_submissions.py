@@ -599,6 +599,28 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
+    def test_list_query_elem_match(self):
+        """
+        Ensure query is able to filter on an array
+        """
+        submission = self.submissions[0]
+        group = 'group_lx4sf58'
+        question = 'q3'
+        submission[group] = [
+            {
+                f'{group}/{question}': 'whap.gif',
+            },
+        ]
+        self.asset.deployment.mock_submissions(self.submissions)
+
+        data = {
+            'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',
+            'format': 'json'
+        }
+        response = self.client.get(self.submission_list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get('count'), 1)
+
     def test_retrieve_submission_as_owner(self):
         """
         someuser is the owner of the project.
