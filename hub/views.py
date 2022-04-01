@@ -6,7 +6,7 @@ from registration.backends.default.views import RegistrationView
 from registration.forms import RegistrationForm
 from django.contrib.auth.views import PasswordResetView
 
-from kpi.forms import PasswordResetFormWithUsername
+from kpi.forms.password_reset import PasswordResetFormWithUsername
 
 
 class ExtraDetailRegistrationView(RegistrationView):

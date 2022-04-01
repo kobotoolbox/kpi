@@ -12,7 +12,7 @@ from kobo.apps.superuser_stats.views import (
     country_report,
     retrieve_reports,
 )
-from kpi.forms import PasswordResetFormWithUsername
+from kpi.forms.password_reset import PasswordResetFormWithUsername
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
