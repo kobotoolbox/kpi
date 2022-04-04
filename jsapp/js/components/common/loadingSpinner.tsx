@@ -5,6 +5,11 @@ import Icon from 'js/components/common/icon'
 
 type LoadingSpinnerProps = {
   message?: string
+  /**
+   * Most of the times we want a message, either custom or default one, but
+   * sometimes we want just the spinner.
+   */
+  hideMessage?: boolean
 }
 
 export default class LoadingSpinner extends React.Component<LoadingSpinnerProps, {}> {
@@ -15,7 +20,7 @@ export default class LoadingSpinner extends React.Component<LoadingSpinnerProps,
       <bem.Loading>
         <bem.Loading__inner>
           <Icon name='spinner' size='xl' classNames={['k-spin']}/>
-          {message}
+          {!this.props.hideMessage && message}
         </bem.Loading__inner>
       </bem.Loading>
     );

@@ -5,7 +5,7 @@ from .base import *
 
 # For tests, don't use KoBoCAT's DB
 DATABASES = {
-    'default': dj_database_url.config(default='sqlite:///%s/db.sqlite3' % BASE_DIR),
+    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
 
 DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
@@ -25,3 +25,6 @@ MONGO_CONNECTION_URL = 'mongodb://fakehost/formhub_test'
 MONGO_CONNECTION = MockMongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True)
 MONGO_DB = MONGO_CONNECTION['formhub_test']
+
+ENKETO_URL = 'http://enketo.mock'
+ENKETO_INTERNAL_URL = 'http://enketo.mock'

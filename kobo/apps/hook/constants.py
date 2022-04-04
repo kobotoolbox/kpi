@@ -1,7 +1,16 @@
 # coding: utf-8
+from enum import Enum
+
+
 HOOK_LOG_FAILED = 0
 HOOK_LOG_PENDING = 1
 HOOK_LOG_SUCCESS = 2
+
+class HookLogStatus(Enum):
+    FAILED = HOOK_LOG_FAILED
+    PENDING = HOOK_LOG_PENDING
+    SUCCESS = HOOK_LOG_SUCCESS
+
 
 KOBO_INTERNAL_ERROR_STATUS_CODE = None
 

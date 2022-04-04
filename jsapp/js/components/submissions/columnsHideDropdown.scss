@@ -1,10 +1,22 @@
+@use "scss/mixins";
 @use "scss/_colors";
+@use "scss/libs/_mdl";
 @use "scss/_variables";
 
 // nested selector needed for specificity
 .kobo-dropdown[data-name='columns-hide-dropdown']  {
-  display: flex; // for alignment
+  @include mixins.centerRowFlex;
   margin-right: 10px;
+
+  .kobo-dropdown__menu {
+    color: colors.$kobo-gray-40;
+    background-color: colors.$kobo-white;
+    @include mdl.box-shadow;
+    padding: 9px 0;
+    text-align: left;
+    line-height: 20px;
+    min-width: 150px;
+  }
 }
 
 .columns-hide-dropdown-trigger {

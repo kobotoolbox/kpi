@@ -442,13 +442,7 @@ class ProjectSettings extends React.Component {
     ) {
       this.setState({
         formAsset: asset,
-        name: asset.name,
-        description: asset.settings.description,
-        sector: asset.settings.sector,
-        country: asset.settings.country,
-        'share-metadata': asset.settings['share-metadata'] || false,
-        operational_purpose: asset.settings.operational_purpose,
-        collects_pii: asset.settings.collects_pii,
+        fields: getInitialFieldsFromAsset(asset),
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);

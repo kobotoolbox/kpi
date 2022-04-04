@@ -55,6 +55,21 @@ export default class AccountSidebar extends React.Component<
     if (this.state.isLoading) {
       return <LoadingSpinner />
     } else {
+      {/* temporary workaround to hide future sidebar routes */}
+      return (
+        <bem.FormSidebar m={sidebarModifier}>
+          <bem.FormSidebar__label
+            m={{selected: this.isAccountSelected()}}
+            href={'#' + ROUTES.ACCOUNT_SETTINGS}
+          >
+            <Icon name='settings' size='xl'/>
+            <bem.FormSidebar__labelText>
+              {t('Account Settings')}
+            </bem.FormSidebar__labelText>
+          </bem.FormSidebar__label>
+        </bem.FormSidebar>
+      )
+      {/* end temporary workaround */}
       return (
         <bem.FormSidebar m={sidebarModifier}>
           <bem.FormSidebar__label
@@ -80,7 +95,7 @@ export default class AccountSidebar extends React.Component<
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
 
-          <bem.FormSidebar__label
+          {window.MFAEnabled && <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
             href={'#' + ROUTES.SECURITY}
             disabled
@@ -91,6 +106,7 @@ export default class AccountSidebar extends React.Component<
               {t('Security')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
+          }
         </bem.FormSidebar>
       )
     }

@@ -326,7 +326,22 @@ class DuplicateSubmissionPermission(SubmissionPermission):
 class EditSubmissionPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.change_%(model_name)s'],
+        'HEAD': ['%(app_label)s.change_%(model_name)s'],
+        'POST': ['%(app_label)s.change_%(model_name)s'],
     }
+
+    def has_object_permission(self, request, view, obj):
+        # Authentication validation has already been made in `has_permission()`
+        # because we validate the permissions on the `obj`'s parent, i.e. the asset.
+        # But we do want to be sure that user is authenticated before going further.
+        #
+        # It will force DRF to send authentication header (i.e. `WWW-authenticate`)
+        # when the first authentication class implements an authentication header
+        # response.
+        # See
+        #  - https://github.com/encode/django-rest-framework/blob/45082b39368729caa70534dde11b0788ef186a37/rest_framework/views.py#L190
+        #  - https://github.com/encode/django-rest-framework/blob/45082b39368729caa70534dde11b0788ef186a37/rest_framework/views.py#L453-L456
+        return not request.user.is_anonymous
 
 
 class ViewSubmissionPermission(SubmissionPermission):
