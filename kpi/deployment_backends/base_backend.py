@@ -85,7 +85,7 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def get_attachment(
         self,
-        submission_id: int,
+        submission_id_or_uuid: Union[int, str],
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,

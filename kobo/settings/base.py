@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import logging
 import os
 import string
 import subprocess
@@ -7,16 +8,18 @@ from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
-import dj_database_url
 import django.conf.locale
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
+import environ
 from pymongo import MongoClient
 
-from kpi.utils.redis_helper import RedisHelper
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
+
+
+env = environ.Env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -25,40 +28,41 @@ BASE_DIR = os.path.abspath(os.path.dirname(parent_dirname))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
+SECRET_KEY = env.str('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
 
 # Optionally treat proxied connections as secure.
 # See: https://docs.djangoproject.com/en/1.8/ref/settings/#secure-proxy-ssl-header.
 # Example environment: `export SECURE_PROXY_SSL_HEADER='HTTP_X_FORWARDED_PROTO, https'`.
 # SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
-if 'SECURE_PROXY_SSL_HEADER' in os.environ:
-    SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
-                                     os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
+SECURE_PROXY_SSL_HEADER = env.tuple("SECURE_PROXY_SSL_HEADER", str, None)
 
-if (
-    os.environ.get('PUBLIC_REQUEST_SCHEME', '').lower() == 'https'
-    or 'SECURE_PROXY_SSL_HEADER' in os.environ
-):
+if env.str('PUBLIC_REQUEST_SCHEME', '').lower() == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
+
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
-if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
-    USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if os.environ.get('SESSION_COOKIE_DOMAIN'):
-    SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
+SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
+if SESSION_COOKIE_DOMAIN:
     SESSION_COOKIE_NAME = 'kobonaut'
+    # The trusted CSRF origins must encompass Enketo's subdomain. See
+    # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
+    CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
 
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = 604800
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
+DEBUG = env.bool("DJANGO_DEBUG", False)
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
+ALLOWED_HOSTS = env.str('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = 'kpi-root'
 LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
@@ -85,6 +89,7 @@ INSTALLED_APPS = (
     'registration',         # Order is important
     'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
+    'django_filters',
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
@@ -108,6 +113,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -121,7 +127,7 @@ MIDDLEWARE = [
 ]
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
     SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Configuration options that superusers can modify in the Django admin
@@ -142,20 +148,24 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        os.environ.get('KOBO_SUPPORT_EMAIL')
-        or os.environ.get('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        os.environ.get('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
         'URL for "KoBoToolbox Help Center"',
     ),
     'COMMUNITY_URL': (
-        os.environ.get(
+        env.str(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
         'URL for "KoBoToolbox Community Forum"',
+    ),
+    'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
+        300,
+        'A synchronus export request will return the last export generated '
+        'with the same settings unless it is older than this value (seconds)'
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,
@@ -192,6 +202,18 @@ CONSTANCE_CONFIG = {
         'Minimum number of asynchronous worker processes to run. If larger '
         'than the maximum, the maximum will be ignored',
         int
+    ),
+    'FRONTEND_MIN_RETRY_TIME': (
+        2,
+        'Minimum number of seconds the front end waits before retrying a '
+        'failed request to the back end',
+        int,
+    ),
+    'FRONTEND_MAX_RETRY_TIME': (
+        120,
+        'Maximum number of seconds the front end waits before retrying a '
+        'failed request to the back end',
+        int,
     ),
     'MFA_ISSUER_NAME': (
         'KoBoToolbox',
@@ -294,17 +316,16 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 
 # run heavy migration scripts by default
 # NOTE: this should be set to False for major deployments. This can take a long time
-SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'True'
+SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
-kobocat_database_url = os.getenv('KC_DATABASE_URL')
-if kobocat_database_url:
-    DATABASES['kobocat'] = dj_database_url.parse(kobocat_database_url)
+if 'KC_DATABASE_URL' in os.environ:
+    DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
 
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
@@ -315,8 +336,7 @@ django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
-        for lang_code in os.environ.get(
-            'DJANGO_LANGUAGE_CODES', 'en').split(' ')
+        for lang_code in env.str('DJANGO_LANGUAGE_CODES', 'en').split(' ')
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -336,6 +356,10 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 # Impose a limit on the number of records returned by the submission list
 # endpoint. This overrides any `?limit=` query parameter sent by a client
 SUBMISSION_LIST_LIMIT = 30000
+
+# uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
+# Set this value to match their limits
+SYNCHRONOUS_REQUEST_TIME_LIMIT = 120  # seconds
 
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
@@ -368,7 +392,7 @@ PUBLIC_MEDIA_PATH = '__public/'
 
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
-KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
+KPI_PREFIX = env.str('KPI_PREFIX', 'False')
 if KPI_PREFIX.lower() == 'false':
     KPI_PREFIX = False
 else:
@@ -445,7 +469,10 @@ TEMPLATES = [
 ]
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
+RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
+RAVEN_JS_DSN = None
+if RAVEN_JS_DSN_URL:
+    RAVEN_JS_DSN = RAVEN_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
@@ -479,6 +506,40 @@ ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 
+# Content Security Policy (CSP)
+# CSP should "just work" by allowing any possible configuration
+# however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
+if env.bool("ENABLE_CSP", False):
+    MIDDLEWARE.append('csp.middleware.CSPMiddleware')
+local_unsafe_allows = [
+    "'unsafe-eval'",
+    'http://localhost:3000',
+    'http://kf.kobo.local:3000',
+    'ws://kf.kobo.local:3000'
+]
+CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCAT_URL, ENKETO_URL]
+if env.str("FRONTEND_DEV_MODE", None) == "host":
+    CSP_DEFAULT_SRC += local_unsafe_allows
+CSP_CONNECT_SRC = CSP_DEFAULT_SRC
+CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
+CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_IMG_SRC = CSP_DEFAULT_SRC + ['data:']
+
+if GOOGLE_ANALYTICS_TOKEN:
+    google_domain = '*.google-analytics.com'
+    CSP_SCRIPT_SRC.append(google_domain)
+    CSP_CONNECT_SRC.append(google_domain)
+if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
+    raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
+    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
+    CSP_SCRIPT_SRC.append(raven_js_url)
+    CSP_CONNECT_SRC.append(raven_js_url)
+
+csp_report_uri = env.url('CSP_REPORT_URI', None)
+if csp_report_uri:  # Let environ validate uri, but set as string
+    CSP_REPORT_URI = csp_report_uri.geturl()
+CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
 
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
@@ -498,10 +559,13 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Default to a 30-minute soft time limit and a 35-minute hard time limit
-CELERY_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
+CELERY_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100)  # seconds
+)
 
-CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
-    'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
+CELERY_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERYD_TASK_SOFT_TIME_LIMIT', 1800)  # seconds
+)
 
 CELERY_BEAT_SCHEDULE = {
     # Schedule every day at midnight UTC. Can be customized in admin section
@@ -518,7 +582,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
     # TODO figure out how to pass `Constance.HOOK_MAX_RETRIES` or `HookLog.get_remaining_seconds()
     # Otherwise hardcode `HOOK_MAX_RETRIES` in Settings
-    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService
+    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService (seconds)
 }
 
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
@@ -551,8 +615,8 @@ REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'jsapp/compiled/',
-        'POLL_INTERVAL': 0.5,
-        'TIMEOUT': 5,
+        'POLL_INTERVAL': 0.5,  # seconds
+        'TIMEOUT': 5,  # seconds
     }
 }
 
@@ -615,7 +679,6 @@ else:
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
 ''' Django error logging configuration '''
-# Need a default logger when sentry is not activated
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -650,79 +713,31 @@ LOGGING = {
 }
 
 
-''' Sentry (error log collection service) configuration '''
-if os.environ.get('RAVEN_DSN', False):
-    import raven
-    INSTALLED_APPS = INSTALLED_APPS + (
-        'raven.contrib.django.raven_compat',
+################################
+# Sentry settings              #
+################################
+
+if (os.getenv("RAVEN_DSN") or "") != "":
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    # All of this is already happening by default!
+    sentry_logging = LoggingIntegration(
+        level=logging.INFO,  # Capture info and above as breadcrumbs
+        event_level=logging.WARNING  # Send warnings as events
     )
-    RAVEN_CONFIG = {
-        'dsn': os.environ['RAVEN_DSN'],
-    }
-
-    # Set the `server_name` attribute. See https://docs.sentry.io/hosted/clients/python/advanced/
-    server_name = os.environ.get('RAVEN_SERVER_NAME')
-    server_name = server_name or '.'.join(filter(None, (
-        os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', None),
-        os.environ.get('PUBLIC_DOMAIN_NAME', None)
-    )))
-    if server_name:
-        RAVEN_CONFIG.update({'name': server_name})
-
-    try:
-        RAVEN_CONFIG['release'] = raven.fetch_git_sha(BASE_DIR)
-    except raven.exceptions.InvalidGitRepository:
-        pass
-    # The below is NOT required for Sentry to log unhandled exceptions, but it
-    # is necessary for capturing messages sent via the `logging` module.
-    # https://docs.getsentry.com/hosted/clients/python/integrations/django/#integration-with-logging
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False, # Was `True` in Sentry documentation
-        'root': {
-            'level': 'WARNING',
-            'handlers': ['sentry'],
-        },
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s '
-                          '%(process)d %(thread)d %(message)s'
-            },
-        },
-        'handlers': {
-            'sentry': {
-                'level': 'WARNING',
-                'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-            },
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose'
-            }
-        },
-        'loggers': {
-            'django.db.backends': {
-                'level': 'ERROR',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'raven': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'sentry.errors': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'console_logger': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': True
-            },
-        },
-    }
+    sentry_sdk.init(
+        dsn=os.environ['RAVEN_DSN'],
+        integrations=[
+            DjangoIntegration(),
+            CeleryIntegration(),
+            sentry_logging
+        ],
+        traces_sample_rate=0.2,
+        send_default_pii=True
+    )
 
 
 ''' Try to identify the running codebase for informational purposes '''
@@ -786,10 +801,21 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
-MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 1000
+# If a request or task makes a database query and then times out, the database
+# server should not spin forever attempting to fulfill that query.
+MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
+MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
-SESSION_ENGINE = "redis_sessions.session"
-SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+SESSION_ENGINE = 'redis_sessions.session'
+# django-redis-session expects a dictionary with `url`
+redis_session_url = env.cache_url(
+    'REDIS_SESSION_URL', default='redis://redis_cache:6380/2'
+)
+SESSION_REDIS = {
+    'url': redis_session_url['LOCATION'],
+    'prefix': env.str('REDIS_SESSION_PREFIX', 'session'),
+    'socket_timeout': env.int('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+}
 
 ENV = None
 
@@ -806,7 +832,7 @@ OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 # Should match KoBoCAT setting
-PAIRED_DATA_EXPIRATION = 300
+PAIRED_DATA_EXPIRATION = 300  # seconds
 
 # Minimum size (in bytes) of files to allow fast calculation of hashes
 # Should match KoBoCAT setting
@@ -843,12 +869,14 @@ TRENCH_AUTH = {
     'MFA_METHODS': {
         'app': {
             'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': os.getenv('MFA_CODE_VALIDITY_PERIOD', 30),
+            'VALIDITY_PERIOD': env.int(
+                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
+            ),
             'USES_THIRD_PARTY_CLIENT': True,
             'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
         },
     },
-    'CODE_LENGTH': os.getenv('MFA_CODE_LENGTH', 6),
+    'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
 }
 
 # Session Authentication is supported by default.

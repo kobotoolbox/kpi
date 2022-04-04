@@ -4,7 +4,7 @@ import os
 import time
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from xml.etree import ElementTree as ET
 
 import pytz
@@ -20,7 +20,6 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
-    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -212,18 +211,36 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def get_attachment(
         self,
-        submission_id: int,
+        submission_id_or_uuid: Union[int, str],
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> MockAttachment:
 
-        submission_xml = self.get_submission(
-            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
-        )
+        submission_json = None
+        # First try to get the json version of the submission.
+        # It helps to retrieve the id if `submission_id_or_uuid` is a `UUIDv4`
+        try:
+            submission_id_or_uuid = int(submission_id_or_uuid)
+        except ValueError:
+            submissions = self.get_submissions(
+                user,
+                format_type=SUBMISSION_FORMAT_TYPE_JSON,
+                query={'_uuid': submission_id_or_uuid},
+            )
+            if submissions:
+                submission_json = submissions[0]
+        else:
+            submission_json = self.get_submission(
+                submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+            )
 
-        if not submission_xml:
+        if not submission_json:
             raise SubmissionNotFoundException
+
+        submission_xml = self.get_submission(
+            submission_json['_id'], user, format_type=SUBMISSION_FORMAT_TYPE_XML
+        )
 
         if xpath:
             submission_tree = ET.ElementTree(
@@ -239,9 +256,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             except AttributeError:
                 raise XPathNotFoundException
 
-        submission_json = self.get_submission(
-            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
-        )
         attachments = submission_json['_attachments']
         for attachment in attachments:
             filename = os.path.basename(attachment['filename'])

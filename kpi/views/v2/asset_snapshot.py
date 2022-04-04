@@ -5,12 +5,11 @@ import requests
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from rest_framework import renderers, serializers, status
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kpi.authentication import DigestAuthentication
+from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -153,7 +152,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         detail=True,
         permission_classes=[EditSubmissionPermission],
         methods=['HEAD', 'POST'],
-        authentication_classes=[DigestAuthentication],
+        authentication_classes=[
+            DigestAuthentication,
+            EnketoSessionAuthentication,
+        ],
     )
     def submission(self, request, *args, **kwargs):
         if request.method == 'HEAD':

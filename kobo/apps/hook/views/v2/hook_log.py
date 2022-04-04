@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
-from rest_framework import viewsets, mixins, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -8,6 +9,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from kobo.apps.hook.models.hook_log import HookLog
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
+from kobo.apps.hook.filters import HookLogFilter
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -37,6 +39,16 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     * `asset_uid` - is the unique identifier of a specific asset
     * `hook_uid` - is the unique identifier of a specific external service
     * `uid` - is the unique identifier of a specific log
+
+    Use the `status` query parameter to filter logs by numeric status:
+
+    * `status=0`: hook has failed after exhausting all retries
+    * `status=1`: hook is still pending
+    * `status=2`: hook has succeeded
+
+    Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
+    Note that `start` is inclusive, while `end` is exclusive.
+    Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
 
     #### Retrieves a log
     <pre class="prettyprint">
@@ -68,6 +80,8 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     serializer_class = HookLogSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     pagination_class = TinyPaginated
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = HookLogFilter
 
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get("hook")
@@ -78,6 +92,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # Django 1.9+, "select_related() prohibits non-relational fields for
         # nested relations."
         queryset = queryset.select_related('hook__asset')
+
         return queryset
 
     @action(detail=True, methods=["PATCH"])
@@ -102,10 +117,12 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response["detail"] = hook_log.message
                 response["status_code"] = hook_log.status_code
             else:
-                response["detail"] = t("An error has occurred when sending the data. Please try again later.")
+                response["detail"] = t(
+                    "An error has occurred when sending the data. Please try again later.")
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            response["detail"] = t("Data is being or has already been processed")
+            response["detail"] = t(
+                "Data is being or has already been processed")
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

@@ -6,6 +6,19 @@
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="../node_modules/chai/chai.js"></script>
+    <!--
+      MAGICAL HACK FIX: setting `kpi-root-path` is not really needed for tests,
+      but it fixes a crash `Resource Failed to Load` on `/me` and `/environment`
+      endpoint calls.
+
+      The root cause is not really known, but the fix works, because we provide
+      a broken url (in final form it becomes `file://http://test.test` and gives
+      an error: `login not verified 0 SyntaxError: Failed to execute 'open' on
+      'XMLHttpRequest': Invalid URL`.
+
+      Please implement https://github.com/kobotoolbox/kpi/issues/3719.
+    -->
+    <meta name="kpi-root-path" content="http://test.test">
 </head>
 <body>
     <div id="mocha"></div>

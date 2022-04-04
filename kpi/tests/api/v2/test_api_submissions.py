@@ -14,6 +14,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (
+    ENKETO_CSRF_COOKIE_NAME,
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
@@ -610,6 +611,18 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
 
+    def test_retrieve_submission_by_uuid(self):
+        """
+        someuser is the owner of the project.
+        someuser can view one of their submission.
+        """
+        submission = self.submissions[0]
+        url = self.asset.deployment.get_submission_detail_url(submission['_uuid'])
+
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, submission)
+
     def test_retrieve_submission_not_shared_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -956,6 +969,23 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         url = f"{settings.ENKETO_URL}/edit/{submission['_uuid']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
+
+    @responses.activate
+    def test_get_edit_link_response_includes_csrf_cookie(self):
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        # Just make sure the cookie is present and has a non-empty value
+        assert ENKETO_CSRF_COOKIE_NAME in response.cookies
+        assert response.cookies[ENKETO_CSRF_COOKIE_NAME].value
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):

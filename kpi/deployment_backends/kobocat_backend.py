@@ -560,7 +560,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def get_attachment(
         self,
-        submission_id: int,
+        submission_id_or_uuid: Union[int, str],
         user: 'auth.User',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
@@ -569,13 +569,34 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Return an object which can be retrieved by its primary key or by XPath.
         An exception is raised when the submission or the attachment is not found.
         """
+        try:
+            submission_id_or_uuid = int(submission_id_or_uuid)
+        except ValueError:
+            if not re.match(
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
+            ):
+                raise SubmissionNotFoundException
 
-        submission_xml = self.get_submission(
-            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
-        )
+            # Get first occurrence of the `get_submissions()` generator.
+            try:
+                submission_xml = next(
+                    self.get_submissions(
+                        user,
+                        format_type=SUBMISSION_FORMAT_TYPE_XML,
+                        query={'_uuid': submission_id_or_uuid},
+                    )
+                )
+            except StopIteration:
+                raise SubmissionNotFoundException
+            django_orm_filter = 'instance__uuid'
 
-        if not submission_xml:
-            raise SubmissionNotFoundException
+        else:
+            submission_xml = self.get_submission(
+                submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+            )
+            django_orm_filter = 'instance_id'
+            if not submission_xml:
+                raise SubmissionNotFoundException
 
         if xpath:
             submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
@@ -594,13 +615,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # TODO: hide attachments that were deleted or replaced; see
                 # kobotoolbox/kobocat#792
                 # 'replaced_at': None,
-                'instance_id': submission_id,
+                django_orm_filter: submission_id_or_uuid,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
                 # 'replaced_at': None,
-                'instance_id': submission_id,
+                django_orm_filter: submission_id_or_uuid,
                 'pk': attachment_id,
             }
 

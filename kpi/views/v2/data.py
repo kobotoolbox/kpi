@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+import re
 from xml.etree import ElementTree as ET
 
 import requests
@@ -11,6 +13,7 @@ from rest_framework import (
     status,
     viewsets,
 )
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -20,6 +23,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
+from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -29,7 +33,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -39,9 +43,7 @@ from kpi.permissions import (
     ViewSubmissionPermission,
 )
 from kpi.renderers import (
-    SubmissionCSVRenderer,
     SubmissionGeoJsonRenderer,
-    SubmissionXLSXRenderer,
     SubmissionXMLRenderer,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -135,6 +137,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     </pre>
 
     It is also possible to specify the format.
+
+    <sup>*</sup>`id` can be the primary key of the submission or its `uuid`.
+    Please note that using the `uuid` may match **several** submissions, only
+    the first match will be returned.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.xml
@@ -287,38 +293,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
-    ## Synchronous data export
-
-    The use of synchronous exports requires an existing export setting for the
-    current asset, accessible at:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
-    </pre>
-
-    The export settings associated with the `export_setting_uid` is used to
-    configure the output of the synchronous export. It is advisable to create
-    specific export settings to be used for synchronous exports, tailored to
-    the desired output format.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
-    </pre>
-
-    By default, XLSX format is used, but CSV is also available:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
-    </pre>
-
-    or
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
-    </pre>
-
 
     ### CURRENT ENDPOINT
     """
@@ -329,8 +303,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         renderers.JSONRenderer,
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
-        SubmissionXLSXRenderer,
-        SubmissionCSVRenderer,
     )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
@@ -385,7 +357,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
-        return self._get_enketo_link(request, submission_id, 'edit')
+        enketo_response = self._get_enketo_link(request, submission_id, 'edit')
+        if enketo_response.status_code in (
+            status.HTTP_201_CREATED, status.HTTP_200_OK
+        ):
+            # See https://github.com/enketo/enketo-express/issues/187
+            EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
+                request, enketo_response
+            )
+        return enketo_response
 
     @action(
         detail=True,
@@ -398,24 +378,25 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'view')
 
-    @action(
-        detail=False,
-        methods=['GET'],
-        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
-        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
-    )
-    def exports(self, request, uid, *args, **kwargs):
-        try:
-            obj = AssetExportSettings.objects.get(uid=uid)
-        except AssetExportSettings.DoesNotExist:
-            raise Http404
-        return Response(obj.export_settings)
-
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
         # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
         # `retrieve()` don't need Django Queryset, we only need return `None`.
         return None
+
+    def get_submission(self):
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+                'Expected view %s to be called with a URL keyword argument '
+                'named "%s". Fix your URL conf, or set the `.lookup_field` '
+                'attribute on the view correctly.' %
+                (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        print('FILTER KWARGS', filter_kwargs)
 
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
@@ -449,22 +430,57 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
+        """
+        Retrieve a submission by its primary key or its UUID.
+
+        Warning when using the UUID. Submissions can have the same uuid because
+        there is no unique constraint on this field. The first occurrence
+        will be returned.
+        """
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
+        params = {
+            'user': request.user,
+            'format_type': format_type,
+            'request': request,
+        }
         filters = self._filter_mongo_query(request)
+
+        # Unfortunately, Django expects that the URL parameter is `pk`,
+        # its name cannot be changed (easily).
+        submission_id_or_uuid = pk
         try:
-            submission = deployment.get_submission(
-                positive_int(pk),
-                user=request.user,
-                format_type=format_type,
-                request=request,
-                **filters,
-            )
+            submission_id_or_uuid = positive_int(submission_id_or_uuid)
         except ValueError:
-            raise Http404
-        else:
-            if not submission:
+            if not re.match(
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
+            ):
                 raise Http404
+
+            try:
+                query = json.loads(filters.pop('query', '{}'))
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    {'query': t('Value must be valid JSON.')}
+                )
+            query['_uuid'] = submission_id_or_uuid
+            filters['query'] = query
+        else:
+            params['submission_ids'] = [submission_id_or_uuid]
+
+        # Join all parameters to be passed to `deployment.get_submissions()`
+        params.update(filters)
+
+        # The `get_submissions()` is a generator in KobocatDeploymentBackend
+        # class but a list in MockDeploymentBackend. We cast the result as a list
+        # no matter what is the deployment back-end class to make it work with
+        # both. Since the number of submissions is be very small, it should not
+        # have a big impact on memory (i.e. list vs generator)
+        submissions = list(deployment.get_submissions(**params))
+        if not submissions:
+            raise Http404
+
+        submission = submissions[0]
         return Response(submission)
 
     @action(detail=True, methods=['POST'],

@@ -1,6 +1,7 @@
 # coding: utf-8
 import datetime
 
+import pytz
 from django.db.models import Q
 from markdownx.views import ImageUploadView
 from private_storage.views import PrivateStorageView
@@ -50,7 +51,7 @@ class InAppMessageViewSet(viewsets.ModelViewSet):
     permission_classes = [InAppMessagePermissions]
 
     def get_queryset(self):
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(tz=pytz.UTC)
         return self.queryset.filter(
             Q(published=True) | Q(last_editor=self.request.user),
             valid_from__lte=now,

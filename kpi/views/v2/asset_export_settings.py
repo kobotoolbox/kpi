@@ -1,16 +1,22 @@
 # coding: utf-8
+from django.http import HttpResponse, HttpResponseRedirect
+from django.utils.translation import gettext as t
 from rest_framework import (
     renderers,
     serializers,
     viewsets,
 )
+from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.models import AssetExportSettings
+from kpi.models import AssetExportSettings, SynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
+from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
 from kpi.serializers.v2.asset_export_settings import (
     AssetExportSettingsSerializer,
 )
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -108,7 +114,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     * "details": Expands each multiple-select question to one column per choice, with each of those columns having a binary 1 or 0 to indicate whether that choice was chosen;
     * "both": Includes the format of "summary" _and_ "details" in the export
 
-    ### Retrieves a specific export setting
+    ### Retrieve a specific export setting
 
     > Required permissions: `view_submissions` (View submissions)
 
@@ -120,7 +126,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/export-settings/espj4oFeS9tVhQQMVfitTB2/
 
-    ### Updates an asset's export setting
+    ### Update an asset's export setting
 
     > Required permissions: `manage_asset` (Manage project)
 
@@ -147,7 +153,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     >           }
     >        }
 
-    ### Deletes current export setting
+    ### Delete current export setting
 
     > Required permissions: `manage_asset` (Manage project)
 
@@ -159,6 +165,21 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     > Example
     >
     >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/export-settings/espj4oFeS9tVhQQMVfitTB2/
+
+
+    ### Synchronous data export
+
+    To retrieve data synchronously in CSV and XLSX format according to a
+    particular instance of export settings, access the URLs given by
+    `data_url_csv` and `data_url_xlsx`:
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/<code>{setting_uid}</code>/data.csv
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/<code>{setting_uid}</code>/data.xlsx
+    </pre>
+    <span class='label label-warning'>WARNING</span>
+    Processing time of synchronous exports is substantially limited compared to
+    asynchronous exports, which are available at
+    `/api/v2/assets/{asset_uid}/exports/`.
 
 
     ### CURRENT ENDPOINT
@@ -179,3 +200,42 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)
 
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_path='data',
+        url_name='synchronous-data',
+        renderer_classes=(SubmissionCSVRenderer, SubmissionXLSXRenderer),
+    )
+    def data(self, request, *args, **kwargs):
+        AVAILABLE_FORMATS = ('csv', 'xlsx')
+        format_type = kwargs.get('format', request.GET.get('format'))
+        if format_type not in AVAILABLE_FORMATS:
+            raise serializers.ValidationError(
+                t(
+                    'Only the following formats are available: ##format list##'
+                ).replace('##format list##', ', '.join(AVAILABLE_FORMATS))
+            )
+        user = get_database_user(self.request.user)
+        settings_obj = self.get_object()
+
+        # formpack is expected to behave properly even if the export settings
+        # were originally created for a different format
+        settings_obj.export_settings['type'] = format_type
+
+        export = SynchronousExport.generate_or_return_existing(
+           user=user,
+           asset_export_settings=settings_obj,
+        )
+        if export.status != export.COMPLETE:
+            # The problem has already been logged by `ImportExportTask.run()`,
+            # but pass some information of dubious usefulness back to the
+            # client.
+            return HttpResponse(
+                'Synchronous export failed: ' + str(export.messages),
+                content_type='text/plain',
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        file_location = serializers.FileField().to_representation(export.result)
+        return HttpResponseRedirect(file_location)
