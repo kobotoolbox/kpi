@@ -5,7 +5,7 @@ import Radio from 'js/components/common/radio'
 import Icon, {IconSize} from 'js/components/common/icon'
 import {IconNames} from 'jsapp/fonts/k-icons'
 
-const iconSizes: IconSize[] = ['xs', 's', 'm', 'l', 'xl']
+const iconSizes: IconSize[] = ['xxs', 'xs', 's', 'm', 'l', 'xl']
 
 const iconNamesOptions: IconNameOption[] = []
 for (let iconName in IconNames) {
@@ -53,6 +53,8 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
     return (
       <section>
         <h1><code>&lt;Icon&gt;</code> component</h1>
+
+        <p>Note that the <code>xxs</code> size is mainly for carets.</p>
 
         <bem.SimpleTable>
           <bem.SimpleTable__header>

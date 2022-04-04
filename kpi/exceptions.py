@@ -140,6 +140,10 @@ class SearchQueryTooShortException(InvalidSearchException):
     default_code = 'query_too_short'
 
 
+class SubmissionIntegrityError(Exception):
+    pass
+
+
 class SubmissionNotFoundException(Exception):
     pass
 
