@@ -5,12 +5,13 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import {stores} from '../stores';
 import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
+import ConnectProjects from 'js/components/dataAttachments/connectProjects';
+import FormGallery from 'js/components/formGallery/formGallery';
 import FormMedia from './modalForms/formMedia';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
@@ -54,8 +55,7 @@ export class FormSubScreens extends React.Component {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return <DataTable asset={this.state} />;
         case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
-          iframeUrl = deployment__identifier+'/photos';
-          break;
+          return <FormGallery />;
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMap asset={this.state} />;
         case ROUTES.FORM_MAP_BY
