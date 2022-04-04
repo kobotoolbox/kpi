@@ -8,6 +8,7 @@ from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
     country_report,
+    domain_report,
     user_count_by_organization,
     retrieve_reports,
     user_report,
@@ -67,6 +68,8 @@ urlpatterns = [
     # Statistics for superusers
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    path('superuser_stats/domain_report/', domain_report),
+    re_path(r'^superuser_stats/domain_report/(?P<base_filename>[^/]+)$', retrieve_reports),
     path('superuser_stats/user_count_by_org/', user_count_by_organization),
     re_path(r'^superuser_stats/user_count_by_org/(?P<base_filename>[^/]+)$', retrieve_reports),
     path('superuser_stats/user_report/', user_report),

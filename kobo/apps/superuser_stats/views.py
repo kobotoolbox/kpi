@@ -8,6 +8,7 @@ from django.http import HttpResponse, StreamingHttpResponse, Http404
 
 from .tasks import (
     generate_country_report,
+    generate_domain_report,
     generate_user_count_by_organization,
     generate_user_report
 )
@@ -48,6 +49,42 @@ def country_report(request):
         'YYYY-MM-DD. Example:<br>'
         'https://{{ kpi_base_url }}/superuser_stats/country_report/?start_date'
         '=2020-01-31&end_date=2021-02-28'
+        '</body></html>'
+    ).format(base_filename)
+
+    return HttpResponse(template_ish)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def domain_report(request):
+    base_filename = 'domain-report_{}_{}_{}.csv'.format(
+        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        date.today(),
+        datetime.now().microsecond
+    )
+
+    # Get the date date filters from the query and set defaults
+    start_date = request.GET.get('start_date', date.today())
+    tomorrow = date.today() + timedelta(days=1)
+    end_date = request.GET.get('end_date', tomorrow)
+
+    # Generate the CSV file
+    filename = _base_filename_to_full_filename(
+        base_filename, request.user.username)
+    generate_domain_report.delay(filename, start_date, end_date)
+
+    template_ish = (
+        '<html><head><title>Hello, superuser.</title></head>'
+        '<body>Your report is being generated. Once finished, it will be '
+        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
+        'refresh your browser periodically until your request succeeds.<br><br>'
+        'To select a date range, add a ? at the end of the URL and set the '
+        'start_date parameter to YYYY-MM-DD and/or the end_date parameter to '
+        'YYYY-MM-DD. Example:<br>'
+        'https://{{ kpi_base_url }}/superuser_stats/domain_report/?start_date'
+        '=2020-01-31&end_date=2021-02-28<br><br>'
+        'The default date range is for today, but submissions count will not be'
+        ' 0 unless it includes the range includes first of the month'
         '</body></html>'
     ).format(base_filename)
 
