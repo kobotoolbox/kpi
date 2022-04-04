@@ -32,7 +32,6 @@ class MainHeader extends Reflux.Component {
     super(props);
     this.state = assign({
       asset: false,
-      currentLang: currentLang(),
       isLanguageSelectorVisible: false,
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
@@ -50,6 +49,9 @@ class MainHeader extends Reflux.Component {
   }
 
   componentDidMount() {
+    // On initial load use the possibly stored asset.
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
+
     this.unlisteners.push(
       assetStore.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)
@@ -129,10 +131,16 @@ class MainHeader extends Reflux.Component {
   }
 
   renderLangItem(lang) {
+    const currentLanguage = currentLang();
     return (
       <bem.AccountBox__menuLI key={lang.value}>
         <bem.AccountBox__menuLink onClick={this.languageChange} data-key={lang.value}>
-          {lang.label}
+          {lang.value === currentLanguage &&
+            <strong>{lang.label}</strong>
+          }
+          {lang.value !== currentLanguage &&
+            lang.label
+          }
         </bem.AccountBox__menuLink>
       </bem.AccountBox__menuLI>
     );
@@ -288,7 +296,7 @@ class MainHeader extends Reflux.Component {
                 <i className='k-icon k-icon-menu' />
               </bem.Button>
             }
-            <span className='mdl-layout-title'>
+            <span className='mdl-layout__title'>
               <a href='/'>
                 <bem.Header__logo />
               </a>

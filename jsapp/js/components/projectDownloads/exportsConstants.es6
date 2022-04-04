@@ -59,6 +59,7 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   EXPORT_TYPE: EXPORT_TYPES.xls,
   FLATTEN_GEO_JSON: false,
   XLS_TYPES_AS_TEXT: false,
+  INCLUDE_MEDIA_URL: true,
   GROUP_SEPARATOR: '/',
   INCLUDE_ALL_VERSIONS: true,
   INCLUDE_GROUPS: false,
@@ -68,5 +69,3 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   // DEFAULT_EXPORT_SETTINGS is responsible to fill it up
   SELECTED_ROWS: new Set(),
 });
-
-export const EXPORT_REFRESH_TIME = 4000;

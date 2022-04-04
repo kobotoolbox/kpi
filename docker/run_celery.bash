@@ -12,4 +12,7 @@ exec celery worker -A kobo --loglevel=info \
     --logfile=${KPI_LOGS_DIR}/celery.log \
     --pidfile=/tmp/celery.pid \
     --exclude-queues=sync_kobocat_xforms_queue \
+    --uid=${UWSGI_USER} \
+    --gid=${UWSGI_GROUP} \
     --autoscale 2,2
+

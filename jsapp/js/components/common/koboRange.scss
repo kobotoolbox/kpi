@@ -1,0 +1,120 @@
+@use "scss/_colors";
+
+@mixin rangeTrack() {
+  -webkit-appearance: none;
+  border-radius: 10px;
+  background: colors.$kobo-gray-92;
+  height: 8px;
+}
+
+.kobo-range {
+  padding-top: 6px;
+  flex: 1;
+}
+
+.kobo-range__values {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: auto;
+  padding-bottom: 3px;
+  font-weight: 600;
+  font-size: 18px;
+
+  .kobo-range__current-value {
+    color: colors.$kobo-blue;
+  }
+
+  .kobo-range__max-value {
+    color: colors.$kobo-gray-65;
+  }
+
+  .kobo-range__unit {
+    margin-left: 4px;
+  }
+}
+
+input[type='range'].kobo-range__input--default {
+  &::-moz-range-progress {
+    background-color: colors.$kobo-blue;
+  }
+
+  // Chrome slider is hacked by using shadow
+  &::-webkit-slider-thumb {
+    background-color: colors.$kobo-blue;
+    box-shadow: -10005px 0 0 10000px colors.$kobo-blue;
+  }
+}
+input[type='range'].kobo-range__input--warning {
+  &::-moz-range-progress {
+    background-color: colors.$kobo-red;
+  }
+
+  // Chrome slider is hacked by using shadow
+  &::-webkit-slider-thumb {
+    background-color: colors.$kobo-red;
+    box-shadow: -10005px 0 0 10000px colors.$kobo-red;
+  }
+}
+input[type='range'].kobo-range__input--teal {
+  &::-moz-range-progress {
+    background-color: colors.$kobo-teal;
+  }
+
+  // Chrome slider is hacked by using shadow
+  &::-webkit-slider-thumb {
+    background-color: colors.$kobo-red;
+    box-shadow: -10005px 0 0 10000px colors.$kobo-teal;
+  }
+}
+
+input[type='range'].kobo-range__input {
+  // General input styling across browsers
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10px;
+
+  &[disabled] {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  // Firefox thumb is going to be hidden
+  &::-moz-range-thumb {
+    background-color: transparent;
+    height: 8px;
+    border-radius: 0 10px 10px 0;
+    border: none;
+  }
+
+  // Firefox progress styles are easy peasy
+  &::-moz-range-progress {
+    height: 8px;
+    border-radius: 10px;
+  }
+
+  // Chrome track is going to be gray
+  &::-webkit-slider-runnable-track {
+    @include rangeTrack;
+    overflow-x: hidden;
+    margin-bottom: 12px;
+  }
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    height: 8px;
+    width: 8px;
+    background: colors.$kobo-blue;
+    border-radius: 10px;
+  }
+
+  &::-moz-range-track {
+    @include rangeTrack
+  }
+
+  &::-ms-track {
+    @include rangeTrack
+  }
+}

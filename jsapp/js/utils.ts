@@ -46,6 +46,14 @@ export function formatTimeDate(timeStr: string): string {
 }
 
 /**
+ * Returns something like "Sep 4, 1986 8:30 PM"
+ */
+export function formatTimeDateShort(timeStr: string): string {
+  const _m = moment(timeStr)
+  return _m.format('lll')
+}
+
+/**
  * Returns something like "Mar 15, 2021"
  */
 export function formatDate(timeStr: string): string {
@@ -81,7 +89,8 @@ export function buildUserUrl(username: string): string {
 
 declare global {
   interface Window {
-    log: any
+    log: any,
+    MFAEnabled: boolean,
   }
 }
 
@@ -163,6 +172,14 @@ export function getLangString(obj: LangObject): string | undefined {
   } else {
     return undefined;
   }
+}
+
+export function addRequiredToLabel(label: string, isRequired: boolean = true): string {
+  if (!isRequired) {
+    return label;
+  }
+  const requiredTemplate = t('##field_label## (required)');
+  return requiredTemplate.replace('##field_label##', label);
 }
 
 export function stringToColor(str: string, prc: number) {

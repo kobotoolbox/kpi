@@ -118,14 +118,14 @@ class AssetBreadcrumbs extends React.Component {
         <bem.Breadcrumbs__crumb href={rootBreadcrumb.href}>
           {rootBreadcrumb.label}
         </bem.Breadcrumbs__crumb>
-        <i className='k-icon k-icon-next'/>
+        <i className='k-icon k-icon-angle-right'/>
 
         {this.props.asset.parent !== null &&
           <React.Fragment>
           <bem.Breadcrumbs__crumb href={this.getParentHref()}>
             {this.getParentName()}
           </bem.Breadcrumbs__crumb>
-          <i className='k-icon k-icon-next'/>
+          <i className='k-icon k-icon-angle-right'/>
           </React.Fragment>
         }
 

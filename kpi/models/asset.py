@@ -12,7 +12,7 @@ from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
@@ -73,7 +73,6 @@ from .asset_version import AssetVersion
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
         update_parent_languages = kwargs.pop('update_parent_languages', True)
-        fail_duplicate_names = kwargs.pop('fail_duplicate_names', False)
 
         # 3 lines below are copied from django.db.models.query.QuerySet.create()
         # because we need to pass an argument to save()
@@ -81,7 +80,6 @@ class AssetManager(models.Manager):
         created = self.model(**kwargs)
         self._for_write = True
         created.save(force_insert=True, using=self.db,
-                     fail_duplicate_names=fail_duplicate_names,
                      update_parent_languages=update_parent_languages)
 
         if tag_string:
@@ -204,18 +202,18 @@ class Asset(ObjectPermissionMixin,
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
-            (PERM_VIEW_ASSET, _('Can view asset')),
-            (PERM_DISCOVER_ASSET, _('Can discover asset in public lists')),
-            (PERM_MANAGE_ASSET, _('Can manage all aspects of asset')),
+            (PERM_VIEW_ASSET, t('Can view asset')),
+            (PERM_DISCOVER_ASSET, t('Can discover asset in public lists')),
+            (PERM_MANAGE_ASSET, t('Can manage all aspects of asset')),
             # Permissions for collected data, i.e. submissions
-            (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
-            (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on '
+            (PERM_ADD_SUBMISSIONS, t('Can submit data to asset')),
+            (PERM_VIEW_SUBMISSIONS, t('Can view submitted data for asset')),
+            (PERM_PARTIAL_SUBMISSIONS, t('Can make partial actions on '
                                          'submitted data for asset '
                                          'for specific users')),
-            (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
-            (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
-            (PERM_VALIDATE_SUBMISSIONS, _("Can validate submitted data asset")),
+            (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
+            (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
+            (PERM_VALIDATE_SUBMISSIONS, t("Can validate submitted data asset")),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -238,46 +236,46 @@ class Asset(ObjectPermissionMixin,
     # codename of the permission for which a label is being created
     ASSET_TYPE_LABELS_FOR_PERMISSIONS = {
         ASSET_TYPE_SURVEY: (
-            lambda p: _('project') if p == PERM_MANAGE_ASSET else _('form')
+            lambda p: t('project') if p == PERM_MANAGE_ASSET else t('form')
         ),
-        ASSET_TYPE_TEMPLATE: _('template'),
-        ASSET_TYPE_BLOCK: _('block'),
-        ASSET_TYPE_QUESTION: _('question'),
-        ASSET_TYPE_TEXT: _('text'),  # unused?
-        ASSET_TYPE_EMPTY: _('empty'),  # unused?
-        ASSET_TYPE_COLLECTION: _('collection'),
+        ASSET_TYPE_TEMPLATE: t('template'),
+        ASSET_TYPE_BLOCK: t('block'),
+        ASSET_TYPE_QUESTION: t('question'),
+        ASSET_TYPE_TEXT: t('text'),  # unused?
+        ASSET_TYPE_EMPTY: t('empty'),  # unused?
+        ASSET_TYPE_COLLECTION: t('collection'),
     }
 
     # Assignable permissions that are stored in the database.
     # The labels are templates used by `get_label_for_permission()`, which you
     # should call instead of accessing this dictionary directly
     ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
-        PERM_VIEW_ASSET: _('View ##asset_type_label##'),
-        PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
-        PERM_DISCOVER_ASSET: _('Discover ##asset_type_label##'),
-        PERM_MANAGE_ASSET: _('Manage ##asset_type_label##'),
-        PERM_ADD_SUBMISSIONS: _('Add submissions'),
-        PERM_VIEW_SUBMISSIONS: _('View submissions'),
+        PERM_VIEW_ASSET: t('View ##asset_type_label##'),
+        PERM_CHANGE_ASSET: t('Edit ##asset_type_label##'),
+        PERM_DISCOVER_ASSET: t('Discover ##asset_type_label##'),
+        PERM_MANAGE_ASSET: t('Manage ##asset_type_label##'),
+        PERM_ADD_SUBMISSIONS: t('Add submissions'),
+        PERM_VIEW_SUBMISSIONS: t('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: {
-            'default': _(
+            'default': t(
                 'Act on submissions only from specific users'
             ),
-            PERM_VIEW_SUBMISSIONS: _(
+            PERM_VIEW_SUBMISSIONS: t(
                 'View submissions only from specific users'
             ),
-            PERM_CHANGE_SUBMISSIONS: _(
+            PERM_CHANGE_SUBMISSIONS: t(
                 'Edit submissions only from specific users'
             ),
-            PERM_DELETE_SUBMISSIONS: _(
+            PERM_DELETE_SUBMISSIONS: t(
                 'Delete submissions only from specific users'
             ),
-            PERM_VALIDATE_SUBMISSIONS: _(
+            PERM_VALIDATE_SUBMISSIONS: t(
                 'Validate submissions only from specific users'
             ),
         },
-        PERM_CHANGE_SUBMISSIONS: _('Edit submissions'),
-        PERM_DELETE_SUBMISSIONS: _('Delete submissions'),
-        PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
+        PERM_CHANGE_SUBMISSIONS: t('Edit submissions'),
+        PERM_DELETE_SUBMISSIONS: t('Delete submissions'),
+        PERM_VALIDATE_SUBMISSIONS: t('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
     # Depending on our `asset_type`, only some permissions might be applicable
@@ -478,7 +476,7 @@ class Asset(ObjectPermissionMixin,
             not perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
             or perm == PERM_PARTIAL_SUBMISSIONS
         ):
-            raise BadPermissionsException(_('Only partial permissions for '
+            raise BadPermissionsException(t('Only partial permissions for '
                                             'submissions are supported'))
 
         perms = self.get_partial_perms(user_id, with_filters=True)
@@ -682,7 +680,6 @@ class Asset(ObjectPermissionMixin,
         update_fields=None,
         adjust_content=True,
         create_version=True,
-        fail_duplicate_names=False,
         update_parent_languages=True,
         *args,
         **kwargs
@@ -712,9 +709,6 @@ class Asset(ObjectPermissionMixin,
 
         # populate summary
         self._populate_summary()
-
-        if fail_duplicate_names and 'naming_conflicts' in self.summary:
-            raise ValueError('There are duplicates in the name column')
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -904,6 +898,17 @@ class Asset(ObjectPermissionMixin,
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
+    # TODO: take leading underscore off of `_snapshot()` and call it directly?
+    # we would also have to remove or rename the `snapshot` property
+    def versioned_snapshot(
+        self, version_uid: str, root_node_name: Optional[str] = None
+    ) -> AssetSnapshot:
+        return self._snapshot(
+            regenerate=True,
+            version_uid=version_uid,
+            root_node_name=root_node_name,
+        )
+
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
@@ -933,8 +938,16 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     @transaction.atomic
-    def _snapshot(self, regenerate=True):
-        asset_version = self.latest_version
+    def _snapshot(
+        self,
+        regenerate: bool = True,
+        version_uid: Optional[str] = None,
+        root_node_name: Optional[str] = None,
+    ) -> AssetSnapshot:
+        if version_uid:
+            asset_version = self.asset_versions.get(uid=version_uid)
+        else:
+            asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -952,18 +965,29 @@ class Asset(ObjectPermissionMixin,
             snapshot = False
 
         if not snapshot:
-            if self.name != '':
-                form_title = self.name
-            else:
-                _settings = self.content.get('settings', {})
-                form_title = _settings.get('id_string', 'Untitled')
+            try:
+                form_title = asset_version.form_title
+                content = asset_version.version_content
+            except AttributeError:
+                form_title = self.form_title
+                content = self.content
 
-            self._append(self.content, settings={
-                'form_title': form_title,
-            })
-            snapshot = AssetSnapshot.objects.create(asset=self,
-                                                    asset_version=asset_version,
-                                                    source=self.content)
+            settings_ = {'form_title': form_title}
+
+            if root_node_name:
+                # `name` may not sound like the right setting to control the
+                # XML root node name, but it is, according to the XLSForm
+                # specification:
+                # https://xlsform.org/en/#specify-xforms-root-node-name
+                settings_['name'] = root_node_name
+                settings_['id_string'] = root_node_name
+
+            self._append(content, settings=settings_)
+
+            snapshot = AssetSnapshot.objects.create(
+                asset=self, asset_version=asset_version, source=content
+            )
+
         return snapshot
 
     def _update_partial_permissions(
@@ -1027,11 +1051,11 @@ class Asset(ObjectPermissionMixin,
 
             if user.pk == self.owner.pk:
                 raise BadPermissionsException(
-                    _("Can not assign '{}' permission to owner".format(perm)))
+                    t("Can not assign '{}' permission to owner".format(perm)))
 
             if not partial_perms:
                 raise BadPermissionsException(
-                    _("Can not assign '{}' permission. "
+                    t("Can not assign '{}' permission. "
                       "Partial permissions are missing.".format(perm)))
 
             new_partial_perms = defaultdict(list)

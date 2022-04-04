@@ -11,7 +11,7 @@ from django.core.validators import (
     URLValidator,
     ValidationError as DjangoValidationError,
 )
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -114,7 +114,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 pass
             except ValueError:
                 raise serializers.ValidationError({
-                    'metadata': _('JSON is invalid')
+                    'metadata': t('JSON is invalid')
                 })
 
         return metadata
@@ -127,7 +127,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             media_content = base64_encoded[base64_encoded.index('base64') + 7:]
         except ValueError:
             raise serializers.ValidationError({
-                'base64Encoded': _('Invalid content')
+                'base64Encoded': t('Invalid content')
             })
 
         attr.update({
@@ -140,7 +140,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             attr['content']
         except KeyError:
             raise serializers.ValidationError({
-                'content': _('No files have been submitted')
+                'content': t('No files have been submitted')
             })
 
         metadata['filename'] = attr['content'].name
@@ -155,7 +155,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
                                         date_deleted__isnull=True,
                                         metadata__filename=filename).exists():
                 error = self.__format_error(field_name,
-                                            _('File already exists'))
+                                            t('File already exists'))
                 raise serializers.ValidationError(error)
 
     def _validate_media_content_method(self,
@@ -204,7 +204,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
 
         raise serializers.ValidationError(
             {
-                'detail': _(
+                'detail': t(
                     'You cannot upload media file with two different ways at '
                     'the same time. Please choose between binary upload, base64'
                     ' or remote URL.'
@@ -218,7 +218,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
 
         if metadata is None:
             raise serializers.ValidationError({
-                'metadata': _('This field is required')
+                'metadata': t('This field is required')
             })
 
         if validate_redirect_url:
@@ -226,7 +226,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 metadata['redirect_url']
             except KeyError:
                 raise serializers.ValidationError({
-                    'metadata': _('`redirect_url` is required')
+                    'metadata': t('`redirect_url` is required')
                 })
             else:
                 parsed_url = urlparse(metadata['redirect_url'])
@@ -236,7 +236,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             metadata['filename']
         except KeyError:
             raise serializers.ValidationError({
-                'metadata': _('`filename` is required')
+                'metadata': t('`filename` is required')
             })
 
         return metadata
@@ -250,7 +250,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             validator(redirect_url)
         except (AttributeError, DjangoValidationError):
             raise serializers.ValidationError({
-                'metadata': _('`redirect_url` is invalid')
+                'metadata': t('`redirect_url` is invalid')
             })
 
     # PRIVATE METHODS
@@ -284,6 +284,6 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 mime_types_csv = '`, `'.join(allowed_mime_types)
                 error = self.__format_error(
                     field_name,
-                    _('Only `{}` MIME types are allowed').format(mime_types_csv)
+                    t('Only `{}` MIME types are allowed').format(mime_types_csv)
                 )
                 raise serializers.ValidationError(error)

@@ -1,0 +1,36 @@
+/*
+ * A temporary-ish file for defining all the sizes we use in the app to avoid
+ * creating unnecessary new ones. Ultimately we would like to have a small
+ * nice palette and start merging similar ones. This will also help us find
+ * how many of each of them we use.
+ */
+
+$x1: 1px;
+$x2: 2px;
+$x3: 3px;
+$x4: 4px;
+$x5: 5px;
+$x6: 6px;
+$x8: 8px;
+$x12: 12px;
+$x13: 13px;
+$x14: 14px;
+$x16: 16px;
+$x18: 18px;
+$x20: 20px;
+$x21: 21px;
+$x24: 24px;
+$x28: 28px;
+$x30: 30px;
+$x32: 32px;
+$x36: 36px;
+$x38: 38px;
+$x40: 40px;
+$x52: 52px;
+$x60: 60px;
+$x76: 76px;
+$x100: 100px;
+$x150: 150px;
+$x200: 200px;
+$x400: 400px;
+$x600: 600px;

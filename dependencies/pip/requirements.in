@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@3dd1ee99a92091a4e9e72337a97b60439a79e50d#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@56951080f64eae16542fd88349a69cf1f225252a#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -28,12 +28,14 @@ celery>=4.0,<5.0
 celery[redis]
 dicttoxml
 dj-static
-dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
+django-csp
 django-debug-toolbar
+django-environ
+django-filter
 django-extensions
 django-oauth-toolkit
 django-registration-redux
@@ -41,8 +43,6 @@ django-amazon-ses
 django-webpack-loader
 django-loginas
 django-markdownx
-
-# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
 
 django-markitup
 django-mptt
@@ -66,7 +66,7 @@ psycopg2
 pymongo
 python-dateutil
 pytz
-pyxform
+pyxform==1.7.0
 requests
 responses
 shortuuid
@@ -88,3 +88,6 @@ pyasn1
 
 # This package is only needed for unit tests but MockBackend is loaded even on production environment
 deepmerge
+
+# MFA
+django-trench

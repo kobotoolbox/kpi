@@ -145,7 +145,7 @@ def failures_reports():
             text_content = plain_text_template.render(variables)
             html_content = html_template.render(variables)
 
-            msg = EmailMultiAlternatives(translation.ugettext('REST Services Failure Report'), text_content,
+            msg = EmailMultiAlternatives(translation.gettext('REST Services Failure Report'), text_content,
                                          constance.config.SUPPORT_EMAIL,
                                          [record.get('email')])
             msg.attach_alternative(html_content, 'text/html')

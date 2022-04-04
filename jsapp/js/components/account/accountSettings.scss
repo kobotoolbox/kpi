@@ -1,0 +1,142 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "scss/libs/_mdl";
+
+.account-settings {
+  width: 100%;
+  height: 100%;
+  background: colors.$kobo-white;
+  overflow-y: auto;
+  position: relative;
+
+  .kobo-select {
+    font-size: 15px;
+  }
+
+  .form-modal__item--column {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 30px 20px;
+
+    .form-modal__item--fields {
+      height: calc(100% - 20px);
+      padding-right: 40px;
+      overflow: auto;
+
+       > *:last-child { margin-bottom: 20px; }
+    }
+
+    .form-modal__item--api-token {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+
+      > label {
+        width: 100%;
+      }
+
+      .text-box {
+        display: inline-block;
+        vertical-align: top;
+        width: 50%;
+        margin-right: sizes.$x5;
+
+        .text-box__input {
+          font-family: mdl.$font_mono;
+        }
+      }
+    }
+
+    .form-modal__item--username {
+      min-height: 32px;
+
+      .account-box__initials {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 15px;
+      }
+
+      h4 {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 16px;
+      }
+    }
+  }
+
+  .account-settings__actions {
+    position: absolute;
+    top: 26px;
+    right: 0;
+
+    .account-settings-save:last-child {
+      margin-right: 48px;
+    }
+
+    .account-settings-close {
+      padding: 0 12px;
+    }
+  }
+
+  .account-settings-link {
+    font-size: 0.85em;
+  }
+
+  h4 {
+    margin: 0;
+    font-weight: 400;
+    color: colors.$kobo-gray-24;
+  }
+
+  .form-modal__item {
+    &.form-modal__item--primary-sector {
+      width: 46%;
+      margin-right: 2%;
+      float: left;
+    }
+
+    &.form-modal__item--gender {
+      width: 50%;
+    }
+
+    &.form-modal__item--bio {
+      clear: both;
+    }
+
+    &.form-modal__item--country {
+      width: 50%;
+      margin-right: 4%;
+      float: left;
+    }
+
+    &.form-modal__item--city {
+      width: 46%;
+      float: left;
+    }
+
+    &.form-modal__item--social {
+      clear: both;
+
+      > label {
+        position: relative;
+
+        &:not(:first-child) {
+          margin-top: sizes.$x5;
+        }
+
+        > i {
+          position: absolute;
+          font-size: 24px;
+          top: 4px;
+          left: 4px;
+        }
+
+        .text-box .text-box__input {
+          padding-left: 40px;
+        }
+      }
+    }
+  }
+}

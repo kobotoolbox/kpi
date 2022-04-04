@@ -61,6 +61,11 @@ interface AssignablePermissionPartial extends AssignablePermission {
   }
 }
 
+interface SelectChoice {
+  label: string
+  value: string
+}
+
 /**
  * A single permission instance for a given user.
  */
@@ -176,10 +181,7 @@ interface AssetResponse {
       label: string
       value: string
     }
-    country?: {
-      label: string
-      value: string
-    }
+    country?: SelectChoice | SelectChoice[]
     description?: string
     'share-metadata'?: boolean
     'data-table'?: {
@@ -347,4 +349,23 @@ interface AccountResponse {
     branch: string
     tag: boolean
   }
+}
+
+interface EnvironmentResponse {
+  terms_of_service_url: string
+  privacy_policy_url: string
+  source_code_url: string
+  support_email: string
+  support_url: string
+  community_url: string
+  frontend_min_retry_time: number
+  frontend_max_retry_time: number
+  project_metadata_fields: EnvStoreFieldItem[]
+  user_metadata_fields: EnvStoreFieldItem[]
+  sector_choices: string[][]
+  operational_purpose_choices: string[][]
+  country_choices: string[][]
+  all_languages: string[][]
+  interface_languages: string[][]
+  submission_placeholder: string
 }

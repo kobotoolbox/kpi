@@ -4,14 +4,17 @@ import copy
 import requests
 from django.http import HttpResponseRedirect
 from django.conf import settings
-from rest_framework import renderers
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
+from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetSnapshot, AssetFile, PairedData
+from kpi.permissions import EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,
     OpenRosaManifestRenderer,
@@ -39,13 +42,27 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         XMLRenderer,
     ]
 
+    @property
+    def asset(self):
+        asset_snapshot = self.get_object()
+        return asset_snapshot.asset
+
     def filter_queryset(self, queryset):
-        if (self.action == 'retrieve' and
-                self.request.accepted_renderer.format == 'xml'):
+        if (
+            self.action == 'submission'
+            or (
+                self.action == 'retrieve'
+                and self.request.accepted_renderer.format == 'xml'
+            )
+        ):
             # The XML renderer is totally public and serves anyone, so
             # /asset_snapshot/valid_uid.xml is world-readable, even though
             # /asset_snapshot/valid_uid/ requires ownership. Return the
             # queryset unfiltered
+
+            # If action is 'submission', we also need to return the queryset
+            # unfiltered to avoid returning a 404 if user has not been authenticated
+            # yet. The filtering will be handled by the `submission()` method itself.
             return queryset
         else:
             user = self.request.user
@@ -55,12 +72,14 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             return owned_snapshots | RelatedAssetPermissionsFilter(
                 ).filter_queryset(self.request, queryset, view=self)
 
-    @action(detail=True,
-            renderer_classes=[OpenRosaFormListRenderer],
-            url_path='formList')
+    @action(
+        detail=True,
+        renderer_classes=[OpenRosaFormListRenderer],
+        url_path='formList',
+    )
     def form_list(self, request, *args, **kwargs):
         """
-        This route is used by enketo when it fetches external resources.
+        This route is used by Enketo when it fetches external resources.
         It let us specify manifests for preview
         """
         snapshot = self.get_object()
@@ -69,12 +88,15 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
         return Response(serializer.data, headers=self.get_headers())
 
-    @action(detail=True, renderer_classes=[OpenRosaManifestRenderer])
+    @action(
+        detail=True,
+        renderer_classes=[OpenRosaManifestRenderer],
+    )
     def manifest(self, request, *args, **kwargs):
         """
-        This route is used by enketo when it fetches external resources.
+        This route is used by Enketo when it fetches external resources.
         It returns form media files location in order to display them within
-        enketo preview
+        Enketo preview
         """
         snapshot = self.get_object()
         asset = snapshot.asset
@@ -120,11 +142,55 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
             json_response = response.json()
             preview_url = json_response.get('preview_url')
-            
+
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
             return Response(response_data, template_name='preview_error.html')
+
+    @action(
+        detail=True,
+        permission_classes=[EditSubmissionPermission],
+        methods=['HEAD', 'POST'],
+        authentication_classes=[
+            DigestAuthentication,
+            EnketoSessionAuthentication,
+        ],
+    )
+    def submission(self, request, *args, **kwargs):
+        if request.method == 'HEAD':
+            # Return an empty response with OpenRosa headers
+            # See https://docs.getodk.org/openrosa-form-submission/#extended-transmission-considerations
+            return Response(
+                '',
+                headers=self.get_headers(),
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        asset_snapshot = self.get_object()
+
+        xml_submission_file = request.data['xml_submission_file']
+
+        # Prepare attachments even if all files are present in `request.FILES`
+        # (i.e.: submission XML and attachments)
+        attachments = None
+        # Remove 'xml_submission_file' since it is already handled
+        request.FILES.pop('xml_submission_file')
+        if len(request.FILES):
+            attachments = {}
+            for name, attachment in request.FILES.items():
+                attachments[name] = attachment
+
+        try:
+            xml_response = asset_snapshot.asset.deployment.edit_submission(
+                xml_submission_file, request.user, attachments
+            )
+        except SubmissionIntegrityError as e:
+            raise serializers.ValidationError(str(e))
+
+        # Add OpenRosa headers to response
+        xml_response['headers'].update(self.get_headers())
+        return Response(**xml_response)
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):

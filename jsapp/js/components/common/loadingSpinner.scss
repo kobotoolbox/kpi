@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 // Loading messages
 .loading {
@@ -12,7 +13,6 @@
   i:first-child {
     margin-right: 10px;
     vertical-align: -7px;
-    font-size: 28px;
     display: inline-block;
   }
 
@@ -38,7 +38,7 @@
     }
 
     .pro-tip {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       margin-top: 30px;
     }
   }

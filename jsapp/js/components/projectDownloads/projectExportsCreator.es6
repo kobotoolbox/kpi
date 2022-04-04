@@ -44,7 +44,8 @@ export default class ProjectExportsCreator extends React.Component {
     super(props);
     this.state = {
       isComponentReady: false,
-      isPending: false, // is either saving setting or creating export
+      // is either saving setting or creating export
+      isPending: false,
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
@@ -59,6 +60,7 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
+      isIncludeMediaUrlEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_MEDIA_URL,
       selectedRows: new Set(),
       selectableRowsCount: 0,
       selectedDefinedExport: null,
@@ -80,6 +82,7 @@ export default class ProjectExportsCreator extends React.Component {
   componentDidMount() {
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange),
+      actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this, true)),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
@@ -106,6 +109,7 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
+      isIncludeMediaUrlEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_MEDIA_URL,
       selectedRows: new Set(this.getAllSelectableRows()),
     });
   }
@@ -124,6 +128,10 @@ export default class ProjectExportsCreator extends React.Component {
 
       this.setState(newStateObj);
     }
+  }
+
+  onCreateExportCompleted() {
+    this.setState({isPending: false});
   }
 
   onGetExportSettingsCompleted(response, passData) {
@@ -313,6 +321,7 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: customSelectionEnabled,
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
       isXlsTypesAsTextEnabled: data.export_settings.xls_types_as_text,
+      isIncludeMediaUrlEnabled: data.export_settings.include_media_url,
       selectedRows: new Set(data.export_settings.fields),
     };
 
@@ -357,6 +366,13 @@ export default class ProjectExportsCreator extends React.Component {
       payload.export_settings.xls_types_as_text = this.state.isXlsTypesAsTextEnabled;
     }
 
+    // include_media_url is only for xls and csv
+    if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
+        this.state.selectedExportType.value === EXPORT_TYPES.csv.value
+    ) {
+      payload.export_settings.include_media_url = this.state.isIncludeMediaUrlEnabled;
+    }
+
     // if custom export is enabled, but there is no name provided
     // we generate a name for export ourselves
     if (this.state.isSaveCustomExportEnabled) {
@@ -372,6 +388,16 @@ export default class ProjectExportsCreator extends React.Component {
     const foundDefinedExport = this.state.definedExports.find((definedExport) =>
       definedExport.data.name === payload.name
     );
+
+    // API allows for more options than our UI is handling at this moment, so we
+    // need to make sure we are not losing some settings when patching.
+    if (foundDefinedExport) {
+      Object.entries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
+        if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
+          payload.export_settings[key] = value;
+        }
+      });
+    }
 
     this.setState({isPending: true});
 
@@ -554,6 +580,17 @@ export default class ProjectExportsCreator extends React.Component {
             </bem.ProjectDownloads__columnRow>
           }
 
+          {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
+              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
+            <bem.ProjectDownloads__columnRow>
+              <Checkbox
+                checked={this.state.isIncludeMediaUrlEnabled}
+                onChange={this.onAnyInputChange.bind(this, 'isIncludeMediaUrlEnabled')}
+                label={t('Include media URLs')}
+              />
+            </bem.ProjectDownloads__columnRow>
+          }
+
           <bem.ProjectDownloads__columnRow>
             <Checkbox
               checked={this.state.isSaveCustomExportEnabled}
@@ -661,10 +698,10 @@ export default class ProjectExportsCreator extends React.Component {
           <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
             {t('Advanced options')}
             {this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-up' />
+              <i className='k-icon k-icon-angle-up' />
             )}
             {!this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-down' />
+              <i className='k-icon k-icon-angle-down' />
             )}
           </bem.ProjectDownloads__textButton>
 
@@ -712,7 +749,10 @@ export default class ProjectExportsCreator extends React.Component {
                 m='blue'
                 type='submit'
                 onClick={this.onSubmit}
-                disabled={this.state.selectedRows.size === 0}
+                disabled={
+                  this.state.selectedRows.size === 0 ||
+                  this.state.isPending
+                }
               >
                 {t('Export')}
               </bem.KoboButton>

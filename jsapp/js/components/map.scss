@@ -1,5 +1,6 @@
 @use "scss/_colors";
 @use "scss/libs/_mdl";
+@use "scss/_variables";
 
 $z-map-overlay: 1001; // leaflet interface elements
 $z-map-list: 689;
@@ -100,7 +101,7 @@ $z-map-settings-3: 701;
   }
 }
 
-.popover-menu--viewby-menu {
+.popover-menu.popover-menu--viewby-menu {
   position: absolute;
   bottom: 15px;
   left: 15px;
@@ -320,7 +321,7 @@ body .leaflet-control-layers,
     display: block;
     padding: 10px 0 20px;
     position: relative;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
   }
 
   .form-modal__item--list-files {

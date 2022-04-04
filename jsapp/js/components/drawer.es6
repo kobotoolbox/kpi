@@ -9,6 +9,7 @@ import bem from 'js/bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
+import AccountSidebar from 'js/components/account/accountSidebar';
 import {
   IntercomHelpBubble,
   SupportHelpBubble,
@@ -152,9 +153,21 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
-          { this.isLibrary()
-            ? <LibrarySidebar />
-            : <FormSidebar />
+          { this.isLibrary() &&
+            <bem.FormSidebarWrapper>
+              <LibrarySidebar/>
+            </bem.FormSidebarWrapper>
+          }
+
+          { this.isAccount() &&
+            // TODO: Temporary magic number for display purposes
+            <AccountSidebar dataStoreage={2} />
+          }
+
+          { !this.isLibrary() && !this.isAccount() &&
+            <bem.FormSidebarWrapper>
+              <FormSidebar/>
+            </bem.FormSidebarWrapper>
           }
         </bem.KDrawer__sidebar>
 

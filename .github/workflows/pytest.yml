@@ -54,7 +54,7 @@ jobs:
       # All about YAML line breaks: https://stackoverflow.com/a/21699210
       run: >-
         sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
-        gdal-bin gettext libproj-dev postgresql-client
+        gdal-bin gettext libproj-dev postgresql-client ffmpeg
     - name: Install Python dependencies
       run: pip-sync dependencies/pip/dev_requirements.txt
     - name: Install JavaScript dependencies
@@ -65,6 +65,8 @@ jobs:
     - name: Build front-end code
       run: npm run copy-fonts && npm run build
     - name: Test back-end code
-      run: pytest --cov=. -ra
+      # Explicitly name the directories where coverage should be measured;
+      # specifying just `--cov=.` includes `src`, which contains third-party packages
+      run: pytest --cov=hub --cov=kobo --cov=kpi -ra
     - name: Run coveralls for back-end code
       uses: AndreMiras/coveralls-python-action@develop

@@ -7,7 +7,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
-import Select from 'react-select';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import TextBox from 'js/components/common/textBox';
@@ -422,6 +422,7 @@ export default class RESTServicesForm extends React.Component {
           <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
               <TextBox
+                customModifiers='on-white'
                 label={t('Name')}
                 type='text'
                 placeholder={t('Service Name')}
@@ -433,6 +434,7 @@ export default class RESTServicesForm extends React.Component {
 
             <bem.FormModal__item>
               <TextBox
+                customModifiers='on-white'
                 label={t('Endpoint URL')}
                 type='text'
                 placeholder={t('https://')}
@@ -445,7 +447,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='isActive'
-                id='active-checkbox'
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
@@ -455,7 +456,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='emailNotification'
-                id='email-checkbox'
                 onChange={this.handleEmailNotificationChange.bind(this)}
                 checked={this.state.emailNotification}
                 label={t('Receive emails notifications')}
@@ -473,26 +473,22 @@ export default class RESTServicesForm extends React.Component {
             </bem.FormModal__item>
 
             <bem.FormModal__item>
-              <label htmlFor='rest-service-form--security'>
-                {t('Security')}
-              </label>
-
-              <Select
+              <WrappedSelect
+                label={t('Security')}
                 value={this.state.authLevel}
                 options={this.state.authOptions}
                 onChange={this.handleAuthTypeChange.bind(this)}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
                 id='rest-service-form--security'
                 name='authLevel'
-                menuPlacement='auto'
                 isSearchable={false}
+                isLimitedHeight
               />
             </bem.FormModal__item>
 
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Username')}
                   type='text'
                   value={this.state.authUsername}
@@ -500,6 +496,7 @@ export default class RESTServicesForm extends React.Component {
                 />
 
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Password')}
                   type='text'
                   value={this.state.authPassword}
@@ -515,6 +512,7 @@ export default class RESTServicesForm extends React.Component {
             {this.state.type === EXPORT_TYPES.json.value &&
               <bem.FormModal__item m='rest-custom-wrapper'>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
                   type='text-multiline'
                   placeholder={t('Add Custom Wrapper')}
