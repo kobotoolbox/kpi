@@ -3,6 +3,7 @@ import unicodecsv
 
 from celery import shared_task
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
 
 from hub.models import ExtraUserDetail
@@ -73,6 +74,28 @@ def generate_country_report(
             except Exception as e:
                 row = ['!FAILED!', 'Country: {}'.format(label), repr(e)]
             writer.writerow(row)
+
+
+@shared_task
+def generate_user_count_by_organization(output_filename: str):
+    columns = ['Organization', 'Count']
+
+    organizations = User.objects.filter(
+        extra_details__data__has_key='organization'
+    ).values_list(
+        'extra_details__data__organization', flat=True
+    ).distinct().order_by(
+        'extra_details__data__organization'
+    )
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'w') as output_file:
+        writer = unicodecsv.writer(output_file)
+        writer.writerow(columns)
+
+        for organization in organizations:
+            count = User.objects.filter(extra_details__data__organization=organization).count()
+            writer.writerow([organization, count])
 
 
 @shared_task

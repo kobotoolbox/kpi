@@ -6,7 +6,11 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import get_storage_class
 from django.http import HttpResponse, StreamingHttpResponse, Http404
 
-from .tasks import generate_country_report, generate_user_report
+from .tasks import (
+    generate_country_report,
+    generate_user_count_by_organization,
+    generate_user_report
+)
 
 
 def _base_filename_to_full_filename(base_filename, username):
@@ -47,6 +51,28 @@ def country_report(request):
         '</body></html>'
     ).format(base_filename)
 
+    return HttpResponse(template_ish)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def user_count_by_organization(request):
+    base_filename = 'user-count-by-organization_{}_{}_{}.csv'.format(
+        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        date.today(),
+        datetime.now().microsecond
+    )
+    filename = _base_filename_to_full_filename(
+        base_filename, request.user.username)
+    print(filename, flush=True)
+    print(base_filename, flush=True)
+    generate_user_count_by_organization.delay(filename)
+    template_ish = (
+        '<html><head><title>Hello, superuser.</title></head>'
+        '<body>Your report is being generated. Once finished, it will be '
+        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
+        'refresh your browser periodically until your request succeeds.'
+        '</body></html>'
+    ).format(base_filename)
     return HttpResponse(template_ish)
 
 
