@@ -2,8 +2,8 @@ import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
 import {ROOT_URL} from 'js/constants'
 
-type MfaErrorResponse = {
-  non_field_errors: string
+export type MfaErrorResponse = JQueryXHR & {
+  non_field_errors?: string
 }
 
 export type MfaActiveResponse = [{
@@ -35,7 +35,7 @@ mfaActions.isActive.listen(() => {
     url: `${ROOT_URL}/api/v2/auth/mfa/user-active-methods/`,
   }).done((response: MfaActiveResponse) => {
     mfaActions.isActive.completed(response)
-  }).fail((response: MfaErrorResponse | any) => {
+  }).fail((response: MfaErrorResponse) => {
     let errorText = t('An error occured')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
@@ -57,7 +57,7 @@ mfaActions.activate.listen((inModal?: boolean) => {
       inModalResponse.inModal = inModal
     }
     mfaActions.activate.completed(inModalResponse)
-  }).fail((response: MfaErrorResponse | any) => {
+  }).fail((response: MfaErrorResponse) => {
     let errorText = t('An error occured')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
@@ -73,7 +73,7 @@ mfaActions.confirmCode.listen((mfaCode: string) => {
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/activate/confirm/`,
   }).done(mfaActions.confirmCode.completed)
-  .fail((response: MfaErrorResponse | any) => {
+  .fail((response: MfaErrorResponse) => {
     let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
@@ -90,7 +90,7 @@ mfaActions.deactivate.listen((mfaCode: string) => {
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/deactivate/`,
   }).done(mfaActions.deactivate.completed)
-  .fail((response: MfaErrorResponse | any) => {
+  .fail((response: MfaErrorResponse) => {
     let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
@@ -107,7 +107,7 @@ mfaActions.regenerate.listen((mfaCode: string) => {
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/codes/regenerate/`,
   }).done(mfaActions.regenerate.completed)
-  .fail((response: MfaErrorResponse | any) => {
+  .fail((response: MfaErrorResponse) => {
     let errorText = t('Incorrect token or something went wrong')
     if (response.non_field_errors) {
       errorText = response.non_field_errors
