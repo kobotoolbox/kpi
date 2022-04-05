@@ -265,7 +265,7 @@ export interface AssetContentSettings {
  * It is quite crucial for multiple places of UI, but is not always
  * present in backend responses (performance reasons).
  */
-interface AssetContent {
+export interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
   choices?: SurveyChoice[]
@@ -517,6 +517,8 @@ export interface EnvironmentResponse {
   all_languages: string[][]
   interface_languages: string[][]
   submission_placeholder: string
+  frontend_min_retry_time: number
+  frontend_max_retry_time: number
 }
 
 const DEFAULT_PAGE_SIZE = 100

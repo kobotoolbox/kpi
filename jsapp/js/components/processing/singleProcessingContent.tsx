@@ -1,23 +1,23 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import LanguageSelector from 'js/components/languages/languageSelector'
-import './singleProcessingContent.scss'
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import LanguageSelector from 'js/components/languages/languageSelector';
+import './singleProcessingContent.scss';
 
-bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
-bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs', 'ul')
-bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li')
-bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section')
+bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section');
+bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs', 'ul');
+bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li');
+bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section');
 
 enum SingleProcessingTab {
-  Transcript,
-  Translations,
-  Coding,
+  Transcript = 'Transcript',
+  Translations = 'Translations',
+  Coding = 'Coding',
 }
 
-type SingleProcessingContentProps = {}
+interface SingleProcessingContentProps {}
 
-type SingleProcessingContentState = {
-  activeTab: SingleProcessingTab
+interface SingleProcessingContentState {
+  activeTab: SingleProcessingTab;
 }
 
 export default class SingleProcessingContent extends React.Component<
@@ -25,18 +25,18 @@ export default class SingleProcessingContent extends React.Component<
   SingleProcessingContentState
 > {
   constructor(props: SingleProcessingContentProps) {
-    super(props)
+    super(props);
     this.state = {
-      activeTab: SingleProcessingTab.Transcript
-    }
+      activeTab: SingleProcessingTab.Transcript,
+    };
   }
 
   switchTab(newTab: SingleProcessingTab) {
-    this.setState({activeTab: newTab})
+    this.setState({activeTab: newTab});
   }
 
   onLanguageChange(newVal: string | undefined) {
-    console.log('language set', newVal)
+    console.log('language set', newVal);
   }
 
   renderTabContent() {
@@ -45,13 +45,13 @@ export default class SingleProcessingContent extends React.Component<
         // TEMP content
         return <div style={{padding: '40px'}}>
           <LanguageSelector onLanguageChange={this.onLanguageChange.bind(this)}/>
-        </div>
+        </div>;
       case SingleProcessingTab.Translations:
-        return 'TODO translations tab content'
+        return 'TODO translations tab content';
       case SingleProcessingTab.Coding:
-        return 'TODO coding tab content'
+        return 'TODO coding tab content';
       default:
-        return null
+        return null;
     }
   }
 
@@ -85,6 +85,6 @@ export default class SingleProcessingContent extends React.Component<
           {this.renderTabContent()}
         </bem.SingleProcessingContent__body>
       </bem.SingleProcessingContent>
-    )
+    );
   }
 }

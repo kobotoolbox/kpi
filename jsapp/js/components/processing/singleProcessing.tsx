@@ -1,43 +1,48 @@
-import React from 'react'
-import {RouteComponentProps} from 'react-router'
-import {actions} from 'js/actions'
+import React from 'react';
+import type {RouteComponentProps} from 'react-router';
+import {actions} from 'js/actions';
 import {
   getSurveyFlatPaths,
-  getTranslatedRowLabel
-} from 'js/assetUtils'
-import type {GetProcessingSubmissionsResponse} from 'js/dataInterface';
-import assetStore from 'js/assetStore'
-import bem, {makeBem} from 'js/bem'
-import {AnyRowTypeName} from 'js/constants'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader'
-import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails'
-import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
-import './singleProcessing.scss'
+  getTranslatedRowLabel,
+} from 'js/assetUtils';
+import type {
+  FailResponse,
+  SubmissionResponse,
+  AssetResponse,
+  GetProcessingSubmissionsResponse,
+} from 'js/dataInterface';
+import assetStore from 'js/assetStore';
+import bem, {makeBem} from 'js/bem';
+import type {AnyRowTypeName} from 'js/constants';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
+import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
+import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
+import './singleProcessing.scss';
 
-bem.SingleProcessing = makeBem(null, 'single-processing', 'section')
-bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section')
-bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section')
-bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section')
-bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section')
+bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
+bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
+bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section');
+bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
+bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
 
 type SingleProcessingProps = RouteComponentProps<{
-  uid: string,
-  questionName: string,
-  submissionId: string,
-}, {}>
+  uid: string;
+  questionName: string;
+  submissionId: string;
+}, {}>;
 
-type SingleProcessingState = {
-  isSubmissionCallDone: boolean
-  isIdsCallDone: boolean
-  submissionData: SubmissionResponse | null
+interface SingleProcessingState {
+  isSubmissionCallDone: boolean;
+  isIdsCallDone: boolean;
+  submissionData: SubmissionResponse | null;
   /**
    * A list of all submissions ids, we store `null` for submissions that don't
    * have a response for the question.
    */
-  submissionsIds: (string | null)[]
-  asset: AssetResponse | undefined
-  error: string | null
+  submissionsIds: Array<string | null>;
+  asset: AssetResponse | undefined;
+  error: string | null;
 }
 
 /**
@@ -49,7 +54,7 @@ export default class SingleProcessing extends React.Component<
   SingleProcessingState
 > {
   constructor(props: SingleProcessingProps) {
-    super(props)
+    super(props);
     this.state = {
       isSubmissionCallDone: false,
       isIdsCallDone: false,
@@ -57,10 +62,10 @@ export default class SingleProcessing extends React.Component<
       submissionsIds: [],
       asset: assetStore.getAsset(this.props.params.uid),
       error: null,
-    }
+    };
   }
 
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
@@ -68,18 +73,18 @@ export default class SingleProcessing extends React.Component<
       actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this)),
       actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this)),
       actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this)),
-    )
-    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
-    this.getNewProcessingSubmissions()
+    );
+    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId);
+    this.getNewProcessingSubmissions();
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   componentDidUpdate(prevProps: SingleProcessingProps) {
     if (prevProps.params.submissionId !== this.props.params.submissionId) {
-      this.getNewSubmissionData()
+      this.getNewSubmissionData();
     }
   }
 
@@ -87,86 +92,86 @@ export default class SingleProcessing extends React.Component<
     this.setState({
       isSubmissionCallDone: false,
       submissionData: null,
-    })
-    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
+    });
+    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId);
   }
 
   onGetSubmissionCompleted(response: SubmissionResponse): void {
     this.setState({
       isSubmissionCallDone: true,
       submissionData: response,
-    })
+    });
   }
 
   onGetSubmissionFailed(response: FailResponse): void {
     this.setState({
       isSubmissionCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submission.'),
-    })
+    });
   }
 
   getNewProcessingSubmissions(): void {
-    const questionFlatPath = this.getQuestionPath()
+    const questionFlatPath = this.getQuestionPath();
 
     if (questionFlatPath === undefined) {
-      console.error(t('Insufficient data to fetch submissions for processing!'))
-      return
+      console.error(t('Insufficient data to fetch submissions for processing!'));
+      return;
     }
 
     actions.submissions.getProcessingSubmissions(
       this.props.params.uid,
       questionFlatPath
-    )
+    );
   }
 
   onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
-    const submissionsIds: (string|null)[] = []
+    const submissionsIds: Array<string|null> = [];
     response.results.forEach((result) => {
       // As the returned result object could either be `{_id:1}` or
       // `{_id:1, <quesiton>:any}`, checking the length is Good Enough™.
       if (Object.keys(result).length === 2) {
-        submissionsIds.push(String(result._id))
+        submissionsIds.push(String(result._id));
       } else {
-        submissionsIds.push(null)
+        submissionsIds.push(null);
       }
-    })
+    });
 
     this.setState({
       isIdsCallDone: true,
-      submissionsIds: submissionsIds
-    })
+      submissionsIds: submissionsIds,
+    });
   }
 
   onGetProcessingSubmissionsFailed(response: FailResponse): void {
     this.setState({
       isIdsCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submissions IDs.'),
-    })
+    });
   }
 
   getQuestionPath() {
-    let questionFlatPath: string | undefined = undefined
+    let questionFlatPath: string | undefined;
     if (this.state.asset?.content?.survey !== undefined) {
-      const flatPaths = getSurveyFlatPaths(this.state.asset.content.survey)
-      questionFlatPath = flatPaths[this.props.params.questionName]
+      const flatPaths = getSurveyFlatPaths(this.state.asset.content.survey);
+      questionFlatPath = flatPaths[this.props.params.questionName];
     }
-    return questionFlatPath
+    return questionFlatPath;
   }
 
   getQuestionType(): AnyRowTypeName | undefined {
     if (this.state.asset?.content?.survey) {
-      const foundRow = this.state.asset.content.survey.find((row) => {
-        return [
+      const foundRow = this.state.asset.content.survey.find((row) =>
+        [
           row.name,
           row.$autoname,
-          row.$kuid
+          row.$kuid,
         ].includes(this.props.params.questionName)
-      })
+      );
       if (foundRow) {
-        return foundRow.type
+        return foundRow.type;
       }
     }
-    return undefined
+    return undefined;
   }
 
   /** Returns row label (for default language) with fallback to question name. */
@@ -176,12 +181,12 @@ export default class SingleProcessing extends React.Component<
         this.props.params.questionName,
         this.state.asset.content.survey,
         0
-      )
+      );
       if (translatedRowLabel !== null) {
-        return translatedRowLabel
+        return translatedRowLabel;
       }
     }
-    return this.props.params.questionName
+    return this.props.params.questionName;
   }
 
   render() {
@@ -196,7 +201,7 @@ export default class SingleProcessing extends React.Component<
         <bem.SingleProcessing>
           <LoadingSpinner/>
         </bem.SingleProcessing>
-      )
+      );
     }
 
     if (this.state.error !== null) {
@@ -208,7 +213,7 @@ export default class SingleProcessing extends React.Component<
             </bem.Loading__inner>
           </bem.Loading>
         </bem.SingleProcessing>
-      )
+      );
     }
 
     return (
@@ -241,6 +246,6 @@ export default class SingleProcessing extends React.Component<
           </bem.SingleProcessing__bottomRight>
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
-    )
+    );
   }
 }
