@@ -58,13 +58,14 @@ def country_report(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def domain_report(request):
+    # Generate the file basename
     base_filename = 'domain-report_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
         date.today(),
         datetime.now().microsecond
     )
 
-    # Get the date date filters from the query and set defaults
+    # Get the date filters from the query and set defaults
     start_date = request.GET.get('start_date', date.today())
     tomorrow = date.today() + timedelta(days=1)
     end_date = request.GET.get('end_date', tomorrow)
@@ -74,6 +75,7 @@ def domain_report(request):
         base_filename, request.user.username)
     generate_domain_report.delay(filename, start_date, end_date)
 
+    # Generate page text
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
@@ -95,16 +97,19 @@ def domain_report(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def user_count_by_organization(request):
+    # Generate the file basename
     base_filename = 'user-count-by-organization_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
         date.today(),
         datetime.now().microsecond
     )
+
+    # Generate the CSV file
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
-    print(filename, flush=True)
-    print(base_filename, flush=True)
     generate_user_count_by_organization.delay(filename)
+
+    # Generate page text
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
@@ -112,6 +117,7 @@ def user_count_by_organization(request):
         'refresh your browser periodically until your request succeeds.'
         '</body></html>'
     ).format(base_filename)
+    
     return HttpResponse(template_ish)
 
 

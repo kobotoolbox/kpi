@@ -132,8 +132,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
 @shared_task
 def generate_user_count_by_organization(output_filename: str):
-    columns = ['Organization', 'Count']
-
+    # get users organizations
     organizations = User.objects.filter(
         extra_details__data__has_key='organization'
     ).values_list(
@@ -141,6 +140,9 @@ def generate_user_count_by_organization(output_filename: str):
     ).distinct().order_by(
         'extra_details__data__organization'
     )
+
+    # write data to a csv file
+    columns = ['Organization', 'Count']
 
     default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'w') as output_file:
