@@ -24,7 +24,8 @@ import {
   PERMISSIONS_CODENAMES,
 } from './constants'
 import {ROUTES} from 'js/router/routerConstants'
-import {dataInterface, AssetResponse} from 'js/dataInterface'
+import type {AssetResponse} from 'js/dataInterface'
+import {dataInterface} from 'js/dataInterface'
 import {stores} from './stores'
 import assetStore from 'js/assetStore'
 import {actions} from './actions'

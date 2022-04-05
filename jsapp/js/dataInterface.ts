@@ -106,7 +106,7 @@ export interface FailResponse {
 export interface GetProcessingSubmissionsResponse extends PaginatedResponse {
   results: {
     [questionName: string]: any
-    _uuid: number
+    _uuid: string
   }[]
 }
 
@@ -340,7 +340,7 @@ interface AdvancedSubmissionSchema {
   definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
 }
 
-interface AssetAdvancedFeatures {
+export interface AssetAdvancedFeatures {
   transcript?: {
     /** List of question names */
     values?: string[]

@@ -74,6 +74,17 @@ interface UpdateAssetCompletedDefinition extends Function {
   listen: (callback: (response: AssetResponse) => void) => Function;
 }
 
+interface GetExportDefinition extends Function {
+  (assetUid: string, exportUid: string): void;
+  completed: GetExportCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface GetExportCompletedDefinition extends Function {
+  (response: any): void;
+  listen: (callback: (response: any) => void) => Function;
+}
+
 // TODO: as you use more actions in your ts files, please extend this namespace
 export namespace actions {
     const navigation: object;
@@ -99,13 +110,13 @@ export namespace actions {
       duplicateSubmission: Function;
       refreshTableSubmissions: Function;
       getAssetFiles: Function;
-    }
+    };
     const hooks: object;
     const misc: object;
     const reports: object;
     const table: {
-      updateSettings: (assetUid: string, newSettings: object) => void
-    }
+      updateSettings: (assetUid: string, newSettings: object) => void;
+    };
     const map: object;
     const permissions: object;
     const help: object;
@@ -119,8 +130,10 @@ export namespace actions {
       bulkPatchStatus: Function;
       bulkPatchValues: Function;
       bulkDelete: Function;
-    }
+    };
     const media: object;
-    const exports: object;
+    const exports: {
+      getExport: GetExportDefinition;
+    };
     const dataShare: object;
 }

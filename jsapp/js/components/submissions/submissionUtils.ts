@@ -8,7 +8,7 @@ import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
 } from 'js/assetUtils';
-import {getColumnLabel} from 'js/components/submissions/tableUtils'
+import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import {
   createEnum,
   SCORE_ROW_TYPE,
@@ -17,14 +17,15 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
-  AnyRowTypeName,
 } from 'js/constants';
-import {
+import type {AnyRowTypeName} from 'js/constants';
+import type {
   SurveyRow,
   SurveyChoice,
   SubmissionResponse,
-  SubmissionAttachment
-} from 'js/dataInterface'
+  SubmissionAttachment,
+  AssetResponse,
+} from 'js/dataInterface';
 
 enum DisplayGroupTypeName {
   group_root = 'group_root',

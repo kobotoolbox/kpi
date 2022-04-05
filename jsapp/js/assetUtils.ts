@@ -1,5 +1,4 @@
 import React from 'react';
-import type {AssetTypeName} from 'js/constants';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'js/utils';
@@ -21,15 +20,17 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
 import type {
+  AssetTypeName,
   AnyRowTypeName,
   QuestionTypeName,
 } from 'js/constants';
-import {
+import type {
+  AssetContent,
   AssetResponse,
   SurveyRow,
   SurveyChoice,
-  Permission
-} from 'js/dataInterface'
+  Permission,
+} from 'js/dataInterface';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.

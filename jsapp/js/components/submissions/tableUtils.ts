@@ -7,12 +7,16 @@ import {
   VALIDATION_STATUS_ID_PROP,
 } from 'js/components/submissions/tableConstants'
 import {getSurveyFlatPaths} from 'js/assetUtils'
+import type {
+  AssetResponse,
+  SurveyRow
+} from 'js/dataInterface'
 
 export function getColumnLabel(
   asset: AssetResponse,
   key: string,
   showGroupName: boolean,
-  translationIndex: number = 0
+  translationIndex = 0
 ): string {
   if (asset.content?.survey === undefined) {
     return key

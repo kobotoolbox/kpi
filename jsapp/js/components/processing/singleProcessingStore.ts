@@ -17,6 +17,11 @@ import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
 import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
+import type {
+  SubmissionResponse,
+  AssetResponse,
+  GetProcessingSubmissionsResponse,
+} from 'js/dataInterface';
 
 export enum SingleProcessingTabs {
   Transcript = 'trc',
