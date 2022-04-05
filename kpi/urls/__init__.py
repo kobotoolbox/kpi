@@ -10,6 +10,7 @@ from kobo.apps.superuser_stats.views import (
     country_report,
     domain_report,
     user_count_by_organization,
+    reports_list,
     retrieve_reports,
     user_report,
 )
@@ -66,6 +67,7 @@ urlpatterns = [
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
+    path('superuser_stats/', reports_list),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
     path('superuser_stats/domain_report/', domain_report),
