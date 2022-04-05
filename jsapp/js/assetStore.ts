@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import {parsed} from './assetParserUtils';
 import {actions} from './actions';
+import {AssetResponse} from 'js/dataInterface'
 
 export interface AssetStoreData {[uid: string]: AssetResponse}
 

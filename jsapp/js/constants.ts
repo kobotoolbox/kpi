@@ -150,7 +150,9 @@ export const AVAILABLE_FORM_STYLES = [
   {value: 'theme-grid pages', label: t('Grid theme + Multiple pages + headings in ALL CAPS')},
 ];
 
-export const VALIDATION_STATUSES = {
+export type ValidationStatus = 'no_status' | 'validation_status_not_approved' | 'validation_status_approved' | 'validation_status_on_hold'
+
+export const VALIDATION_STATUSES: {[id in ValidationStatus]: {value: ValidationStatus | null, label: string}} = {
   no_status: {
     value: null,
     label: '—',
@@ -219,7 +221,9 @@ export const ASSET_TYPES: AssetTypes = {
   },
 };
 
-export const ASSET_FILE_TYPES = {
+export type AssetFileType = 'map_layer' | 'form_media'
+
+export const ASSET_FILE_TYPES: {[id in AssetFileType]: {id: AssetFileType, label: string}} = {
   map_layer: {
     id: 'map_layer',
     label: t('map layer'),

@@ -1,6 +1,7 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import type {AnyRowTypeName} from 'js/constants';
+import type {AssetContent} from 'js/dataInterface';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,

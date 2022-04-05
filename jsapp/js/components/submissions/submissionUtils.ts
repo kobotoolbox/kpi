@@ -19,6 +19,12 @@ import {
   CHOICE_LISTS,
   AnyRowTypeName,
 } from 'js/constants';
+import {
+  SurveyRow,
+  SurveyChoice,
+  SubmissionResponse,
+  SubmissionAttachment
+} from 'js/dataInterface'
 
 enum DisplayGroupTypeName {
   group_root = 'group_root',

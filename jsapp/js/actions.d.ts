@@ -103,7 +103,9 @@ export namespace actions {
     const hooks: object;
     const misc: object;
     const reports: object;
-    const table: object;
+    const table: {
+      updateSettings: (assetUid: string, newSettings: object) => void
+    }
     const map: object;
     const permissions: object;
     const help: object;

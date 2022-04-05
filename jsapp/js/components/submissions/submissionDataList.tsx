@@ -1,36 +1,38 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import {
-  getFlatQuestionsList,
-  FlatQuestion
-} from 'js/assetUtils'
-import {getRowData} from 'js/components/submissions/submissionUtils'
-import './submissionDataList.scss'
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import {getFlatQuestionsList} from 'js/assetUtils';
+import type {FlatQuestion} from 'js/assetUtils';
+import type {
+  AssetContent,
+  SubmissionResponse,
+} from 'js/dataInterface';
+import {getRowData} from 'js/components/submissions/submissionUtils';
+import './submissionDataList.scss';
 
-bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')
-bem.SubmissionDataListQuestion = makeBem(null, 'submission-data-list-question', 'li')
-bem.SubmissionDataListQuestion__path = makeBem(bem.SubmissionDataListQuestion, 'path')
-bem.SubmissionDataListQuestion__label = makeBem(bem.SubmissionDataListQuestion, 'label', 'h3')
-bem.SubmissionDataListQuestion__response = makeBem(bem.SubmissionDataListQuestion, 'response')
+bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul');
+bem.SubmissionDataListQuestion = makeBem(null, 'submission-data-list-question', 'li');
+bem.SubmissionDataListQuestion__path = makeBem(bem.SubmissionDataListQuestion, 'path');
+bem.SubmissionDataListQuestion__label = makeBem(bem.SubmissionDataListQuestion, 'label', 'h3');
+bem.SubmissionDataListQuestion__response = makeBem(bem.SubmissionDataListQuestion, 'response');
 
-type SubmissionDataListProps = {
-  assetContent: AssetContent
-  submissionData: SubmissionResponse
+interface SubmissionDataListProps {
+  assetContent: AssetContent;
+  submissionData: SubmissionResponse;
   /** A list of questions that should be omitted from display. */
   hideQuestions?: string[]
   /** Whether to display the path (the groups) or not. */
   hideGroups?: boolean
 }
 
-type SubmissionDataListState = {}
+interface SubmissionDataListState {}
 
 export default class SubmissionDataList extends React.Component<
   SubmissionDataListProps,
   SubmissionDataListState
 > {
   constructor(props: SubmissionDataListProps) {
-    super(props)
-    this.state = {}
+    super(props);
+    this.state = {};
   }
 
   renderQuestion(question: FlatQuestion) {
@@ -39,14 +41,14 @@ export default class SubmissionDataList extends React.Component<
       Array.isArray(this.props.hideQuestions) &&
       this.props.hideQuestions.includes(question.name)
     ) {
-      return null
+      return null;
     }
 
     const response = getRowData(
       question.name,
       this.props.assetContent.survey || [],
       this.props.submissionData
-    )
+    );
 
     return (
       <bem.SubmissionDataListQuestion key={question.name}>
@@ -64,20 +66,20 @@ export default class SubmissionDataList extends React.Component<
           {response ? response : t('N/A')}
         </bem.SubmissionDataListQuestion__response>
       </bem.SubmissionDataListQuestion>
-    )
+    );
   }
 
   render() {
     if (!this.props.assetContent.survey) {
-      return null
+      return null;
     }
 
-    const items = getFlatQuestionsList(this.props.assetContent.survey, 0)
+    const items = getFlatQuestionsList(this.props.assetContent.survey, 0);
 
     return (
       <bem.SubmissionDataList>
         {items.map(this.renderQuestion.bind(this))}
       </bem.SubmissionDataList>
-    )
+    );
   }
 }

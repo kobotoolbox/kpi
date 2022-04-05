@@ -248,7 +248,7 @@ export function escapeHtml(str: string): string {
   return div.innerHTML;
 }
 
-export function renderCheckbox(id: string, label: string, isImportant: boolean) {
+export function renderCheckbox(id: string, label: string, isImportant?: boolean) {
   let additionalClass = '';
   if (isImportant) {
     additionalClass += 'alertify-toggle-important';
