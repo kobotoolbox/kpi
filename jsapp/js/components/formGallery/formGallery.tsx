@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useReducer} from 'react';
+import ReactSelect from 'react-select';
 // @ts-ignore
 import {dataInterface} from 'js/dataInterface';
 
@@ -6,6 +7,7 @@ interface State {
   submissions: SubmissionResponse[];
   loading: boolean;
   next: string | null;
+  filterQuestion: string | null;
 }
 
 type Action =
@@ -20,7 +22,8 @@ type Action =
       type: 'loadMoreSubmissionsCompleted';
       resp: PaginatedResponse<SubmissionResponse>;
     }
-  | {type: 'loadMoreSubmissionsFailed'};
+  | {type: 'loadMoreSubmissionsFailed'}
+  | {type: 'setFilterQuestion'; question: string};
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -48,11 +51,21 @@ function reducer(state: State, action: Action): State {
         submissions: [...state.submissions, ...action.resp.results],
         next: action.resp.next,
       };
+    case 'setFilterQuestion':
+      return {
+        ...state,
+
+      }
   }
   return state;
 }
 
-const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml'];
+const IMAGE_MIMETYPES = [
+  'image/png',
+  'image/gif',
+  'image/jpeg',
+  'image/svg+xml',
+];
 
 const selectImageAttachments = (submissions: SubmissionResponse[]) =>
   ([] as SubmissionAttachment[]).concat.apply(
@@ -71,10 +84,19 @@ interface FormGalleryProps {
 }
 
 export default function FormGallery(props: FormGalleryProps) {
+  const questions = props.asset.content?.survey
+    ?.filter((survey) => survey.type === 'image')
+    .map((survey) => ({
+      value: survey.$autoname,
+      label: survey.label?.join('') || '',
+    }));
+  const defaultOption = {value: '', label: 'All questions'};
+  const questionFilterOptions = [defaultOption, ...(questions || [])];
   const [{submissions, next}, dispatch] = useReducer(reducer, {
     loading: false,
     submissions: [],
     next: null,
+    filterQuestion: null
   });
   const attachments = useMemo(
     () => selectImageAttachments(submissions),
@@ -106,9 +128,20 @@ export default function FormGallery(props: FormGalleryProps) {
     }
   };
 
+  const filterQuestionChange = (newValue: any) => {
+    console.log(newValue);
+    // Maybe put filter value in query params here instead of state
+  }
+
   return (
     <div className='form-view'>
       <h1>Image Gallery</h1>
+      From:{' '}
+      <ReactSelect
+        options={questionFilterOptions}
+        defaultValue={defaultOption}
+        onChange={filterQuestionChange}
+      ></ReactSelect>
       {attachments.map((attachment) => (
         <div key={attachment.id}>
           <img
