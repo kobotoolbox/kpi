@@ -204,7 +204,7 @@ export function isAnyFormRoute(): boolean {
 /**
  * Returns asset uid from path if there is any
  */
-export function getRouteAssetUid(): string|void {
+export function getRouteAssetUid() {
   if (isAnyFormRoute()) {
     return getCurrentPath().split('/')[2];
   }
@@ -212,4 +212,6 @@ export function getRouteAssetUid(): string|void {
   if (isAnyLibraryItemRoute()) {
     return getCurrentPath().split('/')[3];
   }
+
+  return null
 }

@@ -1,5 +1,6 @@
 import Reflux from 'reflux'
 import {actions} from 'js/actions'
+import {EnvironmentResponse} from 'js/dataInterface'
 
 export interface EnvStoreDataItem {
   value: string

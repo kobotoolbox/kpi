@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
+import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
@@ -86,6 +87,9 @@ export class DataTable extends React.Component {
     };
 
     this.unlisteners = [];
+
+    /** We store it for future checks. */
+    this.previousOverrides = '';
 
     // Store this value only to be able to check whether user is scrolling
     // horizontally or vertically.
@@ -891,14 +895,14 @@ export class DataTable extends React.Component {
     this.submissionModalProcessing(sid, this.state.submissions, true, duplicatedSubmission);
   }
 
-  onTableStoreChange(prevData, newData) {
+  onTableStoreChange(newData) {
     // Close table settings modal after settings are saved.
     stores.pageState.hideModal();
 
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
-      JSON.stringify(prevData.overrides[DATA_TABLE_SETTINGS.SORT_BY]) !==
+      JSON.stringify(this.previousOverrides[DATA_TABLE_SETTINGS.SORT_BY]) !==
       JSON.stringify(newData.overrides[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions();
@@ -906,11 +910,13 @@ export class DataTable extends React.Component {
     // existing data, as after `actions.table.updateSettings` resolves,
     // the props asset is not yet updated
     } else if (
-      JSON.stringify(prevData.overrides[DATA_TABLE_SETTING]) !==
+      JSON.stringify(this.previousOverrides[DATA_TABLE_SETTING]) !==
       JSON.stringify(newData.overrides[DATA_TABLE_SETTING])
     ) {
       this._prepColumns(this.state.submissions);
     }
+
+    this.previousOverrides = clonedeep(newData.overrides);
   }
 
   onTableUpdateSettingsCompleted() {

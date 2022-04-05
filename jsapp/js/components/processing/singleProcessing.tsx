@@ -5,6 +5,7 @@ import {
   getSurveyFlatPaths,
   getTranslatedRowLabel
 } from 'js/assetUtils'
+import type {GetProcessingSubmissionsResponse} from 'js/dataInterface';
 import assetStore from 'js/assetStore'
 import bem, {makeBem} from 'js/bem'
 import {AnyRowTypeName} from 'js/constants'
