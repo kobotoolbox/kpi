@@ -510,6 +510,8 @@ export interface EnvironmentResponse {
   all_languages: string[][]
   interface_languages: string[][]
   submission_placeholder: string
+  frontend_min_retry_time: number
+  frontend_max_retry_time: number
 }
 
 const DEFAULT_PAGE_SIZE = 100
