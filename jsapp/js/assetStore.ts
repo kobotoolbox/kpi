@@ -1,7 +1,7 @@
 import Reflux from 'reflux';
 import {parsed} from './assetParserUtils';
 import {actions} from './actions';
-import {AssetResponse} from 'js/dataInterface'
+import type {AssetResponse} from 'js/dataInterface';
 
 class AssetStore extends Reflux.Store {
   data: {[uid: string]: AssetResponse} = {};
