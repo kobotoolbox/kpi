@@ -8,13 +8,19 @@ from django.urls import reverse
 from mock import patch
 from rest_framework import status
 
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.hook.constants import (
+    HOOK_LOG_FAILED,
+    HOOK_LOG_PENDING,
+    HOOK_LOG_SUCCESS,
+    SUBMISSION_PLACEHOLDER,
+)
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON
 from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_CHANGE_ASSET
 )
+from kpi.utils.datetime import several_minutes_from_now
 from .hook_test_case import HookTestCase, MockSSRFProtect
 
 
@@ -311,3 +317,157 @@ class ApiHookTestCase(HookTestCase):
             'payload_template': ['Can be used only with JSON submission format']
         }
         self.assertEqual(response.data, expected_response)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_success(self):
+        # Create success hook
+        hook = self._create_hook(name="success hook",
+                                endpoint="http://success.service.local/",
+                                settings={})
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+
+        # simulate a submission
+        ServiceDefinition = hook.get_service_definition()
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        submission_id = submissions[0]['_id']
+        service_definition = ServiceDefinition(hook, submission_id)
+
+        success = service_definition.send()
+        self.assertTrue(success)
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+
+        # There should be a successful log for the success hook
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+        self.assertEqual(response.data.get('count'), 1)
+
+        # There should be no failed log for the success hook
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_FAILED}', format='json')
+        self.assertEqual(response.data.get('count'), 0)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_failure(self):
+        # Create failing hook
+        hook = self._create_hook(name="failing hook",
+                                endpoint="http://failing.service.local/",
+                                settings={})
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                      content_type="application/json")
+
+        # simulate a submission
+        ServiceDefinition = hook.get_service_definition()
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        submission_id = submissions[0]['_id']
+        service_definition = ServiceDefinition(hook, submission_id)
+
+        success = service_definition.send()
+        self.assertFalse(success)
+
+        # Get log for the failing hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+
+        # There should be no success log for the failing hook
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+        self.assertEqual(response.data.get('count'), 0)
+
+        # There should be a pending log for the failing hook
+        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_PENDING}', format='json')
+        self.assertEqual(response.data.get('count'), 1)
+
+    def test_hook_log_filter_validation(self):
+        # Create hook
+        hook = self._create_hook(name="success hook",
+                                endpoint="http://hook.service.local/",
+                                settings={})
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+
+        # Test bad argument
+        response = self.client.get(f'{hook_log_url}?status=abc', format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
+    @responses.activate
+    def test_hook_log_filter_date(self):
+        # Create success hook
+        hook = self._create_hook(name="date hook",
+                                endpoint="http://date.service.local/",
+                                settings={})
+        responses.add(responses.POST, hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+
+        # simulate a submission
+        ServiceDefinition = hook.get_service_definition()
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        submission_id = submissions[0]['_id']
+        service_definition = ServiceDefinition(hook, submission_id)
+
+        success = service_definition.send()
+        self.assertTrue(success)
+
+        # Get log for the failing hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+
+        isoformat='%Y-%m-%dT%H:%M:%S'
+        five_minutes_ago = several_minutes_from_now(-5).strftime(isoformat)
+        in_five_min = several_minutes_from_now(5).strftime(isoformat)
+        tzoffset = '-02:00'
+
+        # There should be a success log around now
+        response = self.client.get(f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}', format='json')
+        self.assertEqual(response.data.get('count'), 1)
+
+        # There should be no log before now
+        response = self.client.get(f'{hook_log_url}?start={in_five_min}', format='json')
+        self.assertEqual(response.data.get('count'), 0)
+
+        # There should be no log after now
+        response = self.client.get(f'{hook_log_url}?end={five_minutes_ago}', format='json')
+        self.assertEqual(response.data.get('count'), 0)
+
+        # There should be no log around now when expressed in a different time zone
+        response = self.client.get(f'{hook_log_url}?start={five_minutes_ago}{tzoffset}&end={in_five_min}{tzoffset}', format='json')
+        self.assertEqual(response.data.get('count'), 0)
+
+    def test_hook_log_filter_date_validation(self):
+        # Create hook
+        hook = self._create_hook(name="success hook",
+                                endpoint="http://hook.service.local/",
+                                settings={})
+
+        # Get log for the success hook
+        hook_log_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': hook.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+
+        # Test bad argument
+        response = self.client.get(f'{hook_log_url}?start=abc', format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Test bad argument
+        response = self.client.get(f'{hook_log_url}?end=abc', format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

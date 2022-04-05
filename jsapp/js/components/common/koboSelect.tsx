@@ -79,7 +79,7 @@ type KoboSelectState = {
  * A select component. Uses `KoboDropdown` as base.
  */
 class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
-  constructor(props: KoboSelectProps){
+  constructor(props: KoboSelectProps) {
     super(props)
     this.state = {
       filterPhrase: '',
@@ -286,7 +286,8 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
         {(
           typeof this.state.filterPhrase === 'string' &&
-          this.state.filterPhrase.length >= 1
+          this.state.filterPhrase.length >= 1 &&
+          filteredOptions.length === 0
         ) &&
           <bem.KoboSelect__menuMessage>
             {t('No options found')}

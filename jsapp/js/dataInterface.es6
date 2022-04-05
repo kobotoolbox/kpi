@@ -180,7 +180,7 @@ export var dataInterface;
         identifierString += `&split_by=${data.group_by}`;
 
       return $ajax({
-        url: `${ROOT_URL}/reports/${data.uid}/${identifierString}`,
+        url: `${ROOT_URL}/api/v2/assets/${data.uid}/reports/${identifierString}`,
       });
     },
     cloneAsset ({uid, name, version_id, new_asset_type, parent}) {

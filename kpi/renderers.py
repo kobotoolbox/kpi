@@ -1,20 +1,17 @@
 # coding: utf-8
 import json
 import re
-from io import StringIO, BytesIO
-from typing import Dict, Optional
+from io import StringIO
 
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
-from rest_framework import renderers
-from rest_framework import status
+from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
-from kpi.mixins.export_object import ExportObjectMixin
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -140,54 +137,27 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
+class DoNothingRenderer(renderers.BaseRenderer):
+    """
+    This class exists only to specify that a view provides a particular format;
+    subclass it and define `media_type` and `format` as needed. All real work
+    must be done inside the view.
+    This works around the problem of some formats needing to return a response
+    directly, e.g. for redirection, not just the _content_ to be placed inside
+    a response.
+    """
+    def render(*args, **kwargs):
+        pass
+
+
+class SubmissionXLSXRenderer(DoNothingRenderer):
     media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
     format = 'xlsx'
 
-    def render(
-        self,
-        data: Dict,
-        media_type: Optional[str] = None,
-        renderer_context: Optional[Dict] = None,
-    ) -> BytesIO:
-        view = renderer_context['view']
-        # `self.user` required to check for valid (partial) permissions before
-        # allowing an export to succeed
-        self.user = view.request.user
-        self.data = data
-        export, submission_stream = self.get_export_object(
-            source=view.asset,
-            _async=False,
-        )
-        stream = BytesIO()
-        export.to_xlsx(stream, submission_stream)
-        stream.seek(0)
-        return stream
 
-
-class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
+class SubmissionCSVRenderer(DoNothingRenderer):
     media_type = 'text/csv'
     format = 'csv'
-
-    def render(
-        self,
-        data: Dict,
-        media_type: Optional[str] = None,
-        renderer_context: Optional[Dict] = None,
-    ) -> str:
-        view = renderer_context['view']
-        # `self.user` required to check for valid (partial) permissions before
-        # allowing an export to succeed
-        self.user = view.request.user
-        self.data = data
-        export, submission_stream = self.get_export_object(
-            source=view.asset,
-            _async=False,
-        )
-        stream = StringIO()
-        for line in export.to_csv(submission_stream):
-            stream.write(line + '\r\n')
-        return stream.getvalue()
 
 
 class SubmissionXMLRenderer(DRFXMLRenderer):

@@ -58,8 +58,6 @@ defusedxml==0.6.0
     # via djangorestframework-xml
 dicttoxml==1.7.4
     # via -r dependencies/pip/requirements.in
-dj-database-url==0.5.0
-    # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 django==2.2.7
@@ -67,7 +65,9 @@ django==2.2.7
     #   -r dependencies/pip/requirements.in
     #   django-amazon-ses
     #   django-cors-headers
+    #   django-csp
     #   django-debug-toolbar
+    #   django-filter
     #   django-markdownx
     #   django-mptt
     #   django-oauth-toolkit
@@ -88,9 +88,15 @@ django-constance[database]==2.4.0
     # via -r dependencies/pip/requirements.in
 django-cors-headers==3.1.1
     # via -r dependencies/pip/requirements.in
+django-csp==3.7
+    # via -r dependencies/pip/requirements.in
 django-debug-toolbar==2.1
     # via -r dependencies/pip/requirements.in
+django-environ==0.8.1
+    # via -r dependencies/pip/requirements.in
 django-extensions==2.2.5
+    # via -r dependencies/pip/requirements.in
+django-filter==21.1
     # via -r dependencies/pip/requirements.in
 django-js-asset==1.2.2
     # via django-mptt
@@ -272,7 +278,6 @@ six==1.13.0
     #   python-dateutil
     #   responses
     #   ssrf-protect
-    #   unittest2
 smsapi-client==2.5.0
     # via django-trench
 sqlparse==0.3.0
@@ -288,8 +293,6 @@ statistics==1.0.3.5
     # via formpack
 tabulate==0.8.5
     # via -r dependencies/pip/requirements.in
-traceback2==1.4.0
-    # via unittest2
 twilio==7.3.0
     # via django-trench
 unicodecsv==0.14.1

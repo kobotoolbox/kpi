@@ -401,8 +401,7 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data);
   }
 
-  deleteRow(e) {
-    const rowKuid = e.target.getAttribute('data-kuid');
+  deleteRow(rowKuid) {
     var _this = this;
     let dialog = alertify.dialog('confirm');
     let opts = {
@@ -555,7 +554,7 @@ class KoboMatrix extends React.Component {
                                 data-type='name' data-kuid={ch} />
                             </span>
                             <span className='matrix-options__delete'>
-                              <i className='k-icon k-icon-trash' onClick={_this.deleteRow} data-kuid={ch} />
+                              <i className='k-icon k-icon-trash' onClick={_this.deleteRow.bind(this, ch)}/>
                             </span>
                           </div>
                         );
@@ -632,7 +631,7 @@ class KoboMatrix extends React.Component {
                       />
                     </label>
                     <div className='matrix-cols__delete'>
-                      <span className='matrix-cols__delete-action' onClick={_this.deleteRow} data-kuid={item.$kuid}>
+                      <span className='matrix-cols__delete-action' onClick={_this.deleteRow.bind(this, item.$kuid)}>
                         {t('Delete row')} <i className='k-icon k-icon-trash' />
                       </span>
                     </div>

@@ -2,8 +2,10 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
+# TODO fix formpack commit
 -e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
-
+# NLP
+# -e git+https://github.com/kobotoolbox/formpack.git@56951080f64eae16542fd88349a69cf1f225252a#egg=formpack
 -e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
 
 # More up-to-date version of django-digest than PyPI seems to have.
@@ -30,12 +32,14 @@ celery>=4.0,<5.0
 celery[redis]
 dicttoxml
 dj-static
-dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
+django-csp
 django-debug-toolbar
+django-environ
+django-filter
 django-extensions
 django-oauth-toolkit
 django-registration-redux

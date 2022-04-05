@@ -974,6 +974,17 @@ class Asset(ObjectPermissionMixin,
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
+    # TODO: take leading underscore off of `_snapshot()` and call it directly?
+    # we would also have to remove or rename the `snapshot` property
+    def versioned_snapshot(
+        self, version_uid: str, root_node_name: Optional[str] = None
+    ) -> AssetSnapshot:
+        return self._snapshot(
+            regenerate=True,
+            version_uid=version_uid,
+            root_node_name=root_node_name,
+        )
+
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
@@ -1003,8 +1014,16 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     @transaction.atomic
-    def _snapshot(self, regenerate=True):
-        asset_version = self.latest_version
+    def _snapshot(
+        self,
+        regenerate: bool = True,
+        version_uid: Optional[str] = None,
+        root_node_name: Optional[str] = None,
+    ) -> AssetSnapshot:
+        if version_uid:
+            asset_version = self.asset_versions.get(uid=version_uid)
+        else:
+            asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -1022,18 +1041,29 @@ class Asset(ObjectPermissionMixin,
             snapshot = False
 
         if not snapshot:
-            if self.name != '':
-                form_title = self.name
-            else:
-                _settings = self.content.get('settings', {})
-                form_title = _settings.get('id_string', 'Untitled')
+            try:
+                form_title = asset_version.form_title
+                content = asset_version.version_content
+            except AttributeError:
+                form_title = self.form_title
+                content = self.content
 
-            self._append(self.content, settings={
-                'form_title': form_title,
-            })
-            snapshot = AssetSnapshot.objects.create(asset=self,
-                                                    asset_version=asset_version,
-                                                    source=self.content)
+            settings_ = {'form_title': form_title}
+
+            if root_node_name:
+                # `name` may not sound like the right setting to control the
+                # XML root node name, but it is, according to the XLSForm
+                # specification:
+                # https://xlsform.org/en/#specify-xforms-root-node-name
+                settings_['name'] = root_node_name
+                settings_['id_string'] = root_node_name
+
+            self._append(content, settings=settings_)
+
+            snapshot = AssetSnapshot.objects.create(
+                asset=self, asset_version=asset_version, source=content
+            )
+
         return snapshot
 
     def _update_partial_permissions(

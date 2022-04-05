@@ -439,6 +439,8 @@ interface EnvironmentResponse {
   support_email: string
   support_url: string
   community_url: string
+  frontend_min_retry_time: number
+  frontend_max_retry_time: number
   project_metadata_fields: EnvStoreFieldItem[]
   user_metadata_fields: EnvStoreFieldItem[]
   sector_choices: string[][]

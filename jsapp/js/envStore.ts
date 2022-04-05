@@ -19,6 +19,8 @@ class EnvStoreData {
   support_email: string = ''
   support_url: string = ''
   community_url: string = ''
+  min_retry_time: number = 4 // seconds
+  max_retry_time: number = 4 * 60 // seconds
   project_metadata_fields: EnvStoreFieldItem[] = []
   user_metadata_fields: EnvStoreFieldItem[] = []
   sector_choices: EnvStoreDataItem[] = []
@@ -79,6 +81,8 @@ class EnvStore extends Reflux.Store {
     this.data.support_email = response.support_email
     this.data.support_url = response.support_url
     this.data.community_url = response.community_url
+    this.data.min_retry_time = response.frontend_min_retry_time
+    this.data.max_retry_time = response.frontend_max_retry_time
     this.data.project_metadata_fields = response.project_metadata_fields;
     this.data.user_metadata_fields = response.user_metadata_fields;
     this.data.submission_placeholder = response.submission_placeholder
