@@ -303,11 +303,11 @@ interface AssetResponse {
   settings__title?: string
 }
 
-interface PaginatedResponse {
+interface PaginatedResponse<T> {
   count: number
   next: null | string
   previous: null | string
-  results: any[]
+  results: T[]
 }
 
 interface PermissionDefinition {

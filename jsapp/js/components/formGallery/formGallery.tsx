@@ -5,12 +5,22 @@ import {dataInterface} from 'js/dataInterface';
 interface State {
   submissions: SubmissionResponse[];
   loading: boolean;
+  next: string | null;
 }
 
 type Action =
   | {type: 'getSubmissions'}
-  | {type: 'getSubmissionsCompleted'; results: SubmissionResponse[]}
-  | {type: 'getSubmissionsFailed'};
+  | {
+      type: 'getSubmissionsCompleted';
+      resp: PaginatedResponse<SubmissionResponse>;
+    }
+  | {type: 'getSubmissionsFailed'}
+  | {type: 'loadMoreSubmissions'}
+  | {
+      type: 'loadMoreSubmissionsCompleted';
+      resp: PaginatedResponse<SubmissionResponse>;
+    }
+  | {type: 'loadMoreSubmissionsFailed'};
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -23,64 +33,95 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         loading: false,
-        submissions: action.results,
+        submissions: action.resp.results,
+        next: action.resp.next,
       };
     case 'getSubmissionsFailed':
       return {
         ...state,
         loading: false,
       };
+    case 'loadMoreSubmissionsCompleted':
+      return {
+        ...state,
+        loading: false,
+        submissions: [...state.submissions, ...action.resp.results],
+        next: action.resp.next,
+      };
   }
+  return state;
 }
 
-const selectAttachments = (submissions: SubmissionResponse[]) =>
+const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml'];
+
+const selectImageAttachments = (submissions: SubmissionResponse[]) =>
   ([] as SubmissionAttachment[]).concat.apply(
     [],
-    submissions.map((x) => x._attachments)
+    submissions.map((x) =>
+      x._attachments.filter((attachment) =>
+        IMAGE_MIMETYPES.includes(attachment.mimetype)
+      )
+    )
   );
 
-export default function FormGallery() {
-  const [{submissions, loading}, dispatch] = useReducer(reducer, {
+const selectShowLoadMore = (next: string | null) => !!next;
+
+interface FormGalleryProps {
+  asset: AssetResponse;
+}
+
+export default function FormGallery(props: FormGalleryProps) {
+  const [{submissions, next}, dispatch] = useReducer(reducer, {
     loading: false,
     submissions: [],
+    next: null,
   });
   const attachments = useMemo(
-    () => selectAttachments(submissions),
+    () => selectImageAttachments(submissions),
     [submissions]
   );
+  const showLoadMore = useMemo(() => selectShowLoadMore(next), [next]);
   useEffect(() => {
     dispatch({type: 'getSubmissions'});
     dataInterface
-      .getSubmissions('ajGgwzZb2f6vcE2ho6Fyyv')
-      .done((resp: any) =>
-        dispatch({type: 'getSubmissionsCompleted', results: resp.results})
+      .getSubmissions(props.asset.uid, 3)
+      .done((resp: PaginatedResponse<SubmissionResponse>) =>
+        dispatch({type: 'getSubmissionsCompleted', resp})
       );
   }, []);
 
+  const loadMoreSubmissions = () => {
+    if (next) {
+      // getSubmissions incorrectly considers start to be page (it's an offset)
+      // The needed start offset is already in the next state, extract it
+      const start = new URL(next).searchParams.get('start');
+      if (start) {
+        dispatch({type: 'loadMoreSubmissions'});
+        dataInterface
+          .getSubmissions(props.asset.uid, 3, start)
+          .done((resp: PaginatedResponse<SubmissionResponse>) =>
+            dispatch({type: 'loadMoreSubmissionsCompleted', resp})
+          );
+      }
+    }
+  };
+
   return (
-    <div>
-      Gallery!
+    <div className='form-view'>
+      <h1>Image Gallery</h1>
       {attachments.map((attachment) => (
-        <span key={attachment.id}>{attachment.filename}</span>
+        <div key={attachment.id}>
+          <img
+            src={attachment.download_url}
+            alt={attachment.filename}
+            width='300'
+            loading='lazy'
+          ></img>
+        </div>
       ))}
+      {showLoadMore && (
+        <button onClick={() => loadMoreSubmissions()}>Show more</button>
+      )}
     </div>
   );
 }
-
-// More minimalist example
-// export default function FormGallery() {
-//   const [submissions, setSubmissions] = useState<SubmissionResponse[]>([]);
-//   useEffect(() => {
-//     dataInterface.getSubmissions(
-//       "ajGgwzZb2f6vcE2ho6Fyyv"
-//     ).done((x: any) => setSubmissions(x.results))
-//   }, [])
-//   return(
-//     <div>
-//       Hello!
-//       {submissions.map((submission) => (
-//         <span>{ submission._uuid }</span>
-//       ))}
-//     </div>
-//   )
-// }
