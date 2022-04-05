@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('kpi', '0039_add_support_paired_data_to_asset_file'),
+        ('kpi', '0040_asset_advanced_features'),
     ]
 
     operations = [

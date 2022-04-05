@@ -2,10 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
-# TODO fix formpack commit
--e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
-# NLP
-# -e git+https://github.com/kobotoolbox/formpack.git@56951080f64eae16542fd88349a69cf1f225252a#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@cfa6dc6f09403891604d36b6c6dc3fabecc3b57c#egg=formpack
 -e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
 
 # More up-to-date version of django-digest than PyPI seems to have.

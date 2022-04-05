@@ -10,7 +10,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@cfa6dc6f09403891604d36b6c6dc3fabecc3b57c#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -222,10 +222,10 @@ pyopenssl==19.0.0
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
-pyparsing==3.0.7
-    # via packaging
 pyotp==2.6.0
     # via django-trench
+pyparsing==3.0.7
+    # via packaging
 pyquery==1.4.1
     # via formpack
 pyrsistent==0.15.5
@@ -252,8 +252,6 @@ pyxform==1.7.0
     #   formpack
 pyyaml==6.0
     # via oyaml
-raven==6.10.0
-    # via -r dependencies/pip/external_services.in
 redis==3.3.11
     # via
     #   celery
