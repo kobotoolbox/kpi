@@ -8,7 +8,19 @@ interface State {
   loading: boolean;
   next: string | null;
   filterQuestion: string | null;
+  startDate: string;
+  endDate: string;
 }
+
+const initialState: State = {
+  loading: false,
+  submissions: [],
+  next: null,
+  // Would be nice to move filters to query params
+  filterQuestion: null,
+  startDate: '',
+  endDate: '',
+};
 
 type Action =
   | {type: 'getSubmissions'}
@@ -23,7 +35,9 @@ type Action =
       resp: PaginatedResponse<SubmissionResponse>;
     }
   | {type: 'loadMoreSubmissionsFailed'}
-  | {type: 'setFilterQuestion'; question: string};
+  | {type: 'setFilterQuestion'; question: string}
+  | {type: 'setStartDate'; value: string}
+  | {type: 'setEndDate'; value: string};
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -31,6 +45,8 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         loading: true,
+        submissions: [],
+        next: null,
       };
     case 'getSubmissionsCompleted':
       return {
@@ -54,8 +70,19 @@ function reducer(state: State, action: Action): State {
     case 'setFilterQuestion':
       return {
         ...state,
-
-      }
+        filterQuestion: action.question,
+      };
+    case 'setStartDate':
+      console.log(action.value);
+      return {
+        ...state,
+        startDate: action.value,
+      };
+    case 'setEndDate':
+      return {
+        ...state,
+        endDate: action.value,
+      };
   }
   return state;
 }
@@ -66,6 +93,7 @@ const IMAGE_MIMETYPES = [
   'image/jpeg',
   'image/svg+xml',
 ];
+const PAGE_SIZE = 30;
 
 const selectImageAttachments = (submissions: SubmissionResponse[]) =>
   ([] as SubmissionAttachment[]).concat.apply(
@@ -76,8 +104,20 @@ const selectImageAttachments = (submissions: SubmissionResponse[]) =>
       )
     )
   );
-
 const selectShowLoadMore = (next: string | null) => !!next;
+const selectFilterQuery = (
+  filterQuestion: string | null,
+  startDate: string,
+  endDate: string
+) => {
+  console.log(startDate, endDate);
+  let query = '';
+  if (filterQuestion) {
+    const filterQuery = {[filterQuestion]: {$exists: true}};
+    query = '&query=' + JSON.stringify(filterQuery);
+  }
+  return query;
+};
 
 interface FormGalleryProps {
   asset: AssetResponse;
@@ -92,35 +132,44 @@ export default function FormGallery(props: FormGalleryProps) {
     }));
   const defaultOption = {value: '', label: 'All questions'};
   const questionFilterOptions = [defaultOption, ...(questions || [])];
-  const [{submissions, next}, dispatch] = useReducer(reducer, {
-    loading: false,
-    submissions: [],
-    next: null,
-    filterQuestion: null
-  });
+  const [{submissions, next, filterQuestion, startDate, endDate}, dispatch] =
+    useReducer(reducer, initialState);
+
   const attachments = useMemo(
     () => selectImageAttachments(submissions),
     [submissions]
   );
   const showLoadMore = useMemo(() => selectShowLoadMore(next), [next]);
+  const filterQuery = useMemo(
+    () => selectFilterQuery(filterQuestion, startDate, endDate),
+    [filterQuestion, startDate, endDate]
+  );
+
   useEffect(() => {
     dispatch({type: 'getSubmissions'});
     dataInterface
-      .getSubmissions(props.asset.uid, 3)
+      .getSubmissions(props.asset.uid, PAGE_SIZE, 0, [], [], filterQuery)
       .done((resp: PaginatedResponse<SubmissionResponse>) =>
         dispatch({type: 'getSubmissionsCompleted', resp})
       );
-  }, []);
+  }, [filterQuestion, startDate, endDate]);
 
   const loadMoreSubmissions = () => {
     if (next) {
-      // getSubmissions incorrectly considers start to be page (it's an offset)
       // The needed start offset is already in the next state, extract it
       const start = new URL(next).searchParams.get('start');
       if (start) {
         dispatch({type: 'loadMoreSubmissions'});
+
         dataInterface
-          .getSubmissions(props.asset.uid, 3, start)
+          .getSubmissions(
+            props.asset.uid,
+            PAGE_SIZE,
+            start,
+            [],
+            [],
+            filterQuery
+          )
           .done((resp: PaginatedResponse<SubmissionResponse>) =>
             dispatch({type: 'loadMoreSubmissionsCompleted', resp})
           );
@@ -128,20 +177,29 @@ export default function FormGallery(props: FormGalleryProps) {
     }
   };
 
-  const filterQuestionChange = (newValue: any) => {
-    console.log(newValue);
-    // Maybe put filter value in query params here instead of state
-  }
-
   return (
     <div className='form-view'>
       <h1>Image Gallery</h1>
-      From:{' '}
+      From:
       <ReactSelect
         options={questionFilterOptions}
         defaultValue={defaultOption}
-        onChange={filterQuestionChange}
+        onChange={(newValue) =>
+          dispatch({type: 'setFilterQuestion', question: newValue!.value})
+        }
       ></ReactSelect>
+      Between
+      <input
+        type='date'
+        onChange={(e) =>
+          dispatch({type: 'setStartDate', value: e.target.value})
+        }
+      ></input>
+      and
+      <input
+        type='date'
+        onChange={(e) => dispatch({type: 'setEndDate', value: e.target.value})}
+      ></input>
       {attachments.map((attachment) => (
         <div key={attachment.id}>
           <img
