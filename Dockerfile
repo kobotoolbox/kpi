@@ -33,7 +33,6 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
     mkdir -p ${SERVICES_DIR}/uwsgi && \
     mkdir -p ${SERVICES_DIR}/celery && \
     mkdir -p ${SERVICES_DIR}/celery_beat && \
-    mkdir -p ${SERVICES_DIR}/celery_sync_kobocat_xforms && \
     mkdir -p "${INIT_PATH}"
 
 ##########################################
