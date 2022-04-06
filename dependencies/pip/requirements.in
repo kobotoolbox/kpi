@@ -24,7 +24,7 @@ amqp
 anyjson
 billiard
 boto3
-celery>=4.0,<5.0
+celery>=5
 celery[redis]
 dicttoxml
 dj-static
