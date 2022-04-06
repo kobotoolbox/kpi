@@ -27,7 +27,7 @@ import type {
   AssetResponse,
 } from 'js/dataInterface';
 
-enum DisplayGroupTypeName {
+export enum DisplayGroupTypeName {
   group_root = 'group_root',
   group_repeat = 'group_repeat',
   group_regular = 'group_regular',
@@ -41,9 +41,9 @@ export const DISPLAY_GROUP_TYPES = createEnum([
   DisplayGroupTypeName.group_regular,
   DisplayGroupTypeName.group_matrix,
   DisplayGroupTypeName.group_matrix_row,
-]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};;
+]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};
 
-class DisplayGroup {
+export class DisplayGroup {
   public type: DisplayGroupTypeName;
   /** Localized display label */
   public label: string | null = null;
@@ -71,7 +71,7 @@ class DisplayGroup {
   }
 }
 
-class DisplayResponse {
+export class DisplayResponse {
   /** One of QUESTION_TYPES or `null` for supplemental details */
   public type: AnyRowTypeName | null;
   /** Localized display label */
