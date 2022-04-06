@@ -10,6 +10,7 @@ from kobo.apps.superuser_stats.views import (
     user_report,
     country_report,
     retrieve_reports,
+    user_statistics_report,
 )
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
@@ -69,6 +70,9 @@ urlpatterns = [
             retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    path('superuser_stats/user_statistics_report/', user_statistics_report),
+    re_path(r'^superuser_stats/user_statistics_report/(?P<base_filename>[^/]+)$',
+            retrieve_reports),
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':
