@@ -150,7 +150,7 @@ django-taggit==2.1.0
     # via -r dependencies/pip/requirements.in
 django-timezone-field==4.2.3
     # via django-celery-beat
-django-trench==0.3.0
+django-trench==0.2.3
     # via -r dependencies/pip/requirements.in
 django-userforeignkey==0.4.0
     # via django-request-cache
@@ -221,7 +221,7 @@ pillow==9.1.0
     # via django-markdownx
 prompt-toolkit==3.0.29
     # via click-repl
-psycopg2==2.9.3
+psycopg2==2.8.6
     # via -r dependencies/pip/requirements.in
 pyasn1==0.4.8
     # via

@@ -62,7 +62,7 @@ kombu
 lxml
 oauthlib
 #py-gfm # Incompatible with markdown 3.x
-psycopg2
+psycopg2>=2.8,<2.9
 pymongo
 python-dateutil
 pytz
@@ -90,4 +90,4 @@ pyasn1
 deepmerge
 
 # MFA
-django-trench
+django-trench==0.2.3
