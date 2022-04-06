@@ -81,7 +81,7 @@ interface MixinsObject {
   }
 }
 
-var mixins: MixinsObject = {
+const mixins: MixinsObject = {
   contextRouter: {},
   permissions: {},
   clickAssets: {
@@ -703,7 +703,7 @@ mixins.clickAssets = {
         let msg, onshow
         let onok = () => {
           actions.resources.deleteAsset({uid: asset.uid, assetType: asset.asset_type}, {
-            onComplete: ()=> {
+            onComplete: () => {
               notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
               if (typeof callback === 'function') {
                 callback()

@@ -4,6 +4,7 @@ import {
   getSurveyFlatPaths,
   isRowProcessingEnabled,
 } from 'js/assetUtils';
+import type {AssetResponse} from 'js/dataInterface';
 import assetStore from 'js/assetStore';
 import bem, {makeBem} from 'js/bem';
 import type {AnyRowTypeName} from 'js/constants';

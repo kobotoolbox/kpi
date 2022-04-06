@@ -3,6 +3,23 @@
  * nested functions.
  */
 
+interface GenericDefinition extends Function {
+  (a?: any, b?: any, c?: any, d?: any): void;
+  started: GenericCallbackDefinition;
+  completed: GenericCallbackDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface GenericFailedDefinition extends Function {
+  (response: FailResponse): void;
+  listen: (callback: (response: FailResponse) => void) => Function;
+}
+
+interface GenericCallbackDefinition extends Function {
+  (response: any): void;
+  listen: (callback: (response: any) => void) => Function;
+}
+
 interface GetSubmissionDefinition extends Function {
   (assetUid: string, submissionIdOrUuid: string): void;
   completed: GetSubmissionCompletedDefinition;
@@ -48,7 +65,10 @@ interface LoadAssetCompletedDefinition extends Function {
 }
 
 interface DeleteAssetDefinition extends Function {
-  (params: {id: string}): void;
+  (
+    details: {uid: string; assetType: string},
+    params?: {onComplete?: Function; onFail?: function}
+  ): void;
   completed: DeleteAssetCompletedDefinition;
   failed: GenericFailedDefinition;
 }
@@ -56,11 +76,6 @@ interface DeleteAssetDefinition extends Function {
 interface DeleteAssetCompletedDefinition extends Function {
   (response: AssetResponse): void;
   listen: (callback: (response: AssetResponse) => void) => Function;
-}
-
-interface GenericFailedDefinition extends Function {
-  (response: FailResponse): void;
-  listen: (callback: (response: FailResponse) => void) => Function;
 }
 
 interface UpdateAssetDefinition extends Function {
@@ -94,22 +109,22 @@ export namespace actions {
     const survey: object;
     const search: object;
     const resources: {
-      createImport: Function;
+      createImport: GenericDefinition;
       loadAsset: LoadAssetDefinition;
-      deployAsset: Function;
-      setDeploymentActive: Function;
-      createSnapshot: Function;
-      cloneAsset: Function;
+      deployAsset: GenericDefinition;
+      setDeploymentActive: GenericDefinition;
+      createSnapshot: GenericDefinition;
+      cloneAsset: GenericDefinition;
       deleteAsset: DeleteAssetDefinition;
-      listTags: Function;
-      createResource: Function;
+      listTags: GenericDefinition;
+      createResource: GenericDefinition;
       updateAsset: UpdateAssetDefinition;
-      updateSubmissionValidationStatus: Function;
-      removeSubmissionValidationStatus: Function;
-      deleteSubmission: Function;
-      duplicateSubmission: Function;
-      refreshTableSubmissions: Function;
-      getAssetFiles: Function;
+      updateSubmissionValidationStatus: GenericDefinition;
+      removeSubmissionValidationStatus: GenericDefinition;
+      deleteSubmission: GenericDefinition;
+      duplicateSubmission: GenericDefinition;
+      refreshTableSubmissions: GenericDefinition;
+      getAssetFiles: GenericDefinition;
     };
     const hooks: object;
     const misc: object;
@@ -118,18 +133,27 @@ export namespace actions {
       updateSettings: (assetUid: string, newSettings: object) => void;
     };
     const map: object;
-    const permissions: object;
+    const permissions: {
+      getConfig: GenericDefinition;
+      removeAssetPermission: GenericDefinition;
+    };
     const help: object;
-    const library: object;
+    const library: {
+      moveToCollection: GenericDefinition;
+      subscribeToCollection: GenericDefinition;
+      unsubscribeFromCollection: GenericDefinition;
+      searchMyLibraryMetadata: GenericDefinition;
+      searchMyLibraryAssets: GenericDefinition;
+    };
     const submissions: {
       getSubmission: GetSubmissionDefinition;
       getSubmissionByUuid: GetSubmissionDefinition;
-      getSubmissions: Function;
+      getSubmissions: GenericDefinition;
       getProcessingSubmissions: GetProcessingSubmissionsDefinition;
-      bulkDeleteStatus: Function;
-      bulkPatchStatus: Function;
-      bulkPatchValues: Function;
-      bulkDelete: Function;
+      bulkDeleteStatus: GenericDefinition;
+      bulkPatchStatus: GenericDefinition;
+      bulkPatchValues: GenericDefinition;
+      bulkDelete: GenericDefinition;
     };
     const media: object;
     const exports: {

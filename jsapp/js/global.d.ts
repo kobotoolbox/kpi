@@ -85,8 +85,8 @@ interface AlertifyDialogInstance {
     footer: HTMLElement;
     resizeHandle: HTMLElement;
     buttons: {
-      auxiliary: HTMLElement[];
-      primary: HTMLElement[];
+      auxiliary: HTMLElement;
+      primary: HTMLElement;
     };
     buttonTemplate: HTMLElement;
   };
@@ -215,7 +215,7 @@ interface AlertifyJsModule {
     /** Message text */
     message: string,
     /** Time (in seconds) to wait before auto-close */
-    wait?: string,
+    wait?: number,
     /** A callback function to be invoked when the log is closed. */
     callback?: Function
   ) => any;
