@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import autoBind from 'react-autobind';
 import {
   IndexRoute,
@@ -18,18 +18,9 @@ import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import Reports from 'js/components/reports/reports';
-import FormLanding from 'js/components/formLanding';
-import FormSummary from 'js/components/formSummary';
-import FormSubScreens from 'js/components/formSubScreens';
 import AccountSettings from 'js/components/account/accountSettingsRoute';
 import DataStorage from 'js/components/account/dataStorageRoute';
 import Security from 'js/components/account/securityRoute';
-import ChangePassword from 'js/components/changePassword';
-import SectionNotFound from 'js/components/sectionNotFound';
-import FormNotFound from 'js/components/formNotFound';
-import FormXform from 'js/components/formXform';
-import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
@@ -41,6 +32,16 @@ import {
 import AuthProtectedRoute from 'js/router/authProtectedRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
+
+const Reports = React.lazy(() => import('js/components/reports/reports'));
+const FormLanding = React.lazy(() => import('js/components/formLanding'));
+const FormSummary = React.lazy(() => import('js/components/formSummary'));
+const FormSubScreens = React.lazy(() => import('js/components/formSubScreens'));
+const ChangePassword = React.lazy(() => import('js/components/changePassword'));
+const FormXform = React.lazy(() => import('js/components/formXform'));
+const FormJson = React.lazy(() => import('js/components/formJson'));
+const SectionNotFound = React.lazy(() => import('js/components/sectionNotFound'));
+const FormNotFound = React.lazy(() => import('js/components/formNotFound'));
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -113,6 +114,7 @@ export default class AllRoutes extends React.Component {
    */
   getRoutes() {
     return (
+
       <Route name='home' path={ROUTES.ROOT} component={App}>
         <IndexRedirect to={ROUTES.FORMS} />
 
@@ -343,11 +345,13 @@ export default class AllRoutes extends React.Component {
     }
 
     return (
+      <Suspense fallback={<div/>}>
       <Router
         history={hashHistory}
         ref={(ref) => this.router = ref}
         routes={this.getRoutes()}
       />
+      </Suspense>
     );
   }
 }
