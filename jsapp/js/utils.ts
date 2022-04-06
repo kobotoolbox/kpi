@@ -353,3 +353,12 @@ export function csrfSafeMethod(method: string) {
   // these HTTP methods do not require CSRF protection
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
 }
+
+export function downloadUrl(url: string) {
+  const aEl = document.createElement('a');
+  const splitUrl = url.split('/');
+  const fileName = splitUrl[splitUrl.length - 1];
+  aEl.href = url;
+  aEl.setAttribute('download', fileName);
+  aEl.click();
+}

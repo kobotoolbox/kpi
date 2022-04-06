@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
+import {downloadUrl} from 'js/utils';
 import {
   EXPORT_STATUSES,
   DEFAULT_EXPORT_SETTINGS,
@@ -59,7 +60,7 @@ export default class AnonymousExports extends React.Component {
         isPending: false,
         exportUrl: exportData.result,
       });
-      this.downloadUrl(this.state.exportUrl);
+      downloadUrl(this.state.exportUrl);
     }
   }
 
@@ -69,7 +70,7 @@ export default class AnonymousExports extends React.Component {
       // TODO: try storing all the created export urls (for some amount of
       // time?) so that whenever user switches between types, in each clicking
       // "Export" button, we don't make unnecessary calls.
-      this.downloadUrl(this.state.exportUrl);
+      downloadUrl(this.state.exportUrl);
     } else {
       this.setState({isPending: true});
 
@@ -114,15 +115,6 @@ export default class AnonymousExports extends React.Component {
 
   fetchExport(exportUid) {
     actions.exports.getExport(this.props.asset.uid, exportUid);
-  }
-
-  downloadUrl(url) {
-    const aEl = document.createElement('a');
-    const splitUrl = url.split('/');
-    const fileName = splitUrl[splitUrl.length - 1];
-    aEl.href = url;
-    aEl.setAttribute('download', fileName);
-    aEl.click();
   }
 
   /**
