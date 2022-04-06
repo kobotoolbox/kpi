@@ -601,6 +601,7 @@ mixins.clickAssets = {
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
+            ok_button.setAttribute( 'data-cy', 'delete' );
             let $els = $('.alertify-toggle input');
 
             ok_button.disabled = true;

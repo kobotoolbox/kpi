@@ -225,7 +225,7 @@ class AssetRow extends React.Component {
             </bem.AssetRow__cell>
           }
 
-          <bem.AssetRow__buttons onClick={this.clickAssetButton}>
+          <bem.AssetRow__buttons onClick={this.clickAssetButton} data-cy='buttons'>
             {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='edit'

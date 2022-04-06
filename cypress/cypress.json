@@ -2,6 +2,7 @@
   "baseUrl": "http://google.com",
   "testFiles": [
     "form.spec.js",
-    "question.spec.js"
+    "question.spec.js",
+    "delete.spec.js"
   ]
 }

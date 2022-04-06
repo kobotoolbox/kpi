@@ -6,5 +6,9 @@
   "question_creator" : {
     "password" : "Avacad0",
     "description" : "Adds questions to empty forms from questions.json."
+  },
+  "project_deleter" : {
+    "password" : "Avacad0",
+    "description" : "Deletes a project."
   }
 }
