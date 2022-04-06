@@ -40,7 +40,9 @@ const FormSubScreens = React.lazy(() => import('js/components/formSubScreens'));
 const ChangePassword = React.lazy(() => import('js/components/changePassword'));
 const FormXform = React.lazy(() => import('js/components/formXform'));
 const FormJson = React.lazy(() => import('js/components/formJson'));
-const SectionNotFound = React.lazy(() => import('js/components/sectionNotFound'));
+const SectionNotFound = React.lazy(() =>
+  import('js/components/sectionNotFound')
+);
 const FormNotFound = React.lazy(() => import('js/components/formNotFound'));
 
 export default class AllRoutes extends React.Component {
@@ -114,7 +116,6 @@ export default class AllRoutes extends React.Component {
    */
   getRoutes() {
     return (
-
       <Route name='home' path={ROUTES.ROOT} component={App}>
         <IndexRedirect to={ROUTES.FORMS} />
 
@@ -346,11 +347,11 @@ export default class AllRoutes extends React.Component {
 
     return (
       <Suspense fallback={<div/>}>
-      <Router
-        history={hashHistory}
-        ref={(ref) => this.router = ref}
-        routes={this.getRoutes()}
-      />
+        <Router
+          history={hashHistory}
+          ref={(ref) => this.router = ref}
+          routes={this.getRoutes()}
+        />
       </Suspense>
     );
   }
