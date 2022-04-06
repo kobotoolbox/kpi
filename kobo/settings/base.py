@@ -153,13 +153,13 @@ CONSTANCE_CONFIG = {
     ),
     'SUPPORT_URL': (
         env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
-        'URL for "KoBoToolbox Help Center"',
+        'URL for "KoboToolbox Help Center"',
     ),
     'COMMUNITY_URL': (
         env.str(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
-        'URL for "KoBoToolbox Community Forum"',
+        'URL for "KoboToolbox Community Forum"',
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
@@ -215,7 +215,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'MFA_ISSUER_NAME': (
-        'KoBoToolbox',
+        'KoboToolbox',
         'Issuer name displayed in multi-factor applications'
     ),
     'MFA_ENABLED': (
