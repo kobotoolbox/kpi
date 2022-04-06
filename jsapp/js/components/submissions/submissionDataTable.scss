@@ -1,8 +1,9 @@
 @use "scss/_colors";
 @use "scss/libs/_mdl";
 @use "scss/mixins";
+@use "scss/sizes";
 
-$submission-data-table-space: 12px;
+$submission-data-table-space: sizes.$x12;
 
 .submission-data-table {
   text-align: initial;
@@ -16,19 +17,19 @@ $submission-data-table-space: 12px;
   background-color: colors.$kobo-gray-96;
 
   &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
-    border-top: 3px solid colors.$kobo-gray-92;
+    border-top: sizes.$x3 solid colors.$kobo-gray-92;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group,
   &.submission-data-table__row--group-label {
-    border-bottom: 1px solid colors.$kobo-gray-92;
+    border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group {
-    border-left: 1px solid colors.$kobo-gray-92;
-    border-right: 1px solid colors.$kobo-gray-92;
+    border-left: sizes.$x1 solid colors.$kobo-gray-92;
+    border-right: sizes.$x1 solid colors.$kobo-gray-92;
   }
 
   &.submission-data-table__row--columns {
@@ -68,7 +69,7 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__row--point {
     & + & {
-      border-top: 1px dotted colors.$kobo-gray-92;
+      border-top: sizes.$x1 dotted colors.$kobo-gray-92;
     }
 
     &:first-child .submission-data-table__column {
@@ -96,7 +97,7 @@ $submission-data-table-space: 12px;
     width: 15%;
 
     .k-icon {
-      font-size: 20px;
+      font-size: sizes.$x20;
       display: block;
     }
   }
@@ -104,10 +105,23 @@ $submission-data-table-space: 12px;
   &.submission-data-table__column--label {
     width: 35%;
   }
+}
 
-  &.submission-data-table__column--data {
+.submission-data-table__row--response .submission-data-table__column.submission-data-table__column--data {
+  @include mixins.centerRowFlex;
+
+  flex: 1;
+
+  .audio-player:first-child {
+    padding-right: sizes.$x30;
+  }
+
+  > *:first-child {
     flex: 1;
-    font-family: mdl.$font_mono;
+  }
+
+  > *:not(:last-child) {
+    margin-right: sizes.$x20;
   }
 }
 

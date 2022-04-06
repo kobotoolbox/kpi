@@ -1,10 +1,14 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import {hashHistory} from 'react-router';
+import bem, {makeBem} from 'js/bem';
+import Button from 'js/components/common/button';
+import {ROUTES} from 'js/router/routerConstants';
 import {
+  downloadUrl,
   formatTimeDate,
   formatDate,
 } from 'js/utils';
-import bem from 'js/bem';
 import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
@@ -12,21 +16,26 @@ import {
   getMediaAttachment,
   DisplayGroup,
 } from 'js/components/submissions/submissionUtils';
-import type {
-  DisplayResponse,
-} from 'js/components/submissions/submissionUtils';
+import type {DisplayResponse} from 'js/components/submissions/submissionUtils';
 import {
   META_QUESTION_TYPES,
   QUESTION_TYPES,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
-import type {
-  AnyRowTypeName,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import type {MetaQuestionTypeName} from 'js/constants';
 import './submissionDataTable.scss';
-import type {AssetResponse, SubmissionResponse} from 'jsapp/js/dataInterface';
+import type {
+  AssetResponse,
+  SubmissionResponse,
+} from 'jsapp/js/dataInterface';
+import AudioPlayer from 'js/components/common/audioPlayer';
+
+bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
+bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
+bem.SubmissionDataTable__column = makeBem(bem.SubmissionDataTable, 'column');
+bem.SubmissionDataTable__XMLName = makeBem(bem.SubmissionDataTable, 'xml-name');
+bem.SubmissionDataTable__value = makeBem(bem.SubmissionDataTable, 'value');
 
 interface SubmissionDataTableProps {
   asset: AssetResponse;
@@ -35,16 +44,18 @@ interface SubmissionDataTableProps {
   showXMLNames?: boolean;
 }
 
-/**
- * @prop {object} asset
- * @prop {object} submissionData
- * @prop {number} translationIndex
- * @prop {boolean} [showXMLNames]
- */
 class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   constructor(props: SubmissionDataTableProps) {
     super(props);
     autoBind(this);
+  }
+
+  openProcessing(name: string) {
+    const finalRoute = ROUTES.FORM_PROCESSING
+      .replace(':uid', this.props.asset.uid)
+      .replace(':questionName', name)
+      .replace(':submissionUuid', this.props.submissionData._uuid);
+    hashHistory.push(finalRoute);
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -113,28 +124,33 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='data'>
-          {this.renderResponseData(item.type, item.data, item.listName)}
+          {this.renderResponseData(item)}
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
     );
   }
 
-  renderResponseData(type: AnyRowTypeName | null, data: string | null, listName?: string) {
-    if (data === null) {
+  renderResponseData(
+    item: DisplayResponse
+    // type: AnyRowTypeName | null,
+    // data: string | null,
+    // listName?: string
+  ) {
+    if (item.data === null) {
       return null;
     }
 
     let choice;
 
-    switch (type) {
+    switch (item.type) {
       case QUESTION_TYPES.select_one.id:
       case SCORE_ROW_TYPE:
       case RANK_LEVEL_TYPE:
-        choice = this.findChoice(listName, data);
+        choice = this.findChoice(item.listName, item.data);
         if (!choice) {
-          console.error(`Choice not found for "${listName}" and "${data}".`);
+          console.error(`Choice not found for "${item.listName}" and "${item.data}".`);
           // fallback to raw data to display anything meaningful
-          return data;
+          return item.data;
         } else {
           return (
             <bem.SubmissionDataTable__value>
@@ -145,10 +161,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
-            {data.split(' ').map((answer, answerIndex) => {
-              choice = this.findChoice(listName, answer);
+            {item.data.split(' ').map((answer, answerIndex) => {
+              choice = this.findChoice(item.listName, answer);
               if (!choice) {
-                console.error(`Choice not found for "${listName}" and "${answer}".`);
+                console.error(`Choice not found for "${item.listName}" and "${answer}".`);
                 // fallback to raw data to display anything meaningful
                 return answer;
               } else {
@@ -166,31 +182,31 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.date.id:
         return (
           <bem.SubmissionDataTable__value>
-            {formatDate(data)}
+            {formatDate(item.data)}
           </bem.SubmissionDataTable__value>
         );
       case QUESTION_TYPES.datetime.id:
         return (
           <bem.SubmissionDataTable__value>
-            {formatTimeDate(data)}
+            {formatTimeDate(item.data)}
           </bem.SubmissionDataTable__value>
         );
       case QUESTION_TYPES.geopoint.id:
-        return this.renderPointData(data);
+        return this.renderPointData(item.data);
       case QUESTION_TYPES.image.id:
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES.video.id:
       case QUESTION_TYPES.file.id:
-        return this.renderAttachment(type, data);
+        return this.renderAttachment(item.type, item.data, item.name);
       case QUESTION_TYPES.geotrace.id:
-        return this.renderMultiplePointsData(data);
+        return this.renderMultiplePointsData(item.data);
       case QUESTION_TYPES.geoshape.id:
-        return this.renderMultiplePointsData(data);
+        return this.renderMultiplePointsData(item.data);
       default:
         // all types not specified above just returns raw data
         return (
           <bem.SubmissionDataTable__value>
-            {data}
+            {item.data}
           </bem.SubmissionDataTable__value>
         );
     }
@@ -239,10 +255,34 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     ));
   }
 
-  renderAttachment(type: string, filename: string) {
+  renderAttachment(type: string, filename: string, name: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename);
     if (attachment && attachment instanceof Object) {
-      if (type === QUESTION_TYPES.image.id) {
+      if (type === QUESTION_TYPES.audio.id) {
+        return (
+          <React.Fragment>
+            <AudioPlayer mediaURL={attachment.download_url} />
+
+            <Button
+              type='full'
+              size='s'
+              color='blue'
+              endIcon='arrow-up-right'
+              label={t('process')}
+              onClick={this.openProcessing.bind(this, name)}
+            />
+
+            <Button
+              type='frame'
+              size='s'
+              color='blue'
+              endIcon='download'
+              label={t('download')}
+              onClick={downloadUrl.bind(this, attachment.download_url)}
+            />
+          </React.Fragment>
+        );
+      } else if (type === QUESTION_TYPES.image.id) {
         return (
           <a href={attachment.download_url} target='_blank'>
             <img src={attachment.download_medium_url}/>
@@ -274,7 +314,9 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='data'>
-          {this.props.submissionData[dataName]}
+          <bem.SubmissionDataTable__value>
+            {this.props.submissionData[dataName]}
+          </bem.SubmissionDataTable__value>
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
     );
