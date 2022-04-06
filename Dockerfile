@@ -151,8 +151,7 @@ RUN rm -rf /etc/runit/runsvdir/default/getty-tty*
 # Create symlinks for runsv services
 RUN ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" "${SERVICES_DIR}/uwsgi/run" && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" "${SERVICES_DIR}/celery/run" && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" "${SERVICES_DIR}/celery_beat/run" && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery_sync_kobocat_xforms.bash" "${SERVICES_DIR}/celery_sync_kobocat_xforms/run"
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" "${SERVICES_DIR}/celery_beat/run"
 
 
 # Add/Restore `UWSGI_USER`'s permissions
