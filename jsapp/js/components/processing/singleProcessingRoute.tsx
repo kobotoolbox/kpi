@@ -140,22 +140,23 @@ export default class SingleProcessingRoute extends React.Component<
             <LoadingSpinner/>
           }
           {this.isDataValid() && singleProcessingStore.isReady() &&
-            <bem.SingleProcessing__bottomLeft>
-              <SingleProcessingPreview/>
+            <React.Fragment>
+              <bem.SingleProcessing__bottomLeft>
+                <SingleProcessingContent
+                  questionType={this.getQuestionType()}
+                />
+              </bem.SingleProcessing__bottomLeft>
 
-              <SingleProcessingSubmissionDetails
-                questionType={this.getQuestionType()}
-                questionName={this.props.params.questionName}
-                assetContent={this.state.asset.content}
-              />
-            </bem.SingleProcessing__bottomLeft>
-          }
-          {this.isDataValid() && singleProcessingStore.isReady() &&
-            <bem.SingleProcessing__bottomRight>
-              <SingleProcessingContent
-                questionType={this.getQuestionType()}
-              />
-            </bem.SingleProcessing__bottomRight>
+              <bem.SingleProcessing__bottomRight>
+                <SingleProcessingPreview/>
+
+                <SingleProcessingSubmissionDetails
+                  questionType={this.getQuestionType()}
+                  questionName={this.props.params.questionName}
+                  assetContent={this.state.asset.content}
+                />
+              </bem.SingleProcessing__bottomRight>
+            </React.Fragment>
           }
           {!this.isDataValid() &&
             <bem.Loading>
