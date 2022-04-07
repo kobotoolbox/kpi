@@ -40,7 +40,7 @@ django-extensions
 django-oauth-toolkit
 django-registration-redux
 django-amazon-ses
-django-webpack-loader
+django-webpack-loader==0.6.0
 django-loginas
 django-markdownx
 
@@ -63,7 +63,7 @@ lxml
 oauthlib
 #py-gfm # Incompatible with markdown 3.x
 psycopg2>=2.8,<2.9
-pymongo
+pymongo==3.12.3
 python-dateutil
 pytz
 pyxform==1.7.0
@@ -75,7 +75,7 @@ static3
 tabulate
 unicodecsv
 uWSGI
-Werkzeug
+Werkzeug<=2.0.3
 xlrd
 xlwt
 xlutils

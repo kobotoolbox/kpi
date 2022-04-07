@@ -5,7 +5,6 @@ import os
 import string
 import subprocess
 from mimetypes import add_type
-from datetime import timedelta
 from urllib.parse import quote_plus
 
 import django.conf.locale

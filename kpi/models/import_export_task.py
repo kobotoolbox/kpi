@@ -1,5 +1,4 @@
 # coding: utf-8
-
 import base64
 import datetime
 import dateutil.parser
@@ -7,7 +6,6 @@ import posixpath
 import pytz
 import re
 import tempfile
-import time
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
@@ -641,7 +639,7 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        self.result.save(filename, ContentFile(''))
+        self.result.save(filename, ContentFile(b''))
         # FileField files are opened read-only by default and must be
         # closed and reopened to allow writing
         # https://code.djangoproject.com/ticket/13809
@@ -798,7 +796,6 @@ class ExportTaskBase(ImportExportTask):
         ]
         for export in excess_exports:
             export.delete()
-
 
 
 class ExportTask(ExportTaskBase):
