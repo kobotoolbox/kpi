@@ -31,11 +31,13 @@ module.exports = WebpackCommon({
     library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
-    filename: '[name]-[hash].js'
+    filename: '[name]-[contenthash].js'
   },
   devServer: {
-    publicPath: publicPath,
-    disableHostCheck: true,
+    devMiddleware: {
+      publicPath: publicPath,
+    },
+    allowedHosts: 'all',
     hot: true,
     headers: {'Access-Control-Allow-Origin': '*'},
     port: 3000,
@@ -46,7 +48,6 @@ module.exports = WebpackCommon({
       filename: '[file].map',
       exclude: /vendors.*.*/
     }),
-    new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new CircularDependencyPlugin({
       exclude: /a\.js|node_modules/,

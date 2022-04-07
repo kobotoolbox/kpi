@@ -112,7 +112,7 @@ var commonOptions = {
     }
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
       output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),

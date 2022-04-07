@@ -29,7 +29,7 @@ module.exports = WebpackCommon({
   output: {
     path: outputPath,
     publicPath: publicPath,
-    filename: '[name]-[hash].js'
+    filename: '[name]-[contenthash].js'
   },
   plugins: [
     new webpack.SourceMapDevToolPlugin({
@@ -40,7 +40,7 @@ module.exports = WebpackCommon({
   // mainly for hiding stylelint output
   stats: {
     all: false,
-    maxModules: 0,
+    modulesSpace: 0,
     errors: true,
     errorDetails: true
   }
