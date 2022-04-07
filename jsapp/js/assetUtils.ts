@@ -564,6 +564,41 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
   return paths;
 }
 
+/**
+ * Injects supplemental details columns next to (immediately after) their
+ * matching rows in a given list of rows.
+ *
+ * NOTE: it returns a new updated `rows` list.
+ */
+export function injectSupplementalRowsIntoListOfRows(
+  asset: AssetResponse,
+  rows: string[],
+) {
+  if (asset.content?.survey === undefined) {
+    throw new Error('Asset has no content');
+  }
+  const flatPathsWithGroups = getSurveyFlatPaths(asset.content.survey, true);
+
+  let output = Array.from(rows);
+
+  // First filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
+  output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
+
+  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+  Object.keys(supplementalDetailsPaths).forEach((rowName) => {
+    // In supplementalDetailsPaths we get row names, in output we already have
+    // row paths. We need to find a matching row and put all paths immediately
+    // after it.
+    const rowPath = flatPathsWithGroups[rowName];
+    const sourceRowIndex = output.indexOf(rowPath);
+    if (sourceRowIndex !== -1) {
+      output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
+    }
+  });
+
+  return output;
+}
+
 export interface FlatQuestion {
   type: AnyRowTypeName;
   name: string;
@@ -582,7 +617,7 @@ export function getFlatQuestionsList(
   survey: SurveyRow[],
   /** Defaults to first (default) language. */
   translationIndex = 0,
-  /** Whether to include meta question types (default is don't include). */
+  /** Whether to include meta question types (not included by default). */
   includeMeta = false
 ): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);

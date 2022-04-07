@@ -13,6 +13,7 @@ import mixins from 'js/mixins';
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   PERMISSIONS_CODENAMES,
+  SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
 import {
   EXPORT_TYPES,
@@ -24,7 +25,12 @@ import {
   getContextualDefaultExportFormat,
   getExportFormatOptions,
 } from 'js/components/projectDownloads/exportsUtils';
-import assetUtils from 'js/assetUtils';
+import {
+  getSurveyFlatPaths,
+  getFlatQuestionsList,
+  injectSupplementalRowsIntoListOfRows,
+} from 'js/assetUtils';
+import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 
@@ -60,7 +66,6 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
-      isIncludeAnalysisFieldsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_ANALYSIS_FIELDS,
       isIncludeMediaUrlEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_MEDIA_URL,
       selectedRows: new Set(),
       selectableRowsCount: 0,
@@ -110,7 +115,6 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
-      isIncludeAnalysisFieldsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_ANALYSIS_FIELDS,
       isIncludeMediaUrlEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_MEDIA_URL,
       selectedRows: new Set(this.getAllSelectableRows()),
     });
@@ -167,10 +171,11 @@ export default class ProjectExportsCreator extends React.Component {
     this.fetchExportSettings();
   }
 
+  /** Returns a simple list of paths for all columns. */
   getAllSelectableRows() {
-    const allRows = new Set();
+    let allRows = new Set();
     if (this.props.asset?.content?.survey) {
-      const flatPaths = assetUtils.getSurveyFlatPaths(
+      const flatPaths = getSurveyFlatPaths(
         this.props.asset.content.survey,
         false,
         true
@@ -180,6 +185,11 @@ export default class ProjectExportsCreator extends React.Component {
         allRows.add(submissionProp);
       });
     }
+
+    allRows = new Set(
+      injectSupplementalRowsIntoListOfRows(this.props.asset, allRows)
+    );
+
     return allRows;
   }
 
@@ -323,7 +333,6 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: customSelectionEnabled,
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
       isXlsTypesAsTextEnabled: data.export_settings.xls_types_as_text,
-      isIncludeAnalysisFieldsEnabled: data.export_settings.include_analysis_fields,
       isIncludeMediaUrlEnabled: data.export_settings.include_media_url,
       selectedRows: new Set(data.export_settings.fields),
     };
@@ -369,12 +378,11 @@ export default class ProjectExportsCreator extends React.Component {
       payload.export_settings.xls_types_as_text = this.state.isXlsTypesAsTextEnabled;
     }
 
-    // include_media_url and include_analysis_fields is only for xls and csv
+    // include_media_url is only for xls and csv
     if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
         this.state.selectedExportType.value === EXPORT_TYPES.csv.value
     ) {
       payload.export_settings.include_media_url = this.state.isIncludeMediaUrlEnabled;
-      payload.export_settings.include_analysis_fields = this.state.isIncludeAnalysisFieldsEnabled;
     }
 
     // if custom export is enabled, but there is no name provided
@@ -444,21 +452,49 @@ export default class ProjectExportsCreator extends React.Component {
     return `Export ${formatTimeDate()}`;
   }
 
+  /**
+   * Used to display a list of selectable columns for export.
+   *
+   * @returns Array<{label: string, path: string, parents: string[]}>
+   */
   getQuestionsList() {
-    // survey question rows with data
-    const output = assetUtils.getFlatQuestionsList(
+    const selectableRows = Array.from(this.getAllSelectableRows());
+
+    const flatQuestionsList = getFlatQuestionsList(
       this.props.asset.content.survey,
       this.state.selectedExportFormat?.langIndex,
       true
     );
 
-    // additional submission properties added by backend
-    Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
-      output.push({
-        name: submissionProp,
-        label: submissionProp,
-        path: submissionProp,
-      });
+    const output = selectableRows.map((selectableRow) => {
+      const foundFlatQuestion = flatQuestionsList.find((flatQuestion) =>
+        flatQuestion.path === selectableRow
+      );
+
+      if (foundFlatQuestion) {
+        return {
+          label: foundFlatQuestion.label,
+          path: foundFlatQuestion.path,
+          parents: foundFlatQuestion.parents,
+        };
+      } else if (selectableRow.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+        return {
+          label: getColumnLabel(
+            this.props.asset,
+            selectableRow,
+            false,
+            this.state.selectedExportFormat?.langIndex
+          ),
+          path: selectableRow,
+          parents: [],
+        };
+      }
+
+      return {
+        label: selectableRow,
+        path: selectableRow,
+        parents: [],
+      };
     });
 
     return output;
@@ -591,17 +627,6 @@ export default class ProjectExportsCreator extends React.Component {
                 checked={this.state.isIncludeMediaUrlEnabled}
                 onChange={this.onAnyInputChange.bind(this, 'isIncludeMediaUrlEnabled')}
                 label={t('Include media URLs')}
-              />
-            </bem.ProjectDownloads__columnRow>
-          }
-
-          {(this.state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-              this.state.selectedExportType.value == EXPORT_TYPES.csv.value) &&
-            <bem.ProjectDownloads__columnRow>
-              <Checkbox
-                checked={this.state.isIncludeAnalysisFieldsEnabled}
-                onChange={this.onAnyInputChange.bind(this, 'isIncludeAnalysisFieldsEnabled')}
-                label={t('Include analysis fields')}
               />
             </bem.ProjectDownloads__columnRow>
           }

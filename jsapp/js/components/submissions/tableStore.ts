@@ -4,25 +4,13 @@ import assetStore from 'js/assetStore';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/router/routerUtils';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
-  getRowName,
-  getSurveyFlatPaths,
-  getSupplementalDetailsPaths,
-} from 'js/assetUtils';
-import {
-  PERMISSIONS_CODENAMES,
-  QUESTION_TYPES,
-  GROUP_TYPES_BEGIN,
-  GROUP_TYPES_END,
-  SUPPLEMENTAL_DETAILS_PROP,
-  META_QUESTION_TYPES,
-} from 'js/constants';
-import {
-  EXCLUDED_COLUMNS,
   VALIDATION_STATUS_ID_PROP,
   SUBMISSION_ACTIONS_ID,
   DATA_TABLE_SETTING,
 } from 'js/components/submissions/tableConstants';
+import {getAllDataColumns} from 'js/components/submissions/tableUtils';
 import type {
   SubmissionResponse,
   AssetTableSettings,
@@ -156,103 +144,7 @@ class TableStore extends Reflux.Store {
       throw new Error('Asset not found');
     }
 
-    const flatPaths = getSurveyFlatPaths(asset.content.survey);
-
-    // add all questions from the survey definition
-    let output = Object.values(flatPaths);
-
-    // Gather unique columns from all provided submissions and add them to output
-    const dataKeys = Object.keys(submissions.reduce(function (result, obj) {
-      return Object.assign(result, obj);
-    }, {}));
-    output = [...new Set([...output, ...dataKeys])];
-
-    // Put `start` and `end` first
-    if (output.indexOf(META_QUESTION_TYPES.end)) {
-      output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0]);
-    }
-    if (output.indexOf(META_QUESTION_TYPES.start)) {
-      output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0]);
-    }
-
-    // exclude some technical non-data columns
-    output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
-
-    // exclude notes
-    output = output.filter((key) => {
-      const foundPathKey = Object.keys(flatPaths).find(
-        (pathKey) => flatPaths[pathKey] === key
-      );
-
-      // no path means this definitely is not a note type
-      if (!foundPathKey) {
-        return true;
-      }
-
-      const foundNoteRow = asset?.content?.survey?.find(
-        (row) =>
-          typeof foundPathKey !== 'undefined' &&
-          (foundPathKey === getRowName(row)) &&
-          row.type === QUESTION_TYPES.note.id
-      );
-
-      if (typeof foundNoteRow !== 'undefined') {
-        // filter out this row as this is a note type
-        return false;
-      }
-
-      return true;
-    });
-
-    // exclude kobomatrix rows as data is not directly tied to them, but
-    // to rows user answered to, thus making these columns always empty
-    const excludedMatrixKeys: string[] = [];
-    let isInsideKoboMatrix = false;
-    asset.content.survey.forEach((row) => {
-      if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
-        isInsideKoboMatrix = true;
-      } else if (row.type === GROUP_TYPES_END.end_kobomatrix) {
-        isInsideKoboMatrix = false;
-      } else if (isInsideKoboMatrix) {
-        const rowPath = flatPaths[getRowName(row)];
-        excludedMatrixKeys.push(rowPath);
-      }
-    });
-    output = output.filter((key) => excludedMatrixKeys.includes(key) === false);
-
-    // Exclude repeat groups and regular groups as all of their data is handled
-    // by children rows.
-    // This also fixes the issue when a repeat group in older version becomes
-    // a regular group in new form version (with the same name), and the Table
-    // was displaying "[object Object]" as responses.
-    const excludedGroups: string[] = [];
-    const flatPathsWithGroups = getSurveyFlatPaths(asset.content.survey, true);
-    asset.content.survey.forEach((row) => {
-      if (
-        row.type === GROUP_TYPES_BEGIN.begin_repeat ||
-        row.type === GROUP_TYPES_BEGIN.begin_group
-      ) {
-        const rowPath = flatPathsWithGroups[getRowName(row)];
-        excludedGroups.push(rowPath);
-      }
-    });
-    output = output.filter((key) => excludedGroups.includes(key) === false);
-
-    // Handle supplemental details
-    output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
-    const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
-    Object.keys(supplementalDetailsPaths).forEach((rowName) => {
-      // In supplementalDetailsPaths we get row names, in output we already have
-      // row paths. We need to find a matching row and put all paths immediately
-      // after it.
-      const rowPath = flatPathsWithGroups[rowName];
-      const sourceRowIndex = output.indexOf(rowPath);
-      if (sourceRowIndex !== -1) {
-        output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
-      }
-    });
-
-    return output;
+    return getAllDataColumns(asset, submissions);
   }
 
   /** Returns a list of columns that user can hide */
