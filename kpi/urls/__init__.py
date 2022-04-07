@@ -9,6 +9,7 @@ from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
     user_report,
     country_report,
+    media_storage,
     retrieve_reports,
 )
 from kpi.forms.registration import RegistrationForm
@@ -67,6 +68,8 @@ urlpatterns = [
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
             retrieve_reports),
+    path('superuser_stats/media_storage_report/', media_storage),
+    re_path(r'^superuser_stats/media_storage_report/(?P<base_filename>[^/]+)$', retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
 ]

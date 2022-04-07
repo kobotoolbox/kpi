@@ -4,6 +4,7 @@ import unicodecsv
 from celery import shared_task
 from django.conf import settings
 from django.core.files.storage import get_storage_class
+from django.db.models import Sum
 
 from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
@@ -12,6 +13,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUser,
     KobocatUserProfile,
     KobocatXForm,
+    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
 from kpi.models.asset import Asset
@@ -73,6 +75,38 @@ def generate_country_report(
             except Exception as e:
                 row = ['!FAILED!', 'Country: {}'.format(label), repr(e)]
             writer.writerow(row)
+
+
+@shared_task
+def generate_media_storage_report(output_filename):
+
+    def convert_size(size_bytes):
+        converted = size_bytes / (1024 ** 3)
+        return converted
+
+    attachments = ReadOnlyKobocatAttachment.objects.all().values(
+        'instance__xform__user__username'
+    ).order_by(
+        'instance__xform__user__username'
+    ).annotate(
+        storage_used=Sum('media_file_size')
+    )
+
+    data = []
+
+    for attachment_count in attachments:
+        data.append([
+            attachment_count['instance__xform__user__username'],
+            convert_size(attachment_count['storage_used'])
+        ])
+
+    headers = ['Username', 'Storage Used(GB)']
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as output:
+        writer = unicodecsv.writer(output)
+        writer.writerow(headers)
+        writer.writerows(data)
 
 
 @shared_task
