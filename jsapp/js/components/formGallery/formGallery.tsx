@@ -110,13 +110,25 @@ const selectFilterQuery = (
   startDate: string,
   endDate: string
 ) => {
-  console.log(startDate, endDate);
-  let query = '';
-  if (filterQuestion) {
-    const filterQuery = {[filterQuestion]: {$exists: true}};
-    query = '&query=' + JSON.stringify(filterQuery);
+  if (!filterQuestion && !startDate && !endDate) {
+    return;
   }
-  return query;
+  const query: {[key: string]: string | object} = {};
+  if (filterQuestion) {
+    query[filterQuestion] = {$exists: true};
+  }
+  if (startDate || endDate) {
+    // $and is necessary as repeating a json key is not valid
+    const andQuery: {[key: string]: object}[] = [];
+    if (startDate) {
+      andQuery.push({_submission_time: {$gt: startDate}});
+    }
+    if (endDate) {
+      andQuery.push({_submission_time: {$lt: endDate}});
+    }
+    query["$and"] = andQuery;
+  }
+  return '&query=' + JSON.stringify(query);
 };
 
 interface FormGalleryProps {
