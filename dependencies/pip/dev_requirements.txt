@@ -173,7 +173,7 @@ django-trench==0.2.3
     # via -r dependencies/pip/requirements.in
 django-userforeignkey==0.4.0
     # via django-request-cache
-django-webpack-loader==0.6.0
+django-webpack-loader==1.5.0
     # via -r dependencies/pip/requirements.in
 djangorestframework==3.13.1
     # via

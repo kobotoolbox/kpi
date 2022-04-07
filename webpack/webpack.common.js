@@ -4,6 +4,8 @@ const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
 
+console.log('__dirname', __dirname);
+
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
 // `Error: No PostCSS Config found in: /srv/node_modules/…`
@@ -112,7 +114,7 @@ var commonOptions = {
     }
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
       output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
