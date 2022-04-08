@@ -4,8 +4,6 @@ const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
 
-console.log('__dirname', __dirname);
-
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
 // `Error: No PostCSS Config found in: /srv/node_modules/…`

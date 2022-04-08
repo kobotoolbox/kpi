@@ -13,7 +13,7 @@ module.exports = WebpackCommon({
   // mainly for hiding stylelint output
   stats: {
     all: false,
-    // maxModules: 0,
+    modulesSpace: 0,
     errors: true,
     errorDetails: true
   }
