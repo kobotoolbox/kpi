@@ -31,7 +31,7 @@ module.exports = WebpackCommon({
     library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
-    filename: '[name]-[hash].js'
+    filename: '[name]-[contenthash].js'
   },
   devServer: {
     devMiddleware: {
