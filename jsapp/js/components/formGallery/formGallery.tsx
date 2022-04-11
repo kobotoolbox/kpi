@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useReducer} from 'react';
 import ReactSelect from 'react-select';
 // @ts-ignore
 import {dataInterface} from 'js/dataInterface';
+import {FlatQuestion, getFlatQuestionsList} from 'jsapp/js/assetUtils';
 
 interface State {
   submissions: SubmissionResponse[];
@@ -95,18 +96,68 @@ const IMAGE_MIMETYPES = [
 ];
 const PAGE_SIZE = 30;
 
-const selectImageAttachments = (submissions: SubmissionResponse[]) =>
+/** Represents a JavaScript object that was parsed from JSON */
+type Json = null | boolean | number | string | Json[] | {[key: string]: Json};
+
+/**
+ * Find a key anywhere in an object (supports nesting)
+ * Based on https://stackoverflow.com/a/15524326/443457
+ * @param theObject - object to search
+ * @param key - key to find
+ * @returns value of the found key
+ */
+function findByKey(theObject: Json, key: string): Json {
+  let result = null;
+  if (theObject instanceof Array) {
+    for (let i = 0; i < theObject.length; i++) {
+      result = findByKey(theObject[i], key);
+      if (result) {
+        break;
+      }
+    }
+  } else if (theObject instanceof Object) {
+    for (let prop in theObject) {
+      if (prop == key) {
+        return theObject[key];
+      }
+      if (
+        theObject[prop] instanceof Object ||
+        theObject[prop] instanceof Array
+      ) {
+        result = findByKey(theObject[prop], key);
+        if (result) {
+          break;
+        }
+      }
+    }
+  }
+  return result;
+}
+
+const selectImageAttachments = (
+  submissions: SubmissionResponse[],
+  filterQuestion: string | null
+) =>
   ([] as SubmissionAttachment[]).concat.apply(
     [],
-    submissions.map((x) =>
-      x._attachments.filter((attachment) =>
+    submissions.map((submission) => {
+      const attachments = submission._attachments.filter((attachment) =>
         IMAGE_MIMETYPES.includes(attachment.mimetype)
-      )
-    )
+      );
+      if (filterQuestion) {
+        const filename = findByKey(submission, filterQuestion);
+        return attachments.filter(
+          (attachment) =>
+            attachment.filename.split('/').slice(-1)[0] === filename
+        );
+      }
+      return attachments;
+    })
   );
 const selectShowLoadMore = (next: string | null) => !!next;
 const selectFilterQuery = (
   filterQuestion: string | null,
+  flatQuestionsList: FlatQuestion[],
   startDate: string,
   endDate: string
 ) => {
@@ -115,7 +166,18 @@ const selectFilterQuery = (
   }
   const query: {[key: string]: string | object} = {};
   if (filterQuestion) {
-    query[filterQuestion] = {$exists: true};
+    const flatQuestion = flatQuestionsList.find(
+      (flatQuestion) => flatQuestion.path === filterQuestion
+    );
+    if (flatQuestion?.hasRepatParent) {
+      // Should use this format, must be recursive for nested repeating questions
+      // {"group_a":{"$elemMatch":{"group_a/question":{"$exists":true}}}}
+      query[filterQuestion.split('/')[0]] = {
+        $elemMatch: {[filterQuestion]: {$exists: true}},
+      };
+    } else {
+      query[filterQuestion] = {$exists: true};
+    }
   }
   if (startDate || endDate) {
     // $and is necessary as repeating a json key is not valid
@@ -126,7 +188,7 @@ const selectFilterQuery = (
     if (endDate) {
       andQuery.push({_submission_time: {$lt: endDate}});
     }
-    query["$and"] = andQuery;
+    query['$and'] = andQuery;
   }
   return '&query=' + JSON.stringify(query);
 };
@@ -136,11 +198,15 @@ interface FormGalleryProps {
 }
 
 export default function FormGallery(props: FormGalleryProps) {
-  const questions = props.asset.content?.survey
-    ?.filter((survey) => survey.type === 'image')
+  const flatQuestionsList = getFlatQuestionsList(props.asset.content!.survey!);
+  const questions = flatQuestionsList
+    .filter((survey) => survey.type === 'image')
     .map((survey) => ({
-      value: survey.$autoname,
-      label: survey.label?.join('') || '',
+      value: survey.path,
+      label:
+        survey.parents.join(' / ') +
+        (survey.parents.length ? ' / ' : '') +
+        survey.label,
     }));
   const defaultOption = {value: '', label: 'All questions'};
   const questionFilterOptions = [defaultOption, ...(questions || [])];
@@ -148,12 +214,13 @@ export default function FormGallery(props: FormGalleryProps) {
     useReducer(reducer, initialState);
 
   const attachments = useMemo(
-    () => selectImageAttachments(submissions),
+    () => selectImageAttachments(submissions, filterQuestion),
     [submissions]
   );
   const showLoadMore = useMemo(() => selectShowLoadMore(next), [next]);
   const filterQuery = useMemo(
-    () => selectFilterQuery(filterQuestion, startDate, endDate),
+    () =>
+      selectFilterQuery(filterQuestion, flatQuestionsList, startDate, endDate),
     [filterQuestion, startDate, endDate]
   );
 
