@@ -1,7 +1,8 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 .templates-list {
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   width: 100%;
 
   .templates-list__header {

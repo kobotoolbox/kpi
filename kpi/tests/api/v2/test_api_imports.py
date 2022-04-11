@@ -23,7 +23,7 @@ class AssetImportTaskTest(BaseTestCase):
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
-        self.asset = Asset.objects.first()
+        self.asset = Asset.objects.get(pk=1)
 
     def _assert_assets_contents_equal(self, a1, a2, sheet='survey'):
         def _prep_row_for_comparison(row):
@@ -603,7 +603,7 @@ class AssetImportTaskTest(BaseTestCase):
             created_asset.content['survey']
         )
         assert expected_content_settings == created_asset.content['settings']
-        assert 'kobo--locking-profiles' not in created_asset.content
+        assert not created_asset.content['kobo--locking-profiles']
 
     def test_import_locking_xls_as_question(self):
         survey_sheet_content = [
@@ -686,7 +686,7 @@ class AssetImportTaskTest(BaseTestCase):
             created_asset.content['survey']
         )
         assert expected_content_settings == created_asset.content['settings']
-        assert 'kobo--locking-profiles' not in created_asset.content
+        assert not created_asset.content['kobo--locking-profiles']
 
     def test_import_library_bulk_xls(self):
         library_sheet_content = [

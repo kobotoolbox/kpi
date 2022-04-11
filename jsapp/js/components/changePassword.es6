@@ -124,6 +124,7 @@ export default class ChangePassword extends React.Component {
 
               <bem.AccountSettings__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Current Password')}
                   type='password'
                   errors={this.state.errors.currentPassword}
@@ -141,6 +142,7 @@ export default class ChangePassword extends React.Component {
 
               <bem.AccountSettings__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('New Password')}
                   type='password'
                   errors={this.state.errors.newPassword}
@@ -158,6 +160,7 @@ export default class ChangePassword extends React.Component {
 
               <bem.AccountSettings__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Verify Password')}
                   type='password'
                   errors={this.state.errors.verifyPassword}
