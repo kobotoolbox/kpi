@@ -54,15 +54,6 @@ module.exports = WebpackCommon({
       failOnError: false,
       allowAsyncCycles: false,
       cwd: process.cwd(),
-      onDetected({paths, compilation}) {
-        if (paths.length === 2 && paths[0] === paths[1]) {
-          // Self referencing ought to be handled by v5.2.2, but it seems
-          // it isn't working properly with our setup. Plugin's GH issue:
-          // https://github.com/aackerman/circular-dependency-plugin/issues/64#issuecomment-1094914430
-        } else {
-          compilation.warnings.push(new Error(paths.join(' -> ')));
-        }
-      },
     }),
   ],
 });
