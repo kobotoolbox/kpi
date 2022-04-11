@@ -13,19 +13,19 @@ const postCssLoader = {
     sourceMap: true,
     postcssOptions: {
       plugins: [
-        'autoprefixer'
-      ]
-    }
-  }
+        'autoprefixer',
+      ],
+    },
+  },
 };
 
 const babelLoader = {
   loader: 'babel-loader',
   options: {
     presets: ['@babel/preset-env', '@babel/preset-react'],
-    plugins: ['react-hot-loader/babel']
-  }
-}
+    plugins: ['react-hot-loader/babel'],
+  },
+};
 
 var commonOptions = {
   module: {
@@ -36,8 +36,8 @@ var commonOptions = {
         exclude: /node_modules/,
         loader: 'eslint-loader',
         options: {
-          quiet: true
-        }
+          quiet: true,
+        },
       },
       {
         enforce: 'pre',
@@ -48,7 +48,7 @@ var commonOptions = {
           failOnErrors: true,
           failOnWarns: false,
           // custom reporter function that only returns errors (no warnings)
-          reporter: function(errors) {
+          reporter: function (errors) {
             errors.forEach((error) => {
               if (error.level === 'error') {
                 this.emitError([
@@ -63,7 +63,7 @@ var commonOptions = {
       {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
-        use: babelLoader
+        use: babelLoader,
       },
       {
         test: /\.(ts|tsx)$/,
@@ -71,34 +71,34 @@ var commonOptions = {
         use: [
           babelLoader,
           {
-            loader: 'ts-loader'
-          }
-        ]
+            loader: 'ts-loader',
+          },
+        ],
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', postCssLoader]
+        use: ['style-loader', 'css-loader', postCssLoader],
       },
       {
         test: /\.scss$/,
-        use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader']
+        use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader'],
       },
       {
         test: /\.coffee$/,
         use: {
-          loader: 'coffee-loader'
-        }
+          loader: 'coffee-loader',
+        },
       },
       {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
         use: {
           loader: 'file-loader',
           options: {
-            name: '[name].[ext]'
-          }
-        }
-      }
-    ]
+            name: '[name].[ext]',
+          },
+        },
+      },
+    ],
   },
   resolve: {
     extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx'],
@@ -109,7 +109,7 @@ var commonOptions = {
       scss: path.join(__dirname, '../jsapp/scss'),
       utils: path.join(__dirname, '../jsapp/js/utils'),
       test: path.join(__dirname, '../test'),
-    }
+    },
   },
   plugins: [
     new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
@@ -118,9 +118,9 @@ var commonOptions = {
       output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({
-      '$': 'jquery'
-    })
-  ]
+      '$': 'jquery',
+    }),
+  ],
 };
 
 module.exports = function (options) {

@@ -2,7 +2,6 @@ process.traceDeprecation = true;
 const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
-require('webpack-bundle-tracker');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 var isPublicDomainDefined = process.env.KOBOFORM_PUBLIC_SUBDOMAIN &&
   process.env.PUBLIC_DOMAIN_NAME;
