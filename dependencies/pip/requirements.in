@@ -61,12 +61,13 @@ jsonfield
 kombu
 lxml
 oauthlib
+openpyxl
 #py-gfm # Incompatible with markdown 3.x
 psycopg2
 pymongo
 python-dateutil
 pytz
-pyxform==1.7.0
+pyxform==1.9.0
 requests
 responses
 shortuuid

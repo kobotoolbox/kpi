@@ -74,8 +74,10 @@ decorator==4.4.1
     #   traitlets
 deepmerge==0.3.0
     # via -r dependencies/pip/requirements.in
-defusedxml==0.6.0
-    # via djangorestframework-xml
+defusedxml==0.7.1
+    # via
+    #   djangorestframework-xml
+    #   pyxform
 dicttoxml==1.7.4
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
@@ -166,6 +168,8 @@ docutils==0.15.2
     #   statistics
 drf-extensions==0.5.0
     # via -r dependencies/pip/requirements.in
+et-xmlfile==1.1.0
+    # via openpyxl
 fabric==2.5.0
     # via -r dependencies/pip/dev_requirements.in
 future==0.18.2
@@ -224,6 +228,10 @@ oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+openpyxl==3.0.9
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   pyxform
 packaging==19.2
     # via pytest
 paramiko==2.6.0
@@ -302,7 +310,7 @@ pytz==2019.3
     #   django
     #   django-timezone-field
     #   twilio
-pyxform==1.7.0
+pyxform==1.9.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
@@ -383,7 +391,7 @@ wcwidth==0.1.7
     #   pytest
 werkzeug==0.16.0
     # via -r dependencies/pip/requirements.in
-xlrd==1.2.0
+xlrd==2.0.1
     # via
     #   -r dependencies/pip/requirements.in
     #   pyxform
