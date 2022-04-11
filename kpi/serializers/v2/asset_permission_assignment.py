@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from django.contrib.auth.models import Permission, User
 from django.urls import resolve, Resolver404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -148,7 +148,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
         if not partial_permissions:
             _invalid_partial_permissions(
-                _("This field is required for the '{}' permission").format(
+                t("This field is required for the '{}' permission").format(
                     permission.codename
                 )
             )
@@ -162,22 +162,22 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
                     partial_permission.get('url')
                 )
             except (TypeError, Resolver404):
-                _invalid_partial_permissions(_('Invalid `url`'))
+                _invalid_partial_permissions(t('Invalid `url`'))
 
             try:
                 codename = resolver_match.kwargs['codename']
             except KeyError:
-                _invalid_partial_permissions(_('Invalid `url`'))
+                _invalid_partial_permissions(t('Invalid `url`'))
 
             # Permission must valid and must be assignable.
             if not self._validate_permission(codename,
                                              SUFFIX_SUBMISSIONS_PERMS):
-                _invalid_partial_permissions(_('Invalid `url`'))
+                _invalid_partial_permissions(t('Invalid `url`'))
 
             # No need to validate Mongo syntax, query will fail
             # if syntax is not correct.
             if not isinstance(filters_, dict):
-                _invalid_partial_permissions(_('Invalid `filters`'))
+                _invalid_partial_permissions(t('Invalid `filters`'))
 
             # Validation passed!
             partial_permissions_attr[codename].append(filters_)
@@ -193,7 +193,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         """
         if not self._validate_permission(permission.codename):
             raise serializers.ValidationError(
-                _(
+                t(
                     '{permission} cannot be assigned explicitly to '
                     'Asset objects of this type.'
                 ).format(permission=permission.codename)

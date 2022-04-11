@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 $hover-asset-row: $kobo-gray-96;
 $hover-transition: 0.3s opacity;
 $asset-row-spacing: 6px;
@@ -68,7 +70,7 @@ $asset-row-spacing: 6px;
   }
 
   .asset-row__cell--name {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
   }
 
   .asset-row__description,

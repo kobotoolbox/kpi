@@ -27,8 +27,9 @@ import {
   matrixRepeatSurveyChoices,
   matrixRepeatSurveySubmission,
   matrixRepeatSurveyDisplayData,
+  submissionWithAttachmentsWithUnicode,
 } from './submissionUtils.mocks';
-import {getSubmissionDisplayData} from './submissionUtils';
+import {getValidFilename, getMediaAttachment, getSubmissionDisplayData} from './submissionUtils';
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
@@ -77,5 +78,23 @@ describe('getSubmissionDisplayData', () => {
       const test = getSubmissionDisplayData(matrixRepeatSurvey, matrixRepeatSurveyChoices, 0, matrixRepeatSurveySubmission).children;
       const target = matrixRepeatSurveyDisplayData;
       expect(test).to.deep.equal(target);
+  });
+});
+
+describe('getValidFilename', () => {
+  it('should return a file name which matches Django renaming', () => {
+    const fileName = submissionWithAttachmentsWithUnicode.A_picture;
+    const test = getValidFilename(fileName);
+    const target = 'Un_ete_au_Quebec_Canada-19_41_32.jpg';
+    expect(test).to.equal(target);
+  });
+});
+
+describe('getMediaAttachment', () => {
+  it('should return an attachment object', () => {
+    const fileName = submissionWithAttachmentsWithUnicode.A_picture;
+    const test = getMediaAttachment(submissionWithAttachmentsWithUnicode, fileName);
+    const target = submissionWithAttachmentsWithUnicode._attachments[0];
+    expect(test).to.deep.equal(target);
   });
 });

@@ -11,7 +11,7 @@ bem.KoboRange__unit = makeBem(bem.KoboRange, 'unit', 'span')
 bem.KoboRange__progress = makeBem(bem.KoboRange, 'progress', 'div')
 bem.KoboRange__input = makeBem(bem.KoboRange, 'input', 'input')
 
-export enum KoboRangeColours {
+export enum KoboRangeColors {
   'default' =  'default',
   'warning' = 'warning',
   'teal' = 'teal',
@@ -23,10 +23,11 @@ type KoboRangeProps = {
   value: number,
   /** uses time display for all required values */
   isTime?: boolean,
+  isDisabled?: boolean,
   /** required for input to be enabled (disabled without)*/
   onChange?: Function,
   /** defaults to $kobo-blue */
-  color?: string,
+  color?: KoboRangeColors,
   /** optional string to append to max */
   totalLabel?: string,
   /** optional string to append to value */
@@ -100,11 +101,11 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
 
         <bem.KoboRange__progress>
           <bem.KoboRange__input
-            m={this.props?.color ? this.props.color : KoboRangeColours.default}
+            m={this.props?.color ? this.props.color : KoboRangeColors.default}
             type='range'
             max={this.props.max}
             value={this.props.value}
-            disabled={!this.props.onChange}
+            disabled={!this.props.onChange || this.props.isDisabled}
             onChange={this.props?.onChange && this.onChange.bind(this)}
           />
         </bem.KoboRange__progress>

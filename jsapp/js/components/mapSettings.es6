@@ -403,7 +403,7 @@ class MapSettings extends React.Component {
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.KoboButton m='whitegray' onClick={this.resetMapSettings}>
+              <bem.KoboButton m='storm' onClick={this.resetMapSettings}>
                 {t('Reset')}
               </bem.KoboButton>
             }

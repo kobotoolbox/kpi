@@ -137,9 +137,15 @@ def autoname_fields_in_place(surv_content, destination_key):
                     _assign_row_to_name(row, _name)
                     continue
 
-        # if no labels can be used, then use a combination of type (which is
-        # always available) and kuid, which should always be unique
+        # If no labels can be used (such as with non-Latin characters), then
+        # use a combination of type (which is always available) and kuid, which
+        # should always be unique. In the case of KoboRank and KoboScore, use
+        # `select_one` as the type rather than `score__row` and `rank__level`
+        # respectively, otherwise it does not match up with the transformed
+        # asset content passed to kobocat.
         _slug = row['type']
+        if _slug in ['score__row', 'rank__level']:
+            _slug = 'select_one'
         if '$kuid' in row:
             _slug += ('_' + row['$kuid'])
         _assign_row_to_name(row, sluggify_label(

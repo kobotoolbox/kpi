@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 .radio,
 .checkbox {
@@ -20,6 +21,8 @@
     }
   }
 
+  .radio__row.radio__row--title,
+  &.radio--disabled .radio__row,
   &.checkbox--disabled .checkbox__wrapper {
     cursor: default;
   }
@@ -41,7 +44,7 @@
     // it's 28px plus whitespace between inline-blocks
     max-width: calc(100% - 32px);
     color: colors.$kobo-gray-24;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
   }
 
   .radio__input + .radio__label,

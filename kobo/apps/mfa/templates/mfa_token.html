@@ -1,0 +1,24 @@
+{% extends "registration.html" %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+  <form method="post" action="{% url 'mfa_token' %}" class="registration registration--login">
+    <div class="registration--logo">
+      <a href="/">
+      {% block logo %}{{ block.super }}{% endblock %}
+      </a>
+    </div>
+    {% csrf_token %}
+    <p><b>{% trans "Please enter your verification token" %}</b></p>
+    <p>&nbsp;</p>
+    {{ form.as_p }}
+    <a href="#" class="registration__forgot">
+      {% trans "Problems with your token?" %}
+    </a>
+    <p>&nbsp;</p>
+    <button type="submit" name="continue" class="kobo-button kobo-button--blue kobo-button--fullwidth">
+      {% trans "Continue" %}
+    </button>
+    <input type="hidden" name="next" value="{{ next }}" />
+  </form>
+{% endblock %}

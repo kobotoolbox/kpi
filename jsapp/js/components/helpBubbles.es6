@@ -380,8 +380,8 @@ export class SupportHelpBubble extends HelpBubble {
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-help-articles'/>
-              <header>{t('KoBoToolbox Help Center')}</header>
-              <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+              <header>{t('KoboToolbox Help Center')}</header>
+              <p>{t('A vast collection of user support articles and tutorials related to Kobo')}</p>
             </bem.HelpBubble__rowAnchor>
           }
 
@@ -394,8 +394,8 @@ export class SupportHelpBubble extends HelpBubble {
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-forum'/>
-              <header>{t('KoBoToolbox Community Forum')}</header>
-              <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+              <header>{t('KoboToolbox Community Forum')}</header>
+              <p>{t('Post your questions to get answers from experienced Kobo users around the world')}</p>
             </bem.HelpBubble__rowAnchor>
           }
 
@@ -450,7 +450,7 @@ export class SupportHelpBubble extends HelpBubble {
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
-          <i className='k-icon k-icon-prev'/>
+          <i className='k-icon k-icon-angle-left'/>
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__popupContent>

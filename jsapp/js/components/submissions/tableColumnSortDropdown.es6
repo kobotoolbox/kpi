@@ -2,13 +2,15 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import classNames from 'classnames';
 import mixins from 'js/mixins';
-import bem from 'js/bem';
-import KoboDropdown, {KoboDropdownThemes} from 'js/components/common/koboDropdown';
+import bem, {makeBem} from 'js/bem';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
+
+bem.SortDropdownMenuButton = makeBem(null, 'sort-dropdown-menu-button', 'button');
 
 /**
  * A wrapper around KoboDropdown to be used in table header to sort columns.
@@ -73,10 +75,8 @@ class TableColumnSortDropdown extends React.Component {
 
   renderSortButton(buttonSortValue) {
     return (
-      <bem.KoboDropdown__menuButton
-        className={classNames('table-column-sort-dropdown-option', {
-          'table-column-sort-dropdown-option--active': this.props.sortValue === buttonSortValue,
-        })}
+      <bem.SortDropdownMenuButton
+        m={{active: this.props.sortValue === buttonSortValue}}
         onClick={this.changeSort.bind(this, buttonSortValue)}
       >
         {buttonSortValue === SORT_VALUES.ASCENDING && [
@@ -94,17 +94,14 @@ class TableColumnSortDropdown extends React.Component {
             className={classNames('k-icon', 'k-icon-close', CLEAR_BUTTON_CLASS_NAME)}
           />
         }
-      </bem.KoboDropdown__menuButton>
+      </bem.SortDropdownMenuButton>
     );
   }
 
   render() {
     return (
       <KoboDropdown
-        theme={KoboDropdownThemes.dark}
-        hideOnEsc
         hideOnMenuClick
-        hideOnMenuOutsideClick
         name='table-column-sort'
         triggerContent={this.renderTrigger()}
         menuContent={
@@ -113,13 +110,13 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.DESCENDING)}
 
             {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
-              <bem.KoboDropdown__menuButton onClick={this.hideField}>
+              <bem.SortDropdownMenuButton onClick={this.hideField}>
                 <i className='k-icon k-icon-hide'/>
                 <span>{t('Hide field')}</span>
-              </bem.KoboDropdown__menuButton>
+              </bem.SortDropdownMenuButton>
             }
             {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
-              <bem.KoboDropdown__menuButton
+              <bem.SortDropdownMenuButton
                 onClick={this.changeFieldFrozen.bind(this, !this.props.isFieldFrozen)}
               >
                 {this.props.isFieldFrozen && [
@@ -130,7 +127,7 @@ class TableColumnSortDropdown extends React.Component {
                   <i key='0' className='k-icon k-icon-freeze'/>,
                   <span key='1'>{t('Freeze field')}</span>,
                 ]}
-              </bem.KoboDropdown__menuButton>
+              </bem.SortDropdownMenuButton>
             }
           </React.Fragment>
         }

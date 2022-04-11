@@ -3,13 +3,15 @@ import React from 'react';
 
 import bem, {makeBem} from 'js/bem';
 import AudioPlayer from 'js/components/common/audioPlayer';
+import KoboImage from 'js/components/common/koboImage';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import './tableMediaPreview.scss';
 
 bem.TableMediaPreview = makeBem(null, 'table-media-preview');
-bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'img');
+bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'div');
 bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', 'div');
 bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', 'video');
 bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', 'div');
@@ -47,9 +49,9 @@ class TableMediaPreview extends React.Component {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
         return (
-          <bem.TableMediaPreview__image
-            src={this.props?.mediaAttachment?.download_medium_url}
-          />
+          <bem.TableMediaPreview__image>
+            <KoboImage src={this.props?.mediaAttachment?.download_medium_url}/>
+          </bem.TableMediaPreview__image>
         );
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
