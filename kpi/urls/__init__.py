@@ -9,6 +9,7 @@ from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
     user_report,
     country_report,
+    forms_count_by_submission_report,
     retrieve_reports,
 )
 from kpi.forms.registration import RegistrationForm
@@ -69,6 +70,9 @@ urlpatterns = [
             retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    path('superuser_stats/forms-by-submissions-count/', forms_count_by_submission_report),
+    re_path(r'^superuser_stats/forms-by-submissions-count/(?P<base_filename>[^/]+)$',
+            retrieve_reports),
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':
