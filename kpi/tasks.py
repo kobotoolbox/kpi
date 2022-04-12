@@ -1,5 +1,9 @@
 # coding: utf-8
+import requests
+from django.conf import settings
 from django.core.management import call_command
+from rest_framework import status
+from rest_framework.reverse import reverse
 
 from kobo.celery import celery_app
 
@@ -42,3 +46,21 @@ def sync_media_files(asset_uid):
 
     asset = Asset.objects.get(uid=asset_uid)
     asset.deployment.sync_media_files()
+
+
+@celery_app.task
+def enketo_flush_cached_preview(server_url, form_id):
+    """
+    Flush a cached preview from Enketo's Redis database to avoid memory
+    exhaustion. Uses the endpoint described in
+    https://apidocs.enketo.org/v2#/delete-survey-cache.
+    Intended to be run with Celery's `apply_async(countdown=…)` shortly after
+    preview generation.
+    """
+    response = requests.delete(
+        f'{settings.ENKETO_URL}/{settings.ENKETO_FLUSH_CACHE_ENDPOINT}',
+        # bare tuple implies basic auth
+        auth=(settings.ENKETO_API_TOKEN, ''),
+        data=dict(server_url=server_url, form_id=form_id),
+    )
+    response.raise_for_status()

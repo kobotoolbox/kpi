@@ -1,5 +1,7 @@
 # coding: utf-8
-from django.http import HttpResponse, HttpResponseRedirect
+import re
+
+from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.utils.translation import gettext as t
 from rest_framework import (
     renderers,
@@ -209,6 +211,16 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     )
     def data(self, request, *args, **kwargs):
         AVAILABLE_FORMATS = ('csv', 'xlsx')
+        # Serve content directly to these agents instead of redirecting
+        BAD_USER_AGENTS = [
+            # LibreOffice Calc only refreshes the URL to which it was
+            # redirected (at least until you quit and restart it)
+            r'^LibreOffice',
+            # Microsoft Excel and Power BI fail to send any `Authorization`
+            # headers after a 302 redirect, making authentication fail
+            r'^Microsoft.Data.Mashup',
+        ]
+
         format_type = kwargs.get('format', request.GET.get('format'))
         if format_type not in AVAILABLE_FORMATS:
             raise serializers.ValidationError(
@@ -236,6 +248,16 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                 content_type='text/plain',
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        bad_user_agent = False
+        user_agent = request.META.get('HTTP_USER_AGENT')
+        if user_agent:
+            for ua_pattern in BAD_USER_AGENTS:
+                if re.match(ua_pattern, user_agent):
+                    bad_user_agent = True
+                    break
+        if bad_user_agent:
+            return FileResponse(export.result.file)
 
         file_location = serializers.FileField().to_representation(export.result)
         return HttpResponseRedirect(file_location)

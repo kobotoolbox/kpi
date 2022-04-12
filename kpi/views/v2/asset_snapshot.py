@@ -22,6 +22,7 @@ from kpi.renderers import (
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
+from kpi.tasks import enketo_flush_cached_preview
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
@@ -139,6 +140,14 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
                 data=data
             )
             response.raise_for_status()
+
+            # Ask Celery to remove the preview from its XSLT cache after some
+            # reasonable delay; see
+            # https://github.com/enketo/enketo-express/issues/357
+            enketo_flush_cached_preview.apply_async(
+                kwargs=data,  # server_url and form_id
+                countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
+            )
 
             json_response = response.json()
             preview_url = json_response.get('preview_url')
