@@ -7,13 +7,13 @@ import requests
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import gettext_lazy as t
+from pymongo.errors import OperationFailure
 from rest_framework import (
     renderers,
     serializers,
     status,
     viewsets,
 )
-from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -46,6 +46,7 @@ from kpi.renderers import (
     SubmissionGeoJsonRenderer,
     SubmissionXMLRenderer,
 )
+from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
@@ -415,10 +416,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 )
             )
 
-        submissions = deployment.get_submissions(request.user,
-                                                 format_type=format_type,
-                                                 request=request,
-                                                 **filters)
+        try:
+            submissions = deployment.get_submissions(request.user,
+                                                    format_type=format_type,
+                                                    request=request,
+                                                    **filters)
+        except OperationFailure as err:
+            message = str(err)
+            # Don't show just any raw exception message out of fear of data leaking
+            if message == '$all needs an array':
+                raise serializers.ValidationError(message)
+            logging.warning(message, exc_info=True)
+            raise serializers.ValidationError('Unsupported query')
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
         # It avoids retrieving all the objects from MongoDB
@@ -601,14 +610,20 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_id, user, request=request
         )
 
-        # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
-        # it into some utility file
-        _, submissions_stream = build_formpack(
-            self.asset,
-            submission_stream=[submission_json],
-            use_all_form_versions=True
-        )
-        version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+        # Do not use version_uid from the submission until UI gives users the
+        # possibility to choose which version they want to use
+
+        # # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
+        # # it into some utility file
+        # _, submissions_stream = build_formpack(
+        #     self.asset,
+        #     submission_stream=[submission_json],
+        #     use_all_form_versions=True
+        # )
+        # version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+
+        # Let's use the latest version uid temporarily
+        version_uid = self.asset.latest_version.uid
 
         # Retrieve the XML root node name from the submission. The instance's
         # root node name specified in the form XML (i.e. the first child of

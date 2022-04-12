@@ -433,3 +433,23 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             user=anotheruser
         )
         assert len(exported_submissions) == len(actual_submissions)
+
+    def test_synchronous_csv_export_bad_user_agent_does_not_redirect(self):
+        es = self._create_export_settings()
+
+        self.client.login(username='someuser', password='someuser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        synchronous_export_response = self.client.get(
+            synchronous_exports_url,
+            HTTP_USER_AGENT='Microsoft.Data.Mashup (https://go.microsoft.com/fwlink/?LinkID=304225)'
+        )
+        assert synchronous_export_response.status_code == status.HTTP_200_OK
+        first_line = next(synchronous_export_response.streaming_content)
+        assert b'Do_you_descend_from_unicellular_organism' in first_line

@@ -153,13 +153,13 @@ CONSTANCE_CONFIG = {
     ),
     'SUPPORT_URL': (
         env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
-        'URL for "KoBoToolbox Help Center"',
+        'URL for "KoboToolbox Help Center"',
     ),
     'COMMUNITY_URL': (
         env.str(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
-        'URL for "KoBoToolbox Community Forum"',
+        'URL for "KoboToolbox Community Forum"',
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
@@ -215,7 +215,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'MFA_ISSUER_NAME': (
-        'KoBoToolbox',
+        'KoboToolbox',
         'Issuer name displayed in multi-factor applications'
     ),
     'MFA_ENABLED': (
@@ -494,16 +494,15 @@ ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
-# The number of hours to keep a kobo survey preview (generated for enketo)
-# around before purging it.
-KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
-
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
+ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
+# How long to wait before flushing an individual preview from Enketo's cache
+ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
