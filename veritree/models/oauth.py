@@ -1,6 +1,6 @@
 # coding: utf-8
 from urllib.parse import urlencode
-
+from django.conf import settings
 from requests.models import HTTPError
 from kpi.utils.log import logging
 from social_core.backends.oauth import BaseOAuth2
@@ -21,10 +21,8 @@ class VeritreeOAuth2(BaseOAuth2):
     RESPONSE_TYPE = 'password'
 
     EXTRA_DATA = [('user_orgs', 'user_orgs')]
-    client_id = '5'
-    client_secret = 'vRVzWCB51hseGQeLiaDkDuPIYwWNL3kolg3lqwWt'
-
-    
+    client_id = settings.VERITREE_OAUTH_CLIENT_ID
+    client_secret = settings.VERITREE_OAUTH_CLIENT_SECRET
 
     def authenticate(self, *args, **kwargs):
         """

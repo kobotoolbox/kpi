@@ -23,6 +23,7 @@ export class TableColumnFilter extends React.Component {
       frozenColumn: false,
       showGroupName: true,
       showHXLTags: false,
+      showAllColumnsWithoutData: false,
       translationIndex: 0,
     };
 
@@ -44,6 +45,9 @@ export class TableColumnFilter extends React.Component {
       if (typeof _sett['data-table']['show-hxl-tags'] !== 'undefined') {
         this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
       }
+      if (typeof _sett['data-table']['show-all-columns-without-data'] !== 'undefined') {
+        this.state.showAllColumnsWithoutData = _sett['data-table']['show-all-columns-without-data'];
+      }
     }
 
     autoBind(this);
@@ -64,6 +68,7 @@ export class TableColumnFilter extends React.Component {
       settings['data-table']['show-group-name'] = s.showGroupName;
       settings['data-table']['translation-index'] = s.translationIndex;
       settings['data-table']['show-hxl-tags'] = s.showHXLTags;
+      settings['data-table']['show-all-columns-without-data'] = s.showAllColumnsWithoutData;
 
       actions.table.updateSettings(this.props.asset.uid, settings);
     } else {
@@ -93,6 +98,9 @@ export class TableColumnFilter extends React.Component {
   }
   updateGroupHeaderDisplay(isChecked) {
     this.setState({showGroupName: isChecked});
+  }
+  updateShowAllColumnsWithoutData(isChecked) {
+    this.setState({showAllColumnsWithoutData: isChecked});
   }
   onHXLTagsChange(isChecked) {
     this.setState({showHXLTags: isChecked});
@@ -161,6 +169,13 @@ export class TableColumnFilter extends React.Component {
 
     return (
       <div className='tableColumn-modal'>
+        <bem.FormModal__item>
+          <Checkbox
+              checked={this.state.showAllColumnsWithoutData}
+              onChange={this.updateShowAllColumnsWithoutData}
+              label={t('Show all columns in table even if they do not have any data')}
+          />
+        </bem.FormModal__item>
         <bem.FormModal__item m='translation-radios'>
           <Radio
             title={t('Display labels or XML values?')}

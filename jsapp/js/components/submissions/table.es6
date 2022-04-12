@@ -187,8 +187,11 @@ export class DataTable extends React.Component {
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
     // add all questions from the survey definition
-    let output = Object.values(flatPaths);
-
+    let output = []
+    if (this.props.asset.settings['data-table'] && this.props.asset.settings['data-table']['show-all-columns-without-data']) {
+      output = Object.values(flatPaths);
+    }
+    
     // Gather unique columns from all visible submissions and add them to output
     const dataKeys = Object.keys(data.reduce(function (result, obj) {
       return Object.assign(result, obj);

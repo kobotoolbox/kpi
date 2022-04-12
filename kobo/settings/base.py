@@ -220,6 +220,9 @@ SOCIAL_AUTH_PIPELINE = (
     'veritree.pipeline.veritree_subscribe_public_collections'
 )
 
+VERITREE_OAUTH_CLIENT_SECRET = os.environ.get('VERITREE_OAUTH_CLIENT_SECRET')
+VERITREE_OAUTH_CLIENT_ID = os.environ.get('VERITREE_OAUTH_CLIENT_ID')
+
 ROOT_URLCONF = 'kobo.urls'
 
 WSGI_APPLICATION = 'kobo.wsgi.application'
