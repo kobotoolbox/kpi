@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@56951080f64eae16542fd88349a69cf1f225252a#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@80460786816729377cdf34deaebaa51d2ff3872b#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -40,7 +40,7 @@ django-extensions
 django-oauth-toolkit
 django-registration-redux
 django-amazon-ses
-django-webpack-loader==0.6.0
+django-webpack-loader
 django-loginas
 django-markdownx
 
@@ -61,12 +61,13 @@ jsonfield
 kombu
 lxml
 oauthlib
+openpyxl
 #py-gfm # Incompatible with markdown 3.x
 psycopg2>=2.8,<2.9
 pymongo==3.12.3
 python-dateutil
 pytz
-pyxform==1.7.0
+pyxform==1.9.0
 requests
 responses
 shortuuid

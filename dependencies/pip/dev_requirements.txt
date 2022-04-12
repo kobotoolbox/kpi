@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@56951080f64eae16542fd88349a69cf1f225252a#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@80460786816729377cdf34deaebaa51d2ff3872b#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -90,7 +90,9 @@ decorator==5.1.1
 deepmerge==1.0.1
     # via -r dependencies/pip/requirements.in
 defusedxml==0.7.1
-    # via djangorestframework-xml
+    # via
+    #   djangorestframework-xml
+    #   pyxform
 deprecated==1.2.13
     # via
     #   jwcrypto
@@ -173,7 +175,7 @@ django-trench==0.2.3
     # via -r dependencies/pip/requirements.in
 django-userforeignkey==0.4.0
     # via django-request-cache
-django-webpack-loader==0.6.0
+django-webpack-loader==1.5.0
     # via -r dependencies/pip/requirements.in
 djangorestframework==3.13.1
     # via
@@ -187,6 +189,8 @@ docutils==0.18.1
     # via statistics
 drf-extensions==0.7.1
     # via -r dependencies/pip/requirements.in
+et-xmlfile==1.1.0
+    # via openpyxl
 executing==0.8.3
     # via stack-data
 fabric==2.7.0
@@ -246,6 +250,10 @@ oauthlib==3.2.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+openpyxl==3.0.9
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   pyxform
 packaging==21.3
     # via
     #   mongomock
@@ -336,7 +344,7 @@ pytz==2022.1
     #   django-timezone-field
     #   djangorestframework
     #   twilio
-pyxform==1.7.0
+pyxform==1.9.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
@@ -418,7 +426,7 @@ werkzeug==2.0.3
     # via -r dependencies/pip/requirements.in
 wrapt==1.14.0
     # via deprecated
-xlrd==1.2.0
+xlrd==2.0.1
     # via
     #   -r dependencies/pip/requirements.in
     #   pyxform

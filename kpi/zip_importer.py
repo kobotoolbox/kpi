@@ -4,6 +4,7 @@ import re
 import zipfile
 from io import BytesIO
 
+import openpyxl
 from xlrd import open_workbook
 
 from kpi.exceptions import ImportAssetException
@@ -127,7 +128,7 @@ class ImportFile:
                     self.readable.seek(0)
                     self._is_xls = has_xlsx_contentfile
                     return self._is_xls
-                self.wb = open_workbook(file_contents=self.readable.read())
+                self.wb = openpyxl.load_workbook(self.readable)
                 self.readable.seek(0)
                 self._is_xls = True
             # FIXME
