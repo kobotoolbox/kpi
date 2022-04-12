@@ -9,7 +9,7 @@ from xml.etree import ElementTree as ET
 
 import pytz
 from deepmerge import always_merger
-from dicttoxml import dicttoxml
+from dict2xml import dict2xml
 from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
@@ -350,11 +350,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             return submissions
 
         return [
-            dicttoxml(
+            dict2xml(
                 self.__prepare_xml(submission),
-                attr_type=False,
-                custom_root=self.asset.uid,
-            ).decode()
+                wrap=self.asset.uid,
+                newlines=False,
+            )
             for submission in submissions
         ]
 

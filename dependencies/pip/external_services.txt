@@ -76,7 +76,7 @@ deprecated==1.2.13
     # via
     #   jwcrypto
     #   redis
-dicttoxml==1.7.4
+dict2xml==1.7.1
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
