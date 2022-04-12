@@ -321,8 +321,7 @@ class Asset(ObjectPermissionMixin,
     HERITABLE_PERMISSIONS = {
         # parent permission: child permission
         PERM_VIEW_ASSET: PERM_VIEW_ASSET,
-        PERM_CHANGE_ASSET: PERM_CHANGE_ASSET,
-        PERM_MANAGE_ASSET: PERM_MANAGE_ASSET,
+        PERM_CHANGE_ASSET: PERM_CHANGE_ASSET
     }
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
@@ -1067,6 +1066,11 @@ class Asset(ObjectPermissionMixin,
                 if partial_perm not in new_partial_perms:
                     new_partial_perms[partial_perm] = filters
 
+                # TODO: omit `add_submissions`? It's required at the asset
+                # level for any kind of editing (e.g. partial
+                # `change_submissions` requires asset-wide `add_submissions`),
+                # but it doesn't make sense to restrict adding submissions
+                # "only to those submissions that match some criteria"
                 implied_perms = [
                     implied_perm
                     for implied_perm in self.get_implied_perms(partial_perm)

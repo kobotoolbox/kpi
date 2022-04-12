@@ -26,6 +26,9 @@ from kpi.utils.object_permission import (
 from kpi.utils.urls import absolute_resolve
 
 
+ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
+
+
 class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
@@ -60,8 +63,9 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         user = validated_data['user']
         asset = validated_data['asset']
         if asset.owner_id == user.id:
-            raise serializers.ValidationError({
-                'user': "Owner's permissions cannot be assigned explicitly"})
+            raise serializers.ValidationError(
+                {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
+            )
         permission = validated_data['permission']
         partial_permissions = validated_data.get('partial_permissions', None)
 
@@ -313,147 +317,128 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
     assignments = serializers.ListField(child=PermissionAssignmentSerializer())
 
     def create(self, validated_data):
-        request = self.context['request']
         asset = self.context['asset']
+        # TODO: refactor permission assignment code so that it does not always
+        # require a fully-fledged `User` object?
+        user_pk_to_obj = dict()
 
-        new_perm_assignments_by_user = defaultdict(dict)
-        # Build a 2D dictionary where first dimension keys are users' PK,
-        # and second dimension key are permission's PK.
-        for new_perm_assignment in validated_data['assignments']:
-            new_perm_assignments_by_user[new_perm_assignment['user'].pk][
-                new_perm_assignment['permission'].pk
-            ] = new_perm_assignment
+        # Build a set of all incoming assignments, including implied
+        # assignments not explicitly sent by the front end
+        incoming_assignments = set()
+        for incoming_assignment in validated_data['assignments']:
+            incoming_permission = incoming_assignment['permission']
+            partial_permissions = None
 
-        # Retrieve old permission assignment from DB to make diff with POSTed
-        # new permission assignments.
-        old_assignments = list(
-            get_user_permission_assignments_queryset(
-                asset, request.user
-            ).exclude(user=asset.owner)
-        )
+            # Stupid object cache thing because `assign_perm()` and
+            # `remove_perm()` REQUIRE user objects
+            user_pk_to_obj[
+                incoming_assignment['user'].pk
+            ] = incoming_assignment['user']
 
-        # Build another dictionary for old partial permission assignments
-        # Easy to retrieve partial permissions for a specific user.
-        partial_permissions = {}
-        for record in AssetUserPartialPermission.objects.values(
-            'permissions', 'user_id'
-        ).filter(asset=asset):
-            partial_permissions[record['user_id']] = record['permissions']
-
-        # Because we are going to alter the freshly created 2D dictionary (i.e.
-        # remove some elements from it). We need to keep a copy of it re-apply
-        # at the end all missing new permission assignments.
-        new_perm_assignments_by_user_copy = copy.deepcopy(
-            new_perm_assignments_by_user
-        )
-
-        # Remove from our 2D dict all permission assignments that did not change
-        old_assign_idxs_to_del = []
-        for old_assign_idx, old_assign in enumerate(old_assignments):
-            try:
-                perm_assignment = new_perm_assignments_by_user[old_assign.user_id][
-                    old_assign.permission_id
-                ]
-            except KeyError:
-                # An old assignment that has been removed
-                old_assign_idxs_to_del.append(old_assign_idx)
-            else:
-                # An old assignment that should be kept; remove from list of
-                # potential new permission assignments.
-                if (
-                    perm_assignment[
-                        'permission'
-                    ].codename != PERM_PARTIAL_SUBMISSIONS
+            if incoming_permission.codename == PERM_PARTIAL_SUBMISSIONS:
+                # Expand to include implied partial permissions
+                for partially_granted_codename, filter_criteria in (
+                    incoming_assignment['partial_permissions'].copy().items()
                 ):
-                    # Trivial case: it is a regular permission, just remove it
-                    # from new permission assignments to apply.
-                    del new_perm_assignments_by_user[old_assign.user_id][
-                        old_assign.permission_id
-                    ]
-                else:
-                    # Partial permission case: We need to compare with
-                    # what is stored in DB (i.e. `partial_permissions`) to see
-                    # whether anything changed.
-                    new_partial_perms = new_perm_assignments_by_user[old_assign.user_id][
-                        old_assign.permission_id
-                    ]['partial_permissions']
-                    old_partial_perms = partial_permissions[old_assign.user_id]
-                    # 'add_submissions' is not used at row level permission.
-                    # It always comes with 'change_submissions'. It appears in
-                    # `partial_permissions` because it is stored in DB when
-                    # calculation for partial permissions is made in
-                    # Asset._update_partial_permissions().
-                    # It is safe to remove it before comparing old and new
-                    # partial perms because if:
-                    # * 'change_submissions' is new, old assignment will not
-                    #   have it, both dictionaries will not match, new assignment
-                    #   will be added later
-                    # * 'change_submissions' is already assigned, old assignment
-                    #   will have it, both dictionaries should match,
-                    #   no new assignment will be applied
-                    old_partial_perms.pop('add_submissions', None)
-
-                    # Not super efficient, but dictionaries are not big, the
-                    # performance cost should negligible.
-                    if (
-                        json.dumps(new_partial_perms, sort_keys=True)
-                        == json.dumps(old_partial_perms, sort_keys=True)
+                    for implied_codename in asset.get_implied_perms(
+                        partially_granted_codename, for_instance=asset
                     ):
-                        del new_perm_assignments_by_user[old_assign.user_id][
-                            old_assign.permission_id
-                        ]
-
-        # let's do the removals first
-        # …in case they remove something implied by a new assignment (?)
-        users_to_redo = set()
-        for del_idx in old_assign_idxs_to_del:
-            perm = old_assignments[del_idx]
-            print('---', perm, flush=True)
-            users_to_redo.add(perm.user.pk)
-            # This is time consuming. if `old_assign_idxs_to_del` contains a lot
-            # of elements (i.e more than 50), it will take a while.
-            asset.remove_perm(perm.user, perm.permission.codename)
-
-        for (
-            user_id,
-            new_perm_assignments,
-        ) in new_perm_assignments_by_user.items():
-            if user_id in users_to_redo:
-                # gonna have to deal with you later anyway
-                print('REDO', user_id, flush=True)
-                continue
-
-            for new_perm_assignment in new_perm_assignments.values():
-                perm = asset.assign_perm(
-                    user_obj=new_perm_assignment['user'],
-                    perm=new_perm_assignment['permission'].codename,
-                    partial_perms=new_perm_assignment.get('partial_permissions'),
+                        if not implied_codename.endswith(
+                            SUFFIX_SUBMISSIONS_PERMS
+                        ):
+                            continue
+                        incoming_assignment['partial_permissions'][
+                            implied_codename
+                        ] = filter_criteria
+                partial_permissions = json.dumps(
+                    incoming_assignment['partial_permissions'], sort_keys=True
                 )
-                print('+++', perm)
+            else:
+                # Expand to include regular implied permissions
+                for implied_codename in asset.get_implied_perms(
+                    incoming_permission.codename, for_instance=asset
+                ):
+                    incoming_assignments.add(
+                        (incoming_assignment['user'].pk, implied_codename, None)
+                    )
 
-        # whoops, you had manage and got reduced to change
-        # the BE had manage, change, view
-        # the FE sent change
-        # we removed manage and view but added nothin'
-        #
-        # ideas…
-        # do all deletions, then re-query db?
-        # do a per-user diff?
-
-        # how about: re-add all extant perms for users who had deletions
-        for user_id in users_to_redo:
-            extant_assigns = new_perm_assignments_by_user_copy[user_id]
-            for new_perm_assignment in extant_assigns.values():
-                perm = asset.assign_perm(
-                    user_obj=new_perm_assignment['user'],
-                    perm=new_perm_assignment['permission'].codename,
-                    partial_perms=new_perm_assignment.get('partial_permissions'),
+            incoming_assignments.add(
+                (
+                    incoming_assignment['user'].pk,
+                    incoming_permission.codename,
+                    partial_permissions,
                 )
-                print('++++++', perm, flush=True)
+            )
 
-        return validated_data['assignments']
+        # Get all existing partial permissions with a single query and store
+        # in a dictionary where the keys are the primary key of each user
+        existing_partial_perms_for_user = dict(
+            asset.asset_partial_permissions.values_list('user', 'permissions')
+        )
+
+        # Build a set of all existing assignments
+        existing_assignments = set(
+            (
+                user,
+                codename,
+                json.dumps(
+                    existing_partial_perms_for_user[user], sort_keys=True
+                )
+                if codename == PERM_PARTIAL_SUBMISSIONS
+                else None,
+            )
+            for user, codename in (
+                # It seems unnecessary to filter assignments like this since a
+                # user who can change assignments can also view all
+                # assignments. Maybe that will change in the future, though?
+                get_user_permission_assignments_queryset(
+                    asset, self.context['request'].user
+                ).exclude(user=asset.owner)
+            ).values_list('user', 'permission__codename')
+        )
+
+        # Expand the stupid cache to include any users present in existing
+        # assignments but not incoming assignments
+        for uncached_user in User.objects.filter(
+            pk__in=set(
+                user_pk for user_pk, _, _ in existing_assignments
+            ).difference(user_pk_to_obj.keys())
+        ):
+            user_pk_to_obj[uncached_user.pk] = uncached_user
+
+        # Perform the removals
+        for removal in existing_assignments.difference(incoming_assignments):
+            user_pk, codename, _ = removal
+            asset.remove_perm(user_pk_to_obj[user_pk], codename)
+            print('---', user_pk_to_obj[user_pk].username, codename, flush=True)
+
+        # Perform the new assignments
+        for addition in incoming_assignments.difference(existing_assignments):
+            user_pk, codename, partial_perms = addition
+            if asset.owner_id == user_pk:
+                raise serializers.ValidationError(
+                    {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
+                )
+            if partial_perms:
+                partial_perms = json.loads(partial_perms)
+            perm = asset.assign_perm(
+                user_obj=user_pk_to_obj[user_pk],
+                perm=codename,
+                partial_perms=partial_perms,
+            )
+            print('+++', perm, partial_perms, flush=True)
+
+        # Return nothing, in a nice way, because the view is responsible for
+        # calling `list()` to return the assignments as they actually exist in
+        # the database. That causes duplicate queries but at least ensures that
+        # the front end displays accurate information even if there are bugs
+        # here
+        return {}
 
     def validate(self, attrs):
+        # NOCOMMIT generally the point is that running the permission assignment
+        # serializer repeatedly would query the database over and over again
+        # for each user as well as each permission
         usernames = []
         codenames = []
         partial_codenames = []
@@ -483,6 +468,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         # permission assignments. If it is not the case, something went south in
         # validation.
         assert len(codenames) == len(usernames) == len(attrs['assignments'])
+        # NOCOMMIT other data structure ideas?
 
         assignment_objects = []
         # Loop on POST data to convert all URLs to their objects counterpart
@@ -490,6 +476,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             # As already said above, the positions in `usernames`, `codenames`
             # should (and must) be the same as in `attrs['assignments']`.
             assignment_object = {
+                # NOCOMMIT _get_object is not a DRF thing
                 'user': self._get_object(usernames[idx], users, 'username'),
                 'permission': self._get_object(codenames[idx], permissions, 'codename')
             }
@@ -520,6 +507,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             resolver_match = absolute_resolve(permission_url)
             codename = resolver_match.kwargs['codename']
         except (TypeError, KeyError, Resolver404):
+            # NOCOMMIT previously we returned `{"permission":["Invalid hyperlink - Object does not exist."]}``
             raise serializers.ValidationError(
                 t('Invalid permission: `## permission_url ##`').format(
                     {'## permission_url ##': permission_url}
@@ -536,6 +524,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             resolver_match = absolute_resolve(user_url)
             username = resolver_match.kwargs['username']
         except (TypeError, KeyError, Resolver404):
+            # NOCOMMIT previously we returned `{"user":["Invalid hyperlink - Object does not exist."]}`
             raise serializers.ValidationError(
                 t('Invalid user: `## user_url ##`').format(
                     {'## user_url ##': user_url}
@@ -548,6 +537,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         """
         Return a list of Permission models matching `codenames`.
 
+        # NOCOMMIT: update docstring because it actually does verify that the contents match, not just the count
         If number of distinct code names does not match the number of
         assignable permissions on the asset, some code names are invalid
         and an error is raised.
@@ -559,8 +549,11 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         )
         diff = codenames.difference(assignable_permissions)
         if diff:
+            # NOCOMMIT consider whether or not the error message would be
+            # helpful to someone if they are only allowed to submit URLs in the first place
             raise serializers.ValidationError(t('Invalid code names'))
 
+        # NOCOMMIT rename perhaps or drop in case creating a queryset that never gets evaluated isn't so bad
         if suffix:
             # No need to return Permission objects when validating partial
             # permission code names
@@ -585,6 +578,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             User.objects.only('pk', 'username').filter(username__in=usernames)
         )
         if len(users) != len(usernames):
+            # NOCOMMIT: from the HTTP requestor's perspective, the users were passed by URL
             raise serializers.ValidationError(t('Invalid usernames'))
 
         return users
