@@ -1,7 +1,5 @@
 # coding: utf-8
-import contextlib
 import re
-import threading
 
 from django.conf import settings
 
@@ -50,6 +48,7 @@ class MongoHelper:
         '$regex',
         '$options',
         '$all',
+        '$elemMatch',
     ]
 
     ENCODING_SUBSTITUTIONS = [
