@@ -164,24 +164,56 @@ const selectFilterQuery = (
   if (!filterQuestion && !startDate && !endDate) {
     return;
   }
-  const query: {[key: string]: string | object} = {};
+  let query: Json = {};
   if (filterQuestion) {
     const flatQuestion = flatQuestionsList.find(
       (flatQuestion) => flatQuestion.path === filterQuestion
     );
-    if (flatQuestion?.hasRepatParent) {
-      // Should use this format, must be recursive for nested repeating questions
-      // {"group_a":{"$elemMatch":{"group_a/question":{"$exists":true}}}}
-      query[filterQuestion.split('/')[0]] = {
-        $elemMatch: {[filterQuestion]: {$exists: true}},
-      };
-    } else {
-      query[filterQuestion] = {$exists: true};
-    }
+
+    /**
+     * Build query like this:
+     * {
+     *   "group_a/group_b": {
+     *     "$elemMatch": {
+     *       "group_a/group_b/group_c/group_d": {
+     *         "$elemMatch": {
+     *           "group_a/group_b/group_c/group_d/group_e/question": {
+     *             "$exists": true
+     *           }
+     *         }
+     *       }
+     *     }
+     *   }
+     * }
+     * There is no limit on how nested it can be due to nested repeating groups
+     *
+     * First separate our repeating group names (which get nested in arrays) and group names
+     * (which get joined with /). This mimics the elemMatch structure we need
+     */
+    const repeatingGroupNames: string[] = [];
+    const groupNames: string[] = [];
+    flatQuestion?.parentRows.map((row) => {
+      if (row.type === 'begin_group') {
+        groupNames.push(row.$autoname);
+      } else if (row.type === 'begin_repeat') {
+        groupNames.push(row.$autoname);
+        repeatingGroupNames.push(groupNames.join('/'));
+      }
+    });
+    // The initialValue is the inner most part of the query where we actually filter on the question
+    const initialValue: Json = {[filterQuestion]: {$exists: true}};
+    // Build nested elemMatch objects, start from the inner most and build outwards
+    query = repeatingGroupNames.reverse().reduce(
+      (previousValue, currentValue) => ({
+        [currentValue]: {$elemMatch: previousValue},
+      }),
+      initialValue
+    );
+    // Whew, thanks to initial value this works even with 0 repeating groups
   }
   if (startDate || endDate) {
     // $and is necessary as repeating a json key is not valid
-    const andQuery: {[key: string]: object}[] = [];
+    const andQuery: Json = [];
     if (startDate) {
       andQuery.push({_submission_time: {$gt: startDate}});
     }
@@ -198,16 +230,16 @@ interface FormGalleryProps {
 }
 
 export default function FormGallery(props: FormGalleryProps) {
-  const flatQuestionsList = getFlatQuestionsList(props.asset.content!.survey!);
-  const questions = flatQuestionsList
-    .filter((survey) => survey.type === 'image')
-    .map((survey) => ({
-      value: survey.path,
-      label:
-        survey.parents.join(' / ') +
-        (survey.parents.length ? ' / ' : '') +
-        survey.label,
-    }));
+  const flatQuestionsList = getFlatQuestionsList(
+    props.asset.content!.survey!
+  ).filter((survey) => survey.type === 'image');
+  const questions = flatQuestionsList.map((survey) => ({
+    value: survey.path,
+    label:
+      survey.parents.join(' / ') +
+      (survey.parents.length ? ' / ' : '') +
+      survey.label,
+  }));
   const defaultOption = {value: '', label: 'All questions'};
   const questionFilterOptions = [defaultOption, ...(questions || [])];
   const [{submissions, next, filterQuestion, startDate, endDate}, dispatch] =
