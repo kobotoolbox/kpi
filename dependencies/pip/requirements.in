@@ -10,7 +10,7 @@
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
 
 # ssrf protect
--e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect
+-e git+https://github.com/kobotoolbox/ssrf-protect@5ea6fee4a2c35437f1b38a3428547af795c09632#egg=ssrf_protect
 
 # Necessary to use this fork until the resolution of
 # https://github.com/jschneier/django-storages/issues/566
@@ -21,7 +21,6 @@ Django>=2.2,<2.3
 Markdown
 Pygments
 amqp
-anyjson
 billiard
 boto3
 celery>=5
