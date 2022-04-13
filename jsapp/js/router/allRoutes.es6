@@ -346,7 +346,7 @@ export default class AllRoutes extends React.Component {
     }
 
     return (
-      <Suspense fallback={<div/>}>
+      <Suspense fallback={null}>
         <Router
           history={hashHistory}
           ref={(ref) => this.router = ref}
