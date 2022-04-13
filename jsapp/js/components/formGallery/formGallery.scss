@@ -1,0 +1,46 @@
+@use 'scss/_colors';
+
+.gallery {
+  background-color: colors.$kobo-white;
+}
+body {
+  margin-top: 99px !important;
+}
+.gallery__wrapper {
+  margin-top: 20px;
+  margin-left: 54px;
+  margin-right: 54px;
+}
+.gallery__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid colors.$kobo-gray-92;
+}
+
+.gallery__icons {
+  font-size: 24px;
+}
+
+.gallery__icons i {
+  margin: 7px;
+}
+
+.gallery-row {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gallery-row__select {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}

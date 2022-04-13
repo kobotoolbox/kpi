@@ -2,7 +2,18 @@ import React, {useEffect, useMemo, useReducer} from 'react';
 import ReactSelect from 'react-select';
 // @ts-ignore
 import {dataInterface} from 'js/dataInterface';
+import bem, {makeBem} from 'js/bem';
 import {FlatQuestion, getFlatQuestionsList} from 'jsapp/js/assetUtils';
+import './formGallery.scss';
+
+bem.Gallery = makeBem(null, 'gallery');
+bem.Gallery__wrapper = makeBem(bem.Gallery, 'wrapper');
+bem.Gallery__header = makeBem(bem.Gallery, 'header');
+bem.Gallery__icons = makeBem(bem.Gallery, 'icons');
+bem.GalleryRow = makeBem(null, 'gallery-row');
+bem.GalleryRow__select = makeBem(bem.GalleryRow, 'select');
+bem.GalleryRow__dates = makeBem(bem.GalleryRow, 'dates');
+bem.GalleryGrid = makeBem(null, 'gallery-grid');
 
 interface State {
   submissions: SubmissionResponse[];
@@ -289,41 +300,60 @@ export default function FormGallery(props: FormGalleryProps) {
   };
 
   return (
-    <div className='form-view'>
-      <h1>Image Gallery</h1>
-      From:
-      <ReactSelect
-        options={questionFilterOptions}
-        defaultValue={defaultOption}
-        onChange={(newValue) =>
-          dispatch({type: 'setFilterQuestion', question: newValue!.value})
-        }
-      ></ReactSelect>
-      Between
-      <input
-        type='date'
-        onChange={(e) =>
-          dispatch({type: 'setStartDate', value: e.target.value})
-        }
-      ></input>
-      and
-      <input
-        type='date'
-        onChange={(e) => dispatch({type: 'setEndDate', value: e.target.value})}
-      ></input>
-      {attachments.map((attachment) => (
-        <div key={attachment.id}>
-          <img
-            src={attachment.download_url}
-            alt={attachment.filename}
-            width='300'
-            loading='lazy'
-          ></img>
-        </div>
-      ))}
-      {showLoadMore && (
-        <button onClick={() => loadMoreSubmissions()}>Show more</button>
-      )}
-    </div>
+    <bem.Gallery className='form-view'>
+      <bem.Gallery__wrapper>
+        <bem.Gallery__header>
+          <h1>Image Gallery</h1>
+          <bem.Gallery__icons>
+            <i className='k-icon-download' />
+            <i className='k-icon-settings' />
+            <i className='k-icon-expand' />
+          </bem.Gallery__icons>
+        </bem.Gallery__header>
+        <bem.GalleryRow>
+          From
+          <bem.GalleryRow__select>
+            <ReactSelect
+              options={questionFilterOptions}
+              defaultValue={defaultOption}
+              onChange={(newValue) =>
+                dispatch({type: 'setFilterQuestion', question: newValue!.value})
+              }
+            ></ReactSelect>
+          </bem.GalleryRow__select>
+          <bem.GalleryRow__dates>
+            Between
+            <input
+              type='date'
+              onChange={(e) =>
+                dispatch({type: 'setStartDate', value: e.target.value})
+              }
+            ></input>
+            and
+            <input
+              type='date'
+              onChange={(e) =>
+                dispatch({type: 'setEndDate', value: e.target.value})
+              }
+            ></input>
+          </bem.GalleryRow__dates>
+        </bem.GalleryRow>
+        <bem.GalleryGrid>
+          {attachments.map((attachment) => (
+            <div key={attachment.id}>
+              <img
+                src={attachment.download_url}
+                alt={attachment.filename}
+                width='150'
+                loading='lazy'
+              ></img>
+            </div>
+          ))}
+        </bem.GalleryGrid>
+        {showLoadMore && (
+          <button onClick={() => loadMoreSubmissions()}>Show more</button>
+        )}
+      </bem.Gallery__wrapper>
+    </bem.Gallery>
   );
 }
