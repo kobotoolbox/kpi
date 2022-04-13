@@ -132,7 +132,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         return ''.join(
             export.to_geojson(
                 submission_stream,
-                geo_question_name = (geo_question_name,)
+                geo_question_name=geo_question_name,
             )
         )
 
