@@ -5,6 +5,7 @@ from datetime import datetime, date, timedelta
 from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import get_storage_class
 from django.http import HttpResponse, StreamingHttpResponse, Http404
+from django.urls import reverse
 
 from .tasks import (
     generate_country_report,
@@ -109,6 +110,25 @@ def media_storage(request):
         'refresh your browser periodically until your request succeeds.'
         '</body></html>'
     ).format(base_filename)
+    return HttpResponse(template_ish)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def reports_list(request):
+    template_ish = (
+        '<html><head><title>Super User Reports</title></head>'
+        'This is a list of the available superuser reports<br>'
+        '<a href="{0}">{0}</a><br>'
+        '<a href="{1}">{1}</a><br>'
+        '<a href="{2}">{2}</a><br>'
+        '<a href="{3}">{3}</a><br>'
+        '</html>'
+    ).format(
+        reverse(country_report),
+        reverse(domain_report),
+        reverse(user_count_by_organization),
+        reverse(user_report),
+    )
     return HttpResponse(template_ish)
 
 
