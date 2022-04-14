@@ -10,7 +10,8 @@ from django.urls import reverse
 from .tasks import (
     generate_country_report,
     generate_media_storage_report,
-    generate_user_report
+    generate_user_report,
+    generate_user_count_by_organization,
 )
 
 
