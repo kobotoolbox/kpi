@@ -78,6 +78,56 @@ def generate_country_report(
 
 
 @shared_task
+def generate_domain_report(output_filename: str, start_date: str, end_date: str):
+    emails = User.objects.filter(
+        date_joined__range=(start_date, end_date),
+    ).values_list('email', flat=True)
+
+    # get a list of the domains
+    domains = [email.split('@')[1] if '@' in email else '!!invalid: ' + email
+               for email in emails
+               ]
+    domain_users = Counter(domains)
+
+    # get a count of the assets
+    domain_assets = {
+        domain:
+            Asset.objects.filter(
+                owner__email__endswith='@' + domain,
+                date_created__range=(start_date, end_date),
+            ).count()
+            for domain in domain_users.keys()
+    }
+
+    # get a count of the submissions
+    domain_submissions = {
+        domain: KobocatSubmissionCounter.objects.filter(
+            user__email__endswith='@' + domain,
+            timestamp__range=(start_date, end_date),
+        ).aggregate(Sum('count'))['count__sum']
+        if domain_assets[domain] else 0
+        for domain in domain_users.keys()
+    }
+
+    # create the CSV file
+    columns = ['Email Domain', 'Users', 'Projects', 'Submissions']
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'w') as output:
+        writer = csv.writer(output)
+        writer.writerow(columns)
+
+        for domain, users in domain_users.most_common():
+            row = [
+                domain,
+                users,
+                domain_assets[domain],
+                domain_submissions[domain]
+            ]
+            writer.writerow(row)
+
+
+@shared_task
 def generate_media_storage_report(output_filename):
 
     def convert_size(size_bytes):
@@ -107,6 +157,30 @@ def generate_media_storage_report(output_filename):
         writer = unicodecsv.writer(output)
         writer.writerow(headers)
         writer.writerows(data)
+
+
+@shared_task
+def generate_user_count_by_organization(output_filename: str):
+    # get users organizations
+    organizations = User.objects.filter(
+        extra_details__data__has_key='organization'
+    ).values_list(
+        'extra_details__data__organization', flat=True
+    ).distinct().order_by(
+        'extra_details__data__organization'
+    )
+
+    # write data to a csv file
+    columns = ['Organization', 'Count']
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'w') as output_file:
+        writer = unicodecsv.writer(output_file)
+        writer.writerow(columns)
+
+        for organization in organizations:
+            count = User.objects.filter(extra_details__data__organization=organization).count()
+            writer.writerow([organization, count])
 
 
 @shared_task
