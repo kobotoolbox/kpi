@@ -73,7 +73,6 @@ class AssetImportTaskTest(BaseTestCase):
             'name': name,
         }
 
-
     def _construct_xlsx_for_import(self, content, name):
         workbook_to_import = openpyxl.workbook.Workbook()
         for sheet_name, sheet_content in content:
