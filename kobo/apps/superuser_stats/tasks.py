@@ -1,8 +1,12 @@
 # coding: utf-8
+import datetime
+
 import unicodecsv
 
 from celery import shared_task
 from collections import Counter
+
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
@@ -128,6 +132,41 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
                 domain_submissions[domain]
             ]
             writer.writerow(row)
+
+
+@shared_task
+def generate_forms_count_by_submission_range(output_filename):
+    # List of submissions count ranges
+    ranges = [
+        (0, 0),
+        (1, 500),
+        (501, 1000),
+        (1001, 10000),
+        (10001, 50000),
+        (50001, None)
+    ]
+
+    # store data for csv
+    data = []
+
+    today = datetime.datetime.today()
+    date = today - relativedelta(months=12)
+
+    for r in ranges:
+        forms_count = KobocatXForm.objects.filter(
+            date_created=date,
+            num_of_submissions__in_range=r,
+        ).values('pk').count()
+        data.append([f'{r[0]}-{r[1]}', forms_count])
+
+    headers = ['Range', 'Count']
+
+    # Crate a csv with output filename
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as output:
+        writer = unicodecsv.writer(output)
+        writer.writerow(headers)
+        writer.writerows(data)
 
 
 @shared_task

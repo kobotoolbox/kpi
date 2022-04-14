@@ -10,6 +10,7 @@ from django.urls import reverse
 from .tasks import (
     generate_country_report,
     generate_domain_report,
+    generate_forms_count_by_submission_range,
     generate_media_storage_report,
     generate_user_count_by_organization,
     generate_user_report,
@@ -93,6 +94,26 @@ def domain_report(request):
         '</body></html>'
     ).format(base_filename)
 
+    return HttpResponse(template_ish)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def forms_count_by_submission_report(request):
+    base_filename = 'form-count-by-submissions-count-report_{}_{}_{}.csv'.format(
+        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        date.today(),
+        datetime.now().microsecond
+    )
+    filename = _base_filename_to_full_filename(
+        base_filename, request.user.username)
+    generate_forms_count_by_submission_range.delay(filename)
+    template_ish = (
+        '<html><head><title>Hello, superuser.</title></head>'
+        '<body>Your report is being generated. Once finished, it will be '
+        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
+        'refresh your browser periodically until your request succeeds.'
+        '</body></html>'
+    ).format(base_filename)
     return HttpResponse(template_ish)
 
 
