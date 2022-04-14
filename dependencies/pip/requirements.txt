@@ -12,7 +12,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/ssrf-protect@5ea6fee4a2c35437f1b38a3428547af795c09632#egg=ssrf_protect
+-e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
     # via -r dependencies/pip/requirements.in
 amqp==5.1.0
     # via

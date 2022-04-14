@@ -10,7 +10,7 @@
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
 
 # ssrf protect
--e git+https://github.com/kobotoolbox/ssrf-protect@5ea6fee4a2c35437f1b38a3428547af795c09632#egg=ssrf_protect
+-e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
 # Necessary to use this fork until the resolution of
 # https://github.com/jschneier/django-storages/issues/566
