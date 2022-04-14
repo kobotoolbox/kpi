@@ -9,7 +9,7 @@ import './singleProcessingPreview.scss';
 
 bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section');
 
-/** This component is handling the tabs for switching the content. */
+/** Shows a source (transcript or translation) for new translation. */
 export default class SingleProcessingPreview extends React.Component {
   private unlisteners: Function[] = [];
 
