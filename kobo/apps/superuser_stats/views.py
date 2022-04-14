@@ -6,7 +6,11 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import get_storage_class
 from django.http import HttpResponse, StreamingHttpResponse, Http404
 
-from .tasks import generate_country_report, generate_media_storage_report, generate_user_report
+from .tasks import (
+    generate_country_report,
+    generate_media_storage_report,
+    generate_user_report
+)
 
 
 def _base_filename_to_full_filename(base_filename, username):

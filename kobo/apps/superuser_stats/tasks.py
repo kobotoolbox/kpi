@@ -2,7 +2,9 @@
 import unicodecsv
 
 from celery import shared_task
+from collections import Counter
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
 from django.db.models import Sum
 
@@ -15,6 +17,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
+    KobocatSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -113,8 +116,8 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     columns = ['Email Domain', 'Users', 'Projects', 'Submissions']
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'w') as output:
-        writer = csv.writer(output)
+    with default_storage.open(output_filename, 'wb') as output:
+        writer = unicodecsv.writer(output)
         writer.writerow(columns)
 
         for domain, users in domain_users.most_common():
