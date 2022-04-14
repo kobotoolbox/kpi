@@ -76,6 +76,14 @@ const processingActions = Reflux.createActions({
   deleteTranslation: {children: ['completed', 'failed']},
 });
 
+/**
+ * Processing is database heavy, so assets need to be have the feature activated
+ * first. Activations requires providing a lists of question names and a lists
+ * of language codes - this means that asset might be re-activated multiple
+ * times, e.g. when a new translation language is added. Backend handles
+ * un-activation automagically - e.g. when you delete last translation for given
+ * language, backend will un-activate that language in asset.
+ */
 processingActions.activateAsset.listen((
   assetUid: string,
   enableTranscript?: boolean,

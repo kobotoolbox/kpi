@@ -660,7 +660,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 }
 
-/** Handles content state and data for editors */
+/**
+ * Stores all data necessary for rendering the single processing route and all
+ * its features. Handles draft transcripts/translations, switching content tabs.
+ */
 const singleProcessingStore = new SingleProcessingStore();
 singleProcessingStore.init();
 

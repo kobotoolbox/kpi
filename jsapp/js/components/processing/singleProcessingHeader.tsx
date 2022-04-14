@@ -31,7 +31,7 @@ interface SingleProcessingHeaderProps {
 
 /**
  * Component with the current question label and the UI for switching between
- * submissions.
+ * submissions and questions.
  */
 export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps

@@ -34,8 +34,11 @@ interface SingleProcessingRouteState {
 }
 
 /**
- * This route component is being loaded with PermProtectedRoute so we know that
- * the call to backend to get asset was already made :happy_face:
+ * Provides the base pieces of data for all processing components. Also renders
+ * everything with nice spinners.
+ *
+ * NOTE: This route component is being loaded with PermProtectedRoute so we know
+ * that the call to backend to get asset was already made :happy_face:
  */
 export default class SingleProcessingRoute extends React.Component<
   SingleProcessingRouteProps,

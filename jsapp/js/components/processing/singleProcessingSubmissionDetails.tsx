@@ -38,6 +38,9 @@ interface SingleProcessingSubmissionDetailsProps {
   assetContent: AssetContent;
 }
 
+/**
+ * Displays some more detailed information for given submission.
+ */
 export default class SingleProcessingSubmissionDetails extends React.Component<
   SingleProcessingSubmissionDetailsProps
 > {
