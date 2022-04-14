@@ -6,7 +6,7 @@ from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
 from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
@@ -278,3 +278,70 @@ def generate_user_report(output_filename: str):
             except Exception as e:
                 row = ['!FAILED!', 'User PK: {}'.format(kc_user.pk), repr(e)]
             writer.writerow(row)
+
+
+@shared_task
+def generate_user_statistics_report(
+        output_filename: str,
+        start_date: str,
+        end_date: str
+):
+    data = []
+
+    asset_queryset = Asset.objects.values('owner_id', 'owner__extra_details').filter(
+        asset_type=ASSET_TYPE_SURVEY,
+        date_created__range=(start_date, end_date)
+    )
+    records = asset_queryset.annotate(
+        form_count=Count('pk')
+    ).order_by()
+    forms_count = {
+        record['owner_id']: record['form_count'] for record in records
+    }
+
+    # Filter the asset_queryset for active deployments
+    asset_queryset = asset_queryset.filter(_deployment_data__active=True)
+    records = asset_queryset.annotate(
+        deployment_count=Count('pk')
+    ).order_by()
+    deployment_count = {
+        record['owner_id']: record['deployment_count']
+        for record in records
+    }
+
+    # Get records from SubmissionCounter
+    records = (
+        KobocatSubmissionCounter.objects.filter().values(
+            'user_id',
+            'user__username',
+            'user__date_joined',
+        ).order_by('user__date_joined').annotate(count_sum=Sum('count'))
+    )
+
+    for record in records:
+        user_details = ExtraUserDetail.objects.get(user__username=record['user__username']).data
+        data.append([
+            record['user__username'],
+            record['user__date_joined'],
+            user_details.get('organization', ''),
+            user_details.get('country', ''),
+            record['count_sum'],
+            forms_count.get(record['user_id'], 0),
+            deployment_count.get(record['user_id'], 0)
+        ])
+
+    columns = [
+        'Username',
+        'Date Joined',
+        'Organization',
+        'Country',
+        'Submissions Count',
+        'Forms Count',
+        'Deployments Count'
+    ]
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as output:
+        writer = unicodecsv.writer(output)
+        writer.writerow(columns)
+        writer.writerows(data)
