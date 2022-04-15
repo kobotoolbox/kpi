@@ -16,12 +16,12 @@ from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatXForm,
+    KobocatSubmissionCounter,
     KobocatUser,
     KobocatUserProfile,
-    KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
-    KobocatSubmissionCounter,
 )
 from kpi.models.asset import Asset
 

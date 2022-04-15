@@ -7,15 +7,15 @@ from django.views.i18n import JavaScriptCatalog
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
-    user_report,
     continued_usage_report,
     country_report,
+    domain_report,
     forms_count_by_submission_report,
     media_storage,
+    reports_list,
     retrieve_reports,
     user_count_by_organization,
-    domain_report,
-    reports_list,
+    user_report,
     user_statistics_report,
 )
 from kpi.forms.registration import RegistrationForm
