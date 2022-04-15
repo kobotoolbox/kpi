@@ -19,8 +19,8 @@ from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
-from pyxform.errors import PyXFormError
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
@@ -46,6 +46,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.log import logging
@@ -62,10 +63,6 @@ from kpi.utils.rename_xls_sheet import (
 )
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
-
-
-class XlsFormatException(Exception):
-    pass
 
 
 def utcnow(*args, **kwargs):
@@ -271,7 +268,7 @@ class ImportTask(ImportExportTask):
             elif item.get_type() == 'asset':
                 try:
                     kontent = xlsx_to_dict(item.readable)
-                except PyXFormError:
+                except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
 
                 if not destination:

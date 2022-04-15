@@ -5,7 +5,6 @@ import zipfile
 from io import BytesIO
 
 import openpyxl
-from xlrd import open_workbook
 
 from kpi.exceptions import ImportAssetException
 
