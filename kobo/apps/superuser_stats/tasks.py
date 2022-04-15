@@ -85,6 +85,83 @@ def generate_country_report(
 
 
 @shared_task
+def generate_continued_usage_report(output_filename: str, end_date):
+    data = []
+
+    if isinstance(end_date, str):
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S")
+
+    twelve_months_time = end_date - relativedelta(months=12)
+    six_months_time = end_date - relativedelta(months=6)
+    three_months_time = end_date - relativedelta(months=3)
+
+    users = User.objects.filter(
+        last_login__range=(twelve_months_time, end_date),
+    )
+
+    for user in users:
+        # twelve months
+        assets = user.assets.values('pk', 'date_created').filter(
+            date_created__range=(twelve_months_time, end_date),
+        )
+        submissions_count = KobocatSubmissionCounter.objects.filter(
+            user__username=user.username,
+            timestamp__range=(twelve_months_time, end_date),
+        )
+        twelve_asset_count = assets.aggregate(asset_count=Count('pk'))
+        twelve_submission_count = submissions_count.aggregate(
+            submissions_count=Sum('count'),
+        )
+
+        # six months
+        assets = assets.filter(date_created__gte=six_months_time)
+        submissions_count = submissions_count.filter(
+            timestamp__gte=six_months_time,
+        )
+        six_asset_count = assets.aggregate(asset_count=Count('pk'))
+        six_submissions_count = submissions_count.aggregate(
+            submissions_count=Sum('count'),
+        )
+
+        # three months
+        assets = assets.filter(date_created__gte=three_months_time)
+        submissions_count = submissions_count.filter(
+            timestamp__gte=three_months_time,
+        )
+        three_asset_count = assets.aggregate(asset_count=Count('pk'))
+        three_submissions_count = submissions_count.aggregate(
+            submissions_count=Sum('count'),
+        )
+        data.append([
+            user.username,
+            user.last_login,
+            three_asset_count['asset_count'],
+            six_asset_count['asset_count'],
+            twelve_asset_count['asset_count'],
+            three_submissions_count['submissions_count'],
+            six_submissions_count['submissions_count'],
+            twelve_submission_count['submissions_count'],
+        ])
+
+    headers = [
+        'Username',
+        'Date Joined',
+        'Assets 3m',
+        'Assets 6m',
+        'Assets 12m',
+        'Submissions 3m',
+        'Submissions 6m',
+        'Submissions 12M',
+    ]
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as output:
+        writer = unicodecsv.writer(output)
+        writer.writerow(headers)
+        writer.writerows(data)
+
+
+@shared_task
 def generate_domain_report(output_filename: str, start_date: str, end_date: str):
     emails = User.objects.filter(
         date_joined__range=(start_date, end_date),

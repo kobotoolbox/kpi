@@ -8,6 +8,7 @@ from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
     user_report,
+    continued_usage_report,
     country_report,
     forms_count_by_submission_report,
     media_storage,
@@ -73,6 +74,9 @@ urlpatterns = [
     path('superuser_stats/', reports_list),
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+            retrieve_reports),
+    path('superuser_stats/continued_usage_report/', continued_usage_report),
+    re_path(r'^superuser_stats/continued_usage_report/(?P<base_filename>[^/]+)$',
             retrieve_reports),
     path('superuser_stats/domain_report/', domain_report),
     re_path(r'^superuser_stats/domain_report/(?P<base_filename>[^/]+)$', retrieve_reports),
