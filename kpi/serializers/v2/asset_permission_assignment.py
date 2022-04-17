@@ -2,7 +2,8 @@
 import copy
 import json
 from collections import defaultdict
-from typing import Union
+from dataclasses import dataclass
+from typing import Optional, Union
 
 from django.contrib.auth.models import Permission, User
 from django.urls import Resolver404
@@ -316,22 +317,31 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
     """
     assignments = serializers.ListField(child=PermissionAssignmentSerializer())
 
-    def create(self, validated_data):
-        asset = self.context['asset']
-        # TODO: refactor permission assignment code so that it does not always
-        # require a fully-fledged `User` object?
-        user_pk_to_obj = dict()
+    @dataclass(frozen=True)
+    class PermissionAssignment:
+        """ A more-explicit alternative to a simple tuple """
+        user_pk: int
+        permission_codename: str
+        partial_permissions_json: Optional[str] = None
 
+    def get_set_of_incoming_assignments(
+        self,
+        asset: 'kpi.models.Asset',
+        posted_assignments: list,
+        user_pk_to_obj_cache: dict,
+    ) -> set:
         # Build a set of all incoming assignments, including implied
         # assignments not explicitly sent by the front end
         incoming_assignments = set()
-        for incoming_assignment in validated_data['assignments']:
+        for incoming_assignment in posted_assignments:
             incoming_permission = incoming_assignment['permission']
             partial_permissions = None
 
-            # Stupid object cache thing because `assign_perm()` and
+            # TODO: refactor permission assignment code so that it does not
+            # always require a fully-fledged `User` object? Until then, keep a
+            # stupid object cache thing because `assign_perm()` and
             # `remove_perm()` REQUIRE user objects
-            user_pk_to_obj[
+            user_pk_to_obj_cache[
                 incoming_assignment['user'].pk
             ] = incoming_assignment['user']
 
@@ -340,28 +350,35 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 incoming_permission.codename, for_instance=asset
             ):
                 incoming_assignments.add(
-                    (incoming_assignment['user'].pk, implied_codename, None)
+                    self.PermissionAssignment(
+                        user_pk=incoming_assignment['user'].pk,
+                        permission_codename=implied_codename,
+                    )
                 )
 
             # Expand to include implied partial permissions
             if incoming_permission.codename == PERM_PARTIAL_SUBMISSIONS:
                 partial_permissions = json.dumps(
                     AssetUserPartialPermission\
-                        .update_partial_perms_to_include_implied(
-                            asset,
-                            incoming_assignment['partial_permissions']
-                        ),
+                    .update_partial_perms_to_include_implied(
+                        asset, incoming_assignment['partial_permissions']
+                    ),
                     sort_keys=True,
                 )
 
             incoming_assignments.add(
-                (
-                    incoming_assignment['user'].pk,
-                    incoming_permission.codename,
-                    partial_permissions,
+                self.PermissionAssignment(
+                    user_pk=incoming_assignment['user'].pk,
+                    permission_codename=incoming_permission.codename,
+                    partial_permissions_json=partial_permissions,
                 )
             )
 
+        return incoming_assignments
+
+    def get_set_of_existing_assignments(
+        self, asset: 'kpi.models.Asset', user_pk_to_obj_cache: dict
+    ) -> set:
         # Get all existing partial permissions with a single query and store
         # in a dictionary where the keys are the primary key of each user
         existing_partial_perms_for_user = dict(
@@ -369,53 +386,77 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         )
 
         # Build a set of all existing assignments
-        existing_assignments = set(
-            (
-                user,
-                codename,
-                json.dumps(
-                    existing_partial_perms_for_user[user], sort_keys=True
-                )
-                if codename == PERM_PARTIAL_SUBMISSIONS
-                else None,
+        existing_assignments = set()
+        for assignment_in_db in (
+            # It seems unnecessary to filter assignments like this since a
+            # user who can change assignments can also view all
+            # assignments. Maybe that will change in the future, though?
+            get_user_permission_assignments_queryset(
+                asset, self.context['request'].user
             )
-            for user, codename in (
-                # It seems unnecessary to filter assignments like this since a
-                # user who can change assignments can also view all
-                # assignments. Maybe that will change in the future, though?
-                get_user_permission_assignments_queryset(
-                    asset, self.context['request'].user
-                ).exclude(user=asset.owner)
-            ).values_list('user', 'permission__codename')
-        )
-
-        # Expand the stupid cache to include any users present in existing
-        # assignments but not incoming assignments
-        for uncached_user in User.objects.filter(
-            pk__in=set(
-                user_pk for user_pk, _, _ in existing_assignments
-            ).difference(user_pk_to_obj.keys())
+            .exclude(user=asset.owner)
+            .select_related('user', 'permission')
+            .only('user', 'permission__codename')  # TODO: any others?
         ):
-            user_pk_to_obj[uncached_user.pk] = uncached_user
+            # Expand the stupid cache to include any users present in the
+            # existing assignments but not in the incoming assignments
+            user_pk_to_obj_cache[
+                assignment_in_db.user_id
+            ] = assignment_in_db.user
+
+            if assignment_in_db.permission.codename == PERM_PARTIAL_SUBMISSIONS:
+                partial_permissions_json = json.dumps(
+                    existing_partial_perms_for_user[assignment_in_db.user_id],
+                    sort_keys=True,
+                )
+            else:
+                partial_permissions_json = None
+            existing_assignments.add(
+                self.PermissionAssignment(
+                    assignment_in_db.user_id,
+                    assignment_in_db.permission.codename,
+                    partial_permissions_json,
+                )
+            )
+
+        return existing_assignments
+
+    def create(self, validated_data):
+        asset = self.context['asset']
+        user_pk_to_obj_cache = dict()
+        incoming_assignments = self.get_set_of_incoming_assignments(
+            asset, validated_data['assignments'], user_pk_to_obj_cache
+        )
+        existing_assignments = self.get_set_of_existing_assignments(
+            asset, user_pk_to_obj_cache
+        )
 
         # Perform the removals
         for removal in existing_assignments.difference(incoming_assignments):
-            user_pk, codename, _ = removal
-            asset.remove_perm(user_pk_to_obj[user_pk], codename)
-            print('---', user_pk_to_obj[user_pk].username, codename, flush=True)
+            asset.remove_perm(
+                user_pk_to_obj_cache[removal.user_pk],
+                removal.permission_codename,
+            )
+            print(
+                '---',
+                user_pk_to_obj_cache[removal.user_pk].username,
+                removal.permission_codename,
+                flush=True,
+            )
 
         # Perform the new assignments
         for addition in incoming_assignments.difference(existing_assignments):
-            user_pk, codename, partial_perms = addition
-            if asset.owner_id == user_pk:
+            if asset.owner_id == addition.user_pk:
                 raise serializers.ValidationError(
                     {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
                 )
-            if partial_perms:
-                partial_perms = json.loads(partial_perms)
+            if addition.partial_permissions_json:
+                partial_perms = json.loads(addition.partial_permissions_json)
+            else:
+                partial_perms = None
             perm = asset.assign_perm(
-                user_obj=user_pk_to_obj[user_pk],
-                perm=codename,
+                user_obj=user_pk_to_obj_cache[addition.user_pk],
+                perm=addition.permission_codename,
                 partial_perms=partial_perms,
             )
             print('+++', perm, partial_perms, flush=True)
