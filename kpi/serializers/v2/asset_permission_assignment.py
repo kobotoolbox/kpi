@@ -335,32 +335,24 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 incoming_assignment['user'].pk
             ] = incoming_assignment['user']
 
-            if incoming_permission.codename == PERM_PARTIAL_SUBMISSIONS:
-                # Expand to include implied partial permissions
-                for partially_granted_codename, filter_criteria in (
-                    incoming_assignment['partial_permissions'].copy().items()
-                ):
-                    for implied_codename in asset.get_implied_perms(
-                        partially_granted_codename, for_instance=asset
-                    ):
-                        if not implied_codename.endswith(
-                            SUFFIX_SUBMISSIONS_PERMS
-                        ):
-                            continue
-                        incoming_assignment['partial_permissions'][
-                            implied_codename
-                        ] = filter_criteria
-                partial_permissions = json.dumps(
-                    incoming_assignment['partial_permissions'], sort_keys=True
+            # Expand to include implied permissions
+            for implied_codename in asset.get_implied_perms(
+                incoming_permission.codename, for_instance=asset
+            ):
+                incoming_assignments.add(
+                    (incoming_assignment['user'].pk, implied_codename, None)
                 )
-            else:
-                # Expand to include regular implied permissions
-                for implied_codename in asset.get_implied_perms(
-                    incoming_permission.codename, for_instance=asset
-                ):
-                    incoming_assignments.add(
-                        (incoming_assignment['user'].pk, implied_codename, None)
-                    )
+
+            # Expand to include implied partial permissions
+            if incoming_permission.codename == PERM_PARTIAL_SUBMISSIONS:
+                partial_permissions = json.dumps(
+                    AssetUserPartialPermission\
+                        .update_partial_perms_to_include_implied(
+                            asset,
+                            incoming_assignment['partial_permissions']
+                        ),
+                    sort_keys=True,
+                )
 
             incoming_assignments.add(
                 (
