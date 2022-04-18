@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import copy
 from collections import defaultdict
 from typing import Optional
@@ -351,7 +353,7 @@ class ObjectPermissionMixin:
         explicit_perm: str,
         reverse: bool = False,
         for_instance: Optional['kpi.models.Asset'] = None,
-    ):
+    ) -> set[str]:
         """
         Determine which permissions are implied by `explicit_perm` based on
         the `IMPLIED_PERMISSIONS` attribute.

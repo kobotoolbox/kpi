@@ -1,9 +1,9 @@
 # coding: utf-8
-import copy
+from __future__ import annotations
 import json
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional
 
 from django.contrib.auth.models import Permission, User
 from django.urls import Resolver404
@@ -95,6 +95,8 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             # if view doesn't have an `asset` property,
             # fallback to context. (e.g. AssetViewSet)
             asset = getattr(view, 'asset', self.context.get('asset'))
+            # TODO: optimize `asset.get_partial_perms()` so it doesn't execute
+            # a new query for each assignment
             partial_perms = asset.get_partial_perms(
                 object_permission.user_id, with_filters=True)
             if not partial_perms:
@@ -329,7 +331,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         asset: 'kpi.models.Asset',
         posted_assignments: list,
         user_pk_to_obj_cache: dict,
-    ) -> set:
+    ) -> set[PermissionAssignment]:
         # Build a set of all incoming assignments, including implied
         # assignments not explicitly sent by the front end
         incoming_assignments = set()
@@ -378,7 +380,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
 
     def get_set_of_existing_assignments(
         self, asset: 'kpi.models.Asset', user_pk_to_obj_cache: dict
-    ) -> set:
+    ) -> set[PermissionAssignment]:
         # Get all existing partial permissions with a single query and store
         # in a dictionary where the keys are the primary key of each user
         existing_partial_perms_for_user = dict(
@@ -396,7 +398,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             )
             .exclude(user=asset.owner)
             .select_related('user', 'permission')
-            .only('user', 'permission__codename')  # TODO: any others?
+            .only('asset', 'user', 'permission__codename')
         ):
             # Expand the stupid cache to include any users present in the
             # existing assignments but not in the incoming assignments
@@ -437,12 +439,15 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 user_pk_to_obj_cache[removal.user_pk],
                 removal.permission_codename,
             )
-            print(
-                '---',
-                user_pk_to_obj_cache[removal.user_pk].username,
-                removal.permission_codename,
-                flush=True,
-            )
+            # print(
+            #     '---',
+            #     user_pk_to_obj_cache[removal.user_pk].username,
+            #     removal.permission_codename,
+            #     None
+            #     if not removal.partial_permissions_json
+            #     else json.loads(removal.partial_permissions_json),
+            #     flush=True,
+            # )
 
         # Perform the new assignments
         for addition in incoming_assignments.difference(existing_assignments):
@@ -459,7 +464,13 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 perm=addition.permission_codename,
                 partial_perms=partial_perms,
             )
-            print('+++', perm, partial_perms, flush=True)
+            # print(
+            #     '+++',
+            #     perm.user.username,
+            #     perm.permission.codename,
+            #     partial_perms,
+            #     flush=True,
+            # )
 
         # Return nothing, in a nice way, because the view is responsible for
         # calling `list()` to return the assignments as they actually exist in
@@ -469,166 +480,129 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         return {}
 
     def validate(self, attrs):
-        # NOCOMMIT generally the point is that running the permission assignment
-        # serializer repeatedly would query the database over and over again
-        # for each user as well as each permission
-        usernames = []
-        codenames = []
-        partial_codenames = []
-        # Loop on POST data (i.e. `attrs['assignments']`) to retrieve code names,
-        # and usernames. We use lists and not sets because we do need to keep
-        # duplicates and the order for later process.
+        """
+        Validate users and permissions, and convert them from API URLs into
+        model instances, using a minimal number of database queries
+        """
+        # A dictionary for looking up usernames by API user URLs
+        url_to_username = dict()
+        # …for looking up codenames by API permission URLs
+        url_to_codename = dict()
+
+        assignable_permissions = self.context[
+            'asset'
+        ].get_assignable_permissions(with_partial=True)
+
+        # Perhaps not the best error messages, but they're what DRF was already
+        # returning
+        INVALID_PERMISSION_ERROR = {
+            'permission': t('Invalid hyperlink - Object does not exist.')
+        }
+        INVALID_USER_ERROR = {
+            'user': t('Invalid hyperlink - Object does not exist.')
+        }
+        # This matches the behavior of `AssetPermissionAssignmentSerializer`
+        INVALID_PARTIAL_PERMISSION_ERROR = {
+            'partial_permissions': t('Invalid `url`')
+        }
+
+        # Fill in the dictionaries by parsing the incoming assignments
         for assignment in attrs['assignments']:
-            codename = self._get_permission_codename(assignment['permission'])
-            codenames.append(codename)
-            if codename == PERM_PARTIAL_SUBMISSIONS:
-                for partial_assignment in assignment['partial_permissions']:
-                    partial_codenames.append(
-                        self._get_permission_codename(partial_assignment['url'])
+            perm_url = assignment['permission']
+            user_url = assignment['user']
+            codename = self._get_arg_from_url('codename', perm_url)
+            if codename not in assignable_permissions:
+                raise serializers.ValidationError(INVALID_PERMISSION_ERROR)
+            url_to_codename[perm_url] = codename
+            username = self._get_arg_from_url('username', user_url)
+            url_to_username[user_url] = username
+            for partial_assignment in assignment.get('partial_permissions', []):
+                partial_codename = self._get_arg_from_url(
+                    'codename', partial_assignment['url']
+                )
+                if not (
+                    partial_codename in assignable_permissions
+                    and partial_codename.endswith(SUFFIX_SUBMISSIONS_PERMS)
+                ):
+                    raise serializers.ValidationError(
+                        INVALID_PARTIAL_PERMISSION_ERROR
                     )
+                url_to_codename[partial_assignment['url']] = partial_codename
 
-            usernames.append(self._get_username(assignment['user']))
-
-        # Validate if code names and usernames are valid and retrieve
-        # all users and permissions related to `codenames` and `usernames`
-        self._validate_codenames(
-            partial_codenames, suffix=SUFFIX_SUBMISSIONS_PERMS
+        # Create a dictionary of API user URLs to `User` objects
+        urls_sorted_by_username = [
+            url
+            for url, username in sorted(
+                url_to_username.items(), key=lambda item: item[1]
+            )
+        ]
+        url_to_user = dict(
+            zip(
+                urls_sorted_by_username,
+                User.objects.only('pk', 'username')
+                .filter(username__in=url_to_username.values())
+                .order_by('username'),
+            )
         )
-        users = self._validate_usernames(usernames)
-        permissions = self._validate_codenames(codenames)
+        if len(url_to_user) != len(url_to_username):
+            raise serializers.ValidationError(INVALID_USER_ERROR)
 
-        # Double check that we have as many code names and usernames as
-        # permission assignments. If it is not the case, something went south in
-        # validation.
-        assert len(codenames) == len(usernames) == len(attrs['assignments'])
-        # NOCOMMIT other data structure ideas?
+        # Create a dictionary of API permission URLs to `Permission` objects
+        urls_sorted_by_codename = [
+            url
+            for url, codename in sorted(
+                url_to_codename.items(), key=lambda item: item[1]
+            )
+        ]
+        url_to_permission = dict(
+            zip(
+                urls_sorted_by_codename,
+                Permission.objects.filter(codename__in=assignable_permissions)
+                .filter(codename__in=url_to_codename.values())
+                .order_by('codename'),
+            )
+        )
+        if len(url_to_permission) != len(url_to_codename):
+            # This should never happen since all codenames were found within
+            # `assignable_permissions`
+            raise RuntimeError(
+                'Unexpected mismatch while processing permissions'
+            )
 
-        assignment_objects = []
-        # Loop on POST data to convert all URLs to their objects counterpart
-        for idx, assignment in enumerate(attrs['assignments']):
-            # As already said above, the positions in `usernames`, `codenames`
-            # should (and must) be the same as in `attrs['assignments']`.
-            assignment_object = {
-                'user': self._get_matching_object_from_list(
-                    'username', usernames[idx], users
-                ),
-                'permission': self._get_matching_object_from_list(
-                    'codename', codenames[idx], permissions
-                ),
+        # Rewrite the incoming assignments, replacing user and permission URLs
+        # with their corresponding model instance objects
+        assignments_with_objects = []
+        for assignment in attrs['assignments']:
+            assignment_with_objects = {
+                'user': url_to_user[assignment['user']],
+                'permission': url_to_permission[assignment['permission']],
             }
-            if codenames[idx] == PERM_PARTIAL_SUBMISSIONS:
-                assignment_object['partial_permissions'] = defaultdict(list)
-                for partial_perms in assignment['partial_permissions']:
-                    # Because, we kept the same order at the beginning, the
-                    # first occurrence of `partial_codenames[0]` always belongs
-                    # to the user we are processing in `assignment_object`.
-                    partial_codename = partial_codenames.pop(0)
-                    assignment_object['partial_permissions'][
+            if (
+                assignment_with_objects['permission'].codename
+                == PERM_PARTIAL_SUBMISSIONS
+            ):
+                assignment_with_objects['partial_permissions'] = defaultdict(
+                    list
+                )
+                for partial_assignment in assignment['partial_permissions']:
+                    # Convert partial permission URLs to codenames only; it's
+                    # unnecessary to instantiate objects for them
+                    partial_codename = url_to_codename[
+                        partial_assignment['url']
+                    ]
+                    assignment_with_objects['partial_permissions'][
                         partial_codename
-                    ] = partial_perms['filters']
+                    ] = partial_assignment['filters']
+            assignments_with_objects.append(assignment_with_objects)
 
-            assignment_objects.append(assignment_object)
-
-        # Replace 'assignments' property with converted objects
-        # Useful to process data when calling `.create()`
-        attrs['assignments'] = assignment_objects
-
+        attrs['assignments'] = assignments_with_objects
         return attrs
 
-    def _get_permission_codename(self, permission_url: str) -> str:
-        """
-        Retrieve the code name with reverse matching of the permission URL
-        """
-        try:
-            resolver_match = absolute_resolve(permission_url)
-            codename = resolver_match.kwargs['codename']
-        except (TypeError, KeyError, Resolver404):
-            # NOCOMMIT previously we returned `{"permission":["Invalid hyperlink - Object does not exist."]}``
-            raise serializers.ValidationError(
-                t('Invalid permission: `## permission_url ##`').format(
-                    {'## permission_url ##': permission_url}
-                )
-            )
-
-        return codename
-
-    def _get_username(self, user_url: str) -> str:
-        """
-        Retrieve the username with reverse matching of the user URL
-        """
-        try:
-            resolver_match = absolute_resolve(user_url)
-            username = resolver_match.kwargs['username']
-        except (TypeError, KeyError, Resolver404):
-            # NOCOMMIT previously we returned `{"user":["Invalid hyperlink - Object does not exist."]}`
-            raise serializers.ValidationError(
-                t('Invalid user: `## user_url ##`').format(
-                    {'## user_url ##': user_url}
-                )
-            )
-
-        return username
-
-    def _validate_codenames(self, codenames: list, suffix: str = None) -> list:
-        """
-        Return a list of Permission models matching `codenames`.
-
-        # NOCOMMIT: update docstring because it actually does verify that the contents match, not just the count
-        If number of distinct code names does not match the number of
-        assignable permissions on the asset, some code names are invalid
-        and an error is raised.
-        """
-        asset = self.context['asset']
-        codenames = set(codenames)
-        assignable_permissions = asset.get_assignable_permissions(
-            with_partial=True
-        )
-        diff = codenames.difference(assignable_permissions)
-        if diff:
-            # NOCOMMIT consider whether or not the error message would be
-            # helpful to someone if they are only allowed to submit URLs in the first place
-            raise serializers.ValidationError(t('Invalid code names'))
-
-        # NOCOMMIT rename perhaps or drop in case creating a queryset that never gets evaluated isn't so bad
-        if suffix:
-            # No need to return Permission objects when validating partial
-            # permission code names
-            return
-
-        return Permission.objects.filter(codename__in=codenames)
-
-    def _validate_usernames(self, usernames: list) -> list:
-        """
-        Return a list of User models matching `usernames`.
-
-        If number of distinct usernames does not match the number of
-        users returned by the QuerySet, some usernames are invalid
-        and an error is raised.
-        """
-        usernames = set(usernames)
-        # We need to convert to a list and keep results in memory in order to
-        # pass it to `_get_matching_object_from_list()`
-        # It is not designed to support a ton of users but it should be safe
-        # with reasonable quantity.
-        users = list(
-            User.objects.only('pk', 'username').filter(username__in=usernames)
-        )
-        if len(users) != len(usernames):
-            # NOCOMMIT: from the HTTP requestor's perspective, the users were passed by URL
-            raise serializers.ValidationError(t('Invalid usernames'))
-
-        return users
-
     @staticmethod
-    def _get_matching_object_from_list(
-        field_name: str, field_value: str, object_list: list
-    ) -> Union[User, Permission]:
-        """
-        Search for a match in `object_list` where the value of
-        attribute `field_name` equals `field_value`
-
-        Only the first match is returned
-        """
-        for obj in object_list:
-            if field_value == getattr(obj, field_name):
-                return obj
+    def _get_arg_from_url(arg_name: str, url: str) -> str:
+        try:
+            resolver_match = absolute_resolve(url)
+            value = resolver_match.kwargs[arg_name]
+        except (TypeError, KeyError, Resolver404):
+            value = None
+        return value
