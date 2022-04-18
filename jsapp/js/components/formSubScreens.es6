@@ -10,7 +10,6 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
-import ConnectProjects from 'js/components/dataAttachments/connectProjects';
 import FormMedia from './modalForms/formMedia';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';

@@ -100,7 +100,7 @@ export default function FormGallery(props: FormGalleryProps) {
     <bem.Gallery className={formViewClass}>
       <bem.Gallery__wrapper>
         <bem.Gallery__header>
-          <h1>Image Gallery</h1>
+          <h1>{t('Image Gallery')}</h1>
           <bem.Gallery__icons>
             {/* TODO: implement these buttons */}
             {/* <bem.Button
@@ -128,7 +128,7 @@ export default function FormGallery(props: FormGalleryProps) {
           </bem.Gallery__icons>
         </bem.Gallery__header>
         <bem.GalleryRow>
-          From
+          {t('From')}
           <bem.GalleryRow__select>
             <ReactSelect
               options={questionFilterOptions}
@@ -139,14 +139,14 @@ export default function FormGallery(props: FormGalleryProps) {
             ></ReactSelect>
           </bem.GalleryRow__select>
           <bem.GalleryRow__dates>
-            Between
+            {t('Between')}
             <input
               type='date'
               onChange={(e) =>
                 dispatch({type: 'setStartDate', value: e.target.value})
               }
             ></input>
-            and
+            {t('and')}
             <input
               type='date'
               onChange={(e) =>
