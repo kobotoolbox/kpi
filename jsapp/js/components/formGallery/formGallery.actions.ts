@@ -15,5 +15,3 @@ export type Action =
   | {type: 'setFilterQuestion'; question: string}
   | {type: 'setStartDate'; value: string}
   | {type: 'setEndDate'; value: string};
-
-

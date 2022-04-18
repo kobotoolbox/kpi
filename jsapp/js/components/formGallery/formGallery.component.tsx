@@ -20,6 +20,7 @@ bem.GalleryRow = makeBem(null, 'gallery-row');
 bem.GalleryRow__select = makeBem(bem.GalleryRow, 'select');
 bem.GalleryRow__dates = makeBem(bem.GalleryRow, 'dates');
 bem.GalleryGrid = makeBem(null, 'gallery-grid');
+bem.GalleryBottom = makeBem(null, 'gallery-bottom');
 
 const PAGE_SIZE = 30;
 
@@ -171,7 +172,11 @@ export default function FormGallery(props: FormGalleryProps) {
           ))}
         </bem.GalleryGrid>
         {showLoadMore && (
-          <button onClick={() => loadMoreSubmissions()}>Show more</button>
+          <bem.GalleryBottom>
+            <bem.Button onClick={() => loadMoreSubmissions()}>
+              {t('Show more')}
+            </bem.Button>
+          </bem.GalleryBottom>
         )}
       </bem.Gallery__wrapper>
     </bem.Gallery>
