@@ -174,7 +174,7 @@ export default function FormGallery(props: FormGalleryProps) {
         {showLoadMore && (
           <bem.GalleryBottom>
             <bem.Button onClick={() => loadMoreSubmissions()}>
-              {t('Show more')}
+              {t('Load more')}
             </bem.Button>
           </bem.GalleryBottom>
         )}

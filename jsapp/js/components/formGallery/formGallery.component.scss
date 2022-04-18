@@ -3,10 +3,17 @@
 .gallery {
   background-color: colors.$kobo-white;
 }
+
 .gallery__wrapper {
   margin-top: 20px;
   margin-left: 54px;
   margin-right: 54px;
+
+  @media screen and (max-width: 768px) {
+    margin-top: 10px;
+    margin-left: 15px;
+    margin-right: 15px;
+  }
 
   .gallery-bottom {
     width: 100%;
@@ -16,6 +23,7 @@
     display: flex;
   }
 }
+
 .gallery__header {
   display: flex;
   align-items: center;
@@ -37,11 +45,18 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .gallery-row__select {
   flex: 1;
   margin-right: 10px;
+}
+
+.gallery-row__dates input {
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 .gallery-grid {
