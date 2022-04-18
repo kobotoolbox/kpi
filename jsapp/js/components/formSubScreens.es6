@@ -25,7 +25,7 @@ const DataTable = React.lazy(() => import('js/components/submissions/table'));
 const ProjectDownloads = React.lazy(() =>
   import('js/components/projectDownloads/projectDownloads')
 );
-const FormGallery = React.lazy(() => import('./formGallery/formGallery'));
+const FormGallery = React.lazy(() => import('./formGallery/formGallery.component'));
 
 export class FormSubScreens extends React.Component {
   constructor(props) {
