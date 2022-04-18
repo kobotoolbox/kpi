@@ -509,9 +509,12 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             # As already said above, the positions in `usernames`, `codenames`
             # should (and must) be the same as in `attrs['assignments']`.
             assignment_object = {
-                # NOCOMMIT _get_object is not a DRF thing
-                'user': self._get_object(usernames[idx], users, 'username'),
-                'permission': self._get_object(codenames[idx], permissions, 'codename')
+                'user': self._get_matching_object_from_list(
+                    'username', usernames[idx], users
+                ),
+                'permission': self._get_matching_object_from_list(
+                    'codename', codenames[idx], permissions
+                ),
             }
             if codenames[idx] == PERM_PARTIAL_SUBMISSIONS:
                 assignment_object['partial_permissions'] = defaultdict(list)
@@ -604,7 +607,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         """
         usernames = set(usernames)
         # We need to convert to a list and keep results in memory in order to
-        # pass it to `._get_object()`
+        # pass it to `_get_matching_object_from_list()`
         # It is not designed to support a ton of users but it should be safe
         # with reasonable quantity.
         users = list(
@@ -616,15 +619,16 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
 
         return users
 
-    def _get_object(
-        self, value: str, object_list: list, fieldname: str
+    @staticmethod
+    def _get_matching_object_from_list(
+        field_name: str, field_value: str, object_list: list
     ) -> Union[User, Permission]:
         """
         Search for a match in `object_list` where the value of
-        property `fieldname` equals `value`
+        attribute `field_name` equals `field_value`
 
-        `value` should be a unique identifier
+        Only the first match is returned
         """
         for obj in object_list:
-            if value == getattr(obj, fieldname):
+            if field_value == getattr(obj, field_name):
                 return obj
