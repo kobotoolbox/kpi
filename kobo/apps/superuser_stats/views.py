@@ -207,7 +207,6 @@ def reports_list(request):
         '<a href="{5}">{5}</a><br>'
         '<a href="{6}">{6}</a><br>'
         '<a href="{7}">{7}</a><br>'
-        '<a href="{8}">{8}</a><br>'
         '</html>'
     ).format(
         reverse(country_report),

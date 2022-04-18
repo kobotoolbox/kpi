@@ -231,8 +231,8 @@ def generate_forms_count_by_submission_range(output_filename):
 
     for r in ranges:
         forms_count = KobocatXForm.objects.filter(
-            date_created=date,
-            num_of_submissions__in_range=r,
+            date_created__gte=date,
+            num_of_submissions__range=r,
         ).values('pk').count()
         data.append([f'{r[0]}-{r[1]}', forms_count])
 
@@ -249,10 +249,6 @@ def generate_forms_count_by_submission_range(output_filename):
 @shared_task
 def generate_media_storage_report(output_filename):
 
-    def convert_size(size_bytes):
-        converted = size_bytes / (1024 ** 3)
-        return converted
-
     attachments = ReadOnlyKobocatAttachment.objects.all().values(
         'instance__xform__user__username'
     ).order_by(
@@ -266,10 +262,10 @@ def generate_media_storage_report(output_filename):
     for attachment_count in attachments:
         data.append([
             attachment_count['instance__xform__user__username'],
-            convert_size(attachment_count['storage_used'])
+            attachment_count['storage_used']
         ])
 
-    headers = ['Username', 'Storage Used(GB)']
+    headers = ['Username', 'Storage Used (Bytes)']
 
     default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'wb') as output:
@@ -289,17 +285,22 @@ def generate_user_count_by_organization(output_filename: str):
         'extra_details__data__organization'
     )
 
+    data = []
+
+    for organization in organizations:
+        count = User.objects.filter(
+            extra_details__data__organization=organization
+        ).count()
+        data.append([organization, count])
+
     # write data to a csv file
     columns = ['Organization', 'Count']
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'w') as output_file:
+    with default_storage.open(output_filename, 'wb') as output_file:
         writer = unicodecsv.writer(output_file)
         writer.writerow(columns)
-
-        for organization in organizations:
-            count = User.objects.filter(extra_details__data__organization=organization).count()
-            writer.writerow([organization, count])
+        writer.writerows(data)
 
 
 @shared_task
