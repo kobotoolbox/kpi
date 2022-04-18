@@ -150,3 +150,7 @@ class SubmissionNotFoundException(Exception):
 
 class XPathNotFoundException(Exception):
     pass
+
+
+class XlsFormatException(Exception):
+    pass

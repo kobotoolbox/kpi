@@ -93,7 +93,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME")) \
                     if os.getenv("PUBLIC_DOMAIN_NAME") else ""
                 request_kwargs.get("headers").update({
-                    "User-Agent": "KoBoToolbox external service {}#{}".format(
+                    "User-Agent": "KoboToolbox external service {}#{}".format(
                         public_domain,
                         self._hook.uid)
                 })

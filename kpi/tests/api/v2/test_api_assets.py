@@ -81,7 +81,7 @@ class AssetListApiTests(BaseAssetTestCase):
 
     def test_assets_hash(self):
         another_user = User.objects.get(username="anotheruser")
-        user_asset = Asset.objects.first()
+        user_asset = Asset.objects.get(pk=1)
         user_asset.save()
         user_asset.assign_perm(another_user, "view_asset")
 
@@ -257,7 +257,7 @@ class AssetVersionApiTests(BaseTestCase):
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
-        self.asset = Asset.objects.first()
+        self.asset = Asset.objects.get(pk=1)
         self.asset.save()
         self.version = self.asset.asset_versions.first()
         self.version_list_url = reverse(self._get_endpoint('asset-version-list'),
