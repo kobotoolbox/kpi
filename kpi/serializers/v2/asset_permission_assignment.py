@@ -326,6 +326,91 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         permission_codename: str
         partial_permissions_json: Optional[str] = None
 
+    def create(self, validated_data):
+        asset = self.context['asset']
+        user_pk_to_obj_cache = dict()
+        incoming_assignments = self.get_set_of_incoming_assignments(
+            asset, validated_data['assignments'], user_pk_to_obj_cache
+        )
+        existing_assignments = self.get_set_of_existing_assignments(
+            asset, user_pk_to_obj_cache
+        )
+
+        # Perform the removals
+        for removal in existing_assignments.difference(incoming_assignments):
+            asset.remove_perm(
+                user_pk_to_obj_cache[removal.user_pk],
+                removal.permission_codename,
+            )
+
+        # Perform the new assignments
+        for addition in incoming_assignments.difference(existing_assignments):
+            if asset.owner_id == addition.user_pk:
+                raise serializers.ValidationError(
+                    {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
+                )
+            if addition.partial_permissions_json:
+                partial_perms = json.loads(addition.partial_permissions_json)
+            else:
+                partial_perms = None
+            perm = asset.assign_perm(
+                user_obj=user_pk_to_obj_cache[addition.user_pk],
+                perm=addition.permission_codename,
+                partial_perms=partial_perms,
+            )
+
+        # Return nothing, in a nice way, because the view is responsible for
+        # calling `list()` to return the assignments as they actually exist in
+        # the database. That causes duplicate queries but at least ensures that
+        # the front end displays accurate information even if there are bugs
+        # here
+        return {}
+
+    def get_set_of_existing_assignments(
+        self, asset: 'kpi.models.Asset', user_pk_to_obj_cache: dict
+    ) -> set[PermissionAssignment]:
+        # Get all existing partial permissions with a single query and store
+        # in a dictionary where the keys are the primary key of each user
+        existing_partial_perms_for_user = dict(
+            asset.asset_partial_permissions.values_list('user', 'permissions')
+        )
+
+        # Build a set of all existing assignments
+        existing_assignments = set()
+        for assignment_in_db in (
+            # It seems unnecessary to filter assignments like this since a
+            # user who can change assignments can also view all
+            # assignments. Maybe that will change in the future, though?
+            get_user_permission_assignments_queryset(
+                asset, self.context['request'].user
+            )
+            .exclude(user=asset.owner)
+            .select_related('user', 'permission')
+            .only('asset', 'user', 'permission__codename')
+        ):
+            # Expand the stupid cache to include any users present in the
+            # existing assignments but not in the incoming assignments
+            user_pk_to_obj_cache[
+                assignment_in_db.user_id
+            ] = assignment_in_db.user
+
+            if assignment_in_db.permission.codename == PERM_PARTIAL_SUBMISSIONS:
+                partial_permissions_json = json.dumps(
+                    existing_partial_perms_for_user[assignment_in_db.user_id],
+                    sort_keys=True,
+                )
+            else:
+                partial_permissions_json = None
+            existing_assignments.add(
+                self.PermissionAssignment(
+                    assignment_in_db.user_id,
+                    assignment_in_db.permission.codename,
+                    partial_permissions_json,
+                )
+            )
+
+        return existing_assignments
+
     def get_set_of_incoming_assignments(
         self,
         asset: 'kpi.models.Asset',
@@ -377,107 +462,6 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             )
 
         return incoming_assignments
-
-    def get_set_of_existing_assignments(
-        self, asset: 'kpi.models.Asset', user_pk_to_obj_cache: dict
-    ) -> set[PermissionAssignment]:
-        # Get all existing partial permissions with a single query and store
-        # in a dictionary where the keys are the primary key of each user
-        existing_partial_perms_for_user = dict(
-            asset.asset_partial_permissions.values_list('user', 'permissions')
-        )
-
-        # Build a set of all existing assignments
-        existing_assignments = set()
-        for assignment_in_db in (
-            # It seems unnecessary to filter assignments like this since a
-            # user who can change assignments can also view all
-            # assignments. Maybe that will change in the future, though?
-            get_user_permission_assignments_queryset(
-                asset, self.context['request'].user
-            )
-            .exclude(user=asset.owner)
-            .select_related('user', 'permission')
-            .only('asset', 'user', 'permission__codename')
-        ):
-            # Expand the stupid cache to include any users present in the
-            # existing assignments but not in the incoming assignments
-            user_pk_to_obj_cache[
-                assignment_in_db.user_id
-            ] = assignment_in_db.user
-
-            if assignment_in_db.permission.codename == PERM_PARTIAL_SUBMISSIONS:
-                partial_permissions_json = json.dumps(
-                    existing_partial_perms_for_user[assignment_in_db.user_id],
-                    sort_keys=True,
-                )
-            else:
-                partial_permissions_json = None
-            existing_assignments.add(
-                self.PermissionAssignment(
-                    assignment_in_db.user_id,
-                    assignment_in_db.permission.codename,
-                    partial_permissions_json,
-                )
-            )
-
-        return existing_assignments
-
-    def create(self, validated_data):
-        asset = self.context['asset']
-        user_pk_to_obj_cache = dict()
-        incoming_assignments = self.get_set_of_incoming_assignments(
-            asset, validated_data['assignments'], user_pk_to_obj_cache
-        )
-        existing_assignments = self.get_set_of_existing_assignments(
-            asset, user_pk_to_obj_cache
-        )
-
-        # Perform the removals
-        for removal in existing_assignments.difference(incoming_assignments):
-            asset.remove_perm(
-                user_pk_to_obj_cache[removal.user_pk],
-                removal.permission_codename,
-            )
-            # print(
-            #     '---',
-            #     user_pk_to_obj_cache[removal.user_pk].username,
-            #     removal.permission_codename,
-            #     None
-            #     if not removal.partial_permissions_json
-            #     else json.loads(removal.partial_permissions_json),
-            #     flush=True,
-            # )
-
-        # Perform the new assignments
-        for addition in incoming_assignments.difference(existing_assignments):
-            if asset.owner_id == addition.user_pk:
-                raise serializers.ValidationError(
-                    {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
-                )
-            if addition.partial_permissions_json:
-                partial_perms = json.loads(addition.partial_permissions_json)
-            else:
-                partial_perms = None
-            perm = asset.assign_perm(
-                user_obj=user_pk_to_obj_cache[addition.user_pk],
-                perm=addition.permission_codename,
-                partial_perms=partial_perms,
-            )
-            # print(
-            #     '+++',
-            #     perm.user.username,
-            #     perm.permission.codename,
-            #     partial_perms,
-            #     flush=True,
-            # )
-
-        # Return nothing, in a nice way, because the view is responsible for
-        # calling `list()` to return the assignments as they actually exist in
-        # the database. That causes duplicate queries but at least ensures that
-        # the front end displays accurate information even if there are bugs
-        # here
-        return {}
 
     def validate(self, attrs):
         """
