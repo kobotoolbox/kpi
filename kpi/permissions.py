@@ -323,7 +323,8 @@ class DuplicateSubmissionPermission(SubmissionPermission):
     }
 
 
-class EditSubmissionPermission(SubmissionPermission):
+class EditLinkSubmissionPermission(SubmissionPermission):
+
     perms_map = {
         'GET': ['%(app_label)s.change_%(model_name)s'],
         'HEAD': ['%(app_label)s.change_%(model_name)s'],
@@ -342,6 +343,18 @@ class EditSubmissionPermission(SubmissionPermission):
         #  - https://github.com/encode/django-rest-framework/blob/45082b39368729caa70534dde11b0788ef186a37/rest_framework/views.py#L190
         #  - https://github.com/encode/django-rest-framework/blob/45082b39368729caa70534dde11b0788ef186a37/rest_framework/views.py#L453-L456
         return not request.user.is_anonymous
+
+
+class EditSubmissionPermission(EditLinkSubmissionPermission):
+
+    def has_permission(self, request, view):
+        try:
+            return super().has_permission(request, view)
+        except Http404:
+            # When we receive a 404, we want to force a 401 to let the user
+            # log in with different credentials. Enketo Express will prompt
+            # the credential form only if it receives a 401.
+            raise exceptions.AuthenticationFailed()
 
 
 class ViewSubmissionPermission(SubmissionPermission):
