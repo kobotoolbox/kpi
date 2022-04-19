@@ -37,7 +37,7 @@ from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
-    EditSubmissionPermission,
+    EditLinkSubmissionPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
@@ -353,7 +353,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[EditSubmissionPermission],
+        permission_classes=[EditLinkSubmissionPermission],
         url_path='(enketo\/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
