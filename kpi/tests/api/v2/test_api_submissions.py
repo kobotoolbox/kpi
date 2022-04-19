@@ -6,11 +6,14 @@ import time
 import uuid
 from datetime import datetime
 
+import pytest
 import pytz
 import responses
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils.datastructures import MultiValueDictKeyError
+from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kpi.constants import (
@@ -1012,6 +1015,61 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # Just make sure the cookie is present and has a non-empty value
         assert ENKETO_CSRF_COOKIE_NAME in response.cookies
         assert response.cookies[ENKETO_CSRF_COOKIE_NAME].value
+
+    def test_edit_submission_with_digest_credentials(self):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot.uid,),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        # With no credentials provided, Session Auth and Digest Auth should fail.
+        # Thus, a 401 should be returned to give the user the opportunity to login.
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # With correct credentials provided, Session Auth should fail, but
+        # Digest Auth should work. But, because 'anotheruser' does not have
+        # any permissions on `self.asset` which belongs to 'someuser', a 401
+        # should be returned anyway to give the user the opportunity to login
+        # with different credentials.
+        client.set_authorization('anotheruser', 'anotheruser', 'Digest')
+        # Force PartialDigest creation to have match when authenticated is
+        # processed.
+        self.anotheruser.set_password('anotheruser')
+        self.anotheruser.save()
+
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+
+        # The purpose of this test is to validate that the authentication works.
+        # We do not send a valid XML, therefore it should raise a KeyError
+        # if authentication (and permissions) works as expected.
+        with pytest.raises(KeyError) as e:
+            req = client.post(url)
+
+    def test_edit_submission_with_authenticated_session_but_no_digest(self):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot.uid,),
+        )
+        self.login_as_other_user('anotheruser', 'anotheruser')
+        # Try to edit someuser's submission by anotheruser who has no
+        # permissions on someuser's asset.
+        req = self.client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+
+        # The purpose of this test is to validate that the authentication works.
+        # We do not send a valid XML, therefore it should raise a KeyError
+        # if authentication (and permissions) works as expected.
+        with pytest.raises(KeyError) as e:
+            req = self.client.post(url)
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
