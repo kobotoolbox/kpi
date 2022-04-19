@@ -106,7 +106,7 @@ django-constance[database]==2.4.0
     # via -r dependencies/pip/requirements.in
 django-cors-headers==3.1.1
     # via -r dependencies/pip/requirements.in
-django-debug-toolbar==2.1
+django-debug-toolbar==3.2.4
     # via -r dependencies/pip/requirements.in
 django-environ==0.8.1
     # via -r dependencies/pip/requirements.in
