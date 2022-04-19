@@ -1,7 +1,9 @@
 # coding: utf-8
+from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
+from hub.models import ExtraUserDetail
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -386,7 +388,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         # Check whether `asset` owner's account requires authentication:
         try:
             require_auth = obj.asset.owner.extra_details.data['require_auth']
-        except KeyError:
+        except (User.extra_details.RelatedObjectDoesNotExist, KeyError):
             require_auth = False
 
         # If authentication is required, `request.user` should have
