@@ -29,7 +29,8 @@ from kpi.utils.export_task import format_exception_values
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
-    exports_url = serializers.SerializerMethodField()
+    data_url_csv = serializers.SerializerMethodField()
+    data_url_xlsx = serializers.SerializerMethodField()
     name = serializers.CharField(allow_blank=True)
     date_modified = serializers.CharField(read_only=True)
     export_settings = WritableJSONField()
@@ -39,7 +40,8 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         fields = (
             'uid',
             'url',
-            'exports_url',
+            'data_url_csv',
+            'data_url_xlsx',
             'name',
             'date_modified',
             'export_settings',
@@ -153,17 +155,32 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         return export_settings
 
-    def get_url(self, obj: Asset) -> str:
+    def get_url(self, obj: AssetExportSettings) -> str:
         return reverse(
             'asset-export-settings-detail',
             args=(obj.asset.uid, obj.uid),
             request=self.context.get('request', None),
         )
 
-    def get_exports_url(self, obj: Asset) -> str:
+    def get_data_url_csv(self, obj: AssetExportSettings) -> str:
         return reverse(
-            'submission-exports',
-            args=(obj.asset.uid, obj.uid),
+            'asset-export-settings-synchronous-data',
+            kwargs={
+                'parent_lookup_asset': obj.asset.uid,
+                'uid': obj.uid,
+            },
+            format='csv',
+            request=self.context.get('request', None),
+        )
+
+    def get_data_url_xlsx(self, obj: AssetExportSettings) -> str:
+        return reverse(
+            'asset-export-settings-synchronous-data',
+            kwargs={
+                'parent_lookup_asset': obj.asset.uid,
+                'uid': obj.uid,
+            },
+            format='xlsx',
             request=self.context.get('request', None),
         )
 

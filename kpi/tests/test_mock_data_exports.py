@@ -5,7 +5,8 @@ from collections import defaultdict
 
 import datetime
 import mock
-import xlrd
+import openpyxl
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -466,17 +467,20 @@ class MockDataExports(MockDataExportsBase):
         export_task._run_task(messages)
         assert not messages
 
-        book = xlrd.open_workbook(file_contents=export_task.result.read())
+        book = openpyxl.load_workbook(export_task.result)
         expected_sheet_names = list(expected_data.keys())
-        assert book.sheet_names() == expected_sheet_names
+        assert book.sheetnames == expected_sheet_names
 
         for sheet_name in expected_sheet_names:
             expected_rows = expected_data[sheet_name]
-            sheet = book.sheet_by_name(sheet_name)
-            assert sheet.nrows == len(expected_rows)
+            sheet = book[sheet_name]
+            assert sheet.max_row == len(expected_rows)
 
             for row_index, expected_row in enumerate(expected_rows):
-                result_row = [cell.value for cell in sheet.row(row_index)]
+                result_row = [
+                    cell.value if cell.value is not None else ''
+                    for cell in sheet[row_index + 1]
+                ]
                 assert result_row == expected_row
 
     def test_csv_export_default_options(self):
@@ -821,7 +825,7 @@ class MockDataExports(MockDataExportsBase):
         messages = defaultdict(list)
         # Set the current date and time artificially to generate a predictable
         # file name for the export
-        utcnow = datetime.datetime.utcnow()
+        utcnow = datetime.datetime.now(tz=pytz.UTC)
         with mock.patch('kpi.models.import_export_task.utcnow') as mock_utcnow:
             mock_utcnow.return_value = utcnow
             export_task._run_task(messages)

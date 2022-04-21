@@ -1,5 +1,5 @@
 # coding: utf-8
-from datetime import datetime
+from datetime import date, datetime
 from secrets import token_urlsafe
 from typing import Optional
 
@@ -19,7 +19,6 @@ from django.db import (
 from django.utils import timezone
 from django.utils.http import urlquote
 from django_digest.models import PartialDigest
-from trench.utils import get_mfa_model
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
@@ -304,7 +303,7 @@ class KobocatPermission(ShadowModel):
 class KobocatSubmissionCounter(ShadowModel):
     user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateField()
 
     class Meta(ShadowModel.Meta):
         app_label = 'superuser_stats'
@@ -317,11 +316,13 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        today = datetime.today()
-        first = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        today = date.today()
+        first = today.replace(day=1)
 
-        cls.objects.get_or_create(user_id=user.pk, timestamp=first)
-
+        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
+        if not queryset.exists():
+            # Todo: Handle race conditions
+            cls.objects.create(user_id=user.pk, timestamp=first)
 
 class KobocatUser(ShadowModel):
 
@@ -530,6 +531,7 @@ class KobocatXForm(ShadowModel):
     uuid = models.CharField(max_length=32, default='')
     last_submission_time = models.DateTimeField(blank=True, null=True)
     num_of_submissions = models.IntegerField(default=0)
+    kpi_asset_uid = models.CharField(max_length=32, null=True)
 
     @property
     def md5_hash(self):
@@ -566,12 +568,15 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
                                   db_index=True)
     media_file_basename = models.CharField(
         max_length=260, null=True, blank=True, db_index=True)
-    # `PositiveIntegerField` will only accomodate 2 GiB, so we should consider
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
     # `PositiveBigIntegerField` after upgrading to Django 3.1+
     media_file_size = models.PositiveIntegerField(blank=True, null=True)
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default=''
     )
+    # TODO: hide attachments that were deleted or replaced; see
+    # kobotoolbox/kobocat#792
+    # replaced_at = models.DateTimeField(blank=True, null=True)
 
     @property
     def absolute_mp3_path(self):
@@ -666,6 +671,7 @@ def safe_kc_read(func):
         try:
             return func(*args, **kwargs)
         except ProgrammingError as e:
-            raise ProgrammingError('kc_access error accessing kobocat '
-                                   'tables: {}'.format(e.message))
+            raise ProgrammingError(
+                'kc_access error accessing kobocat tables: {}'.format(str(e))
+            )
     return _wrapper

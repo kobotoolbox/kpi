@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import Optional
+from typing import Optional, Union
 
 from django.conf import settings
 from django.shortcuts import Http404
@@ -33,6 +33,10 @@ class AttachmentViewSet(
         <b>GET</b>  /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_id}</code>/attachment/?xpath=<code>{xml_path_to_question}</code>
         </pre>
 
+        <sup>*</sup>`data_id` can be the primary key of the submission or its `uuid`.
+        Please note that using the `uuid` may match **several** submissions, only
+        the first match will be returned.
+
         > Example
         >
         >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file
@@ -57,11 +61,11 @@ class AttachmentViewSet(
     def retrieve(self, request, pk, *args, **kwargs):
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
         # Mongo attachments URL with their primary keys (instead of their XPath)
-        submission_id = kwargs['parent_lookup_data']
-        return self._get_response(request, submission_id, attachment_id=pk)
+        submission_id_or_uuid = kwargs['parent_lookup_data']
+        return self._get_response(request, submission_id_or_uuid, attachment_id=pk)
 
     def list(self, request, *args, **kwargs):
-        submission_id = kwargs['parent_lookup_data']
+        submission_id_or_uuid = kwargs['parent_lookup_data']
         try:
             xpath = request.query_params['xpath']
         except KeyError:
@@ -69,19 +73,19 @@ class AttachmentViewSet(
                 'detail': t('`xpath` query parameter is required')
             }, 'xpath_missing')
 
-        return self._get_response(request, submission_id, xpath=xpath)
+        return self._get_response(request, submission_id_or_uuid, xpath=xpath)
 
     def _get_response(
         self,
         request,
-        submission_id: int,
+        submission_id_or_uuid: Union[str, int],
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> Response:
 
         try:
             attachment = self.asset.deployment.get_attachment(
-                submission_id, request.user, attachment_id, xpath
+                submission_id_or_uuid, request.user, attachment_id, xpath
             )
         except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404

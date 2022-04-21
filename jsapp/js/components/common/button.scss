@@ -18,6 +18,7 @@ $button-icon-l: icon.$s-icon-m;
 $button-icon-alone-l: icon.$s-icon-l;
 
 $button-border-width: sizes.$x1;
+$button-border-radius: sizes.$x6;
 
 // Sets colors for `bare` type button.
 @mixin buttonBare($mainColor) {
@@ -144,7 +145,7 @@ $button-border-width: sizes.$x1;
   border-width: $button-border-width;
   border-style: solid;
   border-color: transparent;
-  border-radius: sizes.$x6;
+  border-radius: $button-border-radius;
   background-color: transparent;
 }
 
