@@ -67,6 +67,7 @@
     "coffeelint": "^1.16.2",
     "coffeescript": "^1.12.0",
     "css-loader": "^1.0.0",
+    "eslint-webpack-plugin": "^2.6.0",
     "file-loader": "^2.0.0",
     "less-terrible-coffeelint-loader": "^0.1.5",
     "mocha": "^7.1.2",
