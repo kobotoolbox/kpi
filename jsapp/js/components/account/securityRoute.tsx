@@ -1,51 +1,52 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import Button from 'js/components/common/button'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import Icon from 'js/components/common/icon'
-import {stores} from 'js/stores'
-import mfaActions, {
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import Button from 'js/components/common/button';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
+import Icon from 'js/components/common/icon';
+import {stores} from 'js/stores';
+import type {
   MfaActiveResponse,
   MfaActivatedResponse,
-} from 'js/actions/mfaActions'
-import {MODAL_TYPES} from 'jsapp/js/constants'
+} from 'js/actions/mfaActions';
+import mfaActions from 'js/actions/mfaActions';
+import {MODAL_TYPES} from 'jsapp/js/constants';
 
-import './securityRoute.scss'
+import './securityRoute.scss';
 
-bem.SecuritySection = makeBem(null, 'security-section')
+bem.SecuritySection = makeBem(null, 'security-section');
 
-bem.SecurityRow = makeBem(null, 'security-row')
-bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header')
-bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title', 'h2')
-bem.SecurityRow__buttons = makeBem(bem.SecurityRow, 'buttons')
-bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description')
+bem.SecurityRow = makeBem(null, 'security-row');
+bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header');
+bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title', 'h2');
+bem.SecurityRow__buttons = makeBem(bem.SecurityRow, 'buttons');
+bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description');
 
-bem.MFAOptions = makeBem(null, 'mfa-options')
-bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row')
-bem.MFAOptions__label = makeBem(bem.MFAOptions, 'label')
-bem.MFAOptions__buttons = makeBem(bem.MFAOptions, 'row')
+bem.MFAOptions = makeBem(null, 'mfa-options');
+bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row');
+bem.MFAOptions__label = makeBem(bem.MFAOptions, 'label');
+bem.MFAOptions__buttons = makeBem(bem.MFAOptions, 'row');
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
 
-type SecurityState = {
-  mfaActive: boolean
+interface SecurityState {
+  mfaActive: boolean;
 }
 
-type EditModalTypes = 'regenerate' | 'reconfigure'
+type EditModalTypes = 'reconfigure' | 'regenerate';
 
-export default class Security extends React.Component<
+export default class SecurityRoute extends React.Component<
   {},
   SecurityState
 > {
-  constructor(props: any) {
-    super(props)
+  constructor(props: {}) {
+    super(props);
     this.state = {
       mfaActive: false,
-    }
+    };
   }
 
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
@@ -53,17 +54,17 @@ export default class Security extends React.Component<
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
       mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
-    )
+    );
 
-    mfaActions.isActive()
+    mfaActions.isActive();
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   mfaActive(response: MfaActiveResponse) {
-    this.setState({mfaActive: response.length >= 1})
+    this.setState({mfaActive: response.length >= 1});
   }
 
   mfaActivating(response: MfaActivatedResponse) {
@@ -74,16 +75,16 @@ export default class Security extends React.Component<
         modalType: 'qr',
         customModalHeader: this.renderCustomHeader(),
         disableBackdropClose: true,
-      })
+      });
     }
   }
 
   mfaActivated() {
-    this.setState({mfaActive: true})
+    this.setState({mfaActive: true});
   }
 
   mfaDeactivated() {
-    this.setState({mfaActive: false})
+    this.setState({mfaActive: false});
   }
 
   onToggleChange(isActive: boolean) {
@@ -95,7 +96,7 @@ export default class Security extends React.Component<
         modalType: 'deactivate',
         customModalHeader: this.renderCustomHeader(),
         disableBackdropClose: true,
-      })
+      });
     }
   }
 
@@ -103,14 +104,14 @@ export default class Security extends React.Component<
     evt: React.ChangeEvent<HTMLInputElement>,
     type: EditModalTypes
   ) {
-    evt.preventDefault()
+    evt.preventDefault();
 
     stores.pageState.showModal({
         type: MODAL_TYPES.MFA_MODALS,
         modalType: type,
         customModalHeader: this.renderCustomHeader(),
         disableBackdropClose: true,
-    })
+    });
   }
 
   renderCustomHeader() {
@@ -124,7 +125,7 @@ export default class Security extends React.Component<
           {t('Two-factor authentication')}
         </bem.TableMediaPreviewHeader__title>
       </bem.TableMediaPreviewHeader>
-    )
+    );
   }
 
   render() {
@@ -164,7 +165,7 @@ export default class Security extends React.Component<
                     label={t('Reconfigure')}
                     size='l'
                     onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                      this.showEditModal(evt, 'reconfigure')
+                      this.showEditModal(evt, 'reconfigure');
                     }}
                   />
                 </bem.MFAOptions__buttons>
@@ -182,7 +183,7 @@ export default class Security extends React.Component<
                     label={t('Generate new')}
                     size='l'
                     onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                      this.showEditModal(evt, 'regenerate')
+                      this.showEditModal(evt, 'regenerate');
                     }}
                   />
                 </bem.MFAOptions__buttons>
@@ -191,6 +192,6 @@ export default class Security extends React.Component<
           }
         </bem.SecurityRow>
       </bem.SecuritySection>
-    )
+    );
   }
 }

@@ -1,12 +1,12 @@
-import React from 'react'
-import {ROUTES} from 'js/router/routerConstants'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Icon from 'js/components/common/icon'
-import './accountSidebar.scss'
+import React from 'react';
+import {ROUTES} from 'js/router/routerConstants';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Icon from 'js/components/common/icon';
+import './accountSidebar.scss';
 
-type AccountSidebarProps = {
-  submissionsPerMonth: number
+interface AccountSidebarProps {
+  submissionsPerMonth: number;
   /* TODO: Placeholder from mockups, naming and typing subject to change
     dataStoreage: any,
     transcriptionMinutes: any,
@@ -14,8 +14,8 @@ type AccountSidebarProps = {
 	*/
 }
 
-type AccountSidebarState = {
-	isLoading: boolean
+interface AccountSidebarState {
+	isLoading: boolean;
 }
 
 export default class AccountSidebar extends React.Component<
@@ -23,37 +23,37 @@ export default class AccountSidebar extends React.Component<
   AccountSidebarState
 > {
   constructor(props: AccountSidebarProps) {
-    super(props)
+    super(props);
     this.state = {
       isLoading: true,
-    }
+    };
   }
 
   componentDidMount() {
     this.setState({
       isLoading: false,
-    })
+    });
   }
 
   isAccountSelected(): boolean {
     return (
       location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS
-    )
+    );
   }
 
   isDataStorageSelected(): boolean {
-    return location.hash.split('#')[1] === ROUTES.DATA_STORAGE
+    return location.hash.split('#')[1] === ROUTES.DATA_STORAGE;
   }
 
   isSecuritySelected(): boolean {
-    return location.hash.split('#')[1] === ROUTES.SECURITY
+    return location.hash.split('#')[1] === ROUTES.SECURITY;
   }
 
   render() {
-    let sidebarModifier = 'account'
+    const sidebarModifier = 'account';
 
     if (this.state.isLoading) {
-      return <LoadingSpinner />
+      return <LoadingSpinner />;
     } else {
       return (
         <bem.FormSidebar m={sidebarModifier}>
@@ -92,7 +92,7 @@ export default class AccountSidebar extends React.Component<
           </bem.FormSidebar__label>
           }
         </bem.FormSidebar>
-      )
+      );
     }
   }
 }

@@ -1,52 +1,53 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import { stores } from 'jsapp/js/stores'
-import QRCode from 'qrcode.react'
-import Button from 'js/components/common/button'
-import TextBox from 'js/components/common/textBox'
-import mfaActions, {
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import {stores} from 'jsapp/js/stores';
+import QRCode from 'qrcode.react';
+import Button from 'js/components/common/button';
+import TextBox from 'js/components/common/textBox';
+import type {
   MfaActivatedResponse,
   MfaBackupCodesResponse,
-} from 'js/actions/mfaActions'
+} from 'js/actions/mfaActions';
+import mfaActions from 'js/actions/mfaActions';
 
-import './mfaModals.scss'
+import './mfaModals.scss';
 
-bem.MFAModal = makeBem(null, 'mfa-modal')
+bem.MFAModal = makeBem(null, 'mfa-modal');
 
-bem.MFAModal__p = makeBem(bem.MFAModal, 'p', 'p')
+bem.MFAModal__p = makeBem(bem.MFAModal, 'p', 'p');
 
-bem.MFAModal__title = makeBem(bem.MFAModal, 'title', 'h4')
-bem.MFAModal__description = makeBem(bem.MFAModal, 'description')
+bem.MFAModal__title = makeBem(bem.MFAModal, 'title', 'h4');
+bem.MFAModal__description = makeBem(bem.MFAModal, 'description');
 
-bem.MFAModal__body = makeBem(bem.MFAModal, 'body')
-bem.MFAModal__helpLink = makeBem(bem.MFAModal, 'help-link', 'a')
-bem.MFAModal__qrcodeWrapper = makeBem(bem.MFAModal, 'qrcode-wrapper')
-bem.MFAModal__codes = makeBem(bem.MFAModal, 'codes')
-bem.MFAModal__codesWrapper = makeBem(bem.MFAModal, 'codes-wrapper')
-bem.MFAModal__list = makeBem(bem.MFAModal, 'list', 'ul')
+bem.MFAModal__body = makeBem(bem.MFAModal, 'body');
+bem.MFAModal__helpLink = makeBem(bem.MFAModal, 'help-link', 'a');
+bem.MFAModal__qrcodeWrapper = makeBem(bem.MFAModal, 'qrcode-wrapper');
+bem.MFAModal__codes = makeBem(bem.MFAModal, 'codes');
+bem.MFAModal__codesWrapper = makeBem(bem.MFAModal, 'codes-wrapper');
+bem.MFAModal__list = makeBem(bem.MFAModal, 'list', 'ul');
 
-bem.MFAModal__footer = makeBem(bem.MFAModal, 'footer', 'footer')
-bem.MFAModal__footerLeft = makeBem(bem.MFAModal, 'footer-left')
-bem.MFAModal__footerRight = makeBem(bem.MFAModal, 'footer-right')
+bem.MFAModal__footer = makeBem(bem.MFAModal, 'footer', 'footer');
+bem.MFAModal__footerLeft = makeBem(bem.MFAModal, 'footer-left');
+bem.MFAModal__footerRight = makeBem(bem.MFAModal, 'footer-right');
 
-const SUPPORT_EMAIL = 'support@kobotoolbox.org'
+const SUPPORT_EMAIL = 'support@kobotoolbox.org';
 
-type ModalSteps = 'qr' | 'backups' | 'manual' | 'token' | 'disclaimer' | 'help-text'
+type ModalSteps = 'backups' | 'disclaimer' | 'help-text' | 'manual' | 'qr' | 'token';
 
-type MFAModalsProps = {
-  onModalClose: Function
-  qrCode?: string
-  modalType: 'qr' | 'regenerate' | 'reconfigure' | 'deactivate'
+interface MFAModalsProps {
+  onModalClose: Function;
+  qrCode?: string;
+  modalType: 'deactivate' | 'qr' | 'reconfigure' | 'regenerate';
 }
 
-type MFAModalsState = {
-  currentStep: ModalSteps
-  qrCode: null | string
+interface MFAModalsState {
+  currentStep: ModalSteps;
+  qrCode: string | null;
   /** Currently input code, used for confirmCode */
-  inputString: string
-  backupCodes: null | string[]
-  downloadClicked: boolean
-  errorText: undefined | string
+  inputString: string;
+  backupCodes: string[] | null;
+  downloadClicked: boolean;
+  errorText: string | undefined;
 }
 
 export default class MFAModals extends React.Component<
@@ -54,7 +55,7 @@ export default class MFAModals extends React.Component<
   MFAModalsState
 > {
   constructor(props: MFAModalsProps) {
-    super(props)
+    super(props);
     this.state = {
       qrCode: this.props.qrCode || null,
       currentStep: this.getInitalModalStep(),
@@ -62,10 +63,10 @@ export default class MFAModals extends React.Component<
       backupCodes: null,
       downloadClicked: false,
       errorText: undefined,
-    }
+    };
   }
 
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
@@ -77,141 +78,139 @@ export default class MFAModals extends React.Component<
       mfaActions.confirmCode.failed.listen(this.onCallFailed.bind(this)),
       mfaActions.regenerate.failed.listen(this.onCallFailed.bind(this)),
       mfaActions.deactivate.failed.listen(this.onCallFailed.bind(this)),
-    )
+    );
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb()})
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   onMfaActivateCompleted(response: MfaActivatedResponse) {
     this.setState({
       qrCode: response.details,
       currentStep: 'qr',
-    })
+    });
   }
 
   mfaConfirm() {
-    mfaActions.confirmCode(this.state.inputString)
+    mfaActions.confirmCode(this.state.inputString);
   }
 
   onMfaCodesReceived(response: MfaBackupCodesResponse) {
     this.setState({
       backupCodes: response.backup_codes,
       currentStep: 'backups',
-    })
+    });
   }
 
   mfaDeactivate() {
-    mfaActions.deactivate(this.state.inputString)
+    mfaActions.deactivate(this.state.inputString);
   }
 
   onMfaDeactivated() {
     if (this.props.modalType === 'reconfigure') {
-      mfaActions.activate(true)
+      mfaActions.activate(true);
     } else {
-      this.closeModal()
+      this.closeModal();
     }
   }
 
   mfaRegenerate() {
-    mfaActions.regenerate(this.state.inputString)
+    mfaActions.regenerate(this.state.inputString);
   }
 
   closeModal() {
-    this.props.onModalClose()
+    this.props.onModalClose();
   }
 
   // Only used for failed tokens
   onCallFailed() {
-    this.setState({errorText: t('Incorrect token')})
+    this.setState({errorText: t('Incorrect token')});
   }
 
   getSecretKey(): string {
     // We expect backend to not change the way the secret key is returned
-    const keyFromBackend = this.props.qrCode || this.state.qrCode
+    const keyFromBackend = this.props.qrCode || this.state.qrCode;
 
     if (keyFromBackend) {
       return (
         keyFromBackend.split('=')[1].split('&')[0]
-      )
+      );
     } else {
-      return (t('Could not generate secret key'))
+      return (t('Could not generate secret key'));
     }
   }
 
   getInitalModalStep(): ModalSteps {
     switch (this.props.modalType) {
       case 'qr':
-        return 'qr'
+        return 'qr';
       case 'regenerate':
       case 'reconfigure':
-        return 'disclaimer'
+        return 'disclaimer';
       case 'deactivate':
-        return 'token'
+        return 'token';
     }
   }
 
   handleTokenSubmit() {
-    this.setState({inputString: ''})
+    this.setState({inputString: ''});
 
     switch (this.props.modalType) {
       case 'regenerate':
-        this.mfaRegenerate()
-        break
+        this.mfaRegenerate();
+        break;
       case 'reconfigure':
-        this.mfaDeactivate()
-        break
+        this.mfaDeactivate();
+        break;
       case 'deactivate':
-        this.mfaDeactivate()
-        break
+        this.mfaDeactivate();
+        break;
     }
   }
 
   onInputChange(inputString: string) {
-    this.setState({inputString: inputString})
+    this.setState({inputString: inputString});
   }
 
   changeStep(
     evt: React.ChangeEvent<HTMLInputElement>,
     newStep: ModalSteps
   ) {
-    evt.preventDefault()
+    evt.preventDefault();
 
-    this.setState({currentStep: newStep})
+    this.setState({currentStep: newStep});
   }
 
   isTokenValid(): boolean {
-    return this.state.inputString !== null && this.state.inputString.length === 6
+    return this.state.inputString !== null && this.state.inputString.length === 6;
   }
 
   downloadCodes() {
     if (this.state.backupCodes) {
-      const USERNAME = stores.session.currentAccount.username
+      const USERNAME = stores.session.currentAccount.username;
       // gets date in yyyymmdd
-      const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '')
+      const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '');
 
-      const formatedCodes = this.state.backupCodes.map((t) => {
-        return t + '\n'
-      })
-      const codesLink = document.createElement('a')
-      const codesFile = new Blob(formatedCodes)
+      const formatedCodes = this.state.backupCodes.map((t) => t + '\n');
+      const codesLink = document.createElement('a');
+      const codesFile = new Blob(formatedCodes);
 
-      codesLink.href = URL.createObjectURL(codesFile)
-      codesLink.download = 'backups_' + USERNAME + '_' + DATE + '.txt'
+      codesLink.href = URL.createObjectURL(codesFile);
+      codesLink.download = 'backups_' + USERNAME + '_' + DATE + '.txt';
 
-      document.body.appendChild(codesLink)
-      codesLink.click()
+      document.body.appendChild(codesLink);
+      codesLink.click();
 
-      this.setState({downloadClicked: true})
+      this.setState({downloadClicked: true});
     }
   }
 
   // HACK FIX: since the header is seperate from the modal we do this
   // roundabout way of disabling the close icon
   disableCloseIcon() {
-    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement
-    closeIcon.hidden = true
+    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement;
+    closeIcon.hidden = true;
   }
 
   renderQRCodeStep() {
@@ -257,7 +256,7 @@ export default class MFAModals extends React.Component<
 
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'manual')
+                this.changeStep(evt, 'manual');
               }}
             >
               {t('Enter key manually')}
@@ -279,11 +278,11 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
-    )
+    );
   }
 
   renderBackupStep() {
-    this.disableCloseIcon()
+    this.disableCloseIcon();
 
     return (
       <bem.MFAModal m='step-backup'>
@@ -298,15 +297,13 @@ export default class MFAModals extends React.Component<
             <bem.MFAModal__codesWrapper>
               <bem.MFAModal__codes>
                 <bem.MFAModal__list>
-                  {this.state.backupCodes.map((t) => {
-                    return (
+                  {this.state.backupCodes.map((t) => (
                       <li>
                         <strong>
                           {t}
                         </strong>
                       </li>
-                    )
-                  })}
+                    ))}
                 </bem.MFAModal__list>
               </bem.MFAModal__codes>
             </bem.MFAModal__codesWrapper>
@@ -338,7 +335,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
-    )
+    );
   }
 
   renderManualStep() {
@@ -379,7 +376,7 @@ export default class MFAModals extends React.Component<
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'qr')
+                this.changeStep(evt, 'qr');
               }}
             >
               {t('Take me back to QR code')}
@@ -401,7 +398,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
-    )
+    );
   }
 
   renderTokenStep() {
@@ -415,7 +412,7 @@ export default class MFAModals extends React.Component<
                 t('Please enter your six-digit authenticator token to regenerate your backup codes.')
               }
 
-              {this.props.modalType != 'regenerate' &&
+              {this.props.modalType !== 'regenerate' &&
                 t('Please enter your six-digit authenticator token to deactivate two-factor authentication.')
               }
             </strong>
@@ -433,7 +430,7 @@ export default class MFAModals extends React.Component<
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'help-text')
+                this.changeStep(evt, 'help-text');
               }}
             >
               {t('Problems with the token')}
@@ -457,7 +454,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
-    )
+    );
   }
 
   renderDisclaimerStep() {
@@ -465,7 +462,7 @@ export default class MFAModals extends React.Component<
       <bem.MFAModal
         m={{
           regenerate: this.props.modalType === 'regenerate',
-          disclaimer: true
+          disclaimer: true,
         }}
       >
         <bem.MFAModal__body>
@@ -476,7 +473,7 @@ export default class MFAModals extends React.Component<
                 t('Please note that recovery codes from the previous set up will not be valid anymore')
               }
 
-              {this.props.modalType != 'regenerate' &&
+              {this.props.modalType !== 'regenerate' &&
                 t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
               }
             </strong>
@@ -498,13 +495,13 @@ export default class MFAModals extends React.Component<
               isFullWidth
               label={t('Next')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'token')
+                this.changeStep(evt, 'token');
               }}
             />
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
-    )
+    );
   }
 
   renderHelpTextStep() {
@@ -551,7 +548,7 @@ export default class MFAModals extends React.Component<
               isFullWidth
               label={t('Back')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'token')
+                this.changeStep(evt, 'token');
               }}
             />
           </bem.MFAModal__footerLeft>
@@ -568,13 +565,13 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__footerRight>
         </bem.MFAModal__footer>
       </bem.MFAModal>
-    )
+    );
   }
 
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
-      throw new Error(t('Modal is expecting a qr code but did not recieve any'))
+      throw new Error(t('Modal is expecting a qr code but did not recieve any'));
     }
 
     switch (this.state.currentStep) {
