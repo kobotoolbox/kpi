@@ -33,15 +33,17 @@ mfaActions.isActive.listen(() => {
     dataType: 'json',
     method: 'GET',
     url: `${ROOT_URL}/api/v2/auth/mfa/user-active-methods/`,
-  }).done((response: MfaActiveResponse) => {
-    mfaActions.isActive.completed(response)
-  }).fail((response: MfaErrorResponse) => {
-    let errorText = t('An error occured')
-    if (response.non_field_errors) {
-      errorText = response.non_field_errors
-    }
-    notify(errorText, 'error')
   })
+    .done((response: MfaActiveResponse) => {
+      mfaActions.isActive.completed(response)
+    })
+    .fail((response: MfaErrorResponse) => {
+      let errorText = t('An error occured')
+      if (response.non_field_errors) {
+        errorText = response.non_field_errors
+      }
+      notify(errorText, 'error')
+    })
 })
 
 mfaActions.activate.listen((inModal?: boolean) => {
@@ -49,21 +51,23 @@ mfaActions.activate.listen((inModal?: boolean) => {
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/activate/`,
-  }).done((response: MfaActivatedResponse) => {
-    // If we are reconfiguring MFA, we have to disable and enable in one step,
-    // this avoids the case of closing and re-rendering the modal
-    let inModalResponse = response
-    if (inModal) {
-      inModalResponse.inModal = inModal
-    }
-    mfaActions.activate.completed(inModalResponse)
-  }).fail((response: MfaErrorResponse) => {
-    let errorText = t('An error occured')
-    if (response.non_field_errors) {
-      errorText = response.non_field_errors
-    }
-    notify(errorText, 'error')
   })
+    .done((response: MfaActivatedResponse) => {
+      // If we are reconfiguring MFA, we have to disable and enable in one step,
+      // this avoids the case of closing and re-rendering the modal
+      let inModalResponse = response
+      if (inModal) {
+        inModalResponse.inModal = inModal
+      }
+      mfaActions.activate.completed(inModalResponse)
+    })
+    .fail((response: MfaErrorResponse) => {
+      let errorText = t('An error occured')
+      if (response.non_field_errors) {
+        errorText = response.non_field_errors
+      }
+      notify(errorText, 'error')
+    })
 })
 
 mfaActions.confirmCode.listen((mfaCode: string) => {
@@ -72,15 +76,16 @@ mfaActions.confirmCode.listen((mfaCode: string) => {
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/activate/confirm/`,
-  }).done(mfaActions.confirmCode.completed)
-  .fail((response: MfaErrorResponse) => {
-    let errorText = t('Incorrect token or something went wrong')
-    if (response.non_field_errors) {
-      errorText = response.non_field_errors
-    }
-    notify(errorText, 'error')
-    mfaActions.confirmCode.failed(response)
   })
+    .done(mfaActions.confirmCode.completed)
+    .fail((response: MfaErrorResponse) => {
+      let errorText = t('Incorrect token or something went wrong')
+      if (response.non_field_errors) {
+        errorText = response.non_field_errors
+      }
+      notify(errorText, 'error')
+      mfaActions.confirmCode.failed(response)
+    })
 })
 
 mfaActions.deactivate.listen((mfaCode: string) => {
@@ -89,15 +94,16 @@ mfaActions.deactivate.listen((mfaCode: string) => {
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/deactivate/`,
-  }).done(mfaActions.deactivate.completed)
-  .fail((response: MfaErrorResponse) => {
-    let errorText = t('Incorrect token or something went wrong')
-    if (response.non_field_errors) {
-      errorText = response.non_field_errors
-    }
-    notify(errorText, 'error')
-    mfaActions.deactivate.failed(response)
   })
+    .done(mfaActions.deactivate.completed)
+    .fail((response: MfaErrorResponse) => {
+      let errorText = t('Incorrect token or something went wrong')
+      if (response.non_field_errors) {
+        errorText = response.non_field_errors
+      }
+      notify(errorText, 'error')
+      mfaActions.deactivate.failed(response)
+    })
 })
 
 mfaActions.regenerate.listen((mfaCode: string) => {
@@ -106,15 +112,16 @@ mfaActions.regenerate.listen((mfaCode: string) => {
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/codes/regenerate/`,
-  }).done(mfaActions.regenerate.completed)
-  .fail((response: MfaErrorResponse) => {
-    let errorText = t('Incorrect token or something went wrong')
-    if (response.non_field_errors) {
-      errorText = response.non_field_errors
-    }
-    notify(errorText, 'error')
-    mfaActions.regenerate.failed(response)
   })
+    .done(mfaActions.regenerate.completed)
+    .fail((response: MfaErrorResponse) => {
+      let errorText = t('Incorrect token or something went wrong')
+      if (response.non_field_errors) {
+        errorText = response.non_field_errors
+      }
+      notify(errorText, 'error')
+      mfaActions.regenerate.failed(response)
+    })
 })
 
 export default mfaActions
