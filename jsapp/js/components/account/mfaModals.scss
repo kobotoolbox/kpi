@@ -15,11 +15,7 @@
 }
 
 .mfa-modal {
-  padding: 0 sizes.$x52;
-
-  .mfa-modal__body {
-    padding: sizes.$x24 0;
-  }
+  padding: sizes.$x30 sizes.$x60 sizes.$x60;
 
   .text-box__input {
     text-align: center;
@@ -29,7 +25,7 @@
 }
 
 // Individual steps separeted out from parent for readability
-.mfa-modal__step.mfa-modal__step--qr {
+.mfa-modal--step-qr {
   .mfa-modal__body {
     .mfa-modal__qr {
       text-align: center;
@@ -82,7 +78,7 @@
   }
 }
 
-.mfa-modal__step.mfa-modal__step--help-text {
+.mfa-modal--step-help-text {
   .mfa-modal__list {
     list-style: disc;
     padding-left: sizes.$x40;
@@ -118,39 +114,39 @@
 // footer buttons
 // FIXME: Due to how modals are created, the footer is part of
 // `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
-.mfa-modal__step.mfa-modal__step--qr,
-.mfa-modal__step.mfa-modal__step--manual {
+.mfa-modal--step-qr,
+.mfa-modal--step-manual {
   .mfa-modal__body {
     padding-bottom: 74px;
   }
 }
 
-.mfa-modal__step.mfa-modal__step--manual {
+.mfa-modal--step-manual {
   .mfa-modal__codes {
     margin-top: 37px;
     margin-bottom: 125px;
   }
 }
 
-.mfa-modal__step.mfa-modal__step--backup {
+.mfa-modal--step-backup {
   .mfa-modal__codes {
     margin: 39px 0;
   }
 }
 
-.mfa-modal__step.mfa-modal__step--disclaimer {
+.mfa-modal--step-disclaimer {
   .mfa-modal__body {
     margin-bottom: 254px;
   }
 }
 
-.mfa-modal__step.mfa-modal__step--disclaimer.mfa-modal__step--regenerate {
+.mfa-modal--step-disclaimer.mfa-modal--step-regenerate {
   .mfa-modal__body {
     margin-bottom: 384px;
   }
 }
 
-.mfa-modal__step.mfa-modal__step--token {
+.mfa-modal--step-token {
   .mfa-modal__linkwrapper {
     margin-top: 112px;
     margin-bottom: 236px;
