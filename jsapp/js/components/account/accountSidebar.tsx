@@ -61,13 +61,14 @@ export default class AccountSidebar extends React.Component<
             m={{selected: this.isAccountSelected()}}
             href={'#' + ROUTES.ACCOUNT_SETTINGS}
           >
-            {/*TODO: get a regular user icon*/}
-            <Icon name='user-share' size='xl'/>
+            <Icon name='user' size='xl'/>
             <bem.FormSidebar__labelText>
               {t('Profile')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
 
+        {/* TEMP hide tab. */}
+          {false &&
           <bem.FormSidebar__label
             m={{selected: this.isDataStorageSelected()}}
             href={'#' + ROUTES.DATA_STORAGE}
@@ -79,13 +80,13 @@ export default class AccountSidebar extends React.Component<
               {t('Data storage')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
+          }
 
           {window.MFAEnabled && <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
             href={'#' + ROUTES.SECURITY}
           >
-            {/*TODO: get the data usage icon*/}
-            <Icon name='lock' size='xl'/>
+            <Icon name='lock-alt' size='xl'/>
             <bem.FormSidebar__labelText>
               {t('Security')}
             </bem.FormSidebar__labelText>
