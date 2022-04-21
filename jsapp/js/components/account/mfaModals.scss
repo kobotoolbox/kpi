@@ -1,6 +1,8 @@
 @use "scss/_colors";
 @use "scss/sizes";
 
+$mfa-paragraph-spacing: sizes.$x18;
+
 // FIXME: should not depend on another header's CSS. Standardize modal headers
 .modal--mfa-setup .table-media-preview-header__title {
   font-size: sizes.$x14;
@@ -15,7 +17,10 @@
 }
 
 .mfa-modal {
-  padding: sizes.$x30 sizes.$x60 sizes.$x60;
+  padding: sizes.$x30 sizes.$x60 0; // bottom padding is handled by footer
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 
   .text-box__input {
     text-align: center;
@@ -24,33 +29,40 @@
   }
 }
 
-// Individual steps separeted out from parent for readability
-.mfa-modal--step-qr {
-  .mfa-modal__body {
-    .mfa-modal__qr {
-      text-align: center;
-      padding-bottom: sizes.$x24;
+.mfa-modal__body {
+  flex: 1;
+}
 
-      canvas {
-        padding: sizes.$x14;
-        border: sizes.$x1 solid colors.$kobo-gray-85;
-        border-radius: 3%;
-      }
+.mfa-modal__body,
+.mfa-modal__description {
+  .mfa-modal__p,
+  .mfa-modal__codes-wrapper,
+  .mfa-modal__qrcode-wrapper,
+  ul {
+    margin: 0;
+
+    &:not(:last-child) {
+      margin-bottom: $mfa-paragraph-spacing;
     }
   }
 }
 
-.mfa-modal__link {
-  cursor: pointer;
+.mfa-modal__p.mfa-modal__p--align-right {
+  text-align: right;
 }
 
-.mfa-modal__token {
-  p {
-    margin-bottom: sizes.$x12;
-  }
+.mfa-modal__description + .mfa-modal__body {
+  margin-top: $mfa-paragraph-spacing;
+}
 
-  .mfa-modal__manual {
-    margin-top: sizes.$x12;
+// Individual steps separeted out from parent for readability
+.mfa-modal--step-qr {
+  canvas {
+    display: block;
+    padding: sizes.$x14;
+    border: sizes.$x1 solid colors.$kobo-gray-85;
+    border-radius: 3%;
+    margin: 0 auto;
   }
 }
 
@@ -69,13 +81,14 @@
       padding-bottom: sizes.$x24;
     }
   }
+
+  &:not(:last-child) {
+    margin-bottom: $mfa-paragraph-spacing;
+  }
 }
 
-.mfa-modal__linkwrapper {
-  .mfa-modal__link {
-    float: right;
-    padding-top: sizes.$x16;
-  }
+.mfa-modal__help-link {
+  cursor: pointer;
 }
 
 .mfa-modal--step-help-text {
@@ -85,9 +98,6 @@
   }
 
   .mfa-modal__email {
-    margin-top: sizes.$x14;
-    margin-bottom: 218px;
-
     > * {
       display: inline;
     }
@@ -97,7 +107,8 @@
 .mfa-modal__footer {
   display: flex;
   justify-content: space-between;
-  padding-bottom: sizes.$x24;
+  margin-top: sizes.$x30;
+  padding-bottom: sizes.$x60;
 
   .mfa-modal__footer-left {
     width: 40%;
@@ -110,45 +121,19 @@
   }
 }
 
-// HACK FIX: the following forces size of `mfa-modal__body` to 510px for consistency of
-// footer buttons
-// FIXME: Due to how modals are created, the footer is part of
-// `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
-.mfa-modal--step-qr,
-.mfa-modal--step-manual {
+.mfa-modal.mfa-modal--step-manual,
+.mfa-modal.mfa-modal--step-backup,
+.mfa-modal.mfa-modal--step-qr {
   .mfa-modal__body {
-    padding-bottom: 74px;
-  }
-}
+    display: flex;
+    flex-direction: column;
 
-.mfa-modal--step-manual {
-  .mfa-modal__codes {
-    margin-top: 37px;
-    margin-bottom: 125px;
-  }
-}
-
-.mfa-modal--step-backup {
-  .mfa-modal__codes {
-    margin: 39px 0;
-  }
-}
-
-.mfa-modal--step-disclaimer {
-  .mfa-modal__body {
-    margin-bottom: 254px;
-  }
-}
-
-.mfa-modal--step-disclaimer.mfa-modal--step-regenerate {
-  .mfa-modal__body {
-    margin-bottom: 384px;
-  }
-}
-
-.mfa-modal--step-token {
-  .mfa-modal__linkwrapper {
-    margin-top: 112px;
-    margin-bottom: 236px;
+    .mfa-modal__codes-wrapper,
+    .mfa-modal__qrcode-wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+    }
   }
 }

@@ -12,20 +12,18 @@ import mfaActions, {
 import './mfaModals.scss'
 
 bem.MFAModal = makeBem(null, 'mfa-modal')
-bem.MFAModal__helpEmail = makeBem(bem.MFAModal, 'email')
+
+bem.MFAModal__p = makeBem(bem.MFAModal, 'p', 'p')
 
 bem.MFAModal__title = makeBem(bem.MFAModal, 'title', 'h4')
 bem.MFAModal__description = makeBem(bem.MFAModal, 'description')
 
 bem.MFAModal__body = makeBem(bem.MFAModal, 'body')
-bem.MFAModal__qr = makeBem(bem.MFAModal, 'qr')
-bem.MFAModal__token = makeBem(bem.MFAModal, 'token')
-bem.MFAModal__manual = makeBem(bem.MFAModal, 'manual')
-bem.MFAModal__link = makeBem(bem.MFAModal, 'link', 'a')
+bem.MFAModal__helpLink = makeBem(bem.MFAModal, 'help-link', 'a')
+bem.MFAModal__qrcodeWrapper = makeBem(bem.MFAModal, 'qrcode-wrapper')
 bem.MFAModal__codes = makeBem(bem.MFAModal, 'codes')
+bem.MFAModal__codesWrapper = makeBem(bem.MFAModal, 'codes-wrapper')
 bem.MFAModal__list = makeBem(bem.MFAModal, 'list', 'ul')
-bem.MFAModal__listItem = makeBem(bem.MFAModal, 'item', 'li')
-bem.MFAModal__linkwrapper = makeBem(bem.MFAModal, 'linkwrapper')
 
 bem.MFAModal__footer = makeBem(bem.MFAModal, 'footer', 'footer')
 bem.MFAModal__footerLeft = makeBem(bem.MFAModal, 'footer-left')
@@ -220,48 +218,51 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-qr'>
         <bem.MFAModal__description>
-          <p>
+          <bem.MFAModal__p>
             {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
-          </p>
+          </bem.MFAModal__p>
 
-          <strong>
-            {t('Scan QR code and enter the six-digit token from the application')}
-          </strong>
+          <bem.MFAModal__p>
+            <strong>
+              {t('Scan QR code and enter the six-digit token from the application')}
+            </strong>
+          </bem.MFAModal__p>
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
-          <bem.MFAModal__qr>
+          <bem.MFAModal__qrcodeWrapper>
             <QRCode
               value={this.state.qrCode || ''}
               size={170}
             />
-          </bem.MFAModal__qr>
+          </bem.MFAModal__qrcodeWrapper>
 
-          <bem.MFAModal__token>
-            <p>
-              {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
-            </p>
+          <bem.MFAModal__p>
+            {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
+          </bem.MFAModal__p>
 
+          <bem.MFAModal__p>
             <TextBox
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
               customModifiers={'on-white'}
             />
-            <bem.MFAModal__manual>
-              {t('No QR code?')}
+          </bem.MFAModal__p>
 
-              &nbsp;
+          <bem.MFAModal__p m='align-right'>
+            {t('No QR code?')}
 
-              <bem.MFAModal__link
-                onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  this.changeStep(evt, 'manual')
-                }}
-              >
-                {t('Enter key manually')}
-              </bem.MFAModal__link>
-            </bem.MFAModal__manual>
-          </bem.MFAModal__token>
+            &nbsp;
+
+            <bem.MFAModal__helpLink
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'manual')
+              }}
+            >
+              {t('Enter key manually')}
+            </bem.MFAModal__helpLink>
+          </bem.MFAModal__p>
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -287,26 +288,28 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-backup'>
         <bem.MFAModal__description>
-          <p>
+          <bem.MFAModal__p>
             {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
-          </p>
+          </bem.MFAModal__p>
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
           {this.state.backupCodes &&
-            <bem.MFAModal__codes>
-              <bem.MFAModal__list>
-                {this.state.backupCodes.map((t) => {
-                  return (
-                    <bem.MFAModal__listItem>
-                      <strong>
-                        {t}
-                      </strong>
-                    </bem.MFAModal__listItem>
-                  )
-                })}
-              </bem.MFAModal__list>
-            </bem.MFAModal__codes>
+            <bem.MFAModal__codesWrapper>
+              <bem.MFAModal__codes>
+                <bem.MFAModal__list>
+                  {this.state.backupCodes.map((t) => {
+                    return (
+                      <li>
+                        <strong>
+                          {t}
+                        </strong>
+                      </li>
+                    )
+                  })}
+                </bem.MFAModal__list>
+              </bem.MFAModal__codes>
+            </bem.MFAModal__codesWrapper>
           }
         </bem.MFAModal__body>
 
@@ -342,41 +345,46 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-manual'>
         <bem.MFAModal__description>
-          <p>
+          <bem.MFAModal__p>
             {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
-          </p>
+          </bem.MFAModal__p>
 
-          <strong>
-            {t('Enter this key into your authentication app to generate a six digit token')}
-          </strong>
+          <bem.MFAModal__p>
+            <strong>
+              {t('Enter this key into your authentication app to generate a six digit token')}
+            </strong>
+          </bem.MFAModal__p>
         </bem.MFAModal__description>
 
         <bem.MFAModal__body>
-          <bem.MFAModal__codes>
-            {this.getSecretKey()}
-          </bem.MFAModal__codes>
+          <bem.MFAModal__codesWrapper>
+            <bem.MFAModal__codes>
+              {this.getSecretKey()}
+            </bem.MFAModal__codes>
+          </bem.MFAModal__codesWrapper>
 
-          <bem.MFAModal__token>
-            <p>
-              {t('Once your authentication app is set up, generate a temporary six digit token and enter it in the field below.')}
-            </p>
+          <bem.MFAModal__p>
+            {t('Once your authentication app is set up, generate a temporary six digit token and enter it in the field below.')}
+          </bem.MFAModal__p>
 
+          <bem.MFAModal__p>
             <TextBox
               errors={this.state.errorText}
               value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
               customModifiers={'on-white'}
             />
-            <bem.MFAModal__manual>
-              <bem.MFAModal__link
-                onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  this.changeStep(evt, 'qr')
-                }}
-              >
-                {t('Take me back to QR code')}
-              </bem.MFAModal__link>
-            </bem.MFAModal__manual>
-          </bem.MFAModal__token>
+          </bem.MFAModal__p>
+
+          <bem.MFAModal__p m='align-right'>
+            <bem.MFAModal__helpLink
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'qr')
+              }}
+            >
+              {t('Take me back to QR code')}
+            </bem.MFAModal__helpLink>
+          </bem.MFAModal__p>
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -400,7 +408,7 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-token'>
         <bem.MFAModal__body>
-          <bem.MFAModal__token>
+          <bem.MFAModal__p>
             <strong>
               {/*This is safe as this step only shows if not on qr step*/}
               {this.props.modalType === 'regenerate' &&
@@ -411,24 +419,26 @@ export default class MFAModals extends React.Component<
                 t('Please enter your six-digit authenticator token to deactivate two-factor authentication.')
               }
             </strong>
+          </bem.MFAModal__p>
 
-            <bem.MFAModal__linkwrapper>
-              <TextBox
-                errors={this.state.errorText}
-                value={this.state.inputString}
-                onChange={this.onInputChange.bind(this)}
-                customModifiers={'on-white'}
-              />
+          <bem.MFAModal__p>
+            <TextBox
+              errors={this.state.errorText}
+              value={this.state.inputString}
+              onChange={this.onInputChange.bind(this)}
+              customModifiers={'on-white'}
+            />
+          </bem.MFAModal__p>
 
-              <bem.MFAModal__link
-                onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  this.changeStep(evt, 'help-text')
-                }}
-              >
-                {t('Problems with the token')}
-              </bem.MFAModal__link>
-            </bem.MFAModal__linkwrapper>
-          </bem.MFAModal__token>
+          <bem.MFAModal__p m='align-right'>
+            <bem.MFAModal__helpLink
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'help-text')
+              }}
+            >
+              {t('Problems with the token')}
+            </bem.MFAModal__helpLink>
+          </bem.MFAModal__p>
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -459,21 +469,23 @@ export default class MFAModals extends React.Component<
         }}
       >
         <bem.MFAModal__body>
-          <strong>
-            {/*This is safe as this step only shows if on reconfigure or regenerate*/}
-            {this.props.modalType === 'regenerate' &&
-              t('Please note that recovery codes from the previous set up will not be valid anymore')
-            }
+          <bem.MFAModal__p>
+            <strong>
+              {/*This is safe as this step only shows if on reconfigure or regenerate*/}
+              {this.props.modalType === 'regenerate' &&
+                t('Please note that recovery codes from the previous set up will not be valid anymore')
+              }
 
-            {this.props.modalType != 'regenerate' &&
-              t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
-            }
-          </strong>
+              {this.props.modalType != 'regenerate' &&
+                t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
+              }
+            </strong>
+          </bem.MFAModal__p>
 
           {this.props.modalType === 'reconfigure' &&
-            <p>
+            <bem.MFAModal__p>
               {t("Once your 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process. two-factor authentication will remain disabled for your account. In this case, you can reenable it at any time through the usual process.")}
-            </p>
+            </bem.MFAModal__p>
           }
         </bem.MFAModal__body>
 
@@ -499,41 +511,35 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModal m='step-help-text'>
         <bem.MFAModal__body>
-          <strong>
-            {t('Issues with the token')}
-          </strong>
+          <bem.MFAModal__p><strong>{t('Issues with the token')}</strong></bem.MFAModal__p>
 
-          <p>
+          <bem.MFAModal__p>
             {t('If you have problems with your verification token, please try the following')}
-          </p>
+          </bem.MFAModal__p>
 
           <bem.MFAModal__list>
-            <bem.MFAModal__listItem>
+            <li>
               {t('Double check you are using the token generator for the right instance of KoBoToolbox')}
-            </bem.MFAModal__listItem>
+            </li>
 
-            <bem.MFAModal__listItem>
+            <li>
               {t('Try using one of your back up security codes instead')}
-            </bem.MFAModal__listItem>
+            </li>
           </bem.MFAModal__list>
 
-          <bem.MFAModal__helpEmail>
-            <p>
-              {t('If you are still experiencing issues logging in, or have lost your device and recovery codes, please send an email to')}
-            </p>
+          <bem.MFAModal__p>
+            {t('If you are still experiencing issues logging in, or have lost your device and recovery codes, please send an email to')}
 
-              &nbsp;
+            &nbsp;
 
-            <bem.MFAModal__link href={'mailto:' + SUPPORT_EMAIL}>
+            <bem.MFAModal__helpLink href={'mailto:' + SUPPORT_EMAIL}>
               {SUPPORT_EMAIL}
-            </bem.MFAModal__link>
+            </bem.MFAModal__helpLink>
 
-              &nbsp;
+            &nbsp;
 
-            <p>
-              {t('with the subject "2FA issues"')}
-            </p>
-          </bem.MFAModal__helpEmail>
+            {t('with the subject "2FA issues"')}
+          </bem.MFAModal__p>
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>

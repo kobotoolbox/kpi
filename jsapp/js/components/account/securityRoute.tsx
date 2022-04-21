@@ -12,7 +12,7 @@ import {MODAL_TYPES} from 'jsapp/js/constants'
 
 import './securityRoute.scss'
 
-bem.Security = makeBem(null, 'security')
+bem.SecuritySection = makeBem(null, 'security-section')
 
 bem.SecurityRow = makeBem(null, 'security-row')
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header')
@@ -129,66 +129,68 @@ export default class Security extends React.Component<
 
   render() {
     return (
-      <bem.SecurityRow>
-        <bem.SecurityRow__header>
-          <bem.SecurityRow__title>
-            {t('Two-factor authentication')}
-          </bem.SecurityRow__title>
+      <bem.SecuritySection>
+        <bem.SecurityRow>
+          <bem.SecurityRow__header>
+            <bem.SecurityRow__title>
+              {t('Two-factor authentication')}
+            </bem.SecurityRow__title>
 
-          <bem.SecurityRow__buttons>
-            <ToggleSwitch
-              label={this.state.mfaActive ? t('Enabled') : t('Disabled')}
-              checked={this.state.mfaActive}
-              onChange={this.onToggleChange.bind(this)}
-            />
-          </bem.SecurityRow__buttons>
-        </bem.SecurityRow__header>
+            <bem.SecurityRow__buttons>
+              <ToggleSwitch
+                label={this.state.mfaActive ? t('Enabled') : t('Disabled')}
+                checked={this.state.mfaActive}
+                onChange={this.onToggleChange.bind(this)}
+              />
+            </bem.SecurityRow__buttons>
+          </bem.SecurityRow__header>
 
-        <bem.SecurityRow__description>
-          {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additonal layer of protection.')}
-        </bem.SecurityRow__description>
+          <bem.SecurityRow__description>
+            {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additonal layer of protection.')}
+          </bem.SecurityRow__description>
 
-        {this.state.mfaActive &&
-          <bem.MFAOptions>
-            <bem.MFAOptions__row>
-              <bem.MFAOptions__label>
-                {t('Authenticator app')}
-              </bem.MFAOptions__label>
+          {this.state.mfaActive &&
+            <bem.MFAOptions>
+              <bem.MFAOptions__row>
+                <bem.MFAOptions__label>
+                  {t('Authenticator app')}
+                </bem.MFAOptions__label>
 
-              <bem.MFAOptions__buttons>
-                {/*Put date last configured here*/}
-                <Button
-                  type='frame'
-                  color='storm'
-                  label={t('Reconfigure')}
-                  size='l'
-                  onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                    this.showEditModal(evt, 'reconfigure')
-                  }}
-                />
-              </bem.MFAOptions__buttons>
-            </bem.MFAOptions__row>
+                <bem.MFAOptions__buttons>
+                  {/*Put date last configured here*/}
+                  <Button
+                    type='frame'
+                    color='storm'
+                    label={t('Reconfigure')}
+                    size='l'
+                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                      this.showEditModal(evt, 'reconfigure')
+                    }}
+                  />
+                </bem.MFAOptions__buttons>
+              </bem.MFAOptions__row>
 
-            <bem.MFAOptions__row>
-              <bem.MFAOptions__label>
-                {t('Recovery codes')}
-              </bem.MFAOptions__label>
+              <bem.MFAOptions__row>
+                <bem.MFAOptions__label>
+                  {t('Recovery codes')}
+                </bem.MFAOptions__label>
 
-              <bem.MFAOptions__buttons>
-                <Button
-                  type='frame'
-                  color='storm'
-                  label={t('Generate new')}
-                  size='l'
-                  onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                    this.showEditModal(evt, 'regenerate')
-                  }}
-                />
-              </bem.MFAOptions__buttons>
-            </bem.MFAOptions__row>
-          </bem.MFAOptions>
-        }
-      </bem.SecurityRow>
+                <bem.MFAOptions__buttons>
+                  <Button
+                    type='frame'
+                    color='storm'
+                    label={t('Generate new')}
+                    size='l'
+                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                      this.showEditModal(evt, 'regenerate')
+                    }}
+                  />
+                </bem.MFAOptions__buttons>
+              </bem.MFAOptions__row>
+            </bem.MFAOptions>
+          }
+        </bem.SecurityRow>
+      </bem.SecuritySection>
     )
   }
 }
