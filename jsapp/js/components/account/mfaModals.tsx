@@ -12,13 +12,8 @@ import mfaActions, {
 import './mfaModals.scss'
 
 bem.MFAModals = makeBem(null, 'mfa-modal')
-bem.MFAModals__qrstep = makeBem(bem.MFAModals, 'qrstep')
-bem.MFAModals__backupstep = makeBem(bem.MFAModals, 'backupstep')
-bem.MFAModals__manualstep = makeBem(bem.MFAModals, 'manualstep')
-bem.MFAModals__tokenstep = makeBem(bem.MFAModals, 'tokenstep')
-bem.MFAModals__disclaimerstep = makeBem(bem.MFAModals, 'disclaimerstep')
-bem.MFAModals__helptextstep = makeBem(bem.MFAModals, 'help-text-step')
-bem.MFAModals__helptextstep__email = makeBem(bem.MFAModals__helptextstep, 'email')
+bem.MFAModals__step = makeBem(bem.MFAModals, 'step')
+bem.MFAModals__helpEmail = makeBem(bem.MFAModals, 'email')
 
 bem.MFAModals__title = makeBem(bem.MFAModals, 'title', 'h4')
 bem.MFAModals__description = makeBem(bem.MFAModals, 'description')
@@ -29,13 +24,13 @@ bem.MFAModals__token = makeBem(bem.MFAModals, 'token')
 bem.MFAModals__manual = makeBem(bem.MFAModals, 'manual')
 bem.MFAModals__link = makeBem(bem.MFAModals, 'link', 'a')
 bem.MFAModals__codes = makeBem(bem.MFAModals, 'codes')
-bem.MFAModals__list = makeBem(bem.MFAModals__codes, 'list', 'ul')
-bem.MFAModals__list__item = makeBem(bem.MFAModals__codes, 'item', 'li')
+bem.MFAModals__list = makeBem(bem.MFAModals, 'list', 'ul')
+bem.MFAModals__listItem = makeBem(bem.MFAModals, 'item', 'li')
 bem.MFAModals__linkwrapper = makeBem(bem.MFAModals, 'linkwrapper')
 
 bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
-bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
-bem.MFAModals__footer__right = makeBem(bem.MFAModals__footer, 'footer-right')
+bem.MFAModals__footerLeft = makeBem(bem.MFAModals, 'footer-left')
+bem.MFAModals__footerRight = makeBem(bem.MFAModals, 'footer-right')
 
 const SUPPORT_EMAIL = 'support@kobotoolbox.org'
 
@@ -77,14 +72,14 @@ export default class MFAModals extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      mfaActions.activate.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.confirmCode.completed.listen(this.mfaBackupCodes.bind(this)),
-      mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
-      mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
+      mfaActions.activate.completed.listen(this.onMfaActivateCompleted.bind(this)),
+      mfaActions.confirmCode.completed.listen(this.onMfaCodesReceived.bind(this)),
+      mfaActions.regenerate.completed.listen(this.onMfaCodesReceived.bind(this)),
+      mfaActions.deactivate.completed.listen(this.onMfaDeactivated.bind(this)),
 
-      mfaActions.confirmCode.failed.listen(this.updateErrorText.bind(this)),
-      mfaActions.regenerate.failed.listen(this.updateErrorText.bind(this)),
-      mfaActions.deactivate.failed.listen(this.updateErrorText.bind(this)),
+      mfaActions.confirmCode.failed.listen(this.onCallFailed.bind(this)),
+      mfaActions.regenerate.failed.listen(this.onCallFailed.bind(this)),
+      mfaActions.deactivate.failed.listen(this.onCallFailed.bind(this)),
     )
   }
 
@@ -92,7 +87,7 @@ export default class MFAModals extends React.Component<
     this.unlisteners.forEach((clb) => {clb()})
   }
 
-  mfaActivated(response: MfaActivatedResponse) {
+  onMfaActivateCompleted(response: MfaActivatedResponse) {
     this.setState({
       qrCode: response.details,
       currentStep: 'qr',
@@ -103,7 +98,7 @@ export default class MFAModals extends React.Component<
     mfaActions.confirmCode(this.state.inputString)
   }
 
-  mfaBackupCodes(response: MfaBackupCodesResponse) {
+  onMfaCodesReceived(response: MfaBackupCodesResponse) {
     this.setState({
       backupCodes: response.backup_codes,
       currentStep: 'backups',
@@ -114,7 +109,7 @@ export default class MFAModals extends React.Component<
     mfaActions.deactivate(this.state.inputString)
   }
 
-  mfaDeactivated() {
+  onMfaDeactivated() {
     if (this.props.modalType === 'reconfigure') {
       mfaActions.activate(true)
     } else {
@@ -131,7 +126,7 @@ export default class MFAModals extends React.Component<
   }
 
   // Only used for failed tokens
-  updateErrorText() {
+  onCallFailed() {
     this.setState({errorText: t('Incorrect token')})
   }
 
@@ -160,7 +155,6 @@ export default class MFAModals extends React.Component<
     }
   }
 
-
   handleTokenSubmit() {
     this.setState({inputString: ''})
 
@@ -183,11 +177,11 @@ export default class MFAModals extends React.Component<
 
   changeStep(
     evt: React.ChangeEvent<HTMLInputElement>,
-    nextStep: ModalSteps
+    newStep: ModalSteps
   ) {
     evt.preventDefault()
 
-    this.setState({currentStep: nextStep})
+    this.setState({currentStep: newStep})
   }
 
   isTokenValid(): boolean {
@@ -225,7 +219,7 @@ export default class MFAModals extends React.Component<
 
   renderQRCodeStep() {
     return (
-      <bem.MFAModals__qrstep>
+      <bem.MFAModals__step m='qr'>
         <bem.MFAModals__description>
           <p>
             {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
@@ -272,7 +266,7 @@ export default class MFAModals extends React.Component<
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
-          <bem.MFAModals__footer__right>
+          <bem.MFAModals__footerRight>
             <Button
               type='full'
               color='blue'
@@ -282,9 +276,9 @@ export default class MFAModals extends React.Component<
               onClick={this.mfaConfirm.bind(this)}
               isDisabled={!this.isTokenValid()}
             />
-          </bem.MFAModals__footer__right>
+          </bem.MFAModals__footerRight>
         </bem.MFAModals__footer>
-      </bem.MFAModals__qrstep>
+      </bem.MFAModals__step>
     )
   }
 
@@ -292,7 +286,7 @@ export default class MFAModals extends React.Component<
     this.disableCloseIcon()
 
     return (
-      <bem.MFAModals__backupstep>
+      <bem.MFAModals__step m='backup'>
         <bem.MFAModals__description>
           <p>
             {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
@@ -305,11 +299,11 @@ export default class MFAModals extends React.Component<
               <bem.MFAModals__list>
                 {this.state.backupCodes.map((t) => {
                   return (
-                    <bem.MFAModals__list__item>
+                    <bem.MFAModals__listItem>
                       <strong>
                         {t}
                       </strong>
-                    </bem.MFAModals__list__item>
+                    </bem.MFAModals__listItem>
                   )
                 })}
               </bem.MFAModals__list>
@@ -318,7 +312,7 @@ export default class MFAModals extends React.Component<
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
-          <bem.MFAModals__footer__left>
+          <bem.MFAModals__footerLeft>
             <Button
               type='frame'
               color='blue'
@@ -327,9 +321,9 @@ export default class MFAModals extends React.Component<
               label={t('Download codes')}
               onClick={this.downloadCodes.bind(this)}
             />
-          </bem.MFAModals__footer__left>
+          </bem.MFAModals__footerLeft>
 
-          <bem.MFAModals__footer__right>
+          <bem.MFAModals__footerRight>
             <Button
               type='full'
               color='blue'
@@ -339,15 +333,15 @@ export default class MFAModals extends React.Component<
               onClick={this.closeModal.bind(this)}
               isDisabled={!this.state.downloadClicked}
             />
-          </bem.MFAModals__footer__right>
+          </bem.MFAModals__footerRight>
         </bem.MFAModals__footer>
-      </bem.MFAModals__backupstep>
+      </bem.MFAModals__step>
     )
   }
 
   renderManualStep() {
     return (
-      <bem.MFAModals__manualstep>
+      <bem.MFAModals__step m='manual'>
         <bem.MFAModals__description>
           <p>
             {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
@@ -387,7 +381,7 @@ export default class MFAModals extends React.Component<
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
-          <bem.MFAModals__footer__right>
+          <bem.MFAModals__footerRight>
             <Button
               type='full'
               color='blue'
@@ -397,15 +391,15 @@ export default class MFAModals extends React.Component<
               onClick={this.mfaConfirm.bind(this)}
               isDisabled={!this.isTokenValid()}
             />
-          </bem.MFAModals__footer__right>
+          </bem.MFAModals__footerRight>
         </bem.MFAModals__footer>
-      </bem.MFAModals__manualstep>
+      </bem.MFAModals__step>
     )
   }
 
   renderTokenStep() {
     return (
-      <bem.MFAModals__tokenstep>
+      <bem.MFAModals__step m='token'>
         <bem.MFAModals__body>
           <bem.MFAModals__token>
             <strong>
@@ -439,7 +433,7 @@ export default class MFAModals extends React.Component<
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
-          <bem.MFAModals__footer__right>
+          <bem.MFAModals__footerRight>
             <Button
               type='full'
               color='blue'
@@ -451,16 +445,19 @@ export default class MFAModals extends React.Component<
               }
               isDisabled={!this.isTokenValid()}
             />
-          </bem.MFAModals__footer__right>
+          </bem.MFAModals__footerRight>
         </bem.MFAModals__footer>
-      </bem.MFAModals__tokenstep>
+      </bem.MFAModals__step>
     )
   }
 
   renderDisclaimerStep() {
     return (
-      <bem.MFAModals__disclaimerstep
-        m={this.props.modalType === 'regenerate' ? 'regenerate' : ''}
+      <bem.MFAModals__step
+        m={{
+          regenerate: this.props.modalType === 'regenerate',
+          disclaimer: true
+        }}
       >
         <bem.MFAModals__body>
           <strong>
@@ -482,7 +479,7 @@ export default class MFAModals extends React.Component<
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
-          <bem.MFAModals__footer__right>
+          <bem.MFAModals__footerRight>
             <Button
               type='full'
               color='blue'
@@ -493,15 +490,15 @@ export default class MFAModals extends React.Component<
                 this.changeStep(evt, 'token')
               }}
             />
-          </bem.MFAModals__footer__right>
+          </bem.MFAModals__footerRight>
         </bem.MFAModals__footer>
-      </bem.MFAModals__disclaimerstep>
+      </bem.MFAModals__step>
     )
   }
 
   renderHelpTextStep() {
     return (
-      <bem.MFAModals__helptextstep>
+      <bem.MFAModals__step m='help-text'>
         <bem.MFAModals__body>
           <strong>
             {t('Issues with the token')}
@@ -512,16 +509,16 @@ export default class MFAModals extends React.Component<
           </p>
 
           <bem.MFAModals__list>
-            <bem.MFAModals__list__item>
+            <bem.MFAModals__listItem>
               {t('Double check you are using the token generator for the right instance of KoBoToolbox')}
-            </bem.MFAModals__list__item>
+            </bem.MFAModals__listItem>
 
-            <bem.MFAModals__list__item>
+            <bem.MFAModals__listItem>
               {t('Try using one of your back up security codes instead')}
-            </bem.MFAModals__list__item>
+            </bem.MFAModals__listItem>
           </bem.MFAModals__list>
 
-          <bem.MFAModals__helptextstep__email>
+          <bem.MFAModals__helpEmail>
             <p>
               {t('If you are still experiencing issues logging in, or have lost your device and recovery codes, please send an email to')}
             </p>
@@ -537,11 +534,11 @@ export default class MFAModals extends React.Component<
             <p>
               {t('with the subject "2FA issues"')}
             </p>
-          </bem.MFAModals__helptextstep__email>
+          </bem.MFAModals__helpEmail>
         </bem.MFAModals__body>
 
         <bem.MFAModals__footer>
-          <bem.MFAModals__footer__left>
+          <bem.MFAModals__footerLeft>
             <Button
               type='frame'
               color='blue'
@@ -552,9 +549,9 @@ export default class MFAModals extends React.Component<
                 this.changeStep(evt, 'token')
               }}
             />
-          </bem.MFAModals__footer__left>
+          </bem.MFAModals__footerLeft>
 
-          <bem.MFAModals__footer__right>
+          <bem.MFAModals__footerRight>
             <Button
               type='full'
               color='blue'
@@ -563,9 +560,9 @@ export default class MFAModals extends React.Component<
               label={t('OK')}
               onClick={this.closeModal.bind(this)}
             />
-          </bem.MFAModals__footer__right>
+          </bem.MFAModals__footerRight>
         </bem.MFAModals__footer>
-      </bem.MFAModals__helptextstep>
+      </bem.MFAModals__step>
     )
   }
 

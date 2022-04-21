@@ -20,10 +20,16 @@
   .mfa-modal__body {
     padding: sizes.$x24 0;
   }
+
+  .text-box__input {
+    text-align: center;
+    font-size: sizes.$x18 !important;
+    font-weight: 400 !important;
+  }
 }
 
 // Individual steps separeted out from parent for readability
-.mfa-modal__qrstep {
+.mfa-modal__step.mfa-modal__step--qr {
   .mfa-modal__body {
     .mfa-modal__qr {
       text-align: center;
@@ -76,7 +82,7 @@
   }
 }
 
-.mfa-modal__help-text-step {
+.mfa-modal__step.mfa-modal__step--help-text {
   .mfa-modal__list {
     list-style: disc;
     padding-left: sizes.$x40;
@@ -84,6 +90,7 @@
 
   .mfa-modal__email {
     margin-top: sizes.$x14;
+    margin-bottom: 218px;
 
     > * {
       display: inline;
@@ -94,6 +101,7 @@
 .mfa-modal__footer {
   display: flex;
   justify-content: space-between;
+  padding-bottom: sizes.$x24;
 
   .mfa-modal__footer-left {
     width: 40%;
@@ -106,73 +114,45 @@
   }
 }
 
-.mfa-modal {
-  .text-box__input {
-    text-align: center;
-    font-size: sizes.$x18 !important;
-    font-weight: 400 !important;
-  }
-}
-
 // HACK FIX: the following forces size of `mfa-modal__body` to 510px for consistency of
 // footer buttons
 // FIXME: Due to how modals are created, the footer is part of
 // `mfa-modal__body` not `modal__body`, hence the need to hard code margins.
-.mfa-modal__qrstep .mfa-modal__manualstep {
+.mfa-modal__step.mfa-modal__step--qr,
+.mfa-modal__step.mfa-modal__step--manual {
   .mfa-modal__body {
     padding-bottom: 74px;
   }
 }
 
-.mfa-modal__manualstep {
+.mfa-modal__step.mfa-modal__step--manual {
   .mfa-modal__codes {
     margin-top: 37px;
     margin-bottom: 125px;
   }
 }
 
-.mfa-modal__backupstep {
+.mfa-modal__step.mfa-modal__step--backup {
   .mfa-modal__codes {
     margin: 39px 0;
   }
 }
 
-.mfa-modal__disclaimerstep {
+.mfa-modal__step.mfa-modal__step--disclaimer {
   .mfa-modal__body {
     margin-bottom: 254px;
   }
 }
 
-.mfa-modal__disclaimerstep--regenerate {
+.mfa-modal__step.mfa-modal__step--disclaimer.mfa-modal__step--regenerate {
   .mfa-modal__body {
     margin-bottom: 384px;
   }
 }
 
-.mfa-modal__tokenstep {
+.mfa-modal__step.mfa-modal__step--token {
   .mfa-modal__linkwrapper {
     margin-top: 112px;
     margin-bottom: 236px;
-  }
-}
-
-.mfa-modal__help-text-step {
-  .mfa-modal__email {
-    margin-bottom: 218px;
-  }
-}
-
-// Adjust hard coded padding for small screens
-@media screen and (max-height: 800px) {
-  .mfa-modal__disclaimerstep .mfa-modal__disclaimerstep--regenerate{
-    .mfa-modal__body {
-      margin-bottom: 100px;
-    }
-  }
-
-  .mfa-modal__tokenstep {
-    .text-box__input {
-      margin: 100px 0 !important;
-    }
   }
 }

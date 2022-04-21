@@ -341,7 +341,8 @@ $modal-custom-header-height: sizes.$x60;
   border-radius: 6px;
 
   .modal__content {
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .modal__header {
@@ -358,6 +359,7 @@ $modal-custom-header-height: sizes.$x60;
     padding: 0;
     margin: 0;
     overflow: auto;
+    flex: 1;
   }
 }
 
@@ -366,24 +368,25 @@ $modal-custom-header-height: sizes.$x60;
   width: 570px;
   height: 700px;
   // Overwrite regular modal % based sizes
-  min-width: 0px;
-  min-height: 0px;
+  min-width: 0;
+  min-height: 0;
 
   .modal__header {
     background-color: colors.$kobo-gray-98;
-    font-size: 24px;
-    padding: 32px 32px 48px 32px;
+    font-size: sizes.$x24;
+    padding: sizes.$x32 sizes.$x32 sizes.$x48 sizes.$x32;
 
     .modal__x {
-      font-size: 12px;
-      color: rgba(colors.$kobo-gray-24, 0.4)
+      font-size: sizes.$x12;
+      color: rgba(colors.$kobo-gray-24, 0.4);
     }
   }
+
   .modal__body {
     overflow: hidden;
 
     .mfa-setup {
-      padding: 0 32px 32px 32px;
+      padding: 0 sizes.$x32 sizes.$x32 sizes.$x32;
       margin: auto;
     }
   }
@@ -911,8 +914,7 @@ $modal-custom-header-height: sizes.$x60;
 @media screen and (max-height: 800px) {
   .modal.modal--mfa-setup {
     .modal__body {
-      height: 80%;
-      overflow: scroll;
+      overflow-y: auto;
     }
   }
 }
