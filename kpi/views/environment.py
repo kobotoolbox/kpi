@@ -25,6 +25,8 @@ class EnvironmentView(APIView):
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
         'COMMUNITY_URL',
+        'FRONTEND_MIN_RETRY_TIME',
+        'FRONTEND_MAX_RETRY_TIME',
         ('PROJECT_METADATA_FIELDS', json.loads),
         ('USER_METADATA_FIELDS', json.loads),
         (

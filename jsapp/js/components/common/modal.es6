@@ -39,7 +39,7 @@ export default class Modal extends React.Component {
   }
 
   backdropClick(evt) {
-    if (evt.currentTarget === evt.target && !this.props.disableBackdrop) {
+    if (evt.currentTarget === evt.target && !this.props.disableBackdropClose) {
       this.props.onClose.call(evt);
     }
   }

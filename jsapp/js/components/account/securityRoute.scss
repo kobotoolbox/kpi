@@ -1,14 +1,18 @@
 @use "scss/_colors";
 @use "scss/sizes";
 
-.security-row {
-  margin: sizes.$x32;
+.security-section {
+  padding: sizes.$x50;
+  overflow-y: auto;
+  height: 100%;
+}
 
+.security-row {
   .security-row__header {
     display: flex;
     justify-content: space-between;
     margin-bottom: sizes.$x14;
-    border-bottom: 1px solid;
+    border-bottom: sizes.$x1 solid;
     border-color: colors.$kobo-gray-85;
   }
 

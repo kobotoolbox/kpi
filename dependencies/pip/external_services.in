@@ -2,5 +2,5 @@
 
 -r requirements.in
 
-raven
+sentry-sdk
 transifex-client

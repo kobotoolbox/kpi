@@ -8,6 +8,7 @@
   background: colors.$kobo-white;
   overflow-y: auto;
   position: relative;
+  padding: sizes.$x50;
 
   .kobo-select {
     font-size: 15px;
@@ -17,10 +18,10 @@
     width: 100%;
     height: 100%;
     margin: 0 auto;
-    padding: 30px 20px;
+    padding: 0;
 
     .form-modal__item--fields {
-      height: calc(100% - 20px);
+      height: calc(100% - #{sizes.$x50});
       padding-right: 40px;
       overflow: auto;
 
@@ -68,11 +69,11 @@
 
   .account-settings__actions {
     position: absolute;
-    top: 26px;
+    top: sizes.$x50;
     right: 0;
 
     .account-settings-save:last-child {
-      margin-right: 48px;
+      margin-right: sizes.$x50;
     }
 
     .account-settings-close {

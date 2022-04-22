@@ -25,6 +25,8 @@ class EnvironmentTests(BaseTestCase):
             'support_email': constance.config.SUPPORT_EMAIL,
             'support_url': constance.config.SUPPORT_URL,
             'community_url': constance.config.COMMUNITY_URL,
+            'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
+            'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
             'project_metadata_fields': lambda x: \
                 self.assertEqual(len(x), len(json.loads(constance.config.PROJECT_METADATA_FIELDS))) \
                 and self.assertIn({'name': 'organization', 'required': False}, x),

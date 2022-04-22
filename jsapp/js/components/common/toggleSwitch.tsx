@@ -8,18 +8,14 @@ import './toggleSwitch.scss'
 
 type ToggleSwitchProps = {
   checked?: boolean,
-	label?: string,
+  label?: string,
   disabled?: boolean,
   name?: string,
   id?: number,
-	onChange: Function,
+  onChange: Function,
 }
 
 class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
-  constructor(props: ToggleSwitchProps){
-    super(props)
-  }
-
   onChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.props.onChange(evt.currentTarget.checked)
   }

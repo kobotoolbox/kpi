@@ -140,9 +140,17 @@ class SearchQueryTooShortException(InvalidSearchException):
     default_code = 'query_too_short'
 
 
+class SubmissionIntegrityError(Exception):
+    pass
+
+
 class SubmissionNotFoundException(Exception):
     pass
 
 
 class XPathNotFoundException(Exception):
+    pass
+
+
+class XlsFormatException(Exception):
     pass

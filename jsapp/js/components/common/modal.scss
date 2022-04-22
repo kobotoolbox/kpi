@@ -337,11 +337,12 @@ $modal-custom-header-height: sizes.$x60;
 
 // TODO: Make a better generic modal component
 // Refactor common CSS for modals with custom headers
-.modal.modal-custom-header {
+.modal.modal--custom-header {
   border-radius: 6px;
 
   .modal__content {
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .modal__header {
@@ -358,35 +359,40 @@ $modal-custom-header-height: sizes.$x60;
     padding: 0;
     margin: 0;
     overflow: auto;
+    flex: 1;
   }
 }
 
-.modal.modal-mfa-setup {
+.modal.modal--mfa-setup {
   // FIXME: Fixed size for standardization
   width: 570px;
-  height: 500px;
+  height: 700px;
+  // Overwrite regular modal % based sizes
+  min-width: 0;
+  min-height: 0;
 
   .modal__header {
-    background-color: colors.$kobo-white;
-    font-size: 24px;
-    padding: 32px;
+    background-color: colors.$kobo-gray-98;
+    font-size: sizes.$x24;
+    padding: sizes.$x32 sizes.$x32 sizes.$x48 sizes.$x32;
 
     .modal__x {
-      font-size: 12px;
-      color: rgba(colors.$kobo-gray-24, 0.4)
+      font-size: sizes.$x12;
+      color: rgba(colors.$kobo-gray-24, 0.4);
     }
   }
+
   .modal__body {
     overflow: hidden;
 
     .mfa-setup {
-      padding: 0 32px 32px 32px;
+      padding: 0 sizes.$x32 sizes.$x32 sizes.$x32;
       margin: auto;
     }
   }
 }
 
-.modal.modal-media-preview {
+.modal.modal--media-preview {
   min-width: 25%;
 
   .modal__content {
@@ -899,6 +905,16 @@ $modal-custom-header-height: sizes.$x60;
       width: 100%;
       margin-left: 0px !important;
       margin-top: 12px;
+    }
+  }
+}
+
+// FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
+// on mobile until we standardize all modals (see comment on mfaModals.scss)
+@media screen and (max-height: 800px) {
+  .modal.modal--mfa-setup {
+    .modal__body {
+      overflow-y: auto;
     }
   }
 }
