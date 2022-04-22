@@ -26,15 +26,12 @@ bem.MFAModal__qrcodeWrapper = makeBem(bem.MFAModal, 'qrcode-wrapper');
 bem.MFAModal__codes = makeBem(bem.MFAModal, 'codes');
 bem.MFAModal__codesWrapper = makeBem(bem.MFAModal, 'codes-wrapper');
 bem.MFAModal__list = makeBem(bem.MFAModal, 'list', 'ul');
-bem.MFAModal__helpText = makeBem(bem.MFAModal, 'help-text');
 
 bem.MFAModal__footer = makeBem(bem.MFAModal, 'footer', 'footer');
 bem.MFAModal__footerLeft = makeBem(bem.MFAModal, 'footer-left');
 bem.MFAModal__footerRight = makeBem(bem.MFAModal, 'footer-right');
 
-const SUPPORT_EMAIL = 'support@kobotoolbox.org';
-
-type ModalSteps = 'backups' | 'disclaimer' | 'help-text' | 'manual' | 'qr' | 'token';
+type ModalSteps = 'backups' | 'disclaimer' | 'manual' | 'qr' | 'token';
 
 interface MFAModalsProps {
   onModalClose: Function;
@@ -50,7 +47,7 @@ interface MFAModalsState {
   backupCodes: string[] | null;
   downloadClicked: boolean;
   errorText: string | undefined;
-  helpToggle: boolean;
+  isHelpTextVisible: boolean;
 }
 
 export default class MFAModals extends React.Component<
@@ -66,7 +63,7 @@ export default class MFAModals extends React.Component<
       backupCodes: null,
       downloadClicked: false,
       errorText: undefined,
-      helpToggle: false,
+      isHelpTextVisible: false,
     };
   }
 
@@ -92,7 +89,7 @@ export default class MFAModals extends React.Component<
   getLocalizedMfaHelpText() {
     const language = currentLang();
     const texts = envStore.data.mfa_i18n_help_texts;
-    if (texts.hasOwnProperty(language)) {
+    if (Object.prototype.hasOwnProperty.call(texts, 'language')) {
       return texts[language];
     }
     return texts['default'];
@@ -102,6 +99,7 @@ export default class MFAModals extends React.Component<
     this.setState({
       qrCode: response.details,
       currentStep: 'qr',
+      errorText: undefined,
     });
   }
 
@@ -113,6 +111,7 @@ export default class MFAModals extends React.Component<
     this.setState({
       backupCodes: response.backup_codes,
       currentStep: 'backups',
+      errorText: undefined,
     });
   }
 
@@ -121,6 +120,7 @@ export default class MFAModals extends React.Component<
   }
 
   onMfaDeactivated() {
+    this.setState({errorText: undefined});
     if (this.props.modalType === 'reconfigure') {
       mfaActions.activate(true);
     } else {
@@ -166,7 +166,7 @@ export default class MFAModals extends React.Component<
     }
   }
 
-  handleTokenSubmit() {
+  onSubmit() {
     this.setState({inputString: ''});
 
     switch (this.props.modalType) {
@@ -182,9 +182,9 @@ export default class MFAModals extends React.Component<
     }
   }
 
-  handleHelpClick(evt: React.MouseEvent) {
+  onShowHelpText(evt: React.MouseEvent) {
     evt.preventDefault();
-    this.setState({helpToggle: true});
+    this.setState({isHelpTextVisible: true});
   }
 
   onInputChange(inputString: string) {
@@ -197,10 +197,13 @@ export default class MFAModals extends React.Component<
   ) {
     evt.preventDefault();
 
-    this.setState({currentStep: newStep});
+    this.setState({
+      currentStep: newStep,
+      isHelpTextVisible: false,
+    });
   }
 
-  isTokenValid(): boolean {
+  isTokenValid() {
     return this.state.inputString !== null && this.state.inputString.length === 6;
   }
 
@@ -315,13 +318,9 @@ export default class MFAModals extends React.Component<
             <bem.MFAModal__codesWrapper>
               <bem.MFAModal__codes>
                 <bem.MFAModal__list>
-                  {this.state.backupCodes.map((t) => (
-                      <li>
-                        <strong>
-                          {t}
-                        </strong>
-                      </li>
-                    ))}
+                  {this.state.backupCodes.map((backupCode) => (
+                    <li><strong>{backupCode}</strong></li>
+                  ))}
                 </bem.MFAModal__list>
               </bem.MFAModal__codes>
             </bem.MFAModal__codesWrapper>
@@ -445,29 +444,19 @@ export default class MFAModals extends React.Component<
             />
           </bem.MFAModal__p>
 
-          <bem.MFAModal__p m='align-right'>
-            <bem.MFAModal__helpLink
-              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'help-text');
-              }}
-            >
-              {t('Problems with the token')}
-            </bem.MFAModal__helpLink>
-          </bem.MFAModal__p>
+          {!this.state.isHelpTextVisible &&
+            <bem.MFAModal__p m='align-right'>
+              <bem.MFAModal__helpLink onClick={this.onShowHelpText.bind(this)}>
+                {t('Problems with your token?')}
+              </bem.MFAModal__helpLink>
+            </bem.MFAModal__p>
+          }
 
-          <bem.MFAModal__helpText>
-            <a
-              href='#'
-              style={{display: this.state.helpToggle ? 'none' : 'inline-block'}}
-              onClick={this.handleHelpClick.bind(this)}
-            >
-              {t('Problems with your token?')}
-            </a>
-            <div
-              style={{display: this.state.helpToggle ? 'block' : 'none'}}
+          {this.state.isHelpTextVisible &&
+            <bem.MFAModal__p m='small-text'
               dangerouslySetInnerHTML={{__html: this.getLocalizedMfaHelpText()}}
             />
-          </bem.MFAModal__helpText>
+          }
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -479,7 +468,7 @@ export default class MFAModals extends React.Component<
               isFullWidth
               label={t('Next')}
               onClick={
-                this.handleTokenSubmit.bind(this)
+                this.onSubmit.bind(this)
               }
               isDisabled={!this.isTokenValid()}
             />
@@ -536,70 +525,6 @@ export default class MFAModals extends React.Component<
     );
   }
 
-  renderHelpTextStep() {
-    return (
-      <bem.MFAModal m='step-help-text'>
-        <bem.MFAModal__body>
-          <bem.MFAModal__p><strong>{t('Issues with the token')}</strong></bem.MFAModal__p>
-
-          <bem.MFAModal__p>
-            {t('If you have problems with your verification token, please try the following')}
-          </bem.MFAModal__p>
-
-          <bem.MFAModal__list>
-            <li>
-              {t('Double check you are using the token generator for the right instance of KoBoToolbox')}
-            </li>
-
-            <li>
-              {t('Try using one of your back up security codes instead')}
-            </li>
-          </bem.MFAModal__list>
-
-          <bem.MFAModal__p>
-            {t('If you are still experiencing issues logging in, or have lost your device and recovery codes, please send an email to')}
-
-            &nbsp;
-
-            <bem.MFAModal__helpLink href={'mailto:' + SUPPORT_EMAIL}>
-              {SUPPORT_EMAIL}
-            </bem.MFAModal__helpLink>
-
-            &nbsp;
-
-            {t('with the subject "2FA issues"')}
-          </bem.MFAModal__p>
-        </bem.MFAModal__body>
-
-        <bem.MFAModal__footer>
-          <bem.MFAModal__footerLeft>
-            <Button
-              type='frame'
-              color='blue'
-              size='l'
-              isFullWidth
-              label={t('Back')}
-              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.changeStep(evt, 'token');
-              }}
-            />
-          </bem.MFAModal__footerLeft>
-
-          <bem.MFAModal__footerRight>
-            <Button
-              type='full'
-              color='blue'
-              size='l'
-              isFullWidth
-              label={t('OK')}
-              onClick={this.closeModal.bind(this)}
-            />
-          </bem.MFAModal__footerRight>
-        </bem.MFAModal__footer>
-      </bem.MFAModal>
-    );
-  }
-
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
@@ -617,8 +542,6 @@ export default class MFAModals extends React.Component<
         return this.renderTokenStep();
       case 'disclaimer':
         return this.renderDisclaimerStep();
-      case 'help-text':
-        return this.renderHelpTextStep();
       default:
         return null;
     }

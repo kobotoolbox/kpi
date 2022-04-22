@@ -1,6 +1,6 @@
-@use "scss/_colors";
-@use "scss/sizes";
-@use "scss/libs/_mdl";
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/libs/_mdl';
 
 .account-settings {
   width: 100%;
@@ -9,6 +9,12 @@
   overflow-y: auto;
   position: relative;
   padding: sizes.$x50;
+
+  h4 {
+    margin: 0;
+    font-weight: 400;
+    color: colors.$kobo-gray-24;
+  }
 
   .kobo-select {
     font-size: 15px;
@@ -25,7 +31,7 @@
       padding-right: 40px;
       overflow: auto;
 
-       > *:last-child { margin-bottom: 20px; }
+      > *:last-child {margin-bottom: 20px;}
     }
 
     .form-modal__item--api-token {
@@ -83,12 +89,6 @@
 
   .account-settings-link {
     font-size: 0.85em;
-  }
-
-  h4 {
-    margin: 0;
-    font-weight: 400;
-    color: colors.$kobo-gray-24;
   }
 
   .form-modal__item {

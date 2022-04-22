@@ -199,8 +199,8 @@ export default class AccountSettings extends React.Component {
       return null;
     }
 
-    var accountName = stores.session.currentAccount.username;
-    var initialsStyle = {
+    const accountName = stores.session.currentAccount.username;
+    const initialsStyle = {
       background: `#${stringToColor(accountName)}`,
     };
 
