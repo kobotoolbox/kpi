@@ -303,6 +303,7 @@ class BigModal extends React.Component {
         isDuplicated={this.props.params.isDuplicated}
         customModalHeader={this.props.params.customModalHeader}
         disableBackdropClose={this.props.params.disableBackdropClose}
+        disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&

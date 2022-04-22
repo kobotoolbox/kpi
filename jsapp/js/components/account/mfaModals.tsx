@@ -318,8 +318,8 @@ export default class MFAModals extends React.Component<
             <bem.MFAModal__codesWrapper>
               <bem.MFAModal__codes>
                 <bem.MFAModal__list>
-                  {this.state.backupCodes.map((backupCode) => (
-                    <li><strong>{backupCode}</strong></li>
+                  {this.state.backupCodes.map((backupCode, index) => (
+                    <li key={index}><strong>{backupCode}</strong></li>
                   ))}
                 </bem.MFAModal__list>
               </bem.MFAModal__codes>

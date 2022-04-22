@@ -3,6 +3,7 @@ import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Icon from 'js/components/common/icon';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import type {
   MfaActiveResponse,
@@ -10,7 +11,7 @@ import type {
 } from 'js/actions/mfaActions';
 import mfaActions from 'js/actions/mfaActions';
 import {MODAL_TYPES} from 'jsapp/js/constants';
-
+import envStore from 'js/envStore';
 import './securityRoute.scss';
 
 bem.SecuritySection = makeBem(null, 'security-section');
@@ -75,6 +76,7 @@ export default class SecurityRoute extends React.Component<
         modalType: 'qr',
         customModalHeader: this.renderCustomHeader(),
         disableBackdropClose: true,
+        disableEscClose: true,
       });
     }
   }
@@ -96,6 +98,7 @@ export default class SecurityRoute extends React.Component<
         modalType: 'deactivate',
         customModalHeader: this.renderCustomHeader(),
         disableBackdropClose: true,
+        disableEscClose: true,
       });
     }
   }
@@ -111,6 +114,7 @@ export default class SecurityRoute extends React.Component<
         modalType: type,
         customModalHeader: this.renderCustomHeader(),
         disableBackdropClose: true,
+        disableEscClose: true,
     });
   }
 
@@ -129,6 +133,14 @@ export default class SecurityRoute extends React.Component<
   }
 
   render() {
+    if (!envStore.isReady) {
+      return <LoadingSpinner/>;
+    }
+
+    if (!envStore.data.mfa_enabled) {
+      return null;
+    }
+
     return (
       <bem.SecuritySection>
         <bem.SecurityRow>
