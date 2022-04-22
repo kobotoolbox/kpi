@@ -28,13 +28,8 @@ module.exports = do ->
       <div class="row__questiontypes row__questiontypes--namer">
         #{closeRowSelectorButton}
         <form class="row__questiontypes__form" action="javascript:void(0);" >
-<<<<<<< HEAD
           <input type="text" class="js-cancel-sort mdl-textfield__input" data-cy="textfield_input" />
           <button class="kobo-button kobo-button--green" data-cy="add_question" >+ #{t("Add Question")}</button>
-=======
-          <input type="text" class="js-cancel-sort mdl-textfield__input" />
-          <button class="kobo-button kobo-button--storm">+ #{t("Add Question")}</button>
->>>>>>> d361902cf61a3ffbbbbcbcea5dd063abe4169584
         </form>
       </div>
     """

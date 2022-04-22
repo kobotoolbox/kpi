@@ -885,12 +885,9 @@ class ProjectSettings extends React.Component {
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
                 label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
-<<<<<<< HEAD
                 value={this.state.name}
                 onChange={this.onNameChange}
                 data-cy='title'
-=======
->>>>>>> d361902cf61a3ffbbbbcbcea5dd063abe4169584
               />
             </bem.FormModal__item>
           }
@@ -921,39 +918,6 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
-<<<<<<< HEAD
-          <bem.FormModal__item m='sector'>
-            <label htmlFor='sector'>
-              {t('Sector')}
-            </label>
-            <Select
-              id='sector'
-              value={this.state.sector}
-              onChange={this.onSectorChange}
-              options={sectors}
-              className='kobo-select cy-sector'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='country'>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-            <Select
-              id='country'
-              value={this.state.country}
-              onChange={this.onCountryChange}
-              options={countries}
-              className='kobo-select cy-country'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-=======
           {countryField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
               <WrappedSelect
@@ -998,7 +962,6 @@ class ProjectSettings extends React.Component {
               />
             </bem.FormModal__item>
           }
->>>>>>> d361902cf61a3ffbbbbcbcea5dd063abe4169584
 
           <bem.FormModal__item m='metadata-share'>
             <Checkbox

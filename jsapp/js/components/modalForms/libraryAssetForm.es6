@@ -243,21 +243,14 @@ export class LibraryAssetForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-<<<<<<< HEAD
+
             <label htmlFor='sector'>
               {t('Primary Sector')}
             </label>
-
-            <Select
-              id='sector'z
-              value={this.state.data.sector}
-              onChange={this.onSectorChange}
-=======
             <WrappedSelect
               label={t('Primary Sector')}
               value={this.state.fields.sector}
               onChange={this.onAnyFieldChange.bind(this, 'sector')}
->>>>>>> d361902cf61a3ffbbbbcbcea5dd063abe4169584
               options={SECTORS}
               isLimitedHeight
               isClearable
