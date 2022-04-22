@@ -273,5 +273,5 @@ class XlsRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        return asset.to_xls_io(versioned=self.versioned,
+        return asset.to_xlsx_io(versioned=self.versioned,
                                kobo_specific_types=self.kobo_specific_types)
