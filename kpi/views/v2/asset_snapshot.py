@@ -22,6 +22,7 @@ from kpi.renderers import (
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
+from kpi.tasks import enketo_flush_cached_preview
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
@@ -140,6 +141,14 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             )
             response.raise_for_status()
 
+            # Ask Celery to remove the preview from its XSLT cache after some
+            # reasonable delay; see
+            # https://github.com/enketo/enketo-express/issues/357
+            enketo_flush_cached_preview.apply_async(
+                kwargs=data,  # server_url and form_id
+                countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
+            )
+
             json_response = response.json()
             preview_url = json_response.get('preview_url')
 
@@ -152,6 +161,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         detail=True,
         permission_classes=[EditSubmissionPermission],
         methods=['HEAD', 'POST'],
+        # Order of authentication classes is important (to return a 401 instead of 403).
+        # See:
+        # - https://github.com/encode/django-rest-framework/blob/df92e57ad6c8394ca54654dfc7a2722f822ed8c8/rest_framework/views.py#L183-L190
+        # - https://github.com/encode/django-rest-framework/blob/df92e57ad6c8394ca54654dfc7a2722f822ed8c8/rest_framework/views.py#L455-L461
         authentication_classes=[
             DigestAuthentication,
             EnketoSessionAuthentication,

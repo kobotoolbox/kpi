@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'registration',         # Order is important
     'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
+    'django_filters',
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
@@ -468,7 +469,10 @@ TEMPLATES = [
 ]
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
+RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
+RAVEN_JS_DSN = None
+if RAVEN_JS_DSN_URL:
+    RAVEN_JS_DSN = RAVEN_JS_DSN_URL.geturl()
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
@@ -491,17 +495,50 @@ ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
-# The number of hours to keep a kobo survey preview (generated for enketo)
-# around before purging it.
-KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
-
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
+ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
+# How long to wait before flushing an individual preview from Enketo's cache
+ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 
+# Content Security Policy (CSP)
+# CSP should "just work" by allowing any possible configuration
+# however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
+if env.bool("ENABLE_CSP", False):
+    MIDDLEWARE.append('csp.middleware.CSPMiddleware')
+local_unsafe_allows = [
+    "'unsafe-eval'",
+    'http://localhost:3000',
+    'http://kf.kobo.local:3000',
+    'ws://kf.kobo.local:3000'
+]
+CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCAT_URL, ENKETO_URL]
+if env.str("FRONTEND_DEV_MODE", None) == "host":
+    CSP_DEFAULT_SRC += local_unsafe_allows
+CSP_CONNECT_SRC = CSP_DEFAULT_SRC
+CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
+CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_IMG_SRC = CSP_DEFAULT_SRC + ['data:']
+
+if GOOGLE_ANALYTICS_TOKEN:
+    google_domain = '*.google-analytics.com'
+    CSP_SCRIPT_SRC.append(google_domain)
+    CSP_CONNECT_SRC.append(google_domain)
+if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
+    raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
+    CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
+    CSP_SCRIPT_SRC.append(raven_js_url)
+    CSP_CONNECT_SRC.append(raven_js_url)
+
+csp_report_uri = env.url('CSP_REPORT_URI', None)
+if csp_report_uri:  # Let environ validate uri, but set as string
+    CSP_REPORT_URI = csp_report_uri.geturl()
+CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
 
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
