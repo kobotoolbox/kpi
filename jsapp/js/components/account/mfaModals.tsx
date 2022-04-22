@@ -89,7 +89,7 @@ export default class MFAModals extends React.Component<
   getLocalizedMfaHelpText() {
     const language = currentLang();
     const texts = envStore.data.mfa_i18n_help_texts;
-    if (Object.prototype.hasOwnProperty.call(texts, 'language')) {
+    if (Object.prototype.hasOwnProperty.call(texts, language)) {
       return texts[language];
     }
     return texts['default'];

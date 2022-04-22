@@ -368,6 +368,6 @@ interface EnvironmentResponse {
   all_languages: string[][]
   interface_languages: string[][]
   submission_placeholder: string
-  mfa_i18n_help_texts: {}
+  mfa_i18n_help_texts: {[name: string]: string}
   mfa_enabled: boolean
 }

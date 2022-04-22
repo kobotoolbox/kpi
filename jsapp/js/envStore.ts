@@ -30,8 +30,8 @@ class EnvStoreData {
   all_languages: EnvStoreDataItem[] = []
   interface_languages: EnvStoreDataItem[] = []
   submission_placeholder: string = ''
-  mfa_i18n_help_texts: any = {}
-  mfa_enabled: boolean = false
+  mfa_i18n_help_texts: {[name: string]: string} = {};
+  mfa_enabled = false;
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
