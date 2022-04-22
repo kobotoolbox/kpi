@@ -101,19 +101,6 @@ $mfa-paragraph-spacing: sizes.$x18;
   cursor: pointer;
 }
 
-.mfa-modal--step-help-text {
-  .mfa-modal__list {
-    list-style: disc;
-    padding-left: sizes.$x40;
-  }
-
-  .mfa-modal__email {
-    > * {
-      display: inline;
-    }
-  }
-}
-
 .mfa-modal__footer {
   display: flex;
   justify-content: space-between;
