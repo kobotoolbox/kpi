@@ -26,7 +26,7 @@ function findByKey(theObject: Json, key: string): Json {
     }
   } else if (theObject instanceof Object) {
     for (const prop in theObject) {
-      if (prop == key) {
+      if (prop === key) {
         return theObject[key];
       }
       if (

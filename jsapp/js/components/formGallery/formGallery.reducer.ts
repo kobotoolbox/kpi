@@ -60,7 +60,6 @@ export function reducer(state: State, action: Action): State {
         filterQuestion: action.question,
       };
     case 'setStartDate':
-      console.log(action.value);
       return {
         ...state,
         startDate: action.value,
