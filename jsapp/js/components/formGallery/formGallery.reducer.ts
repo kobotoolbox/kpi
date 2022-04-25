@@ -1,4 +1,4 @@
-import {Action} from './formGallery.actions';
+import type {Action} from './formGallery.actions';
 
 export interface State {
   submissions: SubmissionResponse[];

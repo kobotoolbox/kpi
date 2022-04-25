@@ -32,13 +32,15 @@ export default function FormGallery(props: FormGalleryProps) {
   const flatQuestionsList = getFlatQuestionsList(
     props.asset.content!.survey!
   ).filter((survey) => survey.type === 'image');
-  const questions = flatQuestionsList.map((survey) => ({
-    value: survey.path,
-    label:
-      survey.parents.join(' / ') +
-      (survey.parents.length ? ' / ' : '') +
-      survey.label,
-  }));
+  const questions = flatQuestionsList.map((survey) => {
+    return {
+      value: survey.path,
+      label:
+        survey.parents.join(' / ') +
+        (survey.parents.length ? ' / ' : '') +
+        survey.label,
+    };
+  });
   const defaultOption = {value: '', label: 'All questions'};
   const questionFilterOptions = [defaultOption, ...(questions || [])];
   const [

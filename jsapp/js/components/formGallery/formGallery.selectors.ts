@@ -1,5 +1,5 @@
-import {FlatQuestion} from 'jsapp/js/assetUtils';
-import {Json} from './formGallery.interfaces';
+import type {FlatQuestion} from 'jsapp/js/assetUtils';
+import type {Json} from './formGallery.interfaces';
 
 const IMAGE_MIMETYPES = [
   'image/png',
@@ -25,7 +25,7 @@ function findByKey(theObject: Json, key: string): Json {
       }
     }
   } else if (theObject instanceof Object) {
-    for (let prop in theObject) {
+    for (const prop in theObject) {
       if (prop == key) {
         return theObject[key];
       }
@@ -112,12 +112,13 @@ export const selectFilterQuery = (
     // The initialValue is the inner most part of the query where we actually filter on the question
     const initialValue: Json = {[filterQuestion]: {$exists: true}};
     // Build nested elemMatch objects, start from the inner most and build outwards
-    query = repeatingGroupNames.reverse().reduce(
-      (previousValue, currentValue) => ({
-        [currentValue]: {$elemMatch: previousValue},
-      }),
-      initialValue
-    );
+    query = repeatingGroupNames
+      .reverse()
+      .reduce((previousValue, currentValue) => {
+        return {
+          [currentValue]: {$elemMatch: previousValue},
+        };
+      }, initialValue);
     // Whew, thanks to initial value this works even with 0 repeating groups
   }
   if (startDate || endDate) {
