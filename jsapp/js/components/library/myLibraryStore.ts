@@ -72,30 +72,30 @@ class MyLibraryStore extends Reflux.Store {
   fetchDataDebounced?: Function
 
   init() {
-    this.fetchDataDebounced = _.debounce(this.fetchData.bind(true), 2500);
+    this.fetchDataDebounced = _.debounce(this.fetchData.bind(this), 2500);
 
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged, this);
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
+    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
-    actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted);
-    actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted);
-    actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed);
-    actions.library.searchMyLibraryMetadata.completed.listen(this.onSearchMetadataCompleted);
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
-    actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
-    actions.resources.createResource.completed.listen(this.onAssetCreated);
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
+    actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted.bind(this));
+    actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted.bind(this));
+    actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed.bind(this));
+    actions.library.searchMyLibraryMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
+    actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this));
+    actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this));
+    actions.resources.cloneAsset.completed.listen(this.onAssetCreated.bind(this));
+    actions.resources.createResource.completed.listen(this.onAssetCreated.bind(this));
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
     // TODO Improve reaction to uploads being finished after task is done:
     // https://github.com/kobotoolbox/kpi/issues/476
-    actions.resources.createImport.completed.listen(this.fetchDataDebounced);
+    actions.resources.createImport.completed.listen(this.fetchDataDebounced.bind(this, true));
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.startupStore);
+    actions.permissions.getConfig.completed.listen(this.startupStore.bind(this));
   }
 
   /**

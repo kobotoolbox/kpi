@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
@@ -99,10 +99,12 @@ export default class PermProtectedRoute extends React.Component {
       return <LoadingSpinner/>;
     } else if (this.state.userHasRequiredPermission) {
       return (
-        <this.props.route.protectedComponent
-          {...this.props}
-          initialAssetLoadNotNeeded
-        />
+        <Suspense fallback={<LoadingSpinner/>}>
+          <this.props.route.protectedComponent
+            {...this.props}
+            initialAssetLoadNotNeeded
+          />
+        </Suspense>
       );
     } else {
       return <AccessDenied errorMessage={this.state.errorMessage}/>;

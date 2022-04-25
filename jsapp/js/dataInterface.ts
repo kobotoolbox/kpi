@@ -103,12 +103,12 @@ export interface FailResponse {
   statusText: string;
 }
 
-export interface GetProcessingSubmissionsResponse extends PaginatedResponse {
-  results: {
-    [questionName: string]: any
-    _id: number
-  }[]
-}
+interface ProcessingResponseData {
+  [questionName: string]: any;
+  _id: number;
+};
+
+export interface GetProcessingSubmissionsResponse extends PaginatedResponse<ProcessingResponseData> {}
 
 export interface SubmissionAttachment {
   download_url: string;
@@ -442,8 +442,7 @@ export interface AssetResponse extends AssetRequestObject {
   settings__title?: string;
 }
 
-export interface AssetsResponse extends PaginatedResponse {
-  results: AssetResponse[];
+export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
   metadata?: MetadataResponse;
 }
 
@@ -454,11 +453,11 @@ export interface MetadataResponse {
   organizations: string[];
 }
 
-interface PaginatedResponse {
+interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
-  results: any[];
+  results: T[];
 }
 
 export interface PermissionDefinition {
@@ -470,9 +469,7 @@ export interface PermissionDefinition {
   contradictory: string[];
 }
 
-export interface PermissionsConfigResponse extends PaginatedResponse {
-  results: PermissionDefinition[];
-}
+export interface PermissionsConfigResponse extends PaginatedResponse<PermissionDefinition> {}
 
 export interface AccountResponse {
   username: string;
