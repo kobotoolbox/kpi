@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@80460786816729377cdf34deaebaa51d2ff3872b#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -90,7 +90,7 @@ django-cors-headers==3.1.1
     # via -r dependencies/pip/requirements.in
 django-csp==3.7
     # via -r dependencies/pip/requirements.in
-django-debug-toolbar==2.1
+django-debug-toolbar==3.2.4
     # via -r dependencies/pip/requirements.in
 django-environ==0.8.1
     # via -r dependencies/pip/requirements.in

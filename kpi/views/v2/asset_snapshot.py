@@ -161,6 +161,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         detail=True,
         permission_classes=[EditSubmissionPermission],
         methods=['HEAD', 'POST'],
+        # Order of authentication classes is important (to return a 401 instead of 403).
+        # See:
+        # - https://github.com/encode/django-rest-framework/blob/df92e57ad6c8394ca54654dfc7a2722f822ed8c8/rest_framework/views.py#L183-L190
+        # - https://github.com/encode/django-rest-framework/blob/df92e57ad6c8394ca54654dfc7a2722f822ed8c8/rest_framework/views.py#L455-L461
         authentication_classes=[
             DigestAuthentication,
             EnketoSessionAuthentication,
