@@ -136,7 +136,7 @@ export default function FormGallery(props: FormGalleryProps) {
               onChange={(newValue) =>
                 dispatch({type: 'setFilterQuestion', question: newValue!.value})
               }
-            ></ReactSelect>
+            />
           </bem.GalleryRow__select>
           <bem.GalleryRow__dates>
             {t('Between')}
@@ -145,14 +145,14 @@ export default function FormGallery(props: FormGalleryProps) {
               onChange={(e) =>
                 dispatch({type: 'setStartDate', value: e.target.value})
               }
-            ></input>
+            />
             {t('and')}
             <input
               type='date'
               onChange={(e) =>
                 dispatch({type: 'setEndDate', value: e.target.value})
               }
-            ></input>
+            />
           </bem.GalleryRow__dates>
         </bem.GalleryRow>
         <bem.GalleryGrid>
@@ -167,7 +167,7 @@ export default function FormGallery(props: FormGalleryProps) {
                 alt={attachment.filename}
                 width='150'
                 loading='lazy'
-              ></img>
+              />
             </a>
           ))}
         </bem.GalleryGrid>
