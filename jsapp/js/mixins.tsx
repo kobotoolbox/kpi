@@ -24,7 +24,6 @@ import {
   PERMISSIONS_CODENAMES,
 } from './constants';
 import {ROUTES} from 'js/router/routerConstants';
-import type {AssetResponse} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
@@ -40,6 +39,7 @@ import {
 } from 'js/utils';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import type {
+  AssetResponse,
   CreateImportRequest,
   ImportResponse,
   Permission,
@@ -51,7 +51,7 @@ const IMPORT_CHECK_INTERVAL = 1000;
 interface MixinsObject {
   contextRouter: {
     [functionName: string]: Function;
-    context?: any; // Hack to not go into typing the mixins too much
+    context?: any;
   };
   permissions: {
     [functionName: string]: Function;
@@ -61,20 +61,20 @@ interface MixinsObject {
     click: {
       asset: {
         [functionName: string]: Function;
-        context?: any; // Hack to not go into typing the mixins too much
+        context?: any;
       };
     };
   };
   droppable: {
     [functionName: string]: Function;
-    context?: any; // Hack to not go into typing the mixins too much
-    props?: any; // Hack to not go into typing the mixins too much
-    state?: any; // Hack to not go into typing the mixins too much
+    context?: any;
+    props?: any;
+    state?: any;
   };
   dmix: {
     [functionName: string]: Function;
-    state?: any; // Hack to not go into typing the mixins too much
-    props?: any; // Hack to not go into typing the mixins too much
+    state?: any;
+    props?: any;
   };
   cloneAssetAsNewType: {
     dialog: Function;
