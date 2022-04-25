@@ -1,6 +1,7 @@
 # coding: utf-8
+from copy import deepcopy
+
 from django.contrib.auth.models import User, Permission
-from django.core.exceptions import ValidationError
 from django.urls import reverse
 from rest_framework import status
 
@@ -14,6 +15,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
 )
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -289,6 +291,36 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         response = self.client.post(url, data, format='json')
         return response
 
+    def translate_usernames_and_codenames_to_urls(self, assignments: list):
+        """
+        Prepares a permissions assignment structure like the following for
+        submission to the bulk endpoint:
+            [{
+                'user': 'simone',
+                'permission': 'partial_submissions',
+                'partial_permissions': [{
+                    'url': 'view_submissions',
+                    'filters': [
+                        {'_submitted_by': {'$in': ['simone', 'zariah']}}
+                    ],
+                }],
+            }]
+        """
+        assignments = deepcopy(assignments)
+        for assignment in assignments:
+            assignment['user'] = self.obj_to_url(
+                User.objects.get(username=assignment['user'])
+            )
+            assignment['permission'] = self.obj_to_url(
+                Permission.objects.get(codename=assignment['permission'])
+            )
+            partial_permissions = assignment.get('partial_permissions', [])
+            for partial_perm in partial_permissions:
+                partial_perm['url'] = self.obj_to_url(
+                    Permission.objects.get(codename=partial_perm['url'])
+                )
+        return assignments
+
     def test_cannot_assign_permissions_to_owner(self):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.client.login(username='someuser', password='someuser')
@@ -414,3 +446,146 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS))
+
+    def test_implied_partial_permissions_are_retained(self):
+        users = {}
+        for username in 'simone', 'zariah':
+            users[username] = User.objects.create(username=username)
+        # Allow Simone to view and delete their own and Zariah's submissions
+        self.asset.assign_perm(
+            users['simone'],
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_DELETE_SUBMISSIONS: [
+                    {'_submitted_by': {'$in': ['simone', 'zariah']}}
+                ]
+            },
+        )
+        assert self.asset.asset_partial_permissions.get(
+            user__username='simone'
+        ).permissions == (
+            {
+                PERM_VIEW_SUBMISSIONS: [
+                    {'_submitted_by': {'$in': ['simone', 'zariah']}}
+                ],
+                PERM_DELETE_SUBMISSIONS: [
+                    {'_submitted_by': {'$in': ['simone', 'zariah']}}
+                ],
+            }
+        )
+        # Allow Zariah to view and delete their own submissions
+        self.asset.assign_perm(
+            users['zariah'],
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'zariah'}]
+            },
+        )
+        assert self.asset.asset_partial_permissions.get(
+            user__username='zariah'
+        ).permissions == (
+            {
+                PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'zariah'}],
+                PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'zariah'}],
+            }
+        )
+        # Using the bulk API, Revoke Simone's permission to delete Zariah's
+        # submissions
+        assignments = [
+            {
+                'user': 'simone',
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_VIEW_SUBMISSIONS,
+                        'filters': [
+                            {'_submitted_by': {'$in': ['simone', 'zariah']}}
+                        ],
+                    },
+                    {
+                        'url': PERM_DELETE_SUBMISSIONS,
+                        'filters': [{'_submitted_by': 'simone'}],
+                    },
+                ],
+            },
+            {
+                'user': 'zariah',
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_DELETE_SUBMISSIONS,
+                        'filters': [{'_submitted_by': 'zariah'}],
+                    }
+                ],
+            },
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            assignments
+        )
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(bulk_endpoint, assignments, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        # Simone should still have access to view Zariah's (and their own)
+        # submissions
+        assert self.asset.asset_partial_permissions.get(
+            user__username='simone'
+        ).permissions == {
+            PERM_VIEW_SUBMISSIONS: [
+                # TODO: Avoid this (harmless) duplication (which was already
+                # present in b30644e1c, before any optimization work)
+                [{'_submitted_by': 'simone'}],
+                [{'_submitted_by': {'$in': ['simone', 'zariah']}}],
+                # This extra duplication was *not* present before optimization
+                [{'_submitted_by': 'simone'}],
+            ],
+            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'simone'}],
+        }
+        # Zariah's permissions should be unchanged
+        assert self.asset.asset_partial_permissions.get(
+            user__username='zariah'
+        ).permissions == (
+            {
+                PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'zariah'}],
+                PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'zariah'}],
+            }
+        )
+
+    def test_partial_permission_grants_implied_view_asset(self):
+        assert not self.someuser.has_perm(PERM_VIEW_ASSET, self.asset)
+        assignments = [
+            {
+                'user': 'someuser',
+                'permission': PERM_PARTIAL_SUBMISSIONS,
+                'partial_permissions': [
+                    {
+                        'url': PERM_VIEW_SUBMISSIONS,
+                        'filters': [{'_submitted_by': 'someuser'}],
+                    }
+                ],
+            }
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            assignments
+        )
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        # Perform bulk assignment twice to check permission-difference
+        # optimization logic
+        for _ in range(2):
+            response = self.client.post(
+                bulk_endpoint, assignments, format='json'
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert self.asset.asset_partial_permissions.get(
+                user__username='someuser'
+            ).permissions == {
+                PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}]
+            }
+            # `someuser` should have received the implied `view_asset`
+            # permission
+            assert self.someuser.has_perm(PERM_VIEW_ASSET, self.asset)

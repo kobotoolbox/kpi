@@ -21,8 +21,9 @@ from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
-from pyxform import xls2json_backends
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
@@ -47,6 +48,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.log import logging
@@ -57,6 +59,7 @@ from kpi.utils.models import (
 )
 from kpi.utils.rename_xls_sheet import (
     rename_xls_sheet,
+    rename_xlsx_sheet,
     NoFromSheetError,
     ConflictSheetError,
 )
@@ -265,7 +268,11 @@ class ImportTask(ImportExportTask):
                 # raises `NotImplementedError`)
                 item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
-                kontent = xls2json_backends.xls_to_dict(item.readable)
+                try:
+                    kontent = xlsx_to_dict(item.readable)
+                except InvalidFileException:
+                    kontent = xls_to_dict(item.readable)
+
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
                     item._orm = create_assets(item.get_type(), extra_args)
@@ -876,20 +883,47 @@ class SynchronousExport(ExportTaskBase):
             return export
 
 
+def _get_xls_format(decoded_str):
+    first_bytes = decoded_str[:2]
+    if first_bytes == b'PK':
+        return 'xlsx'
+    elif first_bytes == b'\xd0\xcf':
+        return 'xls'
+    else:
+        raise XlsFormatException('Unsupported format, or corrupt file')
+
+
+def _get_xls_sheet_renamer(decoded_str):
+    return (
+        rename_xlsx_sheet
+        if _get_xls_format(decoded_str) == 'xlsx'
+        else rename_xls_sheet
+    )
+
+
+def _get_xls_to_dict(decoded_str):
+    return (
+        xlsx_to_dict if _get_xls_format(decoded_str) == 'xlsx' else xls_to_dict
+    )
+
+
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
+    _xls_sheet_renamer = _get_xls_sheet_renamer(decoded_str)
+    _xls_to_dict = _get_xls_to_dict(decoded_str)
     try:
-        xls_with_renamed_sheet = rename_xls_sheet(BytesIO(decoded_str),
-                                                  from_sheet='library',
-                                                  to_sheet='survey')
+        xls_with_renamed_sheet = _xls_sheet_renamer(
+            BytesIO(decoded_str), from_sheet='library', to_sheet='survey'
+        )
     except ConflictSheetError:
-        raise ValueError('An import cannot have both "survey" and'
-                         ' "library" sheets.')
+        raise ValueError(
+            'An import cannot have both "survey" and' ' "library" sheets.'
+        )
     except NoFromSheetError:
         # library did not exist in the xls file
-        survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+        survey_dict = _xls_to_dict(BytesIO(decoded_str))
     else:
-        survey_dict = xls2json_backends.xls_to_dict(xls_with_renamed_sheet)
+        survey_dict = _xls_to_dict(xls_with_renamed_sheet)
         survey_dict['library'] = survey_dict.pop('survey')
 
     return _strip_header_keys(survey_dict)
