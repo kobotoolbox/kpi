@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+from zoneinfo import ZoneInfo
 
-import pytz
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -299,7 +299,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         OpenRosa datetime formatting
         """
         if dt is None:
-            dt = datetime.now(tz=pytz.UTC)
+            dt = datetime.now(tz=ZoneInfo('UTC'))
 
         # Awkward check, but it's prescribed by
         # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive

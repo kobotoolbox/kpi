@@ -6,8 +6,8 @@ import uuid
 from datetime import datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
+from zoneinfo import ZoneInfo
 
-import pytz
 from deepmerge import always_merger
 from dict2xml import dict2xml
 from django.conf import settings
@@ -194,7 +194,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         duplicated_submission = copy.deepcopy(
             self.get_submission(submission_id, user=user)
         )
-        updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         next_id = max((
             sub['_id']
             for sub in self.get_submissions(self.asset.owner, fields=['_id'])

@@ -3,13 +3,13 @@ import base64
 import datetime
 import dateutil.parser
 import posixpath
-import pytz
 import re
 import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import List, Dict, Optional, Tuple, Generator
+from zoneinfo import ZoneInfo
 
 import constance
 import requests
@@ -70,7 +70,7 @@ def utcnow(*args, **kwargs):
     Stupid, and exists only to facilitate mocking during unit testing.
     If you know of a better way, please remove this.
     """
-    return datetime.datetime.now(tz=pytz.UTC)
+    return datetime.datetime.now(tz=ZoneInfo('UTC'))
 
 
 class ImportExportTask(models.Model):
@@ -617,7 +617,7 @@ class ExportTaskBase(ImportExportTask):
                 timestamp = dateutil.parser.parse(timestamp)
                 # Mongo timestamps are UTC, but their string representation
                 # does not indicate that
-                timestamp = timestamp.replace(tzinfo=pytz.UTC)
+                timestamp = timestamp.replace(tzinfo=ZoneInfo('UTC'))
                 if (
                         self.last_submission_time is None or
                         timestamp > self.last_submission_time
@@ -764,7 +764,7 @@ class ExportTaskBase(ImportExportTask):
         # Allow a generous grace period
         max_allowed_export_age = datetime.timedelta(
             seconds=max_export_run_time * 4)
-        this_moment = datetime.datetime.now(tz=pytz.UTC)
+        this_moment = datetime.datetime.now(tz=ZoneInfo('UTC'))
         oldest_allowed_timestamp = this_moment - max_allowed_export_age
         stuck_exports = cls.objects.filter(
             user=user,

@@ -252,7 +252,6 @@ python-dateutil==2.8.2
     #   python-crontab
 pytz==2022.1
     # via
-    #   -r dependencies/pip/requirements.in
     #   celery
     #   django
     #   django-timezone-field

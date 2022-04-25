@@ -65,7 +65,6 @@ openpyxl
 psycopg2>=2.8,<2.9
 pymongo==3.12.3
 python-dateutil
-pytz
 pyxform==1.9.0
 requests
 responses
