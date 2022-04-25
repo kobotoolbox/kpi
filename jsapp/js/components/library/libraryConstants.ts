@@ -1,4 +1,4 @@
-import {createEnum} from 'js/constants'
+import {createEnum} from 'js/constants';
 
 export const ROOT_BREADCRUMBS = Object.freeze({
   PROJECTS: {
@@ -13,31 +13,31 @@ export const ROOT_BREADCRUMBS = Object.freeze({
     label: t('Public Collections'),
     href: '#/library/public-collections',
   },
-})
+});
 
 export const ASSETS_TABLE_CONTEXTS = createEnum([
   'MY_LIBRARY',
   'COLLECTION_CONTENT',
   'PUBLIC_COLLECTIONS',
-])
+]);
 
-export type OrderDirection = 'ascending' | 'descending'
+export type OrderDirection = 'ascending' | 'descending';
 
 export const ORDER_DIRECTIONS: {[id in OrderDirection]: OrderDirection} = {
   ascending: 'ascending',
-  descending: 'descending'
-}
+  descending: 'descending',
+};
 
-export type AssetsTableColumnName = 'icon-status' | 'date-modified' | 'name' | 'items-count' | 'owner' | 'subscribers-count' | 'languages' | 'primary-sector'
+export type AssetsTableColumnName = 'date-modified' | 'icon-status' | 'items-count' | 'languages' | 'name' | 'owner' | 'primary-sector' | 'subscribers-count';
 
 export interface AssetsTableColumn {
-  label: string
-  id: AssetsTableColumnName
-  orderBy?: string | null
-  defaultValue?: OrderDirection | null
-  filterBy?: string
-  filterByPath?: string[]
-  filterByMetadataName?: string
+  label: string;
+  id: AssetsTableColumnName;
+  orderBy?: string | null;
+  defaultValue?: OrderDirection | null;
+  filterBy?: string;
+  filterByPath?: string[];
+  filterByMetadataName?: string;
 }
 
 /**
@@ -103,4 +103,4 @@ export const ASSETS_TABLE_COLUMNS: {[id: string]: AssetsTableColumn} = Object.fr
     filterByPath: ['settings', 'sector'],
     filterByMetadataName: 'sectors',
   },
-})
+});
