@@ -23,7 +23,7 @@ Pygments
 amqp
 billiard
 boto3
-celery>=5
+celery
 celery[redis]
 dict2xml
 dj-static
