@@ -13,11 +13,13 @@ $s-drawer-width: 270px;
 
 $mdl-layout-width: 1440px;
 
+$base-font-size: 14px;
+
 // Form Builder variables
 
 $cardBorderColor: colors.$kobo-gray-65;
-$cardInSortBorderColor: colors.$kobo-blue-light;
-$linkColor: colors.$kobo-blue-light;
+$cardInSortBorderColor: colors.$kobo-blue;
+$linkColor: colors.$kobo-blue;
 $cardBorderStyle: 1px solid $cardBorderColor;
 $cardInSortBorderStyle: 1px solid $cardInSortBorderColor;
 $cardInSortThinBorderStyle: 1px solid $cardInSortBorderColor;

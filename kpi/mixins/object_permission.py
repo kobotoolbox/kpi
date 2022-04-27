@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import copy
 from collections import defaultdict
 from typing import Optional
@@ -346,18 +348,23 @@ class ObjectPermissionMixin:
             return objects_to_return
 
     @classmethod
-    def get_implied_perms(cls, explicit_perm, reverse=False, for_instance=None):
+    def get_implied_perms(
+        cls,
+        explicit_perm: str,
+        reverse: bool = False,
+        for_instance: Optional['kpi.models.Asset'] = None,
+    ) -> set[str]:
         """
         Determine which permissions are implied by `explicit_perm` based on
         the `IMPLIED_PERMISSIONS` attribute.
-        :param explicit_perm: str. The `codename` of the explicitly-assigned
-            permission.
-        :param reverse: bool When `True`, exchange the keys and values of
-            `IMPLIED_PERMISSIONS`. Useful for working with `deny=True`
-            permissions. Defaults to `False`.
-        :rtype: set of `codename`s
+        `explicit_perm` is the `codename` of the explicitly-assigned permission.
+        When `reverse` is `True`, exchange the keys and values of
+        `IMPLIED_PERMISSIONS`. Useful for working with `deny=True` permissions.
+        When an asset is passed via `for_instance`, the returned permissions
+        are restricted to only those permissions that can be assigned to that
+        particular asset's type.
+        Returns a set of permission `codename`s.
         """
-        # TODO: document `for_instance` NOMERGE
         implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
@@ -413,8 +420,10 @@ class ObjectPermissionMixin:
             'change_submissions': ['view_submissions']
         }
         ```
+        When an asset is passed via `for_instance`, the returned permissions
+        are restricted to only those permissions that can be assigned to that
+        particular asset's type.
         """
-        # TODO: document `for_instance` NOMERGE
         return {
             codename: list(cls.get_implied_perms(codename, for_instance))
             for codename in cls.IMPLIED_PERMISSIONS.keys()

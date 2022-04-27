@@ -126,7 +126,7 @@ export class ListTagFilter extends React.Component {
           isLoading={!this.state.tagsLoaded}
           loadingMessage={t('Tags are loading...')}
           placeholder={t('Search Tags')}
-          noOptionsMessage={t('No results found')}
+          noOptionsMessage={() => t('No results found')}
           options={this.state.availableTags}
           onChange={this.onTagsChange}
           className={[this.props.hidden ? 'hidden' : null, 'kobo-select'].join(' ')}

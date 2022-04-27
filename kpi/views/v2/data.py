@@ -1,36 +1,51 @@
 # coding: utf-8
+import json
+import re
+from xml.etree import ElementTree as ET
+
+import requests
 from django.conf import settings
 from django.http import Http404
-from django.shortcuts import redirect
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import (
     renderers,
     serializers,
     status,
     viewsets,
 )
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
+from kobo.apps.reports.report_data import build_formpack
+from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
-    EditSubmissionPermission,
+    EditLinkSubmissionPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import (
+    SubmissionGeoJsonRenderer,
+    SubmissionXMLRenderer,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
@@ -122,6 +137,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     </pre>
 
     It is also possible to specify the format.
+
+    <sup>*</sup>`id` can be the primary key of the submission or its `uuid`.
+    Please note that using the `uuid` may match **several** submissions, only
+    the first match will be returned.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.xml
@@ -279,11 +298,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     """
 
     parent_model = Asset
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        renderers.JSONRenderer,
-                        SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer,
-                        )
+    renderer_classes = (
+        renderers.BrowsableAPIRenderer,
+        renderers.JSONRenderer,
+        SubmissionGeoJsonRenderer,
+        SubmissionXMLRenderer,
+    )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
 
@@ -293,25 +313,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         if not self.asset.has_deployment:
             raise ObjectDeploymentDoesNotExist(
-                _('The specified asset has not been deployed')
+                t('The specified asset has not been deployed')
             )
 
         return self.asset.deployment
-
-    @action(detail=True, methods=['GET'],
-            url_path='attachments/(?P<size>.*)')
-    def attachments(self, request, pk, size, *args, **kwargs):
-        deployment = self._get_deployment()
-        submission_id = positive_int(pk)
-        media_file = request.query_params['media_file']
-        return redirect(
-            deployment.get_signed_attachment_url_token(
-                submission_id,
-                request.user,
-                size,
-                media_file
-            )
-        )
 
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
@@ -347,11 +352,20 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[EditSubmissionPermission],
+        permission_classes=[EditLinkSubmissionPermission],
         url_path='(enketo\/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
-        return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
+        submission_id = positive_int(pk)
+        enketo_response = self._get_enketo_link(request, submission_id, 'edit')
+        if enketo_response.status_code in (
+            status.HTTP_201_CREATED, status.HTTP_200_OK
+        ):
+            # See https://github.com/enketo/enketo-express/issues/187
+            EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
+                request, enketo_response
+            )
+        return enketo_response
 
     @action(
         detail=True,
@@ -361,13 +375,28 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='enketo/view',
     )
     def enketo_view(self, request, pk, *args, **kwargs):
-        return self._enketo_request(request, pk, action_='view', *args, **kwargs)
+        submission_id = positive_int(pk)
+        return self._get_enketo_link(request, submission_id, 'view')
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
         # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
         # `retrieve()` don't need Django Queryset, we only need return `None`.
         return None
+
+    def get_submission(self):
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+                'Expected view %s to be called with a URL keyword argument '
+                'named "%s". Fix your URL conf, or set the `.lookup_field` '
+                'attribute on the view correctly.' %
+                (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        print('FILTER KWARGS', filter_kwargs)
 
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
@@ -401,22 +430,57 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
+        """
+        Retrieve a submission by its primary key or its UUID.
+
+        Warning when using the UUID. Submissions can have the same uuid because
+        there is no unique constraint on this field. The first occurrence
+        will be returned.
+        """
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
+        params = {
+            'user': request.user,
+            'format_type': format_type,
+            'request': request,
+        }
         filters = self._filter_mongo_query(request)
+
+        # Unfortunately, Django expects that the URL parameter is `pk`,
+        # its name cannot be changed (easily).
+        submission_id_or_uuid = pk
         try:
-            submission = deployment.get_submission(
-                positive_int(pk),
-                user=request.user,
-                format_type=format_type,
-                request=request,
-                **filters,
-            )
+            submission_id_or_uuid = positive_int(submission_id_or_uuid)
         except ValueError:
-            raise Http404
-        else:
-            if not submission:
+            if not re.match(
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
+            ):
                 raise Http404
+
+            try:
+                query = json.loads(filters.pop('query', '{}'))
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    {'query': t('Value must be valid JSON.')}
+                )
+            query['_uuid'] = submission_id_or_uuid
+            filters['query'] = query
+        else:
+            params['submission_ids'] = [submission_id_or_uuid]
+
+        # Join all parameters to be passed to `deployment.get_submissions()`
+        params.update(filters)
+
+        # The `get_submissions()` is a generator in KobocatDeploymentBackend
+        # class but a list in MockDeploymentBackend. We cast the result as a list
+        # no matter what is the deployment back-end class to make it work with
+        # both. Since the number of submissions is be very small, it should not
+        # have a big impact on memory (i.e. list vs generator)
+        submissions = list(deployment.get_submissions(**params))
+        if not submissions:
+            raise Http404
+
+        submission = submissions[0]
         return Response(submission)
 
     @action(detail=True, methods=['POST'],
@@ -472,17 +536,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return Response(**json_response)
 
-    def _enketo_request(self, request, pk, action_, *args, **kwargs):
-        deployment = self._get_deployment()
-        submission_id = positive_int(pk)
-        json_response = deployment.get_enketo_submission_url(
-            submission_id,
-            user=request.user,
-            action_=action_,
-            params=request.GET
-        )
-        return Response(**json_response)
-
     def _filter_mongo_query(self, request):
         """
         Build filters to pass to Mongo query.
@@ -507,7 +560,122 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
         except ValueError:
             raise serializers.ValidationError(
-                {'limit': _('A positive integer is required')}
+                {'limit': t('A positive integer is required')}
             )
 
         return filters
+
+    def _get_enketo_link(
+        self, request: Request, submission_id: int, action_: str
+    ) -> Response:
+
+        deployment = self._get_deployment()
+        user = request.user
+
+        if action_ == 'edit':
+            enketo_endpoint = settings.ENKETO_EDIT_INSTANCE_ENDPOINT
+            partial_perm = PERM_CHANGE_SUBMISSIONS
+        elif action_ == 'view':
+            enketo_endpoint = settings.ENKETO_VIEW_INSTANCE_ENDPOINT
+            partial_perm = PERM_VIEW_SUBMISSIONS
+
+        # User's permissions are validated by the permission class. This extra step
+        # is needed to validate at a row level for users with partial permissions.
+        # A `PermissionDenied` error will be raised if it is not the case.
+        # `validate_access_with_partial_perms()` is called no matter what are the
+        # user's permissions. The first check inside the method is the user's
+        # permissions. `submission_ids` should be equal to `None` if user has
+        # regular permissions.
+        deployment.validate_access_with_partial_perms(
+            user=user,
+            perm=partial_perm,
+            submission_ids=[submission_id],
+        )
+
+        # The XML version is needed for Enketo
+        submission_xml = deployment.get_submission(
+            submission_id, user, SUBMISSION_FORMAT_TYPE_XML
+        )
+        # The JSON version is needed to detect its version
+        submission_json = deployment.get_submission(
+            submission_id, user, request=request
+        )
+
+        # Do not use version_uid from the submission until UI gives users the
+        # possibility to choose which version they want to use
+
+        # # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
+        # # it into some utility file
+        # _, submissions_stream = build_formpack(
+        #     self.asset,
+        #     submission_stream=[submission_json],
+        #     use_all_form_versions=True
+        # )
+        # version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+
+        # Let's use the latest version uid temporarily
+        version_uid = self.asset.latest_version.uid
+
+        # Retrieve the XML root node name from the submission. The instance's
+        # root node name specified in the form XML (i.e. the first child of
+        # `<instance>`) must match the root node name of the submission XML,
+        # otherwise Enketo will refuse to open the submission.
+        xml_root_node_name = ET.fromstring(submission_xml).tag
+
+        # This will raise `AssetVersion.DoesNotExist` if the inferred version
+        # of the submission disappears between the call to `build_formpack()`
+        # and here, but allow a 500 error in that case because there's nothing
+        # the client can do about it
+        snapshot = self.asset.versioned_snapshot(
+            version_uid=version_uid, root_node_name=xml_root_node_name
+        )
+
+        data = {
+            'server_url': reverse(
+                viewname='assetsnapshot-detail',
+                kwargs={'uid': snapshot.uid},
+                request=request,
+            ),
+            'instance': submission_xml,
+            'instance_id': submission_json['_uuid'],
+            'form_id': snapshot.uid,
+            'return_url': 'false'  # String to be parsed by EE as a boolean
+        }
+
+        # Add attachments if any.
+        attachments = deployment.get_attachment_objects_from_dict(submission_json)
+        for attachment in attachments:
+            key_ = f'instance_attachments[{attachment.media_file_basename}]'
+            data[key_] = reverse(
+                'attachment-detail',
+                args=(self.asset.uid, submission_id, attachment.pk),
+                request=request,
+            )
+
+        response = requests.post(
+            f'{settings.ENKETO_URL}/{enketo_endpoint}',
+            # bare tuple implies basic auth
+            auth=(settings.ENKETO_API_TOKEN, ''),
+            data=data
+        )
+        if response.status_code != status.HTTP_201_CREATED:
+            # Some Enketo errors are useful to the client. Attempt to pass them
+            # along if possible
+            try:
+                parsed_resp = response.json()
+            except ValueError:
+                parsed_resp = None
+            if parsed_resp and 'message' in parsed_resp:
+                message = parsed_resp['message']
+            else:
+                message = response.reason
+            return Response(
+                # This doesn't seem worth translating
+                {'detail': 'Enketo error: ' + message},
+                status=response.status_code,
+            )
+
+        json_response = response.json()
+        enketo_url = json_response.get(f'{action_}_url')
+
+        return Response({'url': enketo_url})

@@ -11,7 +11,15 @@
     <a href="{% url 'auth_password_reset' %}" class="registration__forgot">
       {% trans "Forgot?" %}
     </a>
-    <input type="submit" value="Login" class="registration__action" />
+
+    <button
+      type="submit"
+      name="Login"
+      class="kobo-button kobo-button--blue kobo-button--fullwidth"
+    >
+      {% trans "Login" %}
+    </button>
+
     <input type="hidden" name="next" value="{{ next }}" />
 
     {% if config.REGISTRATION_OPEN %}
@@ -21,4 +29,3 @@
     {% endif %}
   </form>
 {% endblock %}
-

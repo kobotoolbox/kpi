@@ -34,7 +34,7 @@ $message-box-icon-size: 28px;
     padding: 0;
     border: 0;
     background: none;
-    color: $kobo-blue-pale;
+    color: $kobo-mid-blue;
     cursor: pointer;
 
     &:active {
@@ -59,8 +59,8 @@ $message-box-icon-size: 28px;
 }
 
 .form-builder-message-box--warning {
-  background-color: $kobo-orange-light;
-  color: $kobo-orange-dark;
+  background-color: $kobo-light-amber;
+  color: $kobo-dark-amber;
 
   a {
     width: $message-box-icon-size;
@@ -68,7 +68,7 @@ $message-box-icon-size: 28px;
   }
 
   i {
-    color: $kobo-orange-dark;
+    color: $kobo-dark-amber;
   }
 
   p {

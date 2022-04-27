@@ -28,7 +28,7 @@ export var dataInterface;
   };
 
   assign(this, {
-    selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
+    selfProfile: () => $ajax({ url: `${ROOT_URL}/me/` }),
     apiToken: () => {
       return $ajax({
         url: `${ROOT_URL}/token/?format=json`
@@ -39,16 +39,16 @@ export var dataInterface;
         url: userUrl
       });
     },
-    queryUserExistence: (username)=> {
+    queryUserExistence: (username) => {
       var d = new $.Deferred();
       $ajax({ url: `${ROOT_URL}/api/v2/users/${username}/` })
         .done(()=>{ d.resolve(username, true); })
         .fail(()=>{ d.reject(username, false); });
       return d.promise();
     },
-    logout: ()=> {
+    logout: () => {
       var d = new $.Deferred();
-      $ajax({ url: `${ROOT_URL}/api-auth/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
+      $ajax({ url: `${ROOT_URL}/accounts/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface.selfProfile().done(function(data){
@@ -801,7 +801,7 @@ export var dataInterface;
       return $ajax({url: `${ROOT_URL}/environment/`});
     },
     login: (creds)=> {
-      return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
+      return $ajax({ url: `${ROOT_URL}/accounts/login/?next=/me/`, data: creds, method: 'POST'});
     }
   });
 }).call(dataInterface = {});

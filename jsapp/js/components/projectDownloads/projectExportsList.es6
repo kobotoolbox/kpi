@@ -12,9 +12,9 @@ import {
   EXPORT_TYPES,
   EXPORT_FORMATS,
   EXPORT_STATUSES,
-  EXPORT_REFRESH_TIME,
 } from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
+import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
 
 /**
  * Component that displays all available downloads (for logged in user only).
@@ -31,7 +31,7 @@ export default class ProjectExportsList extends React.Component {
     };
 
     this.unlisteners = [];
-    this.fetchIntervals = new Map();
+    this.exportFetchers = new Map();
 
     autoBind(this);
   }
@@ -49,7 +49,7 @@ export default class ProjectExportsList extends React.Component {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
-    this.removeAllFetchIntervals();
+    this.stopAllExportFetchers();
   }
 
   onExportsStoreChange() {
@@ -58,7 +58,7 @@ export default class ProjectExportsList extends React.Component {
 
   onGetExports(response) {
     response.results.forEach((exportData) => {
-      this.prepareFetchInterval(exportData.uid, exportData.status);
+      this.checkExportFetcher(exportData.uid, exportData.status);
     });
 
     this.setState({
@@ -76,7 +76,7 @@ export default class ProjectExportsList extends React.Component {
   }
 
   onGetExport(exportData) {
-    this.prepareFetchInterval(exportData.uid, exportData.status);
+    this.checkExportFetcher(exportData.uid, exportData.status);
 
     // Replace existing export with fresh data or add new on top
     const newStateObj = {rows: this.state.rows};
@@ -93,16 +93,17 @@ export default class ProjectExportsList extends React.Component {
     this.setState(newStateObj);
   }
 
-  prepareFetchInterval(exportUid, exportStatus) {
-    // if the export is not complete yet, and there is no fetch interval
-    // fetch it in some time again and again
+  /**
+   * This method initializes an interval for fetching export based on
+   * the provided status.
+   */
+  checkExportFetcher(exportUid, exportStatus) {
     if (
       exportStatus !== EXPORT_STATUSES.error &&
       exportStatus !== EXPORT_STATUSES.complete &&
-      !this.fetchIntervals.has(exportUid)
+      !this.exportFetchers.has(exportUid)
     ) {
-      const intervalId = setInterval(this.fetchExport.bind(this, exportUid), EXPORT_REFRESH_TIME);
-      this.fetchIntervals.set(exportUid, intervalId);
+      this.addExportFetcher(exportUid);
     }
 
     // clean up after it is completed
@@ -110,19 +111,30 @@ export default class ProjectExportsList extends React.Component {
       exportStatus === EXPORT_STATUSES.error ||
       exportStatus === EXPORT_STATUSES.complete
     ) {
-      this.removeFetchInterval(exportUid);
+      this.stopExportFetcher(exportUid);
     }
   }
 
-  removeFetchInterval(exportUid) {
-    clearInterval(this.fetchIntervals.get(exportUid));
-    this.fetchIntervals.delete(exportUid);
+  addExportFetcher(exportUid) {
+    // Creating new ExportFetcher instance will immediately start an interval.
+    this.exportFetchers.set(
+      exportUid,
+      new ExportFetcher(this.props.asset.uid, exportUid)
+    );
   }
 
-  removeAllFetchIntervals() {
-    this.fetchIntervals.forEach((intervalId, exportUid) => {
-      this.removeFetchInterval(exportUid);
-    });
+  stopExportFetcher(exportUid) {
+    const exportFetcher = this.exportFetchers.get(exportUid);
+    if (exportFetcher) {
+      exportFetcher.stop();
+    }
+    this.exportFetchers.delete(exportUid);
+  }
+
+  stopAllExportFetchers() {
+    for (const exportUid of this.exportFetchers.keys()) {
+      this.stopExportFetcher(exportUid);
+    }
   }
 
   fetchExport(exportUid) {
