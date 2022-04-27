@@ -1,7 +1,7 @@
 # coding: utf-8
 import copy
-import re
 import os
+import re
 import time
 import uuid
 from datetime import datetime
@@ -13,6 +13,7 @@ from deepmerge import always_merger
 from dicttoxml import dicttoxml
 from django.conf import settings
 from django.urls import reverse
+from django.utils.translation import gettext as t
 from lxml import etree
 from rest_framework import status
 
@@ -31,9 +32,9 @@ from kpi.exceptions import (
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
+from kpi.tests.utils.mock import MockAttachment
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
 from kpi.utils.xml import edit_submission_xml
-from kpi.tests.utils.mock import MockAttachment
 from .base_backend import BaseDeploymentBackend
 from ..exceptions import KobocatBulkUpdateSubmissionsClientException
 
@@ -63,10 +64,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if submission_ids:
-            partial_perms = True
             data['query'] = {}
         else:
-            partial_perms = False
             submission_ids = data['submission_ids']
 
         submissions = self.get_submissions(
@@ -78,7 +77,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         if not self.current_submissions_count:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
+                detail=t('No submissions match the given `submission_ids`')
             )
 
         update_data = self.__prepare_bulk_update_data(data['data'])

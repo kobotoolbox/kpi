@@ -667,12 +667,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'reports',
             self.backend_response['id_string']
         ))
-        forms_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'forms',
-            self.backend_response['id_string']
-        ))
         links = {
             # To be displayed in iframes
             'xls_legacy': '/'.join((exports_base_url, 'xls/')),
@@ -701,7 +695,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 data=data
             )
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable
             logging.error(
                 'Failed to retrieve links from Enketo', exc_info=True)
