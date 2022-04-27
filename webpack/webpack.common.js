@@ -1,5 +1,6 @@
 const BundleTracker = require('webpack-bundle-tracker');
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
@@ -27,18 +28,9 @@ const babelLoader = {
   },
 };
 
-var commonOptions = {
+const commonOptions = {
   module: {
     rules: [
-      {
-        enforce: 'pre',
-        test: /\.(js|jsx|es6)$/,
-        exclude: /node_modules/,
-        loader: 'eslint-loader',
-        options: {
-          quiet: true,
-        },
-      },
       {
         enforce: 'pre',
         test: /\.coffee$/,
@@ -117,8 +109,10 @@ var commonOptions = {
       functionName: 't',
       output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
     }),
-    new webpack.ProvidePlugin({
-      '$': 'jquery',
+    new webpack.ProvidePlugin({'$': 'jquery'}),
+    new ESLintPlugin({
+      quiet: true,
+      extensions: ['js', 'jsx', 'ts', 'tsx', 'es6'],
     }),
   ],
 };

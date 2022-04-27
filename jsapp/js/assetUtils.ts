@@ -20,6 +20,12 @@ import {
   AnyRowTypeName,
   QuestionTypeName,
 } from 'js/constants';
+import {
+  AssetResponse,
+  SurveyRow,
+  SurveyChoice,
+  Permission
+} from 'js/dataInterface'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
