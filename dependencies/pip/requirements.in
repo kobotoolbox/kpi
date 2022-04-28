@@ -17,7 +17,7 @@
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
 
 # Regular PyPI packages
-Django>=2.2,<2.3
+Django==3.2
 Markdown
 Pygments
 amqp
@@ -46,7 +46,7 @@ django-markdownx
 django-markitup
 django-mptt
 
-django-reversion<3.0.2 # Migration issue with 3.0.2
+django-reversion
 django-taggit
 django-private-storage
 djangorestframework
@@ -62,7 +62,7 @@ lxml
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
-psycopg2>=2.8,<2.9
+psycopg2
 pymongo==3.12.3
 python-dateutil
 pyxform==1.9.0
