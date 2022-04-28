@@ -870,3 +870,5 @@ TRENCH_AUTH = {
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
