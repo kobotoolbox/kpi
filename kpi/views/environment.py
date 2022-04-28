@@ -81,4 +81,5 @@ class EnvironmentView(APIView):
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
+        data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         return Response(data)
