@@ -2,7 +2,6 @@
 from importlib import import_module
 
 from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
 
@@ -39,7 +38,7 @@ class Hook(models.Model):
     active = models.BooleanField(default=True)
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
     auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
-    settings = JSONBField(default=dict)
+    settings = models.JSONField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
     email_notification = models.BooleanField(default=True)

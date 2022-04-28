@@ -454,6 +454,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
                 'kpi.context_processors.external_service_tokens',
@@ -871,4 +872,6 @@ MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
 
+# Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)

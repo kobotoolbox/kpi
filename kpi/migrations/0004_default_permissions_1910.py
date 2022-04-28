@@ -46,10 +46,12 @@ def default_permissions_to_existing_users(apps, schema_editor):
         sys.stdout.write(progress_message)
         sys.stdout.flush()
 
+
 def do_nothing(*args, **kwargs):
     ''' A no-op for reverse migration. Django 1.8 has RunPython.noop(), but
     1.7 does not. '''
     pass
+
 
 class Migration(migrations.Migration):
 
