@@ -14,18 +14,18 @@ const postCssLoader = {
     sourceMap: true,
     postcssOptions: {
       plugins: [
-        'autoprefixer'
-      ]
-    }
-  }
+        'autoprefixer',
+      ],
+    },
+  },
 };
 
 const babelLoader = {
   loader: 'babel-loader',
   options: {
     presets: ['@babel/preset-env', '@babel/preset-react'],
-    plugins: ['react-hot-loader/babel']
-  }
+    plugins: ['react-hot-loader/babel'],
+  },
 };
 
 const commonOptions = {
@@ -104,7 +104,7 @@ const commonOptions = {
     },
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
       output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),

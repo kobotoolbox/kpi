@@ -5,9 +5,9 @@ import string
 import time
 import uuid
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
-import pytz
 import responses
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -1218,7 +1218,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
         # MockDeploymentBackend doesn't use XML at all and won't fail if an

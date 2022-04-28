@@ -354,7 +354,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditLinkSubmissionPermission],
-        url_path='(enketo\/)?edit',
+        url_path='(enketo/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)

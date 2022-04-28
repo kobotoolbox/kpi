@@ -5,7 +5,6 @@ import os
 import string
 import subprocess
 from mimetypes import add_type
-from datetime import timedelta
 from urllib.parse import quote_plus
 
 import django.conf.locale
@@ -587,19 +586,8 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
 
 if 'KOBOCAT_URL' in os.environ:
-    SYNC_KOBOCAT_XFORMS = (os.environ.get('SYNC_KOBOCAT_XFORMS', 'True') == 'True')
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
-    if SYNC_KOBOCAT_XFORMS:
-        # Create/update KPI assets to match KC forms
-        SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
-            os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
-        CELERY_BEAT_SCHEDULE['sync-kobocat-xforms'] = {
-            'task': 'kpi.tasks.sync_kobocat_xforms',
-            'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
-            'options': {'queue': 'sync_kobocat_xforms_queue',
-                        'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
-        }
 
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
@@ -797,7 +785,7 @@ if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
+    MONGO_CONNECTION_URL, journal=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 # If a request or task makes a database query and then times out, the database
