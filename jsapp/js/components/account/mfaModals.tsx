@@ -15,7 +15,7 @@ import './mfaModals.scss';
 
 bem.MFAModal = makeBem(null, 'mfa-modal');
 
-bem.MFAModal__p = makeBem(bem.MFAModal, 'p', 'p');
+bem.MFAModal__p = makeBem(bem.MFAModal, 'p', 'div');
 
 bem.MFAModal__title = makeBem(bem.MFAModal, 'title', 'h4');
 bem.MFAModal__description = makeBem(bem.MFAModal, 'description');
@@ -31,7 +31,7 @@ bem.MFAModal__footer = makeBem(bem.MFAModal, 'footer', 'footer');
 bem.MFAModal__footerLeft = makeBem(bem.MFAModal, 'footer-left');
 bem.MFAModal__footerRight = makeBem(bem.MFAModal, 'footer-right');
 
-type ModalSteps = 'backups' | 'disclaimer' | 'manual' | 'qr' | 'token';
+type ModalSteps = 'backups' | 'disclaimer' | 'help' | 'manual' | 'qr' | 'token';
 
 interface MFAModalsProps {
   onModalClose: Function;
@@ -47,7 +47,6 @@ interface MFAModalsState {
   backupCodes: string[] | null;
   downloadClicked: boolean;
   errorText: string | undefined;
-  isHelpTextVisible: boolean;
 }
 
 export default class MFAModals extends React.Component<
@@ -63,7 +62,6 @@ export default class MFAModals extends React.Component<
       backupCodes: null,
       downloadClicked: false,
       errorText: undefined,
-      isHelpTextVisible: false,
     };
   }
 
@@ -182,11 +180,6 @@ export default class MFAModals extends React.Component<
     }
   }
 
-  onShowHelpText(evt: React.MouseEvent) {
-    evt.preventDefault();
-    this.setState({isHelpTextVisible: true});
-  }
-
   onInputChange(inputString: string) {
     this.setState({inputString: inputString});
   }
@@ -196,11 +189,7 @@ export default class MFAModals extends React.Component<
     newStep: ModalSteps
   ) {
     evt.preventDefault();
-
-    this.setState({
-      currentStep: newStep,
-      isHelpTextVisible: false,
-    });
+    this.setState({currentStep: newStep});
   }
 
   isTokenValid() {
@@ -444,19 +433,15 @@ export default class MFAModals extends React.Component<
             />
           </bem.MFAModal__p>
 
-          {!this.state.isHelpTextVisible &&
-            <bem.MFAModal__p m='align-right'>
-              <bem.MFAModal__helpLink onClick={this.onShowHelpText.bind(this)}>
-                {t('Problems with your token?')}
-              </bem.MFAModal__helpLink>
-            </bem.MFAModal__p>
-          }
-
-          {this.state.isHelpTextVisible &&
-            <bem.MFAModal__p m='small-text'
-              dangerouslySetInnerHTML={{__html: this.getLocalizedMfaHelpText()}}
-            />
-          }
+          <bem.MFAModal__p m='align-right'>
+            <bem.MFAModal__helpLink
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'help');
+              }}
+            >
+              {t('Problems with your token?')}
+            </bem.MFAModal__helpLink>
+          </bem.MFAModal__p>
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -525,6 +510,44 @@ export default class MFAModals extends React.Component<
     );
   }
 
+  renderHelpStep() {
+    return (
+      <bem.MFAModal m='step-help'>
+        <bem.MFAModal__body>
+          <bem.MFAModal__p><strong>{t('Issues with the token')}</strong></bem.MFAModal__p>
+
+          <bem.MFAModal__p dangerouslySetInnerHTML={{__html: this.getLocalizedMfaHelpText()}} />
+        </bem.MFAModal__body>
+
+        <bem.MFAModal__footer>
+          <bem.MFAModal__footerLeft>
+            <Button
+              type='frame'
+              color='blue'
+              size='l'
+              isFullWidth
+              label={t('Back')}
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'token');
+              }}
+            />
+          </bem.MFAModal__footerLeft>
+
+          <bem.MFAModal__footerRight>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth
+              label={t('OK')}
+              onClick={this.closeModal.bind(this)}
+            />
+          </bem.MFAModal__footerRight>
+        </bem.MFAModal__footer>
+      </bem.MFAModal>
+    );
+  }
+
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
@@ -542,6 +565,8 @@ export default class MFAModals extends React.Component<
         return this.renderTokenStep();
       case 'disclaimer':
         return this.renderDisclaimerStep();
+      case 'help':
+        return this.renderHelpStep();
       default:
         return null;
     }

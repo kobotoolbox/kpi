@@ -3,9 +3,11 @@ import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Icon from 'js/components/common/icon';
+import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import type {
+  MfaUserMethodsResponse,
   MfaActiveResponse,
   MfaActivatedResponse,
 } from 'js/actions/mfaActions';
@@ -13,6 +15,7 @@ import mfaActions from 'js/actions/mfaActions';
 import {MODAL_TYPES} from 'jsapp/js/constants';
 import envStore from 'js/envStore';
 import './securityRoute.scss';
+import {formatDate} from 'js/utils';
 
 bem.SecuritySection = makeBem(null, 'security-section');
 
@@ -31,7 +34,8 @@ bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
 
 interface SecurityState {
-  mfaActive: boolean;
+  isMfaActive: boolean;
+  dateDisabled?: string;
 }
 
 type EditModalTypes = 'reconfigure' | 'regenerate';
@@ -43,7 +47,8 @@ export default class SecurityRoute extends React.Component<
   constructor(props: {}) {
     super(props);
     this.state = {
-      mfaActive: false,
+      isMfaActive: false,
+      dateDisabled: undefined,
     };
   }
 
@@ -51,7 +56,8 @@ export default class SecurityRoute extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      mfaActions.isActive.completed.listen(this.mfaActive.bind(this)),
+      mfaActions.getUserMethods.completed.listen(this.onGetUserMethodsCompleted.bind(this)),
+      mfaActions.isActive.completed.listen(this.onIsActiveCompleted.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
       mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
@@ -64,8 +70,22 @@ export default class SecurityRoute extends React.Component<
     this.unlisteners.forEach((clb) => {clb();});
   }
 
-  mfaActive(response: MfaActiveResponse) {
-    this.setState({mfaActive: response.length >= 1});
+  onGetUserMethodsCompleted(response: MfaUserMethodsResponse) {
+    this.setState({dateDisabled: response[0].date_disabled});
+  }
+
+  onIsActiveCompleted(response: MfaActiveResponse) {
+    const isActive = response.length >= 1;
+
+    if (isActive) {
+      this.setState({
+        isMfaActive: isActive,
+        dateDisabled: undefined,
+      });
+    } else {
+      this.setState({isMfaActive: isActive});
+      mfaActions.getUserMethods();
+    }
   }
 
   mfaActivating(response: MfaActivatedResponse) {
@@ -82,11 +102,15 @@ export default class SecurityRoute extends React.Component<
   }
 
   mfaActivated() {
-    this.setState({mfaActive: true});
+    this.setState({
+      isMfaActive: true,
+      dateDisabled: undefined,
+    });
   }
 
   mfaDeactivated() {
-    this.setState({mfaActive: false});
+    this.setState({isMfaActive: false});
+    mfaActions.getUserMethods();
   }
 
   onToggleChange(isActive: boolean) {
@@ -122,10 +146,7 @@ export default class SecurityRoute extends React.Component<
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
-          <Icon
-            name='lock'
-            size='s'
-          />
+          <Icon name='lock'size='s'/>
           {t('Two-factor authentication')}
         </bem.TableMediaPreviewHeader__title>
       </bem.TableMediaPreviewHeader>
@@ -151,8 +172,8 @@ export default class SecurityRoute extends React.Component<
 
             <bem.SecurityRow__buttons>
               <ToggleSwitch
-                label={this.state.mfaActive ? t('Enabled') : t('Disabled')}
-                checked={this.state.mfaActive}
+                label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
+                checked={this.state.isMfaActive}
                 onChange={this.onToggleChange.bind(this)}
               />
             </bem.SecurityRow__buttons>
@@ -162,7 +183,7 @@ export default class SecurityRoute extends React.Component<
             {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additional layer of protection.')}
           </bem.SecurityRow__description>
 
-          {this.state.mfaActive &&
+          {this.state.isMfaActive &&
             <bem.MFAOptions>
               <bem.MFAOptions__row>
                 <bem.MFAOptions__label>
@@ -201,6 +222,13 @@ export default class SecurityRoute extends React.Component<
                 </bem.MFAOptions__buttons>
               </bem.MFAOptions__row>
             </bem.MFAOptions>
+          }
+
+          {!this.state.isMfaActive && this.state.dateDisabled &&
+            <InlineMessage
+              type='default'
+              message={t('Two-factor authentication was deactivated for your account on the ##date##').replace('##date##', formatDate(this.state.dateDisabled))}
+            />
           }
         </bem.SecurityRow>
       </bem.SecuritySection>

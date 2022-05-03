@@ -11,6 +11,15 @@ export type MfaActiveResponse = [{
   is_primary: boolean;
 }];
 
+export type MfaUserMethodsResponse = [{
+  name: 'app';
+  is_primary: boolean;
+  is_active: boolean;
+  date_created: string;
+  date_modified: string;
+  date_disabled: string;
+}];
+
 export interface MfaActivatedResponse {
   details: string;
   inModal?: boolean;
@@ -21,11 +30,31 @@ export interface MfaBackupCodesResponse {
 }
 
 const mfaActions = Reflux.createActions({
+  getUserMethods: {children: ['completed', 'failed']},
   activate: {children: ['completed', 'failed']},
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
   confirmCode: {children: ['completed', 'failed']},
   regenerate: {children: ['completed', 'failed']},
+});
+
+mfaActions.getUserMethods.listen(() => {
+  $.ajax({
+    dataType: 'json',
+    method: 'GET',
+    url: `${ROOT_URL}/api/v2/auth/mfa/user-methods/`,
+  })
+    .done((response: MfaUserMethodsResponse) => {
+      mfaActions.getUserMethods.completed(response);
+    })
+    .fail((response: MfaErrorResponse) => {
+      let errorText = t('An error occured');
+      if (response.non_field_errors) {
+        errorText = response.non_field_errors;
+      }
+      notify(errorText, 'error');
+      mfaActions.getUserMethods.failed(response);
+    });
 });
 
 mfaActions.isActive.listen(() => {
@@ -43,6 +72,7 @@ mfaActions.isActive.listen(() => {
         errorText = response.non_field_errors;
       }
       notify(errorText, 'error');
+      mfaActions.isActive.failed(response);
     });
 });
 
