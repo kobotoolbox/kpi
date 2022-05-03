@@ -41,5 +41,8 @@ class KobocatFileSystemStorage(FileSystemStorage):
 class KobocatS3Boto3Storage(S3Boto3Storage):
 
     def __init__(self, acl=None, bucket=None, **settings):
-        bucket = django_settings.KOBOCAT_AWS_STORAGE_BUCKET_NAME
-        super().__init__(acl=None, bucket=bucket, **settings)
+        if acl:
+            settings['default_acl'] = acl
+        settings['bucket_name'] = django_settings.KOBOCAT_AWS_STORAGE_BUCKET_NAME
+
+        super().__init__(**settings)
