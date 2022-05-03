@@ -9,9 +9,9 @@ def default_permissions_to_existing_users(apps, schema_editor):
     # The permissions objects might not have been created yet. See
     # https://code.djangoproject.com/ticket/23422. This is a workaround.
     for app_config in apps.get_app_configs():
-        old_models_module = app_config.models_module
-        if app_config.models_module is None:
-            app_config.models_module = True # HACK HACK HACK
+        old_models_module = getattr(app_config, 'models_module', None)
+        if old_models_module is None:
+            app_config.models_module = True  # HACK HACK HACK
         create_permissions(
             app_config=app_config,
             verbosity=0,
