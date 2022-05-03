@@ -874,4 +874,3 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
