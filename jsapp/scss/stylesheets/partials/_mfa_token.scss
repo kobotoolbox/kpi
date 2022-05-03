@@ -4,10 +4,57 @@
 // MFA Token form
 // ==========================================================================
 
-.mfa-token--header {
-  margin-bottom: sizes.$x30;
+.mfa-token-form .mfa-token-form__header {
+  font-size: sizes.$x18;
+  font-weight: 600;
+  margin: 0 0 sizes.$x16;
 }
 
-.mfa-token--margin-bottom {
-  margin-bottom: sizes.$x60;
+.mfa-token-form .mfa-token-form__description {
+  margin: 0 0 sizes.$x30;
+}
+
+.mfa-token-form .mfa-token-form__help-toggle {
+  margin: 0;
+}
+
+.mfa-token-form__help-toggle-wrapper:not(:last-child) {
+  margin-bottom: sizes.$x50;
+}
+
+.mfa-token-form__sections {
+  position: relative;
+}
+
+[data-mfa-token-form-section='form'] .mfa-token-form__help-toggle-wrapper {
+  text-align: center;
+}
+
+[data-mfa-token-form-section='help'] {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  .mfa-token-form__help-text {
+    flex: 1;
+    margin-bottom: sizes.$x16;
+    overflow-y: auto;
+  }
+}
+
+.mfa-token-form__section {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
+[data-mfa-token-form-current-section='form'] .mfa-token-form__section[data-mfa-token-form-section='form'],
+[data-mfa-token-form-current-section='help'] .mfa-token-form__section[data-mfa-token-form-section='help'] {
+  visibility: visible;
+  pointer-events: initial;
+  opacity: 1;
 }
