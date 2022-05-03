@@ -17,7 +17,7 @@ def create_select_one_type_question(name_prefix, list_prefix, languages):
         'type': 'select_one',
         # Just use english translations for all default labels
         'label': ['{}'.format(name_prefix.replace('_', ' ')) for language in languages], # English as default for all translations
-        'select_from_list_name': '{}'.format(list_prefix) 
+        'select_from_list_name': '{}'.format(list_prefix)
     }
 
 def create_amount_planted_question(species_label, name_prefix, forest_type, languages):

@@ -1,10 +1,12 @@
 # Constants
 
 # Question Block Group Names
-NATION_GROUP_NAME = 'group_nations' # It seems to be the case that the word after group_ has to be 7 characters long in order to properly save with kobo
+# It seems to be the case that the word after group_ has to be 7 characters long in order to properly save with kobo
+NATION_GROUP_NAME = 'group_nations'
 FOREST_TYPES_BY_NATION_GROUP_NAME = 'group_forestN'
 FOREST_TYPES_BY_ORG_GROUP_NAME = 'group_forestO'
 FOREST_TYPES_SPECIES_BY_ORG_GROUP_NAME = 'group_amountO'
+SPONSORS_BY_ORG_GROUP_NAME = 'group_sponsor'
 
 # Nation and Planting Site Block
 NATION_QUESTION_NAME = 'Project_Nation'
@@ -27,6 +29,10 @@ FOREST_TYPE_AND_SPECIES_BY_ORG_NAME_PREFIX = 'amount_planted_'
 amount_planted_question = 'amount_planted'
 enter_by_question = 'planted_by'
 by_species_option = 'by_species'
+
+# Sponsor Question Block
+SPONSORS_BY_ORG_LIST_PREFIX = 'Sponsors'
+SPONSORS_BY_ORG_NAME_PREFIX = 'sponsor'
 
 # Misc Constants
 PLACEHOLDER_QUESTION = 'placeholder'

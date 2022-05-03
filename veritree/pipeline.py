@@ -50,8 +50,9 @@ def veritree_org_sync(backend, user, response, *args, **kwargs):
                     name=org['org']['name'],
                     org_type=org['org']['org_type']
                 )
-                if not created:
+                if not created and kwargs['is_new']:
                     veritree_org_sync_all_assets(user, veritree_org)
+
             except KeyError:
                 pass
 

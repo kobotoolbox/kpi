@@ -1,10 +1,10 @@
 import requests
 
 from veritree.models import VeritreeOAuth2
-from veritree.utils import parse_veritree_response
+from veritree.utils import get_veritree_default_org_params, parse_veritree_response
 
 from veritree.utils import get_headers_for_veritree_request
-from veritree.common_urls import SUBSITE_API
+from veritree.common_urls import SUBSITE_API, FOREST_TYPE_SPECIES_API, SPONSORS_API
 
 def get_org_planting_site_and_region_data(access_token: str, org_id: int):
     """
@@ -37,7 +37,7 @@ def get_org_planting_site_and_region_data(access_token: str, org_id: int):
         response.raise_for_status()
 
 def get_org_forest_species_types(access_token: str, org_id: int):
-    forest_type_species_url = '{}/api/forest-type-species'.format(VeritreeOAuth2.ROOT_URL)
+    forest_type_species_url = FOREST_TYPE_SPECIES_API
     # An org found in the user_orgs object is always of type orgAccount
     
     params = {'org_id': org_id, 'org_type': 'orgAccount', 'page_size': 10000 }
@@ -57,3 +57,22 @@ def get_org_forest_species_types(access_token: str, org_id: int):
         return forest_type_dict
     else:
         response.raise_for_status()
+
+def get_org_sponsors_list(access_token: str, org_id: int):
+    params = get_veritree_default_org_params(org_id)
+    params['page_size'] = 10000
+    response = requests.get(SPONSORS_API, params=params, headers=get_headers_for_veritree_request(access_token))
+    content = parse_veritree_response(response)
+    if content:
+        sponsors_dict = {}
+        for sponsor in content:
+            try:
+                sponsor_name = sponsor['name']
+                sponsor_id = sponsor['id']
+            except KeyError:
+                continue
+            sponsors_dict[sponsor_name] = { "id": sponsor_id, "name": sponsor_name }
+        return sponsors_dict
+    else:
+        response.raise_for_status()
+    return {}

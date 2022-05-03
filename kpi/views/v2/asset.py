@@ -5,6 +5,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 from hashlib import md5
+from django.conf import settings
 
 from django.db.models import Count, Q
 from django.http import Http404
@@ -377,8 +378,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         'veritree_type': Hook.NONE,
                         'auth_level': Hook.VERITREE_AUTH,
                         'settings': {
-                            'username': 'monitoring.hooks@veritree.com', #TODO: make this an environment variable
-                            'password': 'riwS4mHFxd0g' #TODO: Make this an environment variable
+                            'username': settings.VERITREE_HOOKS_EMAIL, #TODO: make this an environment variable
+                            'password': settings.VERITREE_HOOKS_PASSWORD #TODO: Make this an environment variable
                         }
                     }
                     if veritree_form_type.lower() == VERITREE_FORM_TYPES_DICT['planting'].lower():

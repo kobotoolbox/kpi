@@ -1,7 +1,7 @@
 from veritree.question_blocks.utils import format_question_name
 from veritree.question_blocks.constants import *
 
-def generate_choices_for_group(org_data: dict, languages: "list[str]", list_prefix: str, org_data_key: str):
+def generate_choices_for_group_from_general_org_data(org_data: dict, languages: "list[str]", list_prefix: str, org_data_key: str):
     """
     Choices have to be generated for each question block, but we don't want to make any duplicate lists
     """
@@ -53,4 +53,14 @@ def get_unaffected_choices(choices: list, exclude_prefix_list: "list[str]"):
         if not has_prefix:
             new_choices.append(choice)
     
+    return new_choices
+
+def generate_sponsor_choices(sponsor_dict: dict, languages: "list[str]"):
+    new_choices = []
+    for sponsor in sponsor_dict.keys():
+        new_choices.append({
+            'name': format_question_name(sponsor),
+            'label': [sponsor for _ in languages],
+            'list_name': '{}'.format(SPONSORS_BY_ORG_LIST_PREFIX)
+        })
     return new_choices

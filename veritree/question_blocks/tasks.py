@@ -8,10 +8,11 @@ from kpi.models import Asset
 
 from veritree.models import VeritreeOAuth2
 from veritree.question_blocks.get_org_data_functions import (
-    get_org_forest_species_types, get_org_planting_site_and_region_data
+    get_org_forest_species_types, get_org_planting_site_and_region_data, get_org_sponsors_list
 )
 from veritree.question_blocks.create_choices import (
-    generate_choices_for_group, generate_nation_choices, get_unaffected_choices
+    generate_choices_for_group_from_general_org_data, generate_nation_choices, get_unaffected_choices,
+    generate_sponsor_choices
 )
 from veritree.question_blocks.create_questions import (
     create_amount_planted_question, create_nation_type_question, create_select_one_type_question
@@ -46,10 +47,9 @@ def generate_org_regions_and_planting_sites_for_asset(user: User, asset: Asset, 
             raise ValueError('ValueError User does not have access to organization id {}'.format(veritree_org_id))
     except (IndexError, KeyError, TypeError):
         raise Exception('Exception No veritree orgs for this user')
-    region_and_planting_data = get_org_planting_site_and_region_data(veritree_access_token, veritree_org_id)
-    forest_type_species = get_org_forest_species_types(veritree_access_token, veritree_org_id)
+    
     # TODO: Return a status code???
-    modify_survey_questions_and_choices(asset, region_and_planting_data, forest_type_species)
+    modify_survey_questions_and_choices(asset, veritree_access_token, veritree_org_id)
     return True
 
 
@@ -83,7 +83,7 @@ def modify_nation_group(org_data: dict, survey: list, group: dict, languages: "l
     
     return survey
 
-def modify_amount_planted_group(forest_type_species_data: dict, survey: list, group: dict, languages: list, name_prefix: str, list_prefix: str):
+def modify_amount_planted_group(forest_type_species_data: dict, survey: list, group: dict, languages: list, name_prefix: str):
     group_index = survey.index(group)
     question = survey[group_index]
     species = [format_question_name(species) for species in forest_type_species_data.keys()]
@@ -107,14 +107,43 @@ def modify_amount_planted_group(forest_type_species_data: dict, survey: list, gr
 
     return survey
 
+def modify_sponsor_group(survey: list, group: dict, languages: list, name_prefix: str, list_prefix: str):
+    # This group should simply be one question right now with the master list of sponsors for the org
+    # The question block should already contain the correct question, and the choices should be the only things modified at this
+    # point in time
+    group_index = survey.index(group)
+    question = survey[group_index]
+    
+    has_select_one_question = False
+    while (question.get('type', '') != 'end_group'):
+        question_name = question.get('name', '')
+
+        if question_name[:len(name_prefix)] == name_prefix:
+            survey[group_index]['select_from_list_name'] = '{}'.format(list_prefix)
+            has_select_one_question = True
+        group_index += 1
+        question = survey[group_index]
+    if not has_select_one_question:
+        select_one_question = create_select_one_type_question(name_prefix, list_prefix, languages)
+        survey.insert(group_index, select_one_question)
+    
+    return survey
+
 def modify_group(org_data: dict, forest_type_species: dict, asset_survey: list, group: dict,
-                 languages: list, name_prefix: str, list_prefix: str) -> dict:
+                 languages: list, name_prefix: str, list_prefix: str,
+                 **kwargs) -> dict:
     survey = deepcopy(asset_survey)
     if list_prefix in NATION_AFFIX_LIST_NAMES:
         return modify_nation_group(org_data, survey, group, languages, name_prefix, list_prefix)
     
     if list_prefix == FOREST_TYPE_AND_SPECIES_BY_ORG_LIST_PREFIX:
-        return modify_amount_planted_group(forest_type_species, survey, group, languages, name_prefix, list_prefix)
+        return modify_amount_planted_group(forest_type_species, survey, group, languages, name_prefix)
+
+    if list_prefix == SPONSORS_BY_ORG_LIST_PREFIX:
+        if not 'sponsor_dict' in kwargs:
+            raise KeyError("Could not find sponsor data inside kwargs")
+        return modify_sponsor_group(survey, group, languages, name_prefix, list_prefix)
+
     group_index = survey.index(group)
     question = survey[group_index]
     
@@ -138,12 +167,16 @@ def modify_group(org_data: dict, forest_type_species: dict, asset_survey: list, 
 
     return survey
 
-def modify_survey_questions_and_choices(asset: Asset, org_data: dict, forest_type_species: dict) -> None:
+def modify_survey_questions_and_choices(asset: Asset, access_token: str, org_id: int) -> None:
     try:
         asset_survey = asset.content['survey']
     except (KeyError):
         raise KeyError('Asset does not have a survey key')
 
+    # Name Prefix for identifying the question name properly
+    # List Prefix for identifying the choice lists for each question properly
+    # Org Data Key for pulling the correct data out of the massive response for the call
+    #   to get all of the planting site and country data for an organization
     group_prefix_map = {
         NATION_GROUP_NAME: {
             'name_prefix': REGION_NAME_PREFIX,
@@ -163,6 +196,10 @@ def modify_survey_questions_and_choices(asset: Asset, org_data: dict, forest_typ
         FOREST_TYPES_SPECIES_BY_ORG_GROUP_NAME: {
             'name_prefix': FOREST_TYPE_AND_SPECIES_BY_ORG_NAME_PREFIX,
             'list_prefix': FOREST_TYPE_AND_SPECIES_BY_ORG_LIST_PREFIX,
+        },
+        SPONSORS_BY_ORG_GROUP_NAME: {
+            'name_prefix': SPONSORS_BY_ORG_NAME_PREFIX,
+            'list_prefix': SPONSORS_BY_ORG_LIST_PREFIX
         }
     }
     # Start off new choices with all the unaffected choices, by basically grabbing all the cho
@@ -173,19 +210,33 @@ def modify_survey_questions_and_choices(asset: Asset, org_data: dict, forest_typ
             question.get('type', '') == 'begin_group' and
             question.get('name', '_') in group_prefix_map), asset_survey))
 
+    org_data = None
+    forest_type_species = None
+    sponsor_dict = None
     if len([group for group in groups if group['name'] in group_prefix_map and group['name'] in REQUIRES_NATION_LIST]):
+        if not org_data: # Fetch if not present
+            org_data = get_org_planting_site_and_region_data(access_token, org_id)
         new_choices += generate_nation_choices(org_data, asset.summary['languages'])
+
+    if len([group for group in groups if group['name'] == SPONSORS_BY_ORG_GROUP_NAME]):
+        if not sponsor_dict:
+            sponsor_dict = get_org_sponsors_list(access_token, org_id)
+        new_choices += generate_sponsor_choices(sponsor_dict, asset.summary['languages'])
 
     for question_block_name, values in group_prefix_map.items():
         question_block_groups = [group for group in groups if group['name'] == question_block_name]
         if len(question_block_groups):
             if 'org_data_key' in values:
-                new_choices += generate_choices_for_group(org_data, asset.summary['languages'],
+                new_choices += generate_choices_for_group_from_general_org_data(org_data, asset.summary['languages'],
                                                     values['list_prefix'], values['org_data_key'])
 
         for group in question_block_groups:
+            if not forest_type_species:
+                forest_type_species = get_org_forest_species_types(access_token, org_id)
             asset_survey = modify_group(org_data, forest_type_species, asset_survey, group, asset.summary['languages'], 
-                                        values['name_prefix'], values['list_prefix'])
+                                        values['name_prefix'], values['list_prefix'],
+                                        sponsor_dict=sponsor_dict
+                                        )
             
     with transaction.atomic():
         asset.content['survey'] = asset_survey
