@@ -379,7 +379,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         'auth_level': Hook.VERITREE_AUTH,
                         'settings': {
                             'username': settings.VERITREE_HOOKS_EMAIL, #TODO: make this an environment variable
-                            'password': settings.VERITREE_HOOKS_PASSWORD #TODO: Make this an environment variable
+                            'password': settings.VERITREE_HOOKS_EMAIL_PASSWORD #TODO: Make this an environment variable
                         }
                     }
                     if veritree_form_type.lower() == VERITREE_FORM_TYPES_DICT['planting'].lower():
