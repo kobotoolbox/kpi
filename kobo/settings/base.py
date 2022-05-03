@@ -50,7 +50,7 @@ USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
 # Domain must not exclude KoBoCAT when sharing sessions
 SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
 if SESSION_COOKIE_DOMAIN:
-    SESSION_COOKIE_NAME = 'kobonaut'
+    SESSION_COOKIE_NAME = env.str('SESSION_COOKIE_NAME', 'kobonaut')
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
     CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
@@ -874,4 +874,3 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
