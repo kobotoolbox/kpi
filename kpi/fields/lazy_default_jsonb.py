@@ -42,7 +42,7 @@ class LazyDefaultJSONBField(JSONField):
     def from_db_value(self, value, *args, **kwargs):
         if value is None:
             return self._get_lazy_default()
-        return value
+        return super().from_db_value(value, *args, **kwargs)
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname)
