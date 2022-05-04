@@ -4,13 +4,13 @@
 #
 #    make pip_compile
 #
--e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@f7f61307b3e8011c5b7e040276afbe32388b957c#egg=a1d05eba1-dorey
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@289b52398dc55a5d74e2505d7989a0edd18c0157#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@c1fab9366655da06638b962a205de55b2b3bae81#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -203,6 +203,8 @@ geojson-rewind==1.0.2
     #   formpack
 idna==3.3
     # via requests
+iniconfig==1.1.1
+    # via pytest
 invoke==1.7.0
     # via fabric
 ipython==8.2.0
@@ -241,8 +243,6 @@ mock==4.0.3
     # via -r dependencies/pip/dev_requirements.in
 mongomock==4.0.0
     # via -r dependencies/pip/dev_requirements.in
-more-itertools==8.12.0
-    # via pytest
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
 oauthlib==3.2.0
@@ -276,7 +276,7 @@ pickleshare==0.7.5
     # via ipython
 pillow==9.1.0
     # via django-markdownx
-pluggy==0.13.1
+pluggy==1.0.0
     # via pytest
 prompt-toolkit==3.0.29
     # via
@@ -318,10 +318,9 @@ pyquery==1.4.3
     # via formpack
 pyrsistent==0.18.1
     # via jsonschema
-pytest==5.4.3
+pytest==7.1.1
     # via
     #   -r dependencies/pip/dev_requirements.in
-    #   a1d05eba1-dorey
     #   pytest-cov
     #   pytest-django
     #   pytest-env
@@ -400,7 +399,9 @@ statistics==1.0.3.5
 tabulate==0.8.9
     # via -r dependencies/pip/requirements.in
 tomli==2.0.1
-    # via coverage
+    # via
+    #   coverage
+    #   pytest
 traitlets==5.1.1
     # via
     #   ipython
@@ -422,9 +423,7 @@ vine==5.0.0
     #   celery
     #   kombu
 wcwidth==0.2.5
-    # via
-    #   prompt-toolkit
-    #   pytest
+    # via prompt-toolkit
 werkzeug==2.0.3
     # via -r dependencies/pip/requirements.in
 wrapt==1.14.0

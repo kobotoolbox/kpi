@@ -4,13 +4,13 @@
 #
 #    make pip_compile
 #
--e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@f7f61307b3e8011c5b7e040276afbe32388b957c#egg=a1d05eba1-dorey
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@289b52398dc55a5d74e2505d7989a0edd18c0157#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@c1fab9366655da06638b962a205de55b2b3bae81#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -23,9 +23,7 @@ amqp==5.1.0
 async-timeout==4.0.2
     # via redis
 attrs==21.4.0
-    # via
-    #   jsonschema
-    #   pytest
+    # via jsonschema
 begins==0.9
     # via formpack
 billiard==3.6.4.0
@@ -204,8 +202,6 @@ markdown==3.3.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-markdownx
-more-itertools==8.12.0
-    # via pytest
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
 oauthlib==3.2.0
@@ -219,23 +215,17 @@ openpyxl==3.0.9
 oyaml==0.9
     # via a1d05eba1-dorey
 packaging==21.3
-    # via
-    #   pytest
-    #   redis
+    # via redis
 path==16.4.0
     # via path-py
 path-py==12.5.0
     # via formpack
 pillow==9.1.0
     # via django-markdownx
-pluggy==0.13.1
-    # via pytest
 prompt-toolkit==3.0.29
     # via click-repl
 psycopg2==2.8.6
     # via -r dependencies/pip/requirements.in
-py==1.11.0
-    # via pytest
 pyasn1==0.4.8
     # via
     #   -r dependencies/pip/requirements.in
@@ -260,8 +250,6 @@ pyquery==1.4.3
     # via formpack
 pyrsistent==0.18.1
     # via jsonschema
-pytest==5.4.3
-    # via a1d05eba1-dorey
 python-crontab==2.6.0
     # via django-celery-beat
 python-dateutil==2.8.2
@@ -337,9 +325,7 @@ vine==5.0.0
     #   celery
     #   kombu
 wcwidth==0.2.5
-    # via
-    #   prompt-toolkit
-    #   pytest
+    # via prompt-toolkit
 werkzeug==2.0.3
     # via -r dependencies/pip/requirements.in
 wrapt==1.14.0
