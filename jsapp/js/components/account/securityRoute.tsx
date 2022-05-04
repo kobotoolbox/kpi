@@ -8,14 +8,16 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import type {
   MfaUserMethodsResponse,
-  MfaActiveResponse,
   MfaActivatedResponse,
 } from 'js/actions/mfaActions';
 import mfaActions from 'js/actions/mfaActions';
 import {MODAL_TYPES} from 'jsapp/js/constants';
 import envStore from 'js/envStore';
 import './securityRoute.scss';
-import {formatDate} from 'js/utils';
+import {
+  formatTime,
+  formatDate,
+} from 'js/utils';
 
 bem.SecuritySection = makeBem(null, 'security-section');
 
@@ -28,7 +30,8 @@ bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description');
 bem.MFAOptions = makeBem(null, 'mfa-options');
 bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row');
 bem.MFAOptions__label = makeBem(bem.MFAOptions, 'label');
-bem.MFAOptions__buttons = makeBem(bem.MFAOptions, 'row');
+bem.MFAOptions__buttons = makeBem(bem.MFAOptions, 'buttons');
+bem.MFAOptions__date = makeBem(bem.MFAOptions, 'date');
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
@@ -36,6 +39,7 @@ bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title
 interface SecurityState {
   isMfaActive: boolean;
   dateDisabled?: string;
+  dateModified?: string;
 }
 
 type EditModalTypes = 'reconfigure' | 'regenerate';
@@ -49,6 +53,7 @@ export default class SecurityRoute extends React.Component<
     this.state = {
       isMfaActive: false,
       dateDisabled: undefined,
+      dateModified: undefined,
     };
   }
 
@@ -57,13 +62,12 @@ export default class SecurityRoute extends React.Component<
   componentDidMount() {
     this.unlisteners.push(
       mfaActions.getUserMethods.completed.listen(this.onGetUserMethodsCompleted.bind(this)),
-      mfaActions.isActive.completed.listen(this.onIsActiveCompleted.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
       mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     );
 
-    mfaActions.isActive();
+    mfaActions.getUserMethods();
   }
 
   componentWillUnmount() {
@@ -71,21 +75,11 @@ export default class SecurityRoute extends React.Component<
   }
 
   onGetUserMethodsCompleted(response: MfaUserMethodsResponse) {
-    this.setState({dateDisabled: response[0].date_disabled});
-  }
-
-  onIsActiveCompleted(response: MfaActiveResponse) {
-    const isActive = response.length >= 1;
-
-    if (isActive) {
-      this.setState({
-        isMfaActive: isActive,
-        dateDisabled: undefined,
-      });
-    } else {
-      this.setState({isMfaActive: isActive});
-      mfaActions.getUserMethods();
-    }
+    this.setState({
+      isMfaActive: response[0].is_active,
+      dateDisabled: response[0].date_disabled,
+      dateModified: response[0].date_modified,
+    });
   }
 
   mfaActivating(response: MfaActivatedResponse) {
@@ -190,8 +184,13 @@ export default class SecurityRoute extends React.Component<
                   {t('Authenticator app')}
                 </bem.MFAOptions__label>
 
+                {this.state.dateModified &&
+                  <bem.MFAOptions__date>
+                    {formatTime(this.state.dateModified)}
+                  </bem.MFAOptions__date>
+                }
+
                 <bem.MFAOptions__buttons>
-                  {/*Put date last configured here*/}
                   <Button
                     type='frame'
                     color='storm'

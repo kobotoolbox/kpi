@@ -6,11 +6,6 @@ export type MfaErrorResponse = JQueryXHR & {
   non_field_errors?: string;
 };
 
-export type MfaActiveResponse = [{
-  name: 'app';
-  is_primary: boolean;
-}];
-
 export type MfaUserMethodsResponse = [{
   name: 'app';
   is_primary: boolean;
@@ -54,25 +49,6 @@ mfaActions.getUserMethods.listen(() => {
       }
       notify(errorText, 'error');
       mfaActions.getUserMethods.failed(response);
-    });
-});
-
-mfaActions.isActive.listen(() => {
-  $.ajax({
-    dataType: 'json',
-    method: 'GET',
-    url: `${ROOT_URL}/api/v2/auth/mfa/user-active-methods/`,
-  })
-    .done((response: MfaActiveResponse) => {
-      mfaActions.isActive.completed(response);
-    })
-    .fail((response: MfaErrorResponse) => {
-      let errorText = t('An error occured');
-      if (response.non_field_errors) {
-        errorText = response.non_field_errors;
-      }
-      notify(errorText, 'error');
-      mfaActions.isActive.failed(response);
     });
 });
 
