@@ -641,10 +641,14 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
 
+
 ''' Storage configuration '''
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
+    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+        # Force usage of custom S3 tellable Storage
+        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
@@ -656,6 +660,12 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
+    if 'AZURE_ACCOUNT_NAME' in os.environ:
+        AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
+        AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
+        AZURE_CONTAINER = env.str('AZURE_CONTAINER')
+        AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
+
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
