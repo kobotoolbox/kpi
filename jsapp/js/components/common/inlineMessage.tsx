@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import React from 'react';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from 'js/components/common/icon';
@@ -8,7 +9,7 @@ export type InlineMessageType = 'default' | 'error' | 'success' | 'warning';
 interface InlineMessageProps {
   type: InlineMessageType;
   icon?: IconName;
-  message: string;
+  message: ReactElement<any, any> | string;
   /** Additional class names. */
   classNames?: string[];
 }

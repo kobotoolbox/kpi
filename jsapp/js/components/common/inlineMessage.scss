@@ -13,6 +13,23 @@
   .k-icon {
     margin-right: sizes.$x12;
   }
+
+  a {
+    text-decoration: underline;
+    color: inherit;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  &:not(:last-child) {
+    margin-bottom: sizes.$x24;
+  }
+
+  &:not(:first-child) {
+    margin-top: sizes.$x24;
+  }
 }
 
 .k-inline-message--type-default {

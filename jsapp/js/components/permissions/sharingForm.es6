@@ -9,6 +9,7 @@ import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
 import {buildUserUrl} from 'utils';
 import {
   ASSET_TYPES,
@@ -118,16 +119,19 @@ class SharingForm extends React.Component {
 
         {stores.session.currentAccount.extra_details?.require_auth !== true &&
           <bem.FormModal__item>
-            <bem.FormView__cell m='warning'>
-              <i className='k-icon k-icon-alert' />
-              <p>
-                {t('Anyone can see this blank form and add submissions to it because you have not set ')}
-                <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
-                  {t('your account')}
-                </a>
-                {t(' to require authentication.')}
-              </p>
-            </bem.FormView__cell>
+            <InlineMessage
+              type='warning'
+              icon='alert'
+              message={
+                <span>
+                  {t('Anyone can see this blank form and add submissions to it because you have not set ')}
+                  <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
+                    {t('your account')}
+                  </a>
+                  {t(' to require authentication.')}
+                </span>
+              }
+            />
           </bem.FormModal__item>
         }
 
