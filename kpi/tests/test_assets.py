@@ -309,7 +309,7 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(_c['settings'][0]['asdf'], 'jkl')
         self.assertEqual(_c['survey'][-1]['type'], 'note')
 
-    def test_to_xls_io_versioned_appended(self):
+    def test_to_xlsx_io_versioned_appended(self):
         append = {
             'survey': [
                 {'type': 'note', 'label': ['wee'
@@ -320,8 +320,8 @@ class AssetContentTests(AssetsTestCase):
                 'asdf': 'jkl',
             }
         }
-        xls_io = self.asset.to_xls_io(versioned=True, append=append)
-        workbook = openpyxl.load_workbook(xls_io)
+        xlsx_io = self.asset.to_xlsx_io(versioned=True, append=append)
+        workbook = openpyxl.load_workbook(xlsx_io)
 
         survey_sheet = workbook['survey']
         # `versioned=True` should add a calculate question to the the last row.
@@ -350,11 +350,11 @@ class AssetContentTests(AssetsTestCase):
         xls_form_title_col = [row[0].value for row in settings_sheet.iter_rows(max_row=2)]
         assert xls_form_title_col == ['form_title', self.asset.name or None]
 
-    def test_to_xls_io_includes_version_number_and_date(self):
+    def test_to_xlsx_io_includes_version_number_and_date(self):
         date_string = '2021-03-17 11:12:13'
         self.asset.date_modified = datetime.datetime.fromisoformat(date_string)
-        xls_io = self.asset.to_xls_io(versioned=True)
-        workbook = openpyxl.load_workbook(xls_io)
+        xlsx_io = self.asset.to_xlsx_io(versioned=True)
+        workbook = openpyxl.load_workbook(xlsx_io)
         settings_sheet = workbook['settings']
         version_col = [cell.value for cell in settings_sheet[1]].index(
             'version'

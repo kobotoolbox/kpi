@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core import mail
 from django.template.loader import get_template
 from django.utils import translation, dateparse
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from mock import patch
 
 from .hook_test_case import HookTestCase, MockSSRFProtect
@@ -14,11 +14,19 @@ from ..tasks import failures_reports
 class EmailTestCase(HookTestCase):
 
     def _create_periodic_task(self):
-        beat_schedule = settings.CELERY_BEAT_SCHEDULE.get("send-hooks-failures-reports")
-        periodic_task = PeriodicTask(name="Periodic Task Mock",
-                                     enabled=True,
-                                     task=beat_schedule.get("task"))
-        periodic_task.save()
+        beat_schedule = settings.CELERY_BEAT_SCHEDULE.get('send-hooks-failures-reports')
+        schedule = beat_schedule.get('schedule')
+        crontab, _ = CrontabSchedule.objects.get_or_create(
+            hour=schedule.hour, minute=schedule.minute
+        )
+        periodic_task, _ = PeriodicTask.objects.get_or_create(
+            name='Periodic Task Mock',
+            enabled=True,
+            crontab=crontab,
+            task=beat_schedule.get('task'),
+        )
+
+        return periodic_task
 
     @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
            new=MockSSRFProtect._get_ip_address)
