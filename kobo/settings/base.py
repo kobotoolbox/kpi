@@ -5,7 +5,6 @@ import os
 import string
 import subprocess
 from mimetypes import add_type
-from datetime import timedelta
 from urllib.parse import quote_plus
 
 import django.conf.locale
@@ -51,7 +50,7 @@ USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
 # Domain must not exclude KoBoCAT when sharing sessions
 SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
 if SESSION_COOKIE_DOMAIN:
-    SESSION_COOKIE_NAME = 'kobonaut'
+    SESSION_COOKIE_NAME = env.str('SESSION_COOKIE_NAME', 'kobonaut')
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
     CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
@@ -155,13 +154,13 @@ CONSTANCE_CONFIG = {
     ),
     'SUPPORT_URL': (
         env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
-        'URL for "KoBoToolbox Help Center"',
+        'URL for "KoboToolbox Help Center"',
     ),
     'COMMUNITY_URL': (
         env.str(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
-        'URL for "KoBoToolbox Community Forum"',
+        'URL for "KoboToolbox Community Forum"',
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
@@ -217,7 +216,7 @@ CONSTANCE_CONFIG = {
         int,
     ),
     'MFA_ISSUER_NAME': (
-        'KoBoToolbox',
+        'KoboToolbox',
         'Issuer name displayed in multi-factor applications'
     ),
     'MFA_ENABLED': (
@@ -496,16 +495,15 @@ ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
-# The number of hours to keep a kobo survey preview (generated for enketo)
-# around before purging it.
-KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
-
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
+ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
+# How long to wait before flushing an individual preview from Enketo's cache
+ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -589,19 +587,8 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
 
 if 'KOBOCAT_URL' in os.environ:
-    SYNC_KOBOCAT_XFORMS = (os.environ.get('SYNC_KOBOCAT_XFORMS', 'True') == 'True')
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
-    if SYNC_KOBOCAT_XFORMS:
-        # Create/update KPI assets to match KC forms
-        SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
-            os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
-        CELERY_BEAT_SCHEDULE['sync-kobocat-xforms'] = {
-            'task': 'kpi.tasks.sync_kobocat_xforms',
-            'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
-            'options': {'queue': 'sync_kobocat_xforms_queue',
-                        'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
-        }
 
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
@@ -799,7 +786,7 @@ if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
+    MONGO_CONNECTION_URL, journal=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 # If a request or task makes a database query and then times out, the database

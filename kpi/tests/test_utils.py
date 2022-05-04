@@ -11,6 +11,7 @@ from django.test import TestCase
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
+from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.xml import strip_nodes, edit_submission_xml
@@ -223,6 +224,34 @@ class UtilsTestCase(TestCase):
         with self.assertRaises(SearchQueryTooShortException) as e:
             parse(query_string, default_field_lookups)
         assert 'Your query is too short' in str(e.exception)
+
+    def test_allow_choice_duplicates(self):
+        surv = {
+            'survey': [
+                {'type': 'select_multiple',
+                 'select_from_list_name': 'xxx'},
+            ],
+            'choices': [
+                {'list_name': 'xxx', 'label': 'ABC', 'name': 'ABC'},
+                {'list_name': 'xxx', 'label': 'Also ABC', 'name': 'ABC'},
+            ],
+            'settings': {},
+        }
+
+        # default should be 'yes'
+        allow_choice_duplicates(surv)
+        assert (
+            surv['settings']['allow_choice_duplicates']
+            == 'yes'
+        )
+
+        # 'no' should not be overwritten
+        surv['settings']['allow_choice_duplicates'] = 'no'
+        allow_choice_duplicates(surv)
+        assert (
+            surv['settings']['allow_choice_duplicates']
+            == 'no'
+        )
 
 
 class XmlUtilsTestCase(TestCase):

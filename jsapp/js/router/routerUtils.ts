@@ -14,13 +14,9 @@ import {
   PATHS,
 } from 'js/router/routerConstants';
 
-export function redirectToLogin(): void {
-  window.location.replace(getLoginUrl());
-}
-
 /**
- * Returns login url with a `next` parameter - after logging in, the
- * app will redirect to the next url
+ * Returns login url with a `next` parameter - after logging in, the  app will
+ * redirect to the next url.
  */
 export function getLoginUrl(): string {
   let url = PATHS.LOGIN;
@@ -31,6 +27,10 @@ export function getLoginUrl(): string {
     url += `?next=${nextUrl}`;
   }
   return url;
+}
+
+export function redirectToLogin() {
+  window.location.replace(getLoginUrl());
 }
 
 export function getCurrentPath(): string {
@@ -224,7 +224,7 @@ export function getRouteAssetUid() {
     return getCurrentPath().split('/')[3];
   }
 
-  return null
+  return null;
 }
 
 /** Returns parameters from path for single processing route. */
