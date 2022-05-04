@@ -13,7 +13,7 @@ def get_kobocat_storage():
     if django_settings.KOBOCAT_DEFAULT_FILE_STORAGE.endswith('S3Boto3Storage'):
         return KobocatS3Boto3Storage()
     elif django_settings.KOBOCAT_DEFAULT_FILE_STORAGE.endswith('AzureStorage'):
-        return KobocatAzureStorage()
+        return AzureStorage()
     else:
         return KobocatFileSystemStorage()
 
@@ -39,13 +39,7 @@ class KobocatFileSystemStorage(FileSystemStorage):
 
 
 class KobocatS3Boto3Storage(S3Boto3Storage):
-
-    def __init__(self, *args, **kwargs):
-        bucket = django_settings.KOBOCAT_AWS_STORAGE_BUCKET_NAME
-        super().__init__(*args, **kwargs)
-
-
-class KobocatAzureStorage(AzureStorage):
-    def __init__(self, *args, **kwargs):
-        azure_container = django_settings.KOBOCAT_AZURE_CONTAINER
-        super().__init__(*args, **kwargs)
+    def __init__(self, **settings):
+        # This allows KoboCat to have a different bucket name, which is not recommended
+        settings["bucket_name"] = django_settings.KOBOCAT_AWS_STORAGE_BUCKET_NAME
+        super().__init__(**settings)
