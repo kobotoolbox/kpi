@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
-
+from typing import Optional
+from veritree.constants import META_VERITREE_APP_VERSION
 from veritree.models import VeritreeOAuth2
 from veritree.question_blocks.constants import (
     planting_site_question,
@@ -36,7 +37,9 @@ def get_metadata_from_submission(submission_data: dict, project_name, orgId: int
         "org_type": "organization",
         "external_submission_id": f"{submission_data['_id']}", #Use a string?
         "form_uid": get_project_link(submission_data), #form_id???
-        "country_id": lookup_country_id(orgId, access_token, get_country_name(submission_data))
+        "country_id": lookup_country_id(orgId, access_token, get_country_name(submission_data)),
+        "app_version": submission_data.get(META_VERITREE_APP_VERSION, ''),
+        "user_id": get_user_id(submission_data)
     }
 
 def get_field_update_date(submission_data: dict):
@@ -74,7 +77,8 @@ def get_point(submission_data: dict) -> tuple or None:
             gps_data = submission_data[key].split(' ')
             return tuple([gps_data[0], gps_data[1]])
         elif key in submission_data and key in potential_keys_tuple:
-            return submission_data[key]
+            if submission_data[key][0] and submission_data[key][1]:
+                return submission_data[key]
     return tuple([0, 0])
 
 
@@ -156,9 +160,12 @@ def lookup_species_ids_for_org(org_id: int, access_token: str):
     response = requests.get(FOREST_TYPE_SPECIES_API, params=params, headers=get_headers_for_veritree_request(access_token))
 
     content = parse_veritree_response(response)
-    print(content)
     if content:
         return [{'name': species['name'], 'id': species['id']} for species in content if (species['name'] and species['name'] != '')]
     else:
         response.raise_for_status()
         return []
+
+def get_user_id(submission_data: dict) -> Optional[int]:
+    #TODO: Fill this in. Placeholder for now
+    return None

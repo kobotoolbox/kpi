@@ -338,6 +338,7 @@ class SubmissionDataTable extends React.Component {
         {this.renderMetaResponse('_id', t('_id'))}
         {this.renderMetaResponse('meta/instanceID', t('instanceID'))}
         {this.renderMetaResponse('_submitted_by', t('Submitted by'))}
+        {this.renderMetaResponse('meta/veritree_app_version', t('meta/veritree_app_version'))}
       </bem.SubmissionDataTable>
     );
   }
