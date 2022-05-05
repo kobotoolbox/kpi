@@ -23,7 +23,6 @@ class PrivateAzureStorage(AzureStorage):
     def get_modified_time(self, name):
         # workaround https://github.com/jschneier/django-storages/issues/1131
         # If fixed upstream, delete this function
-        print("!!!")
         properties = self.client.get_blob_client(
             self._get_valid_path(name)
         ).get_blob_properties(
