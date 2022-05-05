@@ -1,6 +1,5 @@
 // This is a collection of DRY wrappers for alertifyjs.
 import alertify from 'alertifyjs';
-import type JQuery from 'jquery';
 import {KeyNames} from 'js/constants';
 import type {IconName} from 'jsapp/fonts/k-icons';
 
@@ -109,7 +108,7 @@ export function multiConfirm(
   const dialog = alertify[confirmId]();
 
   // set up closing modal on ESC key
-  const killMe = (evt: JQuery.KeyUpEvent) => {
+  const killMe = (evt: KeyboardEvent) => {
     if (evt.key === KeyNames.Escape) {
       dialog.destroy();
     }
@@ -125,10 +124,10 @@ export function multiConfirm(
       }
     },
     onshow: function () {
-      $(document).on('keyup', killMe);
+      document.addEventListener('keyup', killMe);
     },
     onclose: function () {
-      $(document).off('keyup', killMe);
+      document.removeEventListener('keyup', killMe);
     },
   });
 
