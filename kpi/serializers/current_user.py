@@ -1,7 +1,7 @@
 # coding: utf-8
 import datetime
 import json
-import pytz
+from zoneinfo import ZoneInfo
 
 import constance
 from django.contrib.auth import update_session_auth_hash
@@ -50,11 +50,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_server_time(self, obj):
         # Currently unused on the front end
-        return datetime.datetime.now(tz=pytz.UTC).strftime(
+        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 
     def get_date_joined(self, obj):
-        return obj.date_joined.astimezone(pytz.UTC).strftime(
+        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 
     def get_projects_url(self, obj):

@@ -3,7 +3,7 @@ import json
 import re
 from io import StringIO
 
-from dicttoxml import dicttoxml
+from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail
@@ -167,7 +167,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # data should be str, but in case it's a dict, return as XML.
         # e.g. It happens with 404
         if isinstance(data, dict):
-            # Force cast `ErrorDetail` as `six.text_type` because `dicttoxml`
+            # Force cast `ErrorDetail` as `str` because `dict2xml`
             # does not recognize this type and treat each character as xml node.
             for k, v in data.items():
                 if isinstance(v, ErrorDetail):
@@ -191,16 +191,14 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # Submissions are wrapped in `<item>` nodes.
         results = data.pop('results', False)
         if not results:
-            return dicttoxml(
-                data, attr_type=False, custom_root=cls.root_tag_name
-            )
+            return dict2xml(data, wrap=cls.root_tag_name, newlines=False)
 
         submissions_parent_node = 'results'
 
-        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.root_tag_name)
+        xml_ = dict2xml(data, wrap=cls.root_tag_name, newlines=False)
         # Retrieve the beginning of the XML (without closing tag) in order
         # to concatenate `results` as XML nodes too.
-        xml_2_str = xml_.decode().replace(f'</{cls.root_tag_name}>', '')
+        xml_2_str = xml_.replace(f'</{cls.root_tag_name}>', '')
 
         opening_results_node = cls._node_generator(submissions_parent_node)
         closing_results_node = cls._node_generator(submissions_parent_node,
@@ -215,7 +213,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
             f'{closing_root_node}'
         )
 
-        return xml_2_str.encode()  # Should return bytes
+        return xml_2_str
 
     @staticmethod
     def _node_generator(name, closing=False):
@@ -273,5 +271,5 @@ class XlsRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        return asset.to_xls_io(versioned=self.versioned,
+        return asset.to_xlsx_io(versioned=self.versioned,
                                kobo_specific_types=self.kobo_specific_types)

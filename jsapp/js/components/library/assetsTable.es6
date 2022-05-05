@@ -246,13 +246,10 @@ export default class AssetsTable extends React.Component {
       }
     }
 
-    const classNames = [];
-
     return (
       <bem.AssetsTableRow__column
         m={columnDef.id}
         onClick={this.onChangeOrder.bind(this, columnDef.id)}
-        classNames={classNames}
       >
         {!hideLabel &&
           <bem.AssetsTableRow__headerLabel>{columnDef.label}</bem.AssetsTableRow__headerLabel>

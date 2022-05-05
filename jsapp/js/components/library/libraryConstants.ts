@@ -21,10 +21,24 @@ export const ASSETS_TABLE_CONTEXTS = createEnum([
   'PUBLIC_COLLECTIONS',
 ]);
 
-export const ORDER_DIRECTIONS = createEnum([
-  'ascending',
-  'descending',
-]);
+export type OrderDirection = 'ascending' | 'descending';
+
+export const ORDER_DIRECTIONS: {[id in OrderDirection]: OrderDirection} = {
+  ascending: 'ascending',
+  descending: 'descending',
+};
+
+export type AssetsTableColumnName = 'date-modified' | 'icon-status' | 'items-count' | 'languages' | 'name' | 'owner' | 'primary-sector' | 'subscribers-count';
+
+export interface AssetsTableColumn {
+  label: string;
+  id: AssetsTableColumnName;
+  orderBy?: string | null;
+  defaultValue?: OrderDirection | null;
+  filterBy?: string;
+  filterByPath?: string[];
+  filterByMetadataName?: string;
+}
 
 /**
  * @typedef AssetsTableColumn
@@ -36,7 +50,7 @@ export const ORDER_DIRECTIONS = createEnum([
  * @prop {string} [orderBy] - a backend order property
  * @prop {boolean} [defaultValue]
  */
-export const ASSETS_TABLE_COLUMNS = Object.freeze({
+export const ASSETS_TABLE_COLUMNS: {[id: string]: AssetsTableColumn} = Object.freeze({
   'icon-status': {
     label: t('Type'),
     id: 'icon-status',

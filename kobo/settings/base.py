@@ -5,7 +5,6 @@ import os
 import string
 import subprocess
 from mimetypes import add_type
-from datetime import timedelta
 from urllib.parse import quote_plus
 
 import django.conf.locale
@@ -51,7 +50,7 @@ USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
 # Domain must not exclude KoBoCAT when sharing sessions
 SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
 if SESSION_COOKIE_DOMAIN:
-    SESSION_COOKIE_NAME = 'kobonaut'
+    SESSION_COOKIE_NAME = env.str('SESSION_COOKIE_NAME', 'kobonaut')
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
     CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
@@ -587,19 +586,8 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
 
 if 'KOBOCAT_URL' in os.environ:
-    SYNC_KOBOCAT_XFORMS = (os.environ.get('SYNC_KOBOCAT_XFORMS', 'True') == 'True')
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
-    if SYNC_KOBOCAT_XFORMS:
-        # Create/update KPI assets to match KC forms
-        SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
-            os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
-        CELERY_BEAT_SCHEDULE['sync-kobocat-xforms'] = {
-            'task': 'kpi.tasks.sync_kobocat_xforms',
-            'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
-            'options': {'queue': 'sync_kobocat_xforms_queue',
-                        'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
-        }
 
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
@@ -652,10 +640,14 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
 
+
 ''' Storage configuration '''
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
+    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+        # Force usage of custom S3 tellable Storage
+        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
@@ -667,6 +659,12 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
+    if 'AZURE_ACCOUNT_NAME' in os.environ:
+        AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
+        AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
+        AZURE_CONTAINER = env.str('AZURE_CONTAINER')
+        AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
+
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
@@ -797,7 +795,7 @@ if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
+    MONGO_CONNECTION_URL, journal=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 # If a request or task makes a database query and then times out, the database
