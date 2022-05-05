@@ -659,11 +659,15 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if 'AZURE_ACCOUNT_NAME' in os.environ:
+    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
+        PRIVATE_STORAGE_CLASS = \
+            'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
+        PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
         AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
         AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
         AZURE_CONTAINER = env.str('AZURE_CONTAINER')
         AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
+        AZURE_OVERWRITE_FILES = True
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
