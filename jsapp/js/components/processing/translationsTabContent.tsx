@@ -12,32 +12,22 @@ import KoboSelect from 'js/components/common/koboSelect';
 import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 
-interface TranslationsTabContentProps {}
-
 interface TranslationsTabContentState {
   /** Uses languageCode. */
   selectedTranslation?: string;
-  /** Uses languageCode, useful for back button. */
-  previousSelectedTranslation?: string;
 }
 
 export default class TranslationsTabContent extends React.Component<
-  TranslationsTabContentProps,
+  {},
   TranslationsTabContentState
 > {
-  constructor(props: TranslationsTabContentProps) {
-    super(props);
-
-    // We want to always have a translation selected when there is at least one
-    // so we preselect it on the initialization.
-    let selected;
-    const storedTranslations = singleProcessingStore.getTranslations();
-    if (storedTranslations.length >= 1) {
-      selected = storedTranslations[0].languageCode;
-    }
+  constructor() {
+    super({});
 
     this.state = {
-      selectedTranslation: selected,
+      // We want to always have a translation selected when there is at least
+      // one, so we preselect it on the initialization.
+      selectedTranslation: this.getDefaultSelectedTranslation(),
     };
   }
 
@@ -67,20 +57,12 @@ export default class TranslationsTabContent extends React.Component<
       this.selectTranslation(draft.languageCode);
     }
 
-    // When we delete a translation, we want to select another one.
+    // When the selected translation was removed, we select another one.
     if (
       draft === undefined &&
-      this.state.selectedTranslation !== undefined &&
       singleProcessingStore.getTranslation(this.state.selectedTranslation) === undefined
     ) {
-      // We want to always have a translation selected when there is at least one
-      // so we preselect it on the initialization.
-      let selected;
-      const storedTranslations = singleProcessingStore.getTranslations();
-      if (storedTranslations.length >= 1) {
-        selected = storedTranslations[0].languageCode;
-      }
-      this.setState({selectedTranslation: selected});
+      this.selectTranslation(this.getDefaultSelectedTranslation());
     }
 
     this.forceUpdate();
@@ -91,6 +73,15 @@ export default class TranslationsTabContent extends React.Component<
     const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
     newDraft.languageCode = newVal;
     singleProcessingStore.setTranslationDraft(newDraft);
+  }
+
+  getDefaultSelectedTranslation() {
+    let selected;
+    const storedTranslations = singleProcessingStore.getTranslations();
+    if (storedTranslations.length >= 1) {
+      selected = storedTranslations[0].languageCode;
+    }
+    return selected;
   }
 
   /** Changes the draft value, preserving the other draft properties. */
@@ -154,22 +145,7 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   discardDraftInnerMethod() {
-    let preselectedTranslation;
-    if (this.state.previousSelectedTranslation) {
-      preselectedTranslation = this.state.previousSelectedTranslation;
-    } else {
-      const storedTranslations = singleProcessingStore.getTranslations();
-      if (storedTranslations.length >= 1) {
-        preselectedTranslation = storedTranslations[0].languageCode;
-      }
-    }
-
     singleProcessingStore.deleteTranslationDraft();
-
-    this.setState({
-      selectedTranslation: preselectedTranslation,
-      previousSelectedTranslation: undefined,
-    });
   }
 
   saveDraft() {
@@ -214,13 +190,9 @@ export default class TranslationsTabContent extends React.Component<
   addTranslation() {
     // Make an empty draft to make the language selector appear. Unselect the current translation.
     singleProcessingStore.setTranslationDraft({});
-    this.setState({
-      selectedTranslation: undefined,
-      previousSelectedTranslation: this.state.selectedTranslation,
-    });
   }
 
-  selectTranslation(languageCode: string) {
+  selectTranslation(languageCode?: string) {
     this.setState({selectedTranslation: languageCode});
   }
 

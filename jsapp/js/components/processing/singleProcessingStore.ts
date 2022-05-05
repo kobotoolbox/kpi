@@ -433,6 +433,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translations = newTranslations;
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
+    this.data.source = undefined;
     this.trigger(this.data);
   }
 
