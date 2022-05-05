@@ -54,6 +54,7 @@ if SESSION_COOKIE_DOMAIN:
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
     CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
+ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = 604800
