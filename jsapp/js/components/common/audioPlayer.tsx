@@ -2,6 +2,7 @@ import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import KoboRange from 'js/components/common/koboRange';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
 import Button from 'js/components/common/button';
 import 'js/components/common/audioPlayer.scss';
 import Icon from './icon';
@@ -134,10 +135,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
           <LoadingSpinner/>
         }
         {!this.state.isLoading && this.state.isBroken &&
-          <React.Fragment>
-            <Icon name='alert' size='xl'/>
-            {t('Could not load media file')}
-          </React.Fragment>
+          <InlineMessage
+            type='error'
+            message={t('Could not load media file')}
+          />
         }
         {!this.state.isLoading && !this.state.isBroken &&
           this.renderPlayer()
