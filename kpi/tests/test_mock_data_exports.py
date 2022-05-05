@@ -2,11 +2,11 @@
 import os
 import zipfile
 from collections import defaultdict
+from zoneinfo import ZoneInfo
 
 import datetime
 import mock
 import openpyxl
-import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -825,7 +825,7 @@ class MockDataExports(MockDataExportsBase):
         messages = defaultdict(list)
         # Set the current date and time artificially to generate a predictable
         # file name for the export
-        utcnow = datetime.datetime.now(tz=pytz.UTC)
+        utcnow = datetime.datetime.now(tz=ZoneInfo('UTC'))
         with mock.patch('kpi.models.import_export_task.utcnow') as mock_utcnow:
             mock_utcnow.return_value = utcnow
             export_task._run_task(messages)
