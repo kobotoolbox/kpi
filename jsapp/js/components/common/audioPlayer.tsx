@@ -5,7 +5,6 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import Button from 'js/components/common/button';
 import 'js/components/common/audioPlayer.scss';
-import Icon from './icon';
 
 bem.AudioPlayer = makeBem(null, 'audio-player');
 bem.AudioPlayer__controls = makeBem(bem.AudioPlayer, 'controls', 'div');
