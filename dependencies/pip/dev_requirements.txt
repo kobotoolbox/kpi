@@ -6,8 +6,6 @@
 #
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
-    # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
@@ -26,6 +24,10 @@ attrs==21.4.0
     # via
     #   jsonschema
     #   pytest
+azure-core==1.23.1
+    # via azure-storage-blob
+azure-storage-blob==12.11.0
+    # via django-storages
 backcall==0.2.0
     # via ipython
 bcrypt==3.2.0
@@ -38,8 +40,8 @@ billiard==3.6.4.0
     #   celery
 boto3==1.21.35
     # via
-    #   -r dependencies/pip/requirements.in
     #   django-amazon-ses
+    #   django-storages
 botocore==1.24.35
     # via
     #   boto3
@@ -49,7 +51,9 @@ celery[redis]==5.2.6
     #   -r dependencies/pip/requirements.in
     #   django-celery-beat
 certifi==2021.10.8
-    # via requests
+    # via
+    #   msrest
+    #   requests
 cffi==1.15.0
     # via
     #   bcrypt
@@ -78,6 +82,7 @@ coveralls==3.3.1
     # via -r dependencies/pip/dev_requirements.in
 cryptography==36.0.2
     # via
+    #   azure-storage-blob
     #   jwcrypto
     #   paramiko
     #   pyopenssl
@@ -165,6 +170,8 @@ django-request-cache==1.2
     # via -r dependencies/pip/requirements.in
 django-reversion==3.0.1
     # via -r dependencies/pip/requirements.in
+django-storages[azure,boto3]==1.12.3
+    # via -r dependencies/pip/requirements.in
 django-taggit==2.1.0
     # via -r dependencies/pip/requirements.in
 django-timezone-field==4.2.3
@@ -207,6 +214,8 @@ invoke==1.7.0
     # via fabric
 ipython==8.2.0
     # via -r dependencies/pip/dev_requirements.in
+isodate==0.6.1
+    # via msrest
 jedi==0.18.1
     # via ipython
 jmespath==1.0.0
@@ -238,12 +247,15 @@ mock==4.0.3
     # via -r dependencies/pip/dev_requirements.in
 mongomock==4.0.0
     # via -r dependencies/pip/dev_requirements.in
+msrest==0.6.21
+    # via azure-storage-blob
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
 oauthlib==3.2.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+    #   requests-oauthlib
 openpyxl==3.0.9
     # via
     #   -r dependencies/pip/requirements.in
@@ -348,12 +360,17 @@ redis==4.2.2
 requests==2.27.1
     # via
     #   -r dependencies/pip/requirements.in
+    #   azure-core
     #   coveralls
     #   django-oauth-toolkit
+    #   msrest
+    #   requests-oauthlib
     #   responses
     #   smsapi-client
     #   twilio
     #   yubico-client
+requests-oauthlib==1.3.1
+    # via msrest
 responses==0.20.0
     # via -r dependencies/pip/requirements.in
 s3transfer==0.5.2
@@ -365,8 +382,10 @@ shortuuid==1.0.8
 six==1.16.0
     # via
     #   asttokens
+    #   azure-core
     #   bcrypt
     #   click-repl
+    #   isodate
     #   mongomock
     #   paramiko
     #   pathlib2
@@ -398,6 +417,8 @@ traitlets==5.1.1
     #   matplotlib-inline
 twilio==7.8.0
     # via django-trench
+typing-extensions==4.2.0
+    # via azure-core
 unicodecsv==0.14.1
     # via -r dependencies/pip/requirements.in
 urllib3==1.26.9

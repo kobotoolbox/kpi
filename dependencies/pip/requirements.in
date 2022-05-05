@@ -12,17 +12,12 @@
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
-# Necessary to use this fork until the resolution of
-# https://github.com/jschneier/django-storages/issues/566
--e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
-
 # Regular PyPI packages
 Django>=2.2,<2.3
 Markdown
 Pygments
 amqp
 billiard
-boto3
 celery
 celery[redis]
 dict2xml
@@ -38,6 +33,7 @@ django-filter
 django-extensions
 django-oauth-toolkit
 django-registration-redux
+django-storages[azure,boto3]
 django-amazon-ses
 django-webpack-loader
 django-loginas
