@@ -1,12 +1,17 @@
 # coding: utf-8
 import json
+import pytz
 import re
+from datetime import datetime, timedelta
 from xml.etree import ElementTree as ET
 
 import requests
+from django.db.models import CharField, Count
+from django.db.models.functions import Cast, TruncDate
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import gettext_lazy as t
+from django_request_cache import cache_for_request
 from rest_framework import (
     renderers,
     serializers,
@@ -32,6 +37,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatInstance
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
@@ -428,6 +434,61 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             return self.get_paginated_response(submissions)
 
         return Response(list(submissions))
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[ViewSubmissionPermission],
+        url_path='stats',
+    )
+    def submission_stats(self, request, *args, **kwargs):
+        days = int(request.GET.get('days', 31))
+        deployment = self._get_deployment()
+        asset = deployment.asset
+        instances = ReadOnlyKobocatInstance.objects.filter(
+            xform_id=asset.deployment.xform_id
+        )
+        #submission_stats_today = [
+        #    {
+        #        'date': str(datetime.now().date()),
+        #        'count': instances.filter(
+        #            date_created__date=datetime.now().date()
+        #        ).count(),
+        #    }
+        #]
+        submission_stats_today = {
+                str(datetime.now().date()): instances.filter(
+                    date_created__date=datetime.now().date()
+                ).count()
+            }
+        submission_stats_history = self._get_stats_history(instances, days)
+        submission_stats_by_date = {
+            **submission_stats_history, **submission_stats_today
+            }
+
+        return Response(
+            {
+                'count': asset.deployment.submission_count,
+                'by_date': submission_stats_by_date,
+            }
+        )
+
+    @staticmethod
+    @cache_for_request
+    def _get_stats_history(instances, days):
+        submission_stats_history = (
+            instances.filter(
+                date_created__gte=datetime.now(pytz.UTC) - timedelta(days=days),
+                date_created__lte=datetime.now(pytz.UTC) - timedelta(days=1),
+            )
+            .annotate(date=Cast(TruncDate('date_created'), CharField()))
+            .order_by('date')
+            .values('date')
+            .annotate(count=Count('date'))
+        )
+
+        return {obj['date']:obj['count'] for obj in submission_stats_history}
 
     def retrieve(self, request, pk, *args, **kwargs):
         """
