@@ -1,4 +1,8 @@
 import type {FlatQuestion} from 'jsapp/js/assetUtils';
+  import type {
+    SubmissionResponse,
+    SubmissionAttachment,
+  } from 'js/dataInterface';
 import type {Json} from './formGallery.interfaces';
 
 const IMAGE_MIMETYPES = [

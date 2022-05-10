@@ -117,7 +117,7 @@ class AssetImportTaskTest(BaseTestCase):
         mock_xls_url = 'http://mock.kbtdev.org/form.xls'
         responses.add(responses.GET, mock_xls_url,
                       content_type='application/xls',
-                      body=self.asset.to_xls_io().read())
+                      body=self.asset.to_xlsx_io().read())
         task_data = {
             'url': mock_xls_url,
             'name': 'I was imported via URL!',
@@ -125,7 +125,7 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
     def test_import_asset_base64_xls(self):
-        encoded_xls = base64.b64encode(self.asset.to_xls_io().read())
+        encoded_xls = base64.b64encode(self.asset.to_xlsx_io().read())
         task_data = {
             'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
             'name': 'I was imported via base64-encoded XLS!',
@@ -885,9 +885,9 @@ class AssetImportTaskTest(BaseTestCase):
         )
 
     def test_import_asset_xls(self):
-        xls_io = self.asset.to_xls_io()
+        xlsx_io = self.asset.to_xlsx_io()
         task_data = {
-            'file': xls_io,
+            'file': xlsx_io,
             'name': 'I was imported via XLS!',
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
@@ -935,9 +935,9 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
     def test_import_xls_with_default_language_but_no_translations(self):
-        xls_io = self.asset.to_xls_io(append={"settings": {"default_language": "English (en)"}})
+        xlsx_io = self.asset.to_xlsx_io(append={"settings": {"default_language": "English (en)"}})
         task_data = {
-            'file': xls_io,
+            'file': xlsx_io,
             'name': 'I was imported via XLS!',
         }
         post_url = reverse('api_v2:importtask-list')
@@ -949,11 +949,11 @@ class AssetImportTaskTest(BaseTestCase):
 
     def test_import_xls_with_default_language_not_in_translations(self):
         asset = Asset.objects.get(pk=2)
-        xls_io = asset.to_xls_io(append={
+        xlsx_io = asset.to_xlsx_io(append={
             "settings": {"default_language": "English (en)"}
         })
         task_data = {
-            'file': xls_io,
+            'file': xlsx_io,
             'name': 'I was imported via XLS!',
         }
         post_url = reverse('api_v2:importtask-list')

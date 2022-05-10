@@ -5,9 +5,9 @@ import string
 import time
 import uuid
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
-import pytz
 import responses
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -17,7 +17,6 @@ from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kpi.constants import (
-    ENKETO_CSRF_COOKIE_NAME,
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
@@ -1013,8 +1012,8 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
         # Just make sure the cookie is present and has a non-empty value
-        assert ENKETO_CSRF_COOKIE_NAME in response.cookies
-        assert response.cookies[ENKETO_CSRF_COOKIE_NAME].value
+        assert settings.ENKETO_CSRF_COOKIE_NAME in response.cookies
+        assert response.cookies[settings.ENKETO_CSRF_COOKIE_NAME].value
 
     def test_edit_submission_with_digest_credentials(self):
         url = reverse(
@@ -1218,7 +1217,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
         # MockDeploymentBackend doesn't use XML at all and won't fail if an

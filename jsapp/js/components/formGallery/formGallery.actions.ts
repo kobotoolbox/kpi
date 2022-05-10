@@ -1,3 +1,8 @@
+import type {
+  SubmissionResponse,
+  PaginatedResponse,
+} from 'js/dataInterface';
+
 export type Action =
   | {
       type: 'getSubmissionsCompleted';

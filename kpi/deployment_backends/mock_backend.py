@@ -6,10 +6,10 @@ import uuid
 from datetime import datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
+from zoneinfo import ZoneInfo
 
-import pytz
 from deepmerge import always_merger
-from dicttoxml import dicttoxml
+from dict2xml import dict2xml
 from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
@@ -194,7 +194,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         duplicated_submission = copy.deepcopy(
             self.get_submission(submission_id, user=user)
         )
-        updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         next_id = max((
             sub['_id']
             for sub in self.get_submissions(self.asset.owner, fields=['_id'])
@@ -350,11 +350,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             return submissions
 
         return [
-            dicttoxml(
+            dict2xml(
                 self.__prepare_xml(submission),
-                attr_type=False,
-                custom_root=self.asset.uid,
-            ).decode()
+                wrap=self.asset.uid,
+                newlines=False,
+            )
             for submission in submissions
         ]
 

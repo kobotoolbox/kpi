@@ -18,13 +18,21 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 
 const ConnectProjects = React.lazy(() =>
-  import('js/components/dataAttachments/connectProjects')
+  import(
+    /* webpackPrefetch: true */ 'js/components/dataAttachments/connectProjects'
+  )
 );
-const DataTable = React.lazy(() => import('js/components/submissions/table'));
+const DataTable = React.lazy(() =>
+  import(/* webpackPrefetch: true */ 'js/components/submissions/table')
+);
 const ProjectDownloads = React.lazy(() =>
-  import('js/components/projectDownloads/projectDownloads')
+  import(
+    /* webpackPrefetch: true */ 'js/components/projectDownloads/projectDownloads'
+  )
 );
-const FormGallery = React.lazy(() => import('./formGallery/formGallery.component'));
+const FormGallery = React.lazy(() =>
+  import(/* webpackPrefetch: true */ './formGallery/formGallery.component')
+);
 
 export class FormSubScreens extends React.Component {
   constructor(props) {
@@ -56,7 +64,11 @@ export class FormSubScreens extends React.Component {
       }
       switch (this.props.location.pathname) {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
-          return <DataTable asset={this.state} />;
+          return (
+            <Suspense fallback={null}>
+              <DataTable asset={this.state} />
+            </Suspense>
+          );
         case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={<div>Image Gallery</div>}>
@@ -73,7 +85,11 @@ export class FormSubScreens extends React.Component {
             <FormMap asset={this.state} viewby={this.props.params.viewby} />
           );
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
-          return <ProjectDownloads asset={this.state} />;
+          return (
+            <Suspense fallback={null}>
+              <ProjectDownloads asset={this.state} />;
+            </Suspense>
+          );
         case ROUTES.FORM_SETTINGS.replace(':uid', this.state.uid):
           return this.renderSettingsEditor();
         case ROUTES.FORM_MEDIA.replace(':uid', this.state.uid):
@@ -138,7 +154,9 @@ export class FormSubScreens extends React.Component {
   renderRecords() {
     return (
       <bem.FormView className='connect-projects'>
-        <ConnectProjects asset={this.state} />
+        <Suspense fallback={null}>
+          <ConnectProjects asset={this.state} />
+        </Suspense>
       </bem.FormView>
     );
   }

@@ -1,6 +1,10 @@
 import React, {useEffect, useMemo, useReducer} from 'react';
 import ReactSelect from 'react-select';
-// @ts-ignore
+import type {
+  AssetResponse,
+  PaginatedResponse,
+  SubmissionResponse,
+} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import bem, {makeBem} from 'js/bem';
 import {getFlatQuestionsList} from 'jsapp/js/assetUtils';

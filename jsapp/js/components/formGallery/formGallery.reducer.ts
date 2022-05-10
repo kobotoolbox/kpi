@@ -1,3 +1,4 @@
+import type {SubmissionResponse} from 'js/dataInterface';
 import type {Action} from './formGallery.actions';
 
 export interface State {
