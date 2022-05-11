@@ -11,17 +11,15 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
+import ConnectProjects from 'js/components/dataAttachments/connectProjects';
 import FormMedia from './modalForms/formMedia';
+import DataTable from 'js/components/submissions/table';
+import ProjectDownloads from 'js/components/projectDownloads/projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
-
-
-const ConnectProjects = React.lazy(() => import('js/components/dataAttachments/connectProjects'));
-const DataTable = React.lazy(() => import('js/components/submissions/table'));
-const ProjectDownloads = React.lazy(() => import('js/components/projectDownloads/projectDownloads'));
 
 export class FormSubScreens extends React.Component {
   constructor(props){
