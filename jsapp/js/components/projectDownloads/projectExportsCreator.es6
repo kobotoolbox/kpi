@@ -320,6 +320,10 @@ export default class ProjectExportsCreator extends React.Component {
       this.state.selectableRowsCount !== data.export_settings.fields.length
     );
 
+    const newSelectedRows = new Set(data.export_settings.fields);
+    // The `_uuid` is always required.
+    newSelectedRows.add(ADDITIONAL_SUBMISSION_PROPS._uuid);
+
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],
       selectedExportFormat: selectedExportFormat,
@@ -334,7 +338,7 @@ export default class ProjectExportsCreator extends React.Component {
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
       isXlsTypesAsTextEnabled: data.export_settings.xls_types_as_text,
       isIncludeMediaUrlEnabled: data.export_settings.include_media_url,
-      selectedRows: new Set(data.export_settings.fields),
+      selectedRows: newSelectedRows,
     };
 
     // if all rows are selected then fields will be empty, so we need to select all checkboxes manually
@@ -512,8 +516,9 @@ export default class ProjectExportsCreator extends React.Component {
       }
 
       return {
-        checked: this.state.selectedRows.has(row.path),
-        disabled: !this.state.isCustomSelectionEnabled,
+        // The _uuid column is always selected and thus disabled regardless of settings.
+        checked: this.state.selectedRows.has(row.path) || row.path === ADDITIONAL_SUBMISSION_PROPS._uuid,
+        disabled: !this.state.isCustomSelectionEnabled || row.path === ADDITIONAL_SUBMISSION_PROPS._uuid,
         label: checkboxLabel,
         path: row.path,
       };
@@ -677,7 +682,8 @@ export default class ProjectExportsCreator extends React.Component {
             <bem.ProjectDownloads__textButton
               disabled={(
                 !this.state.isCustomSelectionEnabled ||
-                this.state.selectedRows.size === 0
+                // We check vs 1 as `_uuid` is always required.
+                this.state.selectedRows.size <= 1
               )}
               onClick={this.clearSelectedRows}
             >
