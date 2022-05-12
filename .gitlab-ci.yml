@@ -28,6 +28,6 @@ deploy-beta:
     url: https://kf.beta.kobotoolbox.org
   only:
     refs:
-      - master
+      - public-beta
     variables:
       - $CI_COMMIT_REF_PROTECTED
