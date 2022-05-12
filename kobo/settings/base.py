@@ -805,6 +805,7 @@ MONGO_CONNECTION = MongoClient(
     tz_aware=True,
     connect=False,
     tls=env.bool('MONGO_USE_TLS', False),
+    tlsCAFile=env.str('MONGO_TLS_CA_FILE', None),
 )
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
