@@ -82,7 +82,7 @@ export class FormSubScreens extends React.Component {
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={null}>
-              <ProjectDownloads asset={this.state} />;
+              <ProjectDownloads asset={this.state} />
             </Suspense>
           );
         case ROUTES.FORM_SETTINGS.replace(':uid', this.state.uid):
