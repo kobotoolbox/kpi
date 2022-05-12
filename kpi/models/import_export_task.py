@@ -20,7 +20,6 @@ from django.urls import reverse
 from django.utils.translation import gettext as t
 import formpack
 from formpack.constants import (
-    EXPORT_SETTING_INCLUDE_ANALYSIS_FIELDS,
     KOBO_LOCK_SHEET,
 )
 from formpack.schema.fields import (
@@ -40,6 +39,7 @@ from openpyxl.utils.exceptions import InvalidFileException
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -580,7 +580,7 @@ class ExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments']
+        additional_fields = ['_attachments', '_supplementalDetails']
 
         field_groups = set()
         for field in fields:
@@ -738,9 +738,16 @@ class ExportTaskBase(ImportExportTask):
             query=query,
         )
 
+        if source.has_advanced_features:
+            extr = dict(source.submission_extras.values_list('uuid', 'content'))
+            submission_stream = stream_with_extras(submission_stream, extr)
+
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
+
+        if source.has_advanced_features:
+            pack.extend_survey(source.analysis_form_json())
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

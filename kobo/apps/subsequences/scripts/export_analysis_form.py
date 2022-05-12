@@ -23,7 +23,7 @@ def run():
     pack, submission_stream = build_formpack(
         asset, submission_stream, _fields_from_all_versions
     )
-    my_export = pack.export(include_analysis_fields=True)
+    my_export = pack.export()
 
     csv_string = '\n'.join([
         line for line in my_export.to_csv(submissions=submission_stream)
