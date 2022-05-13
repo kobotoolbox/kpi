@@ -800,7 +800,13 @@ if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, journal=True, tz_aware=True, connect=False)
+    MONGO_CONNECTION_URL,
+    journal=True,
+    tz_aware=True,
+    connect=False,
+    tls=env.bool('MONGO_USE_TLS', False),
+    tlsCAFile=env.str('MONGO_TLS_CA_FILE', None),
+)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 # If a request or task makes a database query and then times out, the database
