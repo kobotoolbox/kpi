@@ -727,11 +727,6 @@ mixins.clickAssets = {
             ${renderCheckbox('dt3', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
 
-          onshow = (evt) => {
-            let ok_button = dialog.elements.buttons.primary.firstChild;
-            ok_button.setAttribute( 'data-cy', 'delete' );
-            let $els = $('.alertify-toggle input');
-
           onshow = () => {
             const ok_button = (dialog.elements.buttons.primary.firstChild as HTMLElement);
             ok_button.setAttribute( 'data-cy', 'delete' );
