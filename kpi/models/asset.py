@@ -787,13 +787,18 @@ class Asset(ObjectPermissionMixin,
         except AttributeError:
             tag_names = self.tags.values_list('name', flat=True)
         else:
-            tag_names = [t.name for t in tag_list]
+            tag_names = [tag.name for tag in tag_list]
         return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
         intended_tags = value.split(',')
-        self.tags.set(*intended_tags)
+        # Backwards incompatible: TaggableManager.set now takes a list of tags
+        # (instead of varargs) so that its API matches Django’s RelatedManager.set.
+        # Example:
+        # previously: item.tags.set("red", "blue")
+        # now: item.tags.set(["red", "blue"])
+        self.tags.set(intended_tags)
 
     def to_clone_dict(
             self,

@@ -53,6 +53,7 @@ class InAppMessageSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='inappmessage-detail')
     interactions = InteractionsField()
+    always_display_as_new = serializers.ReadOnlyField()
 
     class Meta:
         model = InAppMessage
@@ -64,5 +65,6 @@ class InAppMessageSerializer(serializers.ModelSerializer):
             'body',
             'html',
             'interactions',
+            'always_display_as_new',
         )
         read_only_fields = ('uid',)

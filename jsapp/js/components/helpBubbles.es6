@@ -17,7 +17,8 @@ class HelpBubble extends React.Component {
     autoBind(this);
     this.state = {
       isOpen: false,
-      isOutsideCloseEnabled: true
+      isOutsideCloseEnabled: true,
+      locallyAcknowledgedMessageUids: new Set()
     };
     this.cancelOutsideCloseWatch = Function.prototype;
     this.cancelHelpBubbleEventCloseWatch = Function.prototype;
@@ -269,7 +270,7 @@ export class SupportHelpBubble extends HelpBubble {
     super.open();
 
     const unacknowledgedMessages = this.state.messages.filter((msg) => {
-      return msg.interactions.acknowledged !== true;
+      return msg.interactions.acknowledged !== true || msg.always_display_as_new;
     });
     if (unacknowledgedMessages.length === 1) {
       this.selectMessage(unacknowledgedMessages[0].uid);
@@ -305,7 +306,7 @@ export class SupportHelpBubble extends HelpBubble {
 
   isMessageRead(messageUid) {
     const msg = this.findMessage(messageUid);
-    return !!msg.interactions.readTime;
+    return !!msg.interactions.readTime && !msg.always_display_as_new;
   }
 
   markMessageRead(messageUid) {
@@ -315,12 +316,18 @@ export class SupportHelpBubble extends HelpBubble {
 
   markMessageAcknowledged(evt) {
     const messageUid = evt.currentTarget.dataset.messageUid;
+    this.setState({
+      locallyAcknowledgedMessageUids: new Set([
+        ...this.state.locallyAcknowledgedMessageUids,
+        messageUid
+      ])
+    });
     actions.help.setMessageAcknowledged(messageUid, true)
   }
 
   checkForUnacknowledgedMessages(newMessages) {
     const unacknowledgedMessages = newMessages.filter((msg) => {
-      return msg.interactions.acknowledged !== true;
+      return msg.interactions.acknowledged !== true || msg.always_display_as_new;
     });
     this.setState({
       hasUnacknowledgedMessages: unacknowledgedMessages.length >= 1,
@@ -331,7 +338,7 @@ export class SupportHelpBubble extends HelpBubble {
   getUnreadMessagesCount() {
     let count = 0;
     this.state.messages.forEach((msg) => {
-      if (!msg.interactions.readTime) {
+      if (!msg.interactions.readTime || msg.always_display_as_new) {
         count++;
       }
     });
@@ -340,7 +347,7 @@ export class SupportHelpBubble extends HelpBubble {
 
   renderSnippetRow(msg, clickCallback) {
     const modifiers = ['message', 'message-clickable'];
-    if (!msg.interactions.readTime) {
+    if (!msg.interactions.readTime || msg.always_display_as_new) {
       modifiers.push('message-unread');
     }
     return (
@@ -407,7 +414,7 @@ export class SupportHelpBubble extends HelpBubble {
 
           {this.state.messages.map((msg) => {
             const modifiers = ['message', 'message-clickable'];
-            if (!msg.interactions.readTime) {
+            if (!msg.interactions.readTime || msg.always_display_as_new) {
               modifiers.push('message-unread');
             }
             return this.renderSnippetRow(msg, this.onSelectMessage.bind(this));
@@ -422,7 +429,11 @@ export class SupportHelpBubble extends HelpBubble {
       <bem.HelpBubble__popup>
         <bem.HelpBubble__popupContent>
           {this.state.messages.map((msg) => {
-            if (msg.interactions.acknowledged) {
+            let locallyAcknowledged = this.state.locallyAcknowledgedMessageUids.has(msg.uid);
+            if (
+              (msg.always_display_as_new && locallyAcknowledged)
+              || (!msg.always_display_as_new && msg.interactions.acknowledged)
+            ) {
               return;
             }
 

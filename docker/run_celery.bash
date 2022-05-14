@@ -7,7 +7,7 @@ source /etc/profile
 # according to the user's preference saved by django-constance
 cd "${KPI_SRC_DIR}"
 
-exec celery worker -A kobo --loglevel=info \
+exec celery -A kobo worker --loglevel=info \
     --hostname=kpi_main_worker@%h \
     --logfile=${KPI_LOGS_DIR}/celery.log \
     --pidfile=/tmp/celery.pid \
@@ -15,4 +15,3 @@ exec celery worker -A kobo --loglevel=info \
     --uid=${UWSGI_USER} \
     --gid=${UWSGI_GROUP} \
     --autoscale 2,2
-

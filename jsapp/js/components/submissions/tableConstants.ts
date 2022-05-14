@@ -15,7 +15,7 @@ export const EXCLUDED_COLUMNS = [
   '_attachments',
   '_notes',
   '_bamboo_dataset_id',
-  // '_status' is always 'submitted_via_web' unless submitted in bulk;
+  // '_status' is always 'submitted_via_web' unless submitted in bulk
   // in that case, it's 'zip'
   '_status',
   'formhub/uuid',
@@ -54,7 +54,11 @@ export const TABLE_MEDIA_TYPES = createEnum([
 
 export const DEFAULT_DATA_CELL_WIDTH = 140;
 
-export const CELLS_WIDTH_OVERRIDES = {};
+interface CellsWidthOverrides {
+  [key: string]: number;
+}
+
+export const CELLS_WIDTH_OVERRIDES: CellsWidthOverrides = {};
 CELLS_WIDTH_OVERRIDES[VALIDATION_STATUS_ID_PROP] = 125;
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.start] = 110;
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.end] = 110;
