@@ -30,6 +30,12 @@ class InAppMessage(models.Model):
         help_text='When published, this message appears to all users. '
                   'It otherwise appears only to the last editor'
     )
+    always_display_as_new = models.BooleanField(
+        default=False,
+        help_text='When enabled, this message reappears each time the '
+                  'application loads, even if it has already been '
+                  'acknowledged.'
+    )
     # Make the author deliberately set these dates to something valid
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
