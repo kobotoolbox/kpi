@@ -2,7 +2,10 @@
 import os
 import zipfile
 from collections import defaultdict
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import datetime
 import mock

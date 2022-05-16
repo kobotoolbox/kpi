@@ -30,6 +30,8 @@ azure-storage-blob==12.11.0
     # via django-storages
 backcall==0.2.0
     # via ipython
+backports-zoneinfo==0.2.1
+    # via -r dependencies/pip/requirements.in
 bcrypt==3.2.0
     # via paramiko
 begins==0.9
