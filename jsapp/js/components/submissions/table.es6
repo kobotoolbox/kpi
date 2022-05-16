@@ -703,7 +703,7 @@ export class DataTable extends React.Component {
         headerClassName: elClassNames.join(' '),
         width: this._getColumnWidth(key),
         Cell: (row) => {
-          if (showLabels && q && q.type && row.value) {
+          if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
 
