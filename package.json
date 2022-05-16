@@ -57,6 +57,7 @@
     "@types/mocha": "^9.1.1",
     "@types/react": "^16.14.13",
     "@types/react-dom": "^16.9.14",
+    "@types/react-mixin": "^2.0.32",
     "@types/react-router": "^3.0.25",
     "@types/react-select": "^4.0.18",
     "@types/reflux": "^6.4.3",
