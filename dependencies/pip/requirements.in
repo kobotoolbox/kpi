@@ -88,4 +88,4 @@ deepmerge
 django-trench==0.2.3
 
 # Python 3.8 support
-backports.zoneinfo
+backports.zoneinfo; python_version < '3.9'

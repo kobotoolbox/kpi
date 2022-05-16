@@ -24,7 +24,7 @@ azure-core==1.23.1
     # via azure-storage-blob
 azure-storage-blob==12.11.0
     # via django-storages
-backports-zoneinfo==0.2.1
+backports-zoneinfo==0.2.1; python_version < '3.9'
     # via -r dependencies/pip/requirements.in
 begins==0.9
     # via formpack
