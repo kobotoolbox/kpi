@@ -321,8 +321,6 @@ export default class ProjectExportsCreator extends React.Component {
     );
 
     const newSelectedRows = new Set(data.export_settings.fields);
-    // The `_uuid` is always required.
-    newSelectedRows.add(ADDITIONAL_SUBMISSION_PROPS._uuid);
 
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],

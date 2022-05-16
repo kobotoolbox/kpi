@@ -31,6 +31,10 @@ import type {
   SurveyChoice,
   Permission,
 } from 'js/dataInterface';
+import {
+  getSupplementalTranscriptPath,
+  getSupplementalTranslationPath,
+} from 'js/components/processing/processingUtils';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -511,20 +515,6 @@ export function renderQuestionTypeIcon(
   } else {
     return null;
   }
-}
-
-export function getSupplementalTranscriptPath(
-  questionName: string,
-  languageCode: string
-) {
-  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript/${languageCode}`;
-}
-
-export function getSupplementalTranslationPath(
-  questionName: string,
-  languageCode: string
-) {
-  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated/${languageCode}`;
 }
 
 /**

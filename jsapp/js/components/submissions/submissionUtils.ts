@@ -5,8 +5,6 @@ import {
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
   isRowProcessingEnabled,
-  getSupplementalTranscriptPath,
-  getSupplementalTranslationPath,
 } from 'js/assetUtils';
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import {
@@ -26,6 +24,12 @@ import type {
   SubmissionAttachment,
   AssetResponse,
 } from 'js/dataInterface';
+import {
+  getSupplementalTranscriptPath,
+  getSupplementalTranscriptColumnName,
+  getSupplementalTranslationPath,
+  getSupplementalTranslationColumnName,
+} from 'js/components/processing/processingUtils';
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -271,7 +275,7 @@ export function getSubmissionDisplayData(
           asset,
           submissionData,
           rowName,
-        )
+        );
         rowSupplementalResponses.forEach((resp) => {parentGroup.addChild(resp)})
       }
     }
@@ -517,28 +521,28 @@ export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
   path: string
 ) {
-  const pathArray = path.split('/')
+  const pathArray = path.split('/');
 
   if (pathArray[2] === 'transcript') {
     // There is always one transcript, not nested in language code object, thus
     // we don't need the language code in the path.
-    const transcriptLanguageCode = pathArray.pop()
-    const transcriptObj = _.get(submission, pathArray, '')
+    const transcriptLanguageCode = pathArray.pop();
+    const transcriptObj = _.get(submission, pathArray, '');
     if (
       transcriptObj.languageCode === transcriptLanguageCode &&
       typeof transcriptObj.value === 'string'
     ) {
-      return transcriptObj.value
+      return transcriptObj.value;
     }
-    return t('N/A')
+    return t('N/A');
   }
 
-  pathArray.push('value')
+  pathArray.push('value');
   // Moments like these makes you really apprecieate the beauty of lodash.
-  const value = _.get(submission, pathArray, '')
+  const value = _.get(submission, pathArray, '');
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
-  return value || t('N/A')
+  return value || t('N/A');
 }
 
 /**
@@ -550,64 +554,47 @@ export function getSupplementalDetailsContent(
  * If there is potential for details, then it will return a full list of
  * DisplayResponses with existing values (falling back to empty strings).
  */
-function getRowSupplementalResponses(
+export function getRowSupplementalResponses(
   asset: AssetResponse,
   submissionData: SubmissionResponse,
   rowName: string,
 ): DisplayResponse[] {
-  const output: DisplayResponse[] = []
+  const output: DisplayResponse[] = [];
   if (isRowProcessingEnabled(asset.uid, rowName)) {
-    const advancedFeatures = asset.advanced_features
+    const advancedFeatures = asset.advanced_features;
 
-    if (
-      advancedFeatures.transcript !== undefined &&
-      advancedFeatures.transcript.languages !== undefined
-    ) {
+    if (advancedFeatures.transcript?.languages !== undefined) {
       advancedFeatures.transcript.languages.forEach((languageCode: string) => {
+        const path = getSupplementalTranscriptPath(rowName, languageCode);
         output.push(
           new DisplayResponse(
             null,
-            getColumnLabel(
-              asset,
-              getSupplementalTranscriptPath(rowName, languageCode),
-              false
-            ),
-            `${rowName}/transcript/${languageCode}`,
+            getColumnLabel(asset, path, false),
+            getSupplementalTranscriptColumnName(rowName, languageCode),
             undefined,
-            getSupplementalDetailsContent(
-              submissionData,
-              getSupplementalTranscriptPath(rowName, languageCode)
-            )
+            getSupplementalDetailsContent(submissionData, path)
           )
-        )
-      })
+        );
+      });
     }
 
-    if (
-      advancedFeatures.translated !== undefined &&
-      advancedFeatures.translated.languages !== undefined
-    ) {
+    if (advancedFeatures.translated?.languages !== undefined) {
       advancedFeatures.translated.languages.forEach((languageCode: string) => {
+        const path = getSupplementalTranslationPath(rowName, languageCode);
         output.push(
           new DisplayResponse(
             null,
-            getColumnLabel(
-              asset,
-              getSupplementalTranslationPath(rowName, languageCode),
-              false
-            ),
-            `${rowName}/transcript/${languageCode}`,
+            getColumnLabel(asset, path, false),
+            getSupplementalTranslationColumnName(rowName, languageCode),
             undefined,
-            getSupplementalDetailsContent(
-              submissionData,
-              getSupplementalTranslationPath(rowName, languageCode)
-            )
+            getSupplementalDetailsContent(submissionData, path)
           )
-        )
-      })
+        );
+      });
     }
   }
-  return output
+
+  return output;
 }
 
 /**
