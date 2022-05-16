@@ -168,7 +168,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return transcript value properly', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/transcript/fr'
+      '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr'
     );
     expect(test).to.equal('This is french transcript text.');
   });
@@ -176,7 +176,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return translation value properly', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/translated/pl'
+      '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl'
     );
     expect(test).to.equal('This is polish translation text.');
   });
@@ -196,25 +196,25 @@ describe('getRowSupplementalResponses', () => {
         data: 'This is french transcript text.',
         type: null,
         label: 'Secret password as an audio file - transcript (fr)',
-        name: 'Secret_password_as_an_audio_file/transcript_fr',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
       },
       {
         data: 'N/A',
         type: null,
         label: 'Secret password as an audio file - transcript (pl)',
-        name: 'Secret_password_as_an_audio_file/transcript_pl',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_pl',
       },
       {
         data: 'This is polish translation text.',
         type: null,
         label: 'Secret password as an audio file - translation (pl)',
-        name: 'Secret_password_as_an_audio_file/translated_pl',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl',
       },
       {
         data: 'This is german translation text.',
         type: null,
         label: 'Secret password as an audio file - translation (de)',
-        name: 'Secret_password_as_an_audio_file/translated_de',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_de',
       },
     ]);
   });

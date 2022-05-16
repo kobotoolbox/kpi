@@ -20,6 +20,7 @@ import {
   getRowName,
   injectSupplementalRowsIntoListOfRows,
 } from 'js/assetUtils';
+import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -43,28 +44,28 @@ export function getColumnLabel(
     question = asset.content.survey.find((o) => o.name === key || o.$autoname === key);
   }
 
+  // This identifies the supplemental details column.
   if (
     question === undefined &&
     questionPath[0] === SUPPLEMENTAL_DETAILS_PROP
   ) {
-    const flatPaths = getSurveyFlatPaths(asset.content?.survey);
+    const supplementalPathParts = getSupplementalPathParts(key);
     // Supplemental details keys are built like one of:
-    // - prefix / source question name / transcript
-    // - prefix / source question name / translated / language code
+    // - prefix / source question name / transcript _ language code
+    // - prefix / source question name / translated _ language code
     const sourceQuestionLabel = getColumnLabel(
       asset,
-      flatPaths[questionPath[1]],
+      supplementalPathParts.sourceRowName,
       showGroupName,
       translationIndex
     );
 
-    if (questionPath[2] === 'transcript') {
-      return `${sourceQuestionLabel} - ${t('transcript')} (${questionPath[3]})`;
-    } else if (questionPath[2] === 'translated') {
-      return `${sourceQuestionLabel} - ${t('translation')} (${questionPath[3]})`;
+    if (supplementalPathParts.isTranscript) {
+      return `${sourceQuestionLabel} - ${t('transcript')} (${supplementalPathParts.languageCode})`;
+    } else if (supplementalPathParts.isTranslation) {
+      return `${sourceQuestionLabel} - ${t('translation')} (${supplementalPathParts.languageCode})`;
     }
   }
-
 
   // NOTE: Some very old code has something to do with nonexistent/negative
   // translationIndex. No idea what is that. It does influences returned value.

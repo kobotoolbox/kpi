@@ -25,10 +25,9 @@ import type {
   AssetResponse,
 } from 'js/dataInterface';
 import {
+  getSupplementalPathParts,
   getSupplementalTranscriptPath,
-  getSupplementalTranscriptColumnName,
   getSupplementalTranslationPath,
-  getSupplementalTranslationColumnName,
 } from 'js/components/processing/processingUtils';
 
 export enum DisplayGroupTypeName {
@@ -510,8 +509,8 @@ export function getMediaAttachment(
 
 /**
  * Returns supplemental details for given path,
- * e.g. `_supplementalDetails/question_name/transcript/pl` or
- * e.g. `_supplementalDetails/question_name/translated/pl`.
+ * e.g. `_supplementalDetails/question_name/transcript_pl` or
+ * e.g. `_supplementalDetails/question_name/translated_pl`.
  *
  * NOTE: transcripts are actually not nested on language level (because there
  * can be only one transcript), but we need to use paths with languages in it
@@ -522,14 +521,17 @@ export function getSupplementalDetailsContent(
   path: string
 ) {
   const pathArray = path.split('/');
+  const pathParts = getSupplementalPathParts(path);
 
-  if (pathArray[2] === 'transcript') {
+  // Separate route for getting transcripts value.
+  if (pathParts.isTranscript) {
     // There is always one transcript, not nested in language code object, thus
-    // we don't need the language code in the path.
-    const transcriptLanguageCode = pathArray.pop();
+    // we don't need the language code in the last element of the path.
+    pathArray.pop();
+    pathArray.push('transcript');
     const transcriptObj = _.get(submission, pathArray, '');
     if (
-      transcriptObj.languageCode === transcriptLanguageCode &&
+      transcriptObj.languageCode === pathParts.languageCode &&
       typeof transcriptObj.value === 'string'
     ) {
       return transcriptObj.value;
@@ -537,6 +539,13 @@ export function getSupplementalDetailsContent(
     return t('N/A');
   }
 
+  // The last element is `translated_<language code>`, but we don't want
+  // the underscore to be there.
+  pathArray.pop();
+  pathArray.push('translated');
+  pathArray.push(pathParts.languageCode);
+
+  // Then we add one more nested level
   pathArray.push('value');
   // Moments like these makes you really apprecieate the beauty of lodash.
   const value = _.get(submission, pathArray, '');
@@ -570,7 +579,7 @@ export function getRowSupplementalResponses(
           new DisplayResponse(
             null,
             getColumnLabel(asset, path, false),
-            getSupplementalTranscriptColumnName(rowName, languageCode),
+            path,
             undefined,
             getSupplementalDetailsContent(submissionData, path)
           )
@@ -585,7 +594,7 @@ export function getRowSupplementalResponses(
           new DisplayResponse(
             null,
             getColumnLabel(asset, path, false),
-            getSupplementalTranslationColumnName(rowName, languageCode),
+            path,
             undefined,
             getSupplementalDetailsContent(submissionData, path)
           )
