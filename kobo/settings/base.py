@@ -529,6 +529,7 @@ if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
     CSP_SCRIPT_SRC.append(google_domain)
     CSP_CONNECT_SRC.append(google_domain)
+    CSP_IMG_SRC.append(google_domain)
 if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
