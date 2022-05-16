@@ -54,6 +54,7 @@ if SESSION_COOKIE_DOMAIN:
     # The trusted CSRF origins must encompass Enketo's subdomain. See
     # https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-CSRF_TRUSTED_ORIGINS
     CSRF_TRUSTED_ORIGINS = [SESSION_COOKIE_DOMAIN]
+ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
 SESSION_COOKIE_AGE = 604800
@@ -641,10 +642,14 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
 
+
 ''' Storage configuration '''
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
+    # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+        # Force usage of custom S3 tellable Storage
+        DEFAULT_FILE_STORAGE = 'kobo.apps.storage_backends.s3boto3.S3Boto3Storage'
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
         AWS_DEFAULT_ACL = 'private'
@@ -656,6 +661,16 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
+    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
+        PRIVATE_STORAGE_CLASS = \
+            'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
+        PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
+        AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
+        AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
+        AZURE_CONTAINER = env.str('AZURE_CONTAINER')
+        AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
+        AZURE_OVERWRITE_FILES = True
+
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
@@ -786,7 +801,13 @@ if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, journal=True, tz_aware=True, connect=False)
+    MONGO_CONNECTION_URL,
+    journal=True,
+    tz_aware=True,
+    connect=False,
+    tls=env.bool('MONGO_USE_TLS', False),
+    tlsCAFile=env.str('MONGO_TLS_CA_FILE', None),
+)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 # If a request or task makes a database query and then times out, the database
