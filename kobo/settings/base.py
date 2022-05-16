@@ -718,8 +718,8 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-
-if (os.getenv("RAVEN_DSN") or "") != "":
+sentry_dsn = env.str("SENTRY_DSN", env.str("RAVEN_DSN", None))
+if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -731,13 +731,13 @@ if (os.getenv("RAVEN_DSN") or "") != "":
         event_level=logging.WARNING  # Send warnings as events
     )
     sentry_sdk.init(
-        dsn=os.environ['RAVEN_DSN'],
+        dsn=sentry_dsn,
         integrations=[
             DjangoIntegration(),
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=0.2,
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", 0.05),
         send_default_pii=True
     )
 
