@@ -718,7 +718,7 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-sentry_dsn = env.str("SENTRY_DSN", env.str("RAVEN_DSN", None))
+sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
 if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
@@ -737,7 +737,7 @@ if sentry_dsn:
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", 0.05),
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
         send_default_pii=True
     )
 
