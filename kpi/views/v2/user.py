@@ -1,9 +1,11 @@
 # coding: utf-8
 from django.contrib.auth.models import User
+from django.db.models import F
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.pagination import LimitOffsetPagination
 
 from kpi.tasks import sync_kobocat_xforms
 from kpi.models.authorized_application import ApplicationTokenAuthentication
@@ -19,13 +21,34 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    pagination_class = LimitOffsetPagination
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.authentication_classes += [ApplicationTokenAuthentication]
 
     def list(self, request, *args, **kwargs):
-        raise exceptions.PermissionDenied()
+        if not request.user.is_superuser:
+            raise exceptions.PermissionDenied()
+        queryset = self.queryset.annotate(
+            mfa_is_active=F('mfa_methods__is_active'),
+            metadata=F('extra_details__data'),
+        ).values(
+            'id',
+            'username',
+            'is_superuser',
+            'is_staff',
+            'date_joined',
+            'last_login',
+            'first_name',
+            'last_name',
+            'is_active',
+            'email',
+            'mfa_is_active',
+            'metadata',
+        )
+        page = self.paginate_queryset(queryset)
+        return self.get_paginated_response(queryset)
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],
