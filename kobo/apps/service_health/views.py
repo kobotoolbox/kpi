@@ -81,11 +81,22 @@ def service_health(request):
         rset = settings.SESSION_REDIS
         success = Redis(socket_timeout=1).from_url(rset['url']).ping()
         any_failure = not success
-        redis_message = 'OK'
+        redis_cache_message = 'OK'
     except Exception as e:
         any_failure = True
-        redis_message = repr(e)
-    redis_time = time.time() - t0
+        redis_cache_message = repr(e)
+    redis_cache_time = time.time() - t0
+
+    t0 = time.time()
+    try:
+        redis_main_url = settings.CELERY_BROKER_URL
+        success = Redis(socket_timeout=1).from_url(redis_main_url).ping()
+        any_failure = not success
+        redis_main_message = 'OK'
+    except Exception as e:
+        any_failure = True
+        redis_main_message = repr(e)
+    redis_main_time = time.time() - t0
 
     output = (
         '{} KPI\r\n\r\n'
@@ -94,13 +105,15 @@ def service_health(request):
         'Enketo [{}]: {} in {:.3} seconds\r\n'
         'KoBoCAT [{}]: {} in {:.3} seconds\r\n'
         'Redis Cache {} in {:.3} seconds\r\n'
+        'Redis Main {} in {:.3} seconds\r\n' 
     ).format(
         'FAIL' if any_failure else 'OK',
         mongo_message, mongo_time,
         postgres_message, postgres_time,
         settings.ENKETO_INTERNAL_URL, enketo_message, enketo_time,
         settings.KOBOCAT_INTERNAL_URL, kobocat_message, kobocat_time,
-        redis_message, redis_time
+        redis_cache_message, redis_cache_time,
+        redis_main_message, redis_main_time
     )
 
     if kobocat_content:
