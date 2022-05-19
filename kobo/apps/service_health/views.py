@@ -89,7 +89,7 @@ def service_health(request):
 
     t0 = time.time()
     try:
-        redis_main_url = settings.CELERY_BROKER_URL
+        redis_main_url = settings.CELERY_BROKER_URL.replace('CERT_REQUIRED', 'required')
         success = Redis(socket_timeout=1).from_url(redis_main_url).ping()
         any_failure = not success
         redis_main_message = 'OK'
