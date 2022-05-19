@@ -645,12 +645,16 @@ if os.environ.get('EMAIL_USE_TLS'):
 
 
 ''' AWS configuration (email and storage) '''
-if os.environ.get('AWS_ACCESS_KEY_ID'):
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
-    AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+if env.str('AWS_ACCESS_KEY_ID', False):
+    AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
+    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+    # Only set the region if it is present in environment.
+    if region := env.str('AWS_S3_REGION_NAME', False):
+        AWS_S3_REGION_NAME = region
 
 ''' Storage configuration '''
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
