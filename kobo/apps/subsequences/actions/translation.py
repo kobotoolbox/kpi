@@ -1,6 +1,7 @@
 from django.utils import timezone
 
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+from kobo.apps.subsequences.constants import GOOGLETX
 
 TRANSLATED = 'translated'
 
@@ -101,6 +102,14 @@ class TranslationAction(BaseAction):
                 '$ref': '#/definitions/translationRevision'
             }}
         }
+        defs['_googletx'] = {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'enum': ['requested', 'in_progress', 'complete'],
+                }
+            }
+        }
         defs['xtranslation'] = {
             'type': 'object',
             'additionalProperties': False,
@@ -137,6 +146,9 @@ class TranslationAction(BaseAction):
             field_def['properties'][self.ID] = {
                 '$ref': '#/definitions/translation'
             }
+            field_def['properties'][GOOGLETX] = {
+                '$ref': '#/definitions/_googletx',
+            }
             schema['properties'][field] = field_def
         schema['definitions'] = defs
         return schema
@@ -167,3 +179,16 @@ class TranslationAction(BaseAction):
             'details': 'A human provided translation'
         }
         yield (manual_name, manual_engine)
+
+    def record_repr(self, record):
+        if len(record.keys()) == 1:
+            return [*record.values()][0].get('value')
+
+    def auto_request_repr(self, erecord):
+        lang_code = [*erecord.values()][0]['languageCode']
+        return {
+            GOOGLETX: {
+                'status': 'requested',
+                'languageCode': lang_code,
+            }
+        }

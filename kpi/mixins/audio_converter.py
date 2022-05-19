@@ -5,15 +5,15 @@ from kpi.exceptions import FFMpegException, NotSupportedFormatException
 from kpi.utils.log import logging
 
 
-class MP3ConverterMixin:
+class ConverterMixin:
 
-    CONVERSION_AUDIO_FORMAT = 'mp3'
+    AVAILABLE_CONVERSIONS = ('mp3', 'flac')
     SUPPORTED_CONVERTED_FORMAT = (
         'audio',
         'video',
     )
 
-    def get_mp3_content(self) -> bytes:
+    def get_converter_content(self, file_format) -> bytes:
         """
         Convert and return MP3 content of File object located at
         `self.absolute_path`.
@@ -36,8 +36,9 @@ class MP3ConverterMixin:
             '/usr/bin/ffmpeg',
             '-i',
             self.absolute_path,
+            '-vn',
             '-f',
-            self.CONVERSION_AUDIO_FORMAT,
+            file_format,
             'pipe:1',
         ]
 
