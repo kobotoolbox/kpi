@@ -24,7 +24,7 @@ class RedisHelper:
         """
 
         redis_connection_url = os.getenv('REDIS_SESSION_URL', default)
-        match = re.match(r'redis[s]?://(:(?P<password>[^@]*)@)?(?P<host>[^:]+):(?P<port>\d+)(/(?P<index>\d+))?',
+        match = re.match(r'redis[s]?://(default)?(:(?P<password>[^@]*)@)?(?P<host>[^:]+):(?P<port>\d+)(/(?P<index>\d+))?',
                          redis_connection_url)
         if not match:
             raise ImproperlyConfigured("Could not parse Redis session URL. "
@@ -36,12 +36,12 @@ class RedisHelper:
             password = unquote_plus(match.group('password'))
 
         redis_connection_dict = {
-            'host': match.group('host'),
-            'port': match.group('port'),
-            'db': match.group('index') or 0,
-            'password': password,
-            'prefix': os.getenv('REDIS_SESSION_PREFIX', 'session'),
-            'socket_timeout': os.getenv('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+            # 'host': match.group('host'),
+            # 'port': match.group('port'),
+            # 'db': match.group('index') or 0,
+            # 'password': password,
+            # 'prefix': os.getenv('REDIS_SESSION_PREFIX', 'session'),
+            # 'socket_timeout': os.getenv('REDIS_SESSION_SOCKET_TIMEOUT', 1),
             'url': os.getenv('REDIS_SESSION_URL', default)
         }
         return redis_connection_dict

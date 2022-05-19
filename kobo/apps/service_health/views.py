@@ -1,6 +1,7 @@
 # coding: utf-8
 import requests
 import time
+from redis import Redis
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -75,18 +76,31 @@ def service_health(request):
     any_failure = True if failure else any_failure
     kobocat_time = time.time() - t0
 
+    t0 = time.time()
+    try:
+        rset = settings.SESSION_REDIS
+        success = Redis(socket_timeout=1).from_url(rset['url']).ping()
+        any_failure = not success
+        redis_message = 'OK'
+    except Exception as e:
+        any_failure = True
+        redis_message = repr(e)
+    redis_time = time.time() - t0
+
     output = (
         '{} KPI\r\n\r\n'
         'Mongo: {} in {:.3} seconds\r\n'
         'Postgres: {} in {:.3} seconds\r\n'
         'Enketo [{}]: {} in {:.3} seconds\r\n'
         'KoBoCAT [{}]: {} in {:.3} seconds\r\n'
+        'Redis Cache {} in {:.3} seconds\r\n'
     ).format(
         'FAIL' if any_failure else 'OK',
         mongo_message, mongo_time,
         postgres_message, postgres_time,
         settings.ENKETO_INTERNAL_URL, enketo_message, enketo_time,
-        settings.KOBOCAT_INTERNAL_URL, kobocat_message, kobocat_time
+        settings.KOBOCAT_INTERNAL_URL, kobocat_message, kobocat_time,
+        redis_message, redis_time
     )
 
     if kobocat_content:
