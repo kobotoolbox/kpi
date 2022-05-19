@@ -24,7 +24,7 @@ class RedisHelper:
         """
 
         redis_connection_url = os.getenv('REDIS_SESSION_URL', default)
-        match = re.match(r'redis://(:(?P<password>[^@]*)@)?(?P<host>[^:]+):(?P<port>\d+)(/(?P<index>\d+))?',
+        match = re.match(r'redis[s]?://(:(?P<password>[^@]*)@)?(?P<host>[^:]+):(?P<port>\d+)(/(?P<index>\d+))?',
                          redis_connection_url)
         if not match:
             raise ImproperlyConfigured("Could not parse Redis session URL. "
