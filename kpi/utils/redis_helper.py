@@ -42,5 +42,6 @@ class RedisHelper:
             'password': password,
             'prefix': os.getenv('REDIS_SESSION_PREFIX', 'session'),
             'socket_timeout': os.getenv('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+            'url': os.getenv('REDIS_SESSION_URL', default)
         }
         return redis_connection_dict
