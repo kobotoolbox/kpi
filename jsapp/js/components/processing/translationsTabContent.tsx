@@ -21,8 +21,8 @@ export default class TranslationsTabContent extends React.Component<
   {},
   TranslationsTabContentState
 > {
-  constructor() {
-    super({});
+  constructor(props: {}) {
+    super(props);
 
     this.state = {
       // We want to always have a translation selected when there is at least
@@ -106,8 +106,18 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   selectModeAuto() {
-    // TODO: this will display an automated service selector that will
-    // ultimately produce a draft value.
+    const fromLanguageCode = (
+      singleProcessingStore.getSourceData()?.languageCode ||
+      singleProcessingStore.getTranscript()?.languageCode
+    );
+    const toLanguageCode = singleProcessingStore.getTranslationDraft()?.languageCode;
+
+    if (fromLanguageCode && toLanguageCode) {
+      singleProcessingStore.requestAutoTranslation(
+        fromLanguageCode,
+        toLanguageCode
+      );
+    }
   }
 
   back() {
@@ -321,6 +331,7 @@ export default class TranslationsTabContent extends React.Component<
           sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
           hiddenLanguages={this.getTranslationsLanguages()}
           suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
+          isDisabled={singleProcessingStore.isFetchingData}
         />
 
         <bem.ProcessingBody__footer>
@@ -331,6 +342,7 @@ export default class TranslationsTabContent extends React.Component<
             label={t('back')}
             startIcon='caret-left'
             onClick={this.back.bind(this)}
+            isDisabled={singleProcessingStore.isFetchingData}
           />
 
           <bem.ProcessingBody__footerRightButtons>
@@ -340,7 +352,7 @@ export default class TranslationsTabContent extends React.Component<
               size='m'
               label={t('manual')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={draft?.languageCode === undefined}
+              isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -349,8 +361,8 @@ export default class TranslationsTabContent extends React.Component<
               size='m'
               label={t('automatic')}
               onClick={this.selectModeAuto.bind(this)}
-              // TODO: This is disabled until we actually work on automated services integration.
-              isDisabled
+              isDisabled={draft?.languageCode === undefined}
+              isPending={singleProcessingStore.isFetchingData}
             />
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>

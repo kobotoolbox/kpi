@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
+import alertify from 'alertifyjs';
 import type {Location} from 'history';
 import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
 import {
@@ -18,6 +19,7 @@ import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
 import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 import type {
+  FailResponse,
   SubmissionResponse,
   AssetResponse,
   GetProcessingSubmissionsResponse,
@@ -136,11 +138,15 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranscript.completed.listen(this.onRequestAutoTranscriptCompleted.bind(this));
+    processingActions.requestAutoTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
     processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
     processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranslation.completed.listen(this.onRequestAutoTranslationCompleted.bind(this));
+    processingActions.requestAutoTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this));
 
     // We need the asset to be loaded for the store to work (we get the
@@ -403,7 +409,8 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onAnyCallFailed() {
+  private onAnyCallFailed(response: FailResponse) {
+    alertify.notify(response.responseText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
     this.trigger(this.data);
@@ -428,6 +435,11 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  private onRequestAutoTranscriptCompleted(data: any) {
+    // TODO
+    console.log('onRequestAutoTranscriptCompleted', data);
+  }
+
   private onSetTranslationCompleted(newTranslations: Transx[]) {
     this.isFetchingData = false;
     this.data.translations = newTranslations;
@@ -435,6 +447,11 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.trigger(this.data);
+  }
+
+  private onRequestAutoTranslationCompleted(data: any) {
+    // TODO
+    console.log('onRequestAutoTranslationCompleted', data);
   }
 
   /**
@@ -505,6 +522,17 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  requestAutoTranscript(languageCode: string) {
+    this.isFetchingData = true;
+    processingActions.requestAutoTranscript(
+      this.currentAssetUid,
+      this.currentQuestionName,
+      this.currentSubmissionUuid,
+      languageCode
+    );
+    this.trigger(this.data);
+  }
+
   getTranscriptDraft() {
     return this.data.transcriptDraft;
   }
@@ -563,6 +591,21 @@ class SingleProcessingStore extends Reflux.Store {
       this.currentQuestionName,
       this.currentSubmissionUuid,
       languageCode
+    );
+    this.trigger(this.data);
+  }
+
+  requestAutoTranslation(
+    fromLanguageCode: string,
+    toLanguageCode: string,
+  ) {
+    this.isFetchingData = true;
+    processingActions.requestAutoTranslation(
+      this.currentAssetUid,
+      this.currentQuestionName,
+      this.currentSubmissionUuid,
+      fromLanguageCode,
+      toLanguageCode
     );
     this.trigger(this.data);
   }

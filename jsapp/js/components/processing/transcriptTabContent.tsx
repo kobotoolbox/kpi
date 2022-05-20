@@ -68,8 +68,10 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   selectModeAuto() {
-    // TODO: this will display an automated service selector that will
-    // ultimately produce a draft value.
+    const toLanguageCode = singleProcessingStore.getTranscriptDraft()?.languageCode;
+    if (toLanguageCode) {
+      singleProcessingStore.requestAutoTranscript(toLanguageCode);
+    }
   }
 
   back() {
@@ -206,6 +208,7 @@ export default class TranscriptTabContent extends React.Component<
             label={t('back')}
             startIcon='caret-left'
             onClick={this.back.bind(this)}
+            isDisabled={singleProcessingStore.isFetchingData}
           />
 
           <bem.ProcessingBody__footerRightButtons>
@@ -215,7 +218,7 @@ export default class TranscriptTabContent extends React.Component<
               size='m'
               label={t('manual')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={draft?.languageCode === undefined}
+              isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -224,16 +227,8 @@ export default class TranscriptTabContent extends React.Component<
               size='m'
               label={t('automatic')}
               onClick={this.selectModeAuto.bind(this)}
-              /*
-              POST:
-              {
-                "googletx": {
-                  "status": "requested",
-                  "languageCode": "zh",
-                }
-              }
-              will initiate the automatic translation
-              */
+              isDisabled={draft?.languageCode === undefined}
+              isPending={singleProcessingStore.isFetchingData}
             />
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>

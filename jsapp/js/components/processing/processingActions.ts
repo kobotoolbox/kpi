@@ -46,6 +46,17 @@ interface TranscriptRequestQuestion {
   transcript: TransxRequestObject;
 }
 
+interface AutoTranscriptRequest {
+  [questionName: string]: AutoTranscriptRequestQuestion | string | undefined;
+  submission?: string;
+}
+interface AutoTranscriptRequestQuestion {
+  googlets: {
+    status: 'requested';
+    languageCode: string;
+  };
+}
+
 interface TranslationRequest {
   [questionName: string]: TranslationRequestQuestion | string | undefined;
   submission?: string;
@@ -55,6 +66,17 @@ interface TranslationRequestQuestion {
 }
 interface TranslationsRequestObject {
   [languageCode: string]: TransxRequestObject;
+}
+
+interface AutoTranslationRequest {
+  [questionName: string]: AutoTranslationRequestQuestion | string | undefined;
+  submission?: string;
+}
+interface AutoTranslationRequestQuestion {
+  googletx: {
+    status: 'requested';
+    languageCode: string;
+  };
 }
 
 export interface ProcessingDataResponse {
@@ -70,10 +92,14 @@ const processingActions = Reflux.createActions({
       'failed',
     ],
   },
+  // Transcript stuff
   setTranscript: {children: ['completed', 'failed']},
   deleteTranscript: {children: ['completed', 'failed']},
+  requestAutoTranscript: {children: ['completed', 'failed']},
+  // Translation stuff
   setTranslation: {children: ['completed', 'failed']},
   deleteTranslation: {children: ['completed', 'failed']},
+  requestAutoTranslation: {children: ['completed', 'failed']},
 });
 
 /**
@@ -282,6 +308,40 @@ processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error');
 });
 
+processingActions.requestAutoTranscript.listen((
+  assetUid: string,
+  questionName: string,
+  submissionUuid: string,
+  languageCode: string
+) => {
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (processingUrl === undefined) {
+    processingActions.requestAutoTranscript.failed(NO_FEATURE_ERROR);
+  } else {
+    const data: AutoTranscriptRequest = {
+      submission: submissionUuid,
+    };
+    data[questionName] = {
+      googlets: {
+        status: 'requested',
+        languageCode: languageCode,
+      },
+    };
+
+    $.ajax({
+      dataType: 'json',
+      contentType: 'application/json',
+      method: 'POST',
+      url: processingUrl,
+      data: JSON.stringify(data),
+    })
+      .done((response: ProcessingDataResponse) => {
+        processingActions.requestAutoTranscript.completed(response);
+      })
+      .fail(processingActions.requestAutoTranscript.failed);
+  }
+});
+
 function pickTranslationsFromProcessingDataResponse(
   response: ProcessingDataResponse,
   questionName: string
@@ -458,6 +518,42 @@ processingActions.deleteTranslation.listen((
 });
 processingActions.deleteTranslation.failed.listen(() => {
   notify(t('Failed to delete translation.'), 'error');
+});
+
+processingActions.requestAutoTranslation.listen((
+  assetUid: string,
+  questionName: string,
+  submissionUuid: string,
+  fromLanguageCode: string,
+  toLanguageCode: string
+) => {
+  console.log('requestAutoTranslation', fromLanguageCode, toLanguageCode);
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (processingUrl === undefined) {
+    processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR);
+  } else {
+    const data: AutoTranslationRequest = {
+      submission: submissionUuid,
+    };
+    data[questionName] = {
+      googletx: {
+        status: 'requested',
+        languageCode: toLanguageCode,
+      },
+    };
+
+    $.ajax({
+      dataType: 'json',
+      contentType: 'application/json',
+      method: 'POST',
+      url: processingUrl,
+      data: JSON.stringify(data),
+    })
+      .done((response: ProcessingDataResponse) => {
+        processingActions.requestAutoTranslation.completed(response);
+      })
+      .fail(processingActions.requestAutoTranslation.failed);
+  }
 });
 
 export default processingActions;
