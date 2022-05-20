@@ -224,8 +224,16 @@ export default class TranscriptTabContent extends React.Component<
               size='m'
               label={t('automatic')}
               onClick={this.selectModeAuto.bind(this)}
-              // TODO: This is disabled until we actually work on automated services integration.
-              isDisabled
+              /*
+              POST:
+              {
+                "googletx": {
+                  "status": "requested",
+                  "languageCode": "zh",
+                }
+              }
+              will initiate the automatic translation
+              */
             />
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
