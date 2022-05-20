@@ -777,28 +777,45 @@ TESTING = False
 
 
 ''' Auxiliary database configuration '''
-# KPI must connect to the same Mongo database as KoBoCAT
-MONGO_DATABASE = {
-    'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
-    'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
-    'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
-    'USER': os.environ.get('KPI_MONGO_USER', ''),
-    'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
-}
-if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
-        format(
-            user=MONGO_DATABASE['USER'],
-            password=quote_plus(MONGO_DATABASE['PASSWORD']),
-            host=MONGO_DATABASE['HOST'],
-            port=MONGO_DATABASE['PORT'],
-            db_name=MONGO_DATABASE['NAME']
-        )
+if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
+    # ToDo Remove all this block by the end of 2022.
+    #   Update kobo-install accordingly
+    logging.warning(
+        '`MONGO_DB_URL` is not found. '
+        '`KPI_MONGO_HOST`, `KPI_MONGO_PORT`, `KPI_MONGO_NAME`, '
+        '`KPI_MONGO_USER`, `KPI_MONGO_PASS` '
+        'are deprecated and will not be supported anymore soon.'
+    )
+
+    MONGO_DATABASE = {
+        'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
+        'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
+        'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
+        'USER': os.environ.get('KPI_MONGO_USER', ''),
+        'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
+    }
+
+    if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
+        MONGO_DB_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+            format(
+                user=MONGO_DATABASE['USER'],
+                password=quote_plus(MONGO_DATABASE['PASSWORD']),
+                host=MONGO_DATABASE['HOST'],
+                port=MONGO_DATABASE['PORT'],
+                db_name=MONGO_DATABASE['NAME']
+            )
+    else:
+        MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
+    mongo_db_name = MONGO_DATABASE['NAME']
 else:
-    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
-MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
-MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+    # Get collection name from the connection string, fallback on 'formhub' if
+    # it is empty or None
+    mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or 'formhub'
+
+mongo_client = MongoClient(
+    MONGO_DB_URL, connect=False, journal=True, tz_aware=True
+)
+MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
