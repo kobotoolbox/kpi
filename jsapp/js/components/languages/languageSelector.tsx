@@ -50,6 +50,7 @@ interface LanguageSelectorProps {
   hiddenLanguages?: string[];
   /** Triggered after language is selected or cleared. */
   onLanguageChange: (selectedLanguage: string | undefined) => void;
+  isDisabled?: boolean;
   /** Enables custom language feature. Disabled by default. */
   isCustomAllowed?: boolean;
 }
@@ -196,6 +197,7 @@ class LanguageSelector extends React.Component<
           size='m'
           label={(<span>{label}&nbsp;<small>({value})</small></span>)}
           onClick={this.selectLanguage.bind(this, value)}
+          isDisabled={this.props.isDisabled}
         />
       </li>
     );
@@ -216,6 +218,7 @@ class LanguageSelector extends React.Component<
 
         <bem.LanguageSelector__clearSelectedLanguage
           onClick={this.clearSelectedLanguage.bind(this)}
+          disabled={this.props.isDisabled}
         >
           <Icon name='close' size='s'/>
         </bem.LanguageSelector__clearSelectedLanguage>
@@ -258,11 +261,13 @@ class LanguageSelector extends React.Component<
             value={this.state.filterPhrase}
             onChange={this.onFilterPhraseChange.bind(this)}
             placeholder={t('Search for a language')}
+            disabled={this.props.isDisabled}
           />
 
           {this.state.filterPhrase !== '' &&
             <bem.LanguageSelector__clearSearchBox
               onClick={this.clearFilterPhrase.bind(this)}
+              disabled={this.props.isDisabled}
             >
               <Icon name='close' size='s'/>
             </bem.LanguageSelector__clearSearchBox>
@@ -327,6 +332,7 @@ class LanguageSelector extends React.Component<
                   {t('I want to use')}&nbsp;"<strong>{this.state.filterPhrase}</strong>"
                 </span>)}
                 onClick={this.selectLanguage.bind(this, this.state.filterPhrase)}
+                isDisabled={this.props.isDisabled}
               />
             </li>
           }
@@ -340,6 +346,7 @@ class LanguageSelector extends React.Component<
             size='s'
             onClick={this.openSupportPage.bind(this)}
             label={t('I cannot find my language')}
+            isDisabled={this.props.isDisabled}
           />
         </bem.LanguageSelector__helpBar>
       </React.Fragment>
