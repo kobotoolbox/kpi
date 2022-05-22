@@ -13,7 +13,7 @@ If you do not want to upgrade at this time, please use the [`shared-database-obs
 
 ## Python Dependencies
 
-Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip-tools`](https://github.com/jazzband/pip-tools/) package. The dependencies are listed in [`dependencies/pip/`](./dependencies/pip/), with core requirements in [`dependencies/pip/requirements.in`](./dependencies/pip/requirements.in). You may use `pip` directly with one of the compiled `dependencies/pip/*.txt` files, but consider using instead the `pip-sync`. **Do not** add new dependencies directly to the *compiled* `dependencies/pip/*.txt` files; instead, update the relevant the *source* `dependencies/pip/*.in` file(s), and execute `make pip_compile` after any changes. You can pass arguments to `pip-compile` with e.g. `make pip_compile ARGS='--upgrade-package=xlwt'`. To force building, use `make --always-make ...`.
+Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip-tools`](https://github.com/jazzband/pip-tools/) package. The dependencies are listed in [`dependencies/pip/`](./dependencies/pip/), with core requirements in [`dependencies/pip/requirements.in`](./dependencies/pip/requirements.in). You may use `pip` directly with one of the compiled `dependencies/pip/*.txt` files, but consider using instead the `pip-sync`. **Do not** add new dependencies directly to the _compiled_ `dependencies/pip/*.txt` files; instead, update the relevant the _source_ `dependencies/pip/*.in` file(s), and execute `make pip_compile` after any changes. You can pass arguments to `pip-compile` with e.g. `make pip_compile ARGS='--upgrade-package=xlwt'`. To force building, use `make --always-make ...`.
 
 ## Ubuntu 16.04 `apt` Dependencies
 
@@ -21,10 +21,10 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 
 ## Downloading and compiling the translations
 
-* Pull the submodule into the `locale` directory with `git submodule update`.
-* Optionally configure transifex to pull the latest translations into the `locale` directory with `tx pull --all`
-* Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
-* To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
+- Pull the submodule into the `locale` directory with `git submodule update`.
+- Optionally configure transifex to pull the latest translations into the `locale` directory with `tx pull --all`
+- Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
+- To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
 
 ## Searching
 
@@ -38,9 +38,10 @@ syntax, see the documentation at the top of
 
 ## Admin reports
 
-There are several types of data reports available to superusers. 
-* Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
-* Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`
+There are several types of data reports available to superusers.
+
+- Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
+- Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`
 
 ## Django Admin Interface
 
@@ -53,3 +54,18 @@ All project icons are kept in `jsapp/svg-icons/`. Adding new icon requires addin
 ## Supported Browsers
 
 See [browsers list config](./.browserslistrc)
+
+## Github Actions Workflows
+
+The `build.yml` script on the `.github.workflows` directory is responsible to promote changes to the kpi dev environment. It does that by a series of steps:
+
+- Build a new docker image from the source branch that triggered the workflow
+- Push that image to the image repository(ECR)
+- Run a helm upgrade command to make kubernetes pull and use the image with the new source code.
+
+This workflow is triggered by pushing a commit to a branch with the prefix `feat/*` or to `develop`.
+
+To create new workflows for different environments or isolated tasks please referr to the github action documentation(https://docs.github.com/en/actions) and add them to the `.github.workflows` directory.
+
+To follow the execution of a workflow please referr to
+[![Build Veritree API](https://github.com/tentree-org/veritree-toolbox-frontend/actions/workflows/build.yml/badge.svg)](https://github.com/tentree-org/veritree-toolbox-frontend/actions/workflows/build.yml)
