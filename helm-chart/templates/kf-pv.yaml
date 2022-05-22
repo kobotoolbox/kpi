@@ -1,0 +1,33 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: kf-sc
+provisioner: efs.csi.aws.com
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kf-pv
+spec:
+  capacity:
+    storage: {{ .Values.volume.media.size }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: kf-sc
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ .Values.volume.media.efsId }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kf-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: kf-sc
+  resources:
+    requests:
+      storage: {{ .Values.volume.media.size }}

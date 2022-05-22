@@ -1,0 +1,58 @@
+---
+name: Build kpi
+
+on:
+  push:
+    branches:
+      - develop
+      - "feat/**"
+      - "fix/**"
+
+env:
+  AWS_REGION: us-east-1
+  APP_VERSION: 0.0.1
+  EKS_CLUSTER: dev-us-east-1
+  AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+  ECR_REGISTRY: 311934536039.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPOSITORY: kf
+
+jobs:
+  build:
+    name: Build Veritree API docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout to repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: AWS CLI Login
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Login to K8S cluster
+        run: aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
+
+      - name: Build and push
+        uses: docker/build-push-action@v2.10.0
+        with:
+          context: .
+          network: host
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.APP_VERSION }}-${{ github.sha }}
+
+      - name: Deploy Dev
+        run: make -f Chart-Makefile helm-upgrade
