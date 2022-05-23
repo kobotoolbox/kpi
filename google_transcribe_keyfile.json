@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "kobo-nlp-asr-mt",
+  "private_key_id": "e17090c1992e62e2462789c34539be5079dacc9b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDCOJT06vPWmbxl\nUR0zuwK42GNS4gfdXvi/CXZqE2kHfMUloTHFJmNjXr0JOe/Y3D0EA5TbxwmhDnK2\nh+aN5RZdou3KQj2xaxOrYBHANCmByw9osXBwiPzDkkyNO3ez6D7nfFNZmBtlBXXt\n3sXR0z1G+pNbkswBwfYrW/WaUOWy5FFCGLVEWjhqxsGRa4g2yEdZDxImBNfuWMs9\nN/o2xx8vFHrhVgtiEfzd29iGVUR2XgFpsWwsJG1sbWTMtbQSTNMADenOZvKFpZQ/\nvy0Aceu0qkotvVUWsTOT73ebkhX7jgzrZ6QXSWLp6FqmNIIO+R3K4Bn5hcFiBmrw\nb4hojG1FAgMBAAECggEAEPV02D/tw7bP0v72sE4rii1m2tVev28sBC5U1yVTvfIg\nms0M9fyIoCQlGHmlHkf40fFoHZqvFg+XZ6XNNWWkAtAXuFn5XhUN9iBg3GoRl8I9\n2bPosALeI0uSgKCJLr3gREFAW+nitnr4Famml1A9IQX/OPdD9gFUN+wDMZLPw8Nx\n3oRdyNsB052OzpxbC56ZZJs8/3aSaMmLXe8z0My9ZB5+46ErOPMueuu/oqqywzPf\nd4kk9C1d2Q/Q3P8s2MAKAoPpSMOsSNqg0G72TPypgZ2aTYCsiuPoR5of2a+pu2Mm\n5jtN1/hEKK/oH12e1/Gr8zdfagtqrK1Bx098qmgC3wKBgQDxdmdGW3yon4ApzIyH\nF9T0ICfKVpfL/HI0YLw1hEBzfaCDZu/NldXGXjaRf2X7Vu10G0qTuAMLEwOhPJzd\nUSZ6EX/nA93jqxWkUoM+6tdxZAfg7F9t5dop+ATywCr45Fp7tk8/ZI2cXFcLEHqc\nEauHpFi66d++P8+PvPgqOrzhywKBgQDN6g7fYzoW3jRBMqrnFfl5xnayzxwUrLgU\nY/walv0fS+h1RPAIsPNi5Oq/3Kq7OcKzlOwuQ8G89vFLRuhf8Jjb8BoFLTlnaCeV\nbHM2fctlhde3pmGMCfeHySA0NQH+BPoRq9CRG8Sa6li01Pi4ZqHwvstuTB3IQd4r\ndC/b5BnLLwKBgQCwrEHEaQw9FPdhnhj0f6uBNEXo9pL63itxx5XuUmYWGsVnX9n2\nQru3+RdUPjMQQ/paCd33V5xibfcp8n+UL9xHVKaREXM5MeUT5ovBbXNVtCtPl6P7\ndUK7ko2MUK8gjXTnL+2sJJa44ZeOsPAFYahwBwAlQxpCyc3FDi9GNtQdIQKBgQDL\nfE2OPASfrJ5+/48cJf8PdCzAryLU24pdvCDaNfOWBfGGUcXTEOq0A/xn9a1Sr9XU\nmYp8fcDq+C2jckMY7C5iyncsPnDH24mihDWm19E0VnvCpM0pEoBm0z7b2LZLTKfC\n5sOJYqN7Y7KdoQjZUbMesa1fJiEYUN84mezhpBxJSQKBgQCDqWVVGDJ/yuM0F/fb\n7YT/fZ5WA+Z12Oz5mGINkTBR3YV+OCbYGz00+RT1UM0AWOsY0JFlbEUvgawnVbUK\n7Ip+BlUz0cpEfMnPIFu+03q89nWwpptO9DfBoUtY98u+zIS3zEGTPUmQU9OgPul8\nLF1JXFcXT10KwykSZQak1GtKUA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "jackie-testing@kobo-nlp-asr-mt.iam.gserviceaccount.com",
+  "client_id": "102133908775819844381",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/jackie-testing%40kobo-nlp-asr-mt.iam.gserviceaccount.com"
+}
