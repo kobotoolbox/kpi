@@ -106,17 +106,11 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   selectModeAuto() {
-    const fromLanguageCode = (
-      singleProcessingStore.getSourceData()?.languageCode ||
-      singleProcessingStore.getTranscript()?.languageCode
-    );
-    const toLanguageCode = singleProcessingStore.getTranslationDraft()?.languageCode;
-
-    if (fromLanguageCode && toLanguageCode) {
-      singleProcessingStore.requestAutoTranslation(
-        fromLanguageCode,
-        toLanguageCode
-      );
+    // Currently we only support automatic translation from transcript language,
+    // but we should also allow to use the source data language.
+    const languageCode = singleProcessingStore.getTranslationDraft()?.languageCode;
+    if (languageCode) {
+      singleProcessingStore.requestAutoTranslation(languageCode);
     }
   }
 

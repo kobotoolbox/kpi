@@ -14,11 +14,31 @@ const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabl
 // character as value.
 const DELETE_CHAR = '⌫';
 
+interface GoogleTsResponse {
+  status: 'complete';
+  /** Full transcript text. */
+  value: string;
+  /** Transcript text split into chunks - scored by transcription quality. */
+  fullResponse: Array<{
+    transcript: string;
+    confidence: number;
+  }>;
+  languageCode: string;
+}
+
+interface GoogleTxResponse {
+  status: 'complete';
+  value: string;
+  languageCode: string;
+}
+
 interface TransxQuestion {
   transcript: TransxObject;
   translated: {
     [languageCode: string]: TransxObject;
   };
+  googlets?: GoogleTsResponse;
+  googletx?: GoogleTxResponse;
 }
 /** Both transcript and translation are built in same way. */
 interface TransxRequestObject {
@@ -524,10 +544,8 @@ processingActions.requestAutoTranslation.listen((
   assetUid: string,
   questionName: string,
   submissionUuid: string,
-  fromLanguageCode: string,
-  toLanguageCode: string
+  languageCode: string
 ) => {
-  console.log('requestAutoTranslation', fromLanguageCode, toLanguageCode);
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
     processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR);
@@ -538,7 +556,7 @@ processingActions.requestAutoTranslation.listen((
     data[questionName] = {
       googletx: {
         status: 'requested',
-        languageCode: toLanguageCode,
+        languageCode: languageCode,
       },
     };
 

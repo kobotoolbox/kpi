@@ -435,9 +435,18 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptCompleted(data: any) {
-    // TODO
-    console.log('onRequestAutoTranscriptCompleted', data);
+  private onRequestAutoTranscriptCompleted(response: ProcessingDataResponse) {
+    const googleTsResponse = response[this.currentQuestionName]?.googlets;
+
+    this.isFetchingData = false;
+    if (
+      googleTsResponse &&
+      this.data.transcriptDraft &&
+      googleTsResponse.languageCode === this.data.transcriptDraft.languageCode
+    ) {
+      this.data.transcriptDraft.value = googleTsResponse.value;
+    }
+    this.trigger(this.data);
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
@@ -449,9 +458,18 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranslationCompleted(data: any) {
-    // TODO
-    console.log('onRequestAutoTranslationCompleted', data);
+  private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
+    const googleTxResponse = response[this.currentQuestionName]?.googletx;
+
+    this.isFetchingData = false;
+    if (
+      googleTxResponse &&
+      this.data.translationDraft &&
+      googleTxResponse.languageCode === this.data.translationDraft.languageCode
+    ) {
+      this.data.translationDraft.value = googleTxResponse.value;
+    }
+    this.trigger(this.data);
   }
 
   /**
@@ -595,17 +613,13 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  requestAutoTranslation(
-    fromLanguageCode: string,
-    toLanguageCode: string,
-  ) {
+  requestAutoTranslation(languageCode: string) {
     this.isFetchingData = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
       this.currentQuestionName,
       this.currentSubmissionUuid,
-      fromLanguageCode,
-      toLanguageCode
+      languageCode
     );
     this.trigger(this.data);
   }
@@ -617,7 +631,9 @@ class SingleProcessingStore extends Reflux.Store {
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
     // We use transcript as source by default.
-    this.data.source = this.data.transcript?.languageCode;
+    if (this.data.source === undefined) {
+      this.data.source = this.data.transcript?.languageCode;
+    }
     this.trigger(this.data);
   }
 
