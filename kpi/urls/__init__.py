@@ -6,11 +6,13 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
+from hub.views import PasswordResetFormWithUsernameView
 from kobo.apps.superuser_stats.views import (
     user_report,
     country_report,
     retrieve_reports,
 )
+from kpi.forms.password_reset import PasswordResetFormWithUsername
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
@@ -42,6 +44,14 @@ urlpatterns = [
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
+    path(
+        'accounts/password/reset/',
+        PasswordResetFormWithUsernameView.as_view(
+            form_class=PasswordResetFormWithUsername
+        ),
+        name='password_reset',
+    ),
+    path('', include('django.contrib.auth.urls')),
     re_path(r'^accounts/login/mfa/', MFATokenView.as_view(), name='mfa_token'),
     re_path(r'^accounts/login/', MFALoginView.as_view(), name='kobo_login'),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
