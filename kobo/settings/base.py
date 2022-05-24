@@ -223,10 +223,11 @@ CONSTANCE_CONFIG = {
         True,
         'Enable two-factor authentication',
     ),
-    'NLP_USER_WHITELIST': (
+    'ASR_MT_INVITEE_USERNAMES': (
         '',
-        'List of whitelisted usernames who will have access to ASR/MT '
-        'automatic processing for NLP.\nOne per line.'
+        'List of invited usernames, one per line, who will have access to NLP '
+        'ASR/MT processing via external (costly) APIs. Enter * to invite '
+        'all users'
     ),
     'USER_METADATA_FIELDS': (
         json.dumps([
