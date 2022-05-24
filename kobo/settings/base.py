@@ -635,12 +635,16 @@ if os.environ.get('EMAIL_USE_TLS'):
 
 
 ''' AWS configuration (email and storage) '''
-if os.environ.get('AWS_ACCESS_KEY_ID'):
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
-    AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+if env.str('AWS_ACCESS_KEY_ID', False):
+    AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
+    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+    # Only set the region if it is present in environment.
+    if region := env.str('AWS_S3_REGION_NAME', False):
+        AWS_S3_REGION_NAME = region
 
 
 ''' Storage configuration '''
@@ -781,34 +785,43 @@ TESTING = False
 
 
 ''' Auxiliary database configuration '''
-# KPI must connect to the same Mongo database as KoBoCAT
-MONGO_DATABASE = {
-    'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
-    'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
-    'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
-    'USER': os.environ.get('KPI_MONGO_USER', ''),
-    'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
-}
-if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
-        format(
-            user=MONGO_DATABASE['USER'],
-            password=quote_plus(MONGO_DATABASE['PASSWORD']),
-            host=MONGO_DATABASE['HOST'],
-            port=MONGO_DATABASE['PORT'],
-            db_name=MONGO_DATABASE['NAME']
-        )
+if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
+    # ToDo Remove all this block by the end of 2022.
+    #   Update kobo-install accordingly
+    logging.warning(
+        '`MONGO_DB_URL` is not found. '
+        '`KPI_MONGO_HOST`, `KPI_MONGO_PORT`, `KPI_MONGO_NAME`, '
+        '`KPI_MONGO_USER`, `KPI_MONGO_PASS` '
+        'are deprecated and will not be supported anymore soon.'
+    )
+
+    MONGO_DATABASE = {
+        'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
+        'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
+        'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
+        'USER': os.environ.get('KPI_MONGO_USER', ''),
+        'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
+    }
+
+    if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
+        MONGO_DB_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+            format(
+                user=MONGO_DATABASE['USER'],
+                password=quote_plus(MONGO_DATABASE['PASSWORD']),
+                host=MONGO_DATABASE['HOST'],
+                port=MONGO_DATABASE['PORT'],
+                db_name=MONGO_DATABASE['NAME']
+            )
+    else:
+        MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
+    mongo_db_name = MONGO_DATABASE['NAME']
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
-MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL,
-    journal=True,
-    tz_aware=True,
-    connect=False,
-    tls=env.bool('MONGO_USE_TLS', False),
-    tlsCAFile=env.str('MONGO_TLS_CA_FILE', None),
+
+mongo_client = MongoClient(
+    MONGO_DB_URL, connect=False, journal=True, tz_aware=True
 )
-MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
