@@ -42,6 +42,9 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
                 continue
             else:
                 if asr_mt_request:
+                    # This is temporary code, and anyone here is trying to
+                    # abuse the API, so don't bother translators with the
+                    # message string
                     raise PermissionDenied('ASR/MT features are not available')
 
 
