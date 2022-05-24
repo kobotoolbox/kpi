@@ -223,6 +223,11 @@ CONSTANCE_CONFIG = {
         True,
         'Enable two-factor authentication',
     ),
+    'NLP_USER_WHITELIST': (
+        '',
+        'List of whitelisted usernames who will have access to ASR/MT '
+        'automatic processing for NLP.\nOne per line.'
+    ),
     'USER_METADATA_FIELDS': (
         json.dumps([
             {'name': 'organization', 'required': False},

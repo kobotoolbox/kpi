@@ -58,6 +58,9 @@ class EnvironmentView(APIView):
                 value = processor(value)
             data[key.lower()] = value
 
+        nlp_whitelist = constance.config.NLP_USER_WHITELIST.split('\n')
+
+        data['nlp_features_enabled'] = request.user.username in nlp_whitelist
         data['country_choices'] = COUNTRIES
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
