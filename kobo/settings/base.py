@@ -816,7 +816,9 @@ if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
         MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
     mongo_db_name = MONGO_DATABASE['NAME']
 else:
-    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
+    # Get collection name from the connection string, fallback on 'formhub' if
+    # it is empty or None
+    mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or 'formhub'
 
 mongo_client = MongoClient(
     MONGO_DB_URL, connect=False, journal=True, tz_aware=True
