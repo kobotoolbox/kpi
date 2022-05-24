@@ -64,7 +64,7 @@ def get_org_sponsors_list(access_token: str, org_id: int):
     response = requests.get(SPONSORS_API, params=params, headers=get_headers_for_veritree_request(access_token))
     content = parse_veritree_response(response)
     if content:
-        sponsors_dict = {}
+        sponsors_dict = {'Veritree': {"id": 0, "name": 'Veritree'}} #Initialize with the Veritree reseller
         for sponsor in content:
             try:
                 sponsor_name = sponsor['name']
