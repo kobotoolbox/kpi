@@ -190,7 +190,7 @@ export default class TranscriptTabContent extends React.Component<
     const draft = singleProcessingStore.getTranscriptDraft();
 
     const typeLabel = this.props.questionType || t('source file');
-    const languageSelectorTitle = t('Please selet the original language of the ##type##').replace('##type##', typeLabel);
+    const languageSelectorTitle = t('Please select the original language of the ##type##').replace('##type##', typeLabel);
 
     return (
       <bem.ProcessingBody m='config'>

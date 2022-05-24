@@ -320,7 +320,7 @@ export default class TranslationsTabContent extends React.Component<
     return (
       <bem.ProcessingBody m='config'>
         <LanguageSelector
-          titleOverride={t('Please selet the language you want to translate to')}
+          titleOverride={t('Please select the language you want to translate to')}
           onLanguageChange={this.onLanguageChange.bind(this)}
           sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
           hiddenLanguages={this.getTranslationsLanguages()}
