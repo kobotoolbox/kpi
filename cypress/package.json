@@ -1,0 +1,23 @@
+{
+  "name": "kobo-tester",
+  "version": "1.0.0",
+  "description": "Cypress automated browser scripts for running tests on KoboToolbox",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ben Alexander",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^8.7.0"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wetbadger/Amaranth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wetbadger/Amaranth/issues"
+  },
+  "homepage": "https://github.com/wetbadger/Amaranth#readme"
+}

@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+from zoneinfo import ZoneInfo
 
-import pytz
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -262,7 +262,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise Exception('The identifier is not properly formatted.')
 
         url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
-        xls_io = self.asset.to_xls_io(
+        xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
                     'id_string': id_string,
@@ -282,7 +282,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hook': self.asset.has_active_hooks,
             'kpi_asset_uid': self.asset.uid
         }
-        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
+        files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
         self.store_data({
@@ -300,7 +300,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         OpenRosa datetime formatting
         """
         if dt is None:
-            dt = datetime.now(tz=pytz.UTC)
+            dt = datetime.now(tz=ZoneInfo('UTC'))
 
         # Awkward check, but it's prescribed by
         # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
@@ -814,7 +814,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             active = self.active
         url = self.external_to_internal_url(self.backend_response['url'])
         id_string = self.backend_response['id_string']
-        xls_io = self.asset.to_xls_io(
+        xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
                     'id_string': id_string,
@@ -827,7 +827,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'title': self.asset.name,
             'has_kpi_hook': self.asset.has_active_hooks
         }
-        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
+        files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         try:
             json_response = self._kobocat_request(
                 'PATCH', url, data=payload, files=files)

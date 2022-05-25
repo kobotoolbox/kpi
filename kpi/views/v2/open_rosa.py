@@ -1,7 +1,7 @@
 # coding: utf-8
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-import pytz
 from django.conf import settings
 
 
@@ -9,8 +9,7 @@ class OpenRosaViewSetMixin:
 
     @staticmethod
     def get_headers():
-        tz = pytz.timezone(settings.TIME_ZONE)
-        dt = datetime.now(tz).strftime('%a, %d %b %Y %H:%M:%S %Z')
+        dt = datetime.now(tz=ZoneInfo('UTC')).strftime('%a, %d %b %Y %H:%M:%S %Z')
 
         return {
             'Date': dt,
