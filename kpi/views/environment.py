@@ -31,11 +31,12 @@ class EnvironmentView(APIView):
             'SECTOR_CHOICES',
             # Intentional t() call on dynamic string because the default
             # choices are translated (see static_lists.py)
-            lambda text: tuple((line, t(line)) for line in text.split('\r\n')),
+            # Strip \r for legacy reasons
+            lambda text: tuple((line.strip('\r'), t(line.strip('\r'))) for line in text.split('\n')),
         ),
         (
             'OPERATIONAL_PURPOSE_CHOICES',
-            lambda text: tuple((line, line) for line in text.split('\r\n')),
+            lambda text: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
         ),
     ]
 
