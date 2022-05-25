@@ -259,7 +259,7 @@ CONSTANCE_CONFIG = {
         'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
-        '\r\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
         "Options available for the 'sector' metadata field, one per line."
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
