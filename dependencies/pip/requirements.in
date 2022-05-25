@@ -86,3 +86,6 @@ deepmerge
 
 # MFA
 django-trench
+
+# Python 3.8 support
+backports.zoneinfo; python_version < '3.9'
