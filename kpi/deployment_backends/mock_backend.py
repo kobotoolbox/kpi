@@ -7,7 +7,10 @@ import uuid
 from datetime import datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from deepmerge import always_merger
 from dict2xml import dict2xml

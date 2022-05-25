@@ -1,6 +1,9 @@
 # coding: utf-8
 import datetime
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from django.db.models import Q
 from markdownx.views import ImageUploadView

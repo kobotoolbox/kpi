@@ -320,10 +320,13 @@ SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
-    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db_url(
+        'KPI_DATABASE_URL' if 'KPI_DATABASE_URL' in os.environ else 'DATABASE_URL',
+        default='sqlite:///%s/db.sqlite3' % BASE_DIR
+    ),
 }
+
 if 'KC_DATABASE_URL' in os.environ:
     DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
 
@@ -529,6 +532,7 @@ if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
     CSP_SCRIPT_SRC.append(google_domain)
     CSP_CONNECT_SRC.append(google_domain)
+    CSP_IMG_SRC.append(google_domain)
 if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
