@@ -14,6 +14,8 @@ from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 def _check_asr_mt_access_for_user(user):
     # This is for proof-of-concept testing and will be replaced with proper
     # quotas and accounting
+    if user.is_anonymous:
+        return False
     asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
     return (
         asr_mt_invitees.strip() == '*'
