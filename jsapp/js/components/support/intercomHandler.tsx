@@ -11,15 +11,18 @@ export const USE_CUSTOM_INTERCOM_LAUNCHER = false;
 
 const DEFAULT_SETTINGS = Object.freeze({
   action_color: '#2095f3',
-  background_color: '#575b70'
+  background_color: '#575b70',
 });
 
 class IntercomHandler extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     autoBind(this);
     this.currentSettings = Object.assign({}, DEFAULT_SETTINGS);
-    this.updateHorizontalPaddingDebounced = _.debounce(this.updateHorizontalPadding, 500);
+    this.updateHorizontalPaddingDebounced = _.debounce(
+      this.updateHorizontalPadding,
+      500
+    );
   }
 
   componentDidMount() {
@@ -34,7 +37,10 @@ class IntercomHandler extends React.Component {
 
   componentWillUnmount() {
     if (USE_CUSTOM_INTERCOM_LAUNCHER) {
-      window.removeEventListener('resize', this.updateHorizontalPaddingDebounced);
+      window.removeEventListener(
+        'resize',
+        this.updateHorizontalPaddingDebounced
+      );
     }
   }
 
@@ -53,12 +59,16 @@ class IntercomHandler extends React.Component {
       this.bootIntercom(account);
 
       if (USE_CUSTOM_INTERCOM_LAUNCHER) {
-        this.currentSettings.custom_launcher_selector = '#custom_intercom_launcher';
+        this.currentSettings.custom_launcher_selector =
+          '#custom_intercom_launcher';
         this.currentSettings.hide_default_launcher = true;
         this.currentSettings.alignment = 'left';
         window.Intercom('update', this.currentSettings);
 
-        window.addEventListener('resize', this.updateHorizontalPaddingDebounced);
+        window.addEventListener(
+          'resize',
+          this.updateHorizontalPaddingDebounced
+        );
 
         this.updateHorizontalPadding();
       }
@@ -70,14 +80,25 @@ class IntercomHandler extends React.Component {
 
   bootIntercom(account) {
     const name = account.extra_details.name;
-    const legacyName = [account.first_name, account.last_name].filter((val) => {return val;}).join(' ');
+    const legacyName = [account.first_name, account.last_name]
+      .filter((val) => val)
+      .join(' ');
 
     this.currentSettings.app_id = window.IntercomAppId;
-    this.currentSettings.user_id = [account.username, window.location.host].join('@');
+    this.currentSettings.user_id = [
+      account.username,
+      window.location.host,
+    ].join('@');
     this.currentSettings.username = account.username;
     this.currentSettings.email = account.email;
-    this.currentSettings.name = name ? name : legacyName ? legacyName : account.username;
-    this.currentSettings.created_at = Math.floor((new Date(account.date_joined)).getTime() / 1000);
+    this.currentSettings.name = name
+      ? name
+      : legacyName
+      ? legacyName
+      : account.username;
+    this.currentSettings.created_at = Math.floor(
+      new Date(account.date_joined).getTime() / 1000
+    );
 
     window.Intercom('boot', this.currentSettings);
   }
@@ -94,13 +115,12 @@ class IntercomHandler extends React.Component {
       return;
     }
 
-    const leftPos = (
+    const leftPos =
       $launcherEl[0].getBoundingClientRect().left +
       $launcherEl.width() +
       $(window)['scrollLeft']() -
       // move it by 1px to place it atop the border line
-      1
-    );
+      1;
 
     // NOTE: updating horizontal_padding doesn't work very well while Intercom
     // bubble is being opened
@@ -111,28 +131,28 @@ class IntercomHandler extends React.Component {
   }
 
   injectIntercomScripts() {
-    var w = window;
-    var ic = w.Intercom;
+    const w = window;
+    const ic = w.Intercom;
     if (typeof ic === 'function') {
       ic('reattach_activator');
       ic('update', this.settings);
     } else {
-      var d = document;
-      var i = function() {
+      const d = document;
+      var i = function () {
         i.c(arguments);
       };
       i.q = [];
-      i.c = function(args) {
+      i.c = function (args) {
         i.q.push(args);
       };
       w.Intercom = i;
 
       function l() {
-        var s = d.createElement('script');
+        const s = d.createElement('script');
         s.type = 'text/javascript';
         s.async = true;
         s.src = `https://widget.intercom.io/widget/${window.IntercomAppId}`;
-        var x = d.getElementsByTagName('script')[0];
+        const x = d.getElementsByTagName('script')[0];
         x.parentNode.insertBefore(s, x);
       }
       if (w.attachEvent) {
@@ -152,7 +172,7 @@ class IntercomHandler extends React.Component {
     }
   }
 
-  render () {
+  render() {
     return null;
   }
 }
