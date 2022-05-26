@@ -2,7 +2,10 @@
 from google.cloud import speech_v1
 from google.cloud import storage
 
-from kpi.models.asset import Asset
+from .utils import google_credentials_from_constance_config
+
+
+BUCKET_NAME = 'kobo-transcription-test'
 
 
 class AutoTranscription:
@@ -17,15 +20,17 @@ class GoogleTranscribeEngine(AutoTranscription):
     def __init__(self):
         self.destination_path = None
         self.bucket_name = 'kobo-transcription-test'
+        self.storage_client = storage.Client(
+            credentials=google_credentials_from_constance_config()
+        )
+        self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
 
     def delete_google_file(self):
         """
         Files need to be deleted from google storage after
         the transcript finished to avoid running up the bill
         """
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.bucket_name)
-        blob = bucket.blob(self.destination_path)
+        blob = self.bucket.blob(self.destination_path)
         blob.delete()
 
     def get_converted_audio(
@@ -45,9 +50,7 @@ class GoogleTranscribeEngine(AutoTranscription):
         self.destination_path = f"{filename}.flac"
 
         # send the audio file to google storage
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(bucket_name=self.bucket_name)
-        destination = bucket.blob(self.destination_path)
+        destination = self.bucket.blob(self.destination_path)
         destination.upload_from_filename(
             attachment_path,
             content_type='audio/flac',
@@ -76,8 +79,10 @@ class GoogleTranscribeEngine(AutoTranscription):
         gcs_path = self.store_file(path, filename)
 
         # Create the parameters required for the transcription
-        speech_client = speech_v1.SpeechClient()
-        audio = speech_v1.RecognitionAudio(uri=f'gs://{self.bucket_name}/{gcs_path}')
+        speech_client = speech_v1.SpeechClient(
+            credentials=google_credentials_from_constance_config()
+        )
+        audio = speech_v1.RecognitionAudio(uri=f'gs://{BUCKET_NAME}/{gcs_path}')
         config = speech_v1.RecognitionConfig(
             encoding=speech_v1.RecognitionConfig.AudioEncoding.FLAC,
             language_code=source,

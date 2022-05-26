@@ -53,6 +53,7 @@ class EnvironmentTests(BaseTestCase):
                     ('ar', 'العربيّة'), x
                 ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
+            'asr_mt_features_enabled': False,
         }
 
     def _check_response_dict(self, response_dict):
@@ -62,7 +63,10 @@ class EnvironmentTests(BaseTestCase):
             try:
                 callable_or_value(response_value)
             except TypeError:
-                self.assertEqual(response_value, callable_or_value)
+                pass
+            else:
+                continue
+            self.assertEqual(response_value, callable_or_value)
 
     def test_anonymous_succeeds(self):
         response = self.client.get(self.url, format='json')

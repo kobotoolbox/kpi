@@ -1,15 +1,10 @@
 from hashlib import md5
 from datetime import date
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Union,
-)
 
 from google.cloud import translate_v3 as translate, storage
 from google.api_core.exceptions import InvalidArgument
 
+from .utils import google_credentials_from_constance_config
 from ..misc import (
     TranslationException,
 )
@@ -31,8 +26,12 @@ def _hashed_strings(self, *strings):
 
 class GoogleTranslationEngine:
     def __init__(self):
-        self.translate_client = translate.TranslationServiceClient()
-        self.storage_client = storage.Client()
+        self.translate_client = translate.TranslationServiceClient(
+            credentials=google_credentials_from_constance_config()
+        )
+        self.storage_client = storage.Client(
+            credentials=google_credentials_from_constance_config()
+        )
         self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
 
         super().__init__()
