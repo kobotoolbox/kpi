@@ -67,16 +67,21 @@ def flatten_metadata_inplace(metadata):
             metadata[k] = v['label']
 
 
-def write_csv(filename, data):
+def write_csv(filename, data, total_count):
     with open(filename, 'w') as f:
         columns = USER_COLS + EXTRA_DETAILS_COLS
         writer = csv.DictWriter(f, fieldnames=columns)
         writer.writeheader()
-        for item in data:
+        for i, item in enumerate(data):
             metadata = item.pop('metadata', {}) or dict()
             flatten_metadata_inplace(metadata)
             item.update(metadata)
             writer.writerow(item)
+            print(
+                f'Progress:\t{i+1}/{total_count}\t{((i+1)*100)//total_count}%',
+                end='\r',
+            )
+        print()
 
 
 def run(*args):
@@ -86,6 +91,7 @@ def run(*args):
     filename = args[0]
     t0 = time.time()
     data = get_user_data()
-    write_csv(filename, data)
+    total_count = data.count()
+    write_csv(filename, data, total_count)
     t1 = time.time()
-    print(f'Completed in {t1-t0:.4f}s.')
+    print(f'Completed {total_count} users in {t1-t0:.4f}s.')
