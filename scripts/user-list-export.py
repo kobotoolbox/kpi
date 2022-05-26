@@ -35,6 +35,10 @@ EXTRA_DETAILS_COLS = [
     'organization',
     'require_auth',
     'organization_website',
+    'phone_number',
+    'primarySector',
+    'address',
+    'default_language',
 ]
 
 
@@ -56,7 +60,7 @@ def get_user_data():
 def flatten_metadata_inplace(metadata):
     for k, v in metadata.items():
         if isinstance(v, list):
-            v = v[0]
+            v = v[0] if v else ''
         if isinstance(v, dict) and 'label' in v:
             metadata[k] = v['label']
 
@@ -67,7 +71,7 @@ def write_csv(filename, data):
         writer = csv.DictWriter(f, fieldnames=columns)
         writer.writeheader()
         for item in data:
-            metadata = item.pop('metadata')
+            metadata = item.pop('metadata', {}) or dict()
             flatten_metadata_inplace(metadata)
             item.update(metadata)
             writer.writerow(item)
