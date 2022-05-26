@@ -5,7 +5,10 @@ from .base import *
 
 # For tests, don't use KoBoCAT's DB
 DATABASES = {
-    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db_url(
+        'KPI_DATABASE_URL' if 'KPI_DATABASE_URL' in os.environ else 'DATABASE_URL',
+        default='sqlite:///%s/db.sqlite3' % BASE_DIR
+    ),
 }
 
 DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
