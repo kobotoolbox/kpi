@@ -13,7 +13,7 @@ import AccountSidebar from 'js/components/account/accountSidebar';
 import {
   IntercomHelpBubble,
   SupportHelpBubble,
-} from '../components/helpBubbles';
+} from 'js/components/support/helpBubbles';
 import {
   COMMON_QUERIES,
   MODAL_TYPES,
