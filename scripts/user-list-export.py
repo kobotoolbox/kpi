@@ -3,7 +3,7 @@ import sys
 import time
 
 from django.contrib.auth.models import User
-from django.db.models import CharField, F
+from django.db.models import CharField, F, Count
 from django.db.models.functions import Cast
 
 
@@ -19,6 +19,7 @@ USER_COLS = [
     'is_active',
     'email',
     'mfa_is_active',
+    'asset_count',
 ]
 METADATA_COL = ['metadata']
 EXTRA_DETAILS_COLS = [
@@ -51,6 +52,7 @@ def get_user_data():
             metadata=F('extra_details__data'),
             date_joined_str=Cast('date_joined', CharField()),
             last_login_str=Cast('last_login', CharField()),
+            asset_count=Count('assets'),
         )
         .values(*values)
         .order_by('id')
