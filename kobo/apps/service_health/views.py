@@ -79,7 +79,10 @@ def service_health(request):
     t0 = time.time()
     try:
         rset = settings.SESSION_REDIS
-        success = Redis(socket_timeout=1).from_url(rset['url']).ping()
+        if rset.get('url', False):
+            success = Redis(socket_timeout=1).from_url(rset['url']).ping()
+        else:
+            success = Redis(host=rset['host'], port=rset['port'], db=rset['db'], password=rset['password'], socket_timeout=rset['socket_timeout']).ping()
         any_failure = not success
         redis_cache_message = 'OK'
     except Exception as e:

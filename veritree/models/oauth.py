@@ -20,7 +20,7 @@ class VeritreeOAuth2(BaseOAuth2):
     REDIRECT_STATE = False
     RESPONSE_TYPE = 'password'
 
-    EXTRA_DATA = [('user_orgs', 'user_orgs')]
+    EXTRA_DATA = [('id', 'veritree_id'), ('user_orgs', 'user_orgs')]
     client_id = settings.VERITREE_OAUTH_CLIENT_ID
     client_secret = settings.VERITREE_OAUTH_CLIENT_SECRET
 

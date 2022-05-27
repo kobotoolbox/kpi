@@ -35,13 +35,18 @@ class RedisHelper:
         else:
             password = unquote_plus(match.group('password'))
 
-        redis_connection_dict = {
-            # 'host': match.group('host'),
-            # 'port': match.group('port'),
-            # 'db': match.group('index') or 0,
-            # 'password': password,
-            # 'prefix': os.getenv('REDIS_SESSION_PREFIX', 'session'),
-            # 'socket_timeout': os.getenv('REDIS_SESSION_SOCKET_TIMEOUT', 1),
-            'url': os.getenv('REDIS_SESSION_URL', default)
-        }
+        if os.getenv('USE_OLD_REDIS_SETTINGS', False):
+            redis_connection_dict = {
+                'host': match.group('host'),
+                'port': match.group('port'),
+                'db': match.group('index') or 0,
+                'password': password,
+                'prefix': os.getenv('REDIS_SESSION_PREFIX', 'session'),
+                'socket_timeout': os.getenv('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+            }
+        else:
+            redis_connection_dict = {
+                'url': os.getenv('REDIS_SESSION_URL', default)
+            }
+
         return redis_connection_dict
