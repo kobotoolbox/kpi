@@ -63,8 +63,8 @@ def flatten_metadata_inplace(metadata):
     for k, v in metadata.items():
         if isinstance(v, list):
             v = v[0] if v else ''
-        if isinstance(v, dict) and 'label' in v:
-            metadata[k] = v['label']
+        if isinstance(v, dict) and 'value' in v:
+            metadata[k] = v['value']
 
 
 def write_csv(filename, data, total_count):
