@@ -35,7 +35,9 @@ $side-tabs-width-mobile: 70px;
   background: $kobo-gray-96;
 
   &.form-view--fullscreen {
-    position: fixed;
+    // We force the position to avoid problems with stronger specificity
+    // breaking the fullscreen functionality.
+    position: fixed !important;
     z-index: $z-fullscreen;
     top: 0;
     left: 0;

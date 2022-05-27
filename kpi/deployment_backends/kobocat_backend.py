@@ -10,11 +10,15 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from lxml import etree
 from django.core.files import File
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
@@ -44,7 +48,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.xml import edit_submission_xml, strip_nodes
+from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
@@ -155,7 +159,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         update_data = self.__prepare_bulk_update_data(data['data'])
         kc_responses = []
         for submission in submissions:
-            xml_parsed = ET.fromstring(submission)
+            xml_parsed = etree.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
@@ -169,7 +173,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             deprecated_id_or_new = (
                 deprecated_id
                 if deprecated_id is not None
-                else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
+                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
@@ -184,7 +188,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission
-            file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
+            file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
             # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             headers = {}
@@ -669,12 +673,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'reports',
             self.backend_response['id_string']
         ))
-        forms_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'forms',
-            self.backend_response['id_string']
-        ))
         links = {
             # To be displayed in iframes
             'xls_legacy': '/'.join((exports_base_url, 'xls/')),
@@ -703,7 +701,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 data=data
             )
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable
             logging.error(
                 'Failed to retrieve links from Enketo', exc_info=True)

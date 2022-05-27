@@ -107,7 +107,3 @@ ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
     'tags__name__icontains',
     'uid__icontains',
 ]
-
-
-# Things hard-coded in Enketo Express
-ENKETO_CSRF_COOKIE_NAME = '__csrf'

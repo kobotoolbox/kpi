@@ -87,11 +87,7 @@
   }
 
   .search {
-    ::-webkit-input-placeholder {
-      color: $kobo-white;
-    }
-
-    :-ms-input-placeholder {
+    ::placeholder {
       color: $kobo-white;
     }
 
@@ -322,12 +318,9 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       width: 100%;
-      // keep these pseudo-states separate
-      &::-webkit-input-placeholder {
-        color: $kobo-gray-40;
-      }
 
-      &:-ms-input-placeholder {
+      // keep these pseudo-states separate
+      &::placeholder {
         color: $kobo-gray-40;
       }
 
