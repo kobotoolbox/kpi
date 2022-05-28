@@ -1,4 +1,6 @@
 # coding: utf-8
+import uuid
+
 from google.cloud import speech_v1
 from google.cloud import storage
 
@@ -18,6 +20,7 @@ class AutoTranscription:
 
 class GoogleTranscribeEngine(AutoTranscription):
     def __init__(self):
+        self.asset = None
         self.destination_path = None
         self.bucket_name = 'kobo-transcription-test'
         self.storage_client = storage.Client(
@@ -35,24 +38,24 @@ class GoogleTranscribeEngine(AutoTranscription):
 
     def get_converted_audio(
             self,
-            asset,
             xpath: str,
             submission_id: int,
             user: object
     ):
-        attachment = asset.deployment.get_attachment(submission_id, user, xpath=xpath)
-        attachment_path = attachment.protected_path('flac').replace(
-            '/protected/', '/srv/src/kobocat/media/')
-        filepath = attachment.media_file.name
-        return attachment_path, filepath
+        attachment = self.asset.deployment.get_attachment(
+            submission_id, user, xpath=xpath
+        )
+        return attachment.get_transcoded_audio('flac')
 
-    def store_file(self, attachment_path: str, filename: str):
-        self.destination_path = f"{filename}.flac"
+    def store_file(self, content):
+        self.destination_path = (
+            f'{self.asset.owner.username}/{self.asset.uid}/{uuid.uuid4()}.flac'
+        )
 
         # send the audio file to google storage
         destination = self.bucket.blob(self.destination_path)
-        destination.upload_from_filename(
-            attachment_path,
+        destination.upload_from_string(
+            content,
             content_type='audio/flac',
         )
         return self.destination_path
@@ -66,17 +69,18 @@ class GoogleTranscribeEngine(AutoTranscription):
             source: str,
             user: object,
     ):
+        self.asset = asset
+
         # get the audio file in a Google supported format
-        path, filename = self.get_converted_audio(
+        flac_content = self.get_converted_audio(
             xpath=xpath,
-            asset=asset,
             submission_id=submission_id,
             user=user
         )
 
         # Make sure the file is stored in Google storage or long
         # files won't run
-        gcs_path = self.store_file(path, filename)
+        gcs_path = self.store_file(flac_content)
 
         # Create the parameters required for the transcription
         speech_client = speech_v1.SpeechClient(
@@ -89,6 +93,7 @@ class GoogleTranscribeEngine(AutoTranscription):
             enable_automatic_punctuation=True,
         )
 
+        # `long_running_recognize()` blocks until the transcription is done
         speech_results = speech_client.long_running_recognize(config=config, audio=audio)
         results = speech_results.result()
 
@@ -101,6 +106,9 @@ class GoogleTranscribeEngine(AutoTranscription):
             })
 
         # delete the audio file from storage
+        # FIXME: if the transcription takes too long to generate, e.g. it
+        # exceeds the uWSGI timeout, this process will be killed and the audio
+        # file will never be cleaned up
         self.delete_google_file()
 
         return transcript

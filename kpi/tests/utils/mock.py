@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.files import File
 from rest_framework import status
 
-from kpi.mixins.audio_converter import ConverterMixin
+from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 
 
 def enketo_edit_instance_response(request):
@@ -35,7 +35,7 @@ def enketo_view_instance_response(request):
     """
     # Decode `x-www-form-urlencoded` data
     body = {k: v[0] for k, v in parse_qs(unquote(request.body)).items()}
-    
+
     resp_body = {
         'view_url': (
             f"{settings.ENKETO_URL}/view/{body['instance_id']}"
@@ -45,7 +45,7 @@ def enketo_view_instance_response(request):
     return status.HTTP_201_CREATED, headers, json.dumps(resp_body)
 
 
-class MockAttachment(ConverterMixin):
+class MockAttachment(AudioTranscodingMixin):
     """
     Mock object to simulate ReadOnlyKobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
@@ -79,10 +79,10 @@ class MockAttachment(ConverterMixin):
         return self.media_file.path
 
     def protected_path(self, format_: Optional[str] = None):
-        if format_ in self.AVAILABLE_CONVERSIONS:
-            suffix = f'.{format_}'
+        if format_ == 'mp3':
+            suffix = f'.mp3'
             with NamedTemporaryFile(suffix=suffix) as f:
-                self.content = self.get_converter_content(format_)
+                self.content = self.get_mp3_content()
             return f.name
         else:
             return self.absolute_path

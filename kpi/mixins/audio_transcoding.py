@@ -5,18 +5,15 @@ from kpi.exceptions import FFMpegException, NotSupportedFormatException
 from kpi.utils.log import logging
 
 
-class ConverterMixin:
+class AudioTranscodingMixin:
 
-    AVAILABLE_CONVERSIONS = ('mp3', 'flac')
-    SUPPORTED_CONVERTED_FORMAT = (
-        'audio',
-        'video',
-    )
+    AVAILABLE_OUTPUT_FORMATS = ('mp3', 'flac')
+    SUPPORTED_INPUT_MIMETYPE_PREFIXES = ('audio', 'video')
 
-    def get_converter_content(self, file_format) -> bytes:
+    def get_transcoded_audio(self, audio_format: str) -> bytes:
         """
-        Convert and return MP3 content of File object located at
-        `self.absolute_path`.
+        Use ffmpeg to remove video (if any) and return transcoded audio from
+        the file located at `self.absolute_path`
         """
 
         if not hasattr(self, 'mimetype') or not hasattr(self, 'absolute_path'):
@@ -24,12 +21,11 @@ class ConverterMixin:
                 'Parent class does not implement `mimetype` or `absolute_path'
             )
 
-        supported_formats = (
-            'audio',
-            'video',
-        )
+        if not self.mimetype.startswith(self.SUPPORTED_INPUT_MIMETYPE_PREFIXES):
+            raise NotSupportedFormatException
 
-        if not self.mimetype.startswith(supported_formats):
+        audio_format = audio_format.lower()
+        if audio_format not in self.AVAILABLE_OUTPUT_FORMATS:
             raise NotSupportedFormatException
 
         ffmpeg_command = [
@@ -38,7 +34,7 @@ class ConverterMixin:
             self.absolute_path,
             '-vn',
             '-f',
-            file_format,
+            audio_format,
             'pipe:1',
         ]
 

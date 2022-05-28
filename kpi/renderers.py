@@ -30,12 +30,6 @@ class MediaFileRenderer(renderers.BaseRenderer):
         return data
 
 
-class FLACConversionRenderer(MediaFileRenderer):
-
-    media_type = 'audio/flac'
-    format = 'flac'
-
-
 class MP3ConversionRenderer(MediaFileRenderer):
 
     media_type = 'audio/mpeg'
