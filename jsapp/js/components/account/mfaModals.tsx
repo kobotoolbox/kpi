@@ -86,7 +86,7 @@ export default class MFAModals extends React.Component<
 
   getLocalizedMfaHelpText() {
     const language = currentLang();
-    const texts = envStore.data.mfa_i18n_help_texts;
+    const texts = envStore.data.mfa_localized_help_text;
     if (Object.prototype.hasOwnProperty.call(texts, language)) {
       return texts[language];
     }
@@ -223,14 +223,22 @@ export default class MFAModals extends React.Component<
     closeIcon.hidden = true;
   }
 
+  renderIntroText() {
+    return (
+      <bem.MFAModal__p>
+        {t(
+          'Two-factor authenication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
+          + 'We recommend enabling two-factor authenication for an additional layer of protection.'
+        )}
+      </bem.MFAModal__p>
+    )
+  }
+
   renderQRCodeStep() {
     return (
       <bem.MFAModal m='step-qr'>
         <bem.MFAModal__description>
-          <bem.MFAModal__p>
-            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
-          </bem.MFAModal__p>
-
+          {this.renderIntroText()}
           <bem.MFAModal__p>
             <strong>
               {t('Scan QR code and enter the six-digit token from the application')}
@@ -247,7 +255,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__qrcodeWrapper>
 
           <bem.MFAModal__p>
-            {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
+            {t('After scanning the QR code image, the authenticator app will display a six-digit code that you can enter below.')}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
@@ -298,7 +306,10 @@ export default class MFAModals extends React.Component<
       <bem.MFAModal m='step-backup'>
         <bem.MFAModal__description>
           <bem.MFAModal__p>
-            {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
+            {t(
+              'The following recovery codes will help you access your account in case your authenticator app fails. These codes are unique and will not be stored in your Kobo account. '
+              + 'This is your only opportunity to save them. Please download the file and keep it somewhere safe.'
+            )}
           </bem.MFAModal__p>
         </bem.MFAModal__description>
 
@@ -349,12 +360,12 @@ export default class MFAModals extends React.Component<
       <bem.MFAModal m='step-manual'>
         <bem.MFAModal__description>
           <bem.MFAModal__p>
-            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor Authenication for an additional layer of protection.')}
+            {this.renderIntroText()}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
             <strong>
-              {t('Enter this key into your authentication app to generate a six digit token')}
+              {t('Enter this key into your authenticator app to generate a six-digit token')}
             </strong>
           </bem.MFAModal__p>
         </bem.MFAModal__description>
@@ -367,7 +378,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__codesWrapper>
 
           <bem.MFAModal__p>
-            {t('Once your authentication app is set up, generate a temporary six digit token and enter it in the field below.')}
+            {t('Once your authenticator app is set up, generate a six-digit token and enter it in the field below.')}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
@@ -476,18 +487,21 @@ export default class MFAModals extends React.Component<
             <strong>
               {/*This is safe as this step only shows if on reconfigure or regenerate*/}
               {this.props.modalType === 'regenerate' &&
-                t('Please note that recovery codes from the previous set up will not be valid anymore.')
+                t('Please note that generating new recovery codes will invalidate any previously generated codes.')
               }
 
               {this.props.modalType !== 'regenerate' &&
-                t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.')
+                t('Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will first be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.')
               }
             </strong>
           </bem.MFAModal__p>
 
           {this.props.modalType === 'reconfigure' &&
             <bem.MFAModal__p>
-              {t("Once your 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process. 2FA will remain disabled for your account. In this case, you can reenable it at any time through the usual process.")}
+              {t(
+                "Once your current 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process, 2FA will remain disabled for your account. "
+                + "In this case, you can enable it again at any time through the usual process."
+              )}
             </bem.MFAModal__p>
           }
         </bem.MFAModal__body>

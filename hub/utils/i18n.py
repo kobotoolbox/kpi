@@ -54,15 +54,20 @@ class I18nUtils:
         # Get default value if lang is not specified
         language = lang if lang else get_language()
 
-        text = constance.config.MFA_I18N_HELP_TEXTS.replace(
+        text = constance.config.MFA_LOCALIZED_HELP_TEXT.replace(
             '##support email##',
             constance.config.SUPPORT_EMAIL,
         )
         try:
-            i18n_mfa_help_texts = json.loads(text)
+            messages_dict = json.loads(text)
         except json.JSONDecodeError:
-            logging.error('Could decode Constance.MFA_I18N_HELP_TEXTS')
+            logging.error(
+                'Configuration value for MFA_LOCALIZED_HELP_TEXT has invalid '
+                'JSON'
+            )
+            # Given the validation done in the django admin interface, this
+            # is an acceptable, low-likelihood evil
             return ''
 
-        default = i18n_mfa_help_texts['default']
-        return i18n_mfa_help_texts.get(language, default)
+        default = messages_dict['default']
+        return messages_dict.get(language, default)

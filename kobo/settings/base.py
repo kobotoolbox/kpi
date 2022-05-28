@@ -223,21 +223,29 @@ CONSTANCE_CONFIG = {
         True,
         'Enable two-factor authentication'
     ),
-    'MFA_I18N_HELP_TEXTS': (
+    'MFA_LOCALIZED_HELP_TEXT': (
         json.dumps({
             'default': (
-                'If you no longer have access to the device registered '
-                'with your account and the backup codes, the support team '
-                'can assist you regaining access to the system.'
-                'To request this support, please contact us at '
-                '[##support email##](mailto:##support email##).'
+                'If you cannot access your authenticator app, please enter one '
+                'of your backup codes instead. If you cannot access those '
+                'either, then you will need to request assistance by '
+                'contacting [##support email##](mailto:##support email##).'
+            ),
+            'some-other-language': (
+                'This will never appear because `some-other-language` is not '
+                'a valid language code, but this entry is here to show you '
+                'an example of adding another message in a different language.'
             )
-        }), (
-            'Guidance texts to help users when they lock their account.\n'
-            'To add texts in other languages, use the language code '
-            "(e.g. 'fr' for French) as the key of the translated version.\n"
-            '* It supports markdown syntax.\n'
-            '* `##support email##` is a placeholder for `SUPPORT_EMAIL` field'
+        }, indent=0),  # `indent=0` at least adds newlines
+        (
+            'JSON object of guidance messages presented to users when they '
+            'click the "Problems with the token" link after being prompted for '
+            'their verification token. Markdown syntax is supported, and '
+            '`##support email##` will be replaced with the value of the '
+            '`SUPPORT_EMAIL` setting on this page.\n'
+            'To add messages in other languages, follow the example of '
+            '`some-other-language`, but use a valid language code (e.g. `fr` '
+            'for French).'
         ),
         # Use custom field for schema validation
         'mfa_help_text_fields_jsonschema'
@@ -294,7 +302,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MFAHelpTextsField',
+        'kpi.fields.jsonschema_form_field.MFAHelpTextField',
         {'widget': 'django.forms.Textarea'},
     ],
 }

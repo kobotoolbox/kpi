@@ -41,7 +41,7 @@ class EnvironmentView(APIView):
             lambda text: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
         ),
         (
-            'MFA_I18N_HELP_TEXTS',
+            'MFA_LOCALIZED_HELP_TEXT',
             lambda i18n_texts: {
                 lang: markdown(text)
                 for lang, text in json.loads(
@@ -73,7 +73,9 @@ class EnvironmentView(APIView):
                 try:
                     value = processor(value)
                 except json.JSONDecodeError:
-                    logging.error(f'Environment.py: Could not decode `{key}`')
+                    logging.error(
+                        f'Configuration value for `{key}` has invalid JSON'
+                    )
                     continue
 
             data[key.lower()] = value

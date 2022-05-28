@@ -174,7 +174,10 @@ export default class SecurityRoute extends React.Component<
           </bem.SecurityRow__header>
 
           <bem.SecurityRow__description>
-            {t('Two-factor authentication (2FA) is an added layer of security used when logging into the platform. We recommend enabling Two-factor authentication for an additional layer of protection.')}
+            {t(
+              'Two-factor authenication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
+              + 'We recommend enabling two-factor authenication for an additional layer of protection.'
+            )}
           </bem.SecurityRow__description>
 
           {this.state.isMfaActive &&
@@ -226,7 +229,7 @@ export default class SecurityRoute extends React.Component<
           {!this.state.isMfaActive && this.state.dateDisabled &&
             <InlineMessage
               type='default'
-              message={t('Two-factor authentication was deactivated for your account on the ##date##').replace('##date##', formatDate(this.state.dateDisabled))}
+              message={t('Two-factor authentication was deactivated for your account on ##date##').replace('##date##', formatDate(this.state.dateDisabled))}
             />
           }
         </bem.SecurityRow>

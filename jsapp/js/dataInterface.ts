@@ -509,7 +509,7 @@ export interface EnvironmentResponse {
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
-  mfa_i18n_help_texts: {[name: string]: string}
+  mfa_localized_help_text: {[name: string]: string}
   mfa_enabled: boolean
 }
 
