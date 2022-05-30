@@ -1,227 +1,11 @@
-import _ from 'underscore';
+import throttle from 'lodash.throttle';
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
-import {actions} from '../actions';
-import {stores} from '../stores';
-import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
-import {KEY_CODES} from 'js/constants';
+import {actions} from 'js/actions';
 import envStore from 'js/envStore';
-import './helpBubbles.scss';
-
-const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
-
-class HelpBubble extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-    this.state = {
-      isOpen: false,
-      isOutsideCloseEnabled: true,
-      locallyAcknowledgedMessageUids: new Set(),
-    };
-    this.cancelOutsideCloseWatch = Function.prototype;
-    this.cancelHelpBubbleEventCloseWatch = Function.prototype;
-  }
-
-  open() {
-    this.setState({isOpen: true});
-
-    // tell all HelpBubbles that this one have just opened
-    const bubbleOpenedEvt = new CustomEvent(BUBBLE_OPENED_EVT_NAME, {
-      detail: this.bubbleName,
-    });
-    document.dispatchEvent(bubbleOpenedEvt);
-
-    // if enabled we want to close this HelpBubble
-    // whenever user clicks outside it or hits ESC key
-    this.cancelOutsideCloseWatch();
-    if (this.state.isOutsideCloseEnabled) {
-      this.watchOutsideClose();
-    }
-
-    // we want to close all the other HelpBubbles whenever one opens
-    this.cancelHelpBubbleEventCloseWatch();
-    this.watchHelpBubbleEventClose();
-  }
-
-  close() {
-    this.setState({isOpen: false});
-    this.cancelOutsideCloseWatch();
-  }
-
-  toggle() {
-    if (this.state.isOpen) {
-      this.close();
-    } else {
-      this.open();
-    }
-  }
-
-  watchHelpBubbleEventClose() {
-    const helpBubbleEventHandler = (evt) => {
-      if (evt.detail !== this.bubbleName) {
-        this.close();
-      }
-    };
-
-    document.addEventListener(BUBBLE_OPENED_EVT_NAME, helpBubbleEventHandler);
-
-    this.cancelHelpBubbleEventCloseWatch = () => {
-      document.removeEventListener(
-        BUBBLE_OPENED_EVT_NAME,
-        helpBubbleEventHandler
-      );
-    };
-  }
-
-  watchOutsideClose() {
-    const outsideClickHandler = (evt) => {
-      const $targetEl = $(evt.target);
-      if (
-        $targetEl.parents('.help-bubble__back').length === 0 &&
-        $targetEl.parents('.help-bubble__popup').length === 0 &&
-        $targetEl.parents('.help-bubble__popup-content').length === 0 &&
-        $targetEl.parents('.help-bubble__row').length === 0 &&
-        $targetEl.parents('.help-bubble__row-wrapper').length === 0
-      ) {
-        this.close();
-      }
-    };
-
-    const escHandler = (evt) => {
-      if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
-        this.close();
-      }
-    };
-
-    this.cancelOutsideCloseWatch = () => {
-      document.removeEventListener('click', outsideClickHandler);
-      document.removeEventListener('keydown', escHandler);
-    };
-
-    document.addEventListener('click', outsideClickHandler);
-    document.addEventListener('keydown', escHandler);
-  }
-
-  getStorageName(bubbleName) {
-    const currentUsername =
-      stores.session.currentAccount && stores.session.currentAccount.username;
-    return `kobo.${currentUsername}.${bubbleName}`;
-  }
-}
-
-class HelpBubbleTrigger extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-
-  render() {
-    const iconClass = `k-icon k-icon-${this.props.icon}`;
-    const hasCounter =
-      typeof this.props.counter === 'number' && this.props.counter !== 0;
-    const attrs = {};
-
-    if (this.props.htmlId) {
-      attrs['id'] = this.props.htmlId;
-    }
-
-    return (
-      <bem.HelpBubble__trigger
-        onClick={this.props.onClick}
-        data-tip={this.props.tooltipLabel}
-        {...attrs}
-      >
-        <i className={iconClass} />
-
-        {hasCounter && (
-          <bem.HelpBubble__triggerCounter>
-            {this.props.counter}
-          </bem.HelpBubble__triggerCounter>
-        )}
-      </bem.HelpBubble__trigger>
-    );
-  }
-}
-
-class HelpBubbleClose extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-
-  render() {
-    const attrs = {};
-
-    if (this.props.messageUid) {
-      attrs['data-message-uid'] = this.props.messageUid;
-    }
-
-    return (
-      <bem.HelpBubble__close onClick={this.props.onClick} {...attrs}>
-        <i className='k-icon k-icon-close' />
-      </bem.HelpBubble__close>
-    );
-  }
-}
-
-export class IntercomHelpBubble extends HelpBubble {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-    this.state.isOutsideCloseEnabled = false;
-    this.state.intercomUnreadCount = 0;
-    this.bubbleName = 'intercom-help-bubble';
-  }
-
-  componentDidMount() {
-    if (window.Intercom) {
-      Intercom(
-        'onUnreadCountChange',
-        this.onIntercomUnreadCountChange.bind(this)
-      );
-      Intercom('onHide', this.onIntercomHide.bind(this));
-    }
-  }
-
-  onIntercomUnreadCountChange(unreadCount) {
-    this.setState({intercomUnreadCount: unreadCount});
-  }
-
-  onIntercomHide() {
-    super.close();
-  }
-
-  close() {
-    if (window.Intercom) {
-      window.Intercom('hide');
-    }
-  }
-
-  render() {
-    if (!USE_CUSTOM_INTERCOM_LAUNCHER || !window.Intercom) {
-      return null;
-    }
-
-    const modifiers = ['intercom'];
-    if (this.state.isOpen) {
-      modifiers.push('open');
-    }
-
-    return (
-      <bem.HelpBubble m={modifiers}>
-        <HelpBubbleTrigger
-          icon='intercom'
-          tooltipLabel={t('Intercom')}
-          onClick={this.toggle.bind(this)}
-          htmlId='custom_intercom_launcher'
-          counter={this.state.intercomUnreadCount}
-        />
-      </bem.HelpBubble>
-    );
-  }
-}
+import HelpBubble from './helpBubble';
+import HelpBubbleTrigger from './helpBubbleTrigger';
 
 export class SupportHelpBubble extends HelpBubble {
   constructor(props) {
@@ -233,7 +17,7 @@ export class SupportHelpBubble extends HelpBubble {
     this.bubbleName = 'support-help-bubble';
     this.actionsUnlisteners = [];
 
-    this.refreshMessagesThrottled = _.throttle(
+    this.refreshMessagesThrottled = throttle(
       actions.help.getInAppMessages,
       60000
     );
@@ -327,7 +111,7 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   findMessage(messageUid) {
-    return _.find(this.state.messages, {uid: messageUid});
+    return this.state.messages.find((message) => message.uid === messageUid);
   }
 
   isMessageRead(messageUid) {
@@ -340,8 +124,7 @@ export class SupportHelpBubble extends HelpBubble {
     actions.help.setMessageReadTime(messageUid, currentTime.toISOString());
   }
 
-  markMessageAcknowledged(evt) {
-    const messageUid = evt.currentTarget.dataset.messageUid;
+  markMessageAcknowledged(evt, messageUid) {
     this.setState({
       locallyAcknowledgedMessageUids: new Set([
         ...this.state.locallyAcknowledgedMessageUids,
@@ -398,7 +181,9 @@ export class SupportHelpBubble extends HelpBubble {
 
     return (
       <bem.HelpBubble__popup m={popupModifiers}>
-        <HelpBubbleClose onClick={this.close.bind(this)} />
+        <bem.HelpBubble__close onClick={this.close.bind(this)}>
+          <i className='k-icon k-icon-close' />
+        </bem.HelpBubble__close>
 
         <bem.HelpBubble__popupContent>
           <bem.HelpBubble__row m='header'>
@@ -473,10 +258,9 @@ export class SupportHelpBubble extends HelpBubble {
 
             return (
               <bem.HelpBubble__rowWrapper key={msg.uid}>
-                <HelpBubbleClose
-                  messageUid={msg.uid}
-                  onClick={this.markMessageAcknowledged.bind(this)}
-                />
+                <bem.HelpBubble__close onClick={this.markMessageAcknowledged.bind(this, msg.uid)}>
+                  <i className='k-icon k-icon-close' />
+                </bem.HelpBubble__close>
 
                 {this.renderSnippetRow(
                   msg,
@@ -495,7 +279,9 @@ export class SupportHelpBubble extends HelpBubble {
 
     return (
       <bem.HelpBubble__popup>
-        <HelpBubbleClose onClick={this.close.bind(this)} />
+        <bem.HelpBubble__close onClick={this.close.bind(this)}>
+          <i className='k-icon k-icon-close' />
+        </bem.HelpBubble__close>
 
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
           <i className='k-icon k-icon-angle-left' />
