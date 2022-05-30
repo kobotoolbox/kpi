@@ -567,6 +567,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
 
+    @property
     def submission_count(self):
         return self.calculated_submission_count(self.asset.owner)
 
