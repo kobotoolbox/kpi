@@ -565,7 +565,7 @@ export default class MFAModals extends React.Component<
   render() {
     // qrCode is mandatory if modalType is qr
     if (!this.props.qrCode && this.props.modalType === 'qr') {
-      throw new Error(t('Modal is expecting a qr code but did not recieve any'));
+      throw new Error('Modal is expecting a qr code but did not recieve any');
     }
 
     switch (this.state.currentStep) {
