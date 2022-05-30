@@ -31,6 +31,7 @@ class EnvStoreData {
   all_languages: EnvStoreDataItem[] = [];
   interface_languages: EnvStoreDataItem[] = [];
   submission_placeholder = '';
+  asr_mt_features_enabled = false;
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -103,6 +104,8 @@ class EnvStore extends Reflux.Store {
     if (response.all_languages) {
       this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs);
     }
+
+    this.data.asr_mt_features_enabled = response.asr_mt_features_enabled;
 
     this.isReady = true;
     this.trigger(this.data);

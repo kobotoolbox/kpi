@@ -221,15 +221,17 @@ export default class TranscriptTabContent extends React.Component<
               isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            <Button
-              type='full'
-              color='blue'
-              size='m'
-              label={t('automatic')}
-              onClick={this.selectModeAuto.bind(this)}
-              isDisabled={draft?.languageCode === undefined}
-              isPending={singleProcessingStore.isFetchingData}
-            />
+            {envStore.data.asr_mt_features_enabled &&
+              <Button
+                type='full'
+                color='blue'
+                size='m'
+                label={t('automatic')}
+                onClick={this.selectModeAuto.bind(this)}
+                isDisabled={draft?.languageCode === undefined}
+                isPending={singleProcessingStore.isFetchingData}
+              />
+            }
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>

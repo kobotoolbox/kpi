@@ -589,6 +589,7 @@ export interface EnvironmentResponse {
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  asr_mt_features_enabled: boolean;
 }
 
 const DEFAULT_PAGE_SIZE = 100;
