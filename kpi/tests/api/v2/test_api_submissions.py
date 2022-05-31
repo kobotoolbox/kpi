@@ -5,7 +5,10 @@ import string
 import time
 import uuid
 from datetime import datetime
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import pytest
 import responses
@@ -1384,7 +1387,8 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.updated_submission_data = {
             'submission_ids': [rs['_id'] for rs in random_submissions],
             'data': {
-                'q1': '🕺',
+                'q1': 'Updated value',
+                'q_new': 'A new question and value'
             },
         }
 

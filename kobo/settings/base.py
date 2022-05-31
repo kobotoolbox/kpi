@@ -259,7 +259,7 @@ CONSTANCE_CONFIG = {
         'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
-        '\r\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
         "Options available for the 'sector' metadata field, one per line."
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
@@ -320,10 +320,13 @@ SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
-    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db_url(
+        'KPI_DATABASE_URL' if 'KPI_DATABASE_URL' in os.environ else 'DATABASE_URL',
+        default='sqlite:///%s/db.sqlite3' % BASE_DIR
+    ),
 }
+
 if 'KC_DATABASE_URL' in os.environ:
     DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
 
@@ -529,6 +532,7 @@ if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
     CSP_SCRIPT_SRC.append(google_domain)
     CSP_CONNECT_SRC.append(google_domain)
+    CSP_IMG_SRC.append(google_domain)
 if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     raven_js_url = RAVEN_JS_DSN_URL.scheme + '://' + RAVEN_JS_DSN_URL.hostname
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
@@ -634,12 +638,16 @@ if os.environ.get('EMAIL_USE_TLS'):
 
 
 ''' AWS configuration (email and storage) '''
-if os.environ.get('AWS_ACCESS_KEY_ID'):
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
-    AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+if env.str('AWS_ACCESS_KEY_ID', False):
+    AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
+    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+    # Only set the region if it is present in environment.
+    if region := env.str('AWS_S3_REGION_NAME', False):
+        AWS_S3_REGION_NAME = region
 
 
 ''' Storage configuration '''
@@ -660,11 +668,15 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-    if 'AZURE_ACCOUNT_NAME' in os.environ:
+    if DEFAULT_FILE_STORAGE.endswith("AzureStorage"):
+        PRIVATE_STORAGE_CLASS = \
+            'kobo.apps.storage_backends.private_azure_storage.PrivateAzureStorage'
+        PRIVATE_STORAGE_S3_REVERSE_PROXY = True  # Yes S3
         AZURE_ACCOUNT_NAME = env.str('AZURE_ACCOUNT_NAME')
         AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
         AZURE_CONTAINER = env.str('AZURE_CONTAINER')
         AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
+        AZURE_OVERWRITE_FILES = True
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
@@ -776,28 +788,45 @@ TESTING = False
 
 
 ''' Auxiliary database configuration '''
-# KPI must connect to the same Mongo database as KoBoCAT
-MONGO_DATABASE = {
-    'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
-    'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
-    'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
-    'USER': os.environ.get('KPI_MONGO_USER', ''),
-    'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
-}
-if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
-        format(
-            user=MONGO_DATABASE['USER'],
-            password=quote_plus(MONGO_DATABASE['PASSWORD']),
-            host=MONGO_DATABASE['HOST'],
-            port=MONGO_DATABASE['PORT'],
-            db_name=MONGO_DATABASE['NAME']
-        )
+if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
+    # ToDo Remove all this block by the end of 2022.
+    #   Update kobo-install accordingly
+    logging.warning(
+        '`MONGO_DB_URL` is not found. '
+        '`KPI_MONGO_HOST`, `KPI_MONGO_PORT`, `KPI_MONGO_NAME`, '
+        '`KPI_MONGO_USER`, `KPI_MONGO_PASS` '
+        'are deprecated and will not be supported anymore soon.'
+    )
+
+    MONGO_DATABASE = {
+        'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
+        'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
+        'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
+        'USER': os.environ.get('KPI_MONGO_USER', ''),
+        'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
+    }
+
+    if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
+        MONGO_DB_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+            format(
+                user=MONGO_DATABASE['USER'],
+                password=quote_plus(MONGO_DATABASE['PASSWORD']),
+                host=MONGO_DATABASE['HOST'],
+                port=MONGO_DATABASE['PORT'],
+                db_name=MONGO_DATABASE['NAME']
+            )
+    else:
+        MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
+    mongo_db_name = MONGO_DATABASE['NAME']
 else:
-    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
-MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, journal=True, tz_aware=True, connect=False)
-MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+    # Get collection name from the connection string, fallback on 'formhub' if
+    # it is empty or None
+    mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or 'formhub'
+
+mongo_client = MongoClient(
+    MONGO_DB_URL, connect=False, journal=True, tz_aware=True
+)
+MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
