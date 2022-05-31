@@ -1,5 +1,5 @@
 # coding: utf-8
-from datetime import date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import admin
@@ -95,15 +95,18 @@ class ExtendUserAdmin(UserAdmin):
         ).aggregate(count=Count('pk'))
         return assets_count['count']
 
-    def submissions_count(self, obj):
+    def monthly_submissions_count(self, obj):
         """
-        Gets the total number of submissions a user has to be
+        Gets the number of this month's submissions a user has to be
         displayed in the Django admin user changelist page
         """
-        instances = ReadOnlyKobocatInstance.objects.filter(
-            xform__user__username=obj.username
-        ).aggregate(count=Count('pk'))
-        return instances['count']
+        today = datetime.today()
+        instances = KobocatSubmissionCounter.objects.get(
+            user=obj.user,
+            timestamp__year=today.year,
+            timestamp__month=today.month,
+        )
+        return instances.count
 
 
 class SubmissionsByCountry(admin.ModelAdmin):
