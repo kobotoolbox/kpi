@@ -1,9 +1,9 @@
 import type {SubmissionResponse} from 'js/dataInterface';
-import type {Action} from './formGallery.actions';
+import type {FormGalleryAction} from './formGallery.actions';
 
-export interface State {
+interface State {
   submissions: SubmissionResponse[];
-  loading: boolean;
+  isLoading: boolean;
   next: string | null;
   isFullscreen: boolean;
   filterQuestion: string | null;
@@ -13,7 +13,7 @@ export interface State {
 
 export const initialState: State = {
   submissions: [],
-  loading: false,
+  isLoading: false,
   next: null,
   isFullscreen: false,
   // Would be nice to move filters to query params
@@ -22,31 +22,36 @@ export const initialState: State = {
   endDate: '',
 };
 
-export function reducer(state: State, action: Action): State {
+export function reducer(state: State, action: FormGalleryAction): State {
   switch (action.type) {
     case 'getSubmissions':
       return {
         ...state,
-        loading: true,
+        isLoading: true,
         submissions: [],
         next: null,
       };
     case 'getSubmissionsCompleted':
       return {
         ...state,
-        loading: false,
+        isLoading: false,
         submissions: action.resp.results,
         next: action.resp.next,
       };
     case 'getSubmissionsFailed':
       return {
         ...state,
-        loading: false,
+        isLoading: false,
       };
+    case 'loadMoreSubmissions':
+      return {
+        ...state,
+        isLoading: true
+      }
     case 'loadMoreSubmissionsCompleted':
       return {
         ...state,
-        loading: false,
+        isLoading: false,
         submissions: [...state.submissions, ...action.resp.results],
         next: action.resp.next,
       };

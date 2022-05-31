@@ -3,7 +3,7 @@ import type {
   PaginatedResponse,
 } from 'js/dataInterface';
 
-export type Action =
+export type FormGalleryAction =
   | {
       type: 'getSubmissionsCompleted';
       resp: PaginatedResponse<SubmissionResponse>;

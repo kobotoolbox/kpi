@@ -1,26 +1,26 @@
 @use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/breakpoints';
 
 .gallery {
   background-color: colors.$kobo-white;
 }
 
 .gallery__wrapper {
-  margin-top: 20px;
-  margin-left: 54px;
-  margin-right: 54px;
+  margin: sizes.$x20 sizes.$x52;
 
-  @media screen and (max-width: 768px) {
-    margin-top: 10px;
-    margin-left: 15px;
-    margin-right: 15px;
+  @media screen and (max-width: breakpoints.$b768) {
+    margin-top: sizes.$x8;
+    margin-left: sizes.$x14;
+    margin-right: sizes.$x14;
   }
 
-  .gallery-bottom {
+  .gallery__footer {
     width: 100%;
     display: flex;
     justify-content: center;
-    justify-content: center;
     display: flex;
+    margin-top: sizes.$x4;
   }
 }
 
@@ -28,39 +28,35 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid colors.$kobo-gray-92;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
 }
 
-.gallery__icons {
-  font-size: 24px;
+.gallery__header-icons {
+  display: flex;
 }
 
-.gallery__icons i {
-  margin: 7px;
-}
-
-.gallery-row {
-  margin-top: 20px;
-  margin-bottom: 20px;
+.gallery__filters {
+  margin-top: sizes.$x20;
+  margin-bottom: sizes.$x20;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: sizes.$x6;
   flex-direction: row;
   flex-wrap: wrap;
 }
 
-.gallery-row__select {
+.gallery__filters-select {
   flex: 1;
-  margin-right: 10px;
+  margin-right: sizes.$x8;
 }
 
-.gallery-row__dates input {
-  margin-left: 5px;
-  margin-right: 5px;
+.gallery__filters-dates input {
+  margin-left: sizes.$x5;
+  margin-right: sizes.$x5;
 }
 
 .gallery-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: sizes.$x3;
 }

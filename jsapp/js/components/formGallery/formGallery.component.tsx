@@ -7,6 +7,7 @@ import type {
 } from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import bem, {makeBem} from 'js/bem';
+import Button from 'jsapp/js/components/common/button';
 import {getFlatQuestionsList} from 'jsapp/js/assetUtils';
 import './formGallery.component.scss';
 import {initialState, reducer} from './formGallery.reducer';
@@ -19,12 +20,12 @@ import {
 bem.Gallery = makeBem(null, 'gallery');
 bem.Gallery__wrapper = makeBem(bem.Gallery, 'wrapper');
 bem.Gallery__header = makeBem(bem.Gallery, 'header');
-bem.Gallery__icons = makeBem(bem.Gallery, 'icons');
-bem.GalleryRow = makeBem(null, 'gallery-row');
-bem.GalleryRow__select = makeBem(bem.GalleryRow, 'select');
-bem.GalleryRow__dates = makeBem(bem.GalleryRow, 'dates');
-bem.GalleryGrid = makeBem(null, 'gallery-grid');
-bem.GalleryBottom = makeBem(null, 'gallery-bottom');
+bem.Gallery__headerIcons = makeBem(bem.Gallery, 'header-icons');
+bem.GalleryFilters = makeBem(bem.Gallery, 'filters');
+bem.GalleryFiltersSelect = makeBem(bem.Gallery, 'filters-select');
+bem.GalleryFiltersDates = makeBem(bem.Gallery, 'filters-dates');
+bem.GalleryGrid = makeBem(bem.Gallery, 'grid');
+bem.GalleryFooter = makeBem(bem.Gallery, 'footer');
 
 const PAGE_SIZE = 30;
 
@@ -45,10 +46,18 @@ export default function FormGallery(props: FormGalleryProps) {
         survey.label,
     };
   });
-  const defaultOption = {value: '', label: 'All questions'};
+  const defaultOption = {value: '', label: t('All questions')};
   const questionFilterOptions = [defaultOption, ...(questions || [])];
   const [
-    {submissions, next, isFullscreen, filterQuestion, startDate, endDate},
+    {
+      submissions,
+      isLoading,
+      next,
+      isFullscreen,
+      filterQuestion,
+      startDate,
+      endDate,
+    },
     dispatch,
   ] = useReducer(reducer, initialState);
 
@@ -107,35 +116,20 @@ export default function FormGallery(props: FormGalleryProps) {
       <bem.Gallery__wrapper>
         <bem.Gallery__header>
           <h1>{t('Image Gallery')}</h1>
-          <bem.Gallery__icons>
-            {/* TODO: implement these buttons */}
-            {/* <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
-              data-tip={t('Download')}
-            >
-              <i className='k-icon k-icon-download' />
-            </bem.Button>
-            <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
-              data-tip={t('Display options')}
-            >
-              <i className='k-icon k-icon-settings' />
-            </bem.Button> */}
-            <bem.Button
-              m='icon'
-              className='report-button__expand right-tooltip'
+          <bem.Gallery__headerIcons>
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              startIcon='expand'
               onClick={() => dispatch({type: 'toggleFullscreen'})}
-              data-tip={t('Toggle fullscreen')}
-            >
-              <i className='k-icon k-icon-expand' />
-            </bem.Button>
-          </bem.Gallery__icons>
+              tooltip={t('Toggle fullscreen')}
+            />
+          </bem.Gallery__headerIcons>
         </bem.Gallery__header>
-        <bem.GalleryRow>
+        <bem.GalleryFilters>
           {t('From')}
-          <bem.GalleryRow__select>
+          <bem.GalleryFiltersSelect>
             <ReactSelect
               options={questionFilterOptions}
               defaultValue={defaultOption}
@@ -143,24 +137,28 @@ export default function FormGallery(props: FormGalleryProps) {
                 dispatch({type: 'setFilterQuestion', question: newValue!.value})
               }
             />
-          </bem.GalleryRow__select>
-          <bem.GalleryRow__dates>
-            {t('Between')}
-            <input
-              type='date'
-              onChange={(e) =>
-                dispatch({type: 'setStartDate', value: e.target.value})
-              }
-            />
-            {t('and')}
-            <input
-              type='date'
-              onChange={(e) =>
-                dispatch({type: 'setEndDate', value: e.target.value})
-              }
-            />
-          </bem.GalleryRow__dates>
-        </bem.GalleryRow>
+          </bem.GalleryFiltersSelect>
+          <bem.GalleryFiltersDates>
+            <label>
+              {t('Between')}
+              <input
+                type='date'
+                onChange={(e) =>
+                  dispatch({type: 'setStartDate', value: e.target.value})
+                }
+              />
+            </label>
+            <label>
+              {t('and')}
+              <input
+                type='date'
+                onChange={(e) =>
+                  dispatch({type: 'setEndDate', value: e.target.value})
+                }
+              />
+            </label>
+          </bem.GalleryFiltersDates>
+        </bem.GalleryFilters>
         <bem.GalleryGrid>
           {attachments.map((attachment) => (
             <a
@@ -178,11 +176,16 @@ export default function FormGallery(props: FormGalleryProps) {
           ))}
         </bem.GalleryGrid>
         {showLoadMore && (
-          <bem.GalleryBottom>
-            <bem.Button onClick={() => loadMoreSubmissions()}>
-              {t('Load more')}
-            </bem.Button>
-          </bem.GalleryBottom>
+          <bem.GalleryFooter>
+            <Button
+              type='bare'
+              color='storm'
+              size='m'
+              isPending={isLoading}
+              label={t('Load more')}
+              onClick={() => loadMoreSubmissions()}
+            />
+          </bem.GalleryFooter>
         )}
       </bem.Gallery__wrapper>
     </bem.Gallery>

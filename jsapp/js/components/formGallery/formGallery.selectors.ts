@@ -1,9 +1,7 @@
 import type {FlatQuestion} from 'jsapp/js/assetUtils';
-import type {
-  SubmissionResponse,
-  SubmissionAttachment,
-} from 'js/dataInterface';
-import type {Json} from './formGallery.interfaces';
+import type {SubmissionResponse, SubmissionAttachment} from 'js/dataInterface';
+import type {Json} from 'jsapp/js/components/common/common.interfaces';
+import {findByKey} from './utils';
 
 const IMAGE_MIMETYPES = [
   'image/png',
@@ -13,39 +11,11 @@ const IMAGE_MIMETYPES = [
 ];
 
 /**
- * Find a key anywhere in an object (supports nesting)
- * Based on https://stackoverflow.com/a/15524326/443457
- * @param theObject - object to search
- * @param key - key to find
- * @returns value of the found key
+ * Data api does not return the exact file name
+ * The submission shows the original filename. The attach shows it saved as done in media storage.
+ * These can vary.
  */
-function findByKey(theObject: Json, key: string): Json {
-  let result = null;
-  if (theObject instanceof Array) {
-    for (let i = 0; i < theObject.length; i++) {
-      result = findByKey(theObject[i], key);
-      if (result) {
-        break;
-      }
-    }
-  } else if (theObject instanceof Object) {
-    for (const prop in theObject) {
-      if (prop === key) {
-        return theObject[key];
-      }
-      if (
-        theObject[prop] instanceof Object ||
-        theObject[prop] instanceof Array
-      ) {
-        result = findByKey(theObject[prop], key);
-        if (result) {
-          break;
-        }
-      }
-    }
-  }
-  return result;
-}
+const normalizeFilename = (filename: string) => filename.replace(/ /g, '_');
 
 export const selectImageAttachments = (
   submissions: SubmissionResponse[],
@@ -58,10 +28,11 @@ export const selectImageAttachments = (
         IMAGE_MIMETYPES.includes(attachment.mimetype)
       );
       if (filterQuestion) {
-        const filename = findByKey(submission, filterQuestion);
+        const filename = findByKey(submission, filterQuestion) as string;
         return attachments.filter(
           (attachment) =>
-            attachment.filename.split('/').slice(-1)[0] === filename
+            attachment.filename.split('/').slice(-1)[0] ===
+            normalizeFilename(filename)
         );
       }
       return attachments;
