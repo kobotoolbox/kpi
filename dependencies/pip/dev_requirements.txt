@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@4ea0c16ae4c04c69c8b7da8d8b51ef9d74c7e7d0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -32,8 +32,6 @@ azure-storage-blob==12.11.0
     # via django-storages
 backcall==0.2.0
     # via ipython
-backports-zoneinfo==0.2.1; python_version < '3.9'
-    # via -r dependencies/pip/requirements.in
 bcrypt==3.2.0
     # via paramiko
 begins==0.9
@@ -454,8 +452,8 @@ six==1.16.0
     #   click-repl
     #   google-auth
     #   grpcio
-    #   jsonschema
     #   isodate
+    #   jsonschema
     #   mongomock
     #   paramiko
     #   pathlib2
