@@ -10,7 +10,7 @@ import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import AccountSidebar from 'js/components/account/accountSidebar';
-import SupportHelpBubble from 'js/components/support/supportHelpBubble';
+import HelpBubble from 'js/components/support/helpBubble';
 import {
   COMMON_QUERIES,
   MODAL_TYPES,
@@ -170,7 +170,7 @@ class Drawer extends Reflux.Component {
 
         <bem.KDrawer__secondaryIcons>
           { stores.session.isLoggedIn &&
-            <SupportHelpBubble/>
+            <HelpBubble/>
           }
           { stores.session.isLoggedIn &&
             stores.session.currentAccount.projects_url &&

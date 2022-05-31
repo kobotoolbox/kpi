@@ -87,6 +87,7 @@ class IntercomHandler extends React.Component {
     }
   }
 
+  /** This function comes from Intercom, we've just beautified the code a bit. */
   injectIntercomScripts() {
     if (typeof window.Intercom === 'function') {
       window.Intercom('reattach_activator');
