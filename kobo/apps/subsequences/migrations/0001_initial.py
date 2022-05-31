@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('kpi', '0040_asset_advanced_features'),
+        ('kpi', '0041_asset_advanced_features'),
     ]
 
     operations = [
