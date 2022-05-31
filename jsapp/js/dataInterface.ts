@@ -1253,7 +1253,7 @@ export const dataInterface: DataInterface = {
     fields: string[] = [],
     filter = ''
   ) {
-    const query = `limit=${pageSize - 28}&start=${page}`;
+    const query = `limit=${pageSize}&start=${page}`;
     let s = '&sort={"_id":-1}'; // default sort
     let f = '';
     if (sort.length) {
