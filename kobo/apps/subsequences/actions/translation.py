@@ -159,7 +159,7 @@ class TranslationAction(BaseAction):
             for language in self.languages:
                 label = f'{field} - translation ({language})'
                 _type = 'translation'
-                _name = f'{_type}_{language}'
+                _name = f'translated_{language}'
                 yield {
                     'type': _type,
                     'name': f'{field}/{_name}',
