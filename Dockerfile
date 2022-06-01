@@ -54,12 +54,14 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 RUN apt-get -qq update && \
     apt-get -qq -y install curl && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get -qq -y install \
+    apt-get -qq -y install --no-install-recommends \
         ffmpeg \
+        gdal-bin \
         gettext \
         git \
         gosu \
         less \
+        libproj-dev \
         locales \
         nodejs \
         postgresql-client \
