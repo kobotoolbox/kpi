@@ -49,7 +49,8 @@ RUN apt -qq update && \
         locales \
         runit-init \
         rsync \
-        vim && \
+        vim \
+        wait-for-it && \
     apt clean && \
         rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
