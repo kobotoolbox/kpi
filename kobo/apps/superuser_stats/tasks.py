@@ -20,7 +20,6 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
     KobocatUser,
     KobocatUserProfile,
-    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
 from kpi.models.asset import Asset
@@ -248,21 +247,17 @@ def generate_forms_count_by_submission_range(output_filename):
 
 @shared_task
 def generate_media_storage_report(output_filename):
-
-    attachments = ReadOnlyKobocatAttachment.objects.all().values(
-        'instance__xform__user__username'
-    ).order_by(
-        'instance__xform__user__username'
-    ).annotate(
-        storage_used=Sum('media_file_size')
+    attachments = KobocatUserProfile.objects.all().values(
+        'user__username',
+        'attachment_storage_bytes',
     )
-
+    
     data = []
 
     for attachment_count in attachments:
         data.append([
-            attachment_count['instance__xform__user__username'],
-            attachment_count['storage_used']
+            attachment_count['user__username'],
+            attachment_count['attachment_storage_bytes'],
         ])
 
     headers = ['Username', 'Storage Used (Bytes)']
