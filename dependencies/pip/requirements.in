@@ -87,5 +87,8 @@ deepmerge
 # MFA
 django-trench==0.2.3
 
+# Sentry
+sentry-sdk
+
 # Python 3.8 support
 backports.zoneinfo; python_version < '3.9'

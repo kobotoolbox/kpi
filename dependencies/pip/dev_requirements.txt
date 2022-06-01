@@ -45,6 +45,7 @@ billiard==3.6.4.0
 boto3==1.22.2
     # via
     #   django-amazon-ses
+    #   django-storages
 botocore==1.25.2
     # via
     #   boto3
@@ -57,6 +58,7 @@ certifi==2021.10.8
     # via
     #   msrest
     #   requests
+    #   sentry-sdk
 cffi==1.15.0
     # via
     #   bcrypt
@@ -380,6 +382,8 @@ s3transfer==0.5.2
     # via boto3
 sentinels==1.0.0
     # via mongomock
+sentry-sdk==1.5.12
+    # via -r dependencies/pip/requirements.in
 shortuuid==1.0.8
     # via -r dependencies/pip/requirements.in
 six==1.16.0
@@ -429,6 +433,7 @@ urllib3==1.26.9
     #   botocore
     #   requests
     #   responses
+    #   sentry-sdk
 uwsgi==2.0.20
     # via -r dependencies/pip/requirements.in
 vine==5.0.0
