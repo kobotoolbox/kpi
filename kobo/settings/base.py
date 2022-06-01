@@ -819,9 +819,12 @@ if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
         MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
     mongo_db_name = MONGO_DATABASE['NAME']
 else:
-    # Get collection name from the connection string, fallback on 'formhub' if
-    # it is empty or None
-    mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or 'formhub'
+    # Attempt to get collection name from the connection string
+    # fallback on KPI_MONGO_NAME or 'formhub' if it is empty or None or unable to parse
+    try:
+        mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or 'formhub'
+    except ValueError: # db_url is unable to parse replica set strings
+        mongo_db_name = env.str('KPI_MONGO_NAME', 'formhub')
 
 mongo_client = MongoClient(
     MONGO_DB_URL, connect=False, journal=True, tz_aware=True
