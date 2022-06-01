@@ -78,10 +78,10 @@ class ExtendUserAdmin(UserAdmin):
         super(UserAdmin, self).__init__(*args, **kwargs)
         UserAdmin.list_display += ('date_joined',)
         UserAdmin.list_filter += ('date_joined',)
-        UserAdmin.readonly_fields += ('deployed_forms_count', 'submissions_count')
+        UserAdmin.readonly_fields += ('deployed_forms_count', 'monthly_submissions_count')
         UserAdmin.fieldsets += (
             'Deployed forms and Submissions Counts', {
-                'fields': ('deployed_forms_count', 'submissions_count'),
+                'fields': ('deployed_forms_count', 'monthly_submissions_count'),
             }
         ),
 
