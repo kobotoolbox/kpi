@@ -218,9 +218,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_bulk_update_response(kc_responses)
 
     def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
-        params = self.validate_submission_list_params(user,
-                                                      validate_count=True,
-                                                      **kwargs)
+        params = self.validate_submission_list_params(
+            user, validate_count=True, **kwargs
+        )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, identifier=None, active=False):
@@ -1052,6 +1052,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     @property
+    def submission_count(self):
+        id_string = self.backend_response['id_string']
+        # avoid migrations from being created for kc_access mocked models
+        # there should be a better way to do this, right?
+        return instance_count(
+            xform_id_string=id_string,
+            user_id=self.asset.owner.pk,
+        )
+
+    @property
     def submission_list_url(self):
         url = '{kc_base}/api/v1/data/{formid}'.format(
             kc_base=settings.KOBOCAT_INTERNAL_URL,
@@ -1249,15 +1259,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         id_string = self.backend_response['id_string']
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
-
-    def _submission_count(self):
-        id_string = self.backend_response['id_string']
-        # avoid migrations from being created for kc_access mocked models
-        # there should be a better way to do this, right?
-        return instance_count(
-            xform_id_string=id_string,
-            user_id=self.asset.owner.pk,
-        )
 
     def __delete_kc_metadata(
         self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
