@@ -116,7 +116,7 @@ class SharingForm extends React.Component {
           {this.state.asset.name}
         </bem.Modal__subheader>
 
-        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == 'survey' &&
+        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
           <bem.FormModal__item>
             <bem.FormView__cell m='warning'>
               <i className='k-icon k-icon-alert' />
