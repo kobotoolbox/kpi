@@ -253,7 +253,9 @@ export enum QuestionTypeName {
   rank = 'rank',
   score = 'score',
   select_multiple = 'select_multiple',
+  select_multiple_from_file = 'select_multiple_from_file',
   select_one = 'select_one',
+  select_one_from_file = 'select_one_from_file',
   text = 'text',
   time = 'time',
   video = 'video',
@@ -271,18 +273,18 @@ type QuestionTypes = {
 
 /*
  * When adding new question type please remember to update those places:
- * 1. Add question type here
+ * 1. Add question type here to `QUESTION_TYPES` and `QuestionTypeName`
  * 2. Add new SVG icon to jsapp/svg-icons
- * 3. Add icon to row view.icons.coffee
+ * 3. Add icon to row view.icons.coffee (to be configurable in Form Builder)
  * 4. If it's non-regular type, you might need to update:
- *   - isRowSpecialLabelHolder in assetUtils.es6
- *   - renderQuestionTypeIcon in assetUtils.es6
+ *   - isRowSpecialLabelHolder in assetUtils.ts
+ *   - renderQuestionTypeIcon in assetUtils.ts
  * 5. If question doesn't hold data, update:
  *   - getDisplayData in bulkEditSubmissionsForm.es6
  *   - getDisplayedColumns in table.es6
- * 6. Update renderResponseData in submissionDataTable.es6
- * 7. Update getSubmissionDisplayData in submissionUtils.es6
- * 8. If it's media type update renderAttachment in submissionDataTable.es6
+ * 6. Update renderResponseData in submissionDataTable.tsx
+ * 7. Update getSubmissionDisplayData in submissionUtils.ts
+ * 8. If it's media type update renderAttachment in submissionDataTable.tsx
  */
 
 /**
@@ -310,7 +312,9 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
   rank: {label: t('Ranking'), icon: 'qt-ranking', id: QuestionTypeName.rank},
   score: {label: t('Rating'), icon: 'qt-rating', id: QuestionTypeName.score},
   select_multiple: {label: t('Select Many'), icon: 'qt-select-many', id: QuestionTypeName.select_multiple},
+  select_multiple_from_file: {label: t('Select Many from File'), icon: 'qt-select-many-from-file', id: QuestionTypeName.select_multiple_from_file},
   select_one: {label: t('Select One'), icon: 'qt-select-one', id: QuestionTypeName.select_one},
+  select_one_from_file: {label: t('Select One from File'), icon: 'qt-select-one-from-file', id: QuestionTypeName.select_one_from_file},
   text: {label: t('Text'), icon: 'qt-text', id: QuestionTypeName.text},
   time: {label: t('Time'), icon: 'qt-time', id: QuestionTypeName.time},
   video: {label: t('Video'), icon: 'qt-video', id: QuestionTypeName.video},
