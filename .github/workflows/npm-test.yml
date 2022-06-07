@@ -4,7 +4,6 @@ on:
   push:
     branches: [ master, beta ]
   pull_request:
-    branches: [ master, beta ]
 
 jobs:
   build:
@@ -15,6 +14,10 @@ jobs:
         with:
           node-version: '16'
           cache: 'npm'
+      - name: Downgrading npm to 8.5.5
+        uses: reedyuk/npm-version@1.1.1
+        with:
+          version: '8.5.5'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
       - run: npm install
