@@ -259,7 +259,7 @@ CONSTANCE_CONFIG = {
         'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
-        '\r\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
         "Options available for the 'sector' metadata field, one per line."
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
@@ -320,10 +320,13 @@ SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
-    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db_url(
+        'KPI_DATABASE_URL' if 'KPI_DATABASE_URL' in os.environ else 'DATABASE_URL',
+        default='sqlite:///%s/db.sqlite3' % BASE_DIR
+    ),
 }
+
 if 'KC_DATABASE_URL' in os.environ:
     DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
 
@@ -724,8 +727,8 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-
-if (os.getenv("RAVEN_DSN") or "") != "":
+sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
+if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -737,13 +740,13 @@ if (os.getenv("RAVEN_DSN") or "") != "":
         event_level=logging.WARNING  # Send warnings as events
     )
     sentry_sdk.init(
-        dsn=os.environ['RAVEN_DSN'],
+        dsn=sentry_dsn,
         integrations=[
             DjangoIntegration(),
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=0.2,
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
         send_default_pii=True
     )
 
