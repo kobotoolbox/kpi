@@ -87,8 +87,8 @@ COPY . "${KPI_SRC_DIR}"
 
 RUN python3 -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install  --quiet pip==22.0.4 && \
-    pip install  --quiet pip-tools
+RUN pip install --quiet pip==22.0.4 && \
+    pip install --quiet pip-tools
 COPY ./dependencies/pip/external_services.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null && \
     rm -rf ~/.cache/pip
@@ -100,6 +100,7 @@ RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null && \
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
+    npm install -g npm@8.5.5 && \
     npm install -g check-dependencies && \
     npm install --quiet && \
     npm cache clean --force
