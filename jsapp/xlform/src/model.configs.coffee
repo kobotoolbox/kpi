@@ -35,16 +35,6 @@ module.exports = do ->
       label: "username"
       description: "includes interviewer's username"
       default: false
-    simserial:
-      name: "simserial"
-      label: "sim serial"
-      description: "records the serial number of the network sim card"
-      default: false
-    subscriberid:
-      name: "subscriberid"
-      label: "subscriber id"
-      description: "records the subscriber id of the sim card"
-      default: false
     deviceid:
       name: "deviceid"
       label: "device id"
