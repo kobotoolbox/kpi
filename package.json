@@ -2,6 +2,10 @@
   "name": "kpi",
   "version": "2.0.0",
   "description": "KoboToolbox frontend interface.",
+  "engines": {
+    "node": "~16.15.0",
+    "npm": "~8.5.5"
+  },
   "dependencies": {
     "@fontsource/roboto": "^4.4.2",
     "@fontsource/roboto-mono": "^4.4.2",
