@@ -2,6 +2,7 @@
   "name": "kpi",
   "version": "2.0.0",
   "description": "KoboToolbox frontend interface.",
+  "engineStrict" : true,
   "engines": {
     "node": "~16.15.0",
     "npm": "~8.5.5"
