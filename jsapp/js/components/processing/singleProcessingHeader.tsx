@@ -1,6 +1,10 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import type {AnyRowTypeName} from 'js/constants';
+import {
+  QUESTION_TYPES,
+  META_QUESTION_TYPES
+} from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
   getRowType,
@@ -83,16 +87,24 @@ export default class SingleProcessingHeader extends React.Component<
         const hasAtLeastOneUuid = Boolean(questionUuids.find((uuidOrNull) => uuidOrNull !== null));
         if (hasAtLeastOneUuid) {
           const questionType = getRowType(this.props.assetContent, questionName);
-          const translatedLabel = getTranslatedRowLabel(
-            questionName,
-            this.props.assetContent.survey,
-            0
-          );
-          options.push({
-            id: questionName,
-            label: translatedLabel !== null ? translatedLabel : questionName,
-            icon: getRowTypeIcon(questionType),
-          });
+
+          // Only allow audio questions at this point (we plan to allow text
+          // and video in future).
+          if (
+            questionType === QUESTION_TYPES.audio.id ||
+            questionType === META_QUESTION_TYPES['background-audio']
+          ) {
+            const translatedLabel = getTranslatedRowLabel(
+              questionName,
+              this.props.assetContent.survey,
+              0
+            );
+            options.push({
+              id: questionName,
+              label: translatedLabel !== null ? translatedLabel : questionName,
+              icon: getRowTypeIcon(questionType),
+            });
+          }
         }
       });
     }
