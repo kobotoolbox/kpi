@@ -9,7 +9,10 @@ from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import List, Dict, Optional, Tuple, Generator
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import constance
 import requests

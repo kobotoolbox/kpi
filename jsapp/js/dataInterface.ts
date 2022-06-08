@@ -142,9 +142,7 @@ export interface SubmissionResponse {
   'formhub/uuid': string;
   'meta/instanceID': string;
   phonenumber?: string;
-  simserial?: string;
   start?: string;
-  subscriberid?: string;
   today?: string;
   username?: string;
 }
