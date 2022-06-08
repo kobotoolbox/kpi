@@ -148,6 +148,28 @@ class TestAssetSnapshotList(KpiTestCase):
             detail_response = self.client.get(xml_url)
             self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
+    def test_head_requests_return_empty_responses(self):
+        """
+        HEAD requests sent to OpenRosa endpoints must return empty responses
+        with 204 status codes and the appropriate headers set
+        """
+        VIEW_NAMES_TO_TEST = [
+            'assetsnapshot-form-list',
+            'assetsnapshot-manifest',
+            'assetsnapshot-submission',
+        ]
+        creation_response = self._create_asset_snapshot_from_asset()
+        snapshot_uid = creation_response.data['uid']
+        self.client.login(username='someuser', password='someuser')
+        for view_name in VIEW_NAMES_TO_TEST:
+            url = reverse(self._get_endpoint(view_name), args=(snapshot_uid,))
+            response = self.client.head(url)
+            assert response.status_code == status.HTTP_204_NO_CONTENT
+            assert not response.data
+            assert 'X-OpenRosa-Accept-Content-Length' in response
+            assert 'X-OpenRosa-Version' in response
+
+
     def test_xml_renderer(self):
         """
         Make sure the API endpoint returns the same XML as the ORM
