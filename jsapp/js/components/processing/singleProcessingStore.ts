@@ -410,7 +410,8 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onAnyCallFailed(response: FailResponse) {
-    alertify.notify(response.responseText, 'error');
+    let errorText: string = response.responseJSON?.detail || response.responseJSON?.error || response.statusText;
+    alertify.notify(errorText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
     this.trigger(this.data);
