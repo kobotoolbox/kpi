@@ -1,6 +1,6 @@
 # coding: utf-8
-INSTANCE_FORMAT_TYPE_XML = "xml"
-INSTANCE_FORMAT_TYPE_JSON = "json"
+SUBMISSION_FORMAT_TYPE_XML = "xml"
+SUBMISSION_FORMAT_TYPE_JSON = "json"
 
 GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
 
@@ -61,7 +61,7 @@ SHADOW_MODEL_APP_LABEL = 'shadow_model'
 # Useful in `db_routers.py`
 SHADOW_MODEL_APP_LABELS = [
     SHADOW_MODEL_APP_LABEL,
-    'usage_statistics',
+    'superuser_stats',
 ]
 
 # List of nested attributes which bypass 'dots' encoding
@@ -107,3 +107,7 @@ ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
     'tags__name__icontains',
     'uid__icontains',
 ]
+
+
+# Things hard-coded in Enketo Express
+ENKETO_CSRF_COOKIE_NAME = '__csrf'

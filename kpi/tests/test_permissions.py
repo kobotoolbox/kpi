@@ -19,8 +19,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import BadPermissionsException
+from kpi.utils.object_permission import get_all_objects_for_user
 from ..models.asset import Asset
-from ..models.object_permission import get_all_objects_for_user
 
 
 class BasePermissionsTestCase(TestCase):
@@ -725,29 +725,120 @@ class PermissionsTestCase(BasePermissionsTestCase):
     @unittest.skip(reason='Skip until this branch is merged within '
                           '`3115-allowed-write-actions-with-partial-perm`')
     def test_implied_partial_submission_permission(self):
-        """
-        This test is present even though we can only restrict users to view
-        subset of data submitted by other users, so far.
-        """
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
-            PERM_CHANGE_SUBMISSIONS: [{
-                '_submitted_by': self.anotheruser.username
-            }]
+            PERM_CHANGE_SUBMISSIONS: [
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.anotheruser.username,
+                            self.someuser.username,
+                        ]
+                    }
+                }
+            ]
         }
         expected_partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{
-                '_submitted_by': self.anotheruser.username
+                '_submitted_by': {
+                    '$in': [
+                        self.anotheruser.username,
+                        self.someuser.username,
+                    ]
+                }
             }],
             PERM_CHANGE_SUBMISSIONS: [{
-                '_submitted_by': self.anotheruser.username
+                '_submitted_by': {
+                    '$in': [
+                        self.anotheruser.username,
+                        self.someuser.username,
+                    ]
+                }
             }]
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
                           partial_perms=partial_perms)
 
         partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
+        self.assertDictEqual(expected_partial_perms, partial_perms)
+
+    def test_merged_implied_partial_submission_permission(self):
+        asset = self.admin_asset
+        grantee = self.someuser
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                {'_submitted_by': {'$in': [self.admin.username]}}
+            ],
+            PERM_CHANGE_SUBMISSIONS: [
+                {'_submitted_by': {'$in': [self.anotheruser.username]}}
+            ],
+            PERM_DELETE_SUBMISSIONS: [
+                {'_submitted_by': {'$in': [self.someuser.username]}}
+            ]
+        }
+        expected_partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.admin.username,
+                            self.someuser.username,
+                            self.anotheruser.username,
+                        ]
+                    }
+                },
+            ],
+            PERM_CHANGE_SUBMISSIONS: [
+                {'_submitted_by': {'$in': [self.anotheruser.username]}}
+            ],
+            PERM_DELETE_SUBMISSIONS: [
+                {'_submitted_by': {'$in': [self.someuser.username]}}
+            ]
+        }
+        asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
+                          partial_perms=partial_perms)
+
+        partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
+
+        for partial_perm, filters in expected_partial_perms.items():
+            self.assertEqual(
+                sorted(filters[0]['_submitted_by']['$in']),
+                sorted(partial_perms[partial_perm][0]['_submitted_by']['$in']),
+            )
+
+    def test_implied_partial_submission_permission_with_different_filters(self):
+        asset = self.admin_asset
+        grantee = self.someuser
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                {'_submitted_by': self.someuser.username},
+            ],
+            PERM_DELETE_SUBMISSIONS: [
+                {'_submission_date': {'$lte': '2021-01-01'}},
+                {'_submission_date': {'$gte': '2020-01-01'}},
+            ]
+        }
+        expected_partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                [
+                    {'_submission_date': {'$lte': '2021-01-01'}},
+                    {'_submission_date': {'$gte': '2020-01-01'}},
+                ],
+                [
+                    {'_submitted_by': self.someuser.username},
+                ],
+            ],
+            PERM_DELETE_SUBMISSIONS: [
+                {'_submission_date': {'$lte': '2021-01-01'}},
+                {'_submission_date': {'$gte': '2020-01-01'}},
+            ]
+        }
+        asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
+                          partial_perms=partial_perms)
+
+        partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
+
         self.assertDictEqual(expected_partial_perms, partial_perms)
 
     def test_user_without_perms_get_anonymous_perms(self):

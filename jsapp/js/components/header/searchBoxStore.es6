@@ -4,16 +4,15 @@ import {
   getCurrentPath,
   isMyLibraryRoute,
   isPublicCollectionsRoute,
-} from 'js/routerUtils';
+} from 'js/router/routerUtils';
+import {createEnum} from 'js/constants';
 
 const DEFAULT_SEARCH_PHRASE = '';
 
-export const SEARCH_CONTEXTS = {};
-new Set([
+export const SEARCH_CONTEXTS = createEnum([
   'MY_LIBRARY',
   'PUBLIC_COLLECTIONS',
-]).forEach((codename) => {SEARCH_CONTEXTS[codename] = codename;});
-Object.freeze(SEARCH_CONTEXTS);
+]);
 
 export const searchBoxStore = Reflux.createStore({
   previousPath: getCurrentPath(),

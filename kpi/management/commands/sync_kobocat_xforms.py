@@ -28,8 +28,8 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models import Asset, ObjectPermission
-from kpi.models.object_permission import get_anonymous_user
-from kpi.model_utils import _set_auto_field_update
+from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.models import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -539,7 +539,7 @@ class Command(BaseCommand):
                                 'WARN',
                                 user.username,
                                 xform.id_string,
-                                e.message
+                                str(e)
                             ]
                             self._print_tabular(*error_information)
                             continue

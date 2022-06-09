@@ -1,21 +1,30 @@
 # coding: utf-8
-import constance
 from datetime import timedelta
+
+import constance
 from django.db import models
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
 from kpi.utils.log import logging
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
+from ..constants import (
+    HookLogStatus,
+    HOOK_LOG_PENDING,
+    HOOK_LOG_FAILED,
+    KOBO_INTERNAL_ERROR_STATUS_CODE
+)
 
 
 class HookLog(models.Model):
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
-    instance_id = models.IntegerField(default=0, db_index=True)  # `kc.logger.Instance.id`.
+    submission_id = models.IntegerField(default=0, db_index=True)  # `KoBoCAT.logger.Instance.id`
     tries = models.PositiveSmallIntegerField(default=0)
-    status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
+    status = models.PositiveSmallIntegerField(
+        choices=[[e.value, e.name.title()] for e in HookLogStatus],
+        default=HookLogStatus.PENDING.value
+    )  # Could use status_code, but will speed-up queries
     status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
@@ -24,24 +33,29 @@ class HookLog(models.Model):
     class Meta:
         ordering = ["-date_created"]
 
-    def can_retry(self):
+    def can_retry(self) -> bool:
         """
-        Returns whether instance can be resent to external endpoint.
-        Notice: even if returns false, `self.retry()` can be triggered.
-
-        :return: bool
+        Return whether instance can be resent to external endpoint.
+        Notice: even if False is returned, `self.retry()` can be triggered.
         """
         if self.hook.active:
-            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
+            seconds = HookLog.get_elapsed_seconds(
+                constance.config.HOOK_MAX_RETRIES
+            )
             threshold = timezone.now() - timedelta(seconds=seconds)
             # We can retry only if system has already tried 3 times.
-            # If log is still pending after 3 times, there was an issue, we allow the retry
-            return self.status == HOOK_LOG_FAILED or \
-                (self.date_modified < threshold and self.status == HOOK_LOG_PENDING)
+            # If log is still pending after 3 times, there was an issue,
+            # we allow the retry
+            return (
+                self.status == HOOK_LOG_FAILED
+                or (self.date_modified < threshold and self.status == HOOK_LOG_PENDING)
+            )
 
         return False
 
-    def change_status(self, status=HOOK_LOG_PENDING, message=None, status_code=None):
+    def change_status(
+        self, status=HOOK_LOG_PENDING, message=None, status_code=None
+    ):
         self.status = status
 
         if message:
@@ -53,16 +67,16 @@ class HookLog(models.Model):
         self.save(reset_status=True)
 
     @staticmethod
-    def get_elapsed_seconds(retries_count):
+    def get_elapsed_seconds(retries_count: int) -> int:
         """
-        Calculate number of elapsed seconds since first try
-        :param retries_count: int.
-        :return: int. Number of seconds
+        Calculate number of elapsed seconds since first try.
+        Return the number of seconds.
         """
         # We need to sum all seconds between each retry
         seconds = 0
         for retries_count in range(retries_count):
-            seconds += HookLog.get_remaining_seconds(retries_count)  # Range is zero-indexed
+            # Range is zero-indexed
+            seconds += HookLog.get_remaining_seconds(retries_count)
 
         return seconds
 
@@ -82,7 +96,7 @@ class HookLog(models.Model):
         """
         try:
             ServiceDefinition = self.hook.get_service_definition()
-            service_definition = ServiceDefinition(self.hook, self.instance_id)
+            service_definition = ServiceDefinition(self.hook, self.submission_id)
             service_definition.send()
             self.refresh_from_db()
         except Exception as e:
@@ -100,15 +114,6 @@ class HookLog(models.Model):
             self.tries += 1
             self.hook.reset_totals()
         super().save(*args, **kwargs)
-
-    @property
-    def status_str(self):
-        if self.status == HOOK_LOG_PENDING:
-            return "Pending"
-        elif self.status == HOOK_LOG_FAILED:
-            return "Failed"
-        elif self.status == HOOK_LOG_SUCCESS:
-            return "Success"
 
     def __str__(self):
         return "<HookLog {uid}>".format(uid=self.uid)

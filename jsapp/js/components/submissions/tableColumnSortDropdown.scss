@@ -1,0 +1,118 @@
+@use "scss/mixins";
+@use "scss/_colors";
+@use "scss/libs/_mdl";
+
+// nested selector needed for specificity
+.kobo-dropdown[data-name='table-column-sort']  {
+  @include mixins.centerRowFlex;
+  display: block;
+  width: 100%;
+
+  .kobo-dropdown__menu {
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-40;
+    @include mdl.box-shadow;
+    padding: 9px 0;
+    text-align: left;
+    line-height: 20px;
+    min-width: 150px;
+
+    .sort-dropdown-menu-button:hover {
+      background-color: colors.$kobo-gray-24;
+    }
+  }
+
+  .kobo-dropdown__trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+
+    &:hover,
+    &:hover .k-icon {
+      color: colors.$kobo-blue !important;
+    }
+  }
+
+  &.kobo-dropdown--menu-visible .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-down {
+    display: none;
+  }
+
+  &.kobo-dropdown--menu-hidden .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-up {
+    display: none;
+  }
+
+  .table-column-sort-dropdown-trigger {
+    @include mixins.centerRowFlex;
+    flex-wrap: nowrap;
+    text-align: left;
+
+    .column-header-title {
+      flex: 1;
+
+      &:not(:last-child) {
+        margin-right: 5px;
+      }
+
+      &:not(:first-child) {
+        margin-left: 5px;
+      }
+    }
+
+    .k-icon.k-icon-sort-up,
+    .k-icon.k-icon-sort-down {
+      color: colors.$kobo-teal;
+    }
+  }
+
+  .kobo-dropdown__menu {
+    .sort-dropdown-menu-button {
+      .table-column-sort-dropdown-clear {
+        color: colors.$kobo-white !important;
+        float: right;
+
+        &.k-icon {
+          font-size: 18px;
+        }
+      }
+
+      &.sort-dropdown-menu-button--active {
+        color: colors.$kobo-teal;
+        background-color: colors.$kobo-gray-24; // Assuming we are using `dark` option
+      }
+    }
+  }
+}
+
+.sort-dropdown-menu-button {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  appearance: none;
+  border: none;
+  margin: 0;
+  color: inherit;
+  background-color: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  line-height: inherit;
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .k-icon {
+    color: inherit;
+    font-size: 20px;
+    vertical-align: top;
+
+    &:first-child:not(:only-child) {
+      margin-right: 5px;
+    }
+
+    &:last-child:not(:only-child) {
+      margin-left: 5px;
+    }
+  }
+}

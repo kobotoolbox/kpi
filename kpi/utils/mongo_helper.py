@@ -1,13 +1,27 @@
 # coding: utf-8
 import re
 
-from bson import ObjectId
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 
+from kobo.celery import celery_app
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
+
+
+def drop_mock_only(func):
+    """
+    This decorator should be used on every method that drop data in MongoDB
+    in a testing environment. It ensures that MockMongo is used and no prodction
+    data is deleted
+    """
+    def _inner(*args, **kwargs):
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
+        return func(*args, **kwargs)
+
+    return _inner
 
 
 class MongoHelper:
@@ -18,8 +32,24 @@ class MongoHelper:
     and KoBoCAT's ParseInstance class to query mongo.
     """
 
-    KEY_WHITELIST = ['$or', '$and', '$exists', '$in', '$gt', '$gte',
-                     '$lt', '$lte', '$regex', '$options', '$all']
+    OR_OPERATOR = '$or'
+    AND_OPERATOR = '$and'
+    IN_OPERATOR = '$in'
+
+    KEY_WHITELIST = [
+        OR_OPERATOR,
+        AND_OPERATOR,
+        IN_OPERATOR,
+        '$exists',
+        '$gt',
+        '$gte',
+        '$lt',
+        '$lte',
+        '$regex',
+        '$options',
+        '$all',
+        '$elemMatch',
+    ]
 
     ENCODING_SUBSTITUTIONS = [
         (re.compile(r'^\$'), base64_encodestring('$').strip()),
@@ -49,13 +79,10 @@ class MongoHelper:
         return key
 
     @classmethod
-    def encode(cls, key):
+    def encode(cls, key: str) -> str:
         """
         Replace characters not allowed in Mongo keys with their base64-encoded
         representations
-
-        :param key: string
-        :return: string
         """
         for pattern, repl in cls.ENCODING_SUBSTITUTIONS:
             key = re.sub(pattern, repl, key)
@@ -63,30 +90,42 @@ class MongoHelper:
 
     @classmethod
     def get_count(
-            cls, mongo_userform_id, query=None, instance_ids=None,
-            permission_filters=None):
-
+        cls,
+        mongo_userform_id,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+    ):
         _, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             fields={'_id': 1},
             query=query,
-            instance_ids=instance_ids,
+            submission_ids=submission_ids,
             permission_filters=permission_filters)
 
         return total_count
 
     @classmethod
     def get_instances(
-            cls, mongo_userform_id, start=None, limit=None,
-            sort=None, fields=None, query=None, instance_ids=None,
-            permission_filters=None
+        cls,
+        mongo_userform_id,
+        start=None,
+        limit=None,
+        sort=None,
+        fields=None,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+        skip_count=False,
     ):
         cursor, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             fields=fields,
             query=query,
-            instance_ids=instance_ids,
-            permission_filters=permission_filters)
+            submission_ids=submission_ids,
+            permission_filters=permission_filters,
+            skip_count=skip_count,
+        )
 
         cursor.skip(start)
         if limit is not None:
@@ -103,25 +142,32 @@ class MongoHelper:
 
         return cursor, total_count
 
-    @classmethod
-    def is_attribute_invalid(cls, key):
+    @staticmethod
+    def get_max_time_ms():
         """
-        Checks if an attribute can't be passed to Mongo as is.
-        :param key:
-        :return:
+        Return the appropriate query timeout in milliseconds
         """
-        return key not in cls.KEY_WHITELIST and\
-               (key.startswith('$') or key.count('.') > 0)
+        if celery_app.current_worker_task:
+            max_time_secs = settings.MONGO_CELERY_QUERY_TIMEOUT
+        else:
+            max_time_secs = settings.MONGO_QUERY_TIMEOUT
+        return max_time_secs * 1000
 
     @classmethod
-    def to_readable_dict(cls, d):
+    def is_attribute_invalid(cls, key: str) -> str:
+        """
+        Checks if an attribute can't be passed to Mongo as is.
+        """
+        return key not in cls.KEY_WHITELIST and (
+            key.startswith('$') or key.count('.') > 0
+        )
+
+    @classmethod
+    def to_readable_dict(cls, d: dict) -> dict:
         """
         Updates encoded attributes of a dict with human-readable attributes.
         For example:
         { "myLg==attribute": True } => { "my.attribute": True }
-
-        :param d: dict
-        :return: dict
         """
 
         for key, value in list(d.items()):
@@ -246,28 +292,46 @@ class MongoHelper:
         :param key:
         :return:
         """
-        return key not in \
-               cls.KEY_WHITELIST and (key.startswith('$') or key.count('.') > 0)
+        return (
+            key not in cls.KEY_WHITELIST
+            and (key.startswith('$') or key.count('.') > 0)
+        )
 
     @classmethod
-    def _get_cursor_and_count(cls, mongo_userform_id,
-                              fields=None, query=None, instance_ids=None,
-                              permission_filters=None):
+    def _get_cursor_and_count(
+        cls,
+        mongo_userform_id,
+        fields=None,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+        skip_count=False,
+    ):
 
-        if len(instance_ids) > 0:
+        if len(submission_ids) > 0:
             query.update({
-                '_id': {'$in': instance_ids}
+                '_id': {cls.IN_OPERATOR: submission_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
 
         # Narrow down query
         if permission_filters is not None:
-            permission_filters_query = {'$or': []}
-            for permission_filter in permission_filters:
-                permission_filters_query['$or'].append(permission_filter)
+            if len(permission_filters) == 1:
+                permission_filters_query = permission_filters[0]
+            else:
+                permission_filters_query = {cls.OR_OPERATOR: []}
+                for permission_filter in permission_filters:
+                    if isinstance(permission_filter, list):
+                        permission_filters_query[cls.OR_OPERATOR].append(
+                            {cls.OR_OPERATOR: permission_filter}
+                        )
+                    else:
+                        permission_filters_query[cls.OR_OPERATOR].append(
+                            permission_filter
+                        )
 
-            query = {'$and': [query, permission_filters_query]}
+            query = {cls.AND_OPERATOR: [query, permission_filters_query]}
 
         query = cls.to_safe_dict(query, reading=True)
 
@@ -283,11 +347,14 @@ class MongoHelper:
             fields_to_select = {cls.USERFORM_ID: 0}
 
         cursor = settings.MONGO_DB.instances.find(
-            query,
-            fields_to_select,
-            max_time_ms=settings.MONGO_DB_MAX_TIME_MS
+            query, fields_to_select, max_time_ms=cls.get_max_time_ms()
         )
-        return cursor, cursor.count()
+        count = None
+        if not skip_count:
+            count = settings.MONGO_DB.instances.count_documents(
+                query, maxTimeMS=cls.get_max_time_ms()
+            )
+        return cursor, count
 
     @classmethod
     def _is_attribute_encoded(cls, key):

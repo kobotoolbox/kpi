@@ -5,19 +5,35 @@ from io import StringIO
 
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
-from rest_framework import renderers
-from rest_framework import status
+from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.utils.xml import add_xml_declaration
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'json'
+
+
+class MediaFileRenderer(renderers.BaseRenderer):
+    media_type = '*/*'
+    format = None
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data
+
+
+class MP3ConversionRenderer(MediaFileRenderer):
+
+    media_type = 'audio/mpeg'
+    format = 'mp3'
 
 
 class OpenRosaRenderer(DRFXMLRenderer):
@@ -121,9 +137,30 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionXMLRenderer(DRFXMLRenderer):
+class DoNothingRenderer(renderers.BaseRenderer):
+    """
+    This class exists only to specify that a view provides a particular format;
+    subclass it and define `media_type` and `format` as needed. All real work
+    must be done inside the view.
+    This works around the problem of some formats needing to return a response
+    directly, e.g. for redirection, not just the _content_ to be placed inside
+    a response.
+    """
+    def render(*args, **kwargs):
+        pass
 
-    CUSTOM_ROOT = 'root'
+
+class SubmissionXLSXRenderer(DoNothingRenderer):
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
+    format = 'xlsx'
+
+
+class SubmissionCSVRenderer(DoNothingRenderer):
+    media_type = 'text/csv'
+    format = 'csv'
+
+
+class SubmissionXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
@@ -136,15 +173,17 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            return self._get_xml(data)
+            return add_xml_declaration(self._get_xml(data))
 
-        if renderer_context.get('view').action == 'list':
-            opening_node = self._node_generator(self.CUSTOM_ROOT)
-            closing_node = self._node_generator(self.CUSTOM_ROOT, closing=True)
+        if isinstance(data, list):
+            opening_node = self._node_generator(self.root_tag_name)
+            closing_node = self._node_generator(
+                self.root_tag_name, closing=True
+            )
             data_str = ''.join(data)
-            return f'{opening_node}{data_str}{closing_node}'
-        else:
-            return data
+            data = f'{opening_node}{data_str}{closing_node}'
+
+        return add_xml_declaration(data)
 
     @classmethod
     def _get_xml(cls, data):
@@ -152,25 +191,29 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # Submissions are wrapped in `<item>` nodes.
         results = data.pop('results', False)
         if not results:
-            return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+            return dicttoxml(
+                data, attr_type=False, custom_root=cls.root_tag_name
+            )
 
         submissions_parent_node = 'results'
 
-        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.root_tag_name)
         # Retrieve the beginning of the XML (without closing tag) in order
         # to concatenate `results` as XML nodes too.
-        xml_2_str = xml_.decode().replace(f'</{cls.CUSTOM_ROOT}>', '')
+        xml_2_str = xml_.decode().replace(f'</{cls.root_tag_name}>', '')
 
         opening_results_node = cls._node_generator(submissions_parent_node)
         closing_results_node = cls._node_generator(submissions_parent_node,
                                                    closing=True)
         results_data_str = ''.join(map(cls.__cleanup_submission, results))
-        closing_root_node = cls._node_generator(cls.CUSTOM_ROOT, closing=True)
+        closing_root_node = cls._node_generator(cls.root_tag_name, closing=True)
 
-        xml_2_str += f'{opening_results_node}' \
-                     f'{results_data_str}' \
-                     f'{closing_results_node}' \
-                     f'{closing_root_node}'
+        xml_2_str += (
+            f'{opening_results_node}'
+            f'{results_data_str}'
+            f'{closing_results_node}'
+            f'{closing_root_node}'
+        )
 
         return xml_2_str.encode()  # Should return bytes
 
@@ -195,14 +238,14 @@ class XMLRenderer(DRFXMLRenderer):
         renderer_context=None,
         relationship=None,
     ):
-        if hasattr(renderer_context.get("view"), "get_object"):
-            obj = renderer_context.get("view").get_object()
+        if hasattr(renderer_context.get('view'), 'get_object'):
+            obj = renderer_context.get('view').get_object()
             # If `relationship` is passed among arguments, retrieve `xml`
             # from this relationship.
             # e.g. obj is `Asset`, relationship can be `snapshot`
             if relationship is not None and hasattr(obj, relationship):
                 return getattr(obj, relationship).xml
-            return obj.xml
+            return add_xml_declaration(obj.xml)
         else:
             return super().render(data=data,
                                   accepted_media_type=accepted_media_type,

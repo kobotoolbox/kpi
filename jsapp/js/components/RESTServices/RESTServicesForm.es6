@@ -2,16 +2,17 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
-import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
-import Select from 'react-select';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
 
 const EXPORT_TYPES = {
   json: {
@@ -460,8 +461,8 @@ export default class RESTServicesForm extends React.Component {
       return (<LoadingSpinner/>);
     } else {
       let submissionPlaceholder = '%SUBMISSION%';
-      if (stores.session.environment && stores.session.environment.submission_placeholder) {
-        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      if (envStore.isReady && envStore.data.submission_placeholder) {
+        submissionPlaceholder = envStore.data.submission_placeholder;
       }
 
       return (
@@ -469,6 +470,7 @@ export default class RESTServicesForm extends React.Component {
           <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
               <TextBox
+                customModifiers='on-white'
                 label={t('Name')}
                 type='text'
                 placeholder={t('Service Name')}
@@ -489,6 +491,7 @@ export default class RESTServicesForm extends React.Component {
             {this.state.veritreeType === VERITREE_HOOK_TYPES.none.value && 
             <bem.FormModal__item>
               <TextBox
+                customModifiers='on-white'
                 label={t('Endpoint URL')}
                 type='text'
                 placeholder={t('https://')}
@@ -501,7 +504,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='isActive'
-                id='active-checkbox'
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
@@ -511,7 +513,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='emailNotification'
-                id='email-checkbox'
                 onChange={this.handleEmailNotificationChange.bind(this)}
                 checked={this.state.emailNotification}
                 label={t('Receive emails notifications')}
@@ -527,29 +528,26 @@ export default class RESTServicesForm extends React.Component {
                 title={t('Type')}
               />
             </bem.FormModal__item>
-            {<bem.FormModal__item>
-              <label htmlFor='rest-service-form--security'>
-                {t('Security')}
-              </label>
 
-              <Select
+            <bem.FormModal__item>
+              <WrappedSelect
+                label={t('Security')}
                 value={this.state.authLevel}
                 options={this.state.authOptions}
                 onChange={this.handleAuthTypeChange.bind(this)}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
                 id='rest-service-form--security'
                 name='authLevel'
-                menuPlacement='auto'
                 isSearchable={false}
                 isDisabled={VERITREE_HOOK_TYPES?.[this.state.veritreeType]?.authLevel}
+                isLimitedHeight
               />
-            </bem.FormModal__item>}
+            </bem.FormModal__item>
 
             {this.state.authLevel && (this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value
                 || this.state.authLevel.value === AUTH_OPTIONS.veritree_auth.value) &&
               <bem.FormModal__item>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Username')}
                   type='text'
                   value={this.state.authUsername}
@@ -557,6 +555,7 @@ export default class RESTServicesForm extends React.Component {
                 />
 
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Password')}
                   type='text'
                   value={this.state.authPassword}
@@ -573,6 +572,7 @@ export default class RESTServicesForm extends React.Component {
                 && this.state.veritreeType !== VERITREE_HOOK_TYPES.form_metadata.value &&
               <bem.FormModal__item m='rest-custom-wrapper'>
                 <TextBox
+                  customModifiers='on-white'
                   label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
                   type='text-multiline'
                   placeholder={t('Add Custom Wrapper')}

@@ -4,8 +4,10 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
+import TextBox from 'js/components/common/textBox';
+import Button from 'js/components/common/button';
 
 class ApiTokenDisplay extends React.Component {
   constructor(props) {
@@ -55,22 +57,23 @@ class ApiTokenDisplay extends React.Component {
       <bem.FormModal__item m='api-token'>
         <label>{t('API token')}</label>
 
-        <input
+        <TextBox
+          customModifiers='on-white'
           type={this.state.isTokenVisible && !this.state.isLoadingToken ? 'text' : 'password'}
           value={this.state.token}
           onFocus={this.onInputFocus}
           readOnly
         />
 
-        <bem.Button
-          onClick={this.toggleApiTokenVisibility}
+        <Button
           disabled={this.state.isLoadingToken}
           m='icon'
-        >
-          <i className={this.state.isTokenVisible ? 'k-icon k-icon-view-no'
-                                                  : 'k-icon k-icon-view'}
-          />
-        </bem.Button>
+          type='bare'
+          color='storm'
+          size='m'
+          startIcon={this.state.isTokenVisible ? 'hide' : 'view'}
+          onClick={this.toggleApiTokenVisibility}
+        />
       </bem.FormModal__item>
     );
   }

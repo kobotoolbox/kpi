@@ -3,8 +3,7 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import ui from 'js/ui';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {searchBoxStore} from './searchBoxStore';
 import {KEY_CODES} from 'js/constants';
 
@@ -56,7 +55,8 @@ export default class SearchBox extends React.Component {
     return (
       <bem.Search>
         <bem.Search__icon className='k-icon k-icon-search'/>
-        <ui.SearchBox
+        <bem.SearchInput
+          type='text'
           value={this.state.inputVal}
           onChange={this.onInputChange}
           onKeyUp={this.onInputKeyUp}

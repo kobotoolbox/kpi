@@ -1,0 +1,14 @@
+@use "scss/_colors";
+
+.audio-player {
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+
+  .audio-player__controls {
+    margin-top: 8px;
+    // this % calculates to around 8px for regular modal size, will be a bit
+    // smaller on mobile
+    margin-right: 2.3%;
+  }
+}

@@ -1,11 +1,20 @@
 import permConfig from './permConfig';
 import {
   ANON_USERNAME,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import {
+  SUFFIX_PARTIAL,
+  SUFFIX_USERS,
+  PARTIAL_CHECKBOX_PAIRS,
+  PARTIAL_PERM_PAIRS,
+  CHECKBOX_NAMES,
+  CHECKBOX_PERM_PAIRS,
+  PERM_CHECKBOX_PAIRS,
+} from './permConstants';
+import {
   buildUserUrl,
-  getUsernameFromUrl
+  getUsernameFromUrl,
 } from 'utils';
 
 /**
@@ -17,15 +26,22 @@ import {
 /**
  * @typedef {Object} FormData  - Object containing data from the UserAssetPermsEditor form.
  * @property {string} data.username - Who give permissions to.
- * @property {boolean} data.formView - Is able to view forms.
- * @property {boolean} data.formEdit - Is able to edit forms.
- * @property {boolean} data.formManage - Is able to change form permissions (and future stuff TBD).
- * @property {boolean} data.submissionsView - Is able to view submissions.
- * @property {boolean} data.submissionsViewPartial - If true, then able to view submissions only of some users.
- * @property {string[]} data.submissionsViewPartialUsers - Users mentioned in the above line.
- * @property {boolean} data.submissionsAdd - Is able to add submissions.
- * @property {boolean} data.submissionsEdit - Is able to edit submissions.
- * @property {boolean} data.submissionsValidate - Is able to validate submissions.
+ * @property {boolean} data.formView
+ * @property {boolean} data.formEdit
+ * @property {boolean} data.formManage
+ * @property {boolean} data.submissionsAdd
+ * @property {boolean} data.submissionsView
+ * @property {boolean} data.submissionsViewPartial
+ * @property {string[]} data.submissionsViewPartialUsers
+ * @property {boolean} data.submissionsEdit
+ * @property {boolean} data.submissionsEditPartial
+ * @property {string[]} data.submissionsEditPartialUsers
+ * @property {boolean} data.submissionsDelete
+ * @property {boolean} data.submissionsDeletePartial
+ * @property {string[]} data.submissionsDeletePartialUsers
+ * @property {boolean} data.submissionsValidate
+ * @property {boolean} data.submissionsValidatePartial
+ * @property {string[]} data.submissionsValidatePartialUsers
  */
 
 /**
@@ -52,44 +68,37 @@ import {
  */
 function parseFormData(data) {
   let parsed = [];
+  // Gather all partial permissions first, and then build a partial_submissions
+  // grouped permission to add it to final data.
+  let partialPerms = [];
 
-  if (data.formView) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.view_asset));
-  }
+  [
+    CHECKBOX_NAMES.formView,
+    CHECKBOX_NAMES.formEdit,
+    CHECKBOX_NAMES.formManage,
+    CHECKBOX_NAMES.submissionsAdd,
+    CHECKBOX_NAMES.submissionsView,
+    CHECKBOX_NAMES.submissionsEdit,
+    CHECKBOX_NAMES.submissionsValidate,
+    CHECKBOX_NAMES.submissionsDelete,
+  ].forEach((checkboxName) => {
+    const partialCheckboxName = PARTIAL_CHECKBOX_PAIRS[checkboxName];
 
-  if (data.formEdit) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.change_asset));
-  }
+    if (data[partialCheckboxName]) {
+      const permCodename = PARTIAL_PERM_PAIRS[partialCheckboxName];
+      partialPerms.push({
+        url: permConfig.getPermissionByCodename(permCodename).url,
+        filters: [{'_submitted_by': {'$in': data[partialCheckboxName + SUFFIX_USERS]}}],
+      });
+    } else if (data[checkboxName]) {
+      parsed.push(buildBackendPerm(data.username, CHECKBOX_PERM_PAIRS[checkboxName]));
+    }
+  });
 
-  if (data.formManage) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.manage_asset));
-  }
-
-  if (data.submissionsViewPartial) {
-    let permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.partial_submissions);
-    permObj.partial_permissions = [{
-      url: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url,
-      filters: [{'_submitted_by': {'$in': data.submissionsViewPartialUsers}}]
-    }];
+  if (partialPerms.length >= 1) {
+    const permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.partial_submissions);
+    permObj.partial_permissions = partialPerms;
     parsed.push(permObj);
-  } else if (data.submissionsView) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.view_submissions));
-  }
-
-  if (data.submissionsAdd) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.add_submissions));
-  }
-
-  if (data.submissionsEdit) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.change_submissions));
-  }
-
-  if (data.submissionsDelete) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.delete_submissions));
-  }
-
-  if (data.submissionsValidate) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.validate_submissions));
   }
 
   parsed = removeContradictoryPerms(parsed);
@@ -144,7 +153,7 @@ function removeImpliedPerms(parsed) {
 function buildBackendPerm(username, permissionCodename) {
   return {
     user: buildUserUrl(username),
-    permission: permConfig.getPermissionByCodename(permissionCodename).url
+    permission: permConfig.getPermissionByCodename(permissionCodename).url,
   };
 }
 
@@ -168,12 +177,15 @@ function buildFormData(permissions) {
       formData.formManage = true;
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.partial_submissions).url) {
-      formData.submissionsView = true;
-      formData.submissionsViewPartial = true;
       perm.partial_permissions.forEach((partial) => {
+        const permDef = permConfig.getPermission(partial.url);
+        const checkboxName = PERM_CHECKBOX_PAIRS[permDef.codename] + SUFFIX_PARTIAL;
+
+        formData[checkboxName] = true;
+
         partial.filters.forEach((filter) => {
           if (filter._submitted_by) {
-            formData.submissionsViewPartialUsers = filter._submitted_by.$in;
+            formData[checkboxName + SUFFIX_USERS] = filter._submitted_by.$in;
           }
         });
       });
@@ -245,7 +257,7 @@ function parseBackendData(data, ownerUrl, includeAnon = false) {
     groupedData[item.user].push({
       url: item.url,
       permission: item.permission,
-      partial_permissions: item.partial_permissions ? item.partial_permissions : undefined
+      partial_permissions: item.partial_permissions ? item.partial_permissions : undefined,
     });
   });
 
@@ -259,9 +271,9 @@ function parseBackendData(data, ownerUrl, includeAnon = false) {
         isOwner: (
           userUrl === ownerUrl ||
           getUsernameFromUrl(userUrl) === getUsernameFromUrl(ownerUrl)
-        )
+        ),
       },
-      permissions: groupedData[userUrl]
+      permissions: groupedData[userUrl],
     });
   });
 
@@ -295,5 +307,5 @@ export const permParser = {
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,
   parseUserWithPermsList: parseUserWithPermsList,
-  sortParseBackendOutput: sortParseBackendOutput // for testing purposes
+  sortParseBackendOutput: sortParseBackendOutput, // for testing purposes
 };

@@ -98,11 +98,16 @@ module.exports = do ->
         <div class="card__settings__fields__field">
           <label for="#{@context.helper_factory.current_question.cid}-handcode">#{t("Validation Code:")}</label>
           <span class="settings__input">
-            <input type="text" name="constraint" id="#{@context.helper_factory.current_question.cid}-handcode" class="text" value="#{@criteria}">
+            <input type="text" name="constraint" id="#{@context.helper_factory.current_question.cid}-handcode" class="text" value="">
           </span>
         </div>
       """)
       @textarea = @$handCode.find('#' + @context.helper_factory.current_question.cid + '-handcode')
+      # Textarea starts with empty value - setting it in HTML caused error with
+      # mangled values (due to " character). Set initial value here, so all the
+      # special characters are saved.
+      @textarea.val(@criteria)
+      return
 
 
   validationLogicHelpers

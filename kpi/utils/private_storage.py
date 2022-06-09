@@ -2,6 +2,8 @@
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
+from kpi.utils.object_permission import get_database_user
+
 
 def superuser_or_username_matches_prefix(private_file):
     """
@@ -27,12 +29,11 @@ def superuser_or_username_matches_prefix(private_file):
             private_file.request,
             authenticators=[
                 auth() for auth in api_settings.DEFAULT_AUTHENTICATION_CLASSES
-            ]
+            ],
         )
         user = request.user
-        if not user.is_authenticated:
-            return False
 
+    user = get_database_user(user)
     if user.is_superuser:
         return True
 

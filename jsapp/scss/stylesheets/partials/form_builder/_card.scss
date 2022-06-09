@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // ==========================================================================
 // Card (incl. Header and Expanded)
 // ==========================================================================
@@ -171,7 +173,7 @@ $cardIndicatorIconWidth: 21px;
 .card__indicator__icon {
     position: absolute;
     top: 50%;
-    margin-top: -($cardIndicatorIconHeight/2);
+    margin-top: -($cardIndicatorIconHeight*0.5);
     left: 8px;
     width: $cardIndicatorIconHeight;
     height: $cardIndicatorIconHeight;
@@ -271,8 +273,8 @@ $cardIndicatorIconWidth: 21px;
         color: $kobo-blue;
     }
 
-    &.card__buttons__button--green {
-        color: $kobo-green;
+    &.card__buttons__button--teal {
+        color: $kobo-teal;
     }
 
     &.card__buttons__button--activated {

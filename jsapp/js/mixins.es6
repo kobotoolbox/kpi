@@ -22,10 +22,11 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ROUTES,
 } from './constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import assetStore from 'js/assetStore';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -53,7 +54,7 @@ mixins.dmix = {
     let dialog = alertify.dialog('prompt');
     let opts = {
       title: `${t('Clone')} ${ASSET_TYPES.survey.label}`,
-      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
+      message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -218,9 +219,9 @@ mixins.dmix = {
       return this.props.uid;
     }
   },
-  // TODO
+  // TODO 1/2
   // Fix `componentWillUpdate` and `componentDidMount` asset loading flow.
-  // Ideally we should build a single overaching component that would
+  // Ideally we should build a single overaching component or store that would
   // handle loading of the asset in all necessary cases in a way that all
   // interested parties could use without duplication or confusion and with
   // indication when the loading starts and when ends.
@@ -233,14 +234,22 @@ mixins.dmix = {
       actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
-  componentDidMount() {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
+  componentDidMount() {
+    assetStore.listen(this.dmixAssetStoreChange);
+
+    // TODO 2/2
+    // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
+    // call to get asset, as it is being already made. Ideally we want to have
+    // this nice SSOT as described in TODO comment above.
     const uid = this._getAssetUid();
-    if (uid) {
+    if (uid && this.props.initialAssetLoadNotNeeded) {
+      this.setState(assign({}, assetStore.data[uid]));
+    } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   },
+
   removeSharing: function() {
     mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
   },
@@ -477,7 +486,7 @@ mixins.clickAssets = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetTypeLabel}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
+          message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
@@ -745,12 +754,102 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  userCan(permName, asset) {
-    if (!asset.permissions) {
+  /**
+   * For `.find`-ing the permissions
+   *
+   * @param {Object} perm
+   * @param {string} permName
+   * @param {string} [partialPermName]
+   *
+   * @returns {boolean}
+   */
+  _doesPermMatch(perm, permName, partialPermName = null) {
+    // Case 1: permissions don't match, stop looking
+    if (perm.permission !== permConfig.getPermissionByCodename(permName).url) {
       return false;
     }
 
+    // Case 2: permissions match, and we're not looking for partial one
+    if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
+      return true;
+    }
+
+    // Case 3a: we are looking for partial permission, but the name was no given
+    if (!partialPermName) {
+      return false;
+    }
+
+    // Case 3b: we are looking for partial permission, check if there are some that match
+    return perm.partial_permissions.some((partialPerm) => {
+      return partialPerm.url === permConfig.getPermissionByCodename(partialPermName).url;
+    });
+  },
+
+  /**
+   * This implementation does not use the back end to detect if `submission`
+   * is writable or not. So far, the front end only supports filters like:
+   *    `_submitted_by: {'$in': []}`
+   * Let's search for `submissions._submitted_by` value among these `$in`
+   * lists.
+   *
+   * @param {string} permName - permission to check if user can do at least partially
+   * @param {Object} asset
+   * @param {Object} submission
+   *
+   * @returns {boolean}
+   */
+  isSubmissionWritable(permName, asset, submission) {
+    // TODO optimize this to avoid calling `userCan()` and `userCanPartially()`
+    // repeatedly in the table view
+    // TODO Support multiple permissions at once
+    const userCan = this.userCan(permName, asset);
+    const userCanPartially = this.userCanPartially(permName, asset);
+
+    // Case 1: User has full permission
+    if (userCan) {
+      return true;
+    }
+
+    // Case 2: User has neither full nor partial permission
+    if (!userCanPartially) {
+      return false;
+    }
+
+    // Case 3: User has only partial permission, and things are complicated
     const currentUsername = stores.session.currentAccount.username;
+    const partialPerms = asset.permissions.find((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
+      );
+    });
+
+    const partialPerm = partialPerms.partial_permissions.find((nestedPerm) => {
+      return nestedPerm.url === permConfig.getPermissionByCodename(permName).url;
+    });
+
+    const submittedBy = submission._submitted_by;
+    let allowedUsers = [];
+
+    partialPerm.filters.forEach((filter) => {
+      if (filter._submitted_by) {
+        allowedUsers = allowedUsers.concat(filter._submitted_by.$in);
+      }
+    });
+    return allowedUsers.includes(submittedBy);
+  },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   * @param {string} [partialPermName]
+   */
+  userCan(permName, asset, partialPermName = null) {
+    if (!asset.permissions) {
+      return false;
+    }
+    const currentUsername = stores.session.currentAccount.username;
+
     if (asset.owner__username === currentUsername) {
       return true;
     }
@@ -769,9 +868,26 @@ mixins.permissions = {
     return asset.permissions.some((perm) => {
       return (
         perm.user === buildUserUrl(currentUsername) &&
-        perm.permission === permConfig.getPermissionByCodename(permName).url
+        this._doesPermMatch(perm, permName, partialPermName)
       );
     });
+  },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   */
+  userCanPartially(permName, asset) {
+
+    const currentUsername = stores.session.currentAccount.username;
+
+    // Owners cannot have partial permissions because they have full permissions.
+    // Both are contradictory.
+    if (asset.owner__username === currentUsername) {
+      return false;
+    }
+
+    return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
   },
 };
 
@@ -801,7 +917,7 @@ mixins.contextRouter = {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset() {
-    return stores.asset.data[this.currentAssetID()];
+    return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
@@ -818,7 +934,15 @@ mixins.contextRouter = {
       this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
       this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
-  }
+  },
+  isAccount() {
+    return (
+      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
+      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
+      this.context.router.isActive(ROUTES.SECURITY) ||
+      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+    );
+  },
 };
 
 /*

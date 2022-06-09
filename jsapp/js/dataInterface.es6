@@ -45,8 +45,7 @@ export var dataInterface;
   });
 
   assign(this, {
-    selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
-    serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
+    selfProfile: () => $ajax({ url: `${ROOT_URL}/me/` }),
     apiToken: () => {
       return $ajax({
         url: `${ROOT_URL}/token/?format=json`
@@ -57,16 +56,16 @@ export var dataInterface;
         url: userUrl
       });
     },
-    queryUserExistence: (username)=> {
+    queryUserExistence: (username) => {
       var d = new $.Deferred();
       $ajax({ url: `${ROOT_URL}/api/v2/users/${username}/` })
         .done(()=>{ d.resolve(username, true); })
         .fail(()=>{ d.reject(username, false); });
       return d.promise();
     },
-    logout: ()=> {
+    logout: () => {
       var d = new $.Deferred();
-      $ajax({ url: `${ROOT_URL}/api-auth/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
+      $ajax({ url: `${ROOT_URL}/accounts/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface.selfProfile().done(function(data){
@@ -198,7 +197,7 @@ export var dataInterface;
         identifierString += `&split_by=${data.group_by}`;
 
       return $ajax({
-        url: `${ROOT_URL}/reports/${data.uid}/${identifierString}`,
+        url: `${ROOT_URL}/api/v2/assets/${data.uid}/reports/${identifierString}`,
       });
     },
     cloneAsset ({uid, name, version_id, new_asset_type, parent}) {
@@ -241,6 +240,52 @@ export var dataInterface;
           asset_uid: uid
         }
       })
+    },
+
+    /*
+     * Dynamic data attachments
+     */
+    attachToSource(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    detachSource(attachmentUrl) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'DELETE',
+      });
+    },
+    patchSource(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    getAttachedSources(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'GET',
+      });
+    },
+    getSharingEnabledAssets() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
+        method: 'GET',
+      });
+    },
+    patchDataSharing(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
     },
 
     /*
@@ -325,9 +370,6 @@ export var dataInterface;
           method: 'DELETE'
         });
       });
-    },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
@@ -563,7 +605,9 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
         method: 'PATCH',
-        data: data
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
     listTags (data) {
@@ -625,20 +669,31 @@ export var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=DEFAULT_PAGE_SIZE, page=0, sort=[], fields=[], filter='') {
+
+    getSubmissions(
+      uid,
+      pageSize = DEFAULT_PAGE_SIZE,
+      page = 0,
+      sort = [],
+      fields = [],
+      filter = ''
+    ) {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
-      if (sort.length)
+      if (sort.length) {
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
-      if (fields.length)
+      }
+      if (fields.length) {
         f = `&fields=${JSON.stringify(fields)}`;
+      }
 
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-        method: 'GET'
+        method: 'GET',
       });
     },
+
     getSubmission(uid, sid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
@@ -709,7 +764,13 @@ export var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
+        method: 'GET'
+      });
+    },
+    getEnketoViewLink(uid, sid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
         method: 'GET'
       });
     },
@@ -764,10 +825,10 @@ export var dataInterface;
       });
     },
     environment() {
-      return $ajax({url: `${ROOT_URL}/environment/`,method: 'GET'});
+      return $ajax({url: `${ROOT_URL}/environment/`});
     },
     login: (creds)=> {
-      return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
+      return $ajax({ url: `${ROOT_URL}/accounts/login/?next=/me/`, data: creds, method: 'POST'});
     },
     shareAssetWithOrg: (assetUid, orgId)=> {
       return $ajax({ url: `${ROOT_URL}/veritree_org_asset/share`, method: 'POST', data: { asset_uid: assetUid, org_id: orgId } })

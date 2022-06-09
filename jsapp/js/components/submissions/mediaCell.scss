@@ -1,0 +1,38 @@
+ @use "scss/_colors";
+
+.media-cell {
+  text-align: center;
+
+  .icon-wrapper {
+    .icon-wrapper__icon {
+      font-size: 24px;
+      color: colors.$kobo-mid-blue;
+      border-radius: 4px;
+      padding: 2px;
+      margin-right: 4px;
+      cursor: pointer;
+
+      &:hover {
+        color: colors.$kobo-blue;
+        background-color: colors.$kobo-gray-92;
+      }
+    }
+  }
+
+
+  .media-cell__duration {
+    vertical-align: top;
+  }
+}
+
+.media-cell--text {
+  display: flex;
+  text-align: left;
+  word-break: break-word;
+
+  .icon-wrapper {
+    .icon-wrapper__icon {
+      font-size: 12px;
+    }
+  }
+}

@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // ==========================================================================
 // Registration Forms
 // ==========================================================================
@@ -97,12 +99,11 @@
 .registration select {
   width: 100%;
   display: block;
-  padding: 5px 8px;
-  border: solid 1px $kobo-gray-14;
-  border-radius: 5px;
-  font-size: 14px;
-  
-  padding-bottom: 3px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: variables.$base-font-size;
+  border-bottom: 3px solid transparent;
   margin-top: 1px;
   opacity: 0.9;
   min-height: 3rem;
@@ -110,26 +111,6 @@
   &:focus {
     border-bottom: 3px solid $kobo-blue;
     opacity: 1;
-  }
-
-  &.registration__action {
-    font-size: 16px;
-    padding: 10px;
-    color: $kobo-blue-pale;
-    text-align: center;
-    font-weight: 600;
-    background-color: $kobo-blue;
-    border: 1px solid $kobo-blue-pale;
-    // text-shadow: -1px -1px $kobo-blue-dark;
-    clear: both;
-    transition: background-color $transition-duration ease, color $transition-duration ease, border $transition-duration;
-
-
-    &:hover {
-      color: $kobo-blue;
-      background-color: $kobo-blue-pale;
-      // text-shadow: -1px -1px $kobo-blue-dark;
-    }
   }
 }
 
@@ -258,7 +239,7 @@
 }
 
 .error-message {
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   color: $kobo-red;
   background-color: rgba($kobo-red, 0.075);
 }
@@ -338,7 +319,7 @@
   }
 
   .registration .registration__kc-domain {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     letter-spacing: 0em;
   }
 }

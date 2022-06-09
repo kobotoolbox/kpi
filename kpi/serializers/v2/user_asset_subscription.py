@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from kpi.constants import (
@@ -10,7 +10,10 @@ from kpi.constants import (
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
 from kpi.models import UserAssetSubscription
-from kpi.models.object_permission import get_anonymous_user, get_objects_for_user
+from kpi.utils.object_permission import (
+    get_anonymous_user,
+    get_objects_for_user,
+)
 
 
 class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
@@ -41,7 +44,7 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
     def validate_asset(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             raise serializers.ValidationError(
-                _('Invalid asset type. Only `{asset_type}` is allowed').format(
+                t('Invalid asset type. Only `{asset_type}` is allowed').format(
                     asset_type=ASSET_TYPE_COLLECTION
                 )
             )

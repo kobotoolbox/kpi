@@ -204,7 +204,7 @@ libraryActions.moveToCollection.failed.listen(() => {
 
 const onAnySearchFailed = (response) => {
   if (response.statusText !== 'abort') {
-    notify((response.responseJSON.detail) || (t('Failed to get the results'), 'error'));
+    notify(response.responseJSON?.detail || t('Failed to get the results'), 'error');
   }
 };
 

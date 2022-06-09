@@ -3,15 +3,20 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
-import {ASSET_FILE_TYPES} from 'js/constants';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
-import {stores} from 'js/stores';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import envStore from 'js/envStore';
+import {
+  ASSET_FILE_TYPES,
+  MAX_DISPLAYED_STRING_LENGTH,
+} from 'js/constants';
+
 import {
   truncateString,
   truncateUrl,
 } from 'js/utils';
+import './formMedia.scss';
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';
@@ -184,9 +189,9 @@ class FormMedia extends React.Component {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
-      fileName = truncateUrl(item.metadata.redirect_url, MAX_ITEM_LENGTH);
+      fileName = truncateUrl(item.metadata.redirect_url, MAX_DISPLAYED_STRING_LENGTH.form_media);
     } else {
-      fileName = truncateString(fileName, MAX_ITEM_LENGTH);
+      fileName = truncateString(fileName, MAX_DISPLAYED_STRING_LENGTH.form_media);
     }
 
     return (
@@ -227,13 +232,14 @@ class FormMedia extends React.Component {
             <bem.FormMedia__label>
               {t('Attach files')}
             </bem.FormMedia__label>
-            {stores.serverEnvironment &&
-              stores.serverEnvironment.state.support_url && (
+
+            {envStore.isReady &&
+              envStore.data.support_url && (
                 <a
                   className='title-help'
                   target='_blank'
                   href={
-                    stores.serverEnvironment.state.support_url +
+                    envStore.data.support_url +
                     MEDIA_SUPPORT_URL
                   }
                   data-tip={t('Learn more about form media')}

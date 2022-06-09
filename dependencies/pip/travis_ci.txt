@@ -65,7 +65,7 @@ cryptography==2.8
     #   social-auth-core
 cssselect==1.1.0
     # via pyquery
-defusedxml==0.6.0
+defusedxml==0.7.1
     # via
     #   djangorestframework-xml
     #   python3-openid

@@ -55,3 +55,23 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
         asset = Asset.objects.create(asset_type='survey', content=content)
         _snapshot = asset.snapshot
         self.assertEqual(_snapshot.source.get('settings')['form_title'], 'no_title_asset')
+
+    def test_snapshots_allow_choice_duplicates(self):
+        """
+        Choice duplicates should be allowed here but *not* when deploying
+        a survey
+        """
+        content = {
+            'survey': [
+                {'type': 'select_multiple',
+                 'select_from_list_name': 'xxx',
+                 'label': 'pick one'},
+            ],
+            'choices': [
+                {'list_name': 'xxx', 'label': 'ABC', 'name': 'ABC'},
+                {'list_name': 'xxx', 'label': 'Also ABC', 'name': 'ABC'},
+            ],
+            'settings': {},
+        }
+        snap = AssetSnapshot.objects.create(source=content)
+        assert snap.xml.count('<value>ABC</value>') == 2

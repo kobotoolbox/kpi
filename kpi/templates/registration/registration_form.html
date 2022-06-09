@@ -45,7 +45,15 @@
             <div class="field" id="registration-password-app"></div>
           {% endif %}
       {% endfor %}
-      <input type="submit" value="{% trans 'Create Account' %}" class="registration__action" />
+
+      <button
+        type="submit"
+        name="Create Account"
+        class="kobo-button kobo-button--blue kobo-button--fullwidth"
+      >
+        {% trans "Create Account" %}
+      </button>
+
       <div class="registration__orlogin">
         {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "login" %}</a>
       </div>
@@ -53,7 +61,7 @@
 
   <div class="registration__second-half">
       {% if welcome_message %} {{ welcome_message|safe }} {% else %}
-      <p>KoBoToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or
+      <p>KoboToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or
           post-conflict environments. <a href="http://www.kobotoolbox.org">Read more</a></p>
       {% endif %}
   </div>

@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<html class="no-js">
 <head>
     {% load static %}
     {% load render_bundle from webpack_loader %}
@@ -18,12 +15,9 @@
 <title>Monitoring Veritree {% block title %}{% endblock %}</title>
 <meta name="description" content="KoBoToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
+<link rel="icon" href="{% static 'favicon.png' %}" />
 <!-- iPhone + iPad icons -->
-<link rel="apple-touch-icon-precomposed" sizes="114x114" href="{% static 'img/apple-touch-icon-114x114.png' %}">
-<link rel="apple-touch-icon-precomposed" sizes="72x72" href="{% static 'img/apple-touch-icon-72x72-precomposed.png' %}">
-<link rel="apple-touch-icon-precomposed" href="{% static 'img/apple-touch-icon-precomposed.png' %}">
-<link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+<link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
 {% block head %}{% endblock %}
 </head>
 <body>

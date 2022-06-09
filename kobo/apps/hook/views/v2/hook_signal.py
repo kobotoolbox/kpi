@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.http import Http404
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.pagination import _positive_int as positive_int
@@ -32,7 +32,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > **Expected payload**
     >
     >        {
-    >           "instance_id": {integer}
+    >           "submission_id": {integer}
     >        }
 
     """
@@ -47,29 +47,27 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         :return:
         """
         try:
-            instance_id = positive_int(
-                request.data.get('instance_id'), strict=True)
+            submission_id = positive_int(
+                request.data.get('submission_id'), strict=True)
         except ValueError:
             raise serializers.ValidationError(
-                {'instance_id': _('A positive integer is required.')})
+                {'submission_id': t('A positive integer is required.')})
 
         # Check if instance really belongs to Asset.
         try:
-            instance = self.asset.deployment.get_submission(instance_id,
-                                                            request.user.id)
+            submission = self.asset.deployment.get_submission(submission_id,
+                                                              request.user)
         except ValueError:
             raise Http404
 
-        instance_id_fieldname = self.asset.deployment.INSTANCE_ID_FIELDNAME
-        if not (instance and
-                int(instance.get(instance_id_fieldname)) == instance_id):
+        if not (submission and int(submission['_id']) == submission_id):
             raise Http404
 
-        if HookUtils.call_services(self.asset, instance_id):
+        if HookUtils.call_services(self.asset, submission_id):
             # Follow Open Rosa responses by default
             response_status_code = status.HTTP_202_ACCEPTED
             response = {
-                "detail": _(
+                "detail": t(
                     "We got and saved your data, but may not have "
                     "fully processed it. You should not try to resubmit.")
             }
@@ -78,9 +76,9 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # instance already has a `HookLog`
             response_status_code = status.HTTP_409_CONFLICT
             response = {
-                "detail": _(
+                "detail": t(
                     "Your data for instance {} has been already "
-                    "submitted.".format(instance_id))
+                    "submitted.".format(submission_id))
             }
 
         return Response(response, status=response_status_code)

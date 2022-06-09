@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'utils';
 import {

@@ -2,13 +2,10 @@
 import json
 import unittest
 
-import requests
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
-from private_storage.storage.files import PrivateFileSystemStorage
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
@@ -292,7 +289,7 @@ class AssetExportTaskTest(BaseTestCase):
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
             '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"\r\n',
-            '"¿Qué tal?";"";"";"";"";"";"";"";"";"1"\r\n',
+            '"¿Qué tal?";"1";"";"";"";"";"";"";"";"1"\r\n',
         ])
 
         self.assertEqual(result_content, expected_content)

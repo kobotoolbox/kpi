@@ -4,7 +4,7 @@ import json
 from collections import OrderedDict
 from copy import deepcopy
 
-import xlrd
+import openpyxl
 from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
 from rest_framework import serializers
@@ -16,7 +16,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
 )
 from kpi.models import Asset
-from kpi.models.object_permission import get_all_objects_for_user
+from kpi.utils.object_permission import get_all_objects_for_user
 
 # move this into a fixture file?
 # note: this is not a very robust example of a cascading select
@@ -321,46 +321,45 @@ class AssetContentTests(AssetsTestCase):
             }
         }
         xls_io = self.asset.to_xls_io(versioned=True, append=append)
-        workbook = xlrd.open_workbook(file_contents=xls_io.read())
+        workbook = openpyxl.load_workbook(xls_io)
 
-        survey_sheet = workbook.sheet_by_name('survey')
+        survey_sheet = workbook['survey']
         # `versioned=True` should add a calculate question to the the last row.
         # The calculation (version uid) changes on each run, so don't look past
         # the first two columns (type and name)
         xls_version_row = [
-            cell.value for cell in survey_sheet.row(survey_sheet.nrows - 1)]
+            cell.value for cell in survey_sheet[survey_sheet.max_row]]
         self.assertEqual(xls_version_row[:2], ['calculate', '__version__'])
         # The next-to-last row should have the note question from `append`
         xls_note_row = [
-            cell.value for cell in survey_sheet.row(survey_sheet.nrows - 2)]
+            cell.value for cell in survey_sheet[survey_sheet.max_row - 1]]
         expected_note_row = list(append['survey'][0].values())
         # Slice the result to discard any extraneous empty cells
         self.assertEqual(
             xls_note_row[:len(expected_note_row)], expected_note_row)
 
-        settings_sheet = workbook.sheet_by_name('settings')
+        settings_sheet = workbook['settings']
         # Next-to-last column should have `asdf` setting
-        xls_asdf_col = [
-            cell.value for cell in settings_sheet.col(settings_sheet.ncols - 2)
-        ]
+        xls_asdf_col = [row[1].value for row in settings_sheet.iter_rows(max_row=2)]
         self.assertEqual(xls_asdf_col, ['asdf', 'jkl'])
 
         # Last column should have `version` setting from `append`
-        xls_version_col = [
-            cell.value for cell in settings_sheet.col(settings_sheet.ncols - 1)
-        ]
+        xls_version_col = [row[2].value for row in settings_sheet.iter_rows(max_row=2)]
         self.assertEqual(xls_version_col[0], 'version')
+        # first column should have `form_title` as asset name
+        xls_form_title_col = [row[0].value for row in settings_sheet.iter_rows(max_row=2)]
+        assert xls_form_title_col == ['form_title', self.asset.name or None]
 
     def test_to_xls_io_includes_version_number_and_date(self):
         date_string = '2021-03-17 11:12:13'
         self.asset.date_modified = datetime.datetime.fromisoformat(date_string)
         xls_io = self.asset.to_xls_io(versioned=True)
-        workbook = xlrd.open_workbook(file_contents=xls_io.read())
-        settings_sheet = workbook.sheet_by_name('settings')
-        version_col = [cell.value for cell in settings_sheet.row(0)].index(
+        workbook = openpyxl.load_workbook(xls_io)
+        settings_sheet = workbook['settings']
+        version_col = [cell.value for cell in settings_sheet[1]].index(
             'version'
-        )
-        version_string = settings_sheet.col(version_col)[1].value
+        ) + 1
+        version_string = settings_sheet[version_col][1].value
         assert version_string == f'1 ({date_string})'
 
 
@@ -507,7 +506,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
                                   asset_type='survey')
         export = a1.snapshot
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
-        self.assertTrue('<data id="xid_stringx">' in export.xml)
+        self.assertTrue(f'<{a1.uid} id="xid_stringx">' in export.xml)
 
 
 # TODO: test values of "valid_xlsform_content"

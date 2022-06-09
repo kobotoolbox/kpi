@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  image: docker
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+deploy-beta:
+  stage: deploy
+  image:
+    name: alpine/helm:3.7.2
+    entrypoint: [""]
+  script:
+    - helm repo add kobo https://gitlab.com/api/v4/projects/32216873/packages/helm/stable
+    - helm -n beta upgrade kobo-beta kobo/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
+  environment:
+    name: beta
+    url: https://kf.beta.kobotoolbox.org
+  only:
+    refs:
+      - public-beta
+    variables:
+      - $CI_COMMIT_REF_PROTECTED

@@ -2,27 +2,32 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import clonedeep from 'lodash.clonedeep';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
-import Select from 'react-select';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
-import TextareaAutosize from 'react-autosize-textarea';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {hashHistory} from 'react-router';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
-import {
-  renderBackButton
-} from './modalHelpers';
+import {renderBackButton} from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import envStore from 'js/envStore';
+import { data } from 'jquery';
 
 /**
  * Modal for creating or updating library asset (collection or template)
+ *
+ * NOTE: We have multiple components with similar form:
+ * - ProjectSettings
+ * - AccountSettingsRoute
+ * - LibraryAssetForm
  *
  * @prop {Object} asset - Modal asset.
  */
@@ -32,7 +37,7 @@ export class LibraryAssetForm extends React.Component {
     this.unlisteners = [];
     this.state = {
       isSessionLoaded: !!stores.session.isLoggedIn,
-      data: {
+      fields: {
         name: '',
         organization: '',
         country: null,
@@ -41,7 +46,7 @@ export class LibraryAssetForm extends React.Component {
         description: '',
         veritreeFormType: null,
       },
-      isPending: false
+      isPending: false,
     };
     autoBind(this);
     if (this.props.asset) {
@@ -67,22 +72,22 @@ export class LibraryAssetForm extends React.Component {
 
   applyPropsData() {
     if (this.props.asset.name) {
-      this.state.data.name = this.props.asset.name;
+      this.state.fields.name = this.props.asset.name;
     }
     if (this.props.asset.settings.organization) {
-      this.state.data.organization = this.props.asset.settings.organization;
+      this.state.fields.organization = this.props.asset.settings.organization;
     }
     if (this.props.asset.settings.country) {
-      this.state.data.country = this.props.asset.settings.country;
+      this.state.fields.country = this.props.asset.settings.country;
     }
     if (this.props.asset.settings.sector) {
-      this.state.data.sector = this.props.asset.settings.sector;
+      this.state.fields.sector = this.props.asset.settings.sector;
     }
     if (this.props.asset.tag_string) {
-      this.state.data.tags = this.props.asset.tag_string;
+      this.state.fields.tags = this.props.asset.tag_string;
     }
     if (this.props.asset.settings.description) {
-      this.state.data.description = this.props.asset.settings.description;
+      this.state.fields.description = this.props.asset.settings.description;
     }
     if (this.props.asset.settings.veritree_form_type) {
       this.state.data.veritreeFormType = this.props.asset.settings.veritree_form_type ;
@@ -123,29 +128,29 @@ export class LibraryAssetForm extends React.Component {
       actions.resources.updateAsset(
         this.props.asset.uid,
         {
-          name: this.state.data.name,
+          name: this.state.fields.name,
           settings: JSON.stringify({
-            organization: this.state.data.organization,
-            country: this.state.data.country,
-            sector: this.state.data.sector,
-            description: this.state.data.description,
-            veritree_form_type: this.state.data.veritreeFormType,
+            organization: this.state.fields.organization,
+            country: this.state.fields.country,
+            sector: this.state.fields.sector,
+            description: this.state.fields.description,
+            veritree_form_type: this.state.fields.veritreeFormType,
           }),
-          tag_string: this.state.data.tags,
+          tag_string: this.state.fields.tags,
         }
       );
     } else {
       const params = {
-        name: this.state.data.name,
+        name: this.state.fields.name,
         asset_type: this.getFormAssetType(),
         settings: JSON.stringify({
-          organization: this.state.data.organization,
-          country: this.state.data.country,
-          sector: this.state.data.sector,
-          description: this.state.data.description,
-          veritree_form_type: this.state.data.veritreeFormType,
+          organization: this.state.fields.organization,
+          country: this.state.fields.country,
+          sector: this.state.fields.sector,
+          description: this.state.fields.description,
+          veritree_form_type: this.state.fields.veritreeFormType,
         }),
-        tag_string: this.state.data.tags,
+        tag_string: this.state.fields.tags,
       };
 
       if (
@@ -164,19 +169,20 @@ export class LibraryAssetForm extends React.Component {
     }
   }
 
-  onPropertyChange(property, newValue) {
-    const data = this.state.data;
-    data[property] = newValue;
-    this.setState({data: data});
+  onAnyFieldChange(fieldName, newFieldValue) {
+    const fields = clonedeep(this.state.fields);
+    fields[fieldName] = newFieldValue;
+    this.setState({fields: fields});
   }
 
-  onNameChange(newValue) {this.onPropertyChange('name', assetUtils.removeInvalidChars(newValue));}
-  onOrganizationChange(newValue) {this.onPropertyChange('organization', newValue);}
-  onCountryChange(newValue) {this.onPropertyChange('country', newValue);}
-  onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
-  onTagsChange(newValue) {this.onPropertyChange('tags', newValue);}
-  onDescriptionChange(evt) {this.onPropertyChange('description', assetUtils.removeInvalidChars(evt.target.value));}
-  onVeritreeFormTypeChange(newValue) {this.onPropertyChange('veritreeFormType', newValue);}
+  onVeritreeFormTypeChange(newValue) {this.onAnyFieldChange('veritreeFormType', newValue);}
+  onNameChange(newValue) {
+    this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue));
+  }
+
+  onDescriptionChange(newValue) {
+    this.onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue));
+  }
 
   /**
    * @returns existing asset type or desired asset type
@@ -204,95 +210,84 @@ export class LibraryAssetForm extends React.Component {
   }
 
   render() {
-    if (!this.state.isSessionLoaded) {
+    if (!this.state.isSessionLoaded || !envStore.isReady) {
       return (<LoadingSpinner/>);
     }
 
-    const SECTORS = stores.session.environment.available_sectors;
-    const COUNTRIES = stores.session.environment.available_countries;
-    const veritreeFormTypes = stores.session.environment.veritree_form_types;
-
+    const SECTORS = envStore.data.sector_choices;
+    const COUNTRIES = envStore.data.country_choices;
+    const veritreeFormTypes = envStore.data.veritree_form_types
 
     return (
       <bem.FormModal__form className='project-settings'>
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
-              value={this.state.data.name}
-              onChange={this.onNameChange}
+              customModifiers='on-white'
+              value={this.state.fields.name}
+              onChange={this.onNameChange.bind(this)}
               label={t('Name')}
+              placeholder={t('Enter title of ##type## here').replace('##type##', this.getFormAssetType())}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <TextBox
-              value={this.state.data.organization}
-              onChange={this.onOrganizationChange}
+              customModifiers='on-white'
+              type='text-multiline'
+              value={this.state.fields.description}
+              onChange={this.onDescriptionChange.bind(this)}
+              label={t('Description')}
+              placeholder={t('Enter short description here')}
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item>
+            <TextBox
+              customModifiers='on-white'
+              value={this.state.fields.organization}
+              onChange={this.onAnyFieldChange.bind(this, 'organization')}
               label={t('Organization')}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-
-            <Select
-              id='country'
-              value={this.state.data.country}
-              onChange={this.onCountryChange}
-              options={COUNTRIES}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item>
-            <label htmlFor='sector'>
-              {t('Primary Sector')}
-            </label>
-
-            <Select
-              id='sector'
-              value={this.state.data.sector}
-              onChange={this.onSectorChange}
+            <WrappedSelect
+              label={t('Primary Sector')}
+              value={this.state.fields.sector}
+              onChange={this.onAnyFieldChange.bind(this, 'sector')}
               options={SECTORS}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
+              isLimitedHeight
               isClearable
             />
           </bem.FormModal__item>
           <bem.FormModal__item m='form_type'>
-            <label htmlFor='form_type'>
-              {t('Form Type')}
-            </label>
-            <Select
-              id='form_type'
-              value={this.state.data.veritreeFormType}
+            <WrappedSelect
+              label={t('Form Type')}
+              value={this.state.fields.veritreeFormType}
               onChange={this.onVeritreeFormTypeChange}
               options={veritreeFormTypes}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
+              isLimitedHeight
               isClearable
             />
           </bem.FormModal__item>
           <bem.FormModal__item>
-            <KoboTagsInput
-              tags={this.state.data.tags}
-              onChange={this.onTagsChange}
-              label={t('Tags')}
+            <WrappedSelect
+              label={t('Country')}
+              isMulti
+              value={this.state.fields.country}
+              onChange={this.onAnyFieldChange.bind(this, 'country')}
+              options={COUNTRIES}
+              isLimitedHeight
+              isClearable
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <TextareaAutosize
-              onChange={this.onDescriptionChange}
-              value={this.state.data.description}
-              placeholder={t('Enter short description here')}
+            <KoboTagsInput
+              tags={this.state.fields.tags}
+              onChange={this.onAnyFieldChange.bind(this, 'tags')}
+              label={t('Tags')}
             />
           </bem.FormModal__item>
         </bem.FormModal__item>
@@ -305,7 +300,6 @@ export class LibraryAssetForm extends React.Component {
             type='submit'
             onClick={this.onSubmit}
             disabled={!this.isSubmitEnabled()}
-            className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
           </bem.KoboButton>
@@ -318,6 +312,4 @@ export class LibraryAssetForm extends React.Component {
 reactMixin(LibraryAssetForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryAssetForm.prototype, mixins.contextRouter);
 
-LibraryAssetForm.contextTypes = {
-  router: PropTypes.object
-};
+LibraryAssetForm.contextTypes = {router: PropTypes.object};

@@ -31,6 +31,10 @@
     display: none;
   }
 
+  .k-drawer + .mdl-layout__content {
+    margin: 0;
+  }
+
   .form-view__reportButtons {
     display: none;
   }
@@ -97,9 +101,14 @@
     }
   }
 
+  .form-view.form-view--fullscreen {
+    position: static;
+  }
+
   .page-wrapper {
     &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
       .form-view.form-view--table {
+        // hide table, when displaying submission modal and user is printing
         display: none;
       }
     }

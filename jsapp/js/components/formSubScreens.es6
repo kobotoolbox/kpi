@@ -4,20 +4,24 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {actions} from '../actions';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import FormMedia from './modalForms/formMedia';
-import DataTable from 'js/components/submissions/table';
-import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
-import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import {ROUTES} from 'js/router/routerConstants';
+
+
+const ConnectProjects = React.lazy(() => import('js/components/dataAttachments/connectProjects'));
+const DataTable = React.lazy(() => import('js/components/submissions/table'));
+const ProjectDownloads = React.lazy(() => import('js/components/projectDownloads/projectDownloads'));
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -26,26 +30,15 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount () {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(assetStore, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
   render () {
-    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
-
-    if (!this.state.permissions)
+    if (!this.state.permissions) {
       return false;
-
-    if ((this.props.location.pathname == `/forms/${this.state.uid}/settings` || this.props.location.pathname == `/forms/${this.state.uid}/settings/sharing`) &&
-        // TODO: Once "Manage Project" permission is added, remove "Edit Form" access here
-        !this.userCan('change_asset', this.state)) {
-      return (<ui.AccessDeniedMessage/>);
-    }
-
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/rest` && !permAccess) {
-      return (<ui.AccessDeniedMessage/>);
     }
 
     var iframeUrl = '';
@@ -58,31 +51,37 @@ export class FormSubScreens extends React.Component {
         report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
       switch(this.props.location.pathname) {
-        case `/forms/${this.state.uid}/data/table`:
+        case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return <DataTable asset={this.state} />;
-        case `/forms/${this.state.uid}/data/gallery`:
+        case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
           iframeUrl = deployment__identifier+'/photos';
           break;
-        case `/forms/${this.state.uid}/data/map`:
+        case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMap asset={this.state} />;
-        case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
+        case ROUTES.FORM_MAP_BY
+            .replace(':uid', this.state.uid)
+            .replace(':viewby', this.props.params.viewby):
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
-        case `/forms/${this.state.uid}/data/downloads`:
-          return this.renderProjectDownloads();
-        case `/forms/${this.state.uid}/settings`:
+        case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
+          return <ProjectDownloads asset={this.state}/>;
+        case ROUTES.FORM_SETTINGS.replace(':uid', this.state.uid):
           return this.renderSettingsEditor();
-        case `/forms/${this.state.uid}/settings/media`:
+        case ROUTES.FORM_MEDIA.replace(':uid', this.state.uid):
           return this.renderUpload();
-        case `/forms/${this.state.uid}/settings/sharing`:
+        case ROUTES.FORM_SHARING.replace(':uid', this.state.uid):
           return this.renderSharing();
-        case `/forms/${this.state.uid}/settings/rest`:
+        case ROUTES.FORM_RECORDS.replace(':uid', this.state.uid):
+          return this.renderRecords();
+        case ROUTES.FORM_REST.replace(':uid', this.state.uid):
           return <RESTServices asset={this.state} />;
-        case `/forms/${this.state.uid}/settings/rest/${this.props.params.hookUid}`:
+        case ROUTES.FORM_REST_HOOK
+            .replace(':uid', this.state.uid)
+            .replace(':hookUid', this.props.params.hookUid):
           return <RESTServices asset={this.state} hookUid={this.props.params.hookUid}/>;
-        case `/forms/${this.state.uid}/settings/kobocat`:
+        case ROUTES.FORM_KOBOCAT.replace(':uid', this.state.uid):
           iframeUrl = deployment__identifier+'/form_settings';
           break;
-        case `/forms/${this.state.uid}/reset`:
+        case ROUTES.FORM_RESET.replace(':uid', this.state.uid):
           return this.renderReset();
       }
     }
@@ -112,24 +111,6 @@ export class FormSubScreens extends React.Component {
         </DocumentTitle>
     );
   }
-  renderProjectDownloads() {
-    var docTitle = this.state.name || t('Untitled');
-    return (
-      <DocumentTitle title={`Monitoring | veritree`}>
-        <React.Fragment>
-          {!stores.session.isLoggedIn &&
-            <ui.AccessDeniedMessage/>
-          }
-          {stores.session.isLoggedIn &&
-            <bem.FormView className='project-downloads'>
-              <ProjectExportsCreator asset={this.state} />
-              <ProjectExportsList asset={this.state} />
-            </bem.FormView>
-          }
-        </React.Fragment>
-      </DocumentTitle>
-    );
-  }
   renderSharing() {
     const uid = this.props.params.assetid || this.props.params.uid;
     return (
@@ -138,8 +119,15 @@ export class FormSubScreens extends React.Component {
       </bem.FormView>
     );
   }
+  renderRecords() {
+    return (
+      <bem.FormView className='connect-projects'>
+        <ConnectProjects asset={this.state}/>
+      </bem.FormView>
+    );
+  }
   renderReset() {
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   }
 
   renderUpload() {

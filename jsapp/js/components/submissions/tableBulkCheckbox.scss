@@ -1,0 +1,18 @@
+.table-bulk-checkbox {
+  position: relative;
+  display: block;
+  height: 100%;
+  line-height: 20px;
+
+  > .checkbox {
+    position: absolute;
+    z-index: 1;
+    top: calc(50% - 10px);
+    left: calc(50% - 15px);
+
+    .checkbox__wrapper {
+      padding: 0;
+      display: block;
+    }
+  }
+}

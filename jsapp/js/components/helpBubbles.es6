@@ -1,11 +1,13 @@
 import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {actions} from '../actions';
 import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
+import './helpBubbles.scss';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
 
@@ -15,7 +17,8 @@ class HelpBubble extends React.Component {
     autoBind(this);
     this.state = {
       isOpen: false,
-      isOutsideCloseEnabled: true
+      isOutsideCloseEnabled: true,
+      locallyAcknowledgedMessageUids: new Set()
     };
     this.cancelOutsideCloseWatch = Function.prototype;
     this.cancelHelpBubbleEventCloseWatch = Function.prototype;
@@ -267,7 +270,7 @@ export class SupportHelpBubble extends HelpBubble {
     super.open();
 
     const unacknowledgedMessages = this.state.messages.filter((msg) => {
-      return msg.interactions.acknowledged !== true;
+      return msg.interactions.acknowledged !== true || msg.always_display_as_new;
     });
     if (unacknowledgedMessages.length === 1) {
       this.selectMessage(unacknowledgedMessages[0].uid);
@@ -303,7 +306,7 @@ export class SupportHelpBubble extends HelpBubble {
 
   isMessageRead(messageUid) {
     const msg = this.findMessage(messageUid);
-    return !!msg.interactions.readTime;
+    return !!msg.interactions.readTime && !msg.always_display_as_new;
   }
 
   markMessageRead(messageUid) {
@@ -313,12 +316,18 @@ export class SupportHelpBubble extends HelpBubble {
 
   markMessageAcknowledged(evt) {
     const messageUid = evt.currentTarget.dataset.messageUid;
+    this.setState({
+      locallyAcknowledgedMessageUids: new Set([
+        ...this.state.locallyAcknowledgedMessageUids,
+        messageUid
+      ])
+    });
     actions.help.setMessageAcknowledged(messageUid, true)
   }
 
   checkForUnacknowledgedMessages(newMessages) {
     const unacknowledgedMessages = newMessages.filter((msg) => {
-      return msg.interactions.acknowledged !== true;
+      return msg.interactions.acknowledged !== true || msg.always_display_as_new;
     });
     this.setState({
       hasUnacknowledgedMessages: unacknowledgedMessages.length >= 1,
@@ -329,7 +338,7 @@ export class SupportHelpBubble extends HelpBubble {
   getUnreadMessagesCount() {
     let count = 0;
     this.state.messages.forEach((msg) => {
-      if (!msg.interactions.readTime) {
+      if (!msg.interactions.readTime || msg.always_display_as_new) {
         count++;
       }
     });
@@ -338,7 +347,7 @@ export class SupportHelpBubble extends HelpBubble {
 
   renderSnippetRow(msg, clickCallback) {
     const modifiers = ['message', 'message-clickable'];
-    if (!msg.interactions.readTime) {
+    if (!msg.interactions.readTime || msg.always_display_as_new) {
       modifiers.push('message-unread');
     }
     return (
@@ -369,31 +378,31 @@ export class SupportHelpBubble extends HelpBubble {
             {t('Help Resources')}
           </bem.HelpBubble__row>
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <bem.HelpBubble__rowAnchor
               m='link'
               target='_blank'
-              href={stores.serverEnvironment.state.support_url}
+              href={envStore.data.support_url}
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-help-articles'/>
-              <header>{t('KoBoToolbox Help Center')}</header>
-              <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+              <header>{t('KoboToolbox Help Center')}</header>
+              <p>{t('A vast collection of user support articles and tutorials related to Kobo')}</p>
             </bem.HelpBubble__rowAnchor>
           }
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.community_url &&
+          { envStore.isReady &&
+            envStore.data.community_url &&
             <bem.HelpBubble__rowAnchor
               m='link'
               target='_blank'
-              href={stores.serverEnvironment.state.community_url}
+              href={envStore.data.community_url}
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-forum'/>
-              <header>{t('KoBoToolbox Community Forum')}</header>
-              <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+              <header>{t('KoboToolbox Community Forum')}</header>
+              <p>{t('Post your questions to get answers from experienced Kobo users around the world')}</p>
             </bem.HelpBubble__rowAnchor>
           }
 
@@ -405,7 +414,7 @@ export class SupportHelpBubble extends HelpBubble {
 
           {this.state.messages.map((msg) => {
             const modifiers = ['message', 'message-clickable'];
-            if (!msg.interactions.readTime) {
+            if (!msg.interactions.readTime || msg.always_display_as_new) {
               modifiers.push('message-unread');
             }
             return this.renderSnippetRow(msg, this.onSelectMessage.bind(this));
@@ -420,7 +429,11 @@ export class SupportHelpBubble extends HelpBubble {
       <bem.HelpBubble__popup>
         <bem.HelpBubble__popupContent>
           {this.state.messages.map((msg) => {
-            if (msg.interactions.acknowledged) {
+            let locallyAcknowledged = this.state.locallyAcknowledgedMessageUids.has(msg.uid);
+            if (
+              (msg.always_display_as_new && locallyAcknowledged)
+              || (!msg.always_display_as_new && msg.interactions.acknowledged)
+            ) {
               return;
             }
 
@@ -448,7 +461,7 @@ export class SupportHelpBubble extends HelpBubble {
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
-          <i className='k-icon k-icon-prev'/>
+          <i className='k-icon k-icon-angle-left'/>
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__popupContent>
