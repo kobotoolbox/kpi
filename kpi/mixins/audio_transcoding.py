@@ -32,6 +32,8 @@ class AudioTranscodingMixin:
             '/usr/bin/ffmpeg',
             '-i',
             self.absolute_path,
+            '-ac',
+            '1',
             '-vn',
             '-f',
             audio_format,
