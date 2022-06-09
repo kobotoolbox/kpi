@@ -95,8 +95,9 @@ export interface ImportResponse {
 }
 
 export interface FailResponse {
-  responseJSON: {
-    detail: string;
+  responseJSON?: {
+    detail?: string;
+    error?: string;
   };
   responseText: string;
   status: number;
