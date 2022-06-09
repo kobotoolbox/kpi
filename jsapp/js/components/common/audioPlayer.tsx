@@ -30,6 +30,10 @@ interface AudioPlayerState {
 class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   audioInterface: HTMLAudioElement = new Audio();
 
+  private onAudioLoadedBound = this.onAudioLoaded.bind(this);
+  private onAudioErrorBound = this.onAudioError.bind(this);
+  private onAudioTimeUpdatedBound = this.onAudioTimeUpdated.bind(this);
+
   constructor(props: AudioPlayerProps) {
     super(props);
 
@@ -42,20 +46,22 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   componentDidMount() {
-    this.prepareAudio();
+    // Prepare audio.
+    this.audioInterface = new Audio(this.props.mediaURL);
+
+    // Set up listeners for audio component.
+    this.audioInterface.addEventListener('loadedmetadata', this.onAudioLoadedBound);
+    this.audioInterface.addEventListener('error', this.onAudioErrorBound);
+    this.audioInterface.addEventListener('timeupdate', this.onAudioTimeUpdatedBound);
   }
 
   componentWillUnmount() {
+    // Pausing makes it subject to garbage collection.
     this.audioInterface.pause();
-  }
 
-  prepareAudio() {
-    this.audioInterface = new Audio(this.props.mediaURL);
-
-    // Set up listeners for audio component
-    this.audioInterface.onloadedmetadata = this.onAudioLoaded.bind(this);
-    this.audioInterface.onerror = this.onAudioError.bind(this);
-    this.audioInterface.ontimeupdate = this.onAudioTimeUpdated.bind(this);
+    this.audioInterface.removeEventListener('loadedmetadata', this.onAudioLoadedBound);
+    this.audioInterface.removeEventListener('error', this.onAudioErrorBound);
+    this.audioInterface.removeEventListener('timeupdate', this.onAudioTimeUpdatedBound);
   }
 
   onAudioError() {
