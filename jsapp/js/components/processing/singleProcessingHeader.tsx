@@ -143,13 +143,18 @@ export default class SingleProcessingHeader extends React.Component<
   /**
    * Returns a natural number (beginning with 1, not 0) or `null` when store
    * is not ready yet.
+   * NOTE: this works mainly because the submissions `_id` is a natural number
+   * that begins with 1.
    */
-  getCurrentSubmissionNumber(): number | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
-    if (Array.isArray(uuids)) {
-      return uuids.indexOf(this.props.submissionUuid) + 1;
+  getCurrentSubmissionId(): number | null {
+    const submissionData = singleProcessingStore.getSubmissionData();
+
+    // If submission data is not ready yet, just don't render the list.
+    if (!submissionData) {
+      return null;
     }
-    return null;
+
+    return submissionData._id;
   }
 
   /**
@@ -255,7 +260,7 @@ export default class SingleProcessingHeader extends React.Component<
               <strong>
                 {t('Submission')}
                 &nbsp;
-                {this.getCurrentSubmissionNumber()}
+                {this.getCurrentSubmissionId()}
               </strong>
               &nbsp;
               {Array.isArray(uuids) &&
