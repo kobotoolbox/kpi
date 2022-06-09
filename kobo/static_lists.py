@@ -883,5 +883,5 @@ def repack(obj):
     return out
 
 
-translation_languages = repack(TRANSLATION_SERVICES)
-transcription_languages = repack(TRANSCRIPTION_SERVICES)
+TRANSLATION_LANGUAGES = repack(TRANSLATION_SERVICES)
+TRANSCRIPTION_LANGUAGES = repack(TRANSCRIPTION_SERVICES)

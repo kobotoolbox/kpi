@@ -16,8 +16,6 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
-from kpi.views.transcription_languages import TranscriptionLanguagesView
-from kpi.views.translation_languages import TranslationLanguagesView
 from kobo.apps.mfa.views import (
     MFALoginView,
     MFATokenView,
@@ -62,10 +60,6 @@ urlpatterns = [
          name='javascript-catalog'),
     path('token/', TokenView.as_view(), name='token'),
     path('environment/', EnvironmentView.as_view(), name='environment'),
-    path('environment/transcription_languages/', TranscriptionLanguagesView.as_view(),
-         name='transcription-languages'),
-    path('environment/translation_languages/', TranslationLanguagesView.as_view(),
-         name='translation-languages'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
