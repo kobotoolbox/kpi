@@ -20,6 +20,12 @@ import {
   AnyRowTypeName,
   QuestionTypeName,
 } from 'js/constants';
+import {
+  AssetResponse,
+  SurveyRow,
+  SurveyChoice,
+  Permission
+} from 'js/dataInterface'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -110,28 +116,27 @@ export function getSectorDisplayString(asset: AssetResponse): string {
   return output
 }
 
-export function getCountryDisplayString(
-  asset: AssetResponse,
-  showLongName: boolean = false
-): string {
-  let output = '-'
-
-  if (asset.settings.country?.value) {
+export function getCountryDisplayString(asset: AssetResponse): string {
+  if (asset.settings.country) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
      * and thus prone to not be true (e.g. creating form in spanish UI language
      * and then switching to french would result in seeing spanish labels)
      */
-    const countryLabel = envStore.getCountryLabel(asset.settings.country.value)
-
-    if (showLongName && countryLabel !== undefined) {
-      output = countryLabel
+    let countries = [];
+    // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
+    if (Array.isArray(asset.settings.country)) {
+      for (let country of asset.settings.country) {
+        countries.push(envStore.getCountryLabel(country.value));
+      }
     } else {
-      output = asset.settings.country.value
+      countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
+    // TODO: improve for RTL?
+    return countries.join(', ');
+  } else {
+    return '-';
   }
-
-  return output
 }
 
 interface DisplayNameObj {
@@ -225,13 +230,13 @@ export function getAssetIcon(asset: AssetResponse) {
       return 'k-icon k-icon-block';
     case ASSET_TYPES.survey.id:
       if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-form-locked';
+        return 'k-icon k-icon-project-locked';
       } else if (asset.has_deployment && !asset.deployment__active) {
-        return 'k-icon k-icon-form-archived';
+        return 'k-icon k-icon-project-archived';
       } else if (asset.has_deployment) {
-        return 'k-icon k-icon-form-deployed';
+        return 'k-icon k-icon-project-deployed';
       } else {
-        return 'k-icon k-icon-form-draft';
+        return 'k-icon k-icon-project-draft';
       }
     case ASSET_TYPES.collection.id:
       if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
@@ -244,7 +249,7 @@ export function getAssetIcon(asset: AssetResponse) {
         return 'k-icon k-icon-folder';
       }
     default:
-      return 'k-icon k-icon-form';
+      return 'k-icon k-icon-project';
   }
 }
 
@@ -457,7 +462,7 @@ export function renderQuestionTypeIcon(
   }
 
   if (rowType === META_QUESTION_TYPES['background-audio']) {
-    iconClassName = 'k-icon-qt-audio';
+    iconClassName = 'k-icon-background-rec';
   } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
     iconClassName = 'qt-meta-default';
   }

@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
@@ -11,6 +13,9 @@
 // 3. Add comments describing what you're adding.
 // 4. We should migrate form-view layout to flex box to avoid all those calc()
 //    and to make it context independent.
+
+$side-tabs-width: 180px;
+$side-tabs-width-mobile: 70px;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main parts
@@ -30,7 +35,9 @@
   background: $kobo-gray-96;
 
   &.form-view--fullscreen {
-    position: fixed;
+    // We force the position to avoid problems with stronger specificity
+    // breaking the fullscreen functionality.
+    position: fixed !important;
     z-index: $z-fullscreen;
     top: 0;
     left: 0;
@@ -60,7 +67,7 @@
 
 // The additional side menu tabs on the left
 .form-view__sidetabs {
-  width: 170px;
+  width: $side-tabs-width;
   height: 100%;
   max-height: calc(100% - 48px);
   overflow-x: hidden;
@@ -68,6 +75,16 @@
   float: left;
   background: $kobo-white;
   border-right: 1px solid $kobo-gray-92;
+
+  & + .form-view,
+  & + .report-view,
+  & + .loading,
+  & + .access-denied {
+    width: calc(100% - #{$side-tabs-width});
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
 
   & + .loading {
     display: flex;
@@ -85,7 +102,7 @@
     border: none;
     padding: 6px;
     border-left: 2px solid transparent;
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
     color: $kobo-gray-40;
@@ -191,21 +208,26 @@
     margin-top: 0;
   }
 
+  &.historyHidden,
+  &.historyExpanded {
+    transition-duration: 0.2s;
+    transition-property: max-height, margin-top, margin-bottom;
+  }
+
   &.historyHidden {
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
     overflow: hidden;
-    transition: 0.2s max-height;
     padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
     max-height: 99999px;
   }
 
@@ -324,7 +346,7 @@
 
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     color: $kobo-gray-24;
     font-weight: 500;
 
@@ -793,19 +815,23 @@
 
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
-    width: 50px;
+    width: $side-tabs-width-mobile;
 
     a.form-view__tab {
       padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
-      line-height: 1.5em;
+      line-height: 1;
       text-align: center;
       display: block;
       letter-spacing: -0.05em;
 
-      span {
-        display: none;
+      .k-icon {
+        margin: 0;
+      }
+
+      .form-view__tab-name {
+        display: block;
       }
     }
   }
@@ -814,12 +840,12 @@
     height: 39px;
 
     a.form-view__tab {
-      font-size: 12px;
+      font-size: variables.$base-font-size;
     }
   }
 
   .form-view__sidetabs + .form-view {
-    width: calc(100% - 50px);
+    width: calc(100% - #{$side-tabs-width-mobile});
     overflow-x: hidden;
   }
 

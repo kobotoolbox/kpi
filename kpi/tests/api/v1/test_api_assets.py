@@ -2,13 +2,10 @@
 import json
 import unittest
 
-import requests
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
-from private_storage.storage.files import PrivateFileSystemStorage
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 

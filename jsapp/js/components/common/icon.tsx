@@ -6,7 +6,7 @@ import './icon.scss'
 /**
  * Check out `icon.scss` file for exact pixel values.
  */
-export type IconSize = 'xs' | 's' | 'm' | 'l' | 'xl'
+export type IconSize = 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'
 
 const DefaultSize = 's'
 

@@ -1,41 +1,45 @@
 # coding: utf-8
 # 😬
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 
 # This file is a place to store static, translatable strings
 
-SECTORS = (
+SECTOR_CHOICE_DEFAULTS = (
+    # This does not solve the problem of translating custom sector choices
+    # entered through the Django admin interface, but it does allow the default
+    # choices to be translated
+
     # (value, human-readable label)
-    ("Public Administration", _("Public Administration")),
-    ("Arts, Entertainment, and Recreation", _("Arts, Entertainment, and Recreation")),
-    ("Educational Services / Higher Education", _("Educational Services / Higher Education")),
-    ("Health Services / Public Health", _("Health Services / Public Health")),
-    ("Finance and Insurance", _("Finance and Insurance")),
-    ("Information / Media", _("Information / Media")),
-    ("Economic/Social Development", _("Economic/Social Development")),
-    ("Security / Police / Peacekeeping", _("Security / Police / Peacekeeping")),
-    ("Disarmament & Demobilization", _("Disarmament & Demobilization")),
-    ("Environment", _("Environment")),
-    ("Private sector", _("Private sector")),
-    ("Humanitarian - Coordination / Information Management", _("Humanitarian - Coordination / Information Management")),
-    ("Humanitarian - Multiple Clusters", _("Humanitarian - Multiple Clusters")),
-    ("Humanitarian - Camp Management & Coordination", _("Humanitarian - Camp Management & Coordination")),
-    ("Humanitarian - Early Recovery", _("Humanitarian - Early Recovery")),
-    ("Humanitarian - Education", _("Humanitarian - Education")),
-    ("Humanitarian - Emergency Shelter", _("Humanitarian - Emergency Shelter")),
-    ("Humanitarian - Emergency Telecoms", _("Humanitarian - Emergency Telecoms")),
-    ("Humanitarian - Food Security", _("Humanitarian - Food Security")),
-    ("Humanitarian - Health", _("Humanitarian - Health")),
-    ("Humanitarian - Logistics", _("Humanitarian - Logistics")),
-    ("Humanitarian - Nutrition", _("Humanitarian - Nutrition")),
-    ("Humanitarian - Protection", _("Humanitarian - Protection")),
-    ("Humanitarian - Sanitation, Water & Hygiene", _("Humanitarian - Sanitation, Water & Hygiene")),
-    ("Other", _("Other")),
+    ("Public Administration", t("Public Administration")),
+    ("Arts, Entertainment, and Recreation", t("Arts, Entertainment, and Recreation")),
+    ("Educational Services / Higher Education", t("Educational Services / Higher Education")),
+    ("Health Services / Public Health", t("Health Services / Public Health")),
+    ("Finance and Insurance", t("Finance and Insurance")),
+    ("Information / Media", t("Information / Media")),
+    ("Economic/Social Development", t("Economic/Social Development")),
+    ("Security / Police / Peacekeeping", t("Security / Police / Peacekeeping")),
+    ("Disarmament & Demobilization", t("Disarmament & Demobilization")),
+    ("Environment", t("Environment")),
+    ("Private sector", t("Private sector")),
+    ("Humanitarian - Coordination / Information Management", t("Humanitarian - Coordination / Information Management")),
+    ("Humanitarian - Multiple Clusters", t("Humanitarian - Multiple Clusters")),
+    ("Humanitarian - Camp Management & Coordination", t("Humanitarian - Camp Management & Coordination")),
+    ("Humanitarian - Early Recovery", t("Humanitarian - Early Recovery")),
+    ("Humanitarian - Education", t("Humanitarian - Education")),
+    ("Humanitarian - Emergency Shelter", t("Humanitarian - Emergency Shelter")),
+    ("Humanitarian - Emergency Telecoms", t("Humanitarian - Emergency Telecoms")),
+    ("Humanitarian - Food Security", t("Humanitarian - Food Security")),
+    ("Humanitarian - Health", t("Humanitarian - Health")),
+    ("Humanitarian - Logistics", t("Humanitarian - Logistics")),
+    ("Humanitarian - Nutrition", t("Humanitarian - Nutrition")),
+    ("Humanitarian - Protection", t("Humanitarian - Protection")),
+    ("Humanitarian - Sanitation, Water & Hygiene", t("Humanitarian - Sanitation, Water & Hygiene")),
+    ("Other", t("Other")),
 )
 
 # You might generate such a list of countries with code like this:
 #
-#     #     import sys
+#     import sys
 #
 #     url = 'https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0'
 #     while url:
@@ -47,7 +51,7 @@ SECTORS = (
 #         else:
 #             url = None
 #         for d in j['data']:
-#             print("({}, _({}))".format(repr(d['iso3']), repr(d['label'])))
+#             print("({}, t({}))".format(repr(d['iso3']), repr(d['label'])))
 COUNTRIES = (
     # (value, human-readable label)
     ('AFG', 'Afghanistan'),
@@ -312,7 +316,7 @@ COUNTRIES = (
 #         line = line.decode(response.apparent_encoding)
 #         fields = line.strip().split('|')
 #         if fields[2]:
-#             print '({}, _({})),'.format(repr(fields[2]), repr(fields[3]))
+#             print '({}, t({})),'.format(repr(fields[2]), repr(fields[3]))
 LANGUAGES = (
     # (value, human-readable label)
     ('aa', 'Afar'),

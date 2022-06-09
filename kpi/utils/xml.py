@@ -1,6 +1,6 @@
 # coding: utf-8
 import re
-from typing import Optional, Union
+from typing import Optional, Union, List
 from lxml import etree
 
 
@@ -132,9 +132,11 @@ def strip_nodes(
     ).decode()
 
 
-def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
+def add_xml_declaration(
+    xml_content: Union[str, bytes], newlines: bool = False
+) -> Union[str, bytes]:
     xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
-    # Should support ̀ lmxl` and `dicttoxml`
+    # Should support ̀ lmxl` and `dict2xml`
     start_of_declaration = '<?xml'
     use_bytes = False
     xml_content_as_str = xml_content.strip()
@@ -144,13 +146,43 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
         xml_content_as_str = xml_content.decode()
 
     if (
-       xml_content_as_str[:len(start_of_declaration)].lower()
+        xml_content_as_str[:len(start_of_declaration)].lower()
         == start_of_declaration.lower()
     ):
         # There's already a declaration. Don't add anything.
         return xml_content
 
-    xml_ = f'{xml_declaration}\n{xml_content_as_str}'
+    newlines_char = '\n' if newlines else ''
+    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
     if use_bytes:
         return xml_.encode()
     return xml_
+
+
+def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
+    return '/'.join(parts[start:end])
+
+
+def edit_submission_xml(
+    xml_parsed: etree._Element,
+    path: str,
+    value: str,
+) -> None:
+    """
+    Edit submission XML with an XPath and new value, creating a new tree
+    element if the path doesn't yet exist.
+    """
+    element = xml_parsed.find(path)
+    if element is None:
+        path_parts = path.split('/')
+        # Construct the tree of elements, one node at a time
+        for i, node in enumerate(path_parts):
+            element = xml_parsed.find(get_path(path_parts, end=i + 1))
+            if element is None:
+                parent = (
+                    xml_parsed
+                    if i == 0
+                    else xml_parsed.find(get_path(path_parts, end=i))
+                )
+                element = etree.SubElement(parent, node)
+    element.text = value
