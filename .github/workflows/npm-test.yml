@@ -12,12 +12,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
+          # We need this particular version, as npm 8.5.5 is the last version
+          # that works with our package.json :sadface:.
           node-version: '16.15.0'
           cache: 'npm'
-      - name: Downgrading npm to 8.5.5
-        uses: reedyuk/npm-version@1.1.1
-        with:
-          version: '8.5.5'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
       - run: npm install
