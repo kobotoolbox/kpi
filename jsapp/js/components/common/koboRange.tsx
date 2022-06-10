@@ -32,6 +32,7 @@ interface KoboRangeProps {
   totalLabel?: string;
   /** optional string to append to value */
   currentLabel?: string;
+  'data-cy'?: string;
 }
 
 /**
@@ -39,10 +40,6 @@ interface KoboRangeProps {
  *
  */
 export default class KoboRange extends React.Component<KoboRangeProps> {
-  constructor(props: KoboRangeProps) {
-    super(props);
-  }
-
   /** We deal internally with un-converted seconds for easier computing. Only use
    * this if `props.isTime` and when it's time to display
    */
@@ -72,7 +69,7 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
     const isDataLoaded = !(this.props.max === 0);
 
     return (
-      <bem.KoboRange>
+      <bem.KoboRange data-cy={this.props['data-cy']}>
         {isDataLoaded &&
           <bem.KoboRange__values>
             <bem.KoboRange__currentValue>

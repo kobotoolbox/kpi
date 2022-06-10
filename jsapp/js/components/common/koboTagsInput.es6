@@ -38,6 +38,7 @@ class KoboTagsInput extends React.Component {
   render() {
     const inputProps = {
       placeholder: this.props.placeholder || DEFAULT_PLACEHOLDER,
+      'data-cy': this.props['data-cy'],
     };
 
     if (this.props.label) {

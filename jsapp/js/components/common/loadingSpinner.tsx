@@ -10,6 +10,7 @@ interface LoadingSpinnerProps {
    * sometimes we want just the spinner.
    */
   hideMessage?: boolean;
+  'data-cy'?: string;
 }
 
 export default class LoadingSpinner extends React.Component<LoadingSpinnerProps, {}> {
@@ -17,7 +18,7 @@ export default class LoadingSpinner extends React.Component<LoadingSpinnerProps,
     const message = this.props.message || t('loading…');
 
     return (
-      <bem.Loading>
+      <bem.Loading data-cy={this.props['data-cy']}>
         <bem.Loading__inner>
           <Icon name='spinner' size='xl' classNames={['k-spin']}/>
           {!this.props.hideMessage && message}

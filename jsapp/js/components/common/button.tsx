@@ -65,10 +65,12 @@ interface ButtonProps {
   /** Additional class names. */
   classNames?: string[];
   onClick: Function;
+  'data-cy'?: string;
 }
 
 interface AdditionalButtonAttributes {
   'data-tip'?: string;
+  'data-cy'?: string;
 }
 
 /**
@@ -137,6 +139,9 @@ class Button extends React.Component<ButtonProps, {}> {
     const additionalButtonAttributes: AdditionalButtonAttributes = {};
     if (this.props.tooltip) {
       additionalButtonAttributes['data-tip'] = this.props.tooltip;
+    }
+    if (this.props['data-cy']) {
+      additionalButtonAttributes['data-cy'] = this.props['data-cy'];
     }
 
     return (

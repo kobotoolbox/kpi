@@ -10,6 +10,7 @@ type WrappedSelectProps = Props & {
   label?: string;
   error?: string;
   isLimitedHeight?: boolean;
+  'data-cy'?: string;
 };
 
 /**
@@ -24,9 +25,10 @@ class WrappedSelect extends React.Component<WrappedSelectProps> {
     }
 
     return (
-      <bem.KoboSelect__wrapper m={{
-        'error': Boolean(this.props.error),
-      }}>
+      <bem.KoboSelect__wrapper
+        m={{'error': Boolean(this.props.error)}}
+        data-cy={this.props['data-cy']}
+      >
         <label>
           <bem.KoboSelect__label>
             {this.props.label}

@@ -30,10 +30,16 @@ interface KoboDropdownProps {
    * ends up in `data-name` attribut.e
    */
   name: string;
+  'data-cy'?: string;
 }
 
 interface KoboDropdownState {
   isMenuVisible: boolean;
+}
+
+interface AdditionalWrapperAttributes {
+  'data-name'?: string;
+  'data-cy'?: string;
 }
 
 bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
@@ -202,11 +208,15 @@ export default class KoboDropdown extends React.Component<
   }
 
   render() {
-    const additionalWrapperAttributes = {'data-name': ''};
+    const additionalWrapperAttributes: AdditionalWrapperAttributes = {};
 
     if (this.props.name) {
       // We use `data-name` attribute to allow any character in the name.
       additionalWrapperAttributes['data-name'] = this.props.name;
+    }
+
+    if (this.props['data-cy']) {
+      additionalWrapperAttributes['data-cy'] = this.props['data-cy'];
     }
 
     return (
