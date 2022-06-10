@@ -1,15 +1,15 @@
 import React from 'react';
 import bem from 'js/bem';
 import './loadingSpinner.scss';
-import Icon from 'js/components/common/icon'
+import Icon from 'js/components/common/icon';
 
-type LoadingSpinnerProps = {
-  message?: string
+interface LoadingSpinnerProps {
+  message?: string;
   /**
    * Most of the times we want a message, either custom or default one, but
    * sometimes we want just the spinner.
    */
-  hideMessage?: boolean
+  hideMessage?: boolean;
 }
 
 export default class LoadingSpinner extends React.Component<LoadingSpinnerProps, {}> {

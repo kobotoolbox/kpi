@@ -3,14 +3,14 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import './checkbox-and-radio.scss';
 
-type CheckboxProps = {
-  checked: boolean
-  disabled?: boolean
-  onChange: Function
-  label: string
+interface CheckboxProps {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: Function;
+  label: string;
   /** Only needed if checkbox is in submittable form. */
-  name?: string
-};
+  name?: string;
+}
 
 /** A checkbox generic component. */
 class Checkbox extends React.Component<CheckboxProps, {}> {

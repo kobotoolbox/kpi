@@ -16,24 +16,24 @@ export enum KoboDropdownPlacements {
   'down-right' = 'down-right',
 }
 
-type KoboDropdownProps = {
-  placement: KoboDropdownPlacements,
+interface KoboDropdownProps {
+  placement: KoboDropdownPlacements;
   /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
-  isDisabled: boolean,
+  isDisabled: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
-  hideOnMenuClick: boolean,
-  triggerContent: React.ReactNode,
+  hideOnMenuClick: boolean;
+  triggerContent: React.ReactNode;
   /** The content of dropdown, anything's allowed. */
-  menuContent: React.ReactNode,
+  menuContent: React.ReactNode;
   /**
    * Optional name value useful for styling and `menuVisibilityChange` action,
    * ends up in `data-name` attribut.e
    */
-  name: string,
+  name: string;
 }
 
-type KoboDropdownState = {
-  isMenuVisible: boolean,
+interface KoboDropdownState {
+  isMenuVisible: boolean;
 }
 
 bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
@@ -65,11 +65,11 @@ export default class KoboDropdown extends React.Component<
     this.state = {isMenuVisible: false};
   }
 
-  private checkOutsideClickBound: (evt: MouseEvent | TouchEvent) => void = this.checkOutsideClick.bind(this)
+  private checkOutsideClickBound: (evt: MouseEvent | TouchEvent) => void = this.checkOutsideClick.bind(this);
 
-  private onAnyKeyWhileOpenBound: (evt: KeyboardEvent) => void = this.onAnyKeyWhileOpen.bind(this)
+  private onAnyKeyWhileOpenBound: (evt: KeyboardEvent) => void = this.onAnyKeyWhileOpen.bind(this);
 
-  private unlisteners: Function[] = []
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
@@ -84,8 +84,8 @@ export default class KoboDropdown extends React.Component<
   }
 
   onTriggerClick(evt: React.KeyboardEvent<Node>) {
-    evt.preventDefault()
-    this.toggleMenu()
+    evt.preventDefault();
+    this.toggleMenu();
   }
 
   onMenuClick() {
@@ -202,7 +202,7 @@ export default class KoboDropdown extends React.Component<
   }
 
   render() {
-    const additionalWrapperAttributes = {'data-name': ''}
+    const additionalWrapperAttributes = {'data-name': ''};
 
     if (this.props.name) {
       // We use `data-name` attribute to allow any character in the name.

@@ -1,15 +1,16 @@
 import React from 'react';
-import Select, {Props} from 'react-select';
+import type {Props} from 'react-select';
+import Select from 'react-select';
 import bem from 'js/bem';
 
 // NOTE: react-select is going to implement this soon-ish:
 // https://github.com/JedWatson/react-select/issues/4327
 
-type WrappedSelectProps = {
-  label?: string
-  error?: string
-  isLimitedHeight?: boolean
-} & Props
+type WrappedSelectProps = Props & {
+  label?: string;
+  error?: string;
+  isLimitedHeight?: boolean;
+};
 
 /**
  * Adds error displaying to the Select component. Largely cribbed from
@@ -22,9 +23,9 @@ class WrappedSelect extends React.Component<WrappedSelectProps> {
       classNames.push('kobo-select--limited-height');
     }
 
-    return(
+    return (
       <bem.KoboSelect__wrapper m={{
-        'error': Boolean(this.props.error)
+        'error': Boolean(this.props.error),
       }}>
         <label>
           <bem.KoboSelect__label>
