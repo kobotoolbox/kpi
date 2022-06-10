@@ -77,10 +77,6 @@ interface AdditionalButtonAttributes {
  * A button component.
  */
 class Button extends React.Component<ButtonProps, {}> {
-  constructor(props: ButtonProps){
-    super(props);
-  }
-
   render() {
     // Note: both icon(s) and label are optional, but in reality the button
     // needs at least one of them to work.
