@@ -32,10 +32,6 @@ interface TextBoxProps {
  * A text box generic component.
  */
 class TextBox extends React.Component<TextBoxProps, {}> {
-  constructor(props: TextBoxProps){
-    super(props);
-  }
-
   /**
    * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
    * types to stop TextareaAutosize complaining.
