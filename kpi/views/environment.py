@@ -7,7 +7,12 @@ from django.utils.translation import gettext_lazy as t
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from kobo.static_lists import COUNTRIES, LANGUAGES
+from kobo.static_lists import (
+    COUNTRIES,
+    LANGUAGES,
+    TRANSCRIPTION_LANGUAGES,
+    TRANSLATION_LANGUAGES
+)
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 
 
@@ -65,5 +70,7 @@ class EnvironmentView(APIView):
         data['country_choices'] = COUNTRIES
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
+        data['transcription_languages'] = TRANSCRIPTION_LANGUAGES
+        data['translation_languages'] = TRANSLATION_LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         return Response(data)

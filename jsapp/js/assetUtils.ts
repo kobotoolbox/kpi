@@ -448,7 +448,7 @@ function getRowLabelAtIndex(
 export function renderQuestionTypeIcon(
   rowType: AnyRowTypeName
 ): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
-  let iconClassName: string = '';
+  let iconClassName = '';
 
   if (rowType === SCORE_ROW_TYPE) {
     iconClassName = QUESTION_TYPES.score.icon;
@@ -467,12 +467,17 @@ export function renderQuestionTypeIcon(
     iconClassName = 'qt-meta-default';
   }
 
+  let questionTypeLabel: string | AnyRowTypeName = rowType;
+  if (Object.keys(QUESTION_TYPES).includes(rowType)) {
+    questionTypeLabel = QUESTION_TYPES[rowType as QuestionTypeName].label;
+  }
+
   if (iconClassName) {
     return React.createElement(
       'i',
       {
         className: `k-icon k-icon-${iconClassName}`,
-        title: rowType
+        title: questionTypeLabel,
       }
     );
   } else {
