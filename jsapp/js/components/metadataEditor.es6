@@ -192,8 +192,6 @@ export default class MetadataEditor extends React.Component {
     ];
     const rightColumn = [
       META_QUESTION_TYPES.username,
-      META_QUESTION_TYPES.simserial,
-      META_QUESTION_TYPES.subscriberid,
       META_QUESTION_TYPES.phonenumber,
     ];
 
