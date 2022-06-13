@@ -924,7 +924,7 @@ class ProjectSettings extends React.Component {
                 options={countries}
                 isLimitedHeight
                 isClearable
-                error={this.hasFieldError('country') ? t('Please select at least one contry') : false}
+                error={this.hasFieldError('country') ? t('Please select at least one country') : false}
               />
             </bem.FormModal__item>
           }
