@@ -215,7 +215,7 @@ export default class TranslationsTabContent extends React.Component<
    * services we use.
    */
   isAutoEnabled() {
-    const draft = singleProcessingStore.getTranscriptDraft();
+    const draft = singleProcessingStore.getTranslationDraft();
     return (
       // TODO: uncomment second condition when kpi#3618 is merged into
       // beta → feature/nlp → 3092+3094-processing-editors → 3104-automatic-processing
