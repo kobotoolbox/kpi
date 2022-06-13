@@ -30,8 +30,6 @@ azure-storage-blob==12.11.0
     # via django-storages
 backcall==0.2.0
     # via ipython
-backports-zoneinfo==0.2.1; python_version < '3.9'
-    # via -r dependencies/pip/requirements.in
 bcrypt==3.2.0
     # via paramiko
 begins==0.9
@@ -121,6 +119,7 @@ django==2.2.27
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-picklefield
+    #   django-redis
     #   django-request-cache
     #   django-reversion
     #   django-storages
@@ -163,6 +162,8 @@ django-oauth-toolkit==1.7.1
 django-picklefield==3.0.1
     # via django-constance
 django-private-storage==3.0
+    # via -r dependencies/pip/requirements.in
+django-redis==5.2.0
     # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.2
     # via -r dependencies/pip/requirements.in
@@ -358,6 +359,7 @@ pyxform==1.9.0
 redis==4.2.2
     # via
     #   celery
+    #   django-redis
     #   django-redis-sessions
 requests==2.27.1
     # via

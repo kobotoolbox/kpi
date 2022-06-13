@@ -276,7 +276,8 @@ CONSTANCE_ADDITIONAL_FIELDS = {
 }
 
 # Tell django-constance to use a database model instead of Redis
-CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_BACKEND = 'kobo.apps.constance_backends.database.DatabaseBackend'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -842,6 +843,11 @@ SESSION_REDIS = {
     'url': redis_session_url['LOCATION'],
     'prefix': env.str('REDIS_SESSION_PREFIX', 'session'),
     'socket_timeout': env.int('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+}
+
+CACHES = {
+    # Set CACHE_URL to override
+    'default': env.cache(default=env.str("REDIS_SESSION_URL", default='redis://redis_cache:6380/2')),
 }
 
 ENV = None
