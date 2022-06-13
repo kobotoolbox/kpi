@@ -236,7 +236,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'end': updated_time,
             'meta/instanceID': f'uuid:{uuid.uuid4()}'
         })
-        
+
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
@@ -510,7 +510,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         Examples:
             {"submission_ids": [1, 2, 3]}
             {"query":{"_validation_status.uid":"validation_status_not_approved"}
-        
+
         """
 
         submission_ids = self.validate_access_with_partial_perms(
@@ -569,6 +569,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
+
+    @property
+    def submission_count(self):
+        return self.calculated_submission_count(self.asset.owner)
 
     @property
     def submission_list_url(self):
