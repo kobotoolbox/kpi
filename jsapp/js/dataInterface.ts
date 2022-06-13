@@ -444,7 +444,7 @@ export interface MetadataResponse {
   organizations: string[];
 }
 
-interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
