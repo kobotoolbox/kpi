@@ -568,7 +568,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   /**
    * Returns a list of language codes of languages that are activated within
-   * advanced_features.transcript
+   * advanced_features.transcript, i.e. languages that were already used for
+   * transcripts with other submissions in this project.
    */
   getAssetTranscriptableLanguages() {
     const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid);

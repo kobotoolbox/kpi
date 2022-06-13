@@ -134,6 +134,26 @@ export default class TranscriptTabContent extends React.Component<
     );
   }
 
+  /**
+   * Checks if language is selected and if it is available in the automated
+   * services we use.
+   */
+  isAutoEnabled() {
+    const draft = singleProcessingStore.getTranscriptDraft();
+    return (
+      // TODO: uncomment second condition when kpi#3618 is merged into
+      // beta → feature/nlp → 3092+3094-processing-editors → 3104-automatic-processing
+      // so the list exists
+      draft?.languageCode !== undefined /* &&
+      envStore.data.transcription_languages.includes(draft?.languageCode) */
+    );
+  }
+
+  /** Whether automatic services are available for current user. */
+  isAutoAvailable() {
+    return envStore.data.asr_mt_features_enabled;
+  }
+
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript();
     const draft = singleProcessingStore.getTranscriptDraft();
@@ -216,19 +236,20 @@ export default class TranscriptTabContent extends React.Component<
               type='frame'
               color='blue'
               size='m'
-              label={t('manual')}
+              label={this.isAutoAvailable() ? t('manual') : t('transcribe')}
               onClick={this.selectModeManual.bind(this)}
               isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            {envStore.data.asr_mt_features_enabled &&
+            {/* We hide button for users that don't have access to the feature. */}
+            {this.isAutoAvailable() &&
               <Button
                 type='full'
                 color='blue'
                 size='m'
                 label={t('automatic')}
                 onClick={this.selectModeAuto.bind(this)}
-                isDisabled={draft?.languageCode === undefined}
+                isDisabled={!this.isAutoEnabled()}
                 isPending={singleProcessingStore.isFetchingData}
               />
             }

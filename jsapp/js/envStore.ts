@@ -30,6 +30,8 @@ class EnvStoreData {
   /** languages come from `kobo/static_lists.py` **/
   all_languages: EnvStoreDataItem[] = [];
   interface_languages: EnvStoreDataItem[] = [];
+  transcription_languages: string[] = [];
+  translation_languages: string[] = [];
   submission_placeholder = '';
   asr_mt_features_enabled = false;
 
@@ -100,6 +102,12 @@ class EnvStore extends Reflux.Store {
     }
     if (response.interface_languages) {
       this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs);
+    }
+    if (response.transcription_languages) {
+      this.data.transcription_languages = response.transcription_languages;
+    }
+    if (response.translation_languages) {
+      this.data.translation_languages = response.translation_languages;
     }
     if (response.all_languages) {
       this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs);
