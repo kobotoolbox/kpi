@@ -35,29 +35,6 @@ celery_app.config_from_object('django.conf:settings', namespace='CELERY')
 celery_app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
 
 
-@celery_app.task
-def update_concurrency_from_constance():
-    """
-    Reads Celery worker concurrency configuration from django-constance
-    and applies maximum and minimum settings to the Celery worker process
-    autoscaler. Requires `celery worker` to be started with the `--autoscale=`
-    argument; see `docker/run_celery.bash`.
-    """
-    try:
-        max_ = int(constance.config.CELERY_WORKER_MAX_CONCURRENCY)
-    except ValueError:
-        max_ = min(multiprocessing.cpu_count(), 6)
-    try:
-        min_ = int(constance.config.CELERY_WORKER_MIN_CONCURRENCY)
-    except ValueError:
-        min_ = 2
-
-    # If the configured values don't make sense, let the minimum prevail
-    max_ = max(max_, min_)
-
-    celery_app.control.autoscale(max_, min_)
-
-
 @celery_app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
