@@ -847,7 +847,7 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache(default=env.str("REDIS_SESSION_URL", default='redis://redis_cache:6380/2')),
+    'default': env.cache(default=env.str('REDIS_SESSION_URL', default='redis://redis_cache:6380/2')),
 }
 
 ENV = None
