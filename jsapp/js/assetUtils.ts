@@ -213,6 +213,25 @@ export function isLibraryAsset(assetType: AssetTypeName) {
 }
 
 /**
+ * Checks whether the asset is public - i.e. visible and discoverable by anyone.
+ * Note that `view_asset` is implied when you have `discover_asset`.
+ */
+export function isAssetPublic(permissions: Permission[]) {
+  let isDiscoverableByAnonymous = false;
+  permissions.forEach((perm) => {
+    const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
+    if (
+      perm.user === buildUserUrl(ANON_USERNAME) &&
+      foundPerm !== undefined &&
+      perm.permission === foundPerm.url
+    ) {
+      isDiscoverableByAnonymous = true;
+    }
+  });
+  return isDiscoverableByAnonymous;
+}
+
+/**
  * For getting the icon class name for given asset type. Returned string always
  * contains two class names: base `k-icon` and respective CSS class name.
  */
@@ -317,6 +336,10 @@ type SurveyFlatPaths = {
   [P in string]: string
 };
 
+export function getRowName(row: SurveyChoice | SurveyRow) {
+  return row.name || ('$autoname' in row && row.$autoname) || row.$kuid;
+}
+
 /**
  * NOTE: this works based on a fact that all questions have unique names.
  * @param includeGroups - wheter to put groups into output
@@ -333,18 +356,18 @@ export function getSurveyFlatPaths(
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_TYPES_BEGIN.hasOwnProperty(row.type)) {
+    if (Object.prototype.hasOwnProperty.call(GROUP_TYPES_BEGIN, row.type)) {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_TYPES_END.hasOwnProperty(row.type)) {
+    } else if (Object.prototype.hasOwnProperty.call(GROUP_TYPES_END, row.type)) {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES.hasOwnProperty(row.type) ||
+      Object.prototype.hasOwnProperty.call(QUESTION_TYPES, row.type) ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE ||
-      (includeMeta && META_QUESTION_TYPES.hasOwnProperty(row.type))
+      (includeMeta && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type))
     ) {
       let groupsPath = '';
       if (openedGroups.length >= 1) {
@@ -357,42 +380,20 @@ export function getSurveyFlatPaths(
   return output;
 }
 
-export function getRowName(row: SurveyChoice | SurveyRow) {
-  return row.name || ('$autoname' in row && row.$autoname) || row.$kuid;
-}
-
 /**
- * @param rowName - could be either a survey row name or choices row name
- * @param data - is either a survey or choices
- * Returns null for not found
+ * An internal helper function for DRY code
  */
-export function getTranslatedRowLabel(
-  rowName: string,
-  data: SurveyChoice[] | SurveyRow[],
-  translationIndex: number
+function getRowLabelAtIndex(
+  row: SurveyChoice | SurveyRow,
+  index: number
 ): string | null {
-  let foundRowIndex: number | undefined;
-  let foundRow: SurveyChoice | SurveyRow | undefined;
-
-  data.forEach((row, rowIndex) => {
-    if (getRowName(row) === rowName) {
-      foundRow = row;
-      foundRowIndex = rowIndex;
-    }
-  });
-
-  if (typeof foundRow === 'object' && foundRow.hasOwnProperty('label')) {
-    return getRowLabelAtIndex(foundRow, translationIndex);
-  } else if (typeof foundRow === 'object' && typeof foundRowIndex === 'number') {
-    // that mysterious row always comes as a next row
-    const possibleRow = data[foundRowIndex + 1];
-    if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
-      return getRowLabelAtIndex(possibleRow, translationIndex);
-    }
+  if (Array.isArray(row.label)) {
+    return row.label[index] || null;
+  } else {
+    return row.label || null;
   }
-
-  return null;
 }
+
 
 /**
  * If a row doesn't have a label it is very possible that this is
@@ -432,17 +433,36 @@ export function isRowSpecialLabelHolder(
 }
 
 /**
- * An internal helper function for DRY code
+ * @param rowName - could be either a survey row name or choices row name
+ * @param data - is either a survey or choices
+ * Returns null for not found
  */
-function getRowLabelAtIndex(
-  row: SurveyChoice | SurveyRow,
-  index: number
+export function getTranslatedRowLabel(
+  rowName: string,
+  data: SurveyChoice[] | SurveyRow[],
+  translationIndex: number
 ): string | null {
-  if (Array.isArray(row.label)) {
-    return row.label[index] || null;
-  } else {
-    return row.label || null;
+  let foundRowIndex: number | undefined;
+  let foundRow: SurveyChoice | SurveyRow | undefined;
+
+  data.forEach((row, rowIndex) => {
+    if (getRowName(row) === rowName) {
+      foundRow = row;
+      foundRowIndex = rowIndex;
+    }
+  });
+
+  if (typeof foundRow === 'object' && Object.prototype.hasOwnProperty.call(foundRow, 'label')) {
+    return getRowLabelAtIndex(foundRow, translationIndex);
+  } else if (typeof foundRow === 'object' && typeof foundRowIndex === 'number') {
+    // that mysterious row always comes as a next row
+    const possibleRow = data[foundRowIndex + 1];
+    if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
+      return getRowLabelAtIndex(possibleRow, translationIndex);
+    }
   }
+
+  return null;
 }
 
 export function renderQuestionTypeIcon(
@@ -454,7 +474,7 @@ export function renderQuestionTypeIcon(
     iconClassName = QUESTION_TYPES.score.icon;
   } else if (rowType === RANK_LEVEL_TYPE) {
     iconClassName = QUESTION_TYPES.rank.icon;
-  } else if (QUESTION_TYPES.hasOwnProperty(rowType)) {
+  } else if (Object.prototype.hasOwnProperty.call(QUESTION_TYPES, rowType)) {
     // We need to cast with `as` operator to avoid typescript complaining that
     // we can't use AnyRowTypeName as index for QuestionTypes.
     const rowTypeAsQuestionType = rowType as QuestionTypeName;
@@ -463,7 +483,7 @@ export function renderQuestionTypeIcon(
 
   if (rowType === META_QUESTION_TYPES['background-audio']) {
     iconClassName = 'k-icon-background-rec';
-  } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
+  } else if (Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
     iconClassName = 'qt-meta-default';
   }
 
@@ -530,8 +550,8 @@ export function getFlatQuestionsList(
     }
 
     if (
-      QUESTION_TYPES.hasOwnProperty(row.type) ||
-      (includeMeta && META_QUESTION_TYPES.hasOwnProperty(row.type))
+      Object.prototype.hasOwnProperty.call(QUESTION_TYPES, row.type) ||
+      (includeMeta && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type))
     ) {
       const rowName = getRowName(row);
       output.push({
@@ -575,25 +595,6 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
   }
 
   return errors;
-}
-
-/**
- * Checks whether the asset is public - i.e. visible and discoverable by anyone.
- * Note that `view_asset` is implied when you have `discover_asset`.
- */
-export function isAssetPublic(permissions: Permission[]) {
-  let isDiscoverableByAnonymous = false;
-  permissions.forEach((perm) => {
-    const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
-    if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
-      foundPerm !== undefined &&
-      perm.permission === foundPerm.url
-    ) {
-      isDiscoverableByAnonymous = true;
-    }
-  });
-  return isDiscoverableByAnonymous;
 }
 
 export function isSelfOwned(asset: AssetResponse) {
