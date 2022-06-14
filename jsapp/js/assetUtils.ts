@@ -1,9 +1,13 @@
-import React from 'react'
-import {AssetTypeName} from 'js/constants'
-import {stores} from 'js/stores'
-import permConfig from 'js/components/permissions/permConfig'
-import {buildUserUrl} from 'js/utils'
-import envStore from 'js/envStore'
+import React from 'react';
+import {stores} from 'js/stores';
+import permConfig from 'js/components/permissions/permConfig';
+import {buildUserUrl} from 'js/utils';
+import envStore from 'js/envStore';
+import type {
+  AssetTypeName,
+  AnyRowTypeName,
+  QuestionTypeName,
+} from 'js/constants';
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -17,22 +21,20 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
-  AnyRowTypeName,
-  QuestionTypeName,
 } from 'js/constants';
-import {
+import type {
   AssetResponse,
   SurveyRow,
   SurveyChoice,
-  Permission
-} from 'js/dataInterface'
+  Permission,
+} from 'js/dataInterface';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
  */
 export function cleanupTags(tags: string[]) {
-  return tags.map(function(tag) {
+  return tags.map(function (tag) {
     return tag.trim().replace(/ /g, '-');
   });
 }
@@ -42,8 +44,7 @@ export function cleanupTags(tags: string[]) {
  */
 export function getAssetOwnerDisplayName(username: string) {
   if (
-    stores.session.currentAccount &&
-    stores.session.currentAccount.username &&
+    stores.session.currentAccount?.username &&
     stores.session.currentAccount.username === username
   ) {
     return t('me');
@@ -83,8 +84,7 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
 
 export function getLanguagesDisplayString(asset: AssetResponse) {
   if (
-    asset.summary &&
-    asset.summary.languages &&
+    asset.summary?.languages &&
     asset.summary.languages.length >= 1
   ) {
     return asset.summary.languages.join(', ');
@@ -97,7 +97,7 @@ export function getLanguagesDisplayString(asset: AssetResponse) {
  * Returns `-` for assets without sector and localized label otherwise
  */
 export function getSectorDisplayString(asset: AssetResponse): string {
-  let output = '-'
+  let output = '-';
 
   if (asset.settings.sector?.value) {
     /**
@@ -105,15 +105,15 @@ export function getSectorDisplayString(asset: AssetResponse): string {
      * and thus prone to not be true (e.g. creating form in spanish UI language
      * and then switching to french would result in seeing spanish labels)
      */
-    const sectorLabel = envStore.getSectorLabel(asset.settings.sector.value)
+    const sectorLabel = envStore.getSectorLabel(asset.settings.sector.value);
     if (sectorLabel !== undefined) {
-      output = sectorLabel
+      output = sectorLabel;
     } else {
-      output = asset.settings.sector.value
+      output = asset.settings.sector.value;
     }
   }
 
-  return output
+  return output;
 }
 
 export function getCountryDisplayString(asset: AssetResponse): string {
@@ -123,10 +123,10 @@ export function getCountryDisplayString(asset: AssetResponse): string {
      * and thus prone to not be true (e.g. creating form in spanish UI language
      * and then switching to french would result in seeing spanish labels)
      */
-    let countries = [];
+    const countries = [];
     // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
     if (Array.isArray(asset.settings.country)) {
-      for (let country of asset.settings.country) {
+      for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value));
       }
     } else {
@@ -140,10 +140,10 @@ export function getCountryDisplayString(asset: AssetResponse): string {
 }
 
 interface DisplayNameObj {
-  original?: string // Name typed in by user.
-  question?: string // First question name.
-  empty?: string // Set when no other is available.
-  final: string // original, question or empty name - the one to be displayed.
+  original?: string; // Name typed in by user.
+  question?: string; // First question name.
+  empty?: string; // Set when no other is available.
+  final: string; // original, question or empty name - the one to be displayed.
 }
 
 /**
@@ -156,13 +156,13 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
 
   const output: DisplayNameObj = {
     // empty name is a fallback
-    final: emptyName
+    final: emptyName,
   };
 
   if (asset.name) {
     output.original = asset.name;
   }
-  if (asset.summary && asset.summary.labels && asset.summary.labels.length > 0) {
+  if (asset.summary?.labels && asset.summary.labels.length > 0) {
     // for unnamed assets, we try to display first question name
     output.question = asset.summary.labels[0];
   }
@@ -185,8 +185,8 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
  * "Unlabelled". `translationIndex` defaults to first (default) language.
  */
 export function getQuestionOrChoiceDisplayName(
-  questionOrChoice: SurveyRow | SurveyChoice,
-  translationIndex: number = 0
+  questionOrChoice: SurveyChoice | SurveyRow,
+  translationIndex = 0
 ): string {
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
@@ -239,11 +239,11 @@ export function getAssetIcon(asset: AssetResponse) {
         return 'k-icon k-icon-project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
+      if (asset.access_types?.includes(ACCESS_TYPES.subscribed)) {
         return 'k-icon k-icon-folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
         return 'k-icon k-icon-folder-public';
-      } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
+      } else if (asset.access_types?.includes(ACCESS_TYPES.shared)) {
         return 'k-icon k-icon-folder-shared';
       } else {
         return 'k-icon k-icon-folder';
@@ -269,7 +269,7 @@ export function modifyDetails(asset: AssetResponse) {
       asset: asset,
     });
   } else {
-    throw new Error(`Unsupported asset type: ${asset.asset_type}.`)
+    throw new Error(`Unsupported asset type: ${asset.asset_type}.`);
   }
 }
 
@@ -315,7 +315,7 @@ export function replaceForm(asset: AssetResponse) {
 
 type SurveyFlatPaths = {
   [P in string]: string
-}
+};
 
 /**
  * NOTE: this works based on a fact that all questions have unique names.
@@ -325,8 +325,8 @@ type SurveyFlatPaths = {
  */
 export function getSurveyFlatPaths(
   survey: SurveyRow[],
-  includeGroups: boolean = false,
-  includeMeta: boolean = false
+  includeGroups = false,
+  includeMeta = false
 ): SurveyFlatPaths {
   const output: SurveyFlatPaths = {};
   const openedGroups: string[] = [];
@@ -357,7 +357,7 @@ export function getSurveyFlatPaths(
   return output;
 }
 
-export function getRowName(row: SurveyRow | SurveyChoice) {
+export function getRowName(row: SurveyChoice | SurveyRow) {
   return row.name || ('$autoname' in row && row.$autoname) || row.$kuid;
 }
 
@@ -368,11 +368,11 @@ export function getRowName(row: SurveyRow | SurveyChoice) {
  */
 export function getTranslatedRowLabel(
   rowName: string,
-  data: SurveyRow[] | SurveyChoice[],
+  data: SurveyChoice[] | SurveyRow[],
   translationIndex: number
 ): string | null {
   let foundRowIndex: number | undefined;
-  let foundRow: SurveyRow | SurveyChoice | undefined;
+  let foundRow: SurveyChoice | SurveyRow | undefined;
 
   data.forEach((row, rowIndex) => {
     if (getRowName(row) === rowName) {
@@ -385,7 +385,7 @@ export function getTranslatedRowLabel(
     return getRowLabelAtIndex(foundRow, translationIndex);
   } else if (typeof foundRow === 'object' && typeof foundRowIndex === 'number') {
     // that mysterious row always comes as a next row
-    let possibleRow = data[foundRowIndex + 1];
+    const possibleRow = data[foundRowIndex + 1];
     if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
       return getRowLabelAtIndex(possibleRow, translationIndex);
     }
@@ -400,14 +400,14 @@ export function getTranslatedRowLabel(
  * as a group and a row by Backend. This function detects if this is the case.
  */
 export function isRowSpecialLabelHolder(
-  mainRow: SurveyRow | SurveyChoice,
-  holderRow: SurveyRow | SurveyChoice
+  mainRow: SurveyChoice | SurveyRow,
+  holderRow: SurveyChoice | SurveyRow
 ): boolean {
   if (!mainRow || !holderRow || !Object.prototype.hasOwnProperty.call(holderRow, 'label')) {
     return false;
   } else {
-    let mainRowName = getRowName(mainRow);
-    let holderRowName = getRowName(holderRow);
+    const mainRowName = getRowName(mainRow);
+    const holderRowName = getRowName(holderRow);
     return (
       (
         // this handles ranking questions
@@ -435,7 +435,7 @@ export function isRowSpecialLabelHolder(
  * An internal helper function for DRY code
  */
 function getRowLabelAtIndex(
-  row: SurveyRow | SurveyChoice,
+  row: SurveyChoice | SurveyRow,
   index: number
 ): string | null {
   if (Array.isArray(row.label)) {
@@ -467,7 +467,7 @@ export function renderQuestionTypeIcon(
     iconClassName = 'qt-meta-default';
   }
 
-  let questionTypeLabel: string | AnyRowTypeName = rowType;
+  let questionTypeLabel: AnyRowTypeName | string = rowType;
   if (Object.keys(QUESTION_TYPES).includes(rowType)) {
     questionTypeLabel = QUESTION_TYPES[rowType as QuestionTypeName].label;
   }
@@ -486,14 +486,14 @@ export function renderQuestionTypeIcon(
 }
 
 export interface FlatQuestion {
-  type: AnyRowTypeName
-  name: string
-  isRequired: boolean
-  label: string
-  path: string
-  parents: string[]
-  parentRows: SurveyRow[]
-  hasRepeatParent: boolean
+  type: AnyRowTypeName;
+  name: string;
+  isRequired: boolean;
+  label: string;
+  path: string;
+  parents: string[];
+  parentRows: SurveyRow[];
+  hasRepeatParent: boolean;
 }
 
 /**
@@ -507,8 +507,8 @@ export interface FlatQuestion {
  */
 export function getFlatQuestionsList(
   survey: SurveyRow[],
-  translationIndex: number = 0,
-  includeMeta: boolean = false
+  translationIndex = 0,
+  includeMeta = false
 ): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);
   const output: FlatQuestion[] = [];
@@ -614,7 +614,7 @@ export function buildAssetUrl(assetUid: string) {
 * @param {string} str
 */
 export function removeInvalidChars(str: string) {
-  var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
+  const regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
   return str = String(str || '').replace(regex, '');
 }
 
