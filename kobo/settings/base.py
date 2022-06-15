@@ -526,7 +526,12 @@ CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
 CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
-CSP_IMG_SRC = CSP_DEFAULT_SRC + ['data:']
+CSP_IMG_SRC = CSP_DEFAULT_SRC + [
+    'data:',
+    'https://*.openstreetmap.org',
+    'https://*.opentopomap.org',
+    'https://*.arcgisonline.com'
+]
 
 if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
