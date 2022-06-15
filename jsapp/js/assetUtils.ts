@@ -23,6 +23,7 @@ import {
   ROOT_URL,
 } from 'js/constants';
 import type {
+  AssetContent,
   AssetResponse,
   SurveyRow,
   SurveyChoice,
@@ -83,11 +84,8 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
 }
 
 export function getLanguagesDisplayString(asset: AssetResponse) {
-  if (
-    asset.summary?.languages &&
-    asset.summary.languages.length >= 1
-  ) {
-    return asset.summary.languages.join(', ');
+  if (asset?.summary?.languages && asset.summary.languages.length >= 1) {
+    return asset?.summary.languages.join(', ');
   } else {
     return '-';
   }
@@ -162,7 +160,7 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
   if (asset.name) {
     output.original = asset.name;
   }
-  if (asset.summary?.labels && asset.summary.labels.length > 0) {
+  if (asset?.summary?.labels && asset.summary.labels.length > 0) {
     // for unnamed assets, we try to display first question name
     output.question = asset.summary.labels[0];
   }
@@ -258,11 +256,11 @@ export function getAssetIcon(asset: AssetResponse) {
         return 'k-icon k-icon-project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset.access_types?.includes(ACCESS_TYPES.subscribed)) {
+      if (asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
         return 'k-icon k-icon-folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
         return 'k-icon k-icon-folder-public';
-      } else if (asset.access_types?.includes(ACCESS_TYPES.shared)) {
+      } else if (asset?.access_types?.includes(ACCESS_TYPES.shared)) {
         return 'k-icon k-icon-folder-shared';
       } else {
         return 'k-icon k-icon-folder';
@@ -332,7 +330,7 @@ export function replaceForm(asset: AssetResponse) {
   });
 }
 
-type SurveyFlatPaths = {
+export type SurveyFlatPaths = {
   [P in string]: string
 };
 
@@ -383,17 +381,13 @@ export function getSurveyFlatPaths(
 /**
  * An internal helper function for DRY code
  */
-function getRowLabelAtIndex(
-  row: SurveyChoice | SurveyRow,
-  index: number
-): string | null {
+function getRowLabelAtIndex(row: SurveyChoice | SurveyRow, index: number) {
   if (Array.isArray(row.label)) {
     return row.label[index] || null;
   } else {
     return row.label || null;
   }
 }
-
 
 /**
  * If a row doesn't have a label it is very possible that this is
@@ -439,11 +433,15 @@ export function isRowSpecialLabelHolder(
  */
 export function getTranslatedRowLabel(
   rowName: string,
-  data: SurveyChoice[] | SurveyRow[],
+  data: SurveyChoice[] | SurveyRow[] | undefined,
   translationIndex: number
 ): string | null {
   let foundRowIndex: number | undefined;
   let foundRow: SurveyChoice | SurveyRow | undefined;
+
+  if (data === undefined) {
+    return null;
+  }
 
   data.forEach((row, rowIndex) => {
     if (getRowName(row) === rowName) {
@@ -465,39 +463,47 @@ export function getTranslatedRowLabel(
   return null;
 }
 
-export function renderQuestionTypeIcon(
-  rowType: AnyRowTypeName
-): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
-  let iconClassName = '';
+export function getRowType(assetContent: AssetContent, rowName: string) {
+  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName);
+  if (foundRow) {
+    return foundRow.type;
+  }
+  return undefined;
+}
 
+export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
   if (rowType === SCORE_ROW_TYPE) {
-    iconClassName = QUESTION_TYPES.score.icon;
+    return QUESTION_TYPES.score.icon;
   } else if (rowType === RANK_LEVEL_TYPE) {
-    iconClassName = QUESTION_TYPES.rank.icon;
-  } else if (Object.prototype.hasOwnProperty.call(QUESTION_TYPES, rowType)) {
+    return QUESTION_TYPES.rank.icon;
+  } else if (rowType && Object.prototype.hasOwnProperty.call(QUESTION_TYPES, rowType)) {
     // We need to cast with `as` operator to avoid typescript complaining that
     // we can't use AnyRowTypeName as index for QuestionTypes.
     const rowTypeAsQuestionType = rowType as QuestionTypeName;
-    iconClassName = QUESTION_TYPES[rowTypeAsQuestionType].icon;
+    return QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
   if (rowType === META_QUESTION_TYPES['background-audio']) {
-    iconClassName = 'k-icon-background-rec';
-  } else if (Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
-    iconClassName = 'qt-meta-default';
+    return 'background-rec';
+  } else if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
+    return 'qt-meta-default';
   }
 
-  let questionTypeLabel: AnyRowTypeName | string = rowType;
-  if (Object.keys(QUESTION_TYPES).includes(rowType)) {
-    questionTypeLabel = QUESTION_TYPES[rowType as QuestionTypeName].label;
-  }
+  return undefined;
+}
 
-  if (iconClassName) {
+export function renderQuestionTypeIcon(
+  rowType: AnyRowTypeName
+): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
+  const rowTypeIcon = getRowTypeIcon(rowType);
+  if (rowTypeIcon) {
+    // TODO: use Icon component here, but please check out all usages first.
+    // Also make sure the icon size is right.
     return React.createElement(
       'i',
       {
-        className: `k-icon k-icon-${iconClassName}`,
-        title: questionTypeLabel,
+        className: `k-icon k-icon-${rowTypeIcon}`,
+        title: rowType,
       }
     );
   } else {
