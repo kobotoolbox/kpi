@@ -11,6 +11,10 @@ class KpiConfig(AppConfig):
     name = 'kpi'
 
     def ready(self, *args, **kwargs):
+        # Register signals only when the app is ready to avoid issues with models
+        # not loaded yet.
+        import kpi.signals
+
         return super().ready(*args, **kwargs)
 
 
