@@ -21,20 +21,6 @@ import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 
-const ConnectProjects = React.lazy(() =>
-  import(
-    /* webpackPrefetch: true */ 'js/components/dataAttachments/connectProjects'
-  )
-);
-const DataTable = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/submissions/table')
-);
-const ProjectDownloads = React.lazy(() =>
-  import(
-    /* webpackPrefetch: true */ 'js/components/projectDownloads/projectDownloads'
-  )
-);
-
 export class FormSubScreens extends React.Component {
   constructor(props) {
     super(props);

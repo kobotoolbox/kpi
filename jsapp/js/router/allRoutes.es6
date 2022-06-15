@@ -1,5 +1,4 @@
 import React, {Suspense} from 'react';
-import React from 'react';
 import autoBind from 'react-autobind';
 import {
   IndexRoute,
@@ -36,34 +35,6 @@ import {isRootRoute, redirectToLogin} from 'js/router/routerUtils';
 import AuthProtectedRoute from 'js/router/authProtectedRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
-
-const Reports = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/reports/reports')
-);
-const FormLanding = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/formLanding')
-);
-const FormSummary = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/formSummary')
-);
-const FormSubScreens = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/formSubScreens')
-);
-const ChangePassword = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/changePassword')
-);
-const FormXform = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/formXform')
-);
-const FormJson = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/formJson')
-);
-const SectionNotFound = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/sectionNotFound')
-);
-const FormNotFound = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/formNotFound')
-);
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
