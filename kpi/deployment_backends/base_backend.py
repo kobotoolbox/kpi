@@ -302,8 +302,9 @@ class BaseDeploymentBackend(abc.ABC):
         return self.__stored_data_key
 
     @property
+    @abc.abstractmethod
     def submission_count(self):
-        return self.calculated_submission_count(self.asset.owner)
+        pass
 
     @property
     @abc.abstractmethod
