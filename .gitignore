@@ -27,3 +27,4 @@ deployments.json
 jsapp/fonts
 env
 cypress/cypress/videos/*
+cypress/cypress/screenshots/*
