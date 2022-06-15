@@ -26,13 +26,13 @@ describe('Create Form', function () {
     cy.get('[data-cy="description"]')
       .type('This form was created by a bot.')
 
-    cy.get('.cy-sector')
+    cy.get('[data-cy="sector"]')
       .should('exist')
       .click()
     cy.contains('Other')
       .click()
 
-    cy.get('.cy-country')
+    cy.get('[data-cy="country"]')
       .should('exist')
       .click()
     cy.contains('United States')
