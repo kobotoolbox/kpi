@@ -1,4 +1,5 @@
 import React, {Suspense} from 'react';
+import React from 'react';
 import autoBind from 'react-autobind';
 import {
   IndexRoute,
@@ -15,9 +16,18 @@ import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
+import Reports from 'js/components/reports/reports';
+import FormLanding from 'js/components/formLanding';
+import FormSummary from 'js/components/formSummary';
+import FormSubScreens from 'js/components/formSubScreens';
 import AccountSettings from 'js/components/account/accountSettingsRoute';
 import DataStorage from 'js/components/account/dataStorageRoute';
 import Security from 'js/components/account/securityRoute';
+import ChangePassword from 'js/components/changePassword';
+import SectionNotFound from 'js/components/sectionNotFound';
+import FormNotFound from 'js/components/formNotFound';
+import FormXform from 'js/components/formXform';
+import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
