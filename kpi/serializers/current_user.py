@@ -1,7 +1,10 @@
 # coding: utf-8
 import datetime
 import json
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import constance
 from django.contrib.auth import update_session_auth_hash

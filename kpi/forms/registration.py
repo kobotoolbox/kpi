@@ -80,8 +80,9 @@ class RegistrationForm(registration_forms.RegistrationForm):
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
+        # Strip "\r" for legacy data created prior to django-constance 2.7.
         self.fields['sector'].choices = (('', ''),) + tuple(
-            (s, t(s)) for s in constance.config.SECTOR_CHOICES.split('\r\n')
+            (s.strip('\r'), t(s.strip('\r'))) for s in constance.config.SECTOR_CHOICES.split('\n')
         )
 
         # It's easier to _remove_ unwanted fields here in the constructor

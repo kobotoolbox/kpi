@@ -25,6 +25,7 @@ type TextBoxProps = {
   readOnly?: boolean
   disabled?: boolean
   customModifiers?: string[]|string
+  'data-cy'?: string
 }
 
 /**
@@ -93,6 +94,7 @@ class TextBox extends React.Component<TextBoxProps, {}> {
       onKeyPress: this.onKeyPress.bind(this),
       readOnly: this.props.readOnly,
       disabled: this.props.disabled,
+      'data-cy': this.props['data-cy']
     }
 
     return (

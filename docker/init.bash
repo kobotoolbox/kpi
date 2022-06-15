@@ -30,10 +30,6 @@ else
         pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
         cp "dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
     fi
-    if [[ -n "$RAVEN_DSN" ]]; then
-        echo "Sentry detected. Installing \`raven\` pip dependency..."
-        pip install raven
-    fi
 fi
 
 # Wait for databases to be up & running before going further
@@ -73,7 +69,7 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     echo "Fetching translations..."
     git submodule init && \
     git submodule update --remote && \
-    gosu "${UWSGI_USER}" python manage.py compilemessages
+    python manage.py compilemessages
 fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
