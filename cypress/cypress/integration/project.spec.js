@@ -4,9 +4,9 @@ describe('Create Form', function () {
 
   before(() => {
     cy.fixture('accounts').then((accounts) => {
-      return accounts.form_creator
+      return accounts.project_creator
     }).then(($acct) => {
-      cy.login($acct, "form_creator")
+      cy.login($acct, "project_creator")
     })
   })
 
@@ -26,15 +26,15 @@ describe('Create Form', function () {
     cy.get('[data-cy="description"]')
       .type('This form was created by a bot.')
 
-    cy.get('[data-cy="sector"]')
+    cy.get('.cy-sector')
       .should('exist')
-      .click() //clicks do not work if dom is not visible
+      .click()
     cy.contains('Other')
       .click()
 
-    cy.get('[data-cy="country"]')
+    cy.get('.cy-country')
       .should('exist')
-      .click() //clicks do not work if dom is not visible
+      .click()
     cy.contains('United States')
       .click()
 
