@@ -362,7 +362,7 @@ export default class AllRoutes extends React.Component {
     return (
       <Router
         history={hashHistory}
-        ref={(ref) => (this.router = ref)}
+        ref={(ref) => this.router = ref}
         routes={this.getRoutes()}
       />
     );
