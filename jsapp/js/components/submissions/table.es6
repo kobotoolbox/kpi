@@ -5,6 +5,7 @@ import reactMixin from 'react-mixin';
 import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
+import Button from 'js/components/common/button';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -59,6 +60,7 @@ import {
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
 import MediaCell from './mediaCell';
+import {openProcessing} from 'js/components/processing/processingUtils';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -703,6 +705,28 @@ export class DataTable extends React.Component {
 
               if (q.type !== QUESTION_TYPES.text.id) {
                 mediaAttachment = getMediaAttachment(row.original, row.value);
+              }
+
+              if (
+                q.type === QUESTION_TYPES.audio.id ||
+                q.type === META_QUESTION_TYPES['background-audio']
+              ) {
+                return (
+                  <Button
+                    type='full'
+                    size='s'
+                    color='blue'
+                    endIcon='arrow-up-right'
+                    label={t('Open audio')}
+                    onClick={() => {
+                      openProcessing(
+                        this.props.asset.uid,
+                        getRowName(q),
+                        row.original._uuid
+                      );
+                    }}
+                  />
+                );
               }
 
               return (
