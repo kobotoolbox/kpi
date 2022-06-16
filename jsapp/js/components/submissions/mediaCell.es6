@@ -8,9 +8,8 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 import Button from 'js/components/common/button';
-import {ROUTES} from 'js/router/routerConstants';
 import {truncateString} from 'js/utils';
-import {hashHistory} from 'react-router';
+import {openProcessing} from 'js/components/processing/processingUtils';
 import './mediaCell.scss';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
@@ -86,11 +85,11 @@ class MediaCell extends React.Component {
   }
 
   openProcessing() {
-    const finalRoute = ROUTES.FORM_PROCESSING
-      .replace(':uid', this.props.assetUid)
-      .replace(':questionName', this.props.questionName)
-      .replace(':submissionUuid', this.props.submissionUuid);
-    hashHistory.push(finalRoute);
+    openProcessing(
+      this.props.assetUid,
+      this.props.questionName,
+      this.props.submissionUuid
+    );
   }
 
   launchMediaModal(evt) {

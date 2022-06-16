@@ -1,9 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {hashHistory} from 'react-router';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
-import {ROUTES} from 'js/router/routerConstants';
 import {
   downloadUrl,
   formatTimeDate,
@@ -30,6 +28,7 @@ import type {
   SubmissionResponse,
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
+import {openProcessing} from 'js/components/processing/processingUtils';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -51,11 +50,11 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   }
 
   openProcessing(name: string) {
-    const finalRoute = ROUTES.FORM_PROCESSING
-      .replace(':uid', this.props.asset.uid)
-      .replace(':questionName', name)
-      .replace(':submissionUuid', this.props.submissionData._uuid);
-    hashHistory.push(finalRoute);
+    openProcessing(
+      this.props.asset.uid,
+      name,
+      this.props.submissionData._uuid
+    );
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
