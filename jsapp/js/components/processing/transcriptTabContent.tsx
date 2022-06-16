@@ -141,11 +141,8 @@ export default class TranscriptTabContent extends React.Component<
   isAutoEnabled() {
     const draft = singleProcessingStore.getTranscriptDraft();
     return (
-      // TODO: uncomment second condition when kpi#3618 is merged into
-      // beta → feature/nlp → 3092+3094-processing-editors → 3104-automatic-processing
-      // so the list exists
-      draft?.languageCode !== undefined /* &&
-      envStore.data.transcription_languages.includes(draft?.languageCode) */
+      draft?.languageCode !== undefined &&
+      Object.keys(envStore.data.transcription_languages).includes(draft?.languageCode)
     );
   }
 

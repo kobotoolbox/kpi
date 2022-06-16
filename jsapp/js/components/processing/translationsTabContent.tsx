@@ -217,11 +217,8 @@ export default class TranslationsTabContent extends React.Component<
   isAutoEnabled() {
     const draft = singleProcessingStore.getTranslationDraft();
     return (
-      // TODO: uncomment second condition when kpi#3618 is merged into
-      // beta → feature/nlp → 3092+3094-processing-editors → 3104-automatic-processing
-      // so the list exists
-      draft?.languageCode !== undefined /* &&
-      envStore.data.translation_languages.includes(draft?.languageCode) */
+      draft?.languageCode !== undefined &&
+      Object.keys(envStore.data.translation_languages).includes(draft?.languageCode)
     );
   }
 

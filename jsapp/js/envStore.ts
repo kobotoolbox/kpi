@@ -1,6 +1,9 @@
 import Reflux from 'reflux';
 import {actions} from 'js/actions';
-import type {EnvironmentResponse} from 'js/dataInterface';
+import type {
+  TransxLanguages,
+  EnvironmentResponse,
+} from 'js/dataInterface';
 
 export interface EnvStoreDataItem {
   value: string;
@@ -30,8 +33,8 @@ class EnvStoreData {
   /** languages come from `kobo/static_lists.py` **/
   all_languages: EnvStoreDataItem[] = [];
   interface_languages: EnvStoreDataItem[] = [];
-  transcription_languages: string[] = [];
-  translation_languages: string[] = [];
+  transcription_languages: TransxLanguages = {};
+  translation_languages: TransxLanguages = {};
   submission_placeholder = '';
   asr_mt_features_enabled = false;
 

@@ -571,6 +571,15 @@ export interface AccountResponse {
   };
 }
 
+export interface TransxLanguages {
+  [languageCode: string]: {
+    /** Human readable and localized language name. */
+    name: string;
+    /** A list of available services. */
+    options: string[];
+  };
+}
+
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -585,8 +594,8 @@ export interface EnvironmentResponse {
   country_choices: string[][];
   all_languages: string[][];
   interface_languages: string[][];
-  transcription_languages: string[];
-  translation_languages: string[];
+  transcription_languages: TransxLanguages;
+  translation_languages: TransxLanguages;
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
