@@ -69,7 +69,7 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     echo "Fetching translations..."
     git submodule init && \
     git submodule update --remote && \
-    gosu "${UWSGI_USER}" python manage.py compilemessages
+    python manage.py compilemessages
 fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
