@@ -121,6 +121,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             size='l'
             color='blue'
             onClick={this.onPlayStatusChange.bind(this)}
+            data-cy='audio player pauseplay'
           />
         </bem.AudioPlayer__controls>
 
