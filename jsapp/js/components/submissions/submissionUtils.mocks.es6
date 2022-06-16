@@ -465,16 +465,6 @@ export const matrixSurvey = [{
   '$kuid': '3RscqJRor',
   '$autoname': 'username',
 }, {
-  'name': 'simserial',
-  'type': 'simserial',
-  '$kuid': 'ozNn7JwMd',
-  '$autoname': 'simserial',
-}, {
-  'name': 'subscriberid',
-  'type': 'subscriberid',
-  '$kuid': 'tStWXbDyQ',
-  '$autoname': 'subscriberid',
-}, {
   'name': 'deviceid',
   'type': 'deviceid',
   '$kuid': 'll7GCh9oi',
@@ -528,7 +518,6 @@ export const matrixSurveyChoices = [{
 export const matrixSurveySubmission = {
   '_id': 22,
   'username': 'username not found',
-  'simserial': 'simserial not found',
   '_validation_status': {},
   '_uuid': 'a0039b58-1b2d-4445-912e-01e4ad56dbb4',
   '_bamboo_dataset_id': '',
@@ -549,7 +538,6 @@ export const matrixSurveySubmission = {
   'phonenumber': 'phonenumber not found',
   '_status': 'submitted_via_web',
   '__version__': 'vPNH6GBsRjMKLfXrisReYA',
-  'subscriberid': 'subscriberid not found',
   'today': '2020-04-20',
 };
 

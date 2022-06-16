@@ -176,9 +176,7 @@ export interface SubmissionResponse {
   'formhub/uuid': string;
   'meta/instanceID': string;
   phonenumber?: string;
-  simserial?: string;
   start?: string;
-  subscriberid?: string;
   today?: string;
   username?: string;
   _supplementalDetails?: SubmissionSupplementalDetails;
@@ -527,7 +525,7 @@ export interface MetadataResponse {
   organizations: string[];
 }
 
-interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;

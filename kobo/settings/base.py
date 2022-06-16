@@ -539,7 +539,12 @@ CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
 CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
-CSP_IMG_SRC = CSP_DEFAULT_SRC + ['data:']
+CSP_IMG_SRC = CSP_DEFAULT_SRC + [
+    'data:',
+    'https://*.openstreetmap.org',
+    'https://*.opentopomap.org',
+    'https://*.arcgisonline.com'
+]
 
 if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
@@ -739,8 +744,8 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-
-if (os.getenv("RAVEN_DSN") or "") != "":
+sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
+if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -752,13 +757,13 @@ if (os.getenv("RAVEN_DSN") or "") != "":
         event_level=logging.WARNING  # Send warnings as events
     )
     sentry_sdk.init(
-        dsn=os.environ['RAVEN_DSN'],
+        dsn=sentry_dsn,
         integrations=[
             DjangoIntegration(),
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=0.2,
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
         send_default_pii=True
     )
 
@@ -832,9 +837,12 @@ if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
         MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
     mongo_db_name = MONGO_DATABASE['NAME']
 else:
-    # Get collection name from the connection string, fallback on 'formhub' if
-    # it is empty or None
-    mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or 'formhub'
+    # Attempt to get collection name from the connection string
+    # fallback on MONGO_DB_NAME or 'formhub' if it is empty or None or unable to parse
+    try:
+        mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or env.str('MONGO_DB_NAME', 'formhub')
+    except ValueError: # db_url is unable to parse replica set strings
+        mongo_db_name = env.str('MONGO_DB_NAME', 'formhub')
 
 mongo_client = MongoClient(
     MONGO_DB_URL, connect=False, journal=True, tz_aware=True

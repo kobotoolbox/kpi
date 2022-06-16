@@ -3,6 +3,11 @@ import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'js/utils';
 import envStore from 'js/envStore';
+import type {
+  AssetTypeName,
+  AnyRowTypeName,
+  QuestionTypeName,
+} from 'js/constants';
 import assetStore from 'js/assetStore';
 import {
   ASSET_TYPES,
@@ -18,11 +23,6 @@ import {
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
-} from 'js/constants';
-import type {
-  AssetTypeName,
-  AnyRowTypeName,
-  QuestionTypeName,
 } from 'js/constants';
 import type {
   AssetContent,
@@ -596,7 +596,8 @@ export interface FlatQuestion {
   label: string;
   path: string;
   parents: string[];
-  hasRepatParent: boolean;
+  parentRows: SurveyRow[];
+  hasRepeatParent: boolean;
 }
 
 /**
@@ -612,12 +613,12 @@ export function getFlatQuestionsList(
 ): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);
   const output: FlatQuestion[] = [];
-  const openedGroups: string[] = [];
+  const openedGroups: SurveyRow[] = [];
   let openedRepeatGroupsCount = 0;
 
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionOrChoiceDisplayName(row, translationIndex));
+      openedGroups.push(row);
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -640,8 +641,13 @@ export function getFlatQuestionsList(
         isRequired: Boolean(row.required),
         label: getQuestionOrChoiceDisplayName(row, translationIndex),
         path: flatPaths[rowName],
-        parents: openedGroups.slice(0),
-        hasRepatParent: openedRepeatGroupsCount >= 1,
+        parents: openedGroups
+          .slice(0)
+          .map((group) =>
+            getQuestionOrChoiceDisplayName(group, translationIndex)
+          ),
+        parentRows: openedGroups.slice(0),
+        hasRepeatParent: openedRepeatGroupsCount >= 1,
       });
     }
   });
