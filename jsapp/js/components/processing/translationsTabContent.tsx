@@ -216,10 +216,17 @@ export default class TranslationsTabContent extends React.Component<
    */
   isAutoEnabled() {
     const draft = singleProcessingStore.getTranslationDraft();
-    return (
-      draft?.languageCode !== undefined &&
-      Object.keys(envStore.data.translation_languages).includes(draft?.languageCode)
+
+    // HACK: Automatic services use long language codes ("en-GB"), but we use
+    // short ones ("en"), so here we check only first two letters.
+    // This will be fixed in next releases, so relax and keep calm.
+    const isLanguageAvailable = Boolean(
+      Object.keys(envStore.data.translation_languages).find((longLanguageCode) =>
+        draft?.languageCode && longLanguageCode.startsWith(draft?.languageCode)
+      )
     );
+
+    return draft?.languageCode !== undefined && isLanguageAvailable;
   }
 
   /** Whether automatic services are available for current user. */
