@@ -5,9 +5,26 @@ import {
   truncateUrl,
   truncateFile,
   generateAutoname,
+  formatSeconds,
 } from 'utils';
 
 describe('utils', () => {
+  describe('formatSeconds', () => {
+    it('should format properly', () => {
+      [
+        [10, '00:10'],
+        [0, '00:00'],
+        [1.333, '00:01'],
+        [1.777, '00:02'],
+        [60, '01:00'],
+        [6666, '111:01'],
+      ].forEach((testCase) => {
+        const test = formatSeconds(testCase[0]);
+        chai.expect(test).to.equal(testCase[1]);
+      });
+    });
+  });
+
   describe('getLangAsObject', () => {
     it('should return object for valid langString', () => {
       const langObj = getLangAsObject('English (en)');
