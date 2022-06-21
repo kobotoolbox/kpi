@@ -760,7 +760,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
-        export = asset._snapshot(regenerate=True)
+        export = asset._snapshot()
         # TODO-- forward to AssetSnapshotViewset.xform
         response_data = copy.copy(export.details)
         options = {

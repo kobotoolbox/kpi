@@ -778,7 +778,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def snapshot(self):
-        return self._snapshot(regenerate=False)
+        return self._snapshot()
 
     @property
     def tag_string(self):
@@ -903,7 +903,6 @@ class Asset(ObjectPermissionMixin,
         self, version_uid: str, root_node_name: Optional[str] = None
     ) -> AssetSnapshot:
         return self._snapshot(
-            regenerate=False,
             version_uid=version_uid,
             root_node_name=root_node_name,
         )
@@ -939,10 +938,14 @@ class Asset(ObjectPermissionMixin,
     @transaction.atomic
     def _snapshot(
         self,
-        regenerate: bool = True,
+        regenerate: bool = False,
         version_uid: Optional[str] = None,
         root_node_name: Optional[str] = None,
     ) -> AssetSnapshot:
+        """
+        `regenerate` should only be set to `True` under careful consideration as
+        it can break submission editing: kpi#3876.
+        """
         if version_uid:
             asset_version = self.asset_versions.get(uid=version_uid)
         else:
