@@ -48,6 +48,13 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     };
   }
 
+  componentDidUpdate(prevProps: MiniAudioPlayerProps) {
+    if (prevProps.mediaURL !== this.props.mediaURL) {
+      // Reload audio element when URL changes.
+      this.audioInterface.src = this.props.mediaURL;
+    }
+  }
+
   componentDidMount() {
     // Prepare audio.
     this.audioInterface = new Audio(this.props.mediaURL);
@@ -85,6 +92,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   onAudioLoaded() {
     this.setState({
       isLoading: false,
+      isBroken: false,
       totalTime: this.audioInterface.duration,
     });
   }
@@ -168,8 +176,8 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
 
   renderError() {
     return (
-      <React.Fragment data-tip={t('Could not load media file')}>
-        <Icon name='alert' size='l'/>
+      <React.Fragment>
+        <Icon name='alert' size='s'/>
 
         <bem.MiniAudioPlayer__time>--:--</bem.MiniAudioPlayer__time>
       </React.Fragment>
@@ -187,8 +195,12 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
       modifiers.push('is-broken');
     }
 
+    const additionalProps = {
+      'data-tip': this.state.isBroken ? t('Could not load media file') : undefined,
+    };
+
     return (
-      <bem.MiniAudioPlayer data-cy={this.props['data-cy']} m={modifiers}>
+      <bem.MiniAudioPlayer data-cy={this.props['data-cy']} m={modifiers} {...additionalProps}>
         {this.state.isLoading &&
           this.renderLoading()
         }

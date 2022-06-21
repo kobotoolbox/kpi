@@ -1,5 +1,6 @@
 @use 'scss/_colors';
 @use 'scss/sizes';
+@use 'js/components/common/button';
 
 .mini-audio-player {
   display: flex;
@@ -8,6 +9,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   color: colors.$kobo-blue;
+  height: button.$button-height-s;
 }
 
 .mini-audio-player.mini-audio-player--is-loading {
@@ -16,6 +18,10 @@
 
 .mini-audio-player.mini-audio-player--is-broken {
   color: colors.$kobo-red;
+
+  > .k-icon {
+    width: button.$button-height-s;
+  }
 }
 
 .mini-audio-player__time {
