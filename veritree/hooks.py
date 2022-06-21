@@ -63,11 +63,11 @@ def get_country_name(submission_data: dict) -> str:
 
 def get_submission_link(submission_data: dict) -> str:
     form_uuid = submission_data['_xform_id_string']
-    return f"{settings.KPI_URL}/api/v2/assets/{form_uuid}/data/{submission_data['_id']}/"
+    return f"{settings.KOBOFORM_URL}/api/v2/assets/{form_uuid}/data/{submission_data['_id']}/"
 
 def get_project_link(submission_data: dict) -> str:
     form_uuid = submission_data['_xform_id_string']
-    return f"{settings.KPI_URL}/#/forms/{form_uuid}/data/table?sid={submission_data['_id']}"
+    return f"{settings.KOBOFORM_URL}/#/forms/{form_uuid}/data/table?sid={submission_data['_id']}"
 
 def get_point(submission_data: dict) -> tuple or None:
     potential_keys_string = ['GPS', 'gps']

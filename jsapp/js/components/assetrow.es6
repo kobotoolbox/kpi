@@ -143,7 +143,7 @@ class AssetRow extends React.Component {
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
               <bem.AssetRow__cell m='name' style={{'display': 'flex', 'justifyContent': 'space-between'}}>
-                <AssetName {...this.props} />
+                <AssetName asset={this.props} />
                 {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0 ? <a className="kobo-button kobo-button--blue" target="_blank"
                   href={`${this.props.deployment__links['url']}`}
                   onClick={(e)=>{

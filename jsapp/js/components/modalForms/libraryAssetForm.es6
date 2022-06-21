@@ -19,7 +19,6 @@ import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import envStore from 'js/envStore';
-import { data } from 'jquery';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -90,7 +89,7 @@ export class LibraryAssetForm extends React.Component {
       this.state.fields.description = this.props.asset.settings.description;
     }
     if (this.props.asset.settings.veritree_form_type) {
-      this.state.data.veritreeFormType = this.props.asset.settings.veritree_form_type ;
+      this.state.fields.veritreeFormType = this.props.asset.settings.veritree_form_type ;
     }
   }
 

@@ -71,6 +71,9 @@ const tableStore = Reflux.createStore({
       if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
         tableSettings[DATA_TABLE_SETTINGS.SORT_BY] = this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY];
       }
+      if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA] !== 'undefined') {
+        tableSettings[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA];
+      }
     }
 
     return tableSettings;
@@ -131,6 +134,9 @@ const tableStore = Reflux.createStore({
     if (typeof newOverrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
       this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] = newOverrides[DATA_TABLE_SETTINGS.SORT_BY];
     }
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA] = newOverrides[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA];
+    }
 
     this.trigger(prevData, this.data);
   },
@@ -150,8 +156,11 @@ const tableStore = Reflux.createStore({
     const asset = this.getCurrentAsset();
     const flatPaths = getSurveyFlatPaths(asset.content.survey);
 
-    // add all questions from the survey definition
-    let output = Object.values(flatPaths);
+    let output = []
+    if (asset.settings?.[DATA_TABLE_SETTING]?.[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA]) {
+      // add all questions from the survey definition
+      output = Object.values(flatPaths);
+    }
 
     // Gather unique columns from all visible submissions and add them to output
     const dataKeys = Object.keys(submissions.reduce(function (result, obj) {
@@ -488,6 +497,18 @@ const tableStore = Reflux.createStore({
     }
     return showHXLTags;
   },
+
+  /**
+   * @returns {boolean} whether to show all columns without data, `false` by default
+   */
+  getShowAllColumnsWithoutData() {
+    let showAllColumnsWithoutData = false;
+    const tableSettings = this.getTableSettings();
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA] !== 'undefined') {
+      showAllColumnsWithoutData = tableSettings[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA];
+    }
+    return showAllColumnsWithoutData;
+  }
 });
 
 export default tableStore;

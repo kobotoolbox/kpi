@@ -312,7 +312,6 @@ class SubmissionDataTable extends React.Component {
     return (
       <bem.SubmissionDataTable>
         {this.renderGroup(displayData)}
-
         {this.renderMetaResponse(META_QUESTION_TYPES.start, t('start'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.end, t('end'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.today, t('today'))}

@@ -114,6 +114,7 @@ interface SurveyRow {
   _isRepeat?: boolean
   appearance?: string
   parameters?: string
+  relevant?: boolean
   'kobo--matrix_list'?: string
   'kobo--rank-constraint-message'?: string
   'kobo--rank-items'?: string
@@ -368,4 +369,5 @@ interface EnvironmentResponse {
   all_languages: string[][]
   interface_languages: string[][]
   submission_placeholder: string
+  veritree_form_types: string[][]
 }

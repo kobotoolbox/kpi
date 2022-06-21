@@ -21,7 +21,7 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {LoadingSpinner} from 'js/components/common/loadingSpinner'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
 import Modal from 'js/components/common/modal';
 import bem, {makeBem} from 'js/bem';
 import {stores} from '../stores';
@@ -940,63 +940,65 @@ export default assign({
     return (
       <DocumentTitle title={`Monitoring | veritree`}>
         <bem.uiPanel m={['transparent', 'fixed']}>
-          {this.renderAside()}
+          <bem.uiPanel__body>
+            {this.renderAside()}
 
-            <bem.FormBuilder>
-            {this.renderFormBuilderHeader()}
+              <bem.FormBuilder>
+              {this.renderFormBuilderHeader()}
 
-              <bem.FormBuilder__contents>
-                {this.state.asset &&
-                  <FormLockedMessage asset={this.state.asset}/>
-                }
-
-                {this.hasBackgroundAudio() &&
-                  this.renderBackgroundAudioWarning()
-                }
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
+                <bem.FormBuilder__contents>
+                  {this.state.asset &&
+                    <FormLockedMessage asset={this.state.asset}/>
                   }
-                </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
 
-            {this.state.enketopreviewOverlay &&
-              <Modal
-                open
-                large
-                onClose={this.hidePreview}
-                title={t('Form Preview')}
-              >
-                <Modal.Body>
-                  <div className='enketo-holder'>
-                    <iframe src={this.state.enketopreviewOverlay} />
+                  {this.hasBackgroundAudio() &&
+                    this.renderBackgroundAudioWarning()
+                  }
+
+                  <div ref='form-wrap' className='form-wrap'>
+                    {!this.state.surveyAppRendered &&
+                      this.renderNotLoadedMessage()
+                    }
                   </div>
-                </Modal.Body>
-              </Modal>
-            }
+                </bem.FormBuilder__contents>
+              </bem.FormBuilder>
 
-            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-              <Modal
-                open
-                error
-                onClose={this.clearPreviewError}
-                title={t('Error generating preview')}
-              >
-                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
-              </Modal>
-            }
+              {this.state.enketopreviewOverlay &&
+                <Modal
+                  open
+                  large
+                  onClose={this.hidePreview}
+                  title={t('Form Preview')}
+                >
+                  <Modal.Body>
+                    <div className='enketo-holder'>
+                      <iframe src={this.state.enketopreviewOverlay} />
+                    </div>
+                  </Modal.Body>
+                </Modal>
+              }
 
-            {this.state.showCascadePopup &&
-              <Modal
-                open
-                onClose={this.hideCascade}
-                title={t('Import Cascading Select Questions')}
-              >
-                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
-              </Modal>
-            }
+              {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+                <Modal
+                  open
+                  error
+                  onClose={this.clearPreviewError}
+                  title={t('Error generating preview')}
+                >
+                  <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+                </Modal>
+              }
+
+              {this.state.showCascadePopup &&
+                <Modal
+                  open
+                  onClose={this.hideCascade}
+                  title={t('Import Cascading Select Questions')}
+                >
+                  <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+                </Modal>
+              }
+          </bem.uiPanel__body>
         </bem.uiPanel>
       </DocumentTitle>
     );

@@ -16,9 +16,9 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
-  ROUTES,
   VERITREE_COOKIE_DOMAIN
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
   notify

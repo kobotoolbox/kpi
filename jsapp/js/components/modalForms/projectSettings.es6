@@ -132,7 +132,7 @@ class ProjectSettings extends React.Component {
     fields['share-metadata'] = asset?.settings ? asset.settings['share-metadata'] : false;
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null;
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null;
-    fields.veritreeFormType = asset?.settings ? asset.settings.veritreeFormType : null
+    fields.veritree_form_type = asset?.settings ? asset.settings.veritree_form_type : null
 
     return fields;
   }
@@ -224,8 +224,8 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onVeritreeFormTypeChange(val) {
-    this.onAnyFieldChange('veritreeFormType', val);
+  onveritree_form_typeChange(val) {
+    this.onAnyFieldChange('veritree_form_type', val);
   }
 
   onSectorChange(val) {
@@ -439,7 +439,7 @@ class ProjectSettings extends React.Component {
     ) {
       this.setState({
         formAsset: asset,
-        fields: getInitialFieldsFromAsset(asset),
+        fields: this.getInitialFieldsFromAsset(asset),
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
@@ -480,7 +480,7 @@ class ProjectSettings extends React.Component {
       'share-metadata': this.state.fields['share-metadata'],
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
-      veritree_form_type: this.state.fields.veritreeFormType
+      veritree_form_type: this.state.fields.veritree_form_type
     });
   }
 
@@ -688,7 +688,7 @@ class ProjectSettings extends React.Component {
       return;
     }
 
-    if(!this.state.veritreeFormType) {
+    if(!this.state.fields.veritree_form_type) {
       alertify.error(t('Please select a form type for this project'))
       return
     }
@@ -857,7 +857,7 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const veritreeFormTypes = envStore.data.veritree_form_types;
+    const veritree_form_types = envStore.data.veritree_form_types;
     const sectorField = envStore.data.getProjectMetadataField('sector');
     const sectors = envStore.data.sector_choices;
     const countryField = envStore.data.getProjectMetadataField('country');
@@ -921,9 +921,9 @@ class ProjectSettings extends React.Component {
             </label>
             <WrappedSelect
               id='form_type'
-              value={this.state.fields.veritreeFormType}
-              onChange={this.onVeritreeFormTypeChange}
-              options={veritreeFormTypes}
+              value={this.state.fields.veritree_form_type}
+              onChange={this.onveritree_form_typeChange}
+              options={veritree_form_types}
               isLimitedHeight
               isClearable
               error={this.hasFieldError('form_type') ? t('Please choose a form type') : false}

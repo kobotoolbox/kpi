@@ -82,17 +82,22 @@ class DisplayResponse {
   public listName: string | undefined;
   /** User response, `null` for no response */
   public data: string | null = null;
+  public skipLogicExists: boolean = false;
 
   constructor(
     type: AnyRowTypeName,
     label: string | null,
     name: string,
     listName: string | undefined,
-    data?: string | null
+    data?: string | null,
+    relevant?: boolean | null
   ) {
     this.type = type;
     this.label = label;
     this.name = name;
+    if (relevant) {
+      this.skipLogicExists = !!relevant
+    }
     if (data) {
       this.data = data;
     }
@@ -259,6 +264,7 @@ export function getSubmissionDisplayData(
           rowName,
           rowListName,
           rowData,
+          row.relevant
         );
         parentGroup.addChild(rowObj);
       }

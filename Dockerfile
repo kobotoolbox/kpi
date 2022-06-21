@@ -101,8 +101,8 @@ RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null && \
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
+    npm install -g npm@8.5.5 && \
     npm install -g check-dependencies && \
-    npm config set legacy-peer-deps true && \
     npm install --quiet && \
     npm cache clean --force
 
