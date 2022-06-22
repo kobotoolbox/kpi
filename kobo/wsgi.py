@@ -2,8 +2,8 @@
 import os
 
 import django
-from django.core.handlers.wsgi import WSGIHandler
 from django.conf import settings
+from django.core.handlers.wsgi import WSGIHandler
 from django.db import connections
 
 
@@ -18,7 +18,8 @@ django.setup(set_prefix=False)
 for conn in connections.all():
     conn.close()
 
-# Close MongoDB connections
-settings.MONGO_CONNECTION.close()
+# Close MongoDB connections if MongoClient has been instantiated already.
+if hasattr(settings, 'mongo_client'):
+    settings.mongo_client.close()
 
 application = WSGIHandler()
