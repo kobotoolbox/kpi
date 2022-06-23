@@ -8,7 +8,7 @@ import kpi.models.import_export_task
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0037_add_sync_flag_to_asset_files'),
+        ('kpi', '0038_auto_20210917_1918'),
     ]
 
     operations = [

@@ -14,6 +14,10 @@ import React from 'react';
 import {hashHistory} from 'react-router';
 import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
+
+import packageJson from '../../package.json';
+global.appVersion = packageJson.version;
+
 import {
   csrfSafeMethod,
   currentLang,

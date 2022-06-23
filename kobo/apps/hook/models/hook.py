@@ -19,6 +19,12 @@ class Hook(models.Model):
     # Authentication levels
     NO_AUTH = "no_auth"
     BASIC_AUTH = "basic_auth"
+    VERITREE_AUTH = "veritree_auth"
+
+    # Veritree Types
+    NONE = "none"
+    FORM_METADATA = "form_metadata"
+    FIELD_UPDATE = "field_update"
 
     # Export types list
     EXPORT_TYPE_CHOICES = (
@@ -29,7 +35,14 @@ class Hook(models.Model):
     # Authentication levels list
     AUTHENTICATION_LEVEL_CHOICES = (
         (NO_AUTH, NO_AUTH),
-        (BASIC_AUTH, BASIC_AUTH)
+        (BASIC_AUTH, BASIC_AUTH),
+        (VERITREE_AUTH, VERITREE_AUTH)
+    )
+
+    VERITREE_TYPE_CHOICES = (
+        (NONE, NONE),
+        (FORM_METADATA, FORM_METADATA),
+        (FIELD_UPDATE, FIELD_UPDATE)
     )
 
     asset = models.ForeignKey("kpi.Asset", related_name="hooks", on_delete=models.CASCADE)
@@ -38,7 +51,7 @@ class Hook(models.Model):
     endpoint = models.CharField(max_length=500, blank=False)
     active = models.BooleanField(default=True)
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
-    auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
+    auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=13)
     settings = JSONBField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
@@ -49,6 +62,7 @@ class Hook(models.Model):
         default=list,
     )
     payload_template = models.TextField(null=True, blank=True)
+    veritree_type = models.CharField(choices=VERITREE_TYPE_CHOICES, default=NONE, max_length=20)
 
     class Meta:
         ordering = ["name"]

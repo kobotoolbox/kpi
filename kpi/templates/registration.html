@@ -15,7 +15,9 @@
 {% endblock %}
 
 {% block logo %}
-    {% if config.logo %}
+    {% if dark_background %}
+        <img src="{% static 'img/kobologo-light.svg' %}"/>
+    {% elif config.logo %}
         <img src="{{ config.logo }}"/>
     {% else %}
         <img src="{% static 'kobologo.svg' %}"/>
@@ -23,19 +25,4 @@
 {% endblock %}
 
 {% block content %}
-{% endblock %}
-
-{% block background_credit %}
-    {% if not config.login_background %}
-    {# Show the background image credit only if we're using the default image #}
-    <div class="registration__credit">
-        <a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">
-            Photo
-        </a>
-        by UNAMID /
-        <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">
-            by-nc-nd
-        </a>
-    </div>
-    {% endif %}
 {% endblock %}

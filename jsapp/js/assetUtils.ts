@@ -153,7 +153,7 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
     final: emptyName
   };
 
-  if (asset.name) {
+  if (asset?.name) {
     output.original = asset.name;
   }
   if (asset.summary && asset.summary.labels && asset.summary.labels.length > 0) {

@@ -66,12 +66,14 @@ cryptography==2.8
     # via
     #   paramiko
     #   pyopenssl
+    #   social-auth-core
 cssselect==1.1.0
     # via pyquery
 decorator==4.4.1
     # via
     #   ipython
     #   traitlets
+dicttoxml==1.7.4
 deepmerge==0.3.0
     # via -r dependencies/pip/requirements.in
 defusedxml==0.7.1
@@ -228,6 +230,8 @@ oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+    #   requests-oauthlib
+    #   social-auth-core
 openpyxl==3.0.9
     # via
     #   -r dependencies/pip/requirements.in
@@ -251,6 +255,8 @@ pluggy==0.13.0
 prompt-toolkit==2.0.10
     # via ipython
 psycopg2==2.8.4
+    # via -r dependencies/pip/requirements.in
+ptvsd==4.3.2
     # via -r dependencies/pip/requirements.in
 ptyprocess==0.6.0
     # via pexpect
@@ -303,6 +309,10 @@ python-dateutil==2.8.0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   python-crontab
+python3-openid==3.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   social-auth-core
 pytz==2019.3
     # via
     #   -r dependencies/pip/requirements.in
@@ -323,7 +333,13 @@ requests==2.22.0
     #   -r dependencies/pip/requirements.in
     #   coveralls
     #   django-oauth-toolkit
+    #   requests-oauthlib
     #   responses
+    #   social-auth-core
+requests-oauthlib==1.3.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   social-auth-core
     #   smsapi-client
     #   twilio
     #   yubico-client
@@ -352,6 +368,13 @@ six==1.13.0
     #   responses
     #   ssrf-protect
     #   traitlets
+    #   unittest2
+social-auth-app-django==5.0.0
+    # via -r dependencies/pip/requirements.in
+social-auth-core==4.1.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   social-auth-app-django
 smsapi-client==2.5.0
     # via django-trench
 sqlparse==0.3.0

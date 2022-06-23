@@ -16,6 +16,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
+  VERITREE_COOKIE_DOMAIN
 } from '../constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {
@@ -381,7 +382,7 @@ export class FormLanding extends React.Component {
         </CopyToClipboard>
       );
     }
-
+    const orgQueryParam = stores.session.currentAccount.organization && stores.session.currentAccount.organization.length && stores.session.currentAccount.organization[0].org_id
     return (
       <React.Fragment>
         <CopyToClipboard text={chosenMethodLink}
@@ -395,7 +396,10 @@ export class FormLanding extends React.Component {
 
         <a className='mdl-button mdl-button--colored'
           target='_blank'
-          href={chosenMethodLink}>
+          href={chosenMethodLink}
+          onClick={(e)=>{
+            document.cookie = `formOrgId=${orgQueryParam};domain=${VERITREE_COOKIE_DOMAIN};path=/`}}
+        >
           {t('Open')}
         </a>
       </React.Fragment>
@@ -570,6 +574,28 @@ export class FormLanding extends React.Component {
       </bem.FormView__cell>
     );
   }
+
+  renderOrgSyncButtons() {
+    const orgs = stores.session.currentAccount?.organization || []
+
+    if (orgs && orgs.length) {
+      return (
+        orgs.map(org => (
+          <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
+            {`${t('Sync region and planting site data with')}: ${org.org.name}`}
+            <bem.Button
+              onClick={(evt) => {actions.resources.pullOrgDataIntoAsset(org.org.id, this.state.uid)}}
+              m='icon'
+            >
+              <i className={'k-icon k-icon-data-sync'} />
+            </bem.Button>
+          </bem.FormView__cell>
+        )) 
+      )
+    }
+    return null
+  }
+
   render () {
     var docTitle = this.state.name || t('Untitled');
     const userCanEdit = this.userCan('change_asset', this.state);
@@ -580,7 +606,7 @@ export class FormLanding extends React.Component {
     }
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`Monitoring | veritree`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
@@ -602,6 +628,7 @@ export class FormLanding extends React.Component {
               }
               {this.renderFormInfo(userCanEdit)}
               {this.renderLanguages(userCanEdit)}
+              {this.renderOrgSyncButtons()}
             </bem.FormView__cell>
           </bem.FormView__row>
           {this.state.deployed_versions.count > 0 &&

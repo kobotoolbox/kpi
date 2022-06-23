@@ -78,6 +78,8 @@ actions.resources = Reflux.createActions({
   duplicateSubmission: {children: ['completed', 'failed',]},
   refreshTableSubmissions: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
+  pullOrgDataIntoAsset: {children: ['completed', 'failed']},
+  notFound: {}
 });
 
 actions.hooks = Reflux.createActions({
@@ -124,6 +126,12 @@ permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
     actions.resources.loadAsset({id: uid});
   }
 });
+permissionsActions.shareAssetWithOrg.completed.listen((uid) => {
+  actions.resources.loadAsset({id: uid})
+})
+permissionsActions.unshareAssetWithOrg.completed.listen((uid) => {
+  actions.resources.loadAsset({id: uid})
+})
 
 actions.misc.getUser.listen((userUrl) => {
   dataInterface.getUser(userUrl)
@@ -495,7 +503,10 @@ actions.auth.getApiToken.failed.listen(() => {
 actions.resources.loadAsset.listen(function(params){
   dataInterface.getAsset(params)
     .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+    .fail(() => {
+      alertify.alert('404', t('Asset could not be found. This asset might have been: moved, deleted, or you do not have access'))
+      actions.resources.loadAsset.failed
+    });
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
@@ -542,6 +553,25 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
     });
 });
 
+actions.resources.pullOrgDataIntoAsset.listen((orgId, uid) => {
+  alertify.success(t('Syncing data with selected org'))
+  dataInterface.pullOrgDataIntoAsset(orgId, uid)
+    .done(() => {
+      actions.resources.pullOrgDataIntoAsset.completed(orgId, uid);
+    })
+    .fail(actions.resources.pullOrgDataIntoAsset.failed);
+})
+
+actions.resources.pullOrgDataIntoAsset.completed.listen((orgId, uid) => {
+  actions.resources.loadAsset({id: uid});
+  alertify.success(t('Form updated successfully, please verify form and redeploy'))
+});
+
+actions.resources.pullOrgDataIntoAsset.failed.listen(() => {
+  alertify.error(t('Could not sync org data, contact developer'));
+});
+
+// Hooks
 actions.hooks.getAll.listen((assetUid, callbacks = {}) => {
   dataInterface.getHooks(assetUid)
     .done((...args) => {

@@ -516,3 +516,11 @@ EXTRA_LANG_INFO = {
         'name_local': 'كوردی',
     },
 }
+
+VERITREE_FORM_TYPES = (
+    ('inventory', t('Inventory')),
+    ('socio-economic', t('Socio-Economic')),
+    ('planting', t('Planting')),
+    ('none', t('None'))
+)
+VERITREE_FORM_TYPES_DICT = dict(VERITREE_FORM_TYPES)

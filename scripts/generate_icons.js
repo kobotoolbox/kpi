@@ -113,18 +113,24 @@ webfontsGenerator(
  */
 function generateDefinitions(iconsList) {
   console.info('Generating definition file…');
+  console.info('Generating definition file…');
   const typeParts = [];
   const enumParts = [];
   iconsList.forEach((iconName) => {
     typeParts.push(`'${iconName}'`);
     enumParts.push(`'${iconName}' = '${iconName}'`);
   });
+  console.info('3');
   const fileContent = `export type IconName = ${typeParts.join(' | ')}
 export enum IconNames {${enumParts.join(', ')}}`;
-
+  console.info('4');
   fs.writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
+    console.info('5');
     if (err) {
+      console.info(err);
       throw new Error('Fail!', err);
     }
+    console.info('6');
   });
+  
 }

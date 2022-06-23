@@ -11,7 +11,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: $kobo-white;
+  // color: $kobo-white;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -28,8 +28,9 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba($kobo-gray-24, 0.75);
+    background: rgba($kobo-white, 1);
     padding: 20px 30px;
+    border-radius: 5px;
 
     a {
       color: lighten($kobo-blue, 20%);
@@ -44,6 +45,9 @@
         margin-bottom: 12px;
       }
     }
+    label {
+      color: $kobo-gray-14;
+    }
   }
 
   .registration--logo {
@@ -54,7 +58,7 @@
     max-width: 100%;
 
     img {
-      max-width: 170px;
+      max-width: 200px;
       height: auto;
     }
   }
@@ -71,6 +75,7 @@
   input[type=email],
   select {
     color: $layout-text-color;
+    
   }
 
   p.help {
@@ -95,15 +100,18 @@
   width: 100%;
   display: block;
   padding: 8px 10px;
-  border: none;
+  // border: none;
   border-radius: 6px;
+  border-color: rgb(128 128 128);
   font-size: variables.$base-font-size;
-  border-bottom: 3px solid transparent;
+  border-style: solid;
+  border-width: 1px;
   margin-top: 1px;
   opacity: 0.9;
+  min-height: 3rem;
 
   &:focus {
-    border-bottom-color: $kobo-blue;
+    border-bottom: 3px solid $kobo-blue;
     opacity: 1;
   }
 }
@@ -111,11 +119,14 @@
 .registration {
   select {
     margin-top: 4px;
-    border-bottom: none;
   }
 
   label {
     opacity: 0.85;
+    font-weight: bold;
+    padding: 30px 0px;
+    display: block;
+    padding: 8px 0px;
   }
 
   span.required {
@@ -282,7 +293,9 @@
         float: right;
 
         > * {
-          padding-left: 60px;
+          // padding-left: 60px;
+          display: flex;
+          justify-content: center;
         }
       }
     }
@@ -307,7 +320,7 @@
     }
 
     .registration--logo img {
-      max-height: 100px;
+      max-height: 150px;
     }
   }
 

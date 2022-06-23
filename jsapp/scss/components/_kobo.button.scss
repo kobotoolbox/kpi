@@ -47,7 +47,8 @@
   line-height: sizes.$x30;
   padding: sizes.$x5 sizes.$x30;
   margin: 0;
-  border: none;
+  border: 1px solid $kobo-alt-blue;
+  transition: background-color $transition-duration ease, color $transition-duration ease, border $transition-duration;
 
   &[disabled] {
     pointer-events: none;
@@ -100,6 +101,15 @@
 
   &.kobo-button--blue {
     background-color: colors.$kobo-blue;
+    color: colors.$kobo-alt-blue;
+    &:hover {
+      background-color: colors.$kobo-alt-blue;
+      color: colors.$kobo-blue
+    }
+  }
+
+  &.kobo-button--teal {
+    background-color: $kobo-teal;
   }
 
   &.kobo-button--storm {

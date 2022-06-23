@@ -1,0 +1,63 @@
+---
+image:
+  repository: "311934536039.dkr.ecr.us-east-1.amazonaws.com/kf"
+  tag: "latest"
+  pullPolicy: Always
+replicaCount: 1
+nameOverride: "kf"
+fullnameOverride: "kf"
+enviromentVariables: {}
+secrets: {}
+service:
+  app:
+    type: NodePort
+    servicePort: 80
+    servicePortName: http
+    containerPort: 80
+    protocol: TCP
+deployment:
+  strategy:
+    type: RollingUpdate
+    maxSurge: 1
+    maxUnavailable: 50%
+resources:
+  nginx:
+    resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+  kpi:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+nodeSelector:
+  node_type: "general"
+ingress:
+  host: ""
+  # To-do add liveness and readiness probes
+# readinessProbe:
+#   httpGet:
+#     path: /service_health
+#     port: 80
+#   failureThreshold: 2
+#   initialDelaySeconds: 30
+#   periodSeconds: 10
+# livenessProbe:
+#   httpGet:
+#     path: /service_health
+#     port: 80
+#   failureThreshold: 2
+#   initialDelaySeconds: 60
+#   periodSeconds: 10

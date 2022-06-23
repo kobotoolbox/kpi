@@ -1,0 +1,163 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  strategy:
+    type: {{ .Values.deployment.strategy.type }}
+    rollingUpdate:
+      maxSurge: {{.Values.deployment.strategy.maxSurge}}
+      maxUnavailable: {{.Values.deployment.strategy.maxUnavailable}}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "app.serviceAccountName" . }}
+      containers:
+        - name: nginx-{{ include "app.fullname" . }}
+          image: nginx:1.19
+          ports:
+          - containerPort: {{ .Values.service.app.containerPort }}
+          volumeMounts:
+          - name: kf-media
+            mountPath: /srv/kpi_media/
+              #- name: kc-media
+              #mountPath: /media/
+          - name: kc-volume
+            subPath: kpi/
+            mountPath: /srv/www/kpi/
+          - name: {{ include "app.fullname" . }}-init-kobo-nginx
+            mountPath: "/docker-entrypoint.d/30-init-kobo-nginx.sh"
+            subPath: 30-init-kobo-nginx.sh
+          - name: {{ include "app.fullname" . }}-https-redirection-conf
+            mountPath: "/kobo-docker-scripts/templates/include.https_redirection.conf.tmpl"
+            subPath: include.https_redirection.conf.tmpl
+          - name: {{ include "app.fullname" . }}-maintenance-default-conf
+            mountPath: "/kobo-docker-scripts/templates/maintenance_default.conf.tmpl"
+            subPath: maintenance_default.conf.tmpl
+          - name: {{ include "app.fullname" . }}-nginx-site-default-conf
+            mountPath: "/kobo-docker-scripts/templates/nginx_site_default.conf.tmpl"
+            subPath: nginx_site_default.conf.tmpl
+          - name: {{ include "app.fullname" . }}-proxy-pass-conf
+            mountPath: "/kobo-docker-scripts/templates/proxy_pass.conf.tmpl"
+            subPath: proxy_pass.conf.tmpl
+          - name: {{ include "app.fullname" . }}-uwsgi-pass-conf
+            mountPath: "/kobo-docker-scripts/templates/uwsgi_pass.conf.tmpl"
+            subPath: uwsgi_pass.conf.tmpl
+          - name: {{ include "app.fullname" . }}-server-directive-common-conf
+            mountPath: "/kobo-docker-scripts/include.server_directive_common.conf"
+            subPath: include.server_directive_common.conf
+          - name: {{ include "app.fullname" . }}-nginx-conf
+            mountPath: "/kobo-docker-scripts/nginx.conf"
+            subPath: nginx.conf
+
+          envFrom:
+            - secretRef:
+                name: {{ include "app.fullname" . }}
+            - configMapRef:
+                name: {{ include "app.fullname" . }}
+          resources:
+            {{- toYaml .Values.resources.nginx | nindent 12 }}
+
+        - name: {{ include "app.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+          - containerPort: 8003
+          volumeMounts:
+          - name: kf-media
+            mountPath: /srv/src/kpi/media/
+              #- name: kc-media
+              #mountPath: /srv/src/kobocat/media/
+
+          - name: kc-volume
+            mountPath: /srv/static/
+            subPath: kpi
+
+          - name: {{ include "app.fullname" . }}-wait-for-mongo
+            mountPath: "/srv/init/wait_for_mongo.bash"
+            subPath: wait_for_mongo.bash
+          - name: {{ include "app.fullname" . }}-wait-for-postgres
+            mountPath: "/srv/init/wait_for_postgres.bash"
+            subPath: wait_for_postgres.bash
+          - name: {{ include "app.fullname" . }}-runtime-variables-kpi
+            mountPath: "/etc/profile.d/runtime_variables_kpi_source.sh"
+            subPath: runtime_variables_kpi_source.sh
+          - name: {{ include "app.fullname" . }}-kpi-uwsgi
+            mountPath: "/srv/src/kpi/uwsgi.ini"
+            subPath: uwsgi.ini
+          envFrom:
+            - secretRef:
+                name: {{ include "app.fullname" . }}
+            - configMapRef:
+                name: {{ include "app.fullname" . }}
+          resources:
+            {{- toYaml .Values.resources.kpi | nindent 12 }}
+
+      volumes:
+        - name: kf-media
+          persistentVolumeClaim:
+            claimName: kf-pvc
+        #- name: kc-media
+        #  persistentVolumeClaim:
+        #    claimName: kc-pvc
+        - name: kc-volume
+          persistentVolumeClaim:
+            claimName: kc-pvc
+        - name: {{ include "app.fullname" . }}-wait-for-mongo
+          configMap:
+            name: {{ include "app.fullname" . }}-wait-for-mongo
+        - name: {{ include "app.fullname" . }}-wait-for-postgres
+          configMap:
+            name: {{ include "app.fullname" . }}-wait-for-postgres
+        - name: {{ include "app.fullname" . }}-runtime-variables-kpi
+          configMap:
+            name: {{ include "app.fullname" . }}-runtime-variables-kpi
+        - name: {{ include "app.fullname" . }}-kpi-uwsgi
+          configMap:
+            name: {{ include "app.fullname" . }}-kpi-uwsgi
+########################################################################################################################
+        - name: {{ include "app.fullname" . }}-init-kobo-nginx
+          configMap:
+            name: {{ include "app.fullname" . }}-init-kobo-nginx
+            defaultMode: 0755
+        - name: {{ include "app.fullname" . }}-https-redirection-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-https-redirection-conf
+        - name: {{ include "app.fullname" . }}-maintenance-default-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-maintenance-default-conf
+        - name: {{ include "app.fullname" . }}-nginx-site-default-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-nginx-site-default-conf
+        - name: {{ include "app.fullname" . }}-proxy-pass-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-proxy-pass-conf
+        - name: {{ include "app.fullname" . }}-uwsgi-pass-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-uwsgi-pass-conf
+        - name: {{ include "app.fullname" . }}-server-directive-common-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-server-directive-common-conf
+        - name: {{ include "app.fullname" . }}-nginx-conf
+          configMap:
+            name: {{ include "app.fullname" . }}-nginx-conf
+        - name: cache-volume
+          emptyDir: {}
+
+---

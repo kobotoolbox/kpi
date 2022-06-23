@@ -6,7 +6,7 @@ from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from veritree.models import VeritreeOAuth2
 
 class TokenView(APIView):
     def _which_user(self, request):
@@ -14,6 +14,12 @@ class TokenView(APIView):
         Determine the user from `request`, allowing superusers to specify
         another user by passing the `username` query parameter
         """
+        if 'username' in request.POST and 'password' in request.POST:
+            # Try and grab user from veritree oauth
+            user = VeritreeOAuth2().authenticate(request, username=request.POST['username'], password=request.POST['password'])
+            if user:
+                return user
+
         if request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
@@ -26,6 +32,7 @@ class TokenView(APIView):
                 )
             else:
                 raise exceptions.PermissionDenied()
+        
         else:
             user = request.user
         return user

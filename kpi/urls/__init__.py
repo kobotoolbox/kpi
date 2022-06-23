@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.conf.urls import url
 import private_storage.urls
 from django.conf import settings
 from django.urls import include, re_path, path
@@ -13,7 +14,7 @@ from kobo.apps.superuser_stats.views import (
 )
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
+from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers, veritree_redirect
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kobo.apps.mfa.views import (
@@ -21,6 +22,8 @@ from kobo.apps.mfa.views import (
     MFATokenView,
 )
 from kpi.views.token import TokenView
+
+from veritree.views.org_views import generate_org_data_for_asset, veritree_org_asset_link, veritree_org_asset_unlink
 
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
@@ -46,6 +49,7 @@ urlpatterns = [
     re_path(r'^accounts/login/', MFALoginView.as_view(), name='kobo_login'),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url('social/', include('social_django.urls', namespace='social')),
     re_path(
         r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
@@ -65,10 +69,14 @@ urlpatterns = [
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     path('superuser_stats/user_report/', user_report),
-    re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    # Veritree Specific URL's
+    path('veritree_redirect/', veritree_redirect),
+    path('veritree_org_asset/share', veritree_org_asset_link),
+    path('veritree_org_asset/unshare', veritree_org_asset_unlink),
+    path('pull-veritree-org-data', generate_org_data_for_asset),
+    
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':

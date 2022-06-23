@@ -35,20 +35,23 @@ export class TranslationTable extends React.Component {
       showLanguageForm: false,
       langString: props.langString,
     };
+
     stores.translations.setTranslationTableUnsaved(false);
     const {translated, survey, choices, translations} = props.asset.content;
     const langIndex = props.langIndex;
     const editableColTitle =
       langIndex == 0 ? t('updated text') : t('translation');
     const lockedChoiceLists = [];
-
+    const listHashIndexMap = {}
     // add each translatable property for survey items to translation table
-    survey.forEach((row) => {
+    survey.forEach((row, index) => {
       let isLabelLocked = false;
       if (row?.label) {
         isLabelLocked = this.isRowLabelLocked(row.type, row.name);
       }
-
+      if (row?.select_from_list_name) {
+        listHashIndexMap[row.select_from_list_name] = index
+      }
       // choices don't know what questions use them so we keep track of the
       // choice lists here to know if a question that uses them has
       // `choice_label_edit` enabled
@@ -65,6 +68,7 @@ export class TranslationTable extends React.Component {
             itemProp: property,
             contentProp: 'survey',
             isLabelLocked: isLabelLocked,
+            questionNumber: index
           });
         }
       });
@@ -83,6 +87,7 @@ export class TranslationTable extends React.Component {
             itemProp: 'label',
             contentProp: 'choices',
             isLabelLocked: isLabelLocked,
+            questionNumber: listHashIndexMap[choice.list_name]
           });
         }
       });
@@ -93,6 +98,12 @@ export class TranslationTable extends React.Component {
         Header: t('Original string'),
         accessor: 'original',
         minWidth: 130,
+        filterMethod: (filter, row) => {
+          if (row?.original && row.original.includes(filter.value)) {
+            return true
+          }
+          return false
+        },
         Cell: (cellInfo) => {
           // Disabling has no effect on this cell, but we do it to gray out the
           // text to indicate that the label is locked
@@ -126,6 +137,12 @@ export class TranslationTable extends React.Component {
             </React.Fragment>
           );
         },
+        filterMethod: (filter, row) => {
+          if (row?._original?.value && row._original.value.includes(filter.value)) {
+            return true
+          }
+          return false
+        }, 
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {
@@ -142,6 +159,11 @@ export class TranslationTable extends React.Component {
             />
           );
         },
+      },
+      {
+        Header: 'Question Number',
+        accessor: 'questionNumber',
+        show: false
       },
     ];
   }
@@ -331,6 +353,8 @@ export class TranslationTable extends React.Component {
             nextText={t('Next')}
             minRows={1}
             loadingText={<LoadingSpinner />}
+            sorted={[{id: 'questionNumber', desc: false }]}
+            filterable
           />
         </div>
 

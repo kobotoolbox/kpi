@@ -293,7 +293,6 @@ export class DataTable extends React.Component {
   onFieldSortChange(fieldId, sortValue) {
     tableStore.setSortBy(fieldId, sortValue);
   }
-
   /**
    * @param {string} fieldId
    */
@@ -929,7 +928,16 @@ export class DataTable extends React.Component {
     });
     this.fetchSubmissions(instance);
   }
-
+  handleSidQueryParam() {
+    // Grab the submission id, and then autoload the modal if it exists
+    const queryParams = window.location.href.split('?')[1]
+    if (queryParams && queryParams.includes('sid=')) {
+      const maybeSid = queryParams.split('&')?.find(param => param.includes('sid'))?.split('=')[1]
+      if (maybeSid) {
+        this.submissionModalProcessing(maybeSid, this.state.tableData)
+      }
+    }
+  }
   /**
    * Opens submission modal
    * @param {object} row

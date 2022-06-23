@@ -41,6 +41,7 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   TRANSLATION: 'translation-index',
   SHOW_HXL: 'show-hxl-tags',
   SORT_BY: 'sort-by',
+  SHOW_ALL_COLUMNS_WITHOUT_DATA: 'show-all-columns-without-data'
 });
 
 // TODO: Append this list with transcriptions/translations when they get added (NLP)

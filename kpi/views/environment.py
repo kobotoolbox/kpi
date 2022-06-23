@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as t
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from kobo.static_lists import COUNTRIES, LANGUAGES
+from kobo.static_lists import COUNTRIES, LANGUAGES, VERITREE_FORM_TYPES
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 
 
@@ -62,4 +62,5 @@ class EnvironmentView(APIView):
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
+        data['veritree_form_types'] = VERITREE_FORM_TYPES
         return Response(data)

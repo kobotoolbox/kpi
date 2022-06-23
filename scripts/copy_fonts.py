@@ -29,6 +29,10 @@ def copy_fonts():
         print(file)
         shutil.copy(file, dest_dir)
 
+    for file in glob.glob("./kpi/veritree_fonts/webFonts/*.wof*"):
+        print(file)
+        shutil.copy(file, dest_dir)
+
     print("DONE")
 
 

@@ -28,6 +28,7 @@ formMediaActions.uploadMedia.failed.listen(() => {
   alertify.error(t('Could not upload your media'));
 });
 
+
 formMediaActions.loadMedia.listen((uid) => {
   dataInterface.getAssetFiles(uid, FORM_MEDIA_FILE_TYPE)
     .done(formMediaActions.loadMedia.completed)

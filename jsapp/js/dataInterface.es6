@@ -27,6 +27,23 @@ export var dataInterface;
     'p': 'permissions',
   };
 
+  // hook up to all AJAX requests to check auth problems
+  $(document).ajaxError((event, request, settings) => {
+    if (request.status === 403 || request.status === 401 || request.status === 404) {
+      dataInterface.selfProfile().done((data) => {
+        if (data.message === 'user is not logged in') {
+          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>');
+          let serverMessage = request.status.toString();
+          if (request.responseJSON && request.responseJSON.detail) {
+            serverMessage += ': ' + request.responseJSON.detail;
+          }
+          errorMessage = errorMessage.replace('##server_message##', serverMessage);
+          alertify.alert(t('You are not logged in to the monitoring application, please login'), errorMessage);
+        }
+      });
+    }
+  });
+
   assign(this, {
     selfProfile: () => $ajax({ url: `${ROOT_URL}/me/` }),
     apiToken: () => {
@@ -213,6 +230,16 @@ export var dataInterface;
         method: 'DELETE',
         url: url,
       });
+    },
+    pullOrgDataIntoAsset(orgId, uid) {
+      return $ajax({
+        method: 'POST',
+        url: `${ROOT_URL}/pull-veritree-org-data`,
+        data: {
+          org_id: orgId,
+          asset_uid: uid
+        }
+      })
     },
 
     /*
@@ -802,6 +829,12 @@ export var dataInterface;
     },
     login: (creds)=> {
       return $ajax({ url: `${ROOT_URL}/accounts/login/?next=/me/`, data: creds, method: 'POST'});
+    },
+    shareAssetWithOrg: (assetUid, orgId)=> {
+      return $ajax({ url: `${ROOT_URL}/veritree_org_asset/share`, method: 'POST', data: { asset_uid: assetUid, org_id: orgId } })
+    },
+    unshareAssetWithOrg: (assetUid, orgId)=> {
+      return $ajax({ url: `${ROOT_URL}/veritree_org_asset/unshare`, method: 'POST', data: { asset_uid: assetUid, org_id: orgId } })
     }
   });
 }).call(dataInterface = {});

@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+{{- range $key, $value := .Values.environmentVariables }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-wait-for-postgres
+data:
+{{ (.Files.Glob "config/scripts/wait_for_postgres.bash").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-wait-for-mongo
+data:
+{{ (.Files.Glob "config/scripts/wait_for_mongo.bash").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-runtime-variables-kpi
+data:
+{{ (.Files.Glob "config/scripts/runtime_variables_kpi_source.sh").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-kpi-uwsgi
+data:
+{{ (.Files.Glob "config/uwsgi.ini").AsConfig | indent 2 }}

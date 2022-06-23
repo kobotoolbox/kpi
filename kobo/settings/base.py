@@ -107,6 +107,8 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
+    'social_django',
+    'veritree',
     'trench',
     'kobo.apps.mfa.MfaAppConfig',
 )
@@ -297,9 +299,29 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 # KoBoCAT also lists ModelBackend before
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
+    'veritree.models.VeritreeOAuth2',
     'django.contrib.auth.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
 )
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'veritree.pipeline.veritree_org_sync',
+    'veritree.pipeline.veritree_subscribe_public_collections'
+)
+
+VERITREE_OAUTH_CLIENT_SECRET = os.environ.get('VERITREE_OAUTH_CLIENT_SECRET')
+VERITREE_OAUTH_CLIENT_ID = os.environ.get('VERITREE_OAUTH_CLIENT_ID')
+VERITREE_HOOKS_EMAIL = os.environ.get('VERITREE_HOOKS_EMAIL')
+VERITREE_HOOKS_EMAIL_PASSWORD = os.environ.get('VERITREE_HOOKS_EMAIL_PASSWORD')
 
 ROOT_URLCONF = 'kobo.urls'
 

@@ -5,6 +5,7 @@ import pytz
 
 import constance
 from django.contrib.auth import update_session_auth_hash
+from social_django.models import UserSocialAuth
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.translation import gettext as t
@@ -27,6 +28,8 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
+    access_token = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -46,7 +49,23 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
+            'organization',
+            'access_token'
         )
+
+    def get_organization(self, obj):
+        try:
+            user_orgs = obj.social_auth.get(provider='veritree').extra_data['user_orgs']
+        except UserSocialAuth.DoesNotExist:
+            return {}
+        return user_orgs
+
+    def get_access_token(self, obj):
+        try:
+            access_token = obj.social_auth.get(provider='veritree').extra_data['access_token']
+        except UserSocialAuth.DoesNotExist:
+            return ''
+        return access_token
 
     def get_server_time(self, obj):
         # Currently unused on the front end

@@ -86,6 +86,9 @@ class SubmissionDataTable extends React.Component {
    * @prop {number} itemIndex
    */
   renderResponse(item, itemIndex) {
+    if (item.skipLogicExists && !item.data) {
+      return null
+    }
     return (
       <bem.SubmissionDataTable__row
         m={['columns', 'response', `type-${item.type}`]}
@@ -309,7 +312,6 @@ class SubmissionDataTable extends React.Component {
     return (
       <bem.SubmissionDataTable>
         {this.renderGroup(displayData)}
-
         {this.renderMetaResponse(META_QUESTION_TYPES.start, t('start'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.end, t('end'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.today, t('today'))}
@@ -323,6 +325,7 @@ class SubmissionDataTable extends React.Component {
         {this.renderMetaResponse('_id', t('_id'))}
         {this.renderMetaResponse('meta/instanceID', t('instanceID'))}
         {this.renderMetaResponse('_submitted_by', t('Submitted by'))}
+        {this.renderMetaResponse('meta/veritree_app_version', t('meta/veritree_app_version'))}
       </bem.SubmissionDataTable>
     );
   }

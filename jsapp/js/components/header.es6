@@ -39,6 +39,7 @@ class MainHeader extends Reflux.Component {
         },
         filterTags: COMMON_QUERIES.s,
       }),
+      veritreeLogo: false,
     }, stores.pageState.state);
     this.stores = [
       stores.session,
@@ -56,6 +57,7 @@ class MainHeader extends Reflux.Component {
       assetStore.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)
     );
+    this.onAccountLoad()
   }
 
   componentWillUnmount() {
@@ -92,6 +94,22 @@ class MainHeader extends Reflux.Component {
       return myLibraryStore.getCurrentUserTotalAssets() === null;
     } else {
       return false;
+    }
+  }
+  onAccountLoad() {
+    if (stores.session && stores.session.currentAccount && stores.session.currentAccount.access_token) {
+      if (!this.state.veritreeLogo && stores.session.currentAccount.organization && stores.session.currentAccount.organization.length) {
+        const orgId = stores.session.currentAccount.organization[0].org_id
+        fetch(`https://beta.veritree.org/api/organizations/${orgId}`).then(response => {
+          if (response.status >= 200 && response.status < 300) {
+            response.json().then((content) => {
+              if (content.data && content.data.logo_url) {
+                this.setState({ veritreeLogo: content.data.logo_url })
+              }
+            })
+          }
+        })
+      }
     }
   }
 
@@ -183,6 +201,7 @@ class MainHeader extends Reflux.Component {
     if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
+      
 
       var initialsStyle = {background: `#${stringToColor(accountName)}`};
       var accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;
@@ -272,7 +291,7 @@ class MainHeader extends Reflux.Component {
 
   render() {
     const isLoggedIn = stores.session.isLoggedIn;
-
+    var accessToken = stores.session.currentAccount.access_token
     let userCanEditAsset = false;
     if (this.state.asset) {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
@@ -317,7 +336,6 @@ class MainHeader extends Reflux.Component {
             { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
-
                 <HeaderTitleEditor
                   asset={this.state.asset}
                   isEditable={userCanEditAsset}
@@ -330,6 +348,7 @@ class MainHeader extends Reflux.Component {
                 }
               </React.Fragment>
             }
+            {this.state.veritreeLogo ? <img style={{ maxHeight: '45px', maxWidth:'150px', paddingRight: '10px'}} src={this.state.veritreeLogo} />: null}
             {this.renderAccountNavMenu()}
             { !isLoggedIn && this.renderLoginButton()}
           </div>

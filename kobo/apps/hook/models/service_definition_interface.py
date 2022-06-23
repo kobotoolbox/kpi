@@ -6,7 +6,9 @@ from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
+from requests.api import request
 from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
+from kpi.models import asset
 
 from kpi.utils.log import logging
 from .hook import Hook
@@ -16,8 +18,9 @@ from ..constants import (
     HOOK_LOG_FAILED,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
 )
-
-
+from veritree.models import VeritreeOAuth2
+from veritree.hooks import get_metadata_from_submission, get_field_update_from_submission
+from veritree.common_urls import METATADATA_FORM_API, FIELD_UPDATE_API
 class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def __init__(self, hook, submission_id):
@@ -106,6 +109,49 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                                  self._hook.settings.get("password"))
                     })
 
+                if self._hook.auth_level == Hook.VERITREE_AUTH:
+                    oauth = VeritreeOAuth2()
+                    try:
+                        user = oauth.authenticate(request=requests.Request(), username=self._hook.settings.get("username"), password=self._hook.settings.get("password"))
+                    except Exception:
+                        raise Exception("Error with provided user credentials")
+                
+                    try:
+                        veritree_token = user.social_auth.get(provider=VeritreeOAuth2.name).extra_data['access_token']
+                    except (KeyError):
+                        pass
+                    if veritree_token:
+                        request_kwargs.get("headers").update({
+                            "Authorization": f"Bearer {veritree_token}"
+                        })
+
+                if self._hook.veritree_type == Hook.FORM_METADATA or self._hook.veritree_type == Hook.FIELD_UPDATE:
+                    logging.warning("service_json.ServiceDefinition.send - "
+                              "Hook #{} - {}".format(self._hook.endpoint, request_kwargs),
+                              exc_info=True)
+                    try:
+                        asset_orgs = self._hook.asset.organizations.all()
+                        if not asset_orgs.exists():
+                            raise TypeError('This asset does not have any organizations associated with it')
+                        elif asset_orgs.count() > 1:
+                            raise TypeError('This asset is associated to more than one org, this hook cannot function properly')
+                            #TODO: Change this so this is not even possible. Change to the REST Services Form and Hook
+                        org_id = asset_orgs[0].veritree_id
+                    except (KeyError):
+                        raise KeyError('Asset does not have any organizations associated with it')
+                    if self._hook.veritree_type == Hook.FORM_METADATA:
+                        self._hook.endpoint = f"{METATADATA_FORM_API}/?org_type=orgAccount&org_id={org_id}" # set endpoint
+                        request_kwargs['json'] = get_metadata_from_submission(request_kwargs['json'], self._hook.asset.name, org_id, veritree_token)
+                    elif self._hook.veritree_type == Hook.FIELD_UPDATE:
+                        self._hook.endpoint = f"{FIELD_UPDATE_API}/?org_type=orgAccount&org_id={org_id}" # set endpoint
+                        
+                        request_kwargs['json'] = get_field_update_from_submission(request_kwargs['json'], org_id, veritree_token)
+                    
+                    self._hook.save()
+                    logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - {}".format(self._hook.endpoint, request_kwargs),
+                              exc_info=True)
+
                 ssrf_protect_options = {}
                 if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
                     ssrf_protect_options['allowed_ip_addresses'] = constance.\
@@ -152,7 +198,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                     exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
-                    "An error occurred when sending data to external endpoint")
+                    "An error occurred when sending data to external endpoint: {}".format(str(e)))
         else:
             self.save_log(
                 KOBO_INTERNAL_ERROR_STATUS_CODE,

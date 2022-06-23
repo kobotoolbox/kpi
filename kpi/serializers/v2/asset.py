@@ -96,6 +96,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
+    linked_orgs = serializers.SerializerMethodField()
     data_sharing = WritableJSONField(required=False)
     paired_data = serializers.SerializerMethodField()
 
@@ -147,6 +148,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'subscribers_count',
                   'status',
                   'access_types',
+                  'linked_orgs',
                   'data_sharing',
                   'paired_data',
                   )
@@ -584,6 +586,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        args=(obj.uid,),
                        request=request)
 
+    def get_linked_orgs(self, obj):
+        organizations = obj.organizations.all().values('veritree_id', 'name')
+        return organizations
+
 
 class AssetListSerializer(AssetSerializer):
 
@@ -610,6 +616,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
+                  'deployment__links',
                   'permissions',
                   'export_settings',
                   'downloads',

@@ -75,7 +75,6 @@ class FormMedia extends React.Component {
       isUploadURLPending: false,
     });
   }
-
   /*
    * Utilities
    */
@@ -229,7 +228,6 @@ class FormMedia extends React.Component {
               <p>{t('You must redeploy this form to see media changes.')}</p>
             </bem.FormView__cell>
           }
-
           <bem.FormMedia__title>
             <bem.FormMedia__label>
               {t('Attach files')}
@@ -290,12 +288,10 @@ class FormMedia extends React.Component {
                   value={this.state.inputURL}
                   onChange={this.onInputURLChange}
                 />
-
                 {this.renderButton()}
               </bem.FormMediaUploadUrl__form>
             </bem.FormMediaUploadUrl>
           </bem.FormMedia__upload>
-
           <bem.FormMedia__list>
             <bem.FormMedia__label>
               {t('Attached files')}

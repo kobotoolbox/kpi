@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hook', '0005_allow_blank_subset_fields'),
+        ('hook', '0006_auto_20211202_2331_squashed_0009_auto_20211217_1816'),
     ]
 
     operations = [

@@ -101,7 +101,9 @@ def failures_reports():
                     # language is not implemented yet.
                     # TODO add language to user table in registration process
                     'language': getattr(record.hook.asset.owner, 'language', 'en'),
-                    'email': record.hook.asset.owner.email,
+                    # TODO do better with this and only send monitoring hooks to this email
+                    # But for now I think this makes sense. I want to be able to view all hook failures
+                    'email': 'monitoring.hooks@veritree.com',
                     'assets': {}
                 }
 

@@ -30,6 +30,7 @@ class EnvStoreData {
   all_languages: EnvStoreDataItem[] = []
   interface_languages: EnvStoreDataItem[] = []
   submission_placeholder: string = ''
+  veritree_form_types: EnvStoreDataItem[] = []
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -102,7 +103,9 @@ class EnvStore extends Reflux.Store {
     if (response.all_languages) {
       this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs)
     }
-
+    if (response.veritree_form_types) {
+      this.data.veritree_form_types = response.veritree_form_types.map(this.nestedArrToChoiceObjs)
+    }
     this.isReady = true
     this.trigger(this.data)
   }

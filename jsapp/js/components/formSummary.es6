@@ -355,7 +355,7 @@ class FormSummary extends React.Component {
     }
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`Monitoring | veritree`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
             {hasProjectInfo &&

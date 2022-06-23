@@ -53,7 +53,9 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         mkdir -p "${KPI_SRC_DIR}/staticfiles"
     else
         echo "Syncing \`npm\` packages..."
-        check-dependencies --install
+        echo "check-dependencies --install --legacy-peer-deps"
+        npm config set legacy-peer-deps true
+        check-dependencies --install --legacy-peer-deps
 
         # Clean up folders
         rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \

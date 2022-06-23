@@ -12,6 +12,8 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES
 } from 'js/constants';
+import { dataInterface } from '../../dataInterface.es6';
+import { permissionsActions } from '../../actions/permissions.es6';
 
 class PublicShareSettings extends React.Component {
   constructor(props) {
@@ -35,6 +37,14 @@ class PublicShareSettings extends React.Component {
       );
     }
   }
+  toggleAssetOrgLink(checked, org, asset_uid) {
+    const { objectUrl } = this.props
+    if (checked) {
+      permissionsActions.shareAssetWithOrg(asset_uid, org.org_id)
+    } else {
+      permissionsActions.unshareAssetWithOrg(asset_uid, org.org_id)
+    }
+  }
   render () {
     const uid = this.props.uid;
     const url = `${ROOT_URL}/#/forms/${uid}`;
@@ -42,8 +52,24 @@ class PublicShareSettings extends React.Component {
     const anonCanView = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewPermUrl;})[0];
     const anonCanViewData = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewDataPermUrl;})[0];
 
+    const { assetOrgs } = this.props
     return (
       <bem.FormModal__item m='permissions'>
+        {
+          this.props.userOrgs && Array.isArray(this.props.userOrgs)
+            ? this.props.userOrgs.map(org => {
+              const checked = assetOrgs && assetOrgs.find((assetOrg) => org.org_id === assetOrg.veritree_id) ? true : false
+              return (
+                <bem.FormModal__item key={org.org_id}>
+                  <Checkbox
+                    checked={checked}
+                    onChange={this.toggleAssetOrgLink.bind(this, !checked, org, uid)}
+                    label={`${org.org.name} members can view and add submissions`}
+                  />
+                </bem.FormModal__item>
+            )})
+            : null
+        }
         <bem.FormModal__item>
           <Checkbox
             checked={anonCanView ? true : false}

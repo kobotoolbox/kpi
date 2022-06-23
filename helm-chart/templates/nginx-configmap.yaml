@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-init-kobo-nginx
+data:
+{{ (.Files.Glob "config/docker-entrypoint.d/30-init-kobo-nginx.sh").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-https-redirection-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/templates/include.https_redirection.conf.tmpl").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-maintenance-default-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/templates/maintenance_default.conf.tmpl").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-nginx-site-default-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/templates/nginx_site_default.conf.tmpl").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-proxy-pass-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/templates/proxy_pass.conf.tmpl").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-uwsgi-pass-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/templates/uwsgi_pass.conf.tmpl").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-server-directive-common-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/include.server_directive_common.conf").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-nginx-conf
+data:
+{{ (.Files.Glob "config/kobo-docker-scripts/nginx.conf").AsConfig | indent 2 }}

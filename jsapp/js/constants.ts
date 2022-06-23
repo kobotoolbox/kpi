@@ -31,6 +31,13 @@ export const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
+export const VERITREE_COOKIE_DOMAIN = (() => {
+  const hostname = window.location.host
+  let domains = hostname.split('.')
+  const lastTwo = domains.slice(-2)
+  return '.' + lastTwo.join('.')
+
+})();
 export const ANON_USERNAME = 'AnonymousUser';
 
 /**

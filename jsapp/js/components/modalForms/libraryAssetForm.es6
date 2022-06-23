@@ -43,6 +43,7 @@ export class LibraryAssetForm extends React.Component {
         sector: null,
         tags: '',
         description: '',
+        veritreeFormType: null,
       },
       isPending: false,
     };
@@ -87,6 +88,9 @@ export class LibraryAssetForm extends React.Component {
     if (this.props.asset.settings.description) {
       this.state.fields.description = this.props.asset.settings.description;
     }
+    if (this.props.asset.settings.veritree_form_type) {
+      this.state.fields.veritreeFormType = this.props.asset.settings.veritree_form_type ;
+    }
   }
 
   onCreateResourceCompleted(response) {
@@ -129,6 +133,7 @@ export class LibraryAssetForm extends React.Component {
             country: this.state.fields.country,
             sector: this.state.fields.sector,
             description: this.state.fields.description,
+            veritree_form_type: this.state.fields.veritreeFormType,
           }),
           tag_string: this.state.fields.tags,
         }
@@ -142,6 +147,7 @@ export class LibraryAssetForm extends React.Component {
           country: this.state.fields.country,
           sector: this.state.fields.sector,
           description: this.state.fields.description,
+          veritree_form_type: this.state.fields.veritreeFormType,
         }),
         tag_string: this.state.fields.tags,
       };
@@ -168,6 +174,7 @@ export class LibraryAssetForm extends React.Component {
     this.setState({fields: fields});
   }
 
+  onVeritreeFormTypeChange(newValue) {this.onAnyFieldChange('veritreeFormType', newValue);}
   onNameChange(newValue) {
     this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue));
   }
@@ -208,6 +215,7 @@ export class LibraryAssetForm extends React.Component {
 
     const SECTORS = envStore.data.sector_choices;
     const COUNTRIES = envStore.data.country_choices;
+    const veritreeFormTypes = envStore.data.veritree_form_types
 
     return (
       <bem.FormModal__form className='project-settings'>
@@ -252,7 +260,16 @@ export class LibraryAssetForm extends React.Component {
               isClearable
             />
           </bem.FormModal__item>
-
+          <bem.FormModal__item m='form_type'>
+            <WrappedSelect
+              label={t('Form Type')}
+              value={this.state.fields.veritreeFormType}
+              onChange={this.onVeritreeFormTypeChange}
+              options={veritreeFormTypes}
+              isLimitedHeight
+              isClearable
+            />
+          </bem.FormModal__item>
           <bem.FormModal__item>
             <WrappedSelect
               label={t('Country')}

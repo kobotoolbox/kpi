@@ -22,6 +22,7 @@ class TableSettings extends React.Component {
       showGroupName: tableStore.getShowGroupName(),
       showHXLTags: tableStore.getShowHXLTags(),
       translationIndex: tableStore.getTranslationIndex(),
+      showAllColumnsWithoutData: tableStore.getShowAllColumnsWithoutData()
     };
     autoBind(this);
   }
@@ -36,6 +37,7 @@ class TableSettings extends React.Component {
       showGroupName: tableStore.getShowGroupName(),
       showHXLTags: tableStore.getShowHXLTags(),
       translationIndex: tableStore.getTranslationIndex(),
+      showAllColumnsWithoutData: tableStore.getShowAllColumnsWithoutData(),
     });
   }
 
@@ -45,6 +47,10 @@ class TableSettings extends React.Component {
 
   onHXLTagsChange(isChecked) {
     this.setState({showHXLTags: isChecked});
+  }
+
+  onShowAllColumnsWithoutDataChange(isChecked) {
+    this.setState({showAllColumnsWithoutData: isChecked});   
   }
 
   onLabelChange(name, value) {
@@ -60,6 +66,7 @@ class TableSettings extends React.Component {
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = this.state.showGroupName;
     newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = this.state.translationIndex;
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = this.state.showHXLTags;
+    newTableSettings[DATA_TABLE_SETTINGS.SHOW_ALL_COLUMNS_WITHOUT_DATA] = this.state.showAllColumnsWithoutData;
     tableStore.saveTableSettings(newTableSettings);
   }
 
@@ -93,6 +100,13 @@ class TableSettings extends React.Component {
   render() {
     return (
       <div className='tableColumn-modal'>
+        <bem.FormModal__item>
+          <Checkbox
+              checked={this.state.showAllColumnsWithoutData}
+              onChange={this.onShowAllColumnsWithoutDataChange}
+              label={t('Show all columns in table even if they do not have any data')}
+          />
+        </bem.FormModal__item>
         <bem.FormModal__item m='translation-radios'>
           <Radio
             title={t('Display labels or XML values?')}

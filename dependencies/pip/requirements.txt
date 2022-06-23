@@ -44,16 +44,23 @@ cffi==1.13.2
     # via cryptography
 chardet==3.0.4
     # via requests
+charset-normalizer==2.0.4
+    # via -r dependencies/pip/requirements.in
 cryptography==2.8
-    # via pyopenssl
+    # via
+    #   pyopenssl
+    #   social-auth-core
 cssselect==1.1.0
     # via pyquery
+dicttoxml==1.7.4
 deepmerge==0.3.0
     # via -r dependencies/pip/requirements.in
 defusedxml==0.7.1
     # via
     #   djangorestframework-xml
     #   pyxform
+    #   python3-openid
+    #   social-auth-core
 dicttoxml==1.7.4
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
@@ -186,6 +193,9 @@ oauthlib==3.1.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+    #   requests-oauthlib
+    #   social-auth-core
+path.py==12.0.2
 openpyxl==3.0.9
     # via
     #   -r dependencies/pip/requirements.in
@@ -195,6 +205,8 @@ path-py==12.0.2
 pillow==6.2.1
     # via django-markdownx
 psycopg2==2.8.4
+    # via -r dependencies/pip/requirements.in
+ptvsd==4.3.2
     # via -r dependencies/pip/requirements.in
 pyasn1==0.4.7
     # via
@@ -225,6 +237,10 @@ python-dateutil==2.8.0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   python-crontab
+python3-openid==3.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   social-auth-core
 pytz==2019.3
     # via
     #   -r dependencies/pip/requirements.in
@@ -244,7 +260,13 @@ requests==2.22.0
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
+    #   requests-oauthlib
     #   responses
+    #   social-auth-core
+requests-oauthlib==1.3.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   social-auth-core
     #   smsapi-client
     #   twilio
     #   yubico-client
@@ -264,6 +286,13 @@ six==1.13.0
     #   python-dateutil
     #   responses
     #   ssrf-protect
+    #   unittest2
+social-auth-app-django==5.0.0
+    # via -r dependencies/pip/requirements.in
+social-auth-core==4.1.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   social-auth-app-django
 smsapi-client==2.5.0
     # via django-trench
 sqlparse==0.3.0

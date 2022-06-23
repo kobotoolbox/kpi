@@ -280,8 +280,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = {
             'downloadable': active,
             'has_kpi_hook': self.asset.has_active_hooks,
-            'kpi_asset_uid': self.asset.uid
+            'kpi_asset_uid': self.asset.uid,
         }
+        if self.asset.settings and self.asset.settings['veritree_form_type'] and self.asset.settings['veritree_form_type']['value']:
+            payload['veritree_form_type'] = self.asset.settings['veritree_form_type']['value']
+
         files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
@@ -825,8 +828,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = {
             'downloadable': active,
             'title': self.asset.name,
-            'has_kpi_hook': self.asset.has_active_hooks
+            'has_kpi_hook': self.asset.has_active_hooks,
         }
+        if self.asset.settings and self.asset.settings['veritree_form_type'] and self.asset.settings['veritree_form_type']['value']:
+            payload['veritree_form_type'] = self.asset.settings['veritree_form_type']['value']
+
         files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
         try:
             json_response = self._kobocat_request(

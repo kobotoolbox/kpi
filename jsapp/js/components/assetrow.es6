@@ -10,7 +10,8 @@ import {stores} from '../stores';
 import mixins from '../mixins';
 import {
   KEY_CODES,
-  ASSET_TYPES
+  ASSET_TYPES,
+  VERITREE_COOKIE_DOMAIN
 } from 'js/constants';
 import TagInput from 'js/components/tagInput';
 import AssetName from 'js/components/common/assetName';
@@ -103,7 +104,7 @@ class AssetRow extends React.Component {
         };
       });
     }
-
+    const orgQueryParam = stores.session.currentAccount.organization && stores.session.currentAccount.organization.length && stores.session.currentAccount.organization[0].org_id
     return (
         <bem.AssetRow
           m={{
@@ -141,8 +142,12 @@ class AssetRow extends React.Component {
                 ) &&
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
-              <bem.AssetRow__cell m='name'>
+              <bem.AssetRow__cell m='name' style={{'display': 'flex', 'justifyContent': 'space-between'}}>
                 <AssetName asset={this.props} />
+                {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0 ? <a className="kobo-button kobo-button--blue" target="_blank"
+                  href={`${this.props.deployment__links['url']}`}
+                  onClick={(e)=>{
+                    document.cookie = `formOrgId=${orgQueryParam};domain=${VERITREE_COOKIE_DOMAIN};path=/`}}>{t('Open')}</a> : null }
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>
@@ -150,7 +155,6 @@ class AssetRow extends React.Component {
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>
-
             {/* "type" column for library types */}
             { this.props.asset_type && (
                 this.props.asset_type == ASSET_TYPES.template.id ||
@@ -272,6 +276,17 @@ class AssetRow extends React.Component {
                 >
               <i className='k-icon k-icon-duplicate' />
             </bem.AssetRow__actionIcon>
+            {isSelfOwned && <bem.AssetRow__actionIcon
+                m='delete'
+                key='delete'
+                data-action='delete'
+                data-tip={t('Delete')}
+                data-asset-type={this.props.kind}
+                data-asset-name={assetName}
+                data-disabled={false}
+                >
+              <i className='k-icon k-icon-trash' />
+            </bem.AssetRow__actionIcon>}
 
             { this.props.asset_type &&
               this.props.asset_type === ASSET_TYPES.template.id &&

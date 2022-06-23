@@ -187,12 +187,13 @@ class SharingForm extends React.Component {
 
             <bem.FormModal__item m='share-settings'>
               <h2>{t('Share publicly by link')}</h2>
-
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
                 uid={uid}
                 objectUrl={objectUrl}
                 deploymentActive={this.state.asset.deployment__active}
+                assetOrgs={this.state.asset.linked_orgs}
+                userOrgs={stores.session.currentAccount.organization}
               />
             </bem.FormModal__item>
           </React.Fragment>

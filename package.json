@@ -82,8 +82,8 @@
     "source-map-loader": "^3.0.0",
     "style-loader": "^1.2.1",
     "stylelint": "^13.3.3",
-    "ts-loader": "^8.2.0",
-    "typescript": "^4.3.5",
+    "ts-loader": "^8.4.0",
+    "typescript": "^4.7.3",
     "underscore": "^1.10.2",
     "webpack": "^4.43.0",
     "webpack-bundle-tracker": "0.4.3",
@@ -99,11 +99,13 @@
     "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
-    "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"
+    "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons",
+    "generate_build_version": "node ./scripts/generate_build_version.js",
+    "prebuild": "npm run generate_build_version"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
   "license": "AGPL-3.0",
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
-  "homepage": "https://github.com/kobotoolbox/kpi"
+  "homepage": "https://monitoring.veritree.com/"
 }
