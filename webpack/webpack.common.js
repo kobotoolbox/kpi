@@ -83,11 +83,9 @@ const commonOptions = {
       },
       {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
-        use: {
-          loader: 'file-loader',
-          options: {
-            name: '[name].[ext]',
-          },
+        type: 'asset/resource',
+        generator: {
+          filename: '[name].[ext]',
         },
       },
     ],

@@ -289,7 +289,6 @@ export default class AccountSettings extends React.Component {
                 <bem.AccountSettings__item>
                   <TextBox
                     customModifiers='on-white'
-                    label={t('Organization Website')}
                     label={addRequiredToLabel(t('Organization Website'), metaFields['organization_website'].required)}
                     type='url'
                     errors={this.state.fieldsWithErrors.extra_details?.organization_website}
@@ -315,7 +314,6 @@ export default class AccountSettings extends React.Component {
               {metaFields['gender'] &&
                 <bem.AccountSettings__item m='gender'>
                   <WrappedSelect
-                    label={t('Gender')}
                     label={addRequiredToLabel(t('Gender'), metaFields['gender'].required)}
                     error={this.state.fieldsWithErrors.extra_details?.gender}
                     value={this.state.fields.gender}
