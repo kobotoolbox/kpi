@@ -3,7 +3,7 @@
 source /etc/profile
 
 KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
-UWSGI_COMMAND="$(command -v uwsgi) --ini ${KPI_SRC_DIR}/uwsgi.ini"
+UWSGI_COMMAND="$(command -v uwsgi) --ini ${KPI_SRC_DIR}/docker/uwsgi.ini"
 
 cd "${KPI_SRC_DIR}"
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
