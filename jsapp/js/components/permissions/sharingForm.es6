@@ -10,7 +10,10 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
-import {buildUserUrl} from 'utils';
+import {
+  buildUserUrl,
+  replaceBracketsWithLink
+} from 'utils';
 import {
   ASSET_TYPES,
   ANON_USERNAME,
@@ -123,13 +126,15 @@ class SharingForm extends React.Component {
               type='warning'
               icon='alert'
               message={
-                <span>
-                  {t('Anyone can see this blank form and add submissions to it because you have not set ')}
-                  <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
-                    {t('your account')}
-                  </a>
-                  {t(' to require authentication.')}
-                </span>
+                <span dangerouslySetInnerHTML={{__html: (
+                  replaceBracketsWithLink(
+                    t(
+                      'Anyone can see this blank form and add submissions to it ' +
+                      'because you have not set [your account] to require authentication.'
+                    ),
+                    `/#${ROUTES.ACCOUNT_SETTINGS}`
+                  )
+                )}} />
               }
             />
           </bem.FormModal__item>
