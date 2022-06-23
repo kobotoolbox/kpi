@@ -33,7 +33,7 @@ export default class Modal extends React.Component {
   }
 
   escFunction(evt) {
-    if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
+    if (!this.props.disableEscClose && (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape')) {
       this.props.onClose.call(evt);
     }
   }

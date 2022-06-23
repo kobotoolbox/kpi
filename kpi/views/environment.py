@@ -1,9 +1,11 @@
 # coding: utf-8
 import json
+import logging
 
 import constance
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
+from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -38,6 +40,18 @@ class EnvironmentView(APIView):
             'OPERATIONAL_PURPOSE_CHOICES',
             lambda text: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
         ),
+        (
+            'MFA_LOCALIZED_HELP_TEXT',
+            lambda i18n_texts: {
+                lang: markdown(text)
+                for lang, text in json.loads(
+                    i18n_texts.replace(
+                        '##support email##', constance.config.SUPPORT_EMAIL
+                    )
+                ).items()
+            },
+        ),
+        'MFA_ENABLED',
     ]
 
     def get(self, request, *args, **kwargs):
@@ -56,11 +70,19 @@ class EnvironmentView(APIView):
                 processor = None
             value = getattr(constance.config, key)
             if processor:
-                value = processor(value)
+                try:
+                    value = processor(value)
+                except json.JSONDecodeError:
+                    logging.error(
+                        f'Configuration value for `{key}` has invalid JSON'
+                    )
+                    continue
+
             data[key.lower()] = value
 
         data['country_choices'] = COUNTRIES
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
+        data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         return Response(data)

@@ -1,5 +1,5 @@
-@use "scss/_colors";
-@use "scss/sizes";
+@use 'scss/_colors';
+@use 'scss/sizes';
 
 $mfa-paragraph-spacing: sizes.$x18;
 
@@ -27,10 +27,20 @@ $mfa-paragraph-spacing: sizes.$x18;
     font-size: sizes.$x18 !important;
     font-weight: 400 !important;
   }
+
+  p {
+    margin: 0;
+  }
 }
 
 .mfa-modal__body {
   flex: 1;
+}
+
+.mfa-modal__p {
+  &.mfa-modal__p--align-right {
+    text-align: right;
+  }
 }
 
 .mfa-modal__body,
@@ -45,10 +55,6 @@ $mfa-paragraph-spacing: sizes.$x18;
       margin-bottom: $mfa-paragraph-spacing;
     }
   }
-}
-
-.mfa-modal__p.mfa-modal__p--align-right {
-  text-align: right;
 }
 
 .mfa-modal__description + .mfa-modal__body {
@@ -89,19 +95,6 @@ $mfa-paragraph-spacing: sizes.$x18;
 
 .mfa-modal__help-link {
   cursor: pointer;
-}
-
-.mfa-modal--step-help-text {
-  .mfa-modal__list {
-    list-style: disc;
-    padding-left: sizes.$x40;
-  }
-
-  .mfa-modal__email {
-    > * {
-      display: inline;
-    }
-  }
 }
 
 .mfa-modal__footer {

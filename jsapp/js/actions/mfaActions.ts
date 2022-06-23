@@ -6,9 +6,13 @@ export type MfaErrorResponse = JQueryXHR & {
   non_field_errors?: string;
 };
 
-export type MfaActiveResponse = [{
+export type MfaUserMethodsResponse = [{
   name: 'app';
   is_primary: boolean;
+  is_active: boolean;
+  date_created: string;
+  date_modified: string;
+  date_disabled: string;
 }];
 
 export interface MfaActivatedResponse {
@@ -21,6 +25,7 @@ export interface MfaBackupCodesResponse {
 }
 
 const mfaActions = Reflux.createActions({
+  getUserMethods: {children: ['completed', 'failed']},
   activate: {children: ['completed', 'failed']},
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
@@ -28,14 +33,14 @@ const mfaActions = Reflux.createActions({
   regenerate: {children: ['completed', 'failed']},
 });
 
-mfaActions.isActive.listen(() => {
+mfaActions.getUserMethods.listen(() => {
   $.ajax({
     dataType: 'json',
     method: 'GET',
-    url: `${ROOT_URL}/api/v2/auth/mfa/user-active-methods/`,
+    url: `${ROOT_URL}/api/v2/auth/mfa/user-methods/`,
   })
-    .done((response: MfaActiveResponse) => {
-      mfaActions.isActive.completed(response);
+    .done((response: MfaUserMethodsResponse) => {
+      mfaActions.getUserMethods.completed(response);
     })
     .fail((response: MfaErrorResponse) => {
       let errorText = t('An error occured');
@@ -43,6 +48,7 @@ mfaActions.isActive.listen(() => {
         errorText = response.non_field_errors;
       }
       notify(errorText, 'error');
+      mfaActions.getUserMethods.failed(response);
     });
 });
 
