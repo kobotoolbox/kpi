@@ -1,6 +1,7 @@
 # coding: utf-8
-import constance
+
 import responses
+from constance.test import override_config
 from mock import patch
 from rest_framework import status
 
@@ -15,10 +16,10 @@ class SSRFHookTestCase(HookTestCase):
 
     @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
            new=MockSSRFProtect._get_ip_address)
+    @override_config(SSRF_DENIED_IP_ADDRESS='1.2.3.4')
     @responses.activate
     def test_send_with_ssrf_options(self):
         # Create first hook
-        constance.config.SSRF_DENIED_IP_ADDRESS = '1.2.3.4'
 
         hook = self._create_hook()
 
