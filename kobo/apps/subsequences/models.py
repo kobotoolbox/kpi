@@ -21,7 +21,7 @@ TEMP_LANGCODE_EXPANDS = {
 class SubmissionExtras(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    uuid = models.CharField(max_length=40, null=True)
+    submission_uuid = models.CharField(max_length=40, null=True)
     content = JSONField(default=dict)
 
     asset = models.ForeignKey(Asset, related_name='submission_extras',
@@ -48,7 +48,7 @@ class SubmissionExtras(models.Model):
                             asset=self.asset,
                             xpath=key,
                             source=language_code,
-                            submission_id=self.uuid,
+                            submission_id=self.submission_uuid,
                             user=self.asset.owner,
                         )
                         result_string = ' '.join(
@@ -87,7 +87,7 @@ class SubmissionExtras(models.Model):
                         content=content,
                         # field IDs to tell us where to save results
                         asset_uid=self.asset.uid,
-                        submission_uuid=self.uuid,
+                        submission_uuid=self.submission_uuid,
                         xpath=key,
                         # username is used in the label of the request
                         username=self.asset.owner.username,
