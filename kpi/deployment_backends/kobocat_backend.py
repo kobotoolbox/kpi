@@ -1305,7 +1305,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if add_supplemental_details_to_query:
             extras_query = self.asset.submission_extras
-            extras_data = dict(extras_query.values_list('uuid', 'content'))
+            extras_data = dict(extras_query.values_list('submission_uuid', 'content'))
             mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
 
         return (
