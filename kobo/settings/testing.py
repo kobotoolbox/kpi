@@ -31,3 +31,7 @@ MONGO_DB = mongo_client['formhub_test']
 
 ENKETO_URL = 'http://enketo.mock'
 ENKETO_INTERNAL_URL = 'http://enketo.mock'
+
+# Do not use cache with Constance in tests to avoid overwriting production
+# cached values
+CONSTANCE_DATABASE_CACHE_BACKEND = None
