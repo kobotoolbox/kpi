@@ -1,5 +1,5 @@
 # coding: utf-8
-from datetime import datetime
+from datetime import date, datetime
 from secrets import token_urlsafe
 from typing import Optional
 
@@ -19,7 +19,6 @@ from django.db import (
 from django.utils import timezone
 from django.utils.http import urlquote
 from django_digest.models import PartialDigest
-from trench.utils import get_mfa_model
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
@@ -30,7 +29,7 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
 from .storage import (
     get_kobocat_storage,
-    KobocatS3Boto3Storage,
+    KobocatFileSystemStorage,
 )
 
 
@@ -304,7 +303,7 @@ class KobocatPermission(ShadowModel):
 class KobocatSubmissionCounter(ShadowModel):
     user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateField()
 
     class Meta(ShadowModel.Meta):
         app_label = 'superuser_stats'
@@ -317,11 +316,13 @@ class KobocatSubmissionCounter(ShadowModel):
         Creates rows when the user is created so that the Admin UI doesn't freak
         out because it's looking for a row that doesn't exist
         """
-        today = datetime.today()
-        first = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        today = date.today()
+        first = today.replace(day=1)
 
-        cls.objects.get_or_create(user_id=user.pk, timestamp=first)
-
+        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
+        if not queryset.exists():
+            # Todo: Handle race conditions
+            cls.objects.create(user_id=user.pk, timestamp=first)
 
 class KobocatUser(ShadowModel):
 
@@ -600,7 +601,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
             content = self.get_mp3_content()
             kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
 
-        if not isinstance(kobocat_storage, KobocatS3Boto3Storage):
+        if isinstance(kobocat_storage, KobocatFileSystemStorage):
             return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
 
         return kobocat_storage.url(self.mp3_storage_path)
@@ -611,7 +612,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         Return the absolute path on local file system of the attachment.
         Otherwise, return the AWS url (e.g. https://...)
         """
-        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
             return self.media_file.path
 
         return self.media_file.url
@@ -635,7 +636,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         else:
             attachment_file_path = self.absolute_path
 
-        if not isinstance(get_kobocat_storage(), KobocatS3Boto3Storage):
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
             # Django normally sanitizes accented characters in file names during
             # save on disk but some languages have extra letters
             # (out of ASCII character set) and must be encoded to let NGINX serve

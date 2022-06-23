@@ -7,6 +7,7 @@ import requests
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import gettext_lazy as t
+from pymongo.errors import OperationFailure
 from rest_framework import (
     renderers,
     serializers,
@@ -22,6 +23,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
+from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -31,21 +33,20 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetExportSettings
+from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
-    EditSubmissionPermission,
+    EditLinkSubmissionPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
 from kpi.renderers import (
-    SubmissionCSVRenderer,
     SubmissionGeoJsonRenderer,
-    SubmissionXLSXRenderer,
     SubmissionXMLRenderer,
 )
+from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
@@ -293,38 +294,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
-    ## Synchronous data export
-
-    The use of synchronous exports requires an existing export setting for the
-    current asset, accessible at:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
-    </pre>
-
-    The export settings associated with the `export_setting_uid` is used to
-    configure the output of the synchronous export. It is advisable to create
-    specific export settings to be used for synchronous exports, tailored to
-    the desired output format.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
-    </pre>
-
-    By default, XLSX format is used, but CSV is also available:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
-    </pre>
-
-    or
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
-    </pre>
-
 
     ### CURRENT ENDPOINT
     """
@@ -335,8 +304,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         renderers.JSONRenderer,
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
-        SubmissionXLSXRenderer,
-        SubmissionCSVRenderer,
     )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
@@ -386,12 +353,20 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[EditSubmissionPermission],
-        url_path='(enketo\/)?edit',
+        permission_classes=[EditLinkSubmissionPermission],
+        url_path='(enketo/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
-        return self._get_enketo_link(request, submission_id, 'edit')
+        enketo_response = self._get_enketo_link(request, submission_id, 'edit')
+        if enketo_response.status_code in (
+            status.HTTP_201_CREATED, status.HTTP_200_OK
+        ):
+            # See https://github.com/enketo/enketo-express/issues/187
+            EnketoSessionAuthentication.prepare_response_with_csrf_cookie(
+                request, enketo_response
+            )
+        return enketo_response
 
     @action(
         detail=True,
@@ -404,19 +379,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'view')
 
-    @action(
-        detail=False,
-        methods=['GET'],
-        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
-        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
-    )
-    def exports(self, request, uid, *args, **kwargs):
-        try:
-            obj = AssetExportSettings.objects.get(uid=uid)
-        except AssetExportSettings.DoesNotExist:
-            raise Http404
-        return Response(obj.export_settings)
-
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
         # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
@@ -426,8 +388,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def get_submission(self):
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        print('LOOKUP _URL KWARGS', self.lookup_url_kwarg, flush=True)
-        print('LOOKUP _URL KWARGS', self.lookup_field, flush=True)
 
         assert lookup_url_kwarg in self.kwargs, (
                 'Expected view %s to be called with a URL keyword argument '
@@ -456,10 +416,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 )
             )
 
-        submissions = deployment.get_submissions(request.user,
-                                                 format_type=format_type,
-                                                 request=request,
-                                                 **filters)
+        try:
+            submissions = deployment.get_submissions(request.user,
+                                                    format_type=format_type,
+                                                    request=request,
+                                                    **filters)
+        except OperationFailure as err:
+            message = str(err)
+            # Don't show just any raw exception message out of fear of data leaking
+            if message == '$all needs an array':
+                raise serializers.ValidationError(message)
+            logging.warning(message, exc_info=True)
+            raise serializers.ValidationError('Unsupported query')
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
         # It avoids retrieving all the objects from MongoDB
@@ -642,14 +610,20 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_id, user, request=request
         )
 
-        # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
-        # it into some utility file
-        _, submissions_stream = build_formpack(
-            self.asset,
-            submission_stream=[submission_json],
-            use_all_form_versions=True
-        )
-        version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+        # Do not use version_uid from the submission until UI gives users the
+        # possibility to choose which version they want to use
+
+        # # TODO: un-nest `_infer_version_id()` from `build_formpack()` and move
+        # # it into some utility file
+        # _, submissions_stream = build_formpack(
+        #     self.asset,
+        #     submission_stream=[submission_json],
+        #     use_all_form_versions=True
+        # )
+        # version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+
+        # Let's use the latest version uid temporarily
+        version_uid = self.asset.latest_version.uid
 
         # Retrieve the XML root node name from the submission. The instance's
         # root node name specified in the form XML (i.e. the first child of

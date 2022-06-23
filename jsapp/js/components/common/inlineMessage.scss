@@ -1,0 +1,57 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+@use 'js/components/common/icon';
+
+.k-inline-message {
+  @include mixins.centerRowFlex;
+
+  margin: 0;
+  padding: sizes.$x21 sizes.$x24;
+  width: 100%;
+
+  .k-icon {
+    margin-right: sizes.$x12;
+  }
+
+  a {
+    text-decoration: underline;
+    color: inherit;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  &:not(:last-child) {
+    margin-bottom: sizes.$x24;
+  }
+
+  &:not(:first-child) {
+    margin-top: sizes.$x24;
+  }
+}
+
+.k-inline-message--type-default {
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-gray-96;
+}
+
+.k-inline-message--type-error {
+  color: colors.$kobo-dark-red;
+  background-color: colors.$kobo-light-red;
+}
+
+.k-inline-message--type-success {
+  color: colors.$kobo-dark-teal;
+  background-color: colors.$kobo-light-teal;
+}
+
+.k-inline-message--type-warning {
+  color: colors.$kobo-dark-amber;
+  background-color: colors.$kobo-light-amber;
+}
+
+.k-inline-message__message {
+  margin: 0;
+}

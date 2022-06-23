@@ -5,12 +5,18 @@ import string
 import time
 import uuid
 from datetime import datetime
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
-import pytz
+import pytest
 import responses
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils.datastructures import MultiValueDictKeyError
+from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kpi.constants import (
@@ -95,8 +101,13 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_unknown = []
         self.submissions_submitted_by_anotheruser = []
 
+        submitted_by_choices = ['', 'someuser', 'anotheruser']
         for i in range(20):
-            submitted_by = random.choice(['', 'someuser', 'anotheruser'])
+            # We want to have at least one submission from each
+            if i <= 2:
+                submitted_by = submitted_by_choices[i]
+            else:
+                submitted_by = random.choice(submitted_by_choices)
             uuid_ = uuid.uuid4()
             submission = {
                 '__version__': v_uid,
@@ -598,6 +609,32 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
+    def test_list_query_elem_match(self):
+        """
+        Ensure query is able to filter on an array
+        """
+        submission = self.submissions[0]
+        group = 'group_lx4sf58'
+        question = 'q3'
+        submission[group] = [
+            {
+                f'{group}/{question}': 'whap.gif',
+            },
+        ]
+        self.asset.deployment.mock_submissions(self.submissions)
+
+        data = {
+            'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',
+            'format': 'json',
+        }
+        response = self.client.get(self.submission_list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        if isinstance(response.data, list):
+            response_count = len(response.data)
+        else:
+            response_count = response.data.get('count')
+        self.assertEqual(response_count, 1)
+
     def test_retrieve_submission_as_owner(self):
         """
         someuser is the owner of the project.
@@ -969,6 +1006,78 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
+    @responses.activate
+    def test_get_edit_link_response_includes_csrf_cookie(self):
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        # Just make sure the cookie is present and has a non-empty value
+        assert settings.ENKETO_CSRF_COOKIE_NAME in response.cookies
+        assert response.cookies[settings.ENKETO_CSRF_COOKIE_NAME].value
+
+    def test_edit_submission_with_digest_credentials(self):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot.uid,),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        # With no credentials provided, Session Auth and Digest Auth should fail.
+        # Thus, a 401 should be returned to give the user the opportunity to login.
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # With correct credentials provided, Session Auth should fail, but
+        # Digest Auth should work. But, because 'anotheruser' does not have
+        # any permissions on `self.asset` which belongs to 'someuser', a 401
+        # should be returned anyway to give the user the opportunity to login
+        # with different credentials.
+        client.set_authorization('anotheruser', 'anotheruser', 'Digest')
+        # Force PartialDigest creation to have match when authenticated is
+        # processed.
+        self.anotheruser.set_password('anotheruser')
+        self.anotheruser.save()
+
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+
+        # The purpose of this test is to validate that the authentication works.
+        # We do not send a valid XML, therefore it should raise a KeyError
+        # if authentication (and permissions) works as expected.
+        with pytest.raises(KeyError) as e:
+            req = client.post(url)
+
+    def test_edit_submission_with_authenticated_session_but_no_digest(self):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot.uid,),
+        )
+        self.login_as_other_user('anotheruser', 'anotheruser')
+        # Try to edit someuser's submission by anotheruser who has no
+        # permissions on someuser's asset.
+        req = self.client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+
+        # The purpose of this test is to validate that the authentication works.
+        # We do not send a valid XML, therefore it should raise a KeyError
+        # if authentication (and permissions) works as expected.
+        with pytest.raises(KeyError) as e:
+            req = self.client.post(url)
+
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
 
@@ -1116,7 +1225,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
         # MockDeploymentBackend doesn't use XML at all and won't fail if an
@@ -1283,7 +1392,8 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.updated_submission_data = {
             'submission_ids': [rs['_id'] for rs in random_submissions],
             'data': {
-                'q1': '🕺',
+                'q1': 'Updated value',
+                'q_new': 'A new question and value'
             },
         }
 

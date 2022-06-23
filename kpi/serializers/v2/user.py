@@ -1,5 +1,8 @@
 # coding: utf-8
-import pytz
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -37,7 +40,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                   )
 
     def get_date_joined(self, obj):
-        return obj.date_joined.astimezone(pytz.UTC).strftime(
+        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 
     def get_public_collection_subscribers_count(self, user):

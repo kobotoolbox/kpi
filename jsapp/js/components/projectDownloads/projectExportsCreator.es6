@@ -82,6 +82,7 @@ export default class ProjectExportsCreator extends React.Component {
   componentDidMount() {
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange),
+      actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this, true)),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
@@ -127,6 +128,10 @@ export default class ProjectExportsCreator extends React.Component {
 
       this.setState(newStateObj);
     }
+  }
+
+  onCreateExportCompleted() {
+    this.setState({isPending: false});
   }
 
   onGetExportSettingsCompleted(response, passData) {
@@ -744,7 +749,10 @@ export default class ProjectExportsCreator extends React.Component {
                 m='blue'
                 type='submit'
                 onClick={this.onSubmit}
-                disabled={this.state.selectedRows.size === 0}
+                disabled={
+                  this.state.selectedRows.size === 0 ||
+                  this.state.isPending
+                }
               >
                 {t('Export')}
               </bem.KoboButton>

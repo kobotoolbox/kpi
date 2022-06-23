@@ -5,12 +5,11 @@ import requests
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from rest_framework import renderers, serializers, status
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kpi.authentication import DigestAuthentication
+from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -23,6 +22,7 @@ from kpi.renderers import (
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
+from kpi.tasks import enketo_flush_cached_preview
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
@@ -80,9 +80,13 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     )
     def form_list(self, request, *args, **kwargs):
         """
+        Implements part of the OpenRosa Form List API.
         This route is used by Enketo when it fetches external resources.
         It let us specify manifests for preview
         """
+        if request.method == 'HEAD':
+            return self.get_response_for_head_request()
+
         snapshot = self.get_object()
         context = {'request': request}
         serializer = FormListSerializer([snapshot], many=True, context=context)
@@ -95,10 +99,14 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     )
     def manifest(self, request, *args, **kwargs):
         """
+        Implements part of the OpenRosa Form List API.
         This route is used by Enketo when it fetches external resources.
         It returns form media files location in order to display them within
         Enketo preview
         """
+        if request.method == 'HEAD':
+            return self.get_response_for_head_request()
+
         snapshot = self.get_object()
         asset = snapshot.asset
         form_media_files = list(
@@ -121,6 +129,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def preview(self, request, *args, **kwargs):
+        # **Not** part of the OpenRosa API
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             data = {
@@ -141,6 +150,14 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             )
             response.raise_for_status()
 
+            # Ask Celery to remove the preview from its XSLT cache after some
+            # reasonable delay; see
+            # https://github.com/enketo/enketo-express/issues/357
+            enketo_flush_cached_preview.apply_async(
+                kwargs=data,  # server_url and form_id
+                countdown=settings.ENKETO_FLUSH_CACHED_PREVIEW_DELAY,
+            )
+
             json_response = response.json()
             preview_url = json_response.get('preview_url')
 
@@ -153,17 +170,19 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         detail=True,
         permission_classes=[EditSubmissionPermission],
         methods=['HEAD', 'POST'],
-        authentication_classes=[DigestAuthentication],
+        # Order of authentication classes is important (to return a 401 instead of 403).
+        # See:
+        # - https://github.com/encode/django-rest-framework/blob/df92e57ad6c8394ca54654dfc7a2722f822ed8c8/rest_framework/views.py#L183-L190
+        # - https://github.com/encode/django-rest-framework/blob/df92e57ad6c8394ca54654dfc7a2722f822ed8c8/rest_framework/views.py#L455-L461
+        authentication_classes=[
+            DigestAuthentication,
+            EnketoSessionAuthentication,
+        ],
     )
     def submission(self, request, *args, **kwargs):
+        """ Implements the OpenRosa Form Submission API """
         if request.method == 'HEAD':
-            # Return an empty response with OpenRosa headers
-            # See https://docs.getodk.org/openrosa-form-submission/#extended-transmission-considerations
-            return Response(
-                '',
-                headers=self.get_headers(),
-                status=status.HTTP_204_NO_CONTENT,
-            )
+            return self.get_response_for_head_request()
 
         asset_snapshot = self.get_object()
 
@@ -196,6 +215,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         This route will render the XForm into syntax-highlighted HTML.
         It is useful for debugging pyxform transformations
         """
+        # **Not** part of the OpenRosa API
         snapshot = self.get_object()
         response_data = copy.copy(snapshot.details)
         options = {

@@ -7,7 +7,12 @@ from django.utils.translation import gettext_lazy as t
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from kobo.static_lists import COUNTRIES, LANGUAGES
+from kobo.static_lists import (
+    COUNTRIES,
+    LANGUAGES,
+    TRANSCRIPTION_LANGUAGES,
+    TRANSLATION_LANGUAGES
+)
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 
 
@@ -23,17 +28,23 @@ class EnvironmentView(APIView):
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
         'COMMUNITY_URL',
+        'FRONTEND_MIN_RETRY_TIME',
+        'FRONTEND_MAX_RETRY_TIME',
         ('PROJECT_METADATA_FIELDS', json.loads),
         ('USER_METADATA_FIELDS', json.loads),
         (
             'SECTOR_CHOICES',
             # Intentional t() call on dynamic string because the default
             # choices are translated (see static_lists.py)
-            lambda text: tuple((line, t(line)) for line in text.split('\r\n')),
+            # \n vs \r\n - In django-constance <2.7.0, new lines were saved as "\r\n"
+            # Starting in 2.8, new lines are saved as just "\n". In order to ensure compatibility
+            # for data saved in older versions, we treat \n as the way to split lines. Then,
+            # strip the \r off. There is no reason to do this for new constance settings
+            lambda text: tuple((line.strip('\r'), t(line.strip('\r'))) for line in text.split('\n')),
         ),
         (
             'OPERATIONAL_PURPOSE_CHOICES',
-            lambda text: tuple((line, line) for line in text.split('\r\n')),
+            lambda text: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
         ),
     ]
 
@@ -59,5 +70,7 @@ class EnvironmentView(APIView):
         data['country_choices'] = COUNTRIES
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
+        data['transcription_languages'] = TRANSCRIPTION_LANGUAGES
+        data['translation_languages'] = TRANSLATION_LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         return Response(data)

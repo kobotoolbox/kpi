@@ -263,6 +263,22 @@ def test_remove_empty_expressions():
     assert _r1(c1) == {}
 
 
+def test_autoname_handles_non_latin_labels_with_kobo_score_and_kobo_rank():
+    a = Asset(asset_type='survey', content={})
+    content = {
+        'survey': [
+            {'type': 'score__row', 'label': ['नमस्ते']},
+            {'type': 'rank__level', 'label': ['नमस्ते']},
+        ]
+    }
+    a._standardize(content)
+    a._strip_empty_rows(content)
+    a._assign_kuids(content)
+    a._autoname(content)
+    for row in content['survey']:
+        assert row['$autoname'].startswith('select_one')
+
+
 def test_save_transformations():
     a1 = Asset(asset_type='survey', content={})
 
