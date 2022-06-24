@@ -1,5 +1,6 @@
-@use "scss/_colors";
-@use "scss/_variables";
+@use 'scss/sizes';
+@use 'scss/_colors';
+@use 'scss/_variables';
 
 .form-view--form-media {
   background-color: colors.$kobo-white;
@@ -7,10 +8,6 @@
 
 .form-media {
   padding: 30px 40px;
-
-  .form-view__cell--warning {
-    margin-bottom: 24px;
-  }
 
   .form-media__title {
     display: inline-block;
