@@ -861,7 +861,7 @@ else:
     # fallback on MONGO_DB_NAME or 'formhub' if it is empty or None or unable to parse
     try:
         mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or env.str('MONGO_DB_NAME', 'formhub')
-    except ValueError: # db_url is unable to parse replica set strings
+    except ValueError:  # db_url is unable to parse replica set strings
         mongo_db_name = env.str('MONGO_DB_NAME', 'formhub')
 
 mongo_client = MongoClient(
