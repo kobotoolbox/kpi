@@ -37,8 +37,12 @@ else
 fi
 
 # Wait for databases to be up & running before going further
-/bin/bash "${INIT_PATH}/wait_for_mongo.bash"
-/bin/bash "${INIT_PATH}/wait_for_postgres.bash"
+if [ -f "${INIT_PATH}/wait_for_mongo.bash" ]; then
+    /bin/bash "${INIT_PATH}/wait_for_mongo.bash"
+fi
+if [ -f "${INIT_PATH}/wait_for_postgres.bash" ]; then
+    /bin/bash "${INIT_PATH}/wait_for_postgres.bash"
+fi
 
 echo 'Running migrations...'
 gosu "${UWSGI_USER}" python manage.py migrate --noinput

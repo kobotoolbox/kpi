@@ -27,6 +27,7 @@ ENV KPI_LOGS_DIR=/srv/logs \
 
 RUN mkdir -p "${NGINX_STATIC_DIR}" && \
     mkdir -p "${KPI_SRC_DIR}" && \
+    mkdir -p "${KPI_SRC_DIR}/media" && \
     mkdir -p "${KPI_NODE_PATH}" && \
     mkdir -p "${TMP_DIR}" && \
     mkdir -p ${CELERY_PID_DIR} && \

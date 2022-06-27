@@ -1,0 +1,15 @@
+[Unit]
+Description=KPI
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop kpi
+ExecStartPre=-/usr/bin/docker rm kpi
+ExecStart=/root/deploy.sh
+
+
+[Install]
+WantedBy=default.target
