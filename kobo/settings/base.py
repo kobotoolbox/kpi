@@ -221,7 +221,34 @@ CONSTANCE_CONFIG = {
     ),
     'MFA_ENABLED': (
         True,
-        'Enable two-factor authentication',
+        'Enable two-factor authentication'
+    ),
+    'MFA_LOCALIZED_HELP_TEXT': (
+        json.dumps({
+            'default': (
+                'If you cannot access your authenticator app, please enter one '
+                'of your backup codes instead. If you cannot access those '
+                'either, then you will need to request assistance by '
+                'contacting [##support email##](mailto:##support email##).'
+            ),
+            'some-other-language': (
+                'This will never appear because `some-other-language` is not '
+                'a valid language code, but this entry is here to show you '
+                'an example of adding another message in a different language.'
+            )
+        }, indent=0),  # `indent=0` at least adds newlines
+        (
+            'JSON object of guidance messages presented to users when they '
+            'click the "Problems with the token" link after being prompted for '
+            'their verification token. Markdown syntax is supported, and '
+            '`##support email##` will be replaced with the value of the '
+            '`SUPPORT_EMAIL` setting on this page.\n'
+            'To add messages in other languages, follow the example of '
+            '`some-other-language`, but use a valid language code (e.g. `fr` '
+            'for French).'
+        ),
+        # Use custom field for schema validation
+        'mfa_help_text_fields_jsonschema'
     ),
     'USER_METADATA_FIELDS': (
         json.dumps([
@@ -268,15 +295,21 @@ CONSTANCE_CONFIG = {
         'field, one per line.'
     ),
 }
+
 CONSTANCE_ADDITIONAL_FIELDS = {
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
-    ]
+    ],
+    'mfa_help_text_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MFAHelpTextField',
+        {'widget': 'django.forms.Textarea'},
+    ],
 }
 
 # Tell django-constance to use a database model instead of Redis
-CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_BACKEND = 'kobo.apps.constance_backends.database.DatabaseBackend'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -850,6 +883,11 @@ SESSION_REDIS = {
     'url': redis_session_url['LOCATION'],
     'prefix': env.str('REDIS_SESSION_PREFIX', 'session'),
     'socket_timeout': env.int('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+}
+
+CACHES = {
+    # Set CACHE_URL to override
+    'default': env.cache(default='redis://redis_cache:6380/3'),
 }
 
 ENV = None

@@ -101,8 +101,13 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_unknown = []
         self.submissions_submitted_by_anotheruser = []
 
+        submitted_by_choices = ['', 'someuser', 'anotheruser']
         for i in range(20):
-            submitted_by = random.choice(['', 'someuser', 'anotheruser'])
+            # We want to have at least one submission from each
+            if i <= 2:
+                submitted_by = submitted_by_choices[i]
+            else:
+                submitted_by = random.choice(submitted_by_choices)
             uuid_ = uuid.uuid4()
             submission = {
                 '__version__': v_uid,
