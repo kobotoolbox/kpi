@@ -90,6 +90,9 @@ class ExportTaskViewSet(
     * "group_sep" (required) is a value used to separate the names in a hierarchy of groups. Valid inputs include:
         * Non-empty value
     * "hierarchy_in_labels" (required) is a boolean to specify whether the group hierarchy will be displayed in labels
+    * "lang" (required) is a string that can be set to:
+        * "_xml" to have XML values and headers, or
+        * Any translation specified in the form such as "English (en)", etc.
     * "multiple_select" (required) is a value to specify the display of `multiple_select`-type responses. Valid inputs include:
         * "both",
         * "summary", or

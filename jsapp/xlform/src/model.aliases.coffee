@@ -78,8 +78,6 @@ module.exports = do ->
       ['start'],
       ['end'],
       ['today'],
-      ['simserial'],
-      ['subscriberid'],
       ['phonenumber', 'phone_number'],
       ['audit'],
     ]
