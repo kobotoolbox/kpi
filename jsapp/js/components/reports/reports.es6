@@ -7,6 +7,7 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
 import PopoverMenu from 'js/popoverMenu';
+import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
@@ -566,14 +567,11 @@ export default class Reports extends React.Component {
                     </bem.FormView__cell>
                   )}
 
-                <bem.FormView__cell m='warning'>
-                  <i className='k-icon k-icon-alert' />
-                  <p>
-                    {t(
-                      'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. '
-                    )}
-                  </p>
-                </bem.FormView__cell>
+                <InlineMessage
+                  type='warning'
+                  icon='alert'
+                  message={t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page.')}
+                />
 
                 <ReportContents
                   parentState={this.state}
