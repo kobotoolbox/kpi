@@ -1,8 +1,13 @@
 # coding: utf-8
+import json
+import logging
+
+import constance
 from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.translation import get_language
 
+from kpi.utils.log import logging
 from ..models import SitewideMessage
 
 
@@ -39,3 +44,30 @@ class I18nUtils:
             return sitewide_message.body
 
         return None
+
+    @staticmethod
+    def get_mfa_help_text(lang=None):
+        """
+        Returns a localized version of the text for MFA guidance
+        """
+
+        # Get default value if lang is not specified
+        language = lang if lang else get_language()
+
+        text = constance.config.MFA_LOCALIZED_HELP_TEXT.replace(
+            '##support email##',
+            constance.config.SUPPORT_EMAIL,
+        )
+        try:
+            messages_dict = json.loads(text)
+        except json.JSONDecodeError:
+            logging.error(
+                'Configuration value for MFA_LOCALIZED_HELP_TEXT has invalid '
+                'JSON'
+            )
+            # Given the validation done in the django admin interface, this
+            # is an acceptable, low-likelihood evil
+            return ''
+
+        default = messages_dict['default']
+        return messages_dict.get(language, default)

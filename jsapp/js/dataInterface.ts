@@ -256,7 +256,7 @@ export interface AssetContentSettings {
  * It is quite crucial for multiple places of UI, but is not always
  * present in backend responses (performance reasons).
  */
-interface AssetContent {
+export interface AssetContent {
   schema?: string;
   survey?: SurveyRow[];
   choices?: SurveyChoice[];
@@ -444,7 +444,7 @@ export interface MetadataResponse {
   organizations: string[];
 }
 
-interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
@@ -507,6 +507,8 @@ export interface EnvironmentResponse {
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  mfa_localized_help_text: {[name: string]: string}
+  mfa_enabled: boolean
 }
 
 const DEFAULT_PAGE_SIZE = 100;

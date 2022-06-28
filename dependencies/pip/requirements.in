@@ -32,6 +32,7 @@ django-environ
 django-filter
 django-extensions
 django-oauth-toolkit
+django-redis
 django-registration-redux
 django-storages[azure,boto3]
 django-amazon-ses

@@ -49,7 +49,10 @@ export const cascadeMixin = {
         choices: inp
       });
       if (tmpSurvey.choices.length === 0) {
-        throw new Error(t('Paste your formatted table from excel in the box below.'));
+        throw new Error(
+          // this message is presented to the user
+          t('Paste your formatted table from excel in the box below.')
+        );
       }
       tmpSurvey.choices.at(0).create_corresponding_rows();
       /*
@@ -60,7 +63,10 @@ export const cascadeMixin = {
       */
       var rowCount = tmpSurvey.rows.length;
       if (rowCount === 0) {
-        throw new Error(t('Paste your formatted table from excel in the box below.'));
+        throw new Error(
+          // this message is presented to the user
+          t('Paste your formatted table from excel in the box below.')
+        );
       }
       s.cascadeReady = true;
       s.cascadeReadySurvey = tmpSurvey;
