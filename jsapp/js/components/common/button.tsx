@@ -85,7 +85,7 @@ class Button extends React.Component<ButtonProps, {}> {
       !this.props.endIcon &&
       !this.props.label
     ) {
-      throw new Error(t('Button is missing a required properties: icon or label!'));
+      throw new Error('Button is missing a required properties: icon or label!');
     }
 
     let classNames: string[] = [];

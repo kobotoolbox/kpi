@@ -5,7 +5,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import {stores} from '../stores';
 import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
@@ -30,6 +29,9 @@ const ProjectDownloads = React.lazy(() =>
   import(
     /* webpackPrefetch: true */ 'js/components/projectDownloads/projectDownloads'
   )
+);
+const FormGallery = React.lazy(() =>
+  import(/* webpackPrefetch: true */ './formGallery/formGallery.component')
 );
 
 export class FormSubScreens extends React.Component {
@@ -68,8 +70,11 @@ export class FormSubScreens extends React.Component {
             </Suspense>
           );
         case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
-          iframeUrl = deployment__identifier + '/photos';
-          break;
+          return (
+            <Suspense fallback={<div>Image Gallery</div>}>
+              <FormGallery asset={this.state} />
+            </Suspense>
+          );
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMap asset={this.state} />;
         case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(
