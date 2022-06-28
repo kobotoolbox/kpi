@@ -10,6 +10,7 @@ import type {
   InAppMessage,
   InAppMessagesResponse,
 } from 'js/dataInterface';
+import helpBubbleStore from './helpBubbleStore';
 
 bem.HelpBubble = makeBem(null, 'help-bubble');
 bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button');
@@ -50,6 +51,8 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
       hasUnacknowledgedMessages: false,
       messages: [],
     };
+
+    helpBubbleStore.hi();
   }
 
   componentDidMount() {

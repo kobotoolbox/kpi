@@ -95,7 +95,7 @@ export interface ImportResponse {
 }
 
 export interface FailResponse {
-  responseJSON: {
+  responseJSON?: {
     detail: string;
   };
   responseText: string;
