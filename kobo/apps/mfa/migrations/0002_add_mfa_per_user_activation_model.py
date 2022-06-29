@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             options={'verbose_name': 'MFA Method', 'verbose_name_plural': 'MFA Methods'},
         ),
         migrations.CreateModel(
-            name='KoboMFAActiveUser',
+            name='KoboMFAPerUserActivation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),

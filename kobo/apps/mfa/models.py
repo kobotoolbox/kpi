@@ -10,7 +10,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 )
 
 
-class KoboMFAActiveUser(models.Model):
+class KoboMFAPerUserActivation(models.Model):
 
     class Meta:
         verbose_name = 'Per-user activation'
@@ -21,7 +21,7 @@ class KoboMFAActiveUser(models.Model):
         return self.user.username
 
 
-class KoboMFAActiveUserAdmin(admin.ModelAdmin):
+class KoboMFAPerUserActivationAdmin(admin.ModelAdmin):
 
     search_fields = ('user__username',)
     autocomplete_fields = ['user']

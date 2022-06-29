@@ -16,6 +16,7 @@ from kobo.static_lists import (
     TRANSLATION_LANGUAGES
 )
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.mfa.models import KoboMFAPerUserActivation
 
 
 class EnvironmentView(APIView):
@@ -32,8 +33,8 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        ('PROJECT_METADATA_FIELDS', json.loads),
-        ('USER_METADATA_FIELDS', json.loads),
+        ('PROJECT_METADATA_FIELDS', lambda value, request: json.loads(value)),
+        ('USER_METADATA_FIELDS', lambda value, request: json.loads(value)),
         (
             'SECTOR_CHOICES',
             # Intentional t() call on dynamic string because the default
@@ -42,15 +43,15 @@ class EnvironmentView(APIView):
             # Starting in 2.8, new lines are saved as just "\n". In order to ensure compatibility
             # for data saved in older versions, we treat \n as the way to split lines. Then,
             # strip the \r off. There is no reason to do this for new constance settings
-            lambda text: tuple((line.strip('\r'), t(line.strip('\r'))) for line in text.split('\n')),
+            lambda text, request: tuple((line.strip('\r'), t(line.strip('\r'))) for line in text.split('\n')),
         ),
         (
             'OPERATIONAL_PURPOSE_CHOICES',
-            lambda text: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
+            lambda text, request: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
         ),
         (
             'MFA_LOCALIZED_HELP_TEXT',
-            lambda i18n_texts: {
+            lambda i18n_texts, request: {
                 lang: markdown(text)
                 for lang, text in json.loads(
                     i18n_texts.replace(
@@ -59,7 +60,21 @@ class EnvironmentView(APIView):
                 ).items()
             },
         ),
-        'MFA_ENABLED',
+        (
+            'MFA_ENABLED',
+            # MFA is enabled if it is enabled globally…
+            lambda value, request: value and (
+                # but if per-user activation is enabled (i.e. at least one
+                # record in the table)…
+                not bool(KoboMFAPerUserActivation.objects.all().count())
+                # global setting is overwritten by request user setting.
+                or bool(
+                    KoboMFAPerUserActivation.objects.values_list('user_id', flat=True)
+                    .filter(user=request.user)
+                    .first()
+                )
+            )
+        ),
     ]
 
     def get(self, request, *args, **kwargs):
@@ -79,7 +94,7 @@ class EnvironmentView(APIView):
             value = getattr(constance.config, key)
             if processor:
                 try:
-                    value = processor(value)
+                    value = processor(value, request=request)
                 except json.JSONDecodeError:
                     logging.error(
                         f'Configuration value for `{key}` has invalid JSON'
