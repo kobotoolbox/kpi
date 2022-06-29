@@ -18,6 +18,10 @@ class KoboMFAPerUserActivation(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
 
     def __str__(self):
+        # Used to display the username in Django Admin instead of a representation
+        # of `KoboMFAPerUserActivation` object.
+        # It could be done with `list_display = ('user',)` in
+        # `KoboMFAPerUserActivationAdmin`
         return self.user.username
 
 
