@@ -1,23 +1,23 @@
-import React from 'react'
-import bem from 'js/bem'
-import './toggleSwitch.scss'
+import React from 'react';
+import bem from 'js/bem';
+import './toggleSwitch.scss';
+
+interface ToggleSwitchProps {
+  checked?: boolean;
+  label?: string;
+  disabled?: boolean;
+  name?: string;
+  id?: number;
+  onChange: (isChecked: boolean) => void;
+  'data-cy'?: string;
+}
 
 /**
  * A toggle switch generic component. Operates same as checkbox, different look.
  */
-
-type ToggleSwitchProps = {
-  checked?: boolean,
-  label?: string,
-  disabled?: boolean,
-  name?: string,
-  id?: number,
-  onChange: Function,
-}
-
 class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
   onChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.props.onChange(evt.currentTarget.checked)
+    this.props.onChange(evt.currentTarget?.checked);
   }
 
   render() {
@@ -31,6 +31,7 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
             onChange={this.onChange.bind(this)}
             checked={this.props.checked}
             disabled={this.props.disabled}
+            data-cy={this.props['data-cy']}
           />
           <bem.ToggleSwitch__slider
             disabled={this.props.disabled}
@@ -43,8 +44,8 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
           }
         </bem.ToggleSwitch__wrapper>
       </bem.ToggleSwitch>
-    )
+    );
   }
 }
 
-export default ToggleSwitch
+export default ToggleSwitch;
