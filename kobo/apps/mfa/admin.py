@@ -3,12 +3,12 @@ from django.contrib import admin
 
 from .models import (
     MFAMethod,
-    KoboMFAActiveUser,
-    KoboMFAActiveUserAdmin,
+    KoboMFAPerUserActivation,
+    KoboMFAPerUserActivationAdmin,
     KoboMFAMethod,
     KoboMFAMethodAdmin,
 )
 
 admin.site.unregister(MFAMethod)
 admin.site.register(KoboMFAMethod, KoboMFAMethodAdmin)
-admin.site.register(KoboMFAActiveUser, KoboMFAActiveUserAdmin)
+admin.site.register(KoboMFAPerUserActivation, KoboMFAPerUserActivationAdmin)
