@@ -1,8 +1,8 @@
 # coding: utf-8
 import json
 
-import constance
 import responses
+from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
 from mock import patch
@@ -277,22 +277,21 @@ class ApiHookTestCase(HookTestCase):
 
         self.assertEqual(first_hooklog_response.get('status_code'),
                          status.HTTP_200_OK)
-        self.assertEqual(json.loads(first_hooklog_response.get('message')), 
+        self.assertEqual(json.loads(first_hooklog_response.get('message')),
                          expected_response)
 
+    @override_config(ALLOW_UNSECURED_HOOK_ENDPOINTS=False)
     def test_unsecured_endpoint_validation(self):
-
-        constance.config.ALLOW_UNSECURED_HOOK_ENDPOINTS = False
 
         response = self._create_hook(return_response_only=True)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         expected_response = {"endpoint": ["Unsecured endpoint is not allowed"]}
         self.assertEqual(response.data, expected_response)
-    
+
     def test_payload_template_validation(self):
 
         # Test invalid JSON
-        response = self._create_hook(payload_template='foo', 
+        response = self._create_hook(payload_template='foo',
                                      return_response_only=True)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         expected_response = {
@@ -309,7 +308,7 @@ class ApiHookTestCase(HookTestCase):
         self.asset.save()
 
         payload_template = '{{"fields": {}}}'.format(SUBMISSION_PLACEHOLDER)
-        response = self._create_hook(payload_template=payload_template, 
+        response = self._create_hook(payload_template=payload_template,
                                      format_type=Hook.XML,
                                      return_response_only=True)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

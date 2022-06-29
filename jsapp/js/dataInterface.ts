@@ -587,6 +587,8 @@ export interface EnvironmentResponse {
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  mfa_localized_help_text: {[name: string]: string}
+  mfa_enabled: boolean
 }
 
 const DEFAULT_PAGE_SIZE = 100;

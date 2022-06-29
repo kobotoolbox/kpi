@@ -589,3 +589,73 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             # `someuser` should have received the implied `view_asset`
             # permission
             assert self.someuser.has_perm(PERM_VIEW_ASSET, self.asset)
+
+    def test_no_assignments_saved_on_error(self):
+
+        # Call `get_anonymous_user()` to create AnonymousUser if it does not exist
+        get_anonymous_user()
+
+        # Ensure someuser and anotheruser do not have 'view_submissions' on `self.asset`
+        self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS))
+
+        # Allow someuser and anotheruser to view submissions
+        good_assignments = [
+            {
+                'user': 'someuser',
+                'permission': PERM_VIEW_SUBMISSIONS,
+            },
+            {
+                'user': 'anotheruser',
+                'permission': PERM_VIEW_SUBMISSIONS,
+            }
+        ]
+
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            good_assignments
+        )
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(bulk_endpoint, assignments, format='json')
+
+        # Everything worked as expected, someuser and anotheruser got 'view_submissions'
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
+        self.assertTrue(self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS))
+
+        # but do not have respectively 'delete_submissions' and 'change_submissions'
+        self.assertFalse(self.asset.has_perm(self.someuser, PERM_DELETE_SUBMISSIONS))
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS))
+
+        bad_assignments = [
+            {
+                'user': 'AnonymousUser',
+                'permission': PERM_ADD_SUBMISSIONS,  # should return a 400
+            },
+            {
+                'user': 'someuser',
+                'permission': PERM_DELETE_SUBMISSIONS,
+            },
+            {
+                'user': 'anotheruser',
+                'permission': PERM_CHANGE_SUBMISSIONS,
+            }
+        ]
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            bad_assignments
+        )
+
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
+        response = self.client.post(bulk_endpoint, assignments, format='json')
+        # Could not assign 'add_submissions' to anonymous user.
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Ensure that someuser and anotheruser did not get any other permissions
+        # than the one they already had, i.e.: 'view_submissions'.
+        self.assertFalse(self.asset.has_perm(self.someuser, PERM_DELETE_SUBMISSIONS))
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS))

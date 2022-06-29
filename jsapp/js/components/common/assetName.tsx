@@ -1,7 +1,13 @@
 import React from 'react';
 import {getAssetDisplayName} from 'js/assetUtils';
-import {hasLongWords} from 'utils';
+import {hasLongWords} from 'js/utils';
+import type {AssetResponse} from 'js/dataInterface';
 import './assetName.scss';
+
+interface AssetNameProps {
+  asset: AssetResponse;
+  'data-cy'?: string;
+}
 
 /**
  * Displays the name of the asset. Works for any asset type and regardless if it
@@ -9,11 +15,7 @@ import './assetName.scss';
  *
  * @prop {object} asset
  */
-export default class AssetName extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
+export default class AssetName extends React.Component<AssetNameProps> {
   render() {
     const displayName = getAssetDisplayName(this.props.asset);
     let extra = null;
@@ -28,7 +30,7 @@ export default class AssetName extends React.Component {
       if (summary.row_count === 2) {
         extra = <small>{t('and one other question')}</small>;
       } else if (summary.row_count > 2) {
-        extra = <small>{t('and ## other questions').replace('##', summary.row_count - 1)}</small>;
+        extra = <small>{t('and ## other questions').replace('##', String(summary.row_count - 1))}</small>;
       }
     }
 
@@ -41,8 +43,13 @@ export default class AssetName extends React.Component {
       classNames.push('asset-name--has-long-words');
     }
 
+    const additionalAttributes: {[attr: string]: string} = {};
+    if (this.props['data-cy']) {
+      additionalAttributes['data-cy'] = this.props['data-cy'];
+    }
+
     return (
-      <span className={classNames.join(' ')}>
+      <span className={classNames.join(' ')} {...additionalAttributes}>
         {displayName.final} {extra}
       </span>
     );

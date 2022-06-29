@@ -1,17 +1,17 @@
-import React from 'react'
+import React from 'react';
 
 export default class DataStorage extends React.Component {
   constructor(props: any) {
-    super(props)
+    super(props);
     this.state = {
       isLoading: true,
-    }
+    };
   }
 
   componentDidMount() {
     this.setState({
       isLoading: false,
-    })
+    });
   }
 
   render() {

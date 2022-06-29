@@ -16,6 +16,7 @@ bem.AudioPlayer__seek = makeBem(bem.AudioPlayer, 'seek', 'div');
 
 interface AudioPlayerProps {
   mediaURL: string;
+  'data-cy'?: string;
 }
 
 interface AudioPlayerState {
@@ -29,6 +30,9 @@ interface AudioPlayerState {
 /** Custom audio player for viewing audio submissions in data table */
 class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   audioInterface: HTMLAudioElement = new Audio();
+  private onAudioLoadedBound = this.onAudioLoaded.bind(this);
+  private onAudioErrorBound = this.onAudioError.bind(this);
+  private onAudioTimeUpdatedBound = this.onAudioTimeUpdated.bind(this);
 
   constructor(props: AudioPlayerProps) {
     super(props);
@@ -45,17 +49,23 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
     this.prepareAudio();
   }
 
-  componentWillUnmount() {
-    this.audioInterface.pause();
-  }
-
   prepareAudio() {
+    // Prepare audio.
     this.audioInterface = new Audio(this.props.mediaURL);
 
-    // Set up listeners for audio component
-    this.audioInterface.onloadedmetadata = this.onAudioLoaded.bind(this);
-    this.audioInterface.onerror = this.onAudioError.bind(this);
-    this.audioInterface.ontimeupdate = this.onAudioTimeUpdated.bind(this);
+    // Set up listeners for audio component.
+    this.audioInterface.addEventListener('loadedmetadata', this.onAudioLoadedBound);
+    this.audioInterface.addEventListener('error', this.onAudioErrorBound);
+    this.audioInterface.addEventListener('timeupdate', this.onAudioTimeUpdatedBound);
+  }
+
+  componentWillUnmount() {
+    // Pausing makes it subject to garbage collection.
+    this.audioInterface.pause();
+
+    this.audioInterface.removeEventListener('loadedmetadata', this.onAudioLoadedBound);
+    this.audioInterface.removeEventListener('error', this.onAudioErrorBound);
+    this.audioInterface.removeEventListener('timeupdate', this.onAudioTimeUpdatedBound);
   }
 
   onAudioError() {
@@ -114,6 +124,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             size='l'
             color='blue'
             onClick={this.onPlayStatusChange.bind(this)}
+            data-cy='audio player pauseplay'
           />
         </bem.AudioPlayer__controls>
 
@@ -129,7 +140,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
 
   render() {
     return (
-      <bem.AudioPlayer>
+      <bem.AudioPlayer data-cy={this.props['data-cy']}>
         {this.state.isLoading &&
           <LoadingSpinner/>
         }
