@@ -238,12 +238,6 @@ bem.AccountBox__menuLI = makeBem(bem.AccountBox, 'menu-li', 'li');
 bem.AccountBox__menuItem = makeBem(bem.AccountBox, 'menu-item', 'div');
 bem.AccountBox__menuLink = makeBem(bem.AccountBox, 'menu-link', 'a');
 
-bem.AccountSettings = makeBem(null, 'account-settings');
-bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
-bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
-bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
-bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
-
 bem.UserRow = makeBem(null, 'user-row');
 bem.UserRow__info = makeBem(bem.UserRow, 'info');
 bem.UserRow__avatar = makeBem(bem.UserRow, 'avatar');

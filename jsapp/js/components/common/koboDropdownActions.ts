@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 
 const koboDropdownActions = Reflux.createActions({
   hideAnyDropdown: {children: ['requested']},
-  menuVisibilityChange: {children: ['done']}
+  menuVisibilityChange: {children: ['done']},
 });
 
 /** Use this action to close dropdowns from any place in the code. */
@@ -19,7 +19,7 @@ koboDropdownActions.menuVisibilityChange.listen((
   name: string,
   isVisible: boolean
 ) => {
-  koboDropdownActions.menuVisibilityChange.done(name, isVisible)
+  koboDropdownActions.menuVisibilityChange.done(name, isVisible);
 });
 
 export default koboDropdownActions;

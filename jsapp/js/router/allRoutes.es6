@@ -17,7 +17,7 @@ import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute
 import AssetRoute from 'js/components/library/assetRoute';
 import AccountSettings from 'js/components/account/accountSettingsRoute';
 import DataStorage from 'js/components/account/dataStorageRoute';
-import Security from 'js/components/account/securityRoute';
+import SecurityRoute from 'js/components/account/securityRoute';
 import FormsSearchableList from 'js/lists/forms';
 import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import {ROUTES} from 'js/router/routerConstants';
@@ -132,7 +132,7 @@ export default class AllRoutes extends React.Component {
           <IndexRedirect to={ROUTES.FORMS} />
 
           {/* MISC */}
-          <Route path={ROUTES.SECURITY} component={Security} />
+          <Route path={ROUTES.SECURITY} component={SecurityRoute} />
           <Route path={ROUTES.DATA_STORAGE} component={DataStorage} />
           <Route
             path={ROUTES.ACCOUNT_SETTINGS}
@@ -369,7 +369,7 @@ export default class AllRoutes extends React.Component {
     return (
       <Router
         history={hashHistory}
-        ref={(ref) => (this.router = ref)}
+        ref={(ref) => this.router = ref}
         routes={this.getRoutes()}
       />
     );

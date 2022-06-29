@@ -600,6 +600,8 @@ export interface EnvironmentResponse {
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
   asr_mt_features_enabled: boolean;
+  mfa_localized_help_text: {[name: string]: string};
+  mfa_enabled: boolean;
 }
 
 const DEFAULT_PAGE_SIZE = 100;

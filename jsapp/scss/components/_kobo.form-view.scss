@@ -469,58 +469,6 @@ $side-tabs-width-mobile: 70px;
     background-color: $kobo-green;
     border-radius: 2px;
   }
-
-  &.form-view__cell--warning {
-    background-color: $kobo-light-amber;
-    color: $kobo-dark-amber;
-    padding: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    i {
-      color: inherit;
-      font-size: 28px;
-      margin-right: 5px;
-      vertical-align: -11px;
-      display: inline-block;
-    }
-
-    p {
-      margin: 0;
-    }
-
-    a {
-      color: inherit;
-      font-weight: bold;
-      text-decoration: underline;
-
-      &:hover {
-        text-decoration: none;
-      }
-    }
-  }
-
-  &.form-view__cell--error {
-    background-color: $kobo-light-red;
-    color: $kobo-dark-red;
-    border: 1px solid $kobo-red;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    i {
-      color: $kobo-red;
-      font-size: 28px;
-      margin-right: 5px;
-      // If used in a dropzone, need to overwrite left margin
-      margin-left: 0px;
-    }
-  }
-
-
-  &.form-view__cell--translation-modal-warning {
-    margin-bottom: 20px;
-  }
 }
 
 .form-view__icon-button {

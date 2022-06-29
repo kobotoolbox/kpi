@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import clonedeep from 'lodash.clonedeep';
 import {actions} from 'js/actions';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {stores} from 'js/stores';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
@@ -20,6 +20,12 @@ import envStore from 'js/envStore';
 import './accountSettings.scss';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
+
+bem.AccountSettings = makeBem(null, 'account-settings');
+bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
+bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
+bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
+bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 /**
  * NOTE: We have multiple components with similar form:
@@ -166,17 +172,8 @@ export default class AccountSettings extends React.Component {
     });
   }
 
-  render() {
-    if(!stores.session.isLoggedIn || !envStore.isReady) {
-      return null;
-    }
-
-    var accountName = stores.session.currentAccount.username;
-    var initialsStyle = {
-      background: `#${stringToColor(accountName)}`,
-    };
-
-    const metaFields = [];
+  getDisplayMetaFields() {
+    const output = [];
     for (const metaFieldName of [
       'organization',
       'organization_website',
@@ -192,8 +189,22 @@ export default class AccountSettings extends React.Component {
       'linkedin',
       'instagram',
     ]) {
-      metaFields[metaFieldName] = envStore.data.getUserMetadataField(metaFieldName);
+      output[metaFieldName] = envStore.data.getUserMetadataField(metaFieldName);
     }
+    return output;
+  }
+
+  render() {
+    if(!stores.session.isLoggedIn || !envStore.isReady) {
+      return null;
+    }
+
+    const accountName = stores.session.currentAccount.username;
+    const initialsStyle = {
+      background: `#${stringToColor(accountName)}`,
+    };
+
+    const metaFields = this.getDisplayMetaFields();
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>

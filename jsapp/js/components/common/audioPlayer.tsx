@@ -16,6 +16,7 @@ bem.AudioPlayer__seek = makeBem(bem.AudioPlayer, 'seek', 'div');
 
 interface AudioPlayerProps {
   mediaURL: string;
+  'data-cy'?: string;
 }
 
 interface AudioPlayerState {
@@ -29,7 +30,6 @@ interface AudioPlayerState {
 /** Custom audio player for viewing audio submissions in data table */
 class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   audioInterface: HTMLAudioElement = new Audio();
-
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);
   private onAudioTimeUpdatedBound = this.onAudioTimeUpdated.bind(this);
@@ -120,6 +120,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             size='l'
             color='blue'
             onClick={this.onPlayStatusChange.bind(this)}
+            data-cy='audio player pauseplay'
           />
         </bem.AudioPlayer__controls>
 
@@ -135,7 +136,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
 
   render() {
     return (
-      <bem.AudioPlayer>
+      <bem.AudioPlayer data-cy={this.props['data-cy']}>
         {this.state.isLoading &&
           <LoadingSpinner/>
         }
