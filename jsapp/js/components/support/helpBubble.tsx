@@ -27,77 +27,20 @@ interface HelpBubbleState {
   messages: InAppMessage[];
   selectedMessageUid: string | null;
   isOpen: boolean;
-  isOutsideCloseEnabled: boolean;
-  hasUnacknowledgedMessages?: boolean;
   locallyAcknowledgedMessageUids: Set<string>;
 }
 
 export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
-  public bubbleName = '';
   public cancelOutsideCloseWatch = Function.prototype;
-  private unlisteners: Function[] = [];
-  private refreshMessagesThrottled = throttle(
-    actions.help.getInAppMessages,
-    60000
-  );
 
   constructor(props: {}) {
     super(props);
     this.state = {
       isOpen: false,
-      isOutsideCloseEnabled: true,
       locallyAcknowledgedMessageUids: new Set(),
       selectedMessageUid: null,
-      hasUnacknowledgedMessages: false,
       messages: [],
     };
-
-    helpBubbleStore.hi();
-  }
-
-  componentDidMount() {
-    this.unlisteners.push(
-      actions.help.getInAppMessages.completed.listen(
-        this.onHelpGetInAppMessagesCompleted.bind(this)
-      ),
-      actions.help.getInAppMessages.failed.listen(
-        this.onHelpGetInAppMessagesFailed.bind(this)
-      ),
-      actions.help.setMessageReadTime.completed.listen(
-        this.onHelpPatchMessage.bind(this)
-      ),
-      actions.help.setMessageAcknowledged.completed.listen(
-        this.onHelpPatchMessage.bind(this)
-      )
-    );
-
-    actions.help.getInAppMessages();
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => clb());
-  }
-
-  onHelpGetInAppMessagesCompleted(response: InAppMessagesResponse) {
-    this.setState({messages: response.results});
-    this.checkForUnacknowledgedMessages(response.results);
-  }
-
-  onHelpGetInAppMessagesFailed() {
-    this.setState({messages: []});
-    this.checkForUnacknowledgedMessages([]);
-  }
-
-  onHelpPatchMessage(message: InAppMessage) {
-    const newMessages = this.state.messages;
-    for (let i = 0; i < newMessages.length; i++) {
-      if (newMessages[i].uid === message.uid) {
-        // update patched messages in the list of messages
-        newMessages[i] = message;
-      }
-    }
-    this.setState({messages: newMessages});
-    this.checkForUnacknowledgedMessages(newMessages);
   }
 
   open() {
@@ -106,16 +49,12 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
     // if enabled we want to close this HelpBubble
     // whenever user clicks outside it or hits ESC key
     this.cancelOutsideCloseWatch();
-    if (this.state.isOutsideCloseEnabled) {
+    if (this.state.unacknowledgedMessages.length === 0) {
       this.watchOutsideClose();
     }
 
-    const unacknowledgedMessages = this.state.messages.filter(
-      (msg) =>
-        msg.interactions.acknowledged !== true || msg.always_display_as_new
-    );
-    if (unacknowledgedMessages.length === 1) {
-      this.selectMessage(unacknowledgedMessages[0].uid);
+    if (this.state.unacknowledgedMessages.length === 1) {
+      this.selectMessage(this.state.unacknowledgedMessages[0].uid);
     }
 
     // try getting fresh messages during the lifetime of an app
@@ -174,62 +113,6 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
   onSelectUnacknowledgedListMessage(messageUid: string) {
     this.selectMessage(messageUid);
     this.open();
-  }
-
-  selectMessage(messageUid: string) {
-    this.setState({selectedMessageUid: messageUid});
-    if (!this.isMessageRead(messageUid)) {
-      this.markMessageRead(messageUid);
-    }
-  }
-
-  clearSelectedMessage() {
-    this.setState({selectedMessageUid: null});
-  }
-
-  findMessage(messageUid: string) {
-    return this.state.messages.find((message) => message.uid === messageUid);
-  }
-
-  isMessageRead(messageUid: string) {
-    const msg = this.findMessage(messageUid);
-    return !!msg?.interactions.readTime && !msg.always_display_as_new;
-  }
-
-  markMessageRead(messageUid: string) {
-    const currentTime = new Date();
-    actions.help.setMessageReadTime(messageUid, currentTime.toISOString());
-  }
-
-  markMessageAcknowledged(messageUid: string) {
-    this.setState({
-      locallyAcknowledgedMessageUids: new Set([
-        ...this.state.locallyAcknowledgedMessageUids,
-        messageUid,
-      ]),
-    });
-    actions.help.setMessageAcknowledged(messageUid, true);
-  }
-
-  checkForUnacknowledgedMessages(newMessages: InAppMessage[]) {
-    const unacknowledgedMessages = newMessages.filter(
-      (msg) =>
-        msg.interactions.acknowledged !== true || msg.always_display_as_new
-    );
-    this.setState({
-      hasUnacknowledgedMessages: unacknowledgedMessages.length >= 1,
-      isOutsideCloseEnabled: unacknowledgedMessages.length === 0,
-    });
-  }
-
-  getUnreadMessagesCount() {
-    let count = 0;
-    this.state.messages.forEach((msg) => {
-      if (!msg.interactions.readTime || msg.always_display_as_new) {
-        count++;
-      }
-    });
-    return count;
   }
 
   renderSnippetRow(msg: InAppMessage, clickCallback: (messageUid: string) => void) {
@@ -386,8 +269,6 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
   }
 
   renderTrigger() {
-    const unreadCount = this.getUnreadMessagesCount();
-
     return (
       <bem.HelpBubble__trigger
         onClick={this.toggle.bind(this)}
@@ -395,9 +276,9 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
       >
         <Icon name='help' size='l'/>
 
-        {unreadCount !== 0 && (
+        {this.state.unreadCount !== 0 && (
           <bem.HelpBubble__triggerCounter>
-            {unreadCount}
+            {this.state.unreadCount}
           </bem.HelpBubble__triggerCounter>
         )}
       </bem.HelpBubble__trigger>
@@ -416,7 +297,7 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
         popupRenderFn = this.renderDefaultPopup.bind(this);
         modifiers.push('list-with-header');
       }
-    } else if (this.state.hasUnacknowledgedMessages) {
+    } else if (this.state.unacknowledgedMessages.length >= 1) {
       popupRenderFn = this.renderUnacknowledgedListPopup.bind(this);
       modifiers.push('list');
     }
