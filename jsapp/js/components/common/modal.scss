@@ -333,28 +333,75 @@ $z-modal-x: 10;
   }
 }
 
-$modal-media-preview-header-height: sizes.$x60;
+$modal-custom-header-height: sizes.$x60;
 
-.modal.modal-media-preview {
+// TODO: Make a better generic modal component
+// Refactor common CSS for modals with custom headers
+.modal.modal--custom-header {
   border-radius: 6px;
-  min-width: 25%;
 
   .modal__content {
-    background-color: colors.$kobo-gray-98;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .modal__header {
-    min-height: 0;
-    padding: 16px;
-    background-color: colors.$kobo-white;
     color: colors.$kobo-gray-24;
-    height: $modal-media-preview-header-height;
+    height: $modal-custom-header-height;
 
     .modal__x {
       padding: 0;
       margin: 2px 0 0 0;
     }
+  }
+
+  .modal__body {
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+    flex: 1;
+  }
+}
+
+.modal.modal--mfa-setup {
+  // FIXME: Fixed size for standardization
+  width: 570px;
+  height: 700px;
+  // Overwrite regular modal % based sizes
+  min-width: 0;
+  min-height: 0;
+
+  .modal__header {
+    background-color: colors.$kobo-gray-98;
+    font-size: sizes.$x24;
+    padding: sizes.$x32 sizes.$x32 sizes.$x48 sizes.$x32;
+
+    .modal__x {
+      font-size: sizes.$x12;
+      color: rgba(colors.$kobo-gray-24, 0.4);
+    }
+  }
+
+  .modal__body {
+    overflow: hidden;
+
+    .mfa-setup {
+      padding: 0 sizes.$x32 sizes.$x32 sizes.$x32;
+      margin: auto;
+    }
+  }
+}
+
+.modal.modal--media-preview {
+  min-width: 25%;
+
+  .modal__content {
+    background-color: colors.$kobo-gray-98;
+  }
+
+  .modal__header {
+    background-color: colors.$kobo-white;
+    padding: 16px;
 
     .table-media-preview-header {
       width: 100%;
@@ -398,10 +445,8 @@ $modal-media-preview-header-height: sizes.$x60;
   }
 
   .modal__body {
-    padding: 0;
-    margin: 0;
     max-height: 600px;
-    height: calc(100% - #{$modal-media-preview-header-height});
+    height: calc(100% - #{$modal-custom-header-height});
     overflow: auto;
   }
 }
@@ -864,6 +909,16 @@ $modal-media-preview-header-height: sizes.$x60;
       width: 100%;
       margin-left: 0px !important;
       margin-top: 12px;
+    }
+  }
+}
+
+// FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
+// on mobile until we standardize all modals (see comment on mfaModals.scss)
+@media screen and (max-height: 800px) {
+  .modal.modal--mfa-setup {
+    .modal__body {
+      overflow-y: auto;
     }
   }
 }
