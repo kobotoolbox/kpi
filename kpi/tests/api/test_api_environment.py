@@ -3,13 +3,18 @@
 import json
 
 import constance
+from constance.test import override_config
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.http import HttpRequest
-from markdown import markdown
 from django.template import Template, RequestContext
+from markdown import markdown
 from rest_framework import status
+from trench.utils import get_mfa_model
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.mfa.models import KoboMFAPerUserActivation
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -71,7 +76,8 @@ class EnvironmentTests(BaseTestCase):
                         constance.config.SUPPORT_EMAIL
                     )
                 ).items()
-            }
+            },
+            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH']
         }
 
     def _check_response_dict(self, response_dict):
@@ -100,3 +106,45 @@ class EnvironmentTests(BaseTestCase):
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
         self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_value_globally_enabled(self):
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['mfa_enabled'])
+
+    @override_config(MFA_ENABLED=False)
+    def test_mfa_value_globally_disabled(self):
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['mfa_enabled'])
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_value_globally_on_w_per_user_activations(self):
+        someuser = User.objects.get(username='someuser')
+
+        # Activate MFA for someuser
+        get_mfa_model().objects.create(
+            user=someuser,
+            secret='dummy_mfa_secret',
+            name='app',
+            is_primary=True,
+            is_active=True,
+            _backup_codes='dummy_encoded_codes',
+        )
+        # Enable MFA only for someuser
+        KoboMFAPerUserActivation.objects.create(user=someuser)
+
+        # someuser should have mfa enabled
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['mfa_enabled'])
+
+        # anotheruser should **NOT** have mfa enabled
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['mfa_enabled'])
