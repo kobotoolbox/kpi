@@ -14,7 +14,6 @@ import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
 import {permissionsActions} from './actions/permissions';
-import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
@@ -30,7 +29,6 @@ Reflux.use(RefluxPromise(window.Promise));
 
 export const actions = {
   permissions: permissionsActions,
-  help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
   media: formMediaActions,

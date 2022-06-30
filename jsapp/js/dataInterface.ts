@@ -1414,28 +1414,6 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getHelpInAppMessages() {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/`,
-      method: 'GET',
-    });
-  },
-
-  patchHelpInAppMessage(uid: string, data: {
-    interactions: {
-      readTime: string;
-      acknowledged: boolean;
-    };
-  }) {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/${uid}/`,
-      method: 'PATCH',
-      data: JSON.stringify(data),
-      dataType: 'json',
-      contentType: 'application/json',
-    });
-  },
-
   setLanguage(data: {language: string}) {
     return $ajax({
       url: `${ROOT_URL}/i18n/setlang/`,

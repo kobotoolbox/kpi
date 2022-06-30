@@ -1,16 +1,12 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import throttle from 'lodash.throttle';
 import {KEY_CODES} from 'js/constants';
-import {actions} from 'js/actions';
 import envStore from 'js/envStore';
 import Icon from 'js/components/common/icon';
 import './helpBubble.scss';
-import type {
-  InAppMessage,
-  InAppMessagesResponse,
-} from 'js/dataInterface';
+import type {InAppMessage} from 'js/dataInterface';
 import helpBubbleStore from './helpBubbleStore';
+import {observer} from 'mobx-react';
 
 bem.HelpBubble = makeBem(null, 'help-bubble');
 bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button');
@@ -24,22 +20,17 @@ bem.HelpBubble__rowAnchor = makeBem(bem.HelpBubble, 'row', 'a');
 bem.HelpBubble__rowWrapper = makeBem(bem.HelpBubble, 'row-wrapper');
 
 interface HelpBubbleState {
-  messages: InAppMessage[];
-  selectedMessageUid: string | null;
   isOpen: boolean;
-  locallyAcknowledgedMessageUids: Set<string>;
 }
 
-export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
+class HelpBubble extends React.Component<{}, HelpBubbleState> {
   public cancelOutsideCloseWatch = Function.prototype;
+  private store = helpBubbleStore;
 
   constructor(props: {}) {
     super(props);
     this.state = {
       isOpen: false,
-      locallyAcknowledgedMessageUids: new Set(),
-      selectedMessageUid: null,
-      messages: [],
     };
   }
 
@@ -49,22 +40,21 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
     // if enabled we want to close this HelpBubble
     // whenever user clicks outside it or hits ESC key
     this.cancelOutsideCloseWatch();
-    if (this.state.unacknowledgedMessages.length === 0) {
+    if (this.store.unacknowledgedMessages.length === 0) {
       this.watchOutsideClose();
     }
 
-    if (this.state.unacknowledgedMessages.length === 1) {
-      this.selectMessage(this.state.unacknowledgedMessages[0].uid);
+    if (this.store.unacknowledgedMessages.length === 1) {
+      this.store.selectMessage(this.store.unacknowledgedMessages[0].uid);
     }
 
-    // try getting fresh messages during the lifetime of an app
-    this.refreshMessagesThrottled();
+    this.store.fetchMessages();
   }
 
   close() {
     this.setState({isOpen: false});
     this.cancelOutsideCloseWatch();
-    this.clearSelectedMessage();
+    this.store.unselectMessage();
   }
 
   toggle() {
@@ -107,11 +97,11 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
   }
 
   onSelectMessage(messageUid: string) {
-    this.selectMessage(messageUid);
+    this.store.selectMessage(messageUid);
   }
 
   onSelectUnacknowledgedListMessage(messageUid: string) {
-    this.selectMessage(messageUid);
+    this.store.selectMessage(messageUid);
     this.open();
   }
 
@@ -134,7 +124,7 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
 
   renderDefaultPopup() {
     const popupModifiers = [];
-    if (this.state.messages.length > 0) {
+    if (this.store.messages.length > 0) {
       popupModifiers.push('has-more-content');
     }
 
@@ -183,13 +173,13 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
             </bem.HelpBubble__rowAnchor>
           )}
 
-          {this.state.messages.length > 0 && (
+          {this.store.messages.length > 0 && (
             <bem.HelpBubble__row m='header'>
               {t('Notifications')}
             </bem.HelpBubble__row>
           )}
 
-          {this.state.messages.map((msg) => {
+          {this.store.messages.map((msg) => {
             const modifiers = ['message', 'message-clickable'];
             if (!msg.interactions.readTime || msg.always_display_as_new) {
               modifiers.push('message-unread');
@@ -205,9 +195,9 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
     return (
       <bem.HelpBubble__popup>
         <bem.HelpBubble__popupContent>
-          {this.state.messages.map((msg) => {
+          {this.store.messages.map((msg) => {
             const locallyAcknowledged =
-              this.state.locallyAcknowledgedMessageUids.has(msg.uid);
+              this.store.locallyAcknowledgedMessageUids.has(msg.uid);
             if (
               (msg.always_display_as_new && locallyAcknowledged) ||
               (!msg.always_display_as_new && msg.interactions.acknowledged)
@@ -217,7 +207,7 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
 
             return (
               <bem.HelpBubble__rowWrapper key={msg.uid}>
-                <bem.HelpBubble__close onClick={this.markMessageAcknowledged.bind(this, msg.uid)}>
+                <bem.HelpBubble__close onClick={this.store.markMessageAcknowledged.bind(this.store, msg.uid)}>
                   <i className='k-icon k-icon-close' />
                 </bem.HelpBubble__close>
 
@@ -234,11 +224,11 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
   }
 
   renderMessagePopup() {
-    if (this.state.selectedMessageUid === null) {
+    if (this.store.selectedMessageUid === null) {
       return null;
     }
 
-    const msg = this.findMessage(this.state.selectedMessageUid);
+    const msg = this.store.findMessage(this.store.selectedMessageUid);
 
     if (msg === undefined) {
       return null;
@@ -250,7 +240,7 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
           <i className='k-icon k-icon-close' />
         </bem.HelpBubble__close>
 
-        <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
+        <bem.HelpBubble__back onClick={this.store.unselectMessage.bind(this.store)}>
           <i className='k-icon k-icon-angle-left' />
         </bem.HelpBubble__back>
 
@@ -276,9 +266,9 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
       >
         <Icon name='help' size='l'/>
 
-        {this.state.unreadCount !== 0 && (
+        {this.store.unreadCount !== 0 && (
           <bem.HelpBubble__triggerCounter>
-            {this.state.unreadCount}
+            {this.store.unreadCount}
           </bem.HelpBubble__triggerCounter>
         )}
       </bem.HelpBubble__trigger>
@@ -290,14 +280,14 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
     const modifiers = ['support'];
     if (this.state.isOpen) {
       modifiers.push('open');
-      if (this.state.selectedMessageUid) {
+      if (this.store.selectedMessageUid) {
         popupRenderFn = this.renderMessagePopup.bind(this);
         modifiers.push('single-message');
       } else {
         popupRenderFn = this.renderDefaultPopup.bind(this);
         modifiers.push('list-with-header');
       }
-    } else if (this.state.unacknowledgedMessages.length >= 1) {
+    } else if (this.store.unacknowledgedMessages.length >= 1) {
       popupRenderFn = this.renderUnacknowledgedListPopup.bind(this);
       modifiers.push('list');
     }
@@ -311,3 +301,5 @@ export default class HelpBubble extends React.Component<{}, HelpBubbleState> {
     );
   }
 }
+
+export default observer(HelpBubble);
