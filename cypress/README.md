@@ -9,8 +9,15 @@ see https://github.com/kobotoolbox/kpi/commit/314314d82b4cc090944ffcc1379d4a566a
 
 # How to run a test
 
-    $ cd kpi/cypress
-    $ ./node_modules/.bin/cypress open
+Command line only tests:
+
+    kpi$ cd cypress
+    kpi/cypress$ ./node_modules/.bin/cypress run
+
+Using cypress ui:
+
+    kpi$ cypress
+    kpi/cypress$ ./node_modules/.bin/cypress open
 
 
 # Structure/Folders:
