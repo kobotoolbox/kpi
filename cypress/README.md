@@ -1,8 +1,16 @@
 # How to start the test server
 
+see https://github.com/kobotoolbox/kpi/commit/314314d82b4cc090944ffcc1379d4a566afbcf07
+
+    kobo-install$ ./run.py -cf exec kpi bash
+    root@kpi:/srv/src/kpi# sv stop uwsgi
+    ok: down: uwsgi: 0s, normally up
+    root@kpi:/srv/src/kpi# DJANGO_SETTINGS_MODULE=kobo.settings.testing ./manage.py cypress_testserver --addrport 0.0.0.0:8000 --noinput
+
 # How to run a test
 
-`$./node_modules/.bin/cypress open`
+    $ cd kpi/cypress
+    $ ./node_modules/.bin/cypress open
 
 
 # Structure/Folders:
@@ -17,3 +25,4 @@
     All tests should be independent.
     Elements should get got with an attribute that is not expected to change.
     Conditional testing is strongly discouraged.
+    Avoid using cy.wait or timeout as this will slow things down considerably.
