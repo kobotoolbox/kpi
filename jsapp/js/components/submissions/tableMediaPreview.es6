@@ -59,7 +59,10 @@ class TableMediaPreview extends React.Component {
           <bem.TableMediaPreview__audio>
             <i className='k-icon k-icon-file-audio' />
 
-            <AudioPlayer mediaURL={this.props?.mediaAttachment?.download_url} />
+            <AudioPlayer 
+              mediaURL={this.props?.mediaAttachment?.download_url}
+              data-cy='audioPlayer'
+            />
           </bem.TableMediaPreview__audio>
         );
       case QUESTION_TYPES.video.id:

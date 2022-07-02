@@ -1,14 +1,14 @@
 {
-  "form_creator" : {
-    "password" : "Avacad0",
+  "project_creator" : {
+    "password" : "project_creator",
     "description" : "Opens an empty account to test form creation."
   },
   "question_creator" : {
-    "password" : "Avacad0",
+    "password" : "question_creator",
     "description" : "Adds questions to empty forms from questions.json."
   },
   "project_deleter" : {
-    "password" : "Avacad0",
+    "password" : "project_deleter",
     "description" : "Deletes a project."
   }
 }
