@@ -1,9 +1,5 @@
 import throttle from 'lodash.throttle';
-import {
-  makeAutoObservable,
-  // runInAction,
-  // reaction,
-} from 'mobx';
+import {makeAutoObservable} from 'mobx';
 import type {
   InAppMessage,
   InAppMessagesResponse,
@@ -50,7 +46,10 @@ class HelpBubbleStore {
     );
   }
 
-  /** Use `isSilent` to avoid displaying spinners. */
+  /**
+   * Use `isSilent` to make the call in the background. Useful to check for new
+   * messages periodically.
+   */
   private fetchMessagesInternal(isSilent = false) {
     this.isLoading = !isSilent;
     $.ajax({

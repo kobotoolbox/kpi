@@ -263,6 +263,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
       <bem.HelpBubble__trigger
         onClick={this.toggle.bind(this)}
         data-tip={t('Help')}
+        disabled={this.store.isLoading}
       >
         <Icon name='help' size='l'/>
 
