@@ -134,9 +134,6 @@ class HelpBubbleStore {
   private onPatchMessageFail(response: FailResponse) {
     notify(response.responseText, 'error');
   }
-
-  hi() {
-  }
 }
 
 const helpBubbleStore = new HelpBubbleStore();
