@@ -17,7 +17,11 @@ describe('utils', () => {
         [1.333, '00:01'],
         [1.777, '00:02'],
         [60, '01:00'],
-        [6666, '111:01'],
+        [671, '11:11'],
+        [1111, '18:31'],
+        [3599, '59:59'],
+        [6000, '100:00'],
+        [6666, '111:06'],
       ].forEach((testCase) => {
         const test = formatSeconds(testCase[0]);
         chai.expect(test).to.equal(testCase[1]);
