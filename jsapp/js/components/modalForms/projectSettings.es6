@@ -1001,7 +1001,7 @@ class ProjectSettings extends React.Component {
                   />
                 }
 
-                {!this.isArchived() && this.isArchivable() &&
+                {this.isArchivable() &&
                   <Button
                     type='frame'
                     color='red'
