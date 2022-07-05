@@ -7,7 +7,7 @@ from kobo.apps.mfa.models import MfaAvailableToUser
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-class MFASignalTestCase(BaseTestCase):
+class MfaSignalTestCase(BaseTestCase):
 
     fixtures = ['test_data']
 

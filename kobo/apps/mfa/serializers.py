@@ -3,7 +3,7 @@ from rest_framework import serializers
 from trench.utils import get_mfa_model
 
 
-class UserMFAMethodSerializer(serializers.ModelSerializer):
+class UserMfaMethodSerializer(serializers.ModelSerializer):
     """
     Exposes user's MFA methods and their created, modified and disabled dates
     """

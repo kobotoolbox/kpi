@@ -12,10 +12,10 @@ from rest_framework.authentication import (
 )
 from rest_framework.exceptions import AuthenticationFailed
 
-from kpi.mixins.mfa import MFABlockerMixin
+from kpi.mixins.mfa import MfaBlockerMixin
 
 
-class BasicAuthentication(MFABlockerMixin, DRFBasicAuthentication):
+class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication):
     """
     Extend DRF class to support MFA.
 
@@ -32,7 +32,7 @@ class BasicAuthentication(MFABlockerMixin, DRFBasicAuthentication):
         return user, _
 
 
-class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
+class DigestAuthentication(MfaBlockerMixin, BaseAuthentication):
 
     verbose_name = 'Digest authentication'
 
@@ -106,7 +106,7 @@ class EnketoSessionAuthentication(SessionAuthentication):
         )
 
 
-class TokenAuthentication(MFABlockerMixin, DRFTokenAuthentication):
+class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication):
     """
     Extend DRF class to support MFA.
 
