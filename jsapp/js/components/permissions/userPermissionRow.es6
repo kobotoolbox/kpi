@@ -69,9 +69,10 @@ class UserPermissionRow extends React.Component {
     this.setState({isEditFormVisible: !this.state.isEditFormVisible});
   }
 
-  // TODO this doesn't display partial_permissions in a nice way,
-  // as it assumes that there can be only "view" in them,
-  // but this is partially a fault of Backend giving a non universal label to "partial_permissions"
+  // TODO: This doesn't display `partial_permissions` in a nice way, as it
+  // assumes that there can be only "view" in them, but this is partially
+  // backend's fault for giving a non universal label to "partial_permissions".
+  // See: https://github.com/kobotoolbox/kpi/issues/3920
   renderPermissions(permissions) {
     const maxParentheticalUsernames = 3;
     return (

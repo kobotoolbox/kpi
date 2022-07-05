@@ -590,6 +590,7 @@ class ProjectSettings extends React.Component {
                 // to identify bugs.
                 // Until we switch this code to use actions we HACK it so other
                 // places are notified.
+                // See: https://github.com/kobotoolbox/kpi/issues/3919
                 actions.resources.loadAsset.completed(finalAsset);
 
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
