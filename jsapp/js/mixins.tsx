@@ -9,6 +9,7 @@
  * TODO: think about moving out of mixins, as they are deprecated in new React
  * versions and considered harmful (see
  * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ * See: https://github.com/kobotoolbox/kpi/issues/3907
  */
 
 import React from 'react';
