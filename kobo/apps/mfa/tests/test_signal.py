@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from trench.utils import get_mfa_model
 
-from kobo.apps.mfa.models import KoboMFAPerUserActivation
+from kobo.apps.mfa.models import MfaAvailableToUser
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -26,10 +26,10 @@ class MFASignalTestCase(BaseTestCase):
         )
         self.assertEqual(mfa_method.date_disabled, None)
         self.assertEqual(mfa_method.is_active, True)
-        mfa_per_user_activation = KoboMFAPerUserActivation.objects.create(
+        mfa_available_to_user = MfaAvailableToUser.objects.create(
             user=self.someuser
         )
-        mfa_per_user_activation.delete()
+        mfa_available_to_user.delete()
         mfa_method.refresh_from_db()
         self.assertNotEqual(mfa_method.date_disabled, None)
         self.assertEqual(mfa_method.is_active, False)

@@ -16,7 +16,7 @@ from kobo.static_lists import (
     TRANSLATION_LANGUAGES
 )
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.apps.mfa.models import KoboMFAPerUserActivation
+from kobo.apps.mfa.models import MfaAvailableToUser
 
 
 class EnvironmentView(APIView):
@@ -66,13 +66,9 @@ class EnvironmentView(APIView):
             lambda value, request: value and (
                 # but if per-user activation is enabled (i.e. at least one
                 # record in the table)…
-                not bool(KoboMFAPerUserActivation.objects.all().count())
+                not MfaAvailableToUser.objects.all().exists()
                 # global setting is overwritten by request user setting.
-                or bool(
-                    KoboMFAPerUserActivation.objects.values_list('user_id', flat=True)
-                    .filter(user=request.user)
-                    .first()
-                )
+                or MfaAvailableToUser.objects.filter(user=request.user).exists()
             )
         ),
     ]

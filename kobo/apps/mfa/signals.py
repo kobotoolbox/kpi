@@ -2,16 +2,16 @@
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from .models import KoboMFAPerUserActivation, KoboMFAMethod
+from .models import MfaAvailableToUser, KoboMFAMethod
 
 
-@receiver(pre_delete, sender=KoboMFAPerUserActivation)
+@receiver(pre_delete, sender=MfaAvailableToUser)
 def deactivate_mfa_method_for_user(**kwargs):
     """
     Deactivate MFA methods for user on delete (and bulk delete)
     """
     # We need to use a signal (instead of adding this code to
-    # `KoboMFAPerUserActivation.delete()`) because of bulk deletes which do not
+    # `MfaAvailableToUser.delete()`) because of bulk deletes which do not
     # call `.delete()`.
 
     mfa_active_user = kwargs['instance']
