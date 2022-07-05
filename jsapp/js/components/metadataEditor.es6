@@ -192,8 +192,6 @@ export default class MetadataEditor extends React.Component {
     ];
     const rightColumn = [
       META_QUESTION_TYPES.username,
-      META_QUESTION_TYPES.simserial,
-      META_QUESTION_TYPES.subscriberid,
       META_QUESTION_TYPES.phonenumber,
     ];
 
@@ -235,6 +233,19 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
+        {this.isAuditEnabled() && (
+          <bem.FormBuilderMeta__row>
+            <TextBox
+              customModifiers='on-white'
+              label={this.renderAuditInputLabel()}
+              value={this.getAuditParameters()}
+              disabled={this.props.isDisabled}
+              onChange={this.onAuditParametersChange}
+              placeholder={t('Enter audit settings here')}
+            />
+          </bem.FormBuilderMeta__row>
+        )}
+
         <bem.FormBuilderMeta__row m='background-audio'>
           <bem.FormBuilderAside__header>
             {this.renderBackgroundAudioLabel()}
@@ -263,18 +274,7 @@ export default class MetadataEditor extends React.Component {
               }
             />
           </bem.FormModal__item>
-        </bem.FormBuilderMeta__row>
-
-        {this.isAuditEnabled() && (
-          <bem.FormBuilderMeta__row>
-            <TextBox
-              label={this.renderAuditInputLabel()}
-              value={this.getAuditParameters()}
-              disabled={this.props.isDisabled}
-              onChange={this.onAuditParametersChange}
-            />
-          </bem.FormBuilderMeta__row>
-        )}
+         </bem.FormBuilderMeta__row>
 
         {this.isBackgroundAudioEnabled() && (
           <bem.FormBuilderMeta__row>

@@ -1,0 +1,38 @@
+@use "scss/sizes";
+
+@mixin buttonReset() {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative; // needed for tooltips etc.
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  background-color: transparent;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  border: none;
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  &:active {
+    // to make it look pressed-in
+    transform: translateY(sizes.$x1);
+  }
+}
+
+@mixin centerRowFlex() {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+}
+
+@mixin textEllipsis() {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

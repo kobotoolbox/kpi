@@ -1,2 +1,2 @@
 {% load i18n %}
-{% trans "Activate your KoBoToolbox Account" %}
+{% trans "Activate your KoboToolbox Account" %}

@@ -18,6 +18,7 @@ $button-icon-l: icon.$s-icon-m;
 $button-icon-alone-l: icon.$s-icon-l;
 
 $button-border-width: sizes.$x1;
+$button-border-radius: sizes.$x6;
 
 // Sets colors for `bare` type button.
 @mixin buttonBare($mainColor) {
@@ -85,6 +86,13 @@ $button-border-width: sizes.$x1;
   &.k-button--has-label {
     padding-left: $height * 0.4;
     padding-right: $height * 0.4;
+
+    .k-button__label {
+      // For long labels, to avoid squashed button when the text wraps into
+      // multiple lines
+      margin-top: $height * 0.2;
+      margin-bottom: $height * 0.2;
+    }
   }
 
   &.k-button--has-start-icon.k-button--has-label {
@@ -137,7 +145,7 @@ $button-border-width: sizes.$x1;
   border-width: $button-border-width;
   border-style: solid;
   border-color: transparent;
-  border-radius: sizes.$x6;
+  border-radius: $button-border-radius;
   background-color: transparent;
 }
 
@@ -148,9 +156,7 @@ $button-border-width: sizes.$x1;
 
 .k-button__label {
   cursor: inherit;
-  line-height: inherit;
-  display: inline-block;
-  vertical-align: top;
+  line-height: 1;
 }
 
 .k-button.k-button--has-start-icon:not(.k-button--has-label),

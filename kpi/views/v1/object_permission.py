@@ -6,6 +6,7 @@ from kpi.filters import KpiAssignedObjectPermissionsFilter
 from kpi.models import ObjectPermission
 from kpi.serializers import ObjectPermissionSerializer
 from kpi.views.no_update_model import NoUpdateModelViewSet
+from kpi.constants import PERM_MANAGE_ASSET
 
 
 class ObjectPermissionViewSet(NoUpdateModelViewSet):

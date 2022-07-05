@@ -14,6 +14,12 @@ import {
   CHOICE_LISTS,
   AnyRowTypeName,
 } from 'js/constants';
+import {
+  SurveyRow,
+  SurveyChoice,
+  SubmissionResponse,
+  SubmissionAttachment
+} from 'js/dataInterface'
 
 enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -477,19 +483,32 @@ export function getMediaAttachment(
   submission: SubmissionResponse,
   fileName: string
 ): string | SubmissionAttachment {
-  const fileNameNoSpaces = fileName.replace(/ /g, '_');
+  const validFileName = getValidFilename(fileName);
   let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
     '##fileName##',
     fileName,
   );
 
   submission._attachments.forEach((attachment) => {
-    if (attachment.filename.includes(fileNameNoSpaces)) {
+    if (attachment.filename.includes(validFileName)) {
       mediaAttachment = attachment;
     }
   });
 
   return mediaAttachment;
+}
+
+/**
+  Mimics Django get_valid_filename() to match back-end renaming when an
+  attachment is saved in storage.
+  See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
+ */
+export function getValidFilename(
+  fileName: string
+): string {
+  return fileName.normalize('NFD').replace(/\p{Diacritic}/gu, '')
+    .replace(/ /g, '_')
+    .replace(/[^\p{L}\p{M}\.\d_-]/gu, '');
 }
 
 export default {

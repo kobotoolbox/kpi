@@ -1,7 +1,6 @@
 # coding: utf-8
 # 😬
 import copy
-from collections import defaultdict
 from functools import reduce
 from operator import add
 from typing import Optional, Union
@@ -61,8 +60,8 @@ from kpi.mixins import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
+from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
-from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
 from .asset_user_partial_permission import AssetUserPartialPermission
@@ -788,13 +787,18 @@ class Asset(ObjectPermissionMixin,
         except AttributeError:
             tag_names = self.tags.values_list('name', flat=True)
         else:
-            tag_names = [t.name for t in tag_list]
+            tag_names = [tag.name for tag in tag_list]
         return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
         intended_tags = value.split(',')
-        self.tags.set(*intended_tags)
+        # Backwards incompatible: TaggableManager.set now takes a list of tags
+        # (instead of varargs) so that its API matches Django’s RelatedManager.set.
+        # Example:
+        # previously: item.tags.set("red", "blue")
+        # now: item.tags.set(["red", "blue"])
+        self.tags.set(intended_tags)
 
     def to_clone_dict(
             self,
@@ -898,6 +902,17 @@ class Asset(ObjectPermissionMixin,
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
+    # TODO: take leading underscore off of `_snapshot()` and call it directly?
+    # we would also have to remove or rename the `snapshot` property
+    def versioned_snapshot(
+        self, version_uid: str, root_node_name: Optional[str] = None
+    ) -> AssetSnapshot:
+        return self._snapshot(
+            regenerate=False,
+            version_uid=version_uid,
+            root_node_name=root_node_name,
+        )
+
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
@@ -927,8 +942,16 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     @transaction.atomic
-    def _snapshot(self, regenerate=True):
-        asset_version = self.latest_version
+    def _snapshot(
+        self,
+        regenerate: bool = True,
+        version_uid: Optional[str] = None,
+        root_node_name: Optional[str] = None,
+    ) -> AssetSnapshot:
+        if version_uid:
+            asset_version = self.asset_versions.get(uid=version_uid)
+        else:
+            asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -946,18 +969,29 @@ class Asset(ObjectPermissionMixin,
             snapshot = False
 
         if not snapshot:
-            if self.name != '':
-                form_title = self.name
-            else:
-                _settings = self.content.get('settings', {})
-                form_title = _settings.get('id_string', 'Untitled')
+            try:
+                form_title = asset_version.form_title
+                content = asset_version.version_content
+            except AttributeError:
+                form_title = self.form_title
+                content = self.content
 
-            self._append(self.content, settings={
-                'form_title': form_title,
-            })
-            snapshot = AssetSnapshot.objects.create(asset=self,
-                                                    asset_version=asset_version,
-                                                    source=self.content)
+            settings_ = {'form_title': form_title}
+
+            if root_node_name:
+                # `name` may not sound like the right setting to control the
+                # XML root node name, but it is, according to the XLSForm
+                # specification:
+                # https://xlsform.org/en/#specify-xforms-root-node-name
+                settings_['name'] = root_node_name
+                settings_['id_string'] = root_node_name
+
+            self._append(content, settings=settings_)
+
+            snapshot = AssetSnapshot.objects.create(
+                asset=self, asset_version=asset_version, source=content
+            )
+
         return snapshot
 
     def _update_partial_permissions(
@@ -1028,122 +1062,11 @@ class Asset(ObjectPermissionMixin,
                     t("Can not assign '{}' permission. "
                       "Partial permissions are missing.".format(perm)))
 
-            new_partial_perms = defaultdict(list)
-            in_op = MongoHelper.IN_OPERATOR
-
-            for partial_perm, filters in partial_perms.items():
-
-                if partial_perm not in new_partial_perms:
-                    new_partial_perms[partial_perm] = filters
-
-                implied_perms = [
-                    implied_perm
-                    for implied_perm in self.get_implied_perms(partial_perm)
-                    if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
-                ]
-
-                for implied_perm in implied_perms:
-
-                    if (
-                        implied_perm not in new_partial_perms
-                        and implied_perm in partial_perms
-                    ):
-                        new_partial_perms[implied_perm] = partial_perms[implied_perm]
-
-                    new_partial_perm = new_partial_perms[implied_perm]
-                    # Trivial case, i.e.: permissions are built with front end.
-                    # All permissions have only one filter and the same filter
-                    # Example:
-                    # ```
-                    # partial_perms = {
-                    #   'view_submissions' : [
-                    #       {'_submitted_by': {'$in': ['johndoe']}
-                    #   ],
-                    #   'delete_submissions':  [
-                    #       {'_submitted_by': {'$in': ['quidam']}
-                    #   ]
-                    # }
-                    # ```
-                    # should give
-                    # ```
-                    # new_partial_perms = {
-                    #   'view_submissions' : [
-                    #       {'_submitted_by': {'$in': ['johndoe', 'quidam']}
-                    #   ],
-                    #   'delete_submissions':  [
-                    #       {'_submitted_by': {'$in': ['quidam']}
-                    #   ]
-                    # }
-                    if (
-                        len(filters) == 1
-                        and len(new_partial_perm) == 1
-                        and isinstance(new_partial_perm, list)
-                    ):
-                        current_filters = new_partial_perms[implied_perm][0]
-                        filter_ = filters[0]
-                        # Front end only supports `_submitted_by`, but if users
-                        # use the API, it could be something else.
-                        filter_key = list(filter_)[0]
-                        try:
-                            new_value = filter_[filter_key][in_op]
-                            current_values = current_filters[filter_key][in_op]
-                        except (KeyError, TypeError):
-                            pass
-                        else:
-                            new_partial_perm[0][filter_key][in_op] = list(
-                                set(current_values + new_value)
-                            )
-                            continue
-
-                    # As said earlier, front end only supports `'_submitted_by'`
-                    # filter, but many different and more complex filters could
-                    # be used.
-                    # If we reach these lines, it means conditions cannot be
-                    # merged, so we concatenate then with an `OR` operator.
-                    # Example:
-                    # ```
-                    # partial_perms = {
-                    #   'view_submissions' : [{'_submitted_by': 'johndoe'}],
-                    #   'delete_submissions':  [
-                    #       {'_submission_date': {'$lte': '2021-01-01'},
-                    #       {'_submission_date': {'$gte': '2020-01-01'}
-                    #   ]
-                    # }
-                    # ```
-                    # should give
-                    # ```
-                    # new_partial_perms = {
-                    #   'view_submissions' : [
-                    #           [{'_submitted_by': 'johndoe'}],
-                    #           [
-                    #               {'_submission_date': {'$lte': '2021-01-01'},
-                    #               {'_submission_date': {'$gte': '2020-01-01'}
-                    #           ]
-                    #   },
-                    #   'delete_submissions':  [
-                    #       {'_submission_date': {'$lte': '2021-01-01'},
-                    #       {'_submission_date': {'$gte': '2020-01-01'}
-                    #   ]
-                    # }
-
-                    # To avoid more complexity (and different syntax than
-                    # trivial case), we delegate to MongoHelper the task to join
-                    # lists with the `$or` operator.
-                    try:
-                        new_partial_perm = new_partial_perms[implied_perm][0]
-                    except IndexError:
-                        # If we get an IndexError, implied permission does not
-                        # belong to current assignment. Let's copy the filters
-                        #
-                        new_partial_perms[implied_perm] = filters
-                    else:
-                        if not isinstance(new_partial_perm, list):
-                            new_partial_perms[implied_perm] = [
-                                filters,
-                                new_partial_perms[implied_perm]
-                            ]
-                        else:
-                            new_partial_perms[implied_perm].append(filters)
+            new_partial_perms = AssetUserPartialPermission\
+                .update_partial_perms_to_include_implied(
+                    self,
+                    partial_perms
+                )
 
             AssetUserPartialPermission.objects.update_or_create(
                 asset_id=self.pk,

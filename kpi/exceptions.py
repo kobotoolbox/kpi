@@ -19,6 +19,10 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
+class AttachmentNotFoundException(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 
@@ -45,10 +49,15 @@ class DeploymentDataException(Exception):
 
 class DeploymentNotFound(Exception):
 
-    def __init__(self,
-                 message=t('Must call `asset.connect_deployment()` first')):
+    def __init__(
+        self, message=t('Must call `asset.connect_deployment()` first')
+    ):
         self.message = message
         super().__init__(self.message)
+
+
+class FFMpegException(Exception):
+    pass
 
 
 class ImportAssetException(Exception):
@@ -59,6 +68,10 @@ class InvalidSearchException(exceptions.APIException):
     status_code = 400
     default_detail = t('Invalid search. Please try again')
     default_code = 'invalid_search'
+
+
+class InvalidXPathException(Exception):
+    pass
 
 
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
@@ -102,6 +115,10 @@ class KobocatProfileException(Exception):
     pass
 
 
+class NotSupportedFormatException(Exception):
+    pass
+
+
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = 400
     default_detail = t('The specified object has not been deployed')
@@ -121,3 +138,19 @@ class ReadOnlyModelError(Exception):
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = t('Your query is too short')
     default_code = 'query_too_short'
+
+
+class SubmissionIntegrityError(Exception):
+    pass
+
+
+class SubmissionNotFoundException(Exception):
+    pass
+
+
+class XPathNotFoundException(Exception):
+    pass
+
+
+class XlsFormatException(Exception):
+    pass

@@ -1,4 +1,6 @@
-@use "scss/_colors";
+@use 'scss/sizes';
+@use 'scss/_colors';
+@use 'scss/_variables';
 
 .form-view--form-media {
   background-color: colors.$kobo-white;
@@ -6,10 +8,6 @@
 
 .form-media {
   padding: 30px 40px;
-
-  .form-view__cell--warning {
-    margin-bottom: 24px;
-  }
 
   .form-media__title {
     display: inline-block;
@@ -48,7 +46,7 @@
       .form-media-upload-url__form {
         .text-box__error {
           padding-top: 6px;
-          font-size: 14px;
+          font-size: variables.$base-font-size;
         }
 
         // Semi-hack: re-used formbuilder button but make it look like

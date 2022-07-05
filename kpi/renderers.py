@@ -1,26 +1,39 @@
 # coding: utf-8
 import json
 import re
-from io import StringIO, BytesIO
-from typing import Dict, Generator, Tuple, Optional
+from io import StringIO
 
-from dicttoxml import dicttoxml
+from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
-from rest_framework import renderers
-from rest_framework import status
+from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
-from kpi.mixins.export_object import ExportObjectMixin
 from kpi.utils.xml import add_xml_declaration
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'json'
+
+
+class MediaFileRenderer(renderers.BaseRenderer):
+    media_type = '*/*'
+    format = None
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data
+
+
+class MP3ConversionRenderer(MediaFileRenderer):
+
+    media_type = 'audio/mpeg'
+    format = 'mp3'
 
 
 class OpenRosaRenderer(DRFXMLRenderer):
@@ -124,54 +137,27 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
+class DoNothingRenderer(renderers.BaseRenderer):
+    """
+    This class exists only to specify that a view provides a particular format;
+    subclass it and define `media_type` and `format` as needed. All real work
+    must be done inside the view.
+    This works around the problem of some formats needing to return a response
+    directly, e.g. for redirection, not just the _content_ to be placed inside
+    a response.
+    """
+    def render(*args, **kwargs):
+        pass
+
+
+class SubmissionXLSXRenderer(DoNothingRenderer):
     media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
     format = 'xlsx'
 
-    def render(
-        self,
-        data: Dict,
-        media_type: Optional[str] = None,
-        renderer_context: Optional[Dict] = None,
-    ) -> BytesIO:
-        view = renderer_context['view']
-        # `self.user` required to check for valid (partial) permissions before
-        # allowing an export to succeed
-        self.user = view.request.user
-        self.data = data
-        export, submission_stream = self.get_export_object(
-            source=view.asset,
-            _async=False,
-        )
-        stream = BytesIO()
-        export.to_xlsx(stream, submission_stream)
-        stream.seek(0)
-        return stream
 
-
-class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
+class SubmissionCSVRenderer(DoNothingRenderer):
     media_type = 'text/csv'
     format = 'csv'
-
-    def render(
-        self,
-        data: Dict,
-        media_type: Optional[str] = None,
-        renderer_context: Optional[Dict] = None,
-    ) -> str:
-        view = renderer_context['view']
-        # `self.user` required to check for valid (partial) permissions before
-        # allowing an export to succeed
-        self.user = view.request.user
-        self.data = data
-        export, submission_stream = self.get_export_object(
-            source=view.asset,
-            _async=False,
-        )
-        stream = StringIO()
-        for line in export.to_csv(submission_stream):
-            stream.write(line + '\r\n')
-        return stream.getvalue()
 
 
 class SubmissionXMLRenderer(DRFXMLRenderer):
@@ -181,7 +167,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # data should be str, but in case it's a dict, return as XML.
         # e.g. It happens with 404
         if isinstance(data, dict):
-            # Force cast `ErrorDetail` as `six.text_type` because `dicttoxml`
+            # Force cast `ErrorDetail` as `str` because `dict2xml`
             # does not recognize this type and treat each character as xml node.
             for k, v in data.items():
                 if isinstance(v, ErrorDetail):
@@ -205,16 +191,14 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # Submissions are wrapped in `<item>` nodes.
         results = data.pop('results', False)
         if not results:
-            return dicttoxml(
-                data, attr_type=False, custom_root=cls.root_tag_name
-            )
+            return dict2xml(data, wrap=cls.root_tag_name, newlines=False)
 
         submissions_parent_node = 'results'
 
-        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.root_tag_name)
+        xml_ = dict2xml(data, wrap=cls.root_tag_name, newlines=False)
         # Retrieve the beginning of the XML (without closing tag) in order
         # to concatenate `results` as XML nodes too.
-        xml_2_str = xml_.decode().replace(f'</{cls.root_tag_name}>', '')
+        xml_2_str = xml_.replace(f'</{cls.root_tag_name}>', '')
 
         opening_results_node = cls._node_generator(submissions_parent_node)
         closing_results_node = cls._node_generator(submissions_parent_node,
@@ -222,12 +206,14 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         results_data_str = ''.join(map(cls.__cleanup_submission, results))
         closing_root_node = cls._node_generator(cls.root_tag_name, closing=True)
 
-        xml_2_str += f'{opening_results_node}' \
-                     f'{results_data_str}' \
-                     f'{closing_results_node}' \
-                     f'{closing_root_node}'
+        xml_2_str += (
+            f'{opening_results_node}'
+            f'{results_data_str}'
+            f'{closing_results_node}'
+            f'{closing_root_node}'
+        )
 
-        return xml_2_str.encode()  # Should return bytes
+        return xml_2_str
 
     @staticmethod
     def _node_generator(name, closing=False):
@@ -285,5 +271,5 @@ class XlsRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        return asset.to_xls_io(versioned=self.versioned,
+        return asset.to_xlsx_io(versioned=self.versioned,
                                kobo_specific_types=self.kobo_specific_types)

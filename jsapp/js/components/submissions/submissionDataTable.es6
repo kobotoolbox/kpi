@@ -9,6 +9,7 @@ import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
+  getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
 import {
   META_QUESTION_TYPES,
@@ -204,18 +205,6 @@ class SubmissionDataTable extends React.Component {
   }
 
   /**
-   * @prop {string} filename
-   * @returns {object|undefined}
-   */
-  findAttachmentData(targetFilename) {
-    // Match filename with full filename in attachment list
-    // BUG: this works but is possible to find bad attachment as `includes` can match multiple
-    return this.props.submissionData._attachments.find((attachment) => {
-      return attachment.filename.endsWith(`/${targetFilename}`);
-    });
-  }
-
-  /**
    * @prop {string} data
    */
   renderPointData(data) {
@@ -265,10 +254,8 @@ class SubmissionDataTable extends React.Component {
    * @prop {string} filename
    */
   renderAttachment(type, filename) {
-    const fileNameNoSpaces = filename.replace(/ /g, '_');
-    const attachment = this.findAttachmentData(fileNameNoSpaces);
-
-    if (attachment) {
+    const attachment = getMediaAttachment(this.props.submissionData, filename);
+    if (attachment && attachment instanceof Object) {
       if (type === QUESTION_TYPES.image.id) {
         return (
           <a href={attachment.download_url} target='_blank'>
@@ -280,7 +267,7 @@ class SubmissionDataTable extends React.Component {
       }
     // In the case that an attachment is missing, don't crash the page
     } else {
-      return(t('Could not retrieve ##filename##').replace('##filename##', filename));
+      return attachment;
     }
   }
 
@@ -327,8 +314,6 @@ class SubmissionDataTable extends React.Component {
         {this.renderMetaResponse(META_QUESTION_TYPES.end, t('end'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.today, t('today'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.username, t('username'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.simserial, t('sim serial'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.subscriberid, t('subscriber ID'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.deviceid, t('device ID'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.phonenumber, t('phone number'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.audit, t('audit'))}

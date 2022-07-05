@@ -2,8 +2,8 @@
 import json
 
 from django.contrib.auth.models import User
-from django.urls import reverse
 from rest_framework import status
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -101,14 +101,17 @@ class AssetExportSettingsApiTest(BaseTestCase):
             data['export_settings'] == self.valid_export_settings
         )
 
-        exports_url = reverse(
-            self._get_endpoint('submission-exports'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': data['uid'],
-            },
-        )
-        assert exports_url in data['exports_url']
+        def export_url_for_format(format_):
+            return reverse(
+                self._get_endpoint('asset-export-settings-synchronous-data'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': data['uid'],
+                },
+                format=format_,
+            )
+        assert data['data_url_csv'].endswith(export_url_for_format('csv'))
+        assert data['data_url_xlsx'].endswith(export_url_for_format('xlsx'))
 
     def test_api_create_extended_asset_export_settings_for_owner(self):
         export_settings = {

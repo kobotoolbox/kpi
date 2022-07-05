@@ -465,16 +465,6 @@ export const matrixSurvey = [{
   '$kuid': '3RscqJRor',
   '$autoname': 'username',
 }, {
-  'name': 'simserial',
-  'type': 'simserial',
-  '$kuid': 'ozNn7JwMd',
-  '$autoname': 'simserial',
-}, {
-  'name': 'subscriberid',
-  'type': 'subscriberid',
-  '$kuid': 'tStWXbDyQ',
-  '$autoname': 'subscriberid',
-}, {
   'name': 'deviceid',
   'type': 'deviceid',
   '$kuid': 'll7GCh9oi',
@@ -528,7 +518,6 @@ export const matrixSurveyChoices = [{
 export const matrixSurveySubmission = {
   '_id': 22,
   'username': 'username not found',
-  'simserial': 'simserial not found',
   '_validation_status': {},
   '_uuid': 'a0039b58-1b2d-4445-912e-01e4ad56dbb4',
   '_bamboo_dataset_id': '',
@@ -549,7 +538,6 @@ export const matrixSurveySubmission = {
   'phonenumber': 'phonenumber not found',
   '_status': 'submitted_via_web',
   '__version__': 'vPNH6GBsRjMKLfXrisReYA',
-  'subscriberid': 'subscriberid not found',
   'today': '2020-04-20',
 };
 
@@ -1679,3 +1667,37 @@ export const matrixRepeatSurveyDisplayData = [
     ],
   },
 ];
+
+export const submissionWithAttachmentsWithUnicode = {
+  '_id': 18,
+  'A_picture': 'Un été au Québec (Canada)-19_41_32.jpg',
+  'meta/instanceID': 'uuid:4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
+  'meta/deprecatedID': 'uuid:f79e88d3-2329-40c7-ab7a-66dde871480c',
+  'formhub/uuid': '45748fd461814880bd9545c8c8827d78',
+  '__version__': 'vUdsH7ovQn4eCdBtPJyBag',
+  '_xform_id_string': 'azCy24QgjprZGrdvbHQXr3',
+  '_uuid': '4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
+  '_attachments': [
+    {
+      download_url: 'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpg',
+      download_large_url: 'http://kc.kobo.local/media/large?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpg',
+      download_medium_url: 'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpg',
+      download_small_url: 'http://kc.kobo.local/media/small?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpgg',
+      mimetype: 'image/jpeg',
+      filename: 'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
+      instance: 18,
+      xform: 4,
+      id: 13
+    },
+  ],
+  _geolocation: [
+    null,
+    null
+  ],
+  _notes: [],
+  _tags: [],
+  _status: 'submitted_via_web',
+  _submission_time: '2022-01-26T19:40:11',
+  _submitted_by: null,
+  _validation_status: {}
+}

@@ -62,6 +62,14 @@ class AssetVersion(models.Model):
         _json_string = json.dumps(self.version_content, sort_keys=True)
         return calculate_hash(_json_string, 'sha1')
 
+    @property
+    def form_title(self):
+        if self.name != '':
+            return self.name
+        else:
+            _settings = self.version_content.get('settings', {})
+            return _settings.get('id_string', 'Untitled')
+
     def __str__(self):
         return '{}@{} T{}{}'.format(
             self.asset.uid, self.uid,
