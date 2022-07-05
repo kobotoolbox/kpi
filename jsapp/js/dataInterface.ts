@@ -511,6 +511,25 @@ export interface EnvironmentResponse {
   mfa_enabled: boolean
 }
 
+export interface InAppMessage {
+  url: string;
+  uid: string;
+  title: string;
+  snippet: string;
+  body: string;
+  html: {
+    snippet: string;
+    body: string;
+  };
+  interactions: {
+    acknowledged: boolean;
+    readTime?: string;
+  };
+  always_display_as_new: boolean;
+}
+
+export interface InAppMessagesResponse extends PaginatedResponse<InAppMessage> {}
+
 const DEFAULT_PAGE_SIZE = 100;
 
 interface ExternalServiceRequestData {

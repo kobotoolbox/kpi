@@ -16,7 +16,7 @@ import mixins from 'js/mixins';
 import MainHeader from 'js/components/header';
 import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
-import IntercomHandler from 'js/components/intercomHandler';
+import IntercomHandler from 'js/components/support/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
