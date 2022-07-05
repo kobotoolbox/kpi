@@ -3,7 +3,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from django.utils.timezone import now
-from trench.admin import MFAMethod, MFAMethodAdmin
+from trench.admin import (
+    MFAMethod as TrenchMFAMethod,
+    MFAMethodAdmin as TrenchMFAMethodAdmin,
+)
 
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserProfile,
@@ -32,7 +35,7 @@ class MfaAvailableToUserAdmin(admin.ModelAdmin):
     # list_display = ('user',)
 
 
-class KoboMFAMethod(MFAMethod):
+class MfaMethod(TrenchMFAMethod):
     """
     Extend DjangoTrench model to add created, modified and last disabled date
     """
@@ -88,6 +91,6 @@ class KoboMFAMethod(MFAMethod):
             )
 
 
-class KoboMFAMethodAdmin(MFAMethodAdmin):
+class MfaMethodAdmin(TrenchMFAMethodAdmin):
 
     search_fields = ['user__username']
