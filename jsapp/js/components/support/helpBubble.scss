@@ -1,6 +1,6 @@
-@use "scss/_colors";
-@use "scss/_variables";
-@use "scss/libs/_mdl";
+@use 'scss/_colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 
 $z-help-bubble-popup: 801;
 $s-help-bubble-row-spacing: 20px;
@@ -17,13 +17,13 @@ $s-help-bubble-row-spacing: 20px;
 .help-bubble--list-with-header,
 .help-bubble--single-message {
   @media screen and (max-height: 499px) {
-    .help-bubble__popup { height: 200px; }
-    .help-bubble__popup.help-bubble__popup--has-more-content { height: 300px; }
+    .help-bubble__popup {height: 200px;}
+    .help-bubble__popup.help-bubble__popup--has-more-content {height: 300px;}
   }
 
   @media screen and (min-height: 500px) {
-    .help-bubble__popup { min-height: 200px; }
-    .help-bubble__popup.help-bubble__popup--has-more-content { min-height: 300px; }
+    .help-bubble__popup {min-height: 200px;}
+    .help-bubble__popup.help-bubble__popup--has-more-content {min-height: 300px;}
   }
 }
 
@@ -62,6 +62,7 @@ $s-help-bubble-row-spacing: 20px;
   display: block;
   font-weight: normal;
   color: colors.$kobo-gray-40;
+
   // mimic .k-drawer__link
   border-left: 3px solid transparent;
 
@@ -78,7 +79,6 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   .k-icon {
-    font-size: 24px;
     margin: 3px;
     display: block;
   }
