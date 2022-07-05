@@ -11,10 +11,9 @@ from django.http import HttpRequest
 from django.template import Template, RequestContext
 from markdown import markdown
 from rest_framework import status
-from trench.utils import get_mfa_model
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.apps.mfa.models import KoboMFAPerUserActivation
+from kobo.apps.mfa.models import MfaAvailableToUser
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -122,20 +121,11 @@ class EnvironmentTests(BaseTestCase):
         self.assertFalse(response.data['mfa_enabled'])
 
     @override_config(MFA_ENABLED=True)
-    def test_mfa_value_globally_on_w_per_user_activations(self):
+    def test_mfa_per_user_availability_while_globally_enabled(self):
         someuser = User.objects.get(username='someuser')
 
-        # Activate MFA for someuser
-        get_mfa_model().objects.create(
-            user=someuser,
-            secret='dummy_mfa_secret',
-            name='app',
-            is_primary=True,
-            is_active=True,
-            _backup_codes='dummy_encoded_codes',
-        )
         # Enable MFA only for someuser
-        KoboMFAPerUserActivation.objects.create(user=someuser)
+        MfaAvailableToUser.objects.create(user=someuser)
 
         # someuser should have mfa enabled
         self.client.login(username='someuser', password='someuser')
