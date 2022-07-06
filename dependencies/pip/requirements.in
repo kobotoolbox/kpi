@@ -22,6 +22,7 @@ celery
 celery[redis]
 dict2xml
 dj-static
+django-allauth
 django-braces
 django-celery-beat
 django-constance[database]
