@@ -140,6 +140,11 @@ CONSTANCE_CONFIG = {
         True,
         'Allow new users to register accounts for themselves',
     ),
+    'REGISTRATION_ALLOWED_EMAIL_DOMAINS': (
+        '',
+        'Email domains allowed to register new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
