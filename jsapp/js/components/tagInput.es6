@@ -4,6 +4,7 @@
 // to update the tags. It should be incorporated into assetrow (the only file
 // that uses it) with the use of KoboTagsInput. OR it should be left here to die
 // as assetrow is going away in future.
+// See: https://github.com/kobotoolbox/kpi/issues/2758
 
 import React from 'react';
 import autoBind from 'react-autobind';

@@ -4,8 +4,7 @@
  * NOTE: these are used also by the Form Builder coffee code (see
  * `jsapp/xlform/src/view.surveyApp.coffee`)
  *
- * TODO: group these functions by what are they doing or where are they mostly
- * (or uniquely) used, and split to smaller files.
+ * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
 import moment from 'moment';
@@ -79,6 +78,7 @@ export function getUsernameFromUrl(userUrl: string): string | null {
 }
 
 // TODO: Test if works for both form and library routes, if not make it more general
+// See: https://github.com/kobotoolbox/kpi/issues/3909
 export function getAssetUIDFromUrl(assetUrl: string): string | null {
   const matched = assetUrl.match(/.*\/([^/]+)\//);
   if (matched !== null) {
@@ -98,7 +98,6 @@ export function buildUserUrl(username: string): string {
 declare global {
   interface Window {
     log: () => void;
-    MFAEnabled: boolean;
   }
 }
 
@@ -117,6 +116,7 @@ const originalSupportEmail = 'help@kobotoolbox.org';
 //
 // TODO: make this use environment endpoint's `support_email` property.
 // Currently no place is using this correctly.
+// See: https://github.com/kobotoolbox/kpi/issues/3910
 export function replaceSupportEmail(str: string, newEmail?: string): string {
   if (typeof newEmail === 'string') {
     return str.replace(originalSupportEmail, newEmail);
