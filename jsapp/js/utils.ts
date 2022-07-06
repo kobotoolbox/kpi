@@ -59,6 +59,15 @@ export function formatDate(timeStr: string): string {
   return myMoment.format('ll');
 }
 
+/** Returns something like "07:59" */
+export function formatSeconds(seconds: number) {
+  // We don't care about milliseconds (sorry!).
+  const secondsRound = Math.round(seconds);
+  const minutes = Math.floor(secondsRound / 60);
+  const secondsLeftover = secondsRound - minutes * 60;
+  return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`;
+}
+
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl: string): string | null {
   const matched = userUrl.match(/\/users\/(.*)\//);
@@ -349,6 +358,15 @@ export function generateAutoname(str: string, startIndex = 0, endIndex: number =
   .toLowerCase()
   .substring(startIndex, endIndex)
   .replace(/(\ |\.)/g, '_');
+}
+
+/** Simple unique ID generator. */
+export function generateUid() {
+  return String(
+    Math.random().toString(16) + '_' +
+    Date.now().toString(32) + '_' +
+    Math.random().toString(16)
+  ).replace(/\./g, '');
 }
 
 export function csrfSafeMethod(method: string) {
