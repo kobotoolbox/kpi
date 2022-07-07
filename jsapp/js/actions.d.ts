@@ -103,9 +103,15 @@ interface GetExportCompletedDefinition extends Function {
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
 export namespace actions {
-    const navigation: object;
+    const navigation: {
+      routeUpdate: GenericCallbackDefinition;
+    };
     const auth: {
       getEnvironment: GetEnvironmentDefinition;
+      verifyLogin: {
+        loggedin: GenericCallbackDefinition;
+      };
+      logout: GenericDefinition;
     };
     const survey: object;
     const search: object;
@@ -138,7 +144,11 @@ export namespace actions {
       getConfig: GenericDefinition;
       removeAssetPermission: GenericDefinition;
     };
-    const help: object;
+    const help: {
+      getInAppMessages: GenericDefinition;
+      setMessageAcknowledged: GenericDefinition;
+      setMessageReadTime: GenericDefinition;
+    };
     const library: {
       moveToCollection: GenericDefinition;
       subscribeToCollection: GenericDefinition;
