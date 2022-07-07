@@ -46,6 +46,7 @@ export default class ReportViewItem extends React.Component {
   componentDidUpdate() {
     // refreshes a chart right after render()
     // TODO: ideally this shouldn't refresh a chart if it hasn't changed
+    // See: https://github.com/kobotoolbox/kpi/issues/3921
     if (this.props.data.show_graph) {
       this.loadChart();
     }
@@ -83,6 +84,7 @@ export default class ReportViewItem extends React.Component {
     var showLegend = false;
 
     // TODO: set as default globally in a higher level (PM)
+    // https://github.com/kobotoolbox/kpi/issues/3921
     var colors = this.buildChartColors();
 
     var baseColor = colors[0];

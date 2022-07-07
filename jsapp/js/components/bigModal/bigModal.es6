@@ -185,6 +185,7 @@ class BigModal extends React.Component {
         break;
 
       // TODO: Make a better generic modal component
+      // See: https://github.com/kobotoolbox/kpi/issues/3643
       case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
         // Size and title will depend on its props
         this.setState({
@@ -197,6 +198,7 @@ class BigModal extends React.Component {
         break;
 
       // TODO: Make a better generic modal component
+      // See: https://github.com/kobotoolbox/kpi/issues/3643
       case MODAL_TYPES.MFA_MODALS:
         // Size and title will depend on its props
         this.setState({
