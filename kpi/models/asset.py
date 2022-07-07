@@ -428,11 +428,11 @@ class Asset(ObjectPermissionMixin,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
 
     def update_submission_extra(self, content, user=None):
-        uuid = content.get('submission')
+        submission_uuid = content.get('submission')
         try:
-            sub = self.submission_extras.get(uuid=uuid)
+            sub = self.submission_extras.get(submission_uuid=submission_uuid)
         except ObjectDoesNotExist:
-            sub = self.submission_extras.model(asset=self, uuid=uuid)
+            sub = self.submission_extras.model(asset=self, submission_uuid=submission_uuid)
         instances = self.get_advanced_feature_instances()
         compiled_content = {**sub.content}
         for instance in instances:

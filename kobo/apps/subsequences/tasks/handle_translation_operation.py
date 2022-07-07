@@ -45,7 +45,7 @@ def handle_google_translation_operation(
 
 def save_async_translation(text, submission_uuid, xpath, target_lang):
     from kobo.apps.subsequences.models import SubmissionExtras
-    submission = SubmissionExtras.objects.get(uuid=submission_uuid)
+    submission = SubmissionExtras.objects.get(submission_uuid=submission_uuid)
     submission.content[xpath][GOOGLETX] = {
         'status': 'complete',
         'languageCode': target_lang,

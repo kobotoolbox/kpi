@@ -5,11 +5,7 @@ from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 
 from kobo.apps.service_health.views import service_health
-
-# Placeholder for NLP
 from kobo.apps.subsequences.urls import patch_submission_extras
-#
-
 
 
 admin.autodiscover()

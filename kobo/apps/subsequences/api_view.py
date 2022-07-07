@@ -72,7 +72,7 @@ def advanced_submission_post(request, asset_uid=None):
 
 def get_submission_processing(asset, s_uuid):
     try:
-        submission = asset.submission_extras.get(uuid=s_uuid)
+        submission = asset.submission_extras.get(submission_uuid=s_uuid)
         return Response(submission.content)
     except SubmissionExtras.DoesNotExist:
         # submission might exist but no SubmissionExtras object has been created
