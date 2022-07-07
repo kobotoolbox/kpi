@@ -712,19 +712,11 @@ export class DataTable extends React.Component {
                 q.type === META_QUESTION_TYPES['background-audio']
               ) {
                 return (
-                  <Button
-                    type='full'
-                    size='s'
-                    color='blue'
-                    endIcon='arrow-up-right'
-                    label={t('Open audio')}
-                    onClick={() => {
-                      openProcessing(
-                        this.props.asset.uid,
-                        getRowName(q),
-                        row.original._uuid
-                      );
-                    }}
+                  <AudioCell
+                    assetUid={this.props.asset.uid}
+                    rowName={getRowName(q)}
+                    submissionUuid={row.original._uuid}
+                    mediaAttachment={mediaAttachment}
                   />
                 );
               }
