@@ -153,7 +153,7 @@ class Button extends React.Component<ButtonProps, {}> {
         }
 
         {this.props.label &&
-          <label className='k-button__label'>{this.props.label}</label>
+          <span className='k-button__label'>{this.props.label}</span>
         }
 
         {/* Ensures only one icon is being displayed.*/}

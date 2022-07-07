@@ -22,9 +22,10 @@ interface TableStoreData {
 }
 
 /**
- * TODO: tableStore should be handling all data required by table.es6, but as
- * this would mean a huge refactor, we will stick to providing a one way
- * interface for changing things in asset plus some utility functions.
+ * NOTE: tableStore should be handling all data required by table.es6, but as
+ * this would mean a huge refactor (and most probably dropping react-table),
+ * we will stick to providing a one way interface for changing things in asset
+ * plus some utility functions.
  *
  * NOTE: To simplify code a bit, we assume this will be used only on the table
  * route - i.e. assetUid comes from url, and asset from other stores.

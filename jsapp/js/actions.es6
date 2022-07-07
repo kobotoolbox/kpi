@@ -5,8 +5,6 @@
  * You can observe action result through Reflux callbacks in your component, or
  * more preferably (where applicable) use the update eveont of one of the stores
  * from `jsapp/js/stores.es6`
- *
- * TODO: Group and split actions to separate files. For a working example see `./actions/help`.
  */
 
 import alertify from 'alertifyjs';
@@ -96,8 +94,6 @@ actions.misc = Reflux.createActions({
   updateProfile: {children: ['completed', 'failed']},
 });
 
-// TODO move these callbacks to `actions/permissions.es6` after moving
-// `actions.resources` to separate file (circular dependency issue)
 permissionsActions.assignAssetPermission.failed.listen(() => {
   notify(t('Failed to update permissions'), 'error');
 });
@@ -256,6 +252,7 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
   } else if(!!data.responseJSON.xform_id_string){
     // TODO: now that the id_string is automatically generated, this failure
     // mode probably doesn't need special handling
+    // see: https://github.com/kobotoolbox/kpi/issues/3902
     failure_message = `
       <p>${t('your form id was not valid:')}</p>
       <p><pre>${data.responseJSON.xform_id_string}</pre></p>
