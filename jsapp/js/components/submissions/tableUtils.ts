@@ -128,10 +128,6 @@ export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   }
 }
 
-/**
- * TODO: if multiple background-audio's are allowed, we should return all
- * background-audio related names
- */
 export function getBackgroundAudioQuestionName(asset: AssetResponse): string | null {
   return asset?.content?.survey?.find(
     (item) => item.type === META_QUESTION_TYPES['background-audio']

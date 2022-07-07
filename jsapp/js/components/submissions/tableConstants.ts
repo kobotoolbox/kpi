@@ -43,7 +43,6 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   SORT_BY: 'sort-by',
 });
 
-// TODO: Append this list with transcriptions/translations when they get added (NLP)
 export const TABLE_MEDIA_TYPES = createEnum([
   QUESTION_TYPES.image.id,
   QUESTION_TYPES.audio.id,

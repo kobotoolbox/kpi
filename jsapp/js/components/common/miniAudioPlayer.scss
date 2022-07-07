@@ -1,0 +1,30 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'js/components/common/button';
+
+.mini-audio-player {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  color: colors.$kobo-blue;
+  height: button.$button-height-s;
+}
+
+.mini-audio-player.mini-audio-player--is-loading {
+  color: colors.$kobo-gray-40;
+}
+
+.mini-audio-player.mini-audio-player--is-broken {
+  color: colors.$kobo-red;
+
+  > .k-icon {
+    width: button.$button-height-s;
+  }
+}
+
+.mini-audio-player__time {
+  font-size: sizes.$x14;
+  margin-left: sizes.$x5;
+}

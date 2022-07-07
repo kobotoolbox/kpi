@@ -2,9 +2,7 @@
  * The only file that is making calls to Backend. You shouldn't use it directly,
  * but through proper actions in `jsapp/js/actions.es6`.
  *
- * TODO: Instead of splitting this huge file it could be a good idead to move
- * all the calls from here to appropriate actions and drop this file entirely.
- * And make actions for calls that doesn't have them.
+ * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
 import {assign} from 'js/utils';
@@ -74,7 +72,6 @@ interface AssetFileRequest {
 }
 
 export interface CreateImportRequest {
-  // TODO there might be more here
   base64Encoded?: string;
   name?: string;
   destination?: string;
@@ -280,7 +277,7 @@ export interface SurveyChoice {
 
 interface AssetLockingProfileDefinition {
   name: string;
-  restrictions: string[]; // TODO use restrictions enum after it is added
+  restrictions: string[]; // TODO make sure it's a type not a string when, see: https://github.com/kobotoolbox/kpi/issues/3904
 }
 
 export interface AssetContentSettings {
@@ -393,7 +390,7 @@ export interface AssetSettings {
 
 /** This is the asset object Frontend uses with the endpoints. */
 interface AssetRequestObject {
-  // TODO there might be a few properties in AssetResponse that should be here,
+  // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null;
   settings: AssetSettings;
@@ -505,7 +502,9 @@ export interface AssetResponse extends AssetRequestObject {
   access_types: string[]|null;
 
   // TODO: think about creating a new interface for asset that is being extended
-  // on frontend. Here are some properties we add to the response:
+  // on frontend.
+  // See: https://github.com/kobotoolbox/kpi/issues/3905
+  // Here are some properties we add to the response:
   tags?: string[];
   unparsed__settings?: AssetContentSettings;
   settings__style?: string;
@@ -1032,6 +1031,7 @@ export const dataInterface: DataInterface = {
       data: {
         ordering: '-date_created',
         // TODO: handle pagination of this in future, for now we get "all"
+        // see: https://github.com/kobotoolbox/kpi/issues/3906
         limit: 9999,
       },
     });
@@ -1064,7 +1064,9 @@ export const dataInterface: DataInterface = {
   getExportSettings(assetUid: string) {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
-      // TODO: handle pagination of this in future, for now we get "all"
+      // NOTE: we make an educated guess that there would be no real world
+      // situations that would require more than 9999 saved settings.
+      // No pagination here, sorry.
       data: {limit: 9999},
     });
   },
