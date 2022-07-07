@@ -60,6 +60,7 @@ import {
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
 import MediaCell from './mediaCell';
+import AudioCell from './audioCell';
 import {openProcessing} from 'js/components/processing/processingUtils';
 
 const DEFAULT_PAGE_SIZE = 30;
@@ -697,7 +698,7 @@ export class DataTable extends React.Component {
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
-        width: this._getColumnWidth(key),
+        width: this._getColumnWidth(q?.type),
         Cell: (row) => {
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
