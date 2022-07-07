@@ -1,3 +1,4 @@
+from copy import deepcopy
 from .actions.automatic_transcription import AutomaticTranscriptionAction
 from .actions.translation import TranslationAction
 
@@ -46,8 +47,28 @@ def advanced_feature_instances(content, actions):
             action_params = action_kls.build_params({}, content)
         yield action_kls(action_params)
 
+def populate_xpaths(_content):
+    content = deepcopy(_content)
+    group_stack = []
+    for row in content['survey']:
+        rowname = row.get('$autoname', row.get('name'))
+        if row['type'] == 'begin_group':
+            #, 'begin_repeat']:
+            name = row['$autoname']
+            group_stack.append(rowname)
+        elif row['type'] == 'begin_repeat':
+            name = row['$autoname']
+            group_stack.append(f'{rowname}[]')
+        elif row['type'] in ['end_group', 'end_repeat']:
+            group_stack.pop()
+            continue
+        # xpath_s is row.xpath.replace('/form_id_string/', '#/')
+        row['xpath_s'] = '/'.join(['#', *group_stack, rowname])
+    return content
+
 def advanced_submission_jsonschema(content, actions, url=None):
     action_instances = []
+    content = populate_xpaths(content)
     if 'translated' in actions:
         assert 'languages' in actions['translated']
     for action_id, action_params in actions.items():

@@ -107,8 +107,9 @@ class BaseAction:
         raise NotImplementedError(f'{kls.__name__} has not implemented a build_params method')
 
     def get_name(self, row):
+        # return the full xpath...
         # return the first "name" field, either 'name' or '$autoname'
-        for name_field in ['name', '$autoname']:
+        for name_field in ['xpath_s', 'name', '$autoname']:
             if name_field in row:
                 return row[name_field]
         return None
