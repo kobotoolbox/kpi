@@ -141,12 +141,12 @@ class ProjectSettings extends React.Component {
    * Function used whenever some endpoint calls return an asset.
    */
   applyAssetToState(asset) {
-    const newStateObj = clonedeep(this.state);
-    newStateObj.fields = this.getInitialFieldsFromAsset(asset);
-    newStateObj.isUploadFilePending = false;
-    newStateObj.isImportFromURLPending = false;
-    newStateObj.formAsset = asset;
-    this.setState(newStateObj);
+    this.setState({
+      fields: this.getInitialFieldsFromAsset(asset),
+      isUploadFilePending: false,
+      isImportFromURLPending: false,
+      formAsset: asset,
+    });
   }
 
   setInitialStep() {
