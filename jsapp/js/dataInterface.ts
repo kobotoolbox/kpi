@@ -92,7 +92,7 @@ export interface ImportResponse {
 }
 
 export interface FailResponse {
-  responseJSON: {
+  responseJSON?: {
     detail: string;
   };
   responseText: string;
@@ -1413,28 +1413,6 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/files/${uid}/`,
       method: 'DELETE',
-    });
-  },
-
-  getHelpInAppMessages() {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/`,
-      method: 'GET',
-    });
-  },
-
-  patchHelpInAppMessage(uid: string, data: {
-    interactions: {
-      readTime: string;
-      acknowledged: boolean;
-    };
-  }) {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/${uid}/`,
-      method: 'PATCH',
-      data: JSON.stringify(data),
-      dataType: 'json',
-      contentType: 'application/json',
     });
   },
 
