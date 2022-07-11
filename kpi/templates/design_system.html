@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Design System @ KoBoToolbox</title>
+    <title>Design System @ KoboToolbox</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,9 +9,7 @@
     {% load render_bundle from webpack_loader %}
     {% load static %}
 
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}" />
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}" />
-    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+    <link rel="icon" href="{% static 'favicon.png' %}" />
 
     {% render_bundle 'app' 'css' %}
   </head>
@@ -27,7 +25,6 @@
       {% include "global_t.html" %}
 
       {% render_bundle 'app' 'js' %}
-      {% render_bundle 'vendors' 'js' %}
 
     {% endblock footer %}
   </body>

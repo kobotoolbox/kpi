@@ -1,6 +1,6 @@
 # coding: utf-8
 # 😬
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 
 # This file is a place to store static, translatable strings
 
@@ -10,31 +10,31 @@ SECTOR_CHOICE_DEFAULTS = (
     # choices to be translated
 
     # (value, human-readable label)
-    ("Public Administration", _("Public Administration")),
-    ("Arts, Entertainment, and Recreation", _("Arts, Entertainment, and Recreation")),
-    ("Educational Services / Higher Education", _("Educational Services / Higher Education")),
-    ("Health Services / Public Health", _("Health Services / Public Health")),
-    ("Finance and Insurance", _("Finance and Insurance")),
-    ("Information / Media", _("Information / Media")),
-    ("Economic/Social Development", _("Economic/Social Development")),
-    ("Security / Police / Peacekeeping", _("Security / Police / Peacekeeping")),
-    ("Disarmament & Demobilization", _("Disarmament & Demobilization")),
-    ("Environment", _("Environment")),
-    ("Private sector", _("Private sector")),
-    ("Humanitarian - Coordination / Information Management", _("Humanitarian - Coordination / Information Management")),
-    ("Humanitarian - Multiple Clusters", _("Humanitarian - Multiple Clusters")),
-    ("Humanitarian - Camp Management & Coordination", _("Humanitarian - Camp Management & Coordination")),
-    ("Humanitarian - Early Recovery", _("Humanitarian - Early Recovery")),
-    ("Humanitarian - Education", _("Humanitarian - Education")),
-    ("Humanitarian - Emergency Shelter", _("Humanitarian - Emergency Shelter")),
-    ("Humanitarian - Emergency Telecoms", _("Humanitarian - Emergency Telecoms")),
-    ("Humanitarian - Food Security", _("Humanitarian - Food Security")),
-    ("Humanitarian - Health", _("Humanitarian - Health")),
-    ("Humanitarian - Logistics", _("Humanitarian - Logistics")),
-    ("Humanitarian - Nutrition", _("Humanitarian - Nutrition")),
-    ("Humanitarian - Protection", _("Humanitarian - Protection")),
-    ("Humanitarian - Sanitation, Water & Hygiene", _("Humanitarian - Sanitation, Water & Hygiene")),
-    ("Other", _("Other")),
+    ("Public Administration", t("Public Administration")),
+    ("Arts, Entertainment, and Recreation", t("Arts, Entertainment, and Recreation")),
+    ("Educational Services / Higher Education", t("Educational Services / Higher Education")),
+    ("Health Services / Public Health", t("Health Services / Public Health")),
+    ("Finance and Insurance", t("Finance and Insurance")),
+    ("Information / Media", t("Information / Media")),
+    ("Economic/Social Development", t("Economic/Social Development")),
+    ("Security / Police / Peacekeeping", t("Security / Police / Peacekeeping")),
+    ("Disarmament & Demobilization", t("Disarmament & Demobilization")),
+    ("Environment", t("Environment")),
+    ("Private sector", t("Private sector")),
+    ("Humanitarian - Coordination / Information Management", t("Humanitarian - Coordination / Information Management")),
+    ("Humanitarian - Multiple Clusters", t("Humanitarian - Multiple Clusters")),
+    ("Humanitarian - Camp Management & Coordination", t("Humanitarian - Camp Management & Coordination")),
+    ("Humanitarian - Early Recovery", t("Humanitarian - Early Recovery")),
+    ("Humanitarian - Education", t("Humanitarian - Education")),
+    ("Humanitarian - Emergency Shelter", t("Humanitarian - Emergency Shelter")),
+    ("Humanitarian - Emergency Telecoms", t("Humanitarian - Emergency Telecoms")),
+    ("Humanitarian - Food Security", t("Humanitarian - Food Security")),
+    ("Humanitarian - Health", t("Humanitarian - Health")),
+    ("Humanitarian - Logistics", t("Humanitarian - Logistics")),
+    ("Humanitarian - Nutrition", t("Humanitarian - Nutrition")),
+    ("Humanitarian - Protection", t("Humanitarian - Protection")),
+    ("Humanitarian - Sanitation, Water & Hygiene", t("Humanitarian - Sanitation, Water & Hygiene")),
+    ("Other", t("Other")),
 )
 
 # You might generate such a list of countries with code like this:
@@ -51,7 +51,7 @@ SECTOR_CHOICE_DEFAULTS = (
 #         else:
 #             url = None
 #         for d in j['data']:
-#             print("({}, _({}))".format(repr(d['iso3']), repr(d['label'])))
+#             print("({}, t({}))".format(repr(d['iso3']), repr(d['label'])))
 COUNTRIES = (
     # (value, human-readable label)
     ('AFG', 'Afghanistan'),
@@ -316,7 +316,7 @@ COUNTRIES = (
 #         line = line.decode(response.apparent_encoding)
 #         fields = line.strip().split('|')
 #         if fields[2]:
-#             print '({}, _({})),'.format(repr(fields[2]), repr(fields[3]))
+#             print '({}, t({})),'.format(repr(fields[2]), repr(fields[3]))
 LANGUAGES = (
     # (value, human-readable label)
     ('aa', 'Afar'),
@@ -516,3 +516,372 @@ EXTRA_LANG_INFO = {
         'name_local': 'كوردی',
     },
 }
+
+# A list of languages and language codes used by external services
+EXTERNAL_SERVICE_LANGUAGES = {
+    'af': 'Afrikaans',
+    'af-ZA': 'Afrikaans (South Africa)',
+    'am': 'Amharic',
+    'am-ET': 'Amharic (Ethiopia)',
+    'ar': 'Arabic',
+    'ar-AE': 'Arabic (United Arab Emirates)',
+    'ar-BH': 'Arabic (Bahrain)',
+    'ar-DZ': 'Arabic (Algeria)',
+    'ar-EG': 'Arabic (Egypt)',
+    'ar-IL': 'Arabic (Israel)',
+    'ar-IQ': 'Arabic (Iraq)',
+    'ar-JO': 'Arabic (Jordan)',
+    'ar-KW': 'Arabic (Kuwait)',
+    'ar-LB': 'Arabic (Lebanon)',
+    'ar-LY': 'Arabic (Libya)',
+    'ar-MA': 'Arabic (Morocco)',
+    'ar-OM': 'Arabic (Oman)',
+    'ar-PS': 'Arabic (State of Palestine)',
+    'ar-QA': 'Arabic (Qatar)',
+    'ar-SA': 'Arabic (Saudi Arabia)',
+    'ar-TN': 'Arabic (Tunisia)',
+    'ar-YE': 'Arabic (Yemen)',
+    'as': 'Assamese',
+    'az': 'Azerbaijani',
+    'az-AZ': 'Azerbaijani (Azerbaijan)',
+    'ba': 'Bashkir',
+    'be': 'Belarusian',
+    'bg': 'Bulgarian',
+    'bg-BG': 'Bulgarian (Bulgaria)',
+    'bn': 'Bengali',
+    'bn-BD': 'Bengali (Bangladesh)',
+    'bn-IN': 'Bengali (India)',
+    'bo': 'Tibetan',
+    'bs': 'Bosnian',
+    'bs-BA': 'Bosnian (Bosnia and Herzegovina)',
+    'ca': 'Catalan',
+    'ca-ES': 'Catalan (Spain)',
+    'ceb': 'Cebuano',
+    'cnr': 'Montenegrin',
+    'co': 'Corsican',
+    'cs': 'Czech',
+    'cs-CZ': 'Czech (Czech Republic)',
+    'cy': 'Welsh',
+    'da': 'Danish',
+    'da-DK': 'Danish (Denmark)',
+    'de': 'German',
+    'de-AT': 'German (Austria)',
+    'de-CH': 'German (Switzerland)',
+    'de-DE': 'German (Germany)',
+    'dv': 'Divehi',
+    'el': 'Greek',
+    'el-GR': 'Greek (Greece)',
+    'en': 'English',
+    'en-AB': 'English (Scottish)',
+    'en-AU': 'English (Australia)',
+    'en-CA': 'English (Canada)',
+    'en-GB': 'English (United Kingdom)',
+    'en-GH': 'English (Ghana)',
+    'en-HK': 'English (Hong Kong)',
+    'en-IE': 'English (Ireland)',
+    'en-IN': 'English (India)',
+    'en-KE': 'English (Kenya)',
+    'en-NG': 'English (Nigeria)',
+    'en-NZ': 'English (New Zealand)',
+    'en-PH': 'English (Philippines)',
+    'en-PK': 'English (Pakistan)',
+    'en-SG': 'English (Singapore)',
+    'en-TZ': 'English (Tanzania)',
+    'en-US': 'English (United States)',
+    'en-WL': 'English (Welsh)',
+    'en-ZA': 'English (South Africa)',
+    'eo': 'Esperanto',
+    'es': 'Spanish',
+    'es-AR': 'Spanish (Argentina)',
+    'es-BO': 'Spanish (Bolivia)',
+    'es-CL': 'Spanish (Chile)',
+    'es-CO': 'Spanish (Colombia)',
+    'es-CR': 'Spanish (Costa Rica)',
+    'es-DO': 'Spanish (Dominican Republic)',
+    'es-EC': 'Spanish (Ecuador)',
+    'es-ES': 'Spanish (Spain)',
+    'es-GT': 'Spanish (Guatemala)',
+    'es-HN': 'Spanish (Honduras)',
+    'es-MX': 'Spanish (Mexico)',
+    'es-NI': 'Spanish (Nicaragua)',
+    'es-PA': 'Spanish (Panama)',
+    'es-PE': 'Spanish (Peru)',
+    'es-PR': 'Spanish (Puerto Rico)',
+    'es-PY': 'Spanish (Paraguay)',
+    'es-SV': 'Spanish (El Salvador)',
+    'es-US': 'Spanish (United States)',
+    'es-UY': 'Spanish (Uruguay)',
+    'es-VE': 'Spanish (Venezuela)',
+    'et': 'Estonian',
+    'et-EE': 'Estonian (Estonia)',
+    'eu': 'Basque',
+    'eu-ES': 'Basque (Spain)',
+    'fa': 'Persian',
+    'fa-Af': 'Dari',
+    'fa-IR': 'Persian (Iran)',
+    'fi': 'Finnish',
+    'fi-FI': 'Finnish (Finland)',
+    'fil-PH': 'Filipino (Philippines)',
+    'fj': 'Fijian',
+    'fr': 'French',
+    'fr-BE': 'French (Belgium)',
+    'fr-CA': 'French (Canada)',
+    'fr-CH': 'French (Switzerland)',
+    'fr-FR': 'French (France)',
+    'fy': 'Frisian',
+    'ga': 'Irish',
+    'gd': 'Scots Gaelic',
+    'ge-IE': 'Irish (Ireland)',
+    'gl': 'Galician',
+    'gl-ES': 'Galician (Spain)',
+    'gu': 'Gujarati',
+    'gu-IN': 'Gujarati (India)',
+    'ha': 'Hausa',
+    'haw': 'Hawaiian',
+    'he': 'Hebrew',
+    'hi': 'Hindi',
+    'hi-IN': 'Hindi (India)',
+    'hmn': 'Hmong',
+    'hr': 'Croatian',
+    'hr-HR': 'Croatian (Croatia)',
+    'ht': 'Haitian Creole',
+    'hu': 'Hungarian',
+    'hu-HU': 'Hungarian (Hungary)',
+    'hy': 'Armenian',
+    'hy-AM': 'Armenian (Armenia)',
+    'id': 'Indonesian',
+    'id-ID': 'Indonesian (Indonesia)',
+    'ig': 'Igbo',
+    'is': 'Icelandic',
+    'is-IS': 'Icelandic (Iceland)',
+    'it': 'Italian',
+    'it-CH': 'Italian (Switzerland)',
+    'it-IT': 'Italian (Italy)',
+    'iu': 'Inuktitut',
+    'iw-IL': 'Hebrew (Israel)',
+    'ja': 'Japanese',
+    'ja-JP': 'Japanese (Japan)',
+    'jv': 'Javanese',
+    'jv-ID': 'Javanese (Indonesia)',
+    'ka': 'Georgian',
+    'ka-GE': 'Georgian (Georgia)',
+    'kk': 'Kazakh',
+    'kk-KZ': 'Kazakh (Kazakhstan)',
+    'km': 'Khmer',
+    'km-KH': 'Khmer (Cambodia)',
+    'kmr': 'Kurdish (Northern)',
+    'kn': 'Kannada',
+    'kn-IN': 'Kannada (India)',
+    'ko': 'Korean',
+    'ko-KR': 'Korean (South Korea)',
+    'ku': 'Kurdish',
+    'ky': 'Kyrgyz',
+    'lb': 'Luxembourgish',
+    'lo': 'Lao',
+    'lo-LA': 'Lao (Laos)',
+    'lt': 'Lithuanian',
+    'lt-LT': 'Lithuanian (Lithuania)',
+    'lv': 'Latvian',
+    'lv-LV': 'Latvian (Latvia)',
+    'mg': 'Malagasy',
+    'mi': 'Maori',
+    'mk': 'Macedonian',
+    'mk-MK': 'Macedonian (North Macedonia)',
+    'ml': 'Malayalam',
+    'ml-IN': 'Malayalam (India)',
+    'mn': 'Mongolian',
+    'mn-Cyrl': 'Mongolian (Cyrillic)',
+    'mn-MN': 'Mongolian (Mongolia)',
+    'mn-Mong': 'Mongolian (Traditional)',
+    'mr': 'Marathi',
+    'mr-IN': 'Marathi (India)',
+    'ms': 'Malay',
+    'ms-MY': 'Malay (Malaysia)',
+    'mt': 'Maltese',
+    'mt-IN': 'Maltese (Malta)',
+    'my': 'Myanmar (Burmese)',
+    'my-MM': 'Burmese (Myanmar)',
+    'ne': 'Nepali',
+    'ne-NP': 'Nepali (Nepal)',
+    'nl': 'Dutch',
+    'nl-BE': 'Dutch (Belgium)',
+    'nl-NL': 'Dutch (Netherlands)',
+    'no': 'Norwegian',
+    'no-NO': 'Norwegian Bokmål (Norway)',
+    'ny': 'Nyanja (Chichewa)',
+    'or': 'Odia (Oriya)',
+    'otq': 'Queretaru Otomi',
+    'pa': 'Punjabi',
+    'pa-Guru-IN': 'Punjabi (Gurmukhi India)',
+    'pl': 'Polish',
+    'pl-PL': 'Polish (Poland)',
+    'ps': 'Pashto',
+    'pt': 'Portuguese (Portugal, Brazil)',
+    'pt-BR': 'Portuguese (Brazil)',
+    'pt-PT': 'Portuguese (Portugal)',
+    'pt-pt': 'Portuguese (Portugal)',
+    'ro': 'Romanian',
+    'ro-RO': 'Romanian (Romania)',
+    'ru': 'Russian',
+    'ru-RU': 'Russian (Russia)',
+    'rw': 'Kinyarwanda',
+    'sd': 'Sindhi',
+    'si': 'Sinhala (Sinhalese)',
+    'si-LK': 'Sinhala (Sri Lanka)',
+    'sk': 'Slovak',
+    'sk-SK': 'Slovak (Slovakia)',
+    'sl': 'Slovenian',
+    'sl-SI': 'Slovenian (Slovenia)',
+    'sm': 'Samoan',
+    'sn': 'Shona',
+    'so': 'Somali',
+    'sq': 'Albanian',
+    'sq-AL': 'Albanian (Albania)',
+    'sr': 'Serbian',
+    'sr-Cyrl': 'Serbian (Cryllic)',
+    'sr-Latn': 'Serbian (Latin)',
+    'sr-RS': 'Serbian (Serbia)',
+    'st': 'Sesotho',
+    'su': 'Sundanese',
+    'su-ID': 'Sundanese (Indonesia)',
+    'sv': 'Swedish',
+    'sv-SE': 'Swedish (Sweden)',
+    'sw': 'Swahili',
+    'sw-KE': 'Swahili (Kenya)',
+    'sw-TZ': 'Swahili (Tanzania)',
+    'sw-cd': 'Swahili (Congo)',
+    'ta': 'Tamil',
+    'ta-IN': 'Tamil (India)',
+    'ta-LK': 'Tamil (Sri Lanka)',
+    'ta-MY': 'Tamil (Malaysia)',
+    'ta-SG': 'Tamil (Singapore)',
+    'te': 'Telugu',
+    'te-IN': 'Telugu (India)',
+    'tg': 'Tajik',
+    'th': 'Thai',
+    'th-TH': 'Thai (Thailand)',
+    'ti': 'Tigrinya',
+    'tk': 'Turkmen',
+    'tl': 'Tagalog (Filipino)',
+    'tlh-Latn': 'Klingon',
+    'tlh-Piqd': 'Klingon (plqaD)',
+    'tr': 'Turkish',
+    'tr-TR': 'Turkish (Turkey)',
+    'tt': 'Tatar',
+    'ug': 'Uyghur',
+    'uk': 'Ukrainian',
+    'uk-UA': 'Ukrainian (Ukraine)',
+    'ur': 'Urdu',
+    'ur-IN': 'Urdu (India)',
+    'ur-PK': 'Urdu (Pakistan)',
+    'uz': 'Uzbek',
+    'uz-UZ': 'Uzbek (Uzbekistan)',
+    'vi': 'Vietnamese',
+    'vi-VN': 'Vietnamese (Vietnam)',
+    'xh': 'Xhosa',
+    'yi': 'Yiddish',
+    'yo': 'Yoruba',
+    'yua': 'Yucatec Maya',
+    'yue': 'Cantonese',
+    'yue-Hant-HK': 'Chinese, Cantonese (Traditional Hong Kong)',
+    'zh': 'Chinese, Mandarin (Simplified, China)',
+    'zh-TW': 'Chinese, Mandarin (Traditional, Taiwan)',
+    'zu': 'Zulu',
+    'zu-ZA': 'Zulu (South Africa)',
+}
+
+EXTERNAL_SERVICE_LANGUAGE_ALIASES = {
+    'cs': ['prs'],
+    'hmn': ['mww'],
+    'tl': ['fil'],
+    'zh': ['zh-Hans'],
+    'zh-TW': ['zh-Hant'],
+}
+
+split_values = lambda o: dict([(k,v.split(' ')) for k,v in o.items()])
+
+TRANSCRIPTION_SERVICES = split_values({
+    # 'AMZN': 'af-ZA ar-SA ar-AE yue-Hant-HK zh-TW da-DK nl-NL en-AU en-IN '
+    #              'en-IE en-NZ en-AB en-ZA en-GB en-US en-WL fr-CA fr-FR de-DE '
+    #              'de-CH iw-IL hi-IN id-ID it-IT ja-JP ko-KR ms-MY fa-IR pt-BR '
+    #              'pt-PT ru-RU es-ES es-US ta-IN te-IN th-TH tr-TR',
+    'GOOG': 'af-ZA sq-AL am-ET ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW '
+                 'ar-LB ar-MA ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE hy-AM '
+                 'az-AZ eu-ES bn-BD bn-IN bs-BA bg-BG my-MM ca-ES yue-Hant-HK '
+                 'zh zh-TW hr-HR cs-CZ da-DK nl-BE nl-NL en-AU en-CA en-GH '
+                 'en-HK en-IN en-IE en-KE en-NZ en-NG en-PK en-PH en-SG en-ZA '
+                 'en-TZ en-GB en-US et-EE fil-PH fi-FI fr-BE fr-CA fr-FR fr-CH '
+                 'gl-ES ka-GE de-AT de-DE de-CH el-GR gu-IN iw-IL hi-IN hu-HU '
+                 'is-IS id-ID it-IT it-CH ja-JP jv-ID kn-IN kk-KZ km-KH ko-KR '
+                 'lo-LA lv-LV lt-LT mk-MK ms-MY ml-IN mr-IN mn-MN ne-NP no-NO '
+                 'fa-IR pl-PL pt-BR pt-PT pa-Guru-IN ro-RO ru-RU sr-RS si-LK '
+                 'sk-SK sl-SI es-AR es-BO es-CL es-CO es-CR es-DO es-EC es-SV '
+                 'es-GT es-HN es-MX es-NI es-PA es-PY es-PE es-PR es-ES es-US '
+                 'es-UY es-VE su-ID sw-KE sw-TZ sv-SE ta-IN ta-MY ta-SG ta-LK '
+                 'te-IN th-TH tr-TR uk-UA ur-IN ur-PK uz-UZ vi-VN zu-ZA',
+    # 'IBM': 'ar-SA zh cs-CZ nl-BE nl-NL en-AU en-IN en-GB en-US fr-CA '
+    #              'fr-FR de-DE hi-IN it-IT ja-JP ko-KR pt-BR es-AR es-CL es-CO '
+    #              'es-MX es-PE es-ES',
+    # 'MSFT': 'ar-DZ ar-BH ar-EG ar-IQ ar-IL ar-JO ar-KW ar-LB ar-LY ar-MA '
+    #              'ar-OM ar-QA ar-SA ar-PS ar-TN ar-AE ar-YE bg-BG ca-ES '
+    #              'yue-Hant-HK zh zh-TW hr-HR cs-CZ da-DK nl-NL en-AU en-CA '
+    #              'en-GH en-HK en-IN en-IE en-KE en-NZ en-NG en-PH en-SG en-ZA '
+    #              'en-TZ en-GB en-US et-EE fil-PH fi-FI fr-CA fr-FR fr-CH de-AT '
+    #              'de-DE el-GR gu-IN iw-IL hi-IN hu-HU id-ID ge-IE it-IT ja-JP '
+    #              'kn-IN ko-KR lv-LV lt-LT ms-MY mt-IN mr-IN no-NO fa-IR pl-PL '
+    #              'pt-BR pt-PT ro-RO ru-RU sl-SI es-AR es-BO es-CL es-CO es-CR '
+    #              'es-DO es-EC es-SV es-GT es-HN es-MX es-NI es-PA es-PY es-PE '
+    #              'es-PR es-ES es-US es-UY es-VE sw-KE ta-IN te-IN th-TH tr-TR '
+    #              'vi-VN',
+    # 'TWB': 'en-US fr-FR sw-cd',
+})
+
+TRANSLATION_SERVICES = split_values({
+    # 'AMZN': 'af sq am ar hy az bn bs bg ca zh zh-TW hr cs fa-Af da nl en '
+    #              'et fi fr fr-CA ka de el gu ht ha he hi hu is id ga it ja kn '
+    #              'kk ko lv lt mk ms ml mt mr mn no ps fa pl pt pa ro ru sr si '
+    #              'sk sl so es sw sv tl ta te th tr uk ur uz vi cy',
+    'GOOG': 'af sq am ar hy az bn eu be bs bg ca ceb zh zh-TW co hr cs da '
+                 'nl en eo et fi fr fy gl ka de el gu ht ha haw he hi hmn hu '
+                 'is ig id ga it ja jv kn kk km rw ko ku ky lo lv lt lb mk mg '
+                 'ms ml mt mi mr mn my ne no ny or ps fa pl pt pa ro ru sm gd '
+                 'sr st sn sd si sk sl so es su sw sv tl tg ta tt te th tr tk '
+                 'uk ur ug uz vi cy xh yi yo zu',
+    # 'IBM': 'ar bn eu bs bg ca zh zh-TW hr cs da nl en et fi fr fr-CA de '
+    #              'el gu he hi hu id ga it ja ko lv lt ms ml mt cnr ne no pl pt '
+    #              'ro ru sr si sk sl es sv ta te th tr uk ur vi cy',
+    # 'MSFT': 'af sq am ar hy as az ba bs bg yue ca zh zh-TW hr cs fa-Af da '
+    #              'dv nl en et fj fi fr fr-CA ka de el gu ht he hi hmn hu is id '
+    #              'iu ga it ja kn kk km tlh-Latn tlh-Piqd ko ku kmr ky lo lv lt '
+    #              'mk mg ms ml mt mi mr mn-Cyrl mn-Mong my ne no or ps fa pl pt '
+    #              'pt-pt pa otq ro ru sm sr-Cyrl sr-Latn sk sl es sw sv tl ta '
+    #              'tt te th bo ti tr tk uk ur ug uz vi cy yua'
+})
+
+SERVICES = {
+    'AMZN': {'name': 'Amazon'},
+    'GOOG': {'name': 'Google'},
+    'IBM': {'name': 'IBM'},
+    'MSFT': {'name': 'Microsoft'},
+    'TWB': {'name': 'TWB'},
+}
+
+
+def repack(obj):
+    # Rearrange these dicts to the representation expeced by the API viewset
+    out = {}
+    for svc, langs in obj.items():
+        for lang in langs:
+            if lang not in out:
+                name = EXTERNAL_SERVICE_LANGUAGES[lang]
+                out[lang] = {'name': name, 'options': []}
+            svc_name = SERVICES[svc]['name']
+            out[lang]['options'] = sorted([*out[lang]['options'], svc_name])
+            if lang in EXTERNAL_SERVICE_LANGUAGE_ALIASES:
+                alias = EXTERNAL_SERVICE_LANGUAGE_ALIASES[lang][0]
+                out[lang]['alternate_code'] = alias
+    return out
+
+
+TRANSLATION_LANGUAGES = repack(TRANSLATION_SERVICES)
+TRANSCRIPTION_LANGUAGES = repack(TRANSCRIPTION_SERVICES)

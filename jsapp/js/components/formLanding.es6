@@ -10,6 +10,7 @@ import {stores} from '../stores';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
+import InlineMessage from 'js/components/common/inlineMessage';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -596,9 +597,12 @@ export class FormLanding extends React.Component {
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() &&
-                <bem.FormView__cell m='warning'>
-                  <Icon name='alert' size='m'/>
-                  <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
+                <bem.FormView__cell>
+                  <InlineMessage
+                    icon='alert'
+                    type='warning'
+                    message={t('If you want to make these changes public, you must deploy this form.')}
+                  />
                 </bem.FormView__cell>
               }
               {this.renderFormInfo(userCanEdit)}

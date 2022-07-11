@@ -3,26 +3,42 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
+import clonedeep from 'lodash.clonedeep';
 import {actions} from 'js/actions';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {stores} from 'js/stores';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import ApiTokenDisplay from 'js/components/apiTokenDisplay';
-import {stringToColor} from 'utils';
+import {
+  addRequiredToLabel,
+  stringToColor,
+} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
+bem.AccountSettings = makeBem(null, 'account-settings');
+bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
+bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
+bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
+bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
+
+/**
+ * NOTE: We have multiple components with similar form:
+ * - ProjectSettings
+ * - AccountSettingsRoute
+ * - LibraryAssetForm
+ */
 export default class AccountSettings extends React.Component {
   constructor(props){
     super(props);
     this.state = {
       isPristine: true,
-      requireAuth: false,
+      fields: {requireAuth: false},
       fieldsWithErrors: {},
     };
     autoBind(this);
@@ -62,21 +78,23 @@ export default class AccountSettings extends React.Component {
     }
 
     this.setState({
-      name: currentAccount.extra_details.name,
-      email: currentAccount.email,
-      organization: currentAccount.extra_details.organization,
-      organizationWebsite: currentAccount.extra_details.organization_website,
-      primarySector: currentAccount.extra_details.sector,
-      gender: currentAccount.extra_details.gender,
-      bio: currentAccount.extra_details.bio,
-      city: currentAccount.extra_details.city,
-      country: currentAccount.extra_details.country,
-      requireAuth: currentAccount.extra_details.require_auth,
-      twitter: currentAccount.extra_details.twitter,
-      linkedin: currentAccount.extra_details.linkedin,
-      instagram: currentAccount.extra_details.instagram,
-      metadata: currentAccount.extra_details.metadata,
-
+      fields: {
+        name: currentAccount.extra_details.name,
+        email: currentAccount.email,
+        organization: currentAccount.extra_details.organization,
+        organizationWebsite: currentAccount.extra_details.organization_website,
+        sector: currentAccount.extra_details.sector,
+        gender: currentAccount.extra_details.gender,
+        bio: currentAccount.extra_details.bio,
+        city: currentAccount.extra_details.city,
+        country: currentAccount.extra_details.country,
+        requireAuth: currentAccount.extra_details.require_auth,
+        twitter: currentAccount.extra_details.twitter,
+        linkedin: currentAccount.extra_details.linkedin,
+        instagram: currentAccount.extra_details.instagram,
+        metadata: currentAccount.extra_details.metadata,
+      },
+      fieldsWithErrors: {},
       languageChoices: environment.all_languages,
       countryChoices: environment.country_choices,
       sectorChoices: environment.sector_choices,
@@ -94,7 +112,6 @@ export default class AccountSettings extends React.Component {
           label: t('Other'),
         },
       ],
-      fieldsWithErrors: {},
     });
   }
 
@@ -109,21 +126,21 @@ export default class AccountSettings extends React.Component {
   updateProfile() {
     actions.misc.updateProfile(
       {
-        email: this.state.email,
+        email: this.state.fields.email,
         extra_details: JSON.stringify({
-          name: this.state.name,
-          organization: this.state.organization,
-          organization_website: this.state.organizationWebsite,
-          sector: this.state.primarySector,
-          gender: this.state.gender,
-          bio: this.state.bio,
-          city: this.state.city,
-          country: this.state.country,
-          require_auth: this.state.requireAuth,
-          twitter: this.state.twitter,
-          linkedin: this.state.linkedin,
-          instagram: this.state.instagram,
-          metadata: this.state.metadata,
+          name: this.state.fields.name,
+          organization: this.state.fields.organization,
+          organization_website: this.state.fields.organizationWebsite,
+          sector: this.state.fields.sector,
+          gender: this.state.fields.gender,
+          bio: this.state.fields.bio,
+          city: this.state.fields.city,
+          country: this.state.fields.country,
+          require_auth: this.state.fields.requireAuth,
+          twitter: this.state.fields.twitter,
+          linkedin: this.state.fields.linkedin,
+          instagram: this.state.fields.instagram,
+          metadata: this.state.fields.metadata,
         }),
       },
       {
@@ -145,13 +162,36 @@ export default class AccountSettings extends React.Component {
     this.setState({fieldsWithErrors: data.responseJSON});
   }
 
-  onAnyDataChange(fieldName, newValue) {
+  onAnyFieldChange(fieldName, newFieldValue) {
     this.preventClosingTab();
+    const fields = clonedeep(this.state.fields);
+    fields[fieldName] = newFieldValue;
     this.setState({
       isPristine: false,
-      [fieldName]: newValue,
+      fields: fields,
     });
+  }
 
+  getDisplayMetaFields() {
+    const output = [];
+    for (const metaFieldName of [
+      'organization',
+      'organization_website',
+      'sector',
+      'gender',
+      'bio',
+      'country',
+      'city',
+      'twitter',
+      'linkedin',
+      'instagram',
+      'twitter',
+      'linkedin',
+      'instagram',
+    ]) {
+      output[metaFieldName] = envStore.data.getUserMetadataField(metaFieldName);
+    }
+    return output;
   }
 
   render() {
@@ -159,10 +199,12 @@ export default class AccountSettings extends React.Component {
       return null;
     }
 
-    var accountName = stores.session.currentAccount.username;
-    var initialsStyle = {
+    const accountName = stores.session.currentAccount.username;
+    const initialsStyle = {
       background: `#${stringToColor(accountName)}`,
     };
+
+    const metaFields = this.getDisplayMetaFields();
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
@@ -192,8 +234,8 @@ export default class AccountSettings extends React.Component {
                 <label>{t('Privacy')}</label>
 
                 <Checkbox
-                  checked={this.state.requireAuth}
-                  onChange={this.onAnyDataChange.bind(this, 'requireAuth')}
+                  checked={this.state.fields.requireAuth}
+                  onChange={this.onAnyFieldChange.bind(this, 'requireAuth')}
                   label={t('Require authentication to see forms and submit data')}
                 />
               </bem.AccountSettings__item>
@@ -203,8 +245,8 @@ export default class AccountSettings extends React.Component {
                   customModifiers='on-white'
                   label={t('Name')}
                   errors={this.state.fieldsWithErrors.name}
-                  value={this.state.name}
-                  onChange={this.onAnyDataChange.bind(this, 'name')}
+                  value={this.state.fields.name}
+                  onChange={this.onAnyFieldChange.bind(this, 'name')}
                   placeholder={t('Use this to display your real name to other users')}
                 />
               </bem.AccountSettings__item>
@@ -212,11 +254,11 @@ export default class AccountSettings extends React.Component {
               <bem.AccountSettings__item>
                 <TextBox
                   customModifiers='on-white'
-                  label={t('Email')}
+                  label={addRequiredToLabel(t('Email'))}
                   type='email'
                   errors={this.state.fieldsWithErrors.email}
-                  value={this.state.email}
-                  onChange={this.onAnyDataChange.bind(this, 'email')}
+                  value={this.state.fields.email}
+                  onChange={this.onAnyFieldChange.bind(this, 'email')}
                 />
               </bem.AccountSettings__item>
 
@@ -231,142 +273,140 @@ export default class AccountSettings extends React.Component {
 
               <ApiTokenDisplay/>
 
-              {envStore.data.getUserMetadataField('organization') &&
+              {metaFields['organization'] &&
                 <bem.AccountSettings__item>
                   <TextBox
                     customModifiers='on-white'
-                    label={t('Organization')}
+                    label={addRequiredToLabel(t('Organization'), metaFields['organization'].required)}
                     errors={this.state.fieldsWithErrors.extra_details?.organization}
-                    value={this.state.organization}
-                    onChange={this.onAnyDataChange.bind(this, 'organization')}
+                    value={this.state.fields.organization}
+                    onChange={this.onAnyFieldChange.bind(this, 'organization')}
                   />
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('organization_website') &&
+              {metaFields['organization_website'] &&
                 <bem.AccountSettings__item>
                   <TextBox
                     customModifiers='on-white'
-                    label={t('Organization Website')}
+                    label={addRequiredToLabel(t('Organization Website'), metaFields['organization_website'].required)}
                     type='url'
                     errors={this.state.fieldsWithErrors.extra_details?.organization_website}
-                    value={this.state.organizationWebsite}
-                    onChange={this.onAnyDataChange.bind(this, 'organizationWebsite')}
+                    value={this.state.fields.organizationWebsite}
+                    onChange={this.onAnyFieldChange.bind(this, 'organizationWebsite')}
                   />
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('sector') &&
+              {metaFields['sector'] &&
                 <bem.AccountSettings__item m='primary-sector'>
                   <WrappedSelect
-                    label={t('Primary Sector')}
+                    label={addRequiredToLabel(t('Primary Sector'), metaFields['sector'].required)}
                     error={this.state.fieldsWithErrors.extra_details?.sector}
-                    value={this.state.primarySector}
+                    value={this.state.fields.sector}
                     options={this.state.sectorChoices}
-                    onChange={this.onAnyDataChange.bind(this, 'primarySector')}
+                    onChange={this.onAnyFieldChange.bind(this, 'sector')}
+                    isClearable
                   />
-
-                  <bem.AccountSettings__desc>
-                    {t('Select the primary sector in which you work. ')}
-                  </bem.AccountSettings__desc>
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('gender') &&
+              {metaFields['gender'] &&
                 <bem.AccountSettings__item m='gender'>
                   <WrappedSelect
-                    label={t('Gender')}
+                    label={addRequiredToLabel(t('Gender'), metaFields['gender'].required)}
                     error={this.state.fieldsWithErrors.extra_details?.gender}
-                    value={this.state.gender}
+                    value={this.state.fields.gender}
                     options={this.state.genderChoices}
-                    onChange={this.onAnyDataChange.bind(this, 'gender')}
+                    onChange={this.onAnyFieldChange.bind(this, 'gender')}
                     isClearable
                     isSearchable={false}
                   />
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('bio') &&
+              {metaFields['bio'] &&
                 <bem.AccountSettings__item m='bio'>
                   <TextBox
                     customModifiers='on-white'
                     type='text-multiline'
-                    label={t('Bio')}
-                    onChange={this.onAnyDataChange.bind(this, 'bio')}
+                    label={addRequiredToLabel(t('Bio'), metaFields['bio'].required)}
+                    onChange={this.onAnyFieldChange.bind(this, 'bio')}
                     errors={this.state.fieldsWithErrors.extra_details?.bio}
-                    value={this.state.bio}
+                    value={this.state.fields.bio}
                     id='bio'
                   />
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('country') &&
+              {metaFields['country'] &&
                 <bem.AccountSettings__item m='country'>
                   <WrappedSelect
                     isMulti
-                    label={t('Country')}
+                    label={addRequiredToLabel(t('Country'), metaFields['country'].required)}
                     error={this.state.fieldsWithErrors.extra_details?.country}
-                    value={this.state.country}
+                    value={this.state.fields.country}
                     options={this.state.countryChoices}
-                    onChange={this.onAnyDataChange.bind(this, 'country')}
+                    onChange={this.onAnyFieldChange.bind(this, 'country')}
+                    isClearable
                   />
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('city') &&
+              {metaFields['city'] &&
                 <bem.AccountSettings__item m='city'>
                   <TextBox
                     customModifiers='on-white'
-                    label={t('City')}
+                    label={addRequiredToLabel(t('City'), metaFields['city'].required)}
                     errors={this.state.fieldsWithErrors.extra_details?.city}
-                    value={this.state.city}
-                    onChange={this.onAnyDataChange.bind(this, 'city')}
+                    value={this.state.fields.city}
+                    onChange={this.onAnyFieldChange.bind(this, 'city')}
                   />
                 </bem.AccountSettings__item>
               }
 
-              {(envStore.data.getUserMetadataField('twitter')
-               || envStore.data.getUserMetadataField('linkedin')
-               || envStore.data.getUserMetadataField('instagram')) &&
+              {(metaFields['twitter']
+               || metaFields['linkedin']
+               || metaFields['instagram']) &&
 
                 <bem.AccountSettings__item m='social'>
                   <label>{t('Social')}</label>
 
-                  {envStore.data.getUserMetadataField('twitter') &&
+                  {metaFields['twitter'] &&
                     <label>
                       <i className='k-icon k-icon-logo-twitter' />
 
                       <TextBox
                         customModifiers='on-white'
                         errors={this.state.fieldsWithErrors.extra_details?.twitter}
-                        value={this.state.twitter}
-                        onChange={this.onAnyDataChange.bind(this, 'twitter')}
+                        value={this.state.fields.twitter}
+                        onChange={this.onAnyFieldChange.bind(this, 'twitter')}
                       />
                     </label>
                   }
 
-                  {envStore.data.getUserMetadataField('linkedin') &&
+                  {metaFields['linkedin'] &&
                     <label>
                       <i className='k-icon k-icon-logo-linkedin' />
 
                       <TextBox
                         customModifiers='on-white'
                         errors={this.state.fieldsWithErrors.extra_details?.linkedin}
-                        value={this.state.linkedin}
-                        onChange={this.onAnyDataChange.bind(this, 'linkedin')}
+                        value={this.state.fields.linkedin}
+                        onChange={this.onAnyFieldChange.bind(this, 'linkedin')}
                       />
                     </label>
                   }
 
-                  {envStore.data.getUserMetadataField('instagram') &&
+                  {metaFields['instagram'] &&
                     <label>
                       <i className='k-icon k-icon-logo-instagram' />
 
                       <TextBox
                         customModifiers='on-white'
                         errors={this.state.fieldsWithErrors.extra_details?.instagram}
-                        value={this.state.instagram}
-                        onChange={this.onAnyDataChange.bind(this, 'instagram')}
+                        value={this.state.fields.instagram}
+                        onChange={this.onAnyFieldChange.bind(this, 'instagram')}
                       />
                     </label>
                   }
@@ -378,8 +418,8 @@ export default class AccountSettings extends React.Component {
                   customModifiers='on-white'
                   label={t('Metadata')}
                   errors={this.state.fieldsWithErrors.metadata}
-                  value={this.state.metadata}
-                  onChange={this.onAnyDataChange.bind(this, 'metadata')}
+                  value={this.state.fields.metadata}
+                  onChange={this.onAnyFieldChange.bind(this, 'metadata')}
                 />
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>

@@ -5,11 +5,18 @@ import string
 import time
 import uuid
 from datetime import datetime
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
-import pytz
+import pytest
+import responses
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils.datastructures import MultiValueDictKeyError
+from django_digest.test import Client as DigestClient
 from rest_framework import status
 
 from kpi.constants import (
@@ -26,6 +33,10 @@ from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
+from kpi.tests.utils.mock import (
+    enketo_edit_instance_response,
+    enketo_view_instance_response,
+)
 
 
 class BaseSubmissionTestCase(BaseTestCase):
@@ -90,13 +101,20 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_unknown = []
         self.submissions_submitted_by_anotheruser = []
 
+        submitted_by_choices = ['', 'someuser', 'anotheruser']
         for i in range(20):
-            submitted_by = random.choice(['', 'someuser', 'anotheruser'])
+            # We want to have at least one submission from each
+            if i <= 2:
+                submitted_by = submitted_by_choices[i]
+            else:
+                submitted_by = random.choice(submitted_by_choices)
+            uuid_ = uuid.uuid4()
             submission = {
                 '__version__': v_uid,
                 'q1': ''.join(random.choice(letters) for l in range(10)),
                 'q2': ''.join(random.choice(letters) for l in range(10)),
-                'meta/instanceID': f'uuid:{uuid.uuid4()}',
+                'meta/instanceID': f'uuid:{uuid_}',
+                '_uuid': str(uuid_),
                 '_validation_status': {
                     'by_whom': 'someuser',
                     'timestamp': int(time.time()),
@@ -591,6 +609,32 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
+    def test_list_query_elem_match(self):
+        """
+        Ensure query is able to filter on an array
+        """
+        submission = self.submissions[0]
+        group = 'group_lx4sf58'
+        question = 'q3'
+        submission[group] = [
+            {
+                f'{group}/{question}': 'whap.gif',
+            },
+        ]
+        self.asset.deployment.mock_submissions(self.submissions)
+
+        data = {
+            'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',
+            'format': 'json',
+        }
+        response = self.client.get(self.submission_list_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        if isinstance(response.data, list):
+            response_count = len(response.data)
+        else:
+            response_count = response.data.get('count')
+        self.assertEqual(response_count, 1)
+
     def test_retrieve_submission_as_owner(self):
         """
         someuser is the owner of the project.
@@ -600,6 +644,18 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.get(url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, submission)
+
+    def test_retrieve_submission_by_uuid(self):
+        """
+        someuser is the owner of the project.
+        someuser can view one of their submission.
+        """
+        submission = self.submissions[0]
+        url = self.asset.deployment.get_submission_detail_url(submission['_uuid'])
+
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
 
@@ -787,29 +843,51 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'edit', 'enketo/edit'
         )
 
+    @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can retrieve enketo edit link through old API endpoint
         """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_url_legacy, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/edit/{}'.format(self.submission['_id'])
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
         }
         assert response.data == expected_response
 
+    @responses.activate
     def test_get_edit_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can retrieve enketo edit link
         """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
-
-        url = f"http://server.mock/enketo/edit/{self.submission['_id']}"
-        expected_response = {'url': url}
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
+        }
         self.assertEqual(response.data, expected_response)
 
     def test_get_edit_link_submission_as_anonymous(self):
@@ -847,6 +925,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # FIXME if anotheruser has view permissions, they should receive a 403
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @responses.activate
     def test_get_edit_link_submission_shared_with_edit_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -855,9 +934,22 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         self._log_in_as_another_user()
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
+    @responses.activate
     def test_get_edit_link_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -897,11 +989,134 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
                 'pk': submission['_id'],
             },
         )
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"http://server.mock/enketo/edit/{submission['_id']}"
+        url = f"{settings.ENKETO_URL}/edit/{submission['_uuid']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
+
+    @responses.activate
+    def test_get_edit_link_response_includes_csrf_cookie(self):
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        # Just make sure the cookie is present and has a non-empty value
+        assert settings.ENKETO_CSRF_COOKIE_NAME in response.cookies
+        assert response.cookies[settings.ENKETO_CSRF_COOKIE_NAME].value
+
+    def test_edit_submission_with_digest_credentials(self):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot.uid,),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)
+        # With no credentials provided, Session Auth and Digest Auth should fail.
+        # Thus, a 401 should be returned to give the user the opportunity to login.
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # With correct credentials provided, Session Auth should fail, but
+        # Digest Auth should work. But, because 'anotheruser' does not have
+        # any permissions on `self.asset` which belongs to 'someuser', a 401
+        # should be returned anyway to give the user the opportunity to login
+        # with different credentials.
+        client.set_authorization('anotheruser', 'anotheruser', 'Digest')
+        # Force PartialDigest creation to have match when authenticated is
+        # processed.
+        self.anotheruser.set_password('anotheruser')
+        self.anotheruser.save()
+
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+
+        # The purpose of this test is to validate that the authentication works.
+        # We do not send a valid XML, therefore it should raise a KeyError
+        # if authentication (and permissions) works as expected.
+        with pytest.raises(KeyError) as e:
+            req = client.post(url)
+
+    def test_edit_submission_with_authenticated_session_but_no_digest(self):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot.uid,),
+        )
+        self.login_as_other_user('anotheruser', 'anotheruser')
+        # Try to edit someuser's submission by anotheruser who has no
+        # permissions on someuser's asset.
+        req = self.client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+
+        # The purpose of this test is to validate that the authentication works.
+        # We do not send a valid XML, therefore it should raise a KeyError
+        # if authentication (and permissions) works as expected.
+        with pytest.raises(KeyError) as e:
+            req = self.client.post(url)
+
+    @responses.activate
+    def test_get_multiple_edit_links_and_attempt_submit_edits(self):
+        """
+        Ensure that opening multiple edits allows for all to be submitted
+        without the snapshot being recreated and rejecting any of the edits.
+        """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        # open several submissions for editing and store their submission URLs
+        # for POSTing to later
+        submission_urls = []
+        for _ in range(2):
+            submission = self.get_random_submission(self.asset.owner)
+            edit_url = reverse(
+                self._get_endpoint('submission-enketo-edit'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+            self.client.get(edit_url, {'format': 'json'})
+            url = reverse(
+                self._get_endpoint('assetsnapshot-submission'),
+                args=(self.asset.snapshot.uid,),
+            )
+            submission_urls.append(url)
+        # Post all edits to their submission URLs. There is no valid XML being
+        # sent, so we expect a KeyError exeption if all is good
+        for url in submission_urls:
+            with pytest.raises(KeyError) as e:
+                res = self.client.post(url)
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
@@ -917,16 +1132,28 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             },
         )
 
+    @responses.activate
     def test_get_view_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can get enketo view link
         """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/view/{}'.format(self.submission['_id'])
+            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}"
         }
         assert response.data == expected_response
 
@@ -952,6 +1179,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @responses.activate
     def test_get_view_link_submission_shared_with_view_only_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -960,9 +1188,21 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
+    @responses.activate
     def test_get_view_link_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -1003,9 +1243,20 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
                 'pk': submission['_id'],
             },
         )
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"http://server.mock/enketo/view/{submission['_id']}"
+        url = f"{settings.ENKETO_URL}/view/{submission['_uuid']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
@@ -1014,7 +1265,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
         # MockDeploymentBackend doesn't use XML at all and won't fail if an
@@ -1181,7 +1432,8 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.updated_submission_data = {
             'submission_ids': [rs['_id'] for rs in random_submissions],
             'data': {
-                'q1': '🕺',
+                'q1': 'Updated value',
+                'q_new': 'A new question and value'
             },
         }
 

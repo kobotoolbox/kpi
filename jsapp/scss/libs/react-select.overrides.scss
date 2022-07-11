@@ -58,12 +58,14 @@
     border-radius: 6px;
     color: colors.$kobo-gray-40;
     background-color: colors.$kobo-white;
-    height: button.$button-height-m;
-    min-height: auto;
+    min-height: button.$button-height-m;
+    height: auto;
     font-size: inherit;
     padding: 0 8px;
     box-sizing: border-box;
     cursor: pointer;
+    // it's a flexbox wrapper
+    align-content: center;
 
     &:hover {
       border-color: colors.$kobo-gray-92;
@@ -119,10 +121,6 @@
     flex-direction: row;
     align-content: center;
     align-items: center;
-  }
-
-  .kobo-select__control > * {
-    height: calc(100% - 2px);
   }
 
   .kobo-select__menu {

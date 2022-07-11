@@ -1,4 +1,4 @@
-@use "scss/sizes";
+@use 'scss/sizes';
 
 $s-icon-xxs: sizes.$x10;
 $s-icon-xs: sizes.$x14;
@@ -7,14 +7,14 @@ $s-icon-m: sizes.$x20;
 $s-icon-l: sizes.$x22;
 $s-icon-xl: sizes.$x28;
 
-.k-icon--size-xxs { font-size: $s-icon-xxs; }
+.k-icon--size-xxs {font-size: $s-icon-xxs;}
 
-.k-icon--size-xs { font-size: $s-icon-xs; }
+.k-icon--size-xs {font-size: $s-icon-xs;}
 
-.k-icon--size-s { font-size: $s-icon-s; }
+.k-icon--size-s {font-size: $s-icon-s;}
 
-.k-icon--size-m { font-size: $s-icon-m; }
+.k-icon--size-m {font-size: $s-icon-m;}
 
-.k-icon--size-l { font-size: $s-icon-l; }
+.k-icon--size-l {font-size: $s-icon-l;}
 
-.k-icon--size-xl { font-size: $s-icon-xl; }
+.k-icon--size-xl {font-size: $s-icon-xl;}

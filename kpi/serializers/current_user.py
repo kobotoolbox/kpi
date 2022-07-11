@@ -1,13 +1,16 @@
 # coding: utf-8
 import datetime
 import json
-import pytz
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 import constance
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from hub.models import ExtraUserDetail
@@ -50,11 +53,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_server_time(self, obj):
         # Currently unused on the front end
-        return datetime.datetime.now(tz=pytz.UTC).strftime(
+        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 
     def get_date_joined(self, obj):
-        return obj.date_joined.astimezone(pytz.UTC).strftime(
+        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 
     def get_projects_url(self, obj):
@@ -102,10 +105,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         # expects an object with both the label and the value.
         # TODO: store and load the value *only*
         for field in 'sector', 'country':
-            if isinstance(extra_details.get(field), str):
+            val = extra_details.get(field)
+            if isinstance(val, str) and val:
                 extra_details[field] = {
-                    'label': extra_details[field],
-                    'value': extra_details[field],
+                    'label': val,
+                    'value': val,
                 }
 
         # `require_auth` needs to be read from KC every time
@@ -130,7 +134,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             if all((current_password, new_password)):
                 if not self.instance.check_password(current_password):
                     raise serializers.ValidationError({
-                        'current_password': _('Incorrect current password.')
+                        'current_password': t('Incorrect current password.')
                     })
             elif any((current_password, new_password)):
                 not_empty_field_name = 'current_password' \
@@ -138,7 +142,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 empty_field_name = 'current_password' \
                     if new_password else 'new_password'
                 raise serializers.ValidationError({
-                    empty_field_name: _('`current_password` and `new_password` '
+                    empty_field_name: t('`current_password` and `new_password` '
                                         'must both be sent together; '
                                         f'`{not_empty_field_name}` cannot be '
                                         'sent individually.')
@@ -155,7 +159,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             if field['required'] and not value.get(field['name']):
                 # Use verbatim message from DRF to avoid giving translators
                 # more busy work
-                errors[field['name']] = _('This field may not be blank.')
+                errors[field['name']] = t('This field may not be blank.')
         if errors:
             raise serializers.ValidationError(errors)
         return value

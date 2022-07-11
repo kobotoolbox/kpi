@@ -1,9 +1,9 @@
-@use "scss/mixins";
 @use "scss/_variables";
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
+// See: https://github.com/kobotoolbox/kpi/issues/3926
 //
 // Best things to do here:
 // 1. For sure don't add anything new, unless it really makes sense to be part
@@ -36,7 +36,9 @@ $side-tabs-width-mobile: 70px;
   background: $kobo-gray-96;
 
   &.form-view--fullscreen {
-    position: fixed;
+    // We force the position to avoid problems with stronger specificity
+    // breaking the fullscreen functionality.
+    position: fixed !important;
     z-index: $z-fullscreen;
     top: 0;
     left: 0;
@@ -99,8 +101,7 @@ $side-tabs-width-mobile: 70px;
   a.form-view__tab {
     background: transparent;
     border: none;
-    padding: 9px 6px;
-    line-height: 20px;
+    padding: 6px;
     border-left: 2px solid transparent;
     font-size: variables.$base-font-size;
     cursor: pointer;
@@ -139,6 +140,9 @@ $side-tabs-width-mobile: 70px;
     }
 
     .k-icon {
+      font-size: 26px;
+      vertical-align: -7px;
+      line-height: 36px;
       margin: 0 9px 0 5px;
     }
 
@@ -194,6 +198,7 @@ $side-tabs-width-mobile: 70px;
     right: 10px;
     top: 10px;
     padding: 5px;
+    font-size: 18px;
   }
 }
 
@@ -204,21 +209,26 @@ $side-tabs-width-mobile: 70px;
     margin-top: 0;
   }
 
+  &.historyHidden,
+  &.historyExpanded {
+    transition-duration: 0.2s;
+    transition-property: max-height, margin-top, margin-bottom;
+  }
+
   &.historyHidden {
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
     overflow: hidden;
-    transition: 0.2s max-height;
     padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
     max-height: 99999px;
   }
 
@@ -407,10 +417,9 @@ $side-tabs-width-mobile: 70px;
     }
   }
 
-  .form-view__cell--action-buttons {
-    @include mixins.centerRowFlex;
-    // visually take same amount of white space as label on the left
-    height: 20px;
+  // visually take same amount of white space as without buttons
+  &.form-view__cell--label + &.form-view__cell--action-buttons {
+    margin: -8px 0;
   }
 
   &.form-view__cell--date {
@@ -460,53 +469,6 @@ $side-tabs-width-mobile: 70px;
     padding: 6px;
     background-color: $kobo-green;
     border-radius: 2px;
-  }
-
-  &.form-view__cell--warning {
-    @include mixins.centerRowFlex;
-    background-color: $kobo-light-amber;
-    color: $kobo-dark-amber;
-    padding: 10px;
-
-    i {
-      color: inherit;
-      margin-right: 5px;
-    }
-
-    p {
-      margin: 0;
-    }
-
-    a {
-      color: inherit;
-      font-weight: bold;
-      text-decoration: underline;
-
-      &:hover {
-        text-decoration: none;
-      }
-    }
-  }
-
-  &.form-view__cell--error {
-    background-color: $kobo-light-red;
-    color: $kobo-dark-red;
-    border: 1px solid $kobo-red;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    i {
-      color: $kobo-red;
-      font-size: 28px;
-      margin-right: 5px;
-      // If used in a dropzone, need to overwrite left margin
-      margin-left: 0px;
-    }
-  }
-
-
-  &.form-view__cell--translation-modal-warning {
-    margin-bottom: 20px;
   }
 }
 
@@ -896,8 +858,6 @@ $side-tabs-width-mobile: 70px;
 }
 
 // Compensate for when sidebar(s) messes up modal a bit
-
-// TODO: Clean this up via PR changes
 @media
   (min-width: 770px) and (max-width: 1020px),
   (max-width: 560px) {

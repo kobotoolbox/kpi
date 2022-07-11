@@ -5,6 +5,7 @@ import json
 import constance
 from django.urls import reverse
 from django.http import HttpRequest
+from markdown import markdown
 from django.template import Template, RequestContext
 from rest_framework import status
 
@@ -24,6 +25,8 @@ class EnvironmentTests(BaseTestCase):
             'support_email': constance.config.SUPPORT_EMAIL,
             'support_url': constance.config.SUPPORT_URL,
             'community_url': constance.config.COMMUNITY_URL,
+            'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
+            'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
             'project_metadata_fields': lambda x: \
                 self.assertEqual(len(x), len(json.loads(constance.config.PROJECT_METADATA_FIELDS))) \
                 and self.assertIn({'name': 'organization', 'required': False}, x),
@@ -50,7 +53,25 @@ class EnvironmentTests(BaseTestCase):
                 self.assertGreater(len(x), 5) and self.assertIn(
                     ('ar', 'العربيّة'), x
                 ),
+            'transcription_languages': lambda x: \
+                self.assertGreater(len(x), 50) and self.assertIn(
+                    'uk-UA', x
+                ),
+            'translation_languages': lambda x: \
+                self.assertGreater(len(x), 50) and self.assertIn(
+                    'fa-IR', x
+                ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
+            'mfa_enabled': constance.config.MFA_ENABLED,
+            'mfa_localized_help_text': lambda i18n_texts: {
+                lang: markdown(text)
+                for lang, text in json.loads(
+                    constance.config.MFA_LOCALIZED_HELP_TEXT.replace(
+                        '##support email##',
+                        constance.config.SUPPORT_EMAIL
+                    )
+                ).items()
+            }
         }
 
     def _check_response_dict(self, response_dict):

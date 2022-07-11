@@ -240,13 +240,6 @@ bem.AccountBox__menuLI = makeBem(bem.AccountBox, 'menu-li', 'li');
 bem.AccountBox__menuItem = makeBem(bem.AccountBox, 'menu-item', 'div');
 bem.AccountBox__menuLink = makeBem(bem.AccountBox, 'menu-link', 'a');
 
-bem.AccountSettings = makeBem(null, 'account-settings');
-bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
-bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
-bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
-bem.AccountSettings__desc = makeBem(bem.AccountSettings, 'desc');
-bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
-
 bem.UserRow = makeBem(null, 'user-row');
 bem.UserRow__info = makeBem(bem.UserRow, 'info');
 bem.UserRow__avatar = makeBem(bem.UserRow, 'avatar');
@@ -272,17 +265,6 @@ bem.KDrawer = makeBem(null, 'k-drawer');
 bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav');
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav');
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside');
-
-bem.HelpBubble = makeBem(null, 'help-bubble');
-bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button');
-bem.HelpBubble__back = makeBem(bem.HelpBubble, 'back', 'button');
-bem.HelpBubble__trigger = makeBem(bem.HelpBubble, 'trigger', 'button');
-bem.HelpBubble__triggerCounter = makeBem(bem.HelpBubble, 'trigger-counter', 'span');
-bem.HelpBubble__popup = makeBem(bem.HelpBubble, 'popup');
-bem.HelpBubble__popupContent = makeBem(bem.HelpBubble, 'popup-content');
-bem.HelpBubble__row = makeBem(bem.HelpBubble, 'row');
-bem.HelpBubble__rowAnchor = makeBem(bem.HelpBubble, 'row', 'a');
-bem.HelpBubble__rowWrapper = makeBem(bem.HelpBubble, 'row-wrapper');
 
 bem.SimpleTable = makeBem(null, 'simple-table', 'table');
 bem.SimpleTable__header = makeBem(bem.SimpleTable, 'header', 'thead');

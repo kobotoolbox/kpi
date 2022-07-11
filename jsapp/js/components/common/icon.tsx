@@ -1,49 +1,45 @@
-import React from 'react'
+import React from 'react';
 // Using this type ensures we only have existing icon names
-import {IconName} from 'jsapp/fonts/k-icons'
-import './icon.scss'
+import type {IconName} from 'jsapp/fonts/k-icons';
+import './icon.scss';
 
 /**
  * Check out `icon.scss` file for exact pixel values. Note that `xxs` is mainly
  * for carets and should not be used otherwise.
  */
-export type IconSize = 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'
+export type IconSize = 'l' | 'm' | 's' | 'xl' | 'xs' | 'xxs';
 
-const DefaultSize = 's'
+const DefaultSize = 's';
 
-type IconProps = {
-  name: IconName
-  size?: IconSize
-  classNames?: string[]
+interface IconProps {
+  name: IconName;
+  size?: IconSize;
+  classNames?: string[];
 }
 
 /**
  * An icon component.
  */
 class Icon extends React.Component<IconProps, {}> {
-  constructor(props: IconProps){
-    super(props)
-  }
-
   render() {
-    let classNames: string[] = []
+    let classNames: string[] = [];
     if (
       Array.isArray(this.props.classNames) &&
       typeof this.props.classNames[0] === 'string'
     ) {
-      classNames = this.props.classNames
+      classNames = this.props.classNames;
     }
 
-    let size = this.props.size || DefaultSize
-    classNames.push(`k-icon--size-${size}`)
+    const size = this.props.size || DefaultSize;
+    classNames.push(`k-icon--size-${size}`);
 
-    classNames.push('k-icon')
-    classNames.push(`k-icon-${this.props.name}`)
+    classNames.push('k-icon');
+    classNames.push(`k-icon-${this.props.name}`);
 
     return (
       <i className={classNames.join(' ')}/>
-    )
+    );
   }
 }
 
-export default Icon
+export default Icon;

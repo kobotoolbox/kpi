@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
+import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
@@ -45,6 +46,7 @@ export default class ReportViewItem extends React.Component {
   componentDidUpdate() {
     // refreshes a chart right after render()
     // TODO: ideally this shouldn't refresh a chart if it hasn't changed
+    // See: https://github.com/kobotoolbox/kpi/issues/3921
     if (this.props.data.show_graph) {
       this.loadChart();
     }
@@ -70,7 +72,10 @@ export default class ReportViewItem extends React.Component {
   }
 
   buildChartOptions() {
-    var data = this.props.data;
+    // We need to clone the data object to not pollute it with mutations. This
+    // fixes a bug when we want to truncate labels for the chart, but they
+    // end up being truncated everywhere in report view.
+    var data = clonedeep(this.props.data);
     var chartType = this.props.style.report_type || 'bar';
     let _this = this;
 
@@ -79,6 +84,7 @@ export default class ReportViewItem extends React.Component {
     var showLegend = false;
 
     // TODO: set as default globally in a higher level (PM)
+    // https://github.com/kobotoolbox/kpi/issues/3921
     var colors = this.buildChartColors();
 
     var baseColor = colors[0];

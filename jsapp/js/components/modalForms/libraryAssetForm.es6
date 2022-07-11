@@ -2,6 +2,7 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import clonedeep from 'lodash.clonedeep';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import PropTypes from 'prop-types';
@@ -22,6 +23,11 @@ import envStore from 'js/envStore';
 /**
  * Modal for creating or updating library asset (collection or template)
  *
+ * NOTE: We have multiple components with similar form:
+ * - ProjectSettings
+ * - AccountSettingsRoute
+ * - LibraryAssetForm
+ *
  * @prop {Object} asset - Modal asset.
  */
 export class LibraryAssetForm extends React.Component {
@@ -30,7 +36,7 @@ export class LibraryAssetForm extends React.Component {
     this.unlisteners = [];
     this.state = {
       isSessionLoaded: !!stores.session.isLoggedIn,
-      data: {
+      fields: {
         name: '',
         organization: '',
         country: null,
@@ -64,22 +70,22 @@ export class LibraryAssetForm extends React.Component {
 
   applyPropsData() {
     if (this.props.asset.name) {
-      this.state.data.name = this.props.asset.name;
+      this.state.fields.name = this.props.asset.name;
     }
     if (this.props.asset.settings.organization) {
-      this.state.data.organization = this.props.asset.settings.organization;
+      this.state.fields.organization = this.props.asset.settings.organization;
     }
     if (this.props.asset.settings.country) {
-      this.state.data.country = this.props.asset.settings.country;
+      this.state.fields.country = this.props.asset.settings.country;
     }
     if (this.props.asset.settings.sector) {
-      this.state.data.sector = this.props.asset.settings.sector;
+      this.state.fields.sector = this.props.asset.settings.sector;
     }
     if (this.props.asset.tag_string) {
-      this.state.data.tags = this.props.asset.tag_string;
+      this.state.fields.tags = this.props.asset.tag_string;
     }
     if (this.props.asset.settings.description) {
-      this.state.data.description = this.props.asset.settings.description;
+      this.state.fields.description = this.props.asset.settings.description;
     }
   }
 
@@ -117,27 +123,27 @@ export class LibraryAssetForm extends React.Component {
       actions.resources.updateAsset(
         this.props.asset.uid,
         {
-          name: this.state.data.name,
+          name: this.state.fields.name,
           settings: JSON.stringify({
-            organization: this.state.data.organization,
-            country: this.state.data.country,
-            sector: this.state.data.sector,
-            description: this.state.data.description,
+            organization: this.state.fields.organization,
+            country: this.state.fields.country,
+            sector: this.state.fields.sector,
+            description: this.state.fields.description,
           }),
-          tag_string: this.state.data.tags,
+          tag_string: this.state.fields.tags,
         }
       );
     } else {
       const params = {
-        name: this.state.data.name,
+        name: this.state.fields.name,
         asset_type: this.getFormAssetType(),
         settings: JSON.stringify({
-          organization: this.state.data.organization,
-          country: this.state.data.country,
-          sector: this.state.data.sector,
-          description: this.state.data.description,
+          organization: this.state.fields.organization,
+          country: this.state.fields.country,
+          sector: this.state.fields.sector,
+          description: this.state.fields.description,
         }),
-        tag_string: this.state.data.tags,
+        tag_string: this.state.fields.tags,
       };
 
       if (
@@ -156,18 +162,18 @@ export class LibraryAssetForm extends React.Component {
     }
   }
 
-  onAnyDataChange(property, newValue) {
-    const data = this.state.data;
-    data[property] = newValue;
-    this.setState({data: data});
+  onAnyFieldChange(fieldName, newFieldValue) {
+    const fields = clonedeep(this.state.fields);
+    fields[fieldName] = newFieldValue;
+    this.setState({fields: fields});
   }
 
   onNameChange(newValue) {
-    this.onAnyDataChange('name', assetUtils.removeInvalidChars(newValue));
+    this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue));
   }
 
   onDescriptionChange(newValue) {
-    this.onAnyDataChange('description', assetUtils.removeInvalidChars(newValue));
+    this.onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue));
   }
 
   /**
@@ -209,7 +215,7 @@ export class LibraryAssetForm extends React.Component {
           <bem.FormModal__item>
             <TextBox
               customModifiers='on-white'
-              value={this.state.data.name}
+              value={this.state.fields.name}
               onChange={this.onNameChange.bind(this)}
               label={t('Name')}
               placeholder={t('Enter title of ##type## here').replace('##type##', this.getFormAssetType())}
@@ -220,7 +226,7 @@ export class LibraryAssetForm extends React.Component {
             <TextBox
               customModifiers='on-white'
               type='text-multiline'
-              value={this.state.data.description}
+              value={this.state.fields.description}
               onChange={this.onDescriptionChange.bind(this)}
               label={t('Description')}
               placeholder={t('Enter short description here')}
@@ -230,8 +236,8 @@ export class LibraryAssetForm extends React.Component {
           <bem.FormModal__item>
             <TextBox
               customModifiers='on-white'
-              value={this.state.data.organization}
-              onChange={this.onAnyDataChange.bind(this, 'organization')}
+              value={this.state.fields.organization}
+              onChange={this.onAnyFieldChange.bind(this, 'organization')}
               label={t('Organization')}
             />
           </bem.FormModal__item>
@@ -239,12 +245,11 @@ export class LibraryAssetForm extends React.Component {
           <bem.FormModal__item>
             <WrappedSelect
               label={t('Primary Sector')}
-              value={this.state.data.sector}
-              onChange={this.onAnyDataChange.bind(this, 'sector')}
+              value={this.state.fields.sector}
+              onChange={this.onAnyFieldChange.bind(this, 'sector')}
               options={SECTORS}
               isLimitedHeight
               isClearable
-              placeholder={t('Select a sector for your ##type##').replace('##type##', this.getFormAssetType())}
             />
           </bem.FormModal__item>
 
@@ -252,19 +257,18 @@ export class LibraryAssetForm extends React.Component {
             <WrappedSelect
               label={t('Country')}
               isMulti
-              value={this.state.data.country}
-              onChange={this.onAnyDataChange.bind(this, 'country')}
+              value={this.state.fields.country}
+              onChange={this.onAnyFieldChange.bind(this, 'country')}
               options={COUNTRIES}
               isLimitedHeight
               isClearable
-              placeholder={t('Select countries')}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <KoboTagsInput
-              tags={this.state.data.tags}
-              onChange={this.onAnyDataChange.bind(this, 'tags')}
+              tags={this.state.fields.tags}
+              onChange={this.onAnyFieldChange.bind(this, 'tags')}
               label={t('Tags')}
             />
           </bem.FormModal__item>
