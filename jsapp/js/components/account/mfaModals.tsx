@@ -193,7 +193,7 @@ export default class MFAModals extends React.Component<
   }
 
   isTokenValid() {
-    return this.state.inputString !== null && this.state.inputString.length === 6;
+    return this.state.inputString !== null && this.state.inputString.length >= 1;
   }
 
   downloadCodes() {
