@@ -193,7 +193,7 @@ export default class MFAModals extends React.Component<
   }
 
   isTokenValid() {
-    return this.state.inputString !== null && this.state.inputString.length === 6;
+    return this.state.inputString !== null && this.state.inputString.length >= 1;
   }
 
   downloadCodes() {
@@ -241,7 +241,7 @@ export default class MFAModals extends React.Component<
           {this.renderIntroText()}
           <bem.MFAModal__p>
             <strong>
-              {t('Scan QR code and enter the six-digit token from the application')}
+              {t('Scan QR code and enter the ##number##-digit token from the application').replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
         </bem.MFAModal__description>
@@ -255,7 +255,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__qrcodeWrapper>
 
           <bem.MFAModal__p>
-            {t('After scanning the QR code image, the authenticator app will display a six-digit code that you can enter below.')}
+            {t('After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.').replace('##number##', String(envStore.data.mfa_code_length))}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
@@ -365,7 +365,7 @@ export default class MFAModals extends React.Component<
 
           <bem.MFAModal__p>
             <strong>
-              {t('Enter this key into your authenticator app to generate a six-digit token')}
+              {t('Enter this key into your authenticator app to generate a ##number##-digit token').replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
         </bem.MFAModal__description>
@@ -378,7 +378,7 @@ export default class MFAModals extends React.Component<
           </bem.MFAModal__codesWrapper>
 
           <bem.MFAModal__p>
-            {t('Once your authenticator app is set up, generate a six-digit token and enter it in the field below.')}
+            {t('Once your authenticator app is set up, generate a ##number##-digit token and enter it in the field below.').replace('##number##', String(envStore.data.mfa_code_length))}
           </bem.MFAModal__p>
 
           <bem.MFAModal__p>
@@ -426,11 +426,11 @@ export default class MFAModals extends React.Component<
             <strong>
               {/*This is safe as this step only shows if not on qr step*/}
               {this.props.modalType === 'regenerate' &&
-                t('Please enter your six-digit authenticator token to regenerate your backup codes.')
+                t('Please enter your ##number##-digit authenticator token to regenerate your backup codes.').replace('##number##', String(envStore.data.mfa_code_length))
               }
 
               {this.props.modalType !== 'regenerate' &&
-                t('Please enter your six-digit authenticator token to deactivate two-factor authentication.')
+                t('Please enter your ##number##-digit authenticator token to deactivate two-factor authentication.').replace('##number##', String(envStore.data.mfa_code_length))
               }
             </strong>
           </bem.MFAModal__p>
