@@ -137,6 +137,18 @@ class ProjectSettings extends React.Component {
     return fields;
   }
 
+  /**
+   * Function used whenever some endpoint calls return an asset.
+   */
+  applyAssetToState(asset) {
+    this.setState({
+      fields: this.getInitialFieldsFromAsset(asset),
+      isUploadFilePending: false,
+      isImportFromURLPending: false,
+      formAsset: asset,
+    });
+  }
+
   setInitialStep() {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
@@ -543,11 +555,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  this.setState({
-                    formAsset: finalAsset,
-                    fields: this.getInitialFieldsFromAsset(finalAsset),
-                    isImportFromURLPending: false,
-                  });
+                  this.applyAssetToState(finalAsset);
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
@@ -597,11 +605,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  this.setState({
-                    formAsset: finalAsset,
-                    fields: this.getInitialFieldsFromAsset(finalAsset),
-                    isUploadFilePending: false,
-                  });
+                  this.applyAssetToState(finalAsset);
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
