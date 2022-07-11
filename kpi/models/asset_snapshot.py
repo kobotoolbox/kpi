@@ -17,6 +17,7 @@ from kpi.mixins import (
 from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
+from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 
 
 class AbstractFormList(
@@ -196,6 +197,8 @@ class AssetSnapshot(
         self._expand_kobo_qs(source_copy)
         self._populate_fields_with_autofields(source_copy)
         self._strip_kuids(source_copy)
+
+        allow_choice_duplicates(source_copy)
 
         warnings = []
         details = {}

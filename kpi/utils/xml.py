@@ -132,9 +132,11 @@ def strip_nodes(
     ).decode()
 
 
-def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
+def add_xml_declaration(
+    xml_content: Union[str, bytes], newlines: bool = False
+) -> Union[str, bytes]:
     xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
-    # Should support ̀ lmxl` and `dicttoxml`
+    # Should support ̀ lmxl` and `dict2xml`
     start_of_declaration = '<?xml'
     use_bytes = False
     xml_content_as_str = xml_content.strip()
@@ -144,13 +146,14 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
         xml_content_as_str = xml_content.decode()
 
     if (
-       xml_content_as_str[:len(start_of_declaration)].lower()
+        xml_content_as_str[:len(start_of_declaration)].lower()
         == start_of_declaration.lower()
     ):
         # There's already a declaration. Don't add anything.
         return xml_content
 
-    xml_ = f'{xml_declaration}\n{xml_content_as_str}'
+    newlines_char = '\n' if newlines else ''
+    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
     if use_bytes:
         return xml_.encode()
     return xml_

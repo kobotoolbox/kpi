@@ -10,10 +10,7 @@ import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import AccountSidebar from 'js/components/account/accountSidebar';
-import {
-  IntercomHelpBubble,
-  SupportHelpBubble,
-} from '../components/helpBubbles';
+import HelpBubble from 'js/components/support/helpBubble';
 import {
   COMMON_QUERIES,
   MODAL_TYPES,
@@ -160,8 +157,7 @@ class Drawer extends Reflux.Component {
           }
 
           { this.isAccount() &&
-            // TODO: Temporary magic number for display purposes
-            <AccountSidebar dataStoreage={2} />
+            <AccountSidebar/>
           }
 
           { !this.isLibrary() && !this.isAccount() &&
@@ -173,10 +169,7 @@ class Drawer extends Reflux.Component {
 
         <bem.KDrawer__secondaryIcons>
           { stores.session.isLoggedIn &&
-            <IntercomHelpBubble/>
-          }
-          { stores.session.isLoggedIn &&
-            <SupportHelpBubble/>
+            <HelpBubble/>
           }
           { stores.session.isLoggedIn &&
             stores.session.currentAccount.projects_url &&

@@ -314,8 +314,6 @@ class SubmissionDataTable extends React.Component {
         {this.renderMetaResponse(META_QUESTION_TYPES.end, t('end'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.today, t('today'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.username, t('username'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.simserial, t('sim serial'))}
-        {this.renderMetaResponse(META_QUESTION_TYPES.subscriberid, t('subscriber ID'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.deviceid, t('device ID'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.phonenumber, t('phone number'))}
         {this.renderMetaResponse(META_QUESTION_TYPES.audit, t('audit'))}

@@ -10,11 +10,15 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
-import pytz
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from lxml import etree
 from django.core.files import File
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
@@ -44,7 +48,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.xml import edit_submission_xml, strip_nodes
+from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
@@ -152,7 +156,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         update_data = self.__prepare_bulk_update_data(data['data'])
         kc_responses = []
         for submission in submissions:
-            xml_parsed = ET.fromstring(submission)
+            xml_parsed = etree.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
@@ -166,7 +170,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             deprecated_id_or_new = (
                 deprecated_id
                 if deprecated_id is not None
-                else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
+                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
@@ -181,7 +185,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission
-            file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
+            file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
             # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             headers = {}
@@ -214,9 +218,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_bulk_update_response(kc_responses)
 
     def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
-        params = self.validate_submission_list_params(user,
-                                                      validate_count=True,
-                                                      **kwargs)
+        params = self.validate_submission_list_params(
+            user, validate_count=True, **kwargs
+        )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, identifier=None, active=False):
@@ -261,7 +265,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise Exception('The identifier is not properly formatted.')
 
         url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
-        xls_io = self.asset.to_xls_io(
+        xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
                     'id_string': id_string,
@@ -281,7 +285,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hook': self.asset.has_active_hooks,
             'kpi_asset_uid': self.asset.uid
         }
-        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
+        files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
         self.store_data({
@@ -299,7 +303,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         OpenRosa datetime formatting
         """
         if dt is None:
-            dt = datetime.now(tz=pytz.UTC)
+            dt = datetime.now(tz=ZoneInfo('UTC'))
 
         # Awkward check, but it's prescribed by
         # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
@@ -666,12 +670,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'reports',
             self.backend_response['id_string']
         ))
-        forms_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'forms',
-            self.backend_response['id_string']
-        ))
         links = {
             # To be displayed in iframes
             'xls_legacy': '/'.join((exports_base_url, 'xls/')),
@@ -700,7 +698,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 data=data
             )
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable
             logging.error(
                 'Failed to retrieve links from Enketo', exc_info=True)
@@ -819,7 +817,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             active = self.active
         url = self.external_to_internal_url(self.backend_response['url'])
         id_string = self.backend_response['id_string']
-        xls_io = self.asset.to_xls_io(
+        xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
                     'id_string': id_string,
@@ -832,7 +830,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'title': self.asset.name,
             'has_kpi_hook': self.asset.has_active_hooks
         }
-        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
+        files = {'xls_file': ('{}.xlsx'.format(id_string), xlsx_io)}
         try:
             json_response = self._kobocat_request(
                 'PATCH', url, data=payload, files=files)
@@ -1054,6 +1052,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     @property
+    def submission_count(self):
+        id_string = self.backend_response['id_string']
+        # avoid migrations from being created for kc_access mocked models
+        # there should be a better way to do this, right?
+        return instance_count(
+            xform_id_string=id_string,
+            user_id=self.asset.owner.pk,
+        )
+
+    @property
     def submission_list_url(self):
         url = '{kc_base}/api/v1/data/{formid}'.format(
             kc_base=settings.KOBOCAT_INTERNAL_URL,
@@ -1251,15 +1259,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         id_string = self.backend_response['id_string']
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
-
-    def _submission_count(self):
-        id_string = self.backend_response['id_string']
-        # avoid migrations from being created for kc_access mocked models
-        # there should be a better way to do this, right?
-        return instance_count(
-            xform_id_string=id_string,
-            user_id=self.asset.owner.pk,
-        )
 
     def __delete_kc_metadata(
         self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
