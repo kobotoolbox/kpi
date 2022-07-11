@@ -8,11 +8,6 @@ import envStore from 'js/envStore';
 
 interface AccountSidebarProps {
   submissionsPerMonth: number;
-  /* TODO: Placeholder from mockups, naming and typing subject to change
-    dataStoreage: any,
-    transcriptionMinutes: any,
-	  machineTranslation: any,
-	*/
 }
 
 interface AccountSidebarState {

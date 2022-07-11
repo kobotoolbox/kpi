@@ -217,6 +217,7 @@ export function koboMatrixParser(params) {
         }
       }
       // TODO: handle corrupt matrix data
+      // See: https://github.com/kobotoolbox/kpi/issues/3915
     }
   }
 

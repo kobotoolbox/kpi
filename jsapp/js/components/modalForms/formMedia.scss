@@ -97,6 +97,7 @@
       justify-content: space-between;
 
       // TODO: Find a better way to implement button size without editing parent
+      // See: https://github.com/kobotoolbox/kpi/issues/3917
       button.kobo-light-button {
         padding-bottom: 25px;
 

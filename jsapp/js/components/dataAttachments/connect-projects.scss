@@ -33,6 +33,7 @@
 
       // TODO: Create a BEM element that acts as column wrappers (and use
       //       modifiers for different columns)
+      // See: https://github.com/kobotoolbox/kpi/issues/3912
       .checkbox {
         width: 50%;
       }
@@ -213,6 +214,7 @@
 // Compensate for when sidebar(s) messes up modal a bit
 
 //TODO: Clean this up via PR changes
+// See: https://github.com/kobotoolbox/kpi/issues/3912
 @media
   (min-width: 1000px) and (max-width: 1140px),
   (min-width: 770px) and (max-width: 860px),
