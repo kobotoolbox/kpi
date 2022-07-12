@@ -632,6 +632,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'pk': attachment_id,
             }
 
+        # Ensure the attachment actually belongs to this project!
+        # FIXME: this is only needed when querying by uuid, right?
+        # FIXME: refactor this method to always convert uuids to PKs
+        filters['instance__xform_id'] = self.xform_id
+
         try:
             attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
         except ReadOnlyKobocatAttachment.DoesNotExist:
