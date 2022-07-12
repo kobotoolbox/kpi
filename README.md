@@ -14,7 +14,7 @@ If you do not want to upgrade at this time, please use the [`shared-database-obs
 
 ## Python Dependencies
 
-Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip-tools`](https://github.com/jazzband/pip-tools/) package. The dependencies are listed in [`dependencies/pip/`](./dependencies/pip/), with core requirements in [`dependencies/pip/requirements.in`](./dependencies/pip/requirements.in). You may use `pip` directly with one of the compiled `dependencies/pip/*.txt` files, but consider using instead the `pip-sync`. **Do not** add new dependencies directly to the *compiled* `dependencies/pip/*.txt` files; instead, update the relevant the *source* `dependencies/pip/*.in` file(s), and execute `make pip_compile` after any changes. You can pass arguments to `pip-compile` with e.g. `make pip_compile ARGS='--upgrade-package=xlwt'`. To force building, use `make --always-make ...`.
+Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip-tools`](https://github.com/jazzband/pip-tools/) package. The dependencies are listed in [`dependencies/pip/`](./dependencies/pip/), with core requirements in [`dependencies/pip/requirements.in`](./dependencies/pip/requirements.in). You may use `pip` directly with one of the compiled `dependencies/pip/*.txt` files, but consider using instead the `pip-sync`. **Do not** add new dependencies directly to the *compiled* `dependencies/pip/*.txt` files; instead, update the relevant the *source* `dependencies/pip/*.in` file(s), and execute `./pip-compile.sh` after any changes. You can pass arguments to `pip-compile.sh` with e.g. `./pip-compile.sh --upgrade-package=xlwt`.
 
 ## Downloading and compiling the translations
 

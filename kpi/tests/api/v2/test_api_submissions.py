@@ -101,8 +101,13 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_unknown = []
         self.submissions_submitted_by_anotheruser = []
 
+        submitted_by_choices = ['', 'someuser', 'anotheruser']
         for i in range(20):
-            submitted_by = random.choice(['', 'someuser', 'anotheruser'])
+            # We want to have at least one submission from each
+            if i <= 2:
+                submitted_by = submitted_by_choices[i]
+            else:
+                submitted_by = random.choice(submitted_by_choices)
             uuid_ = uuid.uuid4()
             submission = {
                 '__version__': v_uid,
@@ -1072,6 +1077,46 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # if authentication (and permissions) works as expected.
         with pytest.raises(KeyError) as e:
             req = self.client.post(url)
+
+    @responses.activate
+    def test_get_multiple_edit_links_and_attempt_submit_edits(self):
+        """
+        Ensure that opening multiple edits allows for all to be submitted
+        without the snapshot being recreated and rejecting any of the edits.
+        """
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        # open several submissions for editing and store their submission URLs
+        # for POSTing to later
+        submission_urls = []
+        for _ in range(2):
+            submission = self.get_random_submission(self.asset.owner)
+            edit_url = reverse(
+                self._get_endpoint('submission-enketo-edit'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+            self.client.get(edit_url, {'format': 'json'})
+            url = reverse(
+                self._get_endpoint('assetsnapshot-submission'),
+                args=(self.asset.snapshot.uid,),
+            )
+            submission_urls.append(url)
+        # Post all edits to their submission URLs. There is no valid XML being
+        # sent, so we expect a KeyError exeption if all is good
+        for url in submission_urls:
+            with pytest.raises(KeyError) as e:
+                res = self.client.post(url)
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):

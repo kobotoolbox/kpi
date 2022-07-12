@@ -18,7 +18,6 @@ module.exports = do ->
       v
 
     postInitialize: ()->
-      # TODO: get skip logic factories connected
       survey = @getSurvey()
       model_factory = new $modelRowDetailsSkipLogic.SkipLogicFactory survey
       view_factory = new $viewRowDetailSkipLogic.SkipLogicViewFactory survey

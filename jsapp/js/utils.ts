@@ -4,8 +4,7 @@
  * NOTE: these are used also by the Form Builder coffee code (see
  * `jsapp/xlform/src/view.surveyApp.coffee`)
  *
- * TODO: group these functions by what are they doing or where are they mostly
- * (or uniquely) used, and split to smaller files.
+ * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
 import moment from 'moment';
@@ -60,6 +59,15 @@ export function formatDate(timeStr: string): string {
   return myMoment.format('ll');
 }
 
+/** Returns something like "07:59" */
+export function formatSeconds(seconds: number) {
+  // We don't care about milliseconds (sorry!).
+  const secondsRound = Math.round(seconds);
+  const minutes = Math.floor(secondsRound / 60);
+  const secondsLeftover = secondsRound - minutes * 60;
+  return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`;
+}
+
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl: string): string | null {
   const matched = userUrl.match(/\/users\/(.*)\//);
@@ -70,6 +78,7 @@ export function getUsernameFromUrl(userUrl: string): string | null {
 }
 
 // TODO: Test if works for both form and library routes, if not make it more general
+// See: https://github.com/kobotoolbox/kpi/issues/3909
 export function getAssetUIDFromUrl(assetUrl: string): string | null {
   const matched = assetUrl.match(/.*\/([^/]+)\//);
   if (matched !== null) {
@@ -89,7 +98,6 @@ export function buildUserUrl(username: string): string {
 declare global {
   interface Window {
     log: () => void;
-    MFAEnabled: boolean;
   }
 }
 
@@ -108,6 +116,7 @@ const originalSupportEmail = 'help@kobotoolbox.org';
 //
 // TODO: make this use environment endpoint's `support_email` property.
 // Currently no place is using this correctly.
+// See: https://github.com/kobotoolbox/kpi/issues/3910
 export function replaceSupportEmail(str: string, newEmail?: string): string {
   if (typeof newEmail === 'string') {
     return str.replace(originalSupportEmail, newEmail);
@@ -349,6 +358,15 @@ export function generateAutoname(str: string, startIndex = 0, endIndex: number =
   .toLowerCase()
   .substring(startIndex, endIndex)
   .replace(/(\ |\.)/g, '_');
+}
+
+/** Simple unique ID generator. */
+export function generateUid() {
+  return String(
+    Math.random().toString(16) + '_' +
+    Date.now().toString(32) + '_' +
+    Math.random().toString(16)
+  ).replace(/\./g, '');
 }
 
 export function csrfSafeMethod(method: string) {

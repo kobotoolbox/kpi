@@ -573,12 +573,6 @@ export class DataTable extends React.Component {
         case META_QUESTION_TYPES.username:
             index = 'z1';
             break;
-        case META_QUESTION_TYPES.simserial:
-            index = 'z2';
-            break;
-        case META_QUESTION_TYPES.subscriberid:
-            index = 'z3';
-            break;
         case META_QUESTION_TYPES.deviceid:
             index = 'z4';
             break;
@@ -777,8 +771,6 @@ export class DataTable extends React.Component {
       META_QUESTION_TYPES.start,
       META_QUESTION_TYPES.end,
       META_QUESTION_TYPES.username,
-      META_QUESTION_TYPES.simserial,
-      META_QUESTION_TYPES.subscriberid,
       META_QUESTION_TYPES.deviceid,
       META_QUESTION_TYPES.phonenumber,
       META_QUESTION_TYPES.today,
@@ -794,6 +786,7 @@ export class DataTable extends React.Component {
 
     columnsToRender.forEach(function (col) {
       // TODO: see if this can work for select_multiple too
+      // See: https://github.com/kobotoolbox/kpi/issues/3922
       if (col.question && col.question.type === QUESTION_TYPES.select_one.id) {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>

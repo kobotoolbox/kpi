@@ -2,9 +2,7 @@
  * The only file that is making calls to Backend. You shouldn't use it directly,
  * but through proper actions in `jsapp/js/actions.es6`.
  *
- * TODO: Instead of splitting this huge file it could be a good idead to move
- * all the calls from here to appropriate actions and drop this file entirely.
- * And make actions for calls that doesn't have them.
+ * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
 import {assign} from 'js/utils';
@@ -74,7 +72,6 @@ interface AssetFileRequest {
 }
 
 export interface CreateImportRequest {
-  // TODO there might be more here
   base64Encoded?: string;
   name?: string;
   destination?: string;
@@ -135,9 +132,7 @@ export interface SubmissionResponse {
   'formhub/uuid': string;
   'meta/instanceID': string;
   phonenumber?: string;
-  simserial?: string;
   start?: string;
-  subscriberid?: string;
   today?: string;
   username?: string;
 }
@@ -239,7 +234,7 @@ export interface SurveyChoice {
 
 interface AssetLockingProfileDefinition {
   name: string;
-  restrictions: string[]; // TODO use restrictions enum after it is added
+  restrictions: string[]; // TODO make sure it's a type not a string when, see: https://github.com/kobotoolbox/kpi/issues/3904
 }
 
 export interface AssetContentSettings {
@@ -258,7 +253,7 @@ export interface AssetContentSettings {
  * It is quite crucial for multiple places of UI, but is not always
  * present in backend responses (performance reasons).
  */
-interface AssetContent {
+export interface AssetContent {
   schema?: string;
   survey?: SurveyRow[];
   choices?: SurveyChoice[];
@@ -317,7 +312,7 @@ export interface AssetSettings {
 
 /** This is the asset object Frontend uses with the endpoints. */
 interface AssetRequestObject {
-  // TODO there might be a few properties in AssetResponse that should be here,
+  // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null;
   settings: AssetSettings;
@@ -427,7 +422,9 @@ export interface AssetResponse extends AssetRequestObject {
   access_types: string[]|null;
 
   // TODO: think about creating a new interface for asset that is being extended
-  // on frontend. Here are some properties we add to the response:
+  // on frontend.
+  // See: https://github.com/kobotoolbox/kpi/issues/3905
+  // Here are some properties we add to the response:
   tags?: string[];
   unparsed__settings?: AssetContentSettings;
   settings__style?: string;
@@ -446,7 +443,7 @@ export interface MetadataResponse {
   organizations: string[];
 }
 
-interface PaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
@@ -509,7 +506,29 @@ export interface EnvironmentResponse {
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  mfa_localized_help_text: {[name: string]: string};
+  mfa_enabled: boolean;
+  mfa_code_length: number;
 }
+
+export interface InAppMessage {
+  url: string;
+  uid: string;
+  title: string;
+  snippet: string;
+  body: string;
+  html: {
+    snippet: string;
+    body: string;
+  };
+  interactions: {
+    acknowledged: boolean;
+    readTime?: string;
+  };
+  always_display_as_new: boolean;
+}
+
+export interface InAppMessagesResponse extends PaginatedResponse<InAppMessage> {}
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -933,6 +952,7 @@ export const dataInterface: DataInterface = {
       data: {
         ordering: '-date_created',
         // TODO: handle pagination of this in future, for now we get "all"
+        // see: https://github.com/kobotoolbox/kpi/issues/3906
         limit: 9999,
       },
     });
@@ -965,7 +985,9 @@ export const dataInterface: DataInterface = {
   getExportSettings(assetUid: string) {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
-      // TODO: handle pagination of this in future, for now we get "all"
+      // NOTE: we make an educated guess that there would be no real world
+      // situations that would require more than 9999 saved settings.
+      // No pagination here, sorry.
       data: {limit: 9999},
     });
   },

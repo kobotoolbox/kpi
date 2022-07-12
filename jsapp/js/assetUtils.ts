@@ -1,9 +1,13 @@
-import React from 'react'
-import {AssetTypeName} from 'js/constants'
-import {stores} from 'js/stores'
-import permConfig from 'js/components/permissions/permConfig'
-import {buildUserUrl} from 'js/utils'
-import envStore from 'js/envStore'
+import React from 'react';
+import {stores} from 'js/stores';
+import permConfig from 'js/components/permissions/permConfig';
+import {buildUserUrl} from 'js/utils';
+import envStore from 'js/envStore';
+import type {
+  AssetTypeName,
+  AnyRowTypeName,
+  QuestionTypeName,
+} from 'js/constants';
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -17,22 +21,21 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
-  AnyRowTypeName,
-  QuestionTypeName,
 } from 'js/constants';
-import {
+import type {
+  AssetContent,
   AssetResponse,
   SurveyRow,
   SurveyChoice,
-  Permission
-} from 'js/dataInterface'
+  Permission,
+} from 'js/dataInterface';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
  */
 export function cleanupTags(tags: string[]) {
-  return tags.map(function(tag) {
+  return tags.map(function (tag) {
     return tag.trim().replace(/ /g, '-');
   });
 }
@@ -42,8 +45,7 @@ export function cleanupTags(tags: string[]) {
  */
 export function getAssetOwnerDisplayName(username: string) {
   if (
-    stores.session.currentAccount &&
-    stores.session.currentAccount.username &&
+    stores.session.currentAccount?.username &&
     stores.session.currentAccount.username === username
   ) {
     return t('me');
@@ -82,12 +84,8 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
 }
 
 export function getLanguagesDisplayString(asset: AssetResponse) {
-  if (
-    asset.summary &&
-    asset.summary.languages &&
-    asset.summary.languages.length >= 1
-  ) {
-    return asset.summary.languages.join(', ');
+  if (asset?.summary?.languages && asset.summary.languages.length >= 1) {
+    return asset?.summary.languages.join(', ');
   } else {
     return '-';
   }
@@ -97,7 +95,7 @@ export function getLanguagesDisplayString(asset: AssetResponse) {
  * Returns `-` for assets without sector and localized label otherwise
  */
 export function getSectorDisplayString(asset: AssetResponse): string {
-  let output = '-'
+  let output = '-';
 
   if (asset.settings.sector?.value) {
     /**
@@ -105,15 +103,15 @@ export function getSectorDisplayString(asset: AssetResponse): string {
      * and thus prone to not be true (e.g. creating form in spanish UI language
      * and then switching to french would result in seeing spanish labels)
      */
-    const sectorLabel = envStore.getSectorLabel(asset.settings.sector.value)
+    const sectorLabel = envStore.getSectorLabel(asset.settings.sector.value);
     if (sectorLabel !== undefined) {
-      output = sectorLabel
+      output = sectorLabel;
     } else {
-      output = asset.settings.sector.value
+      output = asset.settings.sector.value;
     }
   }
 
-  return output
+  return output;
 }
 
 export function getCountryDisplayString(asset: AssetResponse): string {
@@ -123,16 +121,17 @@ export function getCountryDisplayString(asset: AssetResponse): string {
      * and thus prone to not be true (e.g. creating form in spanish UI language
      * and then switching to french would result in seeing spanish labels)
      */
-    let countries = [];
+    const countries = [];
     // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
     if (Array.isArray(asset.settings.country)) {
-      for (let country of asset.settings.country) {
+      for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value));
       }
     } else {
       countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
     // TODO: improve for RTL?
+    // See: https://github.com/kobotoolbox/kpi/issues/3903
     return countries.join(', ');
   } else {
     return '-';
@@ -140,10 +139,10 @@ export function getCountryDisplayString(asset: AssetResponse): string {
 }
 
 interface DisplayNameObj {
-  original?: string // Name typed in by user.
-  question?: string // First question name.
-  empty?: string // Set when no other is available.
-  final: string // original, question or empty name - the one to be displayed.
+  original?: string; // Name typed in by user.
+  question?: string; // First question name.
+  empty?: string; // Set when no other is available.
+  final: string; // original, question or empty name - the one to be displayed.
 }
 
 /**
@@ -156,13 +155,13 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
 
   const output: DisplayNameObj = {
     // empty name is a fallback
-    final: emptyName
+    final: emptyName,
   };
 
   if (asset.name) {
     output.original = asset.name;
   }
-  if (asset.summary && asset.summary.labels && asset.summary.labels.length > 0) {
+  if (asset?.summary?.labels && asset.summary.labels.length > 0) {
     // for unnamed assets, we try to display first question name
     output.question = asset.summary.labels[0];
   }
@@ -185,8 +184,8 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
  * "Unlabelled". `translationIndex` defaults to first (default) language.
  */
 export function getQuestionOrChoiceDisplayName(
-  questionOrChoice: SurveyRow | SurveyChoice,
-  translationIndex: number = 0
+  questionOrChoice: SurveyChoice | SurveyRow,
+  translationIndex = 0
 ): string {
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
@@ -210,6 +209,25 @@ export function isLibraryAsset(assetType: AssetTypeName) {
     assetType === ASSET_TYPES.template.id ||
     assetType === ASSET_TYPES.collection.id
   );
+}
+
+/**
+ * Checks whether the asset is public - i.e. visible and discoverable by anyone.
+ * Note that `view_asset` is implied when you have `discover_asset`.
+ */
+export function isAssetPublic(permissions: Permission[]) {
+  let isDiscoverableByAnonymous = false;
+  permissions.forEach((perm) => {
+    const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
+    if (
+      perm.user === buildUserUrl(ANON_USERNAME) &&
+      foundPerm !== undefined &&
+      perm.permission === foundPerm.url
+    ) {
+      isDiscoverableByAnonymous = true;
+    }
+  });
+  return isDiscoverableByAnonymous;
 }
 
 /**
@@ -239,11 +257,11 @@ export function getAssetIcon(asset: AssetResponse) {
         return 'k-icon k-icon-project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
+      if (asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
         return 'k-icon k-icon-folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
         return 'k-icon k-icon-folder-public';
-      } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
+      } else if (asset?.access_types?.includes(ACCESS_TYPES.shared)) {
         return 'k-icon k-icon-folder-shared';
       } else {
         return 'k-icon k-icon-folder';
@@ -269,7 +287,7 @@ export function modifyDetails(asset: AssetResponse) {
       asset: asset,
     });
   } else {
-    throw new Error(`Unsupported asset type: ${asset.asset_type}.`)
+    throw new Error(`Unsupported asset type: ${asset.asset_type}.`);
   }
 }
 
@@ -313,8 +331,12 @@ export function replaceForm(asset: AssetResponse) {
   });
 }
 
-type SurveyFlatPaths = {
+export type SurveyFlatPaths = {
   [P in string]: string
+};
+
+export function getRowName(row: SurveyChoice | SurveyRow) {
+  return row.name || ('$autoname' in row && row.$autoname) || row.$kuid;
 }
 
 /**
@@ -325,26 +347,26 @@ type SurveyFlatPaths = {
  */
 export function getSurveyFlatPaths(
   survey: SurveyRow[],
-  includeGroups: boolean = false,
-  includeMeta: boolean = false
+  includeGroups = false,
+  includeMeta = false
 ): SurveyFlatPaths {
   const output: SurveyFlatPaths = {};
   const openedGroups: string[] = [];
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_TYPES_BEGIN.hasOwnProperty(row.type)) {
+    if (Object.prototype.hasOwnProperty.call(GROUP_TYPES_BEGIN, row.type)) {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_TYPES_END.hasOwnProperty(row.type)) {
+    } else if (Object.prototype.hasOwnProperty.call(GROUP_TYPES_END, row.type)) {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES.hasOwnProperty(row.type) ||
+      Object.prototype.hasOwnProperty.call(QUESTION_TYPES, row.type) ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE ||
-      (includeMeta && META_QUESTION_TYPES.hasOwnProperty(row.type))
+      (includeMeta && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type))
     ) {
       let groupsPath = '';
       if (openedGroups.length >= 1) {
@@ -357,41 +379,15 @@ export function getSurveyFlatPaths(
   return output;
 }
 
-export function getRowName(row: SurveyRow | SurveyChoice) {
-  return row.name || ('$autoname' in row && row.$autoname) || row.$kuid;
-}
-
 /**
- * @param rowName - could be either a survey row name or choices row name
- * @param data - is either a survey or choices
- * Returns null for not found
+ * An internal helper function for DRY code
  */
-export function getTranslatedRowLabel(
-  rowName: string,
-  data: SurveyRow[] | SurveyChoice[],
-  translationIndex: number
-): string | null {
-  let foundRowIndex: number | undefined;
-  let foundRow: SurveyRow | SurveyChoice | undefined;
-
-  data.forEach((row, rowIndex) => {
-    if (getRowName(row) === rowName) {
-      foundRow = row;
-      foundRowIndex = rowIndex;
-    }
-  });
-
-  if (typeof foundRow === 'object' && foundRow.hasOwnProperty('label')) {
-    return getRowLabelAtIndex(foundRow, translationIndex);
-  } else if (typeof foundRow === 'object' && typeof foundRowIndex === 'number') {
-    // that mysterious row always comes as a next row
-    let possibleRow = data[foundRowIndex + 1];
-    if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
-      return getRowLabelAtIndex(possibleRow, translationIndex);
-    }
+function getRowLabelAtIndex(row: SurveyChoice | SurveyRow, index: number) {
+  if (Array.isArray(row.label)) {
+    return row.label[index] || null;
+  } else {
+    return row.label || null;
   }
-
-  return null;
 }
 
 /**
@@ -400,14 +396,14 @@ export function getTranslatedRowLabel(
  * as a group and a row by Backend. This function detects if this is the case.
  */
 export function isRowSpecialLabelHolder(
-  mainRow: SurveyRow | SurveyChoice,
-  holderRow: SurveyRow | SurveyChoice
+  mainRow: SurveyChoice | SurveyRow,
+  holderRow: SurveyChoice | SurveyRow
 ): boolean {
   if (!mainRow || !holderRow || !Object.prototype.hasOwnProperty.call(holderRow, 'label')) {
     return false;
   } else {
-    let mainRowName = getRowName(mainRow);
-    let holderRowName = getRowName(holderRow);
+    const mainRowName = getRowName(mainRow);
+    const holderRowName = getRowName(holderRow);
     return (
       (
         // this handles ranking questions
@@ -432,47 +428,84 @@ export function isRowSpecialLabelHolder(
 }
 
 /**
- * An internal helper function for DRY code
+ * @param rowName - could be either a survey row name or choices row name
+ * @param data - is either a survey or choices
+ * Returns null for not found
  */
-function getRowLabelAtIndex(
-  row: SurveyRow | SurveyChoice,
-  index: number
+export function getTranslatedRowLabel(
+  rowName: string,
+  data: SurveyChoice[] | SurveyRow[] | undefined,
+  translationIndex: number
 ): string | null {
-  if (Array.isArray(row.label)) {
-    return row.label[index] || null;
-  } else {
-    return row.label || null;
+  let foundRowIndex: number | undefined;
+  let foundRow: SurveyChoice | SurveyRow | undefined;
+
+  if (data === undefined) {
+    return null;
   }
+
+  data.forEach((row, rowIndex) => {
+    if (getRowName(row) === rowName) {
+      foundRow = row;
+      foundRowIndex = rowIndex;
+    }
+  });
+
+  if (typeof foundRow === 'object' && Object.prototype.hasOwnProperty.call(foundRow, 'label')) {
+    return getRowLabelAtIndex(foundRow, translationIndex);
+  } else if (typeof foundRow === 'object' && typeof foundRowIndex === 'number') {
+    // that mysterious row always comes as a next row
+    const possibleRow = data[foundRowIndex + 1];
+    if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
+      return getRowLabelAtIndex(possibleRow, translationIndex);
+    }
+  }
+
+  return null;
+}
+
+export function getRowType(assetContent: AssetContent, rowName: string) {
+  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName);
+  if (foundRow) {
+    return foundRow.type;
+  }
+  return undefined;
+}
+
+export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
+  if (rowType === SCORE_ROW_TYPE) {
+    return QUESTION_TYPES.score.icon;
+  } else if (rowType === RANK_LEVEL_TYPE) {
+    return QUESTION_TYPES.rank.icon;
+  } else if (rowType && Object.prototype.hasOwnProperty.call(QUESTION_TYPES, rowType)) {
+    // We need to cast with `as` operator to avoid typescript complaining that
+    // we can't use AnyRowTypeName as index for QuestionTypes.
+    const rowTypeAsQuestionType = rowType as QuestionTypeName;
+    return QUESTION_TYPES[rowTypeAsQuestionType].icon;
+  }
+
+  if (rowType === META_QUESTION_TYPES['background-audio']) {
+    return 'background-rec';
+  } else if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
+    return 'qt-meta-default';
+  }
+
+  return undefined;
 }
 
 export function renderQuestionTypeIcon(
   rowType: AnyRowTypeName
 ): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
-  let iconClassName: string = '';
-
-  if (rowType === SCORE_ROW_TYPE) {
-    iconClassName = QUESTION_TYPES.score.icon;
-  } else if (rowType === RANK_LEVEL_TYPE) {
-    iconClassName = QUESTION_TYPES.rank.icon;
-  } else if (QUESTION_TYPES.hasOwnProperty(rowType)) {
-    // We need to cast with `as` operator to avoid typescript complaining that
-    // we can't use AnyRowTypeName as index for QuestionTypes.
-    const rowTypeAsQuestionType = rowType as QuestionTypeName;
-    iconClassName = QUESTION_TYPES[rowTypeAsQuestionType].icon;
-  }
-
-  if (rowType === META_QUESTION_TYPES['background-audio']) {
-    iconClassName = 'k-icon-background-rec';
-  } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
-    iconClassName = 'qt-meta-default';
-  }
-
-  if (iconClassName) {
+  const rowTypeIcon = getRowTypeIcon(rowType);
+  if (rowTypeIcon) {
+    // TODO: use Icon component here, but please check out all usages first.
+    // Also make sure the icon size is right.
+    // It should be done while working on https://github.com/kobotoolbox/kpi/issues/3571
     return React.createElement(
       'i',
       {
-        className: `k-icon k-icon-${iconClassName}`,
-        title: rowType
+        className: `k-icon k-icon-${rowTypeIcon}`,
+        title: rowType,
       }
     );
   } else {
@@ -480,14 +513,15 @@ export function renderQuestionTypeIcon(
   }
 }
 
-interface FlatQuestion {
-  type: AnyRowTypeName
-  name: string
-  isRequired: boolean
-  label: string
-  path: string
-  parents: string[]
-  hasRepatParent: boolean
+export interface FlatQuestion {
+  type: AnyRowTypeName;
+  name: string;
+  isRequired: boolean;
+  label: string;
+  path: string;
+  parents: string[];
+  parentRows: SurveyRow[];
+  hasRepeatParent: boolean;
 }
 
 /**
@@ -501,17 +535,17 @@ interface FlatQuestion {
  */
 export function getFlatQuestionsList(
   survey: SurveyRow[],
-  translationIndex: number = 0,
-  includeMeta: boolean = false
+  translationIndex = 0,
+  includeMeta = false
 ): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);
   const output: FlatQuestion[] = [];
-  const openedGroups: string[] = [];
+  const openedGroups: SurveyRow[] = [];
   let openedRepeatGroupsCount = 0;
 
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionOrChoiceDisplayName(row, translationIndex));
+      openedGroups.push(row);
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -524,8 +558,8 @@ export function getFlatQuestionsList(
     }
 
     if (
-      QUESTION_TYPES.hasOwnProperty(row.type) ||
-      (includeMeta && META_QUESTION_TYPES.hasOwnProperty(row.type))
+      Object.prototype.hasOwnProperty.call(QUESTION_TYPES, row.type) ||
+      (includeMeta && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, row.type))
     ) {
       const rowName = getRowName(row);
       output.push({
@@ -534,8 +568,13 @@ export function getFlatQuestionsList(
         isRequired: Boolean(row.required),
         label: getQuestionOrChoiceDisplayName(row, translationIndex),
         path: flatPaths[rowName],
-        parents: openedGroups.slice(0),
-        hasRepatParent: openedRepeatGroupsCount >= 1,
+        parents: openedGroups
+          .slice(0)
+          .map((group) =>
+            getQuestionOrChoiceDisplayName(group, translationIndex)
+          ),
+        parentRows: openedGroups.slice(0),
+        hasRepeatParent: openedRepeatGroupsCount >= 1,
       });
     }
   });
@@ -566,25 +605,6 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
   return errors;
 }
 
-/**
- * Checks whether the asset is public - i.e. visible and discoverable by anyone.
- * Note that `view_asset` is implied when you have `discover_asset`.
- */
-export function isAssetPublic(permissions: Permission[]) {
-  let isDiscoverableByAnonymous = false;
-  permissions.forEach((perm) => {
-    const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
-    if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
-      foundPerm !== undefined &&
-      perm.permission === foundPerm.url
-    ) {
-      isDiscoverableByAnonymous = true;
-    }
-  });
-  return isDiscoverableByAnonymous;
-}
-
 export function isSelfOwned(asset: AssetResponse) {
   return (
     asset &&
@@ -603,7 +623,7 @@ export function buildAssetUrl(assetUid: string) {
 * @param {string} str
 */
 export function removeInvalidChars(str: string) {
-  var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
+  const regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
   return str = String(str || '').replace(regex, '');
 }
 

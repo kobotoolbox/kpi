@@ -1,0 +1,132 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+
+$mfa-paragraph-spacing: sizes.$x18;
+
+// FIXME: should not depend on another header's CSS. Standardize modal headers
+.modal--mfa-setup .table-media-preview-header__title {
+  font-size: sizes.$x14;
+  font-weight: 600;
+
+  .k-icon {
+    color: colors.$kobo-blue;
+    position: relative;
+    top: sizes.$x2;
+    padding-right: sizes.$x12;
+  }
+}
+
+.mfa-modal {
+  padding: sizes.$x30 sizes.$x60 0; // bottom padding is handled by footer
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .text-box__input {
+    text-align: center;
+    font-size: sizes.$x18 !important;
+    font-weight: 400 !important;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.mfa-modal__body {
+  flex: 1;
+}
+
+.mfa-modal__p {
+  &.mfa-modal__p--align-right {
+    text-align: right;
+  }
+}
+
+.mfa-modal__body,
+.mfa-modal__description {
+  .mfa-modal__p,
+  .mfa-modal__codes-wrapper,
+  .mfa-modal__qrcode-wrapper,
+  ul {
+    margin: 0;
+
+    &:not(:last-child) {
+      margin-bottom: $mfa-paragraph-spacing;
+    }
+  }
+}
+
+.mfa-modal__description + .mfa-modal__body {
+  margin-top: $mfa-paragraph-spacing;
+}
+
+// Individual steps separeted out from parent for readability
+.mfa-modal--step-qr {
+  canvas {
+    display: block;
+    padding: sizes.$x14;
+    border: sizes.$x1 solid colors.$kobo-gray-85;
+    border-radius: 3%;
+    margin: 0 auto;
+  }
+}
+
+.mfa-modal__codes {
+  text-align: center;
+  background-color: colors.$kobo-gray-92;
+  border: sizes.$x1 solid colors.$kobo-gray-85;
+  border-radius: sizes.$x5;
+  padding: sizes.$x12;
+  line-break: anywhere;
+
+  .mfa-modal__list {
+    padding-top: sizes.$x24;
+
+    > li {
+      padding-bottom: sizes.$x24;
+    }
+  }
+
+  &:not(:last-child) {
+    margin-bottom: $mfa-paragraph-spacing;
+  }
+}
+
+.mfa-modal__help-link {
+  cursor: pointer;
+}
+
+.mfa-modal__footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: sizes.$x30;
+  padding-bottom: sizes.$x60;
+
+  .mfa-modal__footer-left {
+    width: 40%;
+  }
+
+  .mfa-modal__footer-right {
+    width: 40%;
+    margin-left: auto;
+    order: 2;
+  }
+}
+
+.mfa-modal.mfa-modal--step-manual,
+.mfa-modal.mfa-modal--step-backup,
+.mfa-modal.mfa-modal--step-qr {
+  .mfa-modal__body {
+    display: flex;
+    flex-direction: column;
+
+    .mfa-modal__codes-wrapper,
+    .mfa-modal__qrcode-wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+    }
+  }
+}

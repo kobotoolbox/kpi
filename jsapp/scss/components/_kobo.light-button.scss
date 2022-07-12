@@ -50,8 +50,6 @@
   border-style: solid;
   white-space: nowrap; // for smaller screens
 
-  // TODO: this assumes that icon goes before button text
-  // icon inside is bigger than the button, so we need cleverness to position it
   i,
   .k-icon {
     vertical-align: top;

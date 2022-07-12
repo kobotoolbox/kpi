@@ -6,6 +6,20 @@ import {cleanupTags} from 'js/assetUtils';
 const DEFAULT_PLACEHOLDER = t('Type and confirm with ENTER');
 const TAGS_SEPARATOR = ',';
 
+interface KoboTagsInputProps {
+  tags: string;
+  onChange: (tags: string) => void;
+  label?: string;
+  placeholder?: string;
+  'data-cy'?: string;
+}
+
+interface InnerInputProps {
+  placeholder: string;
+  'data-cy'?: string;
+  id?: string;
+}
+
 /**
  * This component is a wrapper around 3rd party react-tagsinput to allow for
  * common settings to be reused in a better way.
@@ -15,13 +29,13 @@ const TAGS_SEPARATOR = ',';
  * @prop {string} [label] optional title
  * @prop {string} [placeholder] optional as default is provided
  */
-class KoboTagsInput extends React.Component {
-  constructor(props) {
+class KoboTagsInput extends React.Component<KoboTagsInputProps> {
+  constructor(props: KoboTagsInputProps) {
     super(props);
     autoBind(this);
   }
 
-  onChange(tags) {
+  onChange(tags: string[]) {
     // make sure to split all multiple tags added (i.e. when users types in few
     // tags at once separated by TAGS_SEPARATOR)
     let cleanTags = tags.join(TAGS_SEPARATOR).split(TAGS_SEPARATOR);
@@ -31,13 +45,14 @@ class KoboTagsInput extends React.Component {
   }
 
   // splits pasted text by TAGS_SEPARATOR and trims all white space
-  pasteSplit(data) {
-    return data.split(TAGS_SEPARATOR).map((tag) => {return tag.trim();});
+  pasteSplit(data: string) {
+    return data.split(TAGS_SEPARATOR).map((tag) => tag.trim());
   }
 
   render() {
-    const inputProps = {
+    const inputProps: InnerInputProps = {
       placeholder: this.props.placeholder || DEFAULT_PLACEHOLDER,
+      'data-cy': this.props['data-cy'],
     };
 
     if (this.props.label) {
@@ -45,7 +60,7 @@ class KoboTagsInput extends React.Component {
       inputProps.id = String(encodeURI(this.props.label) + '_' + Date.now()).toLowerCase();
     }
 
-    let tagsArray = [];
+    let tagsArray: string[] = [];
     if (typeof this.props.tags === 'string' && this.props.tags.length >= 1) {
       tagsArray = this.props.tags.split(TAGS_SEPARATOR);
     }

@@ -30,7 +30,8 @@ interface UpdateAssetCompletedDefinition extends Function {
   listen: (callback: (response: AssetResponse) => void) => void
 }
 
-// TODO: as you use more actions in your ts files, please extend this namespace
+// NOTE: as you use more actions in your ts files, please extend this namespace,
+// for now we are defining only the ones we need.
 export namespace actions {
     const navigation: any
     const auth: any

@@ -13,14 +13,14 @@ class GlobalSettingsTestCase(TestCase):
     def test_mfa_enabled(self):
         self.client.login(username='someuser', password='someuser')
         self.assertTrue(constance.config.MFA_ENABLED)
-        response = self.client.get(reverse('kpi-root'))
-        lines = [line.strip() for line in response.content.decode().split('\n')]
-        self.assertTrue("window.MFAEnabled = true;" in lines)
+        response = self.client.get(reverse('environment'))
+        json_ = response.json()
+        self.assertTrue(json_['mfa_enabled'])
 
     @override_config(MFA_ENABLED=False)
     def test_mfa_disabled(self):
         self.client.login(username='someuser', password='someuser')
         self.assertFalse(constance.config.MFA_ENABLED)
-        response = self.client.get(reverse('kpi-root'))
-        lines = [line.strip() for line in response.content.decode().split('\n')]
-        self.assertTrue("window.MFAEnabled = false;" in lines)
+        response = self.client.get(reverse('environment'))
+        json_ = response.json()
+        self.assertFalse(json_['mfa_enabled'])
