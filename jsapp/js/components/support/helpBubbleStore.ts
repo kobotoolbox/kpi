@@ -1,14 +1,30 @@
 import throttle from 'lodash.throttle';
 import {makeAutoObservable} from 'mobx';
 import type {
-  InAppMessage,
-  InAppMessagesResponse,
+  PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 
 const FETCH_MESSAGES_LOOP_TIME = 1 * 60 * 1000; // 1 minute
+
+export interface InAppMessage {
+  url: string;
+  uid: string;
+  title: string;
+  snippet: string;
+  body: string;
+  html: {
+    snippet: string;
+    body: string;
+  };
+  interactions: {
+    acknowledged: boolean;
+    readTime?: string;
+  };
+  always_display_as_new: boolean;
+}
 
 class HelpBubbleStore {
   public messages: InAppMessage[] = [];
@@ -61,7 +77,7 @@ class HelpBubbleStore {
       .fail(this.onFetchMessagesFail.bind(this));
   }
 
-  private onFetchMessagesDone(response: InAppMessagesResponse) {
+  private onFetchMessagesDone(response: PaginatedResponse<InAppMessage>) {
     this.isLoading = false;
     this.messages = response.results;
   }
@@ -136,6 +152,5 @@ class HelpBubbleStore {
   }
 }
 
-const helpBubbleStore = new HelpBubbleStore();
+export default new HelpBubbleStore();
 
-export default helpBubbleStore;
