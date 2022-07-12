@@ -17,6 +17,11 @@ import type {
   AssetFileType,
 } from 'js/constants';
 
+export interface LabelValuePair {
+  label: string;
+  value: string;
+}
+
 interface AssetsRequestData {
   q?: string;
   limit?: number;
@@ -151,11 +156,6 @@ interface AssignablePermissionPartial {
     delete_submissions: string;
     validate_submissions: string;
   };
-}
-
-interface SelectChoice {
-  label: string;
-  value: string;
 }
 
 /**
@@ -299,11 +299,8 @@ export interface AssetTableSettings {
 }
 
 export interface AssetSettings {
-  sector?: {
-    label: string;
-    value: string;
-  };
-  country?: SelectChoice | SelectChoice[];
+  sector?: LabelValuePair;
+  country?: LabelValuePair | LabelValuePair[];
   description?: string;
   'share-metadata'?: boolean;
   'data-table'?: AssetTableSettings;
