@@ -4,7 +4,7 @@ import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
 import Icon from 'js/components/common/icon';
 import './helpBubble.scss';
-import type {InAppMessage} from 'js/dataInterface';
+import type {InAppMessage} from './helpBubbleStore';
 import helpBubbleStore from './helpBubbleStore';
 import {observer} from 'mobx-react';
 
