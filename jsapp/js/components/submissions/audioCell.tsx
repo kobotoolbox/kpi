@@ -34,7 +34,7 @@ export default class AudioCell extends React.Component<AudioCellProps, {}> {
           size='s'
           color='blue'
           endIcon='arrow-up-right'
-          label={t('Analyze')}
+          label={t('Open')}
           onClick={() => {
             openProcessing(
               this.props.assetUid,

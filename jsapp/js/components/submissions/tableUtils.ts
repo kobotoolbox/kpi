@@ -61,9 +61,9 @@ export function getColumnLabel(
     );
 
     if (supplementalPathParts.isTranscript) {
-      return `${sourceQuestionLabel} - ${t('transcript')} (${supplementalPathParts.languageCode})`;
+      return `${t('transcript')} (${supplementalPathParts.languageCode}) | ${sourceQuestionLabel}`;
     } else if (supplementalPathParts.isTranslation) {
-      return `${sourceQuestionLabel} - ${t('translation')} (${supplementalPathParts.languageCode})`;
+      return `${t('translation')} (${supplementalPathParts.languageCode}) | ${sourceQuestionLabel}`;
     }
   }
 
