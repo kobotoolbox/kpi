@@ -188,11 +188,6 @@
       &:hover {
         color: $kobo-blue;
       }
-
-      &[disabled] {
-        pointer-events: none;
-        opacity: 0.5;
-      }
     }
 
     &.environment-links {
