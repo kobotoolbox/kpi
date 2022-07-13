@@ -5,7 +5,6 @@ import reactMixin from 'react-mixin';
 import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
-import Button from 'js/components/common/button';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -61,7 +60,6 @@ import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
 import MediaCell from './mediaCell';
 import AudioCell from './audioCell';
-import {openProcessing} from 'js/components/processing/processingUtils';
 
 const DEFAULT_PAGE_SIZE = 30;
 
