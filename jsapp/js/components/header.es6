@@ -26,6 +26,7 @@ import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import envStore from 'js/envStore';
+import UiLanguageSelector from 'js/components/header/uiLanguageSelector';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -232,6 +233,8 @@ class MainHeader extends Reflux.Component {
                       {langs.map(this.renderLangItem)}
                     </ul>
                   }
+
+                  <UiLanguageSelector/>
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
