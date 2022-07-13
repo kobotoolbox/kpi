@@ -1,5 +1,5 @@
 import clonedeep from 'lodash.clonedeep';
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, toJS} from 'mobx';
 import type {
   LabelValuePair,
   FailResponse,
@@ -21,7 +21,7 @@ interface ProfileExtraDetails {
   require_auth?: boolean;
   sector?: LabelValuePair;
   twitter?: string;
-  lang?: string;
+  ui_language?: string;
 }
 
 export interface ProfileUpdateData {
@@ -79,7 +79,7 @@ class ProfileStore {
   public isInitialised = false;
 
   public get uiLanguage() {
-    return this.data.extra_details.lang || FALLBACK_LANG;
+    return this.data.extra_details.ui_language || FALLBACK_LANG;
   }
 
   constructor() {
@@ -90,7 +90,6 @@ class ProfileStore {
   private fetchProfile() {
     this.isLoading = true;
     $.ajax({
-      dataType: 'json',
       method: 'GET',
       url: `${ROOT_URL}/me/`,
     })
@@ -118,24 +117,37 @@ class ProfileStore {
   private updateProfile(data: ProfileUpdateData) {
     this.isLoading = true;
     $.ajax({
-      data: data,
-      dataType: 'json',
       method: 'PATCH',
       url: `${ROOT_URL}/me/`,
+      data: JSON.stringify(data),
+      dataType: 'json',
+      contentType: 'application/json',
     })
       .done(this.onUpdateProfileDone.bind(this))
       .fail(this.onAnyFail.bind(this));
   }
 
   private onUpdateProfileDone(response: ProfileData) {
+    if (this.data.extra_details.ui_language !== response.extra_details.ui_language) {
+      console.log('different language!', this.data.extra_details.ui_language, response.extra_details.ui_language);
+      if ('reload' in window.location) {
+        window.location.reload();
+      } else {
+        window.alert(t('Please refresh the page'));
+      }
+    }
+
     this.data = response;
     this.isLoading = false;
   }
 
-  /** Updates the UI language. */
+  /** Updates the UI language (async). */
   public setUiLanguage(langCode: string) {
-    const newExtraDetails = clonedeep(this.data.extra_details);
-    newExtraDetails.lang = langCode;
+    // NOTE: we can't deep clone existing this.data.extra_details, as MobX is
+    // doing some magic with observable values, we need to convert it back to
+    // plain JS object.
+    const newExtraDetails = clonedeep(toJS(this.data.extra_details));
+    newExtraDetails.ui_language = langCode;
     this.updateProfile({
       email: this.data.email,
       extra_details: newExtraDetails,
