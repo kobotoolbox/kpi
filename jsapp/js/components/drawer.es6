@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, hashHistory } from 'react-router';
 import {stores} from '../stores';
+import sessionStore from 'js/components/account/sessionStore';
 import bem from 'js/bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
@@ -40,7 +41,7 @@ class FormSidebar extends Reflux.Component {
     this.state = assign(INITIAL_STATE, this.state);
 
     this.stores = [
-      stores.session,
+      sessionStore,
       stores.pageState
     ];
     this.unlisteners = [];
@@ -65,7 +66,7 @@ class FormSidebar extends Reflux.Component {
       <React.Fragment>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
-          disabled={!stores.session.isLoggedIn}
+          disabled={!sessionStore.isLoggedIn}
           onClick={this.newFormModal}
         >
           {t('new')}
@@ -132,13 +133,13 @@ class Drawer extends Reflux.Component {
     super(props);
     autoBind(this);
     this.stores = [
-      stores.session,
+      sessionStore,
       stores.pageState,
     ];
   }
   render() {
     // no sidebar for not logged in users
-    if (!stores.session.isLoggedIn) {
+    if (!sessionStore.isLoggedIn) {
       return null;
     }
 
@@ -168,12 +169,12 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
-          { stores.session.isLoggedIn &&
+          { sessionStore.isLoggedIn &&
             <HelpBubble/>
           }
-          { stores.session.isLoggedIn &&
-            stores.session.currentAccount.projects_url &&
-            <a href={stores.session.currentAccount.projects_url}
+          { sessionStore.isLoggedIn &&
+            sessionStore.currentAccount.projects_url &&
+            <a href={sessionStore.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'
               data-tip={t('Projects (legacy)')}

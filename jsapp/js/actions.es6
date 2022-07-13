@@ -146,9 +146,6 @@ actions.misc.updateProfile.listen(function(data, callbacks={}){
       }
     });
 });
-actions.misc.updateProfile.completed.listen(function(){
-  notify(t('updated profile successfully'));
-});
 actions.misc.updateProfile.failed.listen(function(data) {
   let hadFieldsErrors = false;
   for (const [errorProp, errorValue] of Object.entries(data.responseJSON)){

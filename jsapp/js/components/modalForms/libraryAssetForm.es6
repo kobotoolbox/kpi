@@ -10,6 +10,7 @@ import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {actions} from 'js/actions';
 import {hashHistory} from 'react-router';
 import {notify} from 'utils';
@@ -35,7 +36,7 @@ export class LibraryAssetForm extends React.Component {
     super(props);
     this.unlisteners = [];
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       fields: {
         name: '',
         organization: '',
@@ -53,7 +54,7 @@ export class LibraryAssetForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    this.listenTo(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(

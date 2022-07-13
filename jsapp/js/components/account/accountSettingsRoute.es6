@@ -6,7 +6,7 @@ import DocumentTitle from 'react-document-title';
 import clonedeep from 'lodash.clonedeep';
 import {actions} from 'js/actions';
 import bem, {makeBem} from 'js/bem';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
@@ -14,6 +14,7 @@ import ApiTokenDisplay from 'js/components/apiTokenDisplay';
 import {
   addRequiredToLabel,
   stringToColor,
+  notify,
 } from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
@@ -46,11 +47,11 @@ export default class AccountSettings extends React.Component {
 
   rebuildState() {
     if (
-      stores.session.isLoggedIn &&
+      sessionStore.isLoggedIn &&
       envStore.isReady
     ) {
       this.setStateFromSession(
-        stores.session.currentAccount,
+        sessionStore.currentAccount,
         envStore.data
       );
     }
@@ -58,7 +59,7 @@ export default class AccountSettings extends React.Component {
 
   componentDidMount() {
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
-    this.listenTo(stores.session, this.rebuildState);
+    this.listenTo(sessionStore, this.rebuildState);
     this.rebuildState();
   }
 
@@ -156,6 +157,7 @@ export default class AccountSettings extends React.Component {
       isPristine: true,
       fieldsWithErrors: {},
     });
+    notify(t('updated profile successfully'));
   }
 
   onUpdateFail(data) {
@@ -195,11 +197,11 @@ export default class AccountSettings extends React.Component {
   }
 
   render() {
-    if(!stores.session.isLoggedIn || !envStore.isReady) {
+    if(!sessionStore.isLoggedIn || !envStore.isReady) {
       return null;
     }
 
-    const accountName = stores.session.currentAccount.username;
+    const accountName = sessionStore.currentAccount.username;
     const initialsStyle = {
       background: `#${stringToColor(accountName)}`,
     };
@@ -430,5 +432,5 @@ export default class AccountSettings extends React.Component {
   }
 }
 
-reactMixin(AccountSettings.prototype, Reflux.connect(stores.session, 'session'));
+reactMixin(AccountSettings.prototype, Reflux.connect(sessionStore, 'session'));
 reactMixin(AccountSettings.prototype, Reflux.ListenerMixin);

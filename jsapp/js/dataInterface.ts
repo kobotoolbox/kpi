@@ -458,34 +458,6 @@ export interface PermissionDefinition {
 
 export interface PermissionsConfigResponse extends PaginatedResponse<PermissionDefinition> {}
 
-export interface AccountResponse {
-  username: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  server_time: string;
-  date_joined: string;
-  projects_url: string;
-  is_superuser: boolean;
-  gravatar: string;
-  is_staff: boolean;
-  last_login: string;
-  extra_details: {
-    name: string;
-    gender: string;
-    sector: string;
-    country: string;
-    organization: string;
-    require_auth: boolean;
-  };
-  git_rev: {
-    short: string;
-    long: string;
-    branch: string;
-    tag: boolean;
-  };
-}
-
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;

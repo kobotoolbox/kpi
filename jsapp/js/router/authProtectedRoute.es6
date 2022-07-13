@@ -1,11 +1,11 @@
 import React, {Suspense} from 'react';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import AccessDenied from 'js/router/accessDenied';
 
 /**
  * A gateway component for rendering the route only for authorized user.
  *
- * NOTE: we assume stores.session is already initialized because of
+ * NOTE: we assume sessionStore is already initialized because of
  * a conditional statement in `allRoutes`.
  *
  * @prop {string} path - one of PATHS
@@ -18,7 +18,7 @@ export default class AuthProtectedRoute extends React.Component {
   }
 
   render() {
-    if (stores.session.isLoggedIn) {
+    if (sessionStore.isLoggedIn) {
       return <Suspense fallback={null}>
         <this.props.route.protectedComponent {...this.props}/>;
         </Suspense>

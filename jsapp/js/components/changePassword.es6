@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import {stores} from '../stores';
+import sessionStore from 'js/components/account/sessionStore';
 import TextBox from 'js/components/common/textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
@@ -81,11 +81,11 @@ export default class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session.isLoggedIn) {
+    if(!sessionStore.isLoggedIn) {
       return null;
     }
 
-    var accountName = stores.session.currentAccount.username;
+    var accountName = sessionStore.currentAccount.username;
     var initialsStyle = {
       background: `#${stringToColor(accountName)}`
     };
@@ -176,5 +176,5 @@ export default class ChangePassword extends React.Component {
   }
 }
 
-reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
+reactMixin(ChangePassword.prototype, Reflux.connect(sessionStore, 'session'));
 reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);

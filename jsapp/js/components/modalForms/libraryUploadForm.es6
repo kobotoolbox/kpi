@@ -7,7 +7,7 @@ import Dropzone from 'react-dropzone';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import mixins from 'js/mixins';
 import {renderBackButton} from './modalHelpers';
 import {validFileTypes} from 'utils';
@@ -32,7 +32,7 @@ class LibraryUploadForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       isPending: false,
       // default is block
       desiredType: DESIRED_TYPES[0],
@@ -43,7 +43,7 @@ class LibraryUploadForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    this.listenTo(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
   }

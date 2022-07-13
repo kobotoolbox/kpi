@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
@@ -32,7 +32,7 @@ class AssetInfoBox extends React.Component {
       this.listenTo(actions.misc.getUser.failed, this.onGetUserFailed);
       actions.misc.getUser(this.props.asset.owner);
     } else {
-      this.setState({ownerData: stores.session.currentAccount});
+      this.setState({ownerData: sessionStore.currentAccount});
     }
   }
 

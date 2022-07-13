@@ -5,7 +5,7 @@ import _ from 'underscore';
 import Chart from 'chart.js';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 import ReportTable from './reportTable';
 
@@ -286,7 +286,7 @@ export default class ReportViewItem extends React.Component {
               {t('(# were without data.)').replace('#', d.not_provided)}
             </span>
           </bem.ReportView__headingMeta>
-          {d.show_graph && stores.session.isLoggedIn && (
+          {d.show_graph && sessionStore.isLoggedIn && (
             <bem.Button
               m='icon'
               className='report-button__question-settings'

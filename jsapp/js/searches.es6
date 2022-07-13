@@ -8,7 +8,7 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
 import SparkMD5 from 'spark-md5';
-
+import sessionStore from 'js/components/account/sessionStore';
 import {stores} from './stores';
 import {actions} from './actions';
 import {dataInterface} from './dataInterface';
@@ -444,7 +444,7 @@ function SearchContext(opts={}) {
         searchStore.update({defaultQueryState: 'done'});
 
         // avoid unauthenticated backend calls
-        if (stores.session.isLoggedIn) {
+        if (sessionStore.isLoggedIn) {
           dataInterface.assetsHash()
           .done((data) => {
             if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {

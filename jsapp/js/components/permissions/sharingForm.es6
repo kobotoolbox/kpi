@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
@@ -120,7 +121,7 @@ class SharingForm extends React.Component {
           {this.state.asset.name}
         </bem.Modal__subheader>
 
-        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
+        {sessionStore.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
           <bem.FormModal__item>
             <InlineMessage
               type='warning'

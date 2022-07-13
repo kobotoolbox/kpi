@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -17,7 +18,7 @@ export class AssetTagsForm extends React.Component {
     super(props);
 
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       tags: this.props.asset?.tag_string || '',
       isPending: false,
     };
@@ -28,7 +29,7 @@ export class AssetTagsForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    this.listenTo(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(

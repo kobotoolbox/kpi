@@ -4,6 +4,7 @@ import reactMixin from 'react-mixin';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import myLibraryStore from './myLibraryStore';
@@ -58,7 +59,7 @@ class LibrarySidebar extends Reflux.Component {
       <React.Fragment>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
-          disabled={!stores.session.isLoggedIn}
+          disabled={!sessionStore.isLoggedIn}
           onClick={this.showLibraryNewModal}
         >
           {t('new')}

@@ -1,6 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import {stores} from 'jsapp/js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import QRCode from 'qrcode.react';
 import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
@@ -198,7 +198,7 @@ export default class MFAModals extends React.Component<
 
   downloadCodes() {
     if (this.state.backupCodes) {
-      const USERNAME = stores.session.currentAccount.username;
+      const USERNAME = sessionStore.currentAccount.username;
       // gets date in yyyymmdd
       const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '');
 

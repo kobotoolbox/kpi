@@ -1,7 +1,7 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {replaceBracketsWithLink} from 'utils';
 
 import envStore from 'js/envStore';
@@ -28,7 +28,7 @@ export default class AccessDenied extends React.Component {
   render() {
     let messageText;
 
-    if (stores.session.isLoggedIn) {
+    if (sessionStore.isLoggedIn) {
       messageText = t(`Please try logging in using the header button or [contact the support team] if you think it's an error.`);
     } else {
       messageText = t(`Please [contact the support team] if you think it's an error.`);

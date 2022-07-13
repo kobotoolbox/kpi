@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import bem from 'js/bem';
-import {stores} from '../stores';
+import sessionStore from 'js/components/account/sessionStore';
 import assetStore from 'js/assetStore';
 import {Link, hashHistory} from 'react-router';
 import mixins from '../mixins';
@@ -97,13 +97,13 @@ class FormViewTabs extends Reflux.Component {
     }
 
     let summaryTabClassNames = 'form-view__tab';
-    if (!stores.session.isLoggedIn) {
+    if (!sessionStore.isLoggedIn) {
       summaryTabClassNames += ' form-view__tab--disabled';
     }
 
     let settingsTabClassNames = 'form-view__tab';
     if (
-      !stores.session.isLoggedIn ||
+      !sessionStore.isLoggedIn ||
       !this.userCan('change_asset', this.state.asset)
     ) {
       settingsTabClassNames += ' form-view__tab--disabled';
@@ -143,7 +143,7 @@ class FormViewTabs extends Reflux.Component {
           {t('Settings')}
         </Link>
 
-        {stores.session.isLoggedIn && (
+        {sessionStore.isLoggedIn && (
           <Link
             to={ROUTES.FORMS}
             className='form-view__link form-view__link--close'

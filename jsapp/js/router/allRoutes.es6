@@ -10,7 +10,7 @@ import {
 import App from 'js/app';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
@@ -60,14 +60,14 @@ export default class AllRoutes extends React.Component {
     super(props);
     this.state = {
       isPermsConfigReady: permConfig.isReady(),
-      isSessionReady: stores.session.isAuthStateKnown,
+      isSessionReady: sessionStore.isAuthStateKnown,
     };
     autoBind(this);
   }
 
   componentDidMount() {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
-    stores.session.listen(this.onSessionChange);
+    sessionStore.listen(this.onSessionChange);
     actions.permissions.getConfig();
   }
 
@@ -77,7 +77,7 @@ export default class AllRoutes extends React.Component {
   }
 
   onSessionChange() {
-    this.setReady({isSessionReady: stores.session.isAuthStateKnown});
+    this.setReady({isSessionReady: sessionStore.isAuthStateKnown});
   }
 
   /**
@@ -105,7 +105,7 @@ export default class AllRoutes extends React.Component {
     if (
       newStateObj.isPermsConfigReady &&
       newStateObj.isSessionReady &&
-      !stores.session.isLoggedIn &&
+      !sessionStore.isLoggedIn &&
       isRootRoute()
     ) {
       // If all necessary data is obtained, and user is not logged in, and on

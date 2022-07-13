@@ -14,6 +14,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import assetUtils from 'js/assetUtils';
 import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
@@ -68,7 +69,7 @@ class ProjectSettings extends React.Component {
     this.unlisteners = [];
 
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       isSubmitPending: false,
       formAsset: this.props.formAsset,
       // project details
@@ -102,7 +103,7 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    this.listenTo(stores.session, () => {
+    this.listenTo(sessionStore, () => {
       this.setState({
         isSessionLoaded: true,
       });

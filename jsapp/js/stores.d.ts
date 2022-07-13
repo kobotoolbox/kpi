@@ -19,11 +19,6 @@ export namespace stores {
     hasPreviousModal: () => boolean
   }
   const snapshots: any
-  const session: {
-    currentAccount: AccountResponse
-    isAuthStateKnown: boolean
-    isLoggedIn: boolean
-  }
   const allAssets: any
   const selectedAsset: any
   const userExists: any

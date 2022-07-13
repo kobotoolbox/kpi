@@ -1,6 +1,6 @@
 import React from 'react';
 import {actions} from 'js/actions';
-import type {AccountResponse} from 'js/dataInterface';
+import type {ProfileData} from 'js/components/account/sessionStore';
 
 interface IntercomSettings {
   action_color: string;
@@ -46,13 +46,13 @@ class IntercomHandler extends React.Component {
     }
   }
 
-  onLogIn(account: AccountResponse) {
+  onLogIn(account: ProfileData) {
     console.info('Intercom enabled and starting…');
     this.injectIntercomScripts();
     this.bootIntercom(account);
   }
 
-  bootIntercom(account: AccountResponse) {
+  bootIntercom(account: ProfileData) {
     const name = account.extra_details.name;
     const legacyName = [account.first_name, account.last_name]
       .filter((val) => val)

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import {stores} from 'js/stores';
+import sessionStore from 'js/components/account/sessionStore';
 import {actions} from 'js/actions';
 import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import {ASSET_TYPES} from 'js/constants';
@@ -16,7 +16,7 @@ const ownedCollectionsStore = Reflux.createStore({
 
   init() {
     hashHistory.listen(this.startupStore);
-    stores.session.listen(this.startupStore);
+    sessionStore.listen(this.startupStore);
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted);
     actions.library.getCollections.failed.listen(this.onGetCollectionsFailed);
     // NOTE: this could update the list of collections, but currently nothing is using
@@ -35,7 +35,7 @@ const ownedCollectionsStore = Reflux.createStore({
     if (
       !this.isInitialised &&
       isAnyLibraryRoute() &&
-      stores.session.isLoggedIn &&
+      sessionStore.isLoggedIn &&
       !this.data.isFetchingData
     ) {
       this.fetchData();
@@ -59,7 +59,7 @@ const ownedCollectionsStore = Reflux.createStore({
   onAssetChangedOrCreated(asset) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
-      asset.owner__username === stores.session.currentAccount.username
+      asset.owner__username === sessionStore.currentAccount.username
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.collections.length; i++) {
@@ -93,7 +93,7 @@ const ownedCollectionsStore = Reflux.createStore({
     this.trigger(this.data);
 
     actions.library.getCollections({
-      owner: stores.session.currentAccount.username,
+      owner: sessionStore.currentAccount.username,
       pageSize: 0 // zero gives all results with no limit
     });
   },
