@@ -601,26 +601,8 @@ export interface EnvironmentResponse {
   asr_mt_features_enabled: boolean;
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
+  mfa_code_length: number;
 }
-
-export interface InAppMessage {
-  url: string;
-  uid: string;
-  title: string;
-  snippet: string;
-  body: string;
-  html: {
-    snippet: string;
-    body: string;
-  };
-  interactions: {
-    acknowledged: boolean;
-    readTime?: string;
-  };
-  always_display_as_new: boolean;
-}
-
-export interface InAppMessagesResponse extends PaginatedResponse<InAppMessage> {}
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -1506,28 +1488,6 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/files/${uid}/`,
       method: 'DELETE',
-    });
-  },
-
-  getHelpInAppMessages() {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/`,
-      method: 'GET',
-    });
-  },
-
-  patchHelpInAppMessage(uid: string, data: {
-    interactions: {
-      readTime: string;
-      acknowledged: boolean;
-    };
-  }) {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/${uid}/`,
-      method: 'PATCH',
-      data: JSON.stringify(data),
-      dataType: 'json',
-      contentType: 'application/json',
     });
   },
 
