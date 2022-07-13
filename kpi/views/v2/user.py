@@ -1,6 +1,5 @@
 # coding: utf-8
 from django.contrib.auth.models import User
-from django.db.models import F
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,7 +8,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from kpi.tasks import sync_kobocat_xforms
 from kpi.models.authorized_application import ApplicationTokenAuthentication
-from kpi.serializers.v2.user import UserSerializer
+from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -27,28 +26,29 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         super().__init__(*args, **kwargs)
         self.authentication_classes += [ApplicationTokenAuthentication]
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserListSerializer
+        else:
+            return UserSerializer
+
     def list(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             raise exceptions.PermissionDenied()
-        queryset = self.queryset.annotate(
-            mfa_is_active=F('mfa_methods__is_active'),
-            metadata=F('extra_details__data'),
-        ).values(
-            'id',
-            'username',
-            'is_superuser',
-            'is_staff',
-            'date_joined',
-            'last_login',
-            'first_name',
-            'last_name',
-            'is_active',
-            'email',
-            'mfa_is_active',
-            'metadata',
-        )
-        page = self.paginate_queryset(queryset)
-        return self.get_paginated_response(queryset)
+
+        # Filtering by username
+        username = request.GET.get('username')
+        if username:
+            queryset = self.queryset.filter(username=username)
+            if not queryset:
+                return Response('User does not exist')
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data[0])
+
+        page = self.paginate_queryset(self.queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],
