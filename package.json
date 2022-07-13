@@ -28,6 +28,8 @@
     "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
     "lodash.throttle": "^4.1.1",
+    "mobx": "^6.6.1",
+    "mobx-react": "^7.5.1",
     "prop-types": "^15.7.2",
     "qrcode.react": "^1.0.1",
     "react": "^16.13.1",
