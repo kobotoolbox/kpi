@@ -18,7 +18,7 @@ class AutomaticTranscriptionAction(BaseAction):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_name(kls, row))
+                possible_transcribed_fields.append(kls.get_qpath(kls, row))
         params = {'values': possible_transcribed_fields, 'services': []}
         return params
 
