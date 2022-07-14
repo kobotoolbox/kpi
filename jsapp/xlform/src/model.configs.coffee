@@ -35,6 +35,18 @@ module.exports = do ->
       label: "username"
       description: "includes interviewer's username"
       default: false
+    simserial:
+      name: "simserial"
+      label: "sim serial"
+      description: "records the serial number of the network sim card"
+      default: false
+      deprecated: true
+    subscriberid:
+      name: "subscriberid"
+      label: "subscriber id"
+      description: "records the subscriber id of the sim card"
+      default: false
+      deprecated: true
     deviceid:
       name: "deviceid"
       label: "device id"
@@ -63,6 +75,8 @@ module.exports = do ->
         name: @get("name")
         label: @get("label")
         description: @get("description")
+        default: @get("default")
+        deprecated: @get("deprecated")
 
     class configs.SurveyDetailSchema extends Backbone.Collection
       model: SurveyDetailSchemaItem
