@@ -26,6 +26,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class=AssetUrlListSerializer
     )
     date_joined = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()
 
@@ -33,6 +34,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ('url',
                   'username',
+                  'name',
                   'assets',
                   'date_joined',
                   'public_collection_subscribers_count',
@@ -52,6 +54,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         public_collection_ids = self.__get_public_collection_ids(user.pk)
         return len(public_collection_ids)
 
+    def get_name(self, user):
+        return user.extra_details.data.get('name', '')
+
     @staticmethod
     @cache_for_request
     def __get_public_collection_ids(user_id):
@@ -66,3 +71,37 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             user_id=settings.ANONYMOUS_USER_ID,
             permission__codename=PERM_DISCOVER_ASSET).values_list('asset_id',
                                                                   flat=True)
+
+class UserListSerializer(UserSerializer):
+    mfa_is_active = serializers.SerializerMethodField()
+    metadata = serializers.SerializerMethodField()
+    asset_count = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = (
+            'id',
+            'username',
+            'is_superuser',
+            'is_staff',
+            'asset_count',
+            'date_joined',
+            'last_login',
+            'first_name',
+            'last_name',
+            'is_active',
+            'email',
+            'mfa_is_active',
+            'metadata',
+        )
+
+    def get_asset_count(self, user):
+        return user.assets.count()
+
+    def get_metadata(self, user):
+        return user.extra_details.data
+
+    def get_mfa_is_active(self, user):
+        mfa_methods = user.mfa_methods.first()
+        if mfa_methods is None:
+            return False
+        return mfa_methods.is_active

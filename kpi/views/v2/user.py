@@ -1,13 +1,17 @@
 # coding: utf-8
+import json
+
+import constance
 from django.contrib.auth.models import User
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.pagination import LimitOffsetPagination
 
 from kpi.tasks import sync_kobocat_xforms
 from kpi.models.authorized_application import ApplicationTokenAuthentication
-from kpi.serializers.v2.user import UserSerializer
+from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -19,13 +23,47 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    pagination_class = LimitOffsetPagination
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.authentication_classes += [ApplicationTokenAuthentication]
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserListSerializer
+        else:
+            return UserSerializer
+
     def list(self, request, *args, **kwargs):
-        raise exceptions.PermissionDenied()
+        user = request.user
+        user_role = user.extra_details.data.get('role')
+
+        if user_role is None or user_role not in ['global', 'regional']:
+            raise exceptions.PermissionDenied()
+
+        queryset = User.objects.all()
+
+        if user_role == 'regional':
+            user_regions = user.extra_details.data.get('regions')
+            regions_list = json.loads(constance.config.REGIONS)
+            regions = [
+                reg for reg in regions_list if reg['region'] in user_regions
+            ]
+            if not regions:
+                queryset = User.objects.none()
+            else:
+                countries = set()
+                for reg in regions:
+                    countries.update(reg['countries'])
+                queryset = User.objects.filter(
+                    extra_details__data__country__0__value__in=countries
+                )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],
