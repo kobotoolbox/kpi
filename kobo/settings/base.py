@@ -285,6 +285,16 @@ CONSTANCE_CONFIG = {
         # Use custom field for schema validation
         'metadata_fields_jsonschema'
     ),
+    'REGIONS': (
+        json.dumps(
+            [
+                {'region': 'MENA', 'countries': ['AFG', 'EGY']},
+                {'region': 'Africa', 'countries': ['ZAF', 'EGY']},
+            ]
+        ),
+        'Regions',
+        'metadata_fields_jsonschema',
+    ),
     'SECTOR_CHOICES': (
         '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
         "Options available for the 'sector' metadata field, one per line."

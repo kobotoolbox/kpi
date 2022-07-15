@@ -1,4 +1,7 @@
 # coding: utf-8
+import json
+
+import constance
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
@@ -117,6 +120,7 @@ class KpiObjectPermissionsFilter:
             return queryset.filter(pk__in=assets)
 
         subscribed = self._get_subscribed(user)
+        in_region = self._get_assets_for_user_role_and_region(user)
 
         # As other places in the code, coerce `asset_ids` as a list to force
         # the query to be processed right now. Otherwise, because queryset is
@@ -131,6 +135,7 @@ class KpiObjectPermissionsFilter:
                     # collections to the queryset in order for `?q=parent__uid`
                     # queries to return the collection's children
                     .union(queryset.filter(parent__in=subscribed).values('pk'))
+                    .union(in_region)
             ).values_list('id', flat=True)
         )
         return queryset.filter(pk__in=asset_ids)
@@ -280,6 +285,23 @@ class KpiObjectPermissionsFilter:
                 permission_id=view_asset_perm_id)
 
         return perms.values('asset')
+
+    @staticmethod
+    def _get_assets_for_user_role_and_region(user):
+        user_role = user.extra_details.data.get('role')
+        if user_role == 'global':
+            return Asset.objects.all()
+        if user_role != 'regional':
+            return Asset.objects.none()
+        user_regions = user.extra_details.data.get('regions')
+        regions_list = json.loads(constance.config.REGIONS)
+        regions = [reg for reg in regions_list if reg['region'] in user_regions]
+        if not regions:
+            return Asset.objects.none()
+        countries = set()
+        for reg in regions:
+            countries.update(reg['countries'])
+        return Asset.objects.filter(settings__country__0__value__in=countries)
 
     @staticmethod
     def _get_publics():
