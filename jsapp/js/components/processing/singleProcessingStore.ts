@@ -56,6 +56,23 @@ interface TransxDraft {
  *
  * We also use it to navigate through questions - making sure we only allow
  * ones with any meaningful data.
+ *
+ * Example:
+ *
+ * ```
+ * {
+ *   first_question: [
+ *     'abc123',
+ *     null,
+ *     null,
+ *   ],
+ *   second_question: [
+ *     'abc123',
+ *     'asd345',
+ *     'zxc567',
+ *   ]
+ * }
+ * ```
  */
 interface SubmissionsUuids {
   [questionName: string]: Array<string | null>;

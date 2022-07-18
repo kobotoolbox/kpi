@@ -3,7 +3,7 @@ import bem, {makeBem} from 'js/bem';
 import type {AnyRowTypeName} from 'js/constants';
 import {
   QUESTION_TYPES,
-  META_QUESTION_TYPES
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
@@ -64,14 +64,33 @@ export default class SingleProcessingHeader extends React.Component<
   onQuestionSelectChange(newQuestionName: string) {
     const uuids = singleProcessingStore.getSubmissionsUuids();
     if (uuids) {
+      // Ideally we want to display chosen question for the currently selected
+      // submission.
+      let targetUuid: string | null = this.props.submissionUuid;
       const questionUuids = uuids[newQuestionName];
-      // We use the first available one as the default one. User can select
-      // other submission after question is loaded.
-      const firstUuid = questionUuids.find((uuidOrNull) => uuidOrNull !== null);
-      if (firstUuid) {
-        this.goToSubmission(newQuestionName, firstUuid);
+
+      // But if the submission doesn't contain a response for selected question,
+      // we switch to first available submission.
+      if (!questionUuids.includes(targetUuid)) {
+        targetUuid = this.getFirstNonNullUuid(newQuestionName);
+      }
+
+      // NOTE: this works under assumption that it would be impossible to have
+      // a question name in Processing View that has zero responses to it, but
+      // we still verify not `null` for TypeScript :still_love_you:.
+      if (targetUuid !== null) {
+        this.goToSubmission(newQuestionName, targetUuid);
       }
     }
+  }
+
+  /** Finds first submission with response for given question. */
+  getFirstNonNullUuid(questionName: string) {
+    const uuids = singleProcessingStore.getSubmissionsUuids();
+    if (uuids) {
+      return uuids[questionName]?.find((uuidOrNull) => uuidOrNull !== null) || null;
+    }
+    return null;
   }
 
   getQuestionSelectorOptions() {
