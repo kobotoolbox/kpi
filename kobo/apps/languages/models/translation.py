@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.db import models
 
-from . import (
+from .base import (
     BaseLanguageService,
     BaseLanguageServiceAdmin,
     BaseLanguageServiceM2M,

@@ -1,0 +1,93 @@
+{% extends 'admin/base_site.html' %}
+{% load admin_urls %}
+{% load static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Home</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; Import
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+    <form action="" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <p>
+        This importer expects the the following fields:
+        <code>name, code, featured</code>, followed by translation/transcription services.<br>
+        <ul>
+          <li>Translation service columns should prefixed with <code>asr_</code> followed by the service code</li>
+          <li>Transcription service columns should prefixed with <code>mt_</code> followed by the service code</li>
+        </ul>
+        E.g.:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="text-transform: lowercase">name</th>
+            <th style="text-transform: lowercase">code</th>
+            <th style="text-transform: lowercase">featured</th>
+            <th style="text-transform: lowercase">asr_goog</th>
+            <th style="text-transform: lowercase">mt_goog</th>
+            <th style="text-transform: lowercase">asr_msft</th>
+            <th style="text-transform: lowercase">mt_msft</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>English</th>
+            <th>en</th>
+            <th>1</th>
+            <th>en</th>
+            <th>en</th>
+            <th>en</th>
+            <th>en</th>
+          </tr>
+        </tbody>
+      </table>
+
+      <fieldset class="module aligned" style="margin-top: 2em">
+        {% for field in form %}
+          <div class="form-row">
+            {{ field.errors }}
+
+            {{ field.label_tag }}
+
+            {{ field }}
+
+            {% if field.field.help_text %}
+            <p class="help">{{ field.field.help_text|safe }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </fieldset>
+
+      <div class="submit-row">
+        <input type="submit" class="default" value="Submit">
+      </div>
+    </form>
+
+    {% if results %}
+      <table>
+        <tr>
+          <td>Created languages:</td><td>{{ results.created_languages }}</td>
+        </tr>
+        <tr>
+          <td>Updated languages:</td><td>{{ results.updated_languages }}</td>
+        </tr>
+        <tr>
+          <td>Created transcription services:</td><td>{{ results.created_transcription_services }}</td>
+        </tr>
+        <tr>
+          <td>Created translation services:</td><td>{{ results.created_translation_services }}</td>
+        </tr>
+      </table>
+    {% endif %}
+
+{% endblock %}
