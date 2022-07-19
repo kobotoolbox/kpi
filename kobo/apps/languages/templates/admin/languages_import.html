@@ -76,16 +76,16 @@
     {% if results %}
       <table>
         <tr>
-          <td>Created languages:</td><td>{{ results.created_languages }}</td>
+          <td>Imported languages:</td><td>{{ results.created }}</td>
         </tr>
         <tr>
-          <td>Updated languages:</td><td>{{ results.updated_languages }}</td>
+          <td>Imported transcription services:</td><td>{{ results.transcription_services }}</td>
         </tr>
         <tr>
-          <td>Created transcription services:</td><td>{{ results.created_transcription_services }}</td>
+          <td>Imported translation services:</td><td>{{ results.translation_services }}</td>
         </tr>
         <tr>
-          <td>Created translation services:</td><td>{{ results.created_translation_services }}</td>
+          <td>Skipped rows:</td><td>{{ results.skipped }}</td>
         </tr>
       </table>
     {% endif %}

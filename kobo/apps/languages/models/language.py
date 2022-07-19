@@ -99,10 +99,10 @@ class LanguageAdmin(admin.ModelAdmin):
     def _process_import(self, uploaded_file: InMemoryUploadedFile) -> Dict:
 
         results = {
-            'created_languages': 0,
-            'updated_languages': 0,
-            'created_transcription_services': 0,
-            'created_translation_services': 0,
+            'created': 0,
+            'skipped': 0,
+            'translation_services': 0,
+            'transcription_services': 0,
         }
 
         csv_reader = csv.reader(
@@ -116,34 +116,66 @@ class LanguageAdmin(admin.ModelAdmin):
         name, code, featured, *asr_mt_services = headers
         asr_mt_services = [s.lower() for s in asr_mt_services]
 
-        asr_service_codes = [
-            code.lower()
-            for code in TranscriptionService.objects.values_list(
-                'code', flat=True
-            )
-        ]
-        mt_service_codes = [
-            code.lower()
-            for code in TranslationService.objects.values_list(
-                'code', flat=True
-            )
-        ]
+        transcription_services = {
+            service.code.lower(): service
+            for service in TranscriptionService.objects.all()
+        }
+        translation_services = {
+            service.code.lower(): service
+            for service in TranslationService.objects.all()
+        }
 
         extra_asr_columns = {}
         extra_mt_columns = {}
+        new_languages = []
+        new_transcription_services = []
+        new_translation_services = []
+        language_transcription_services_through = []
+        language_translation_services_through = []
 
         for service in asr_mt_services:
-            service_type, service_name = service.split('_')
-
-            if service_type == 'asr' and service_name in asr_service_codes:
-                extra_asr_columns[service_name] = (
+            service_type, service_code = service.split('_')
+            if service_type == 'asr':
+                extra_asr_columns[service_code] = (
                     asr_mt_services.index(service) + 3
                 )
+                if not TranscriptionService.objects.filter(code=service_code).exists():
+                    new_transcription_services.append(
+                        TranscriptionService(
+                            name=service_code.capitalize(), code=service_code
+                        )
+                    )
 
-            if service_type == 'mt' and service_name in mt_service_codes:
-                extra_mt_columns[service_name] = (
-                    mt_service_codes.index(service) + 3
+            if service_type == 'mt':
+                extra_mt_columns[service_code] = (
+                    asr_mt_services.index(service) + 3
                 )
+                if not TranslationService.objects.filter(code=service_code).exists():
+                    new_translation_services.append(
+                        TranslationService(
+                            name=service_code.capitalize(), code=service_code
+                        )
+                    )
+
+        if new_transcription_services:
+            for service in TranscriptionService.objects.bulk_create(
+                    new_transcription_services
+            ):
+                transcription_services[service.code] = service
+
+        if new_translation_services:
+            for service in TranslationService.objects.bulk_create(
+                new_translation_services
+            ):
+                translation_services[service.code] = service
+
+        results['translation_services'] = len(new_translation_services)
+        results['transcription_services'] = len(new_transcription_services)
+
+        print("new_translation_services", new_translation_services, flush=True)
+        print("new_transcription_services", new_transcription_services, flush=True)
+        print("translation_services", translation_services, flush=True)
+        print("transcription_services", transcription_services, flush=True)
 
         for row in csv_reader:
             name = row[0].strip()
@@ -155,51 +187,71 @@ class LanguageAdmin(admin.ModelAdmin):
                 featured = False
 
             if not code:
+                results['skipped'] += 1
                 continue
 
-            language, created = Language.objects.get_or_create(code=code)
-            language.name = name
-            language.featured = featured
+            new_languages.append(
+                Language(name=name, featured=featured, code=code)
+            )
 
-            with transaction.atomic():
+            for service, index in extra_asr_columns.items():
 
-                language.save()
+                if not row[index]:
+                    continue
 
-                if not created:
-                    language.transcription_services.clear()
-                    language.translation_services.clear()
-                    results['updated_languages'] += 1
-                else:
-                    results['created_languages'] += 1
+                language_transcription_services_through.append({
+                    'language_code': code,
+                    'service_id': transcription_services[service].pk,
+                    'mapped_language_code': row[index],
+                })
 
-                for service, index in extra_asr_columns.items():
-                    if not row[index]:
-                        continue
+            for service, index in extra_mt_columns.items():
+                if not row[index]:
+                    continue
 
-                    (
-                        transcription_service,
-                        created,
-                    ) = TranscriptionService.objects.get_or_create(code=service)
-                    if created:
-                        results['created_transcription_services'] += 1
-                    language.transcription_services.add(
-                        transcription_service,
-                        through_defaults={'code': row[index]},
-                    )
+                language_translation_services_through.append({
+                    'language_code': code,
+                    'service_id': translation_services[service].pk,
+                    'mapped_language_code': row[index],
+                })
 
-                for service, index in extra_mt_columns.items():
-                    if not row[index]:
-                        continue
+        with transaction.atomic():
+            Language.objects.all().delete()
+            languages = {
+                language.code: language
+                for language in Language.objects.bulk_create(new_languages)
+            }
 
-                    (
-                        translation_service,
-                        created,
-                    ) = TranslationService.objects.get_or_create(code=service)
-                    if created:
-                        results['created_translation_services'] += 1
-                    language.translation_services.add(
-                        translation_service,
-                        through_defaults={'code': row[index]},
-                    )
+            throughs = []
+            for through in language_transcription_services_through:
+                mapped_code = (
+                    through['mapped_language_code']
+                    if through['mapped_language_code']
+                    != through['language_code']
+                    else None
+                )
+                throughs.append(Language.transcription_services.through(
+                    language_id=languages[through['language_code']].pk,
+                    service_id=through['service_id'],
+                    code=mapped_code,
+                ))
+            Language.transcription_services.through.objects.bulk_create(throughs)
+
+            throughs = []
+            for through in language_translation_services_through:
+                mapped_code = (
+                    through['mapped_language_code']
+                    if through['mapped_language_code']
+                    != through['language_code']
+                    else None
+                )
+                throughs.append(Language.translation_services.through(
+                    language_id=languages[through['language_code']].pk,
+                    service_id=through['service_id'],
+                    code=mapped_code,
+                ))
+            Language.translation_services.through.objects.bulk_create(throughs)
+
+        results['created'] = len(languages.keys())
 
         return results
