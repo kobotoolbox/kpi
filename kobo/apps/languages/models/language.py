@@ -77,7 +77,7 @@ class LanguageAdmin(admin.ModelAdmin):
             raise PermissionDenied
 
         context = {
-            'title': 'Import',
+            'title': 'Languages import',
             'opts': self.model._meta
         }
 
@@ -111,8 +111,11 @@ class LanguageAdmin(admin.ModelAdmin):
             quotechar='"',
         )
 
+        # Skip for rows. We expect it to be the column headers.
         headers = next(csv_reader)
 
+        # The first 3 fields should be always the same. All others should be
+        # treated as services.
         name, code, featured, *asr_mt_services = headers
         asr_mt_services = [s.lower() for s in asr_mt_services]
 
@@ -125,6 +128,7 @@ class LanguageAdmin(admin.ModelAdmin):
             for service in TranslationService.objects.all()
         }
 
+        # Initialize lists and dictionaries for later bulk operations.
         extra_asr_columns = {}
         extra_mt_columns = {}
         new_languages = []
@@ -133,6 +137,8 @@ class LanguageAdmin(admin.ModelAdmin):
         language_transcription_services_through = []
         language_translation_services_through = []
 
+        # Create new services if any and memorize their position in rows to
+        # create M2M relationships correctly in bulk operations.
         for service in asr_mt_services:
             service_type, service_code = service.split('_')
             if service_type == 'asr':
@@ -172,11 +178,7 @@ class LanguageAdmin(admin.ModelAdmin):
         results['translation_services'] = len(new_translation_services)
         results['transcription_services'] = len(new_transcription_services)
 
-        print("new_translation_services", new_translation_services, flush=True)
-        print("new_transcription_services", new_transcription_services, flush=True)
-        print("translation_services", translation_services, flush=True)
-        print("transcription_services", transcription_services, flush=True)
-
+        # Iterate on CSV content to import languages and their services
         for row in csv_reader:
             name = row[0].strip()
             code = row[1].strip()
@@ -190,6 +192,8 @@ class LanguageAdmin(admin.ModelAdmin):
                 results['skipped'] += 1
                 continue
 
+            # Do not save `Language` objects. Just create them and store them
+            # in a memory to save them in bulk operations below.
             new_languages.append(
                 Language(name=name, featured=featured, code=code)
             )
@@ -199,6 +203,9 @@ class LanguageAdmin(admin.ModelAdmin):
                 if not row[index]:
                     continue
 
+                # We do not have `Language` object primary key value yet.
+                # Let's use its code (which should be unique) to map later after
+                # bulk insert.
                 language_transcription_services_through.append({
                     'language_code': code,
                     'service_id': transcription_services[service].pk,
@@ -209,6 +216,9 @@ class LanguageAdmin(admin.ModelAdmin):
                 if not row[index]:
                     continue
 
+                # We do not have `Language` object primary key value yet.
+                # Let's use its code (which should be unique) to map later after
+                # bulk insert.
                 language_translation_services_through.append({
                     'language_code': code,
                     'service_id': translation_services[service].pk,
@@ -216,6 +226,7 @@ class LanguageAdmin(admin.ModelAdmin):
                 })
 
         with transaction.atomic():
+            # Delete all languages first, since we re-import them all.
             Language.objects.all().delete()
             languages = {
                 language.code: language
@@ -224,6 +235,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
             throughs = []
             for through in language_transcription_services_through:
+                # Only save mapped code if it differs from language code
                 mapped_code = (
                     through['mapped_language_code']
                     if through['mapped_language_code']
@@ -239,6 +251,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
             throughs = []
             for through in language_translation_services_through:
+                # Only save mapped code if it differs from language code
                 mapped_code = (
                     through['mapped_language_code']
                     if through['mapped_language_code']

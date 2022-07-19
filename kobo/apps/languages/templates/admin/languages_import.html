@@ -18,11 +18,23 @@
       {% csrf_token %}
 
       <p>
-        This importer expects the the following fields:
+        Things to know:
+        <ul>
+          <li>
+            <span style="color: red; font-weight: bold; font-size: 1.5em">&#9888;</span> All existing languages will be <b>deleted</b> before the import
+          </li>
+          <li>
+            New translation/transcription services will be created if they do not exist already
+          </li>
+        </ul>
+      </p>
+
+      <p>
+        This importer expects the following fields:
         <code>name, code, featured</code>, followed by translation/transcription services.<br>
         <ul>
-          <li>Translation service columns should prefixed with <code>asr_</code> followed by the service code</li>
-          <li>Transcription service columns should prefixed with <code>mt_</code> followed by the service code</li>
+          <li>Translation service columns should be prefixed with <code>asr_</code> followed by the service code</li>
+          <li>Transcription service columns should be prefixed with <code>mt_</code> followed by the service code</li>
         </ul>
         E.g.:
       </p>
@@ -48,6 +60,15 @@
             <th>en</th>
             <th>en</th>
             <th>en</th>
+          </tr>
+          <tr>
+            <th>Hebrew</th>
+            <th>he</th>
+            <th>0</th>
+            <th>iw</th>
+            <th>iw</th>
+            <th></th>
+            <th></th>
           </tr>
         </tbody>
       </table>
