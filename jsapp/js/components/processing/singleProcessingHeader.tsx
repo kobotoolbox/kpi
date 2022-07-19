@@ -62,26 +62,7 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   onQuestionSelectChange(newQuestionName: string) {
-    const uuids = singleProcessingStore.getSubmissionsUuids();
-    if (uuids) {
-      // Ideally we want to display chosen question for the currently selected
-      // submission.
-      let targetUuid: string | null = this.props.submissionUuid;
-      const questionUuids = uuids[newQuestionName];
-
-      // But if the submission doesn't contain a response for selected question,
-      // we switch to first available submission.
-      if (!questionUuids.includes(targetUuid)) {
-        targetUuid = this.getFirstNonNullUuid(newQuestionName);
-      }
-
-      // NOTE: this works under assumption that it would be impossible to have
-      // a question name in Processing View that has zero responses to it, but
-      // we still verify not `null` for TypeScript :still_love_you:.
-      if (targetUuid !== null) {
-        this.goToSubmission(newQuestionName, targetUuid);
-      }
-    }
+    this.goToSubmission(newQuestionName, this.props.submissionUuid);
   }
 
   /** Finds first submission with response for given question. */
@@ -159,14 +140,23 @@ export default class SingleProcessingHeader extends React.Component<
     }
   }
 
-  /**
-   * Returns a natural number (beginning with 1, not 0) or `null` when store
-   * is not ready yet.
-   */
-  getCurrentSubmissionNumber(): number | null {
+  /** Returns index or `null` (if store is not ready yet). */
+  getCurrentSubmissionIndex(): number | null {
     const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
     if (Array.isArray(uuids)) {
-      return uuids.indexOf(this.props.submissionUuid) + 1;
+      const submissionUuidIndex = uuids.findIndex(
+        (item) => item.uuid === this.props.submissionUuid
+      );
+      return submissionUuidIndex;
+    }
+    return null;
+  }
+
+  /** Returns a natural number or `null` (if store is not ready yet). */
+  getCurrentSubmissionNumber(): number | null {
+    const currentSubmissionIndex = this.getCurrentSubmissionIndex();
+    if (currentSubmissionIndex !== null) {
+      return currentSubmissionIndex + 1;
     }
     return null;
   }
@@ -181,25 +171,24 @@ export default class SingleProcessingHeader extends React.Component<
     if (!Array.isArray(uuids)) {
       return null;
     }
-    const currentIndex = uuids.indexOf(this.props.submissionUuid);
 
-    // If not found current submissionUuid in the array,
-    // we don't know what is next.
-    if (currentIndex === -1) {
-      return null;
-    }
-    // If on first element already, there is no previous.
-    if (currentIndex === 0) {
+    const currentIndex = this.getCurrentSubmissionIndex();
+    // If not found, or we are on first element, there is no previous.
+    if (
+      currentIndex === -1 ||
+      currentIndex === 0 ||
+      currentIndex === null
+    ) {
       return null;
     }
 
     // Finds the closest non-`null` submissionUuid going backwards from
     // the current one.
-    const leftSubmissionsIds = uuids.slice(0, currentIndex);
+    const previousUuids = uuids.slice(0, currentIndex);
     let foundId: string | null = null;
-    leftSubmissionsIds.forEach((id) => {
-      if (id !== null) {
-        foundId = id;
+    previousUuids.forEach((item) => {
+      if (item.hasResponse) {
+        foundId = item.uuid;
       }
     });
 
@@ -216,25 +205,24 @@ export default class SingleProcessingHeader extends React.Component<
     if (!Array.isArray(uuids)) {
       return null;
     }
-    const currentIndex = uuids.indexOf(this.props.submissionUuid);
 
-    // If not found current submissionUuid in the array,
-    // we don't know what is next.
-    if (currentIndex === -1) {
-      return null;
-    }
-    // If on last element already, there is no next.
-    if (currentIndex === uuids.length - 1) {
+    const currentIndex = this.getCurrentSubmissionIndex();
+    // If not found, or we are on last element, there is no next.
+    if (
+      currentIndex === -1 ||
+      currentIndex === uuids.length - 1 ||
+      currentIndex === null
+    ) {
       return null;
     }
 
     // Finds the closest non-`null` submissionUuid going forwards from
     // the current one.
-    const rightSubmissionsIds = uuids.slice(currentIndex + 1);
+    const nextUuids = uuids.slice(currentIndex + 1);
     let foundId: string | null = null;
-    rightSubmissionsIds.find((id) => {
-      if (id !== null) {
-        foundId = id;
+    nextUuids.find((item) => {
+      if (item.hasResponse) {
+        foundId = item.uuid;
         return true;
       }
       return false;

@@ -93,20 +93,78 @@ export default class SingleProcessingRoute extends React.Component<
     return undefined;
   }
 
-  /** Whether the question and submission uuid pair make sense for processing. */
-  isDataValid() {
-    const uuids = singleProcessingStore.getSubmissionsUuids();
-    const hasSubmissionAnyProcessableData = uuids?.[this.props.params.questionName]?.includes(this.props.params.submissionUuid);
-
-    return (
-      // To prepare UI for questions that are not processing-enabled.
-      isRowProcessingEnabled(
-        this.props.params.uid,
-        this.props.params.questionName
-      ) &&
-      // To prepare UI for submissions (uuids) that don't contain any processable data.
-      hasSubmissionAnyProcessableData
+  /** Is processing enabled for current question. */
+  isProcessingEnabled() {
+    return isRowProcessingEnabled(
+      this.props.params.uid,
+      this.props.params.questionName
     );
+  }
+
+  /** Whether current submission has a response for current question. */
+  isDataProcessable(): boolean {
+    const uuids = singleProcessingStore.getSubmissionsUuids();
+    const questionUuids = uuids?.[this.props.params.questionName];
+    if (Array.isArray(questionUuids)) {
+      const currentUuidItem = questionUuids.find(
+        (item) => item.uuid === this.props.params.submissionUuid
+      );
+      if (currentUuidItem) {
+        return currentUuidItem.hasResponse;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  renderBottom() {
+    if (
+      !singleProcessingStore.isReady() ||
+      !this.state.asset?.content?.survey
+    ) {
+      return (<LoadingSpinner/>);
+    }
+
+    if (!this.isProcessingEnabled()) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            {t('There is no data for this question for the current submission')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
+    if (this.isProcessingEnabled()) {
+      return (
+        <React.Fragment>
+          <bem.SingleProcessing__bottomLeft>
+            {this.isDataProcessable() &&
+              <SingleProcessingContent questionType={this.getQuestionType()}/>
+            }
+            {!this.isDataProcessable() &&
+              <bem.Loading>
+                <bem.Loading__inner>
+                  {t('There is no data for this question for the current submission')}
+                </bem.Loading__inner>
+              </bem.Loading>
+            }
+          </bem.SingleProcessing__bottomLeft>
+
+          <bem.SingleProcessing__bottomRight>
+            <SingleProcessingPreview/>
+
+            <SingleProcessingSubmissionDetails
+              questionType={this.getQuestionType()}
+              questionName={this.props.params.questionName}
+              assetContent={this.state.asset.content}
+            />
+          </bem.SingleProcessing__bottomRight>
+        </React.Fragment>
+      );
+    }
+
+    return null;
   }
 
   render() {
@@ -139,35 +197,7 @@ export default class SingleProcessingRoute extends React.Component<
         </bem.SingleProcessing__top>
 
         <bem.SingleProcessing__bottom>
-          {!singleProcessingStore.isReady() &&
-            <LoadingSpinner/>
-          }
-          {this.isDataValid() && singleProcessingStore.isReady() &&
-            <React.Fragment>
-              <bem.SingleProcessing__bottomLeft>
-                <SingleProcessingContent
-                  questionType={this.getQuestionType()}
-                />
-              </bem.SingleProcessing__bottomLeft>
-
-              <bem.SingleProcessing__bottomRight>
-                <SingleProcessingPreview/>
-
-                <SingleProcessingSubmissionDetails
-                  questionType={this.getQuestionType()}
-                  questionName={this.props.params.questionName}
-                  assetContent={this.state.asset.content}
-                />
-              </bem.SingleProcessing__bottomRight>
-            </React.Fragment>
-          }
-          {!this.isDataValid() &&
-            <bem.Loading>
-              <bem.Loading__inner>
-                {t('Processing feature is not available for current question and submission pair.')}
-              </bem.Loading__inner>
-            </bem.Loading>
-          }
+          {this.renderBottom()}
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
     );

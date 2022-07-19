@@ -47,35 +47,28 @@ interface TransxDraft {
 
 /**
  * This contains a list of submissions for every processing-enabled question.
- * In a list: for every submission we store either an `uuid` (when given
- * submission has a response to the question) or a `null` (when given submission
- * doesn't have a response to the question).
- *
- * We use it to navigate through submissions with meaningful data in context of
- * a question.
- *
- * We also use it to navigate through questions - making sure we only allow
- * ones with any meaningful data.
- *
- * Example:
+ * In a list: for every submission we store the `uuid` and a `hasResponse`
+ * boolean. We use it to navigate through submissions with meaningful data
+ * in context of a question. Example:
  *
  * ```
  * {
  *   first_question: [
- *     'abc123',
- *     null,
- *     null,
+ *     {uuid: 'abc123', hasResponse: true},
+ *     {uuid: 'asd345', hasResponse: false},
  *   ],
  *   second_question: [
- *     'abc123',
- *     'asd345',
- *     'zxc567',
+ *     {uuid: 'abc123', hasResponse: true},
+ *     {uuid: 'asd345', hasResponse: true},
  *   ]
  * }
  * ```
  */
 interface SubmissionsUuids {
-  [questionName: string]: Array<string | null>;
+  [questionName: string]: Array<{
+    uuid: string;
+    hasResponse: boolean;
+  }>;
 }
 
 interface SingleProcessingStoreData {
@@ -87,10 +80,7 @@ interface SingleProcessingStoreData {
   source?: string;
   activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
-  /**
-   * A list of all submissions ids, we store `null` for submissions that don't
-   * have a response for the question.
-   */
+  /** A list of all submissions uuids. */
   submissionsUuids?: SubmissionsUuids;
 }
 
@@ -353,11 +343,10 @@ class SingleProcessingStore extends Reflux.Store {
 
       response.results.forEach((result) => {
         processingRows.forEach((processingRow) => {
-          if (Object.keys(result).includes(flatPaths[processingRow])) {
-            submissionsUuids[processingRow].push(result._uuid);
-          } else {
-            submissionsUuids[processingRow].push(null);
-          }
+          submissionsUuids[processingRow].push({
+            uuid: result._uuid,
+            hasResponse: Object.keys(result).includes(flatPaths[processingRow]),
+          });
         });
       });
     }
