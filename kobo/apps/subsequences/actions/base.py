@@ -106,8 +106,14 @@ class BaseAction:
     def build_params(kls, *args, **kwargs):
         raise NotImplementedError(f'{kls.__name__} has not implemented a build_params method')
 
+    def get_qpath(self, row):
+        # return the full path...
+        for name_field in ['qpath', 'name', '$autoname']:
+            if name_field in row:
+                return row[name_field]
+        return None
+
     def get_name(self, row):
-        # return the first "name" field, either 'name' or '$autoname'
         for name_field in ['name', '$autoname']:
             if name_field in row:
                 return row[name_field]

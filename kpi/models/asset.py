@@ -447,7 +447,7 @@ class Asset(ObjectPermissionMixin,
         if len(self.advanced_features) == 0:
             NO_FEATURES_MSG = 'no advanced features activated for this form'
             return {'type': 'object', '$description': NO_FEATURES_MSG}
-        last_deployed_version = self.deployed_versions.last()
+        last_deployed_version = self.deployed_versions.first()
         if content:
             return advanced_submission_jsonschema(content,
                                                   self.advanced_features,
@@ -472,6 +472,7 @@ class Asset(ObjectPermissionMixin,
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
+        self._insert_qpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
 
