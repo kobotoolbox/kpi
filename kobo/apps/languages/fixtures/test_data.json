@@ -1,0 +1,136 @@
+[
+    {
+        "fields": {
+            "name": "Aché",
+            "code": "guq",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "French",
+            "code": "fr",
+            "featured": true
+        },
+        "model": "languages.language",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "English",
+            "code": "en",
+            "featured": true
+        },
+        "model": "languages.language",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "name": "Hebrew",
+            "code": "he",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "name": "Afrikaans",
+            "code": "af",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "name": "Microsoft",
+            "code": "msft"
+        },
+        "model": "languages.translationservice",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Google",
+            "code": "goog"
+        },
+        "model": "languages.translationservice",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "Microsoft",
+            "code": "msft"
+        },
+        "model": "languages.transcriptionservice",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Google",
+            "code": "goog"
+        },
+        "model": "languages.transcriptionservice",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 2
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "language_id": 4,
+            "service_id": 2,
+            "code": "iw"
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 2
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 3
+    }
+]
