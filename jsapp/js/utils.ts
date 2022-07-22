@@ -33,7 +33,7 @@ const unzonedTime = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/);
  * Given a string like '2022-07-22T00:00:00', appends a 'Z' so it can be interpreted as UTC instead of "local".
  */
 function presumeUtc(timeStr: string): string {
-  // Expecting like	'2022-01-01T00:00:00', or that plus a timezone offset.
+  // Expecting like '2022-01-01T00:00:00', or that plus a timezone offset.
   if (unzonedTime.test(timeStr)) {
     return timeStr + 'Z';
   } else {
