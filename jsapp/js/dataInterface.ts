@@ -246,6 +246,8 @@ interface ExportSettingSettings {
  * a more complex question type.
  */
 export interface SurveyRow {
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $qpath: string;
   $autoname: string;
   $kuid: string;
   // We use dynamic import to avoid changing this ambient module to a normal
