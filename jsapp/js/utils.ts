@@ -27,25 +27,11 @@ export function notify(msg: string, atype = 'success') {
   alertify.notify(msg, atype);
 }
 
-const unzonedTime = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/);
-
-/**
- * Given a string like '2022-07-22T00:00:00', appends a 'Z' so it can be interpreted as UTC instead of "local".
- */
-function presumeUtc(timeStr: string): string {
-  // Expecting like '2022-01-01T00:00:00', or that plus a timezone offset.
-  if (unzonedTime.test(timeStr)) {
-    return timeStr + 'Z';
-  } else {
-    return timeStr;
-  }
-}
-
 /**
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
  */
 export function formatTime(timeStr: string): string {
-  const myMoment = moment(presumeUtc(timeStr));
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.calendar(null, {sameElse: 'LL'});
 }
 
@@ -53,7 +39,7 @@ export function formatTime(timeStr: string): string {
  * Returns something like "March 15, 2021 4:06 PM"
  */
 export function formatTimeDate(timeStr: string): string {
-  const myMoment = moment(presumeUtc(timeStr));
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.format('LLL');
 }
 
@@ -61,7 +47,7 @@ export function formatTimeDate(timeStr: string): string {
  * Returns something like "Sep 4, 1986 8:30 PM"
  */
 export function formatTimeDateShort(timeStr: string): string {
-  const myMoment = moment(presumeUtc(timeStr));
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.format('lll');
 }
 
@@ -69,7 +55,7 @@ export function formatTimeDateShort(timeStr: string): string {
  * Returns something like "Mar 15, 2021"
  */
 export function formatDate(timeStr: string): string {
-  const myMoment = moment(presumeUtc(timeStr));
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.format('ll');
 }
 
