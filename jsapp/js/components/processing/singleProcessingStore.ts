@@ -8,6 +8,7 @@ import {
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
 import {
+  findRow,
   getSurveyFlatPaths,
   getAssetProcessingRows,
   isAssetProcessingActivated,
@@ -122,6 +123,18 @@ class SingleProcessingStore extends Reflux.Store {
 
   private get currentQuestionName(): string {
     return getSingleProcessingRouteParameters().questionName;
+  }
+
+  private get currentQuestionQpath(): string | null {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.content) {
+      const row = findRow(asset.content, this.currentQuestionName);
+      if (row) {
+        return row.$qpath;
+      }
+      return null;
+    }
+    return null;
   }
 
   private get currentSubmissionUuid(): string {
@@ -551,7 +564,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.requestAutoTranscript(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode
     );
@@ -625,7 +638,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode
     );

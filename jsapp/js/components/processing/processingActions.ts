@@ -67,7 +67,7 @@ interface TranscriptRequestQuestion {
 }
 
 interface AutoTranscriptRequest {
-  [questionName: string]: AutoTranscriptRequestQuestion | string | undefined;
+  [questionQpath: string]: AutoTranscriptRequestQuestion | string | undefined;
   submission?: string;
 }
 interface AutoTranscriptRequestQuestion {
@@ -89,7 +89,7 @@ interface TranslationsRequestObject {
 }
 
 interface AutoTranslationRequest {
-  [questionName: string]: AutoTranslationRequestQuestion | string | undefined;
+  [questionQpath: string]: AutoTranslationRequestQuestion | string | undefined;
   submission?: string;
 }
 interface AutoTranslationRequestQuestion {
@@ -330,7 +330,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 
 processingActions.requestAutoTranscript.listen((
   assetUid: string,
-  questionName: string,
+  questionQpath: string,
   submissionUuid: string,
   languageCode: string
 ) => {
@@ -341,7 +341,7 @@ processingActions.requestAutoTranscript.listen((
     const data: AutoTranscriptRequest = {
       submission: submissionUuid,
     };
-    data[questionName] = {
+    data[questionQpath] = {
       googlets: {
         status: 'requested',
         languageCode: languageCode,
@@ -542,7 +542,7 @@ processingActions.deleteTranslation.failed.listen(() => {
 
 processingActions.requestAutoTranslation.listen((
   assetUid: string,
-  questionName: string,
+  questionQpath: string,
   submissionUuid: string,
   languageCode: string
 ) => {
@@ -553,7 +553,7 @@ processingActions.requestAutoTranslation.listen((
     const data: AutoTranslationRequest = {
       submission: submissionUuid,
     };
-    data[questionName] = {
+    data[questionQpath] = {
       googletx: {
         status: 'requested',
         languageCode: languageCode,

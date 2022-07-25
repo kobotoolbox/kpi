@@ -470,8 +470,12 @@ export function getTranslatedRowLabel(
   return null;
 }
 
+export function findRow(assetContent: AssetContent, rowName: string) {
+  return assetContent?.survey?.find((row) => getRowName(row) === rowName);
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
-  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName);
+  const foundRow = findRow(assetContent, rowName);
   if (foundRow) {
     return foundRow.type;
   }
