@@ -54,8 +54,8 @@ class LanguageAdmin(admin.ModelAdmin):
     import_template_name = 'admin/languages_import.html'
 
     inlines = [
-        TranslationServiceLanguageM2MInline,
         TranscriptionServiceLanguageM2MInline,
+        TranslationServiceLanguageM2MInline,
     ]
 
     list_display = ['name', 'code', 'featured']
@@ -116,7 +116,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
         # The first 3 fields should be always the same. All others should be
         # treated as services.
-        name, code, featured, *asr_mt_services = headers
+        name, code, featured, region_names, region_codes, *asr_mt_services = headers
         asr_mt_services = [s.lower() for s in asr_mt_services]
 
         transcription_services = {
@@ -132,6 +132,7 @@ class LanguageAdmin(admin.ModelAdmin):
         extra_asr_columns = {}
         extra_mt_columns = {}
         new_languages = []
+        new_regions = []
         new_transcription_services = []
         new_translation_services = []
         language_transcription_services_through = []
@@ -143,7 +144,7 @@ class LanguageAdmin(admin.ModelAdmin):
             service_type, service_code = service.split('_')
             if service_type == 'asr':
                 extra_asr_columns[service_code] = (
-                    asr_mt_services.index(service) + 3
+                    asr_mt_services.index(service) + 5
                 )
                 if not TranscriptionService.objects.filter(code=service_code).exists():
                     new_transcription_services.append(
@@ -154,7 +155,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
             if service_type == 'mt':
                 extra_mt_columns[service_code] = (
-                    asr_mt_services.index(service) + 3
+                    asr_mt_services.index(service) + 5
                 )
                 if not TranslationService.objects.filter(code=service_code).exists():
                     new_translation_services.append(
@@ -182,11 +183,12 @@ class LanguageAdmin(admin.ModelAdmin):
         for row in csv_reader:
             name = row[0].strip()
             code = row[1].strip()
-
             try:
                 featured = util.strtobool(row[2])
             except ValueError:
                 featured = False
+            region_names = row[3].strip().split(';')
+            region_codes = row[4].strip().split(';')
 
             if not code:
                 results['skipped'] += 1
@@ -198,6 +200,17 @@ class LanguageAdmin(admin.ModelAdmin):
                 Language(name=name, featured=featured, code=code)
             )
 
+            # Do not save `LanguageRegion` objects either. Store them
+            # in a memory to save them in bulk operations below.
+            if region_names:
+                for idx, region_name in enumerate(region_names):
+                    if region_name:
+                        new_regions.append({
+                            'name': region_name,
+                            'code': region_codes[idx],
+                            'language_code': code,
+                        })
+
             for service, index in extra_asr_columns.items():
 
                 if not row[index]:
@@ -206,11 +219,18 @@ class LanguageAdmin(admin.ModelAdmin):
                 # We do not have `Language` object primary key value yet.
                 # Let's use its code (which should be unique) to map later after
                 # bulk insert.
-                language_transcription_services_through.append({
-                    'language_code': code,
-                    'service_id': transcription_services[service].pk,
-                    'mapped_language_code': row[index],
-                })
+                mapping_codes = row[index].split(';')
+                for idx, region_code in enumerate(region_codes):
+                    # if mapping_codes[idx] == 'null', service
+                    # does not provide transcription for this region
+                    if mapping_codes[idx] == 'null':
+                        continue
+                    language_transcription_services_through.append({
+                        'language_code': code,
+                        'region_code': region_code,
+                        'service_id': transcription_services[service].pk,
+                        'mapping_code': mapping_codes[idx],
+                    })
 
             for service, index in extra_mt_columns.items():
                 if not row[index]:
@@ -219,11 +239,38 @@ class LanguageAdmin(admin.ModelAdmin):
                 # We do not have `Language` object primary key value yet.
                 # Let's use its code (which should be unique) to map later after
                 # bulk insert.
-                language_translation_services_through.append({
-                    'language_code': code,
-                    'service_id': translation_services[service].pk,
-                    'mapped_language_code': row[index],
-                })
+
+                mapping_codes = row[index].split(';')
+
+                if (
+                    mapping_codes[0] == code
+                    and len(mapping_codes) == len(region_codes) + 1
+                ):
+                    mapping_code = mapping_codes.pop(0)
+                    language_translation_services_through.append({
+                        'language_code': code,
+                        'region_code': None,
+                        'service_id': translation_services[service].pk,
+                        'mapping_code': mapping_code,
+                    })
+
+                for idx, mapping_code in enumerate(mapping_codes):
+                    # if mapping_codes[idx] == 'null', service
+                    # does not provide translation for this region
+                    if mapping_code == 'null':
+                        continue
+
+                    if mapping_code == code:
+                        region_code = None
+                    else:
+                        region_code = region_codes[idx]
+
+                    language_translation_services_through.append({
+                        'language_code': code,
+                        'region_code': region_code,
+                        'service_id': translation_services[service].pk,
+                        'mapping_code': mapping_codes[idx],
+                    })
 
         with transaction.atomic():
             # Delete all languages first, since we re-import them all.
@@ -233,38 +280,91 @@ class LanguageAdmin(admin.ModelAdmin):
                 for language in Language.objects.bulk_create(new_languages)
             }
 
+            new_region_objects = []
+            for region in new_regions:
+                new_region_objects.append(LanguageRegion(
+                    name=region['name'],
+                    code=region['code'],
+                    language_id=languages[region['language_code']].pk,
+                ))
+
+            regions = {
+                region.code: region
+                for region in LanguageRegion.objects.bulk_create(
+                    new_region_objects
+                )
+            }
+
             throughs = []
             for through in language_transcription_services_through:
                 # Only save mapped code if it differs from language code
-                mapped_code = (
-                    through['mapped_language_code']
-                    if through['mapped_language_code']
-                    != through['language_code']
+                mapping_code = (
+                    through['mapping_code']
+                    if through['mapping_code']
+                    != through['region_code']
                     else None
                 )
+                print('TROUGH', through, flush=True)
                 throughs.append(Language.transcription_services.through(
                     language_id=languages[through['language_code']].pk,
                     service_id=through['service_id'],
-                    code=mapped_code,
+                    region_id=regions[through['region_code']].pk,
+                    mapping_code=mapping_code,
                 ))
             Language.transcription_services.through.objects.bulk_create(throughs)
 
             throughs = []
             for through in language_translation_services_through:
                 # Only save mapped code if it differs from language code
-                mapped_code = (
-                    through['mapped_language_code']
-                    if through['mapped_language_code']
-                    != through['language_code']
-                    else None
-                )
+                if through['region_code']:
+                    region_id = regions[through['region_code']].pk
+                    mapping_code = (
+                        through['mapping_code']
+                        if through['mapping_code']
+                        != through['region_code']
+                        else None
+                    )
+                else:
+                    region_id = None
+                    mapping_code = (
+                        through['mapping_code']
+                        if through['mapping_code']
+                        != through['language_code']
+                        else None
+                    )
                 throughs.append(Language.translation_services.through(
                     language_id=languages[through['language_code']].pk,
                     service_id=through['service_id'],
-                    code=mapped_code,
+                    region_id=region_id,
+                    mapping_code=mapping_code,
                 ))
             Language.translation_services.through.objects.bulk_create(throughs)
 
         results['created'] = len(languages.keys())
 
         return results
+
+
+class LanguageRegion(models.Model):
+
+    # Deserialized data to avoid joins on services to get all
+    # regions for on language.
+    # Notes: Language must be created first in Django Admin before assigning new
+    # services
+    language = models.ForeignKey(
+        Language, related_name='regions', on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=200)
+    code = models.CharField(max_length=20, unique=True)
+
+    class Meta:
+        verbose_name = 'region'
+        ordering = ['code', 'name']
+
+    def __str__(self):
+        return f'{self.code} - {self.language.name} ({self.name})'
+
+
+class LanguageRegionAdmin(admin.ModelAdmin):
+
+    pass

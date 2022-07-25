@@ -45,7 +45,6 @@ class BaseLanguageServiceM2M(models.Model):
     class Meta:
         abstract = True
 
-    # Custom short language code to map with `Language.code` when
-    # service does use the same code
-    code = models.CharField(max_length=20, null=True, blank=True)
     language = models.ForeignKey('Language', on_delete=models.CASCADE)
+    region = models.ForeignKey('LanguageRegion', on_delete=models.CASCADE)
+    mapping_code = models.CharField(max_length=10, blank=True, null=True)

@@ -4,6 +4,8 @@ from django.contrib import admin
 from .models.language import (
     Language,
     LanguageAdmin,
+    LanguageRegion,
+    LanguageRegionAdmin,
 )
 from .models.transcription import (
     TranscriptionService,
@@ -15,5 +17,6 @@ from .models.translation import (
 )
 
 admin.site.register(Language, LanguageAdmin)
+admin.site.register(LanguageRegion, LanguageRegionAdmin)
 admin.site.register(TranslationService, TranscriptionServiceAdmin)
 admin.site.register(TranscriptionService, TranslationServiceAdmin)

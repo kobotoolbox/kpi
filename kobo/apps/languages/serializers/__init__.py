@@ -1,6 +1,4 @@
 # coding: utf-8
 from .language import LanguageSerializer
-from .service import (
-    TranscriptionServiceSerializer,
-    TranslationServiceSerializer,
-)
+from .translation import TranslationServiceSerializer
+from .transcription import TranscriptionServiceSerializer

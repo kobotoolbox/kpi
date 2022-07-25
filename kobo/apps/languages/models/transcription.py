@@ -18,14 +18,20 @@ class TranscriptionServiceAdmin(BaseLanguageServiceAdmin):
 
 
 class TranscriptionServiceLanguageM2M(BaseLanguageServiceM2M):
-    service = models.ForeignKey(TranscriptionService, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language', 'service', 'region',),)
+
+    service = models.ForeignKey(
+        TranscriptionService, related_name='services', on_delete=models.CASCADE
+    )
 
 
 class TranscriptionServiceLanguageM2MInline(admin.TabularInline):
 
     verbose_name = 'transcription service'
     verbose_name_plural = 'transcription services'
-    fields = ('service', 'code',)
+    fields = ('service', 'region', 'mapping_code',)
 
     model = TranscriptionServiceLanguageM2M
     extra = 1
