@@ -46,6 +46,51 @@
     },
     {
         "fields": {
+            "name": "France",
+            "code": "fr-FR",
+            "language_id": 2
+        },
+        "model": "languages.languageregion",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Canada",
+            "code": "fr-CA",
+            "language_id": 2
+        },
+        "model": "languages.languageregion",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "US",
+            "code": "en-US",
+            "language_id": 3
+        },
+        "model": "languages.languageregion",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "name": "Canada",
+            "code": "en-CA",
+            "language_id": 3
+        },
+        "model": "languages.languageregion",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "name": "Israel",
+            "code": "he-IL",
+            "language_id": 4
+        },
+        "model": "languages.languageregion",
+        "pk": 5
+    },
+    {
+        "fields": {
             "name": "Microsoft",
             "code": "msft"
         },
@@ -79,7 +124,8 @@
     {
         "fields": {
             "language_id": 2,
-            "service_id": 1
+            "service_id": 1,
+            "region_id": 1
         },
         "model": "languages.transcriptionservicelanguagem2m",
         "pk": 1
@@ -87,27 +133,57 @@
     {
         "fields": {
             "language_id": 2,
-            "service_id": 2
+            "service_id": 1,
+            "region_id": 2
         },
         "model": "languages.transcriptionservicelanguagem2m",
         "pk": 2
     },
     {
         "fields": {
-            "language_id": 3,
-            "service_id": 2
+            "language_id": 2,
+            "service_id": 2,
+            "region_id": 1
         },
         "model": "languages.transcriptionservicelanguagem2m",
         "pk": 3
     },
     {
         "fields": {
-            "language_id": 4,
+            "language_id": 2,
             "service_id": 2,
-            "code": "iw"
+            "region_id": 2
         },
         "model": "languages.transcriptionservicelanguagem2m",
         "pk": 4
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2,
+            "region_id": 3
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2,
+            "region_id": 4
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 6
+    },
+    {
+        "fields": {
+            "language_id": 4,
+            "service_id": 2,
+            "region_id": 5,
+            "mapping_code": "iw-IL"
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 7
     },
     {
         "fields": {
@@ -121,6 +197,15 @@
         "fields": {
             "language_id": 2,
             "service_id": 1
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1,
+            "region_id": 2
         },
         "model": "languages.translationservicelanguagem2m",
         "pk": 2

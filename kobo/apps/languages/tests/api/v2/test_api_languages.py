@@ -9,7 +9,6 @@ class LanguageListApiTestCase(BaseApiTestCase):
 
     def test_can_list_as_authenticated_user(self):
         response = self.client.get(reverse('language-list'))
-        print('response', response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_list_as_anonymous_user(self):
@@ -72,3 +71,56 @@ class LanguageListApiTestCase(BaseApiTestCase):
             expected_names,
             [language['name'] for language in response.data['results']],
         )
+
+
+class LanguageApiTestCase(BaseApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.detail_url = reverse('language-detail', kwargs={'code': 'fr'})
+
+    def test_can_read_as_authenticated_user(self):
+        expected = {
+            'name': 'French',
+            'code': 'fr',
+            'featured': True,
+            'transcription_services': [
+                {
+                    'goog': {
+                        'fr-CA': 'fr-CA',
+                        'fr-FR': 'fr-FR',
+                    }
+                }
+            ],
+            'translation_services': [
+                {
+                    'goog': {
+                        'fr': 'fr'
+                    }
+                },
+                {
+                    'msft': {
+                        'fr': 'fr',
+                        'fr-CA': 'fr-CA'
+                    }
+                }
+            ],
+            'regions': [
+                {
+                    'code': 'fr-CA',
+                    'name': 'Canada'
+                },
+                {
+                    'code': 'fr-FR',
+                    'name': 'France'
+                }
+            ]
+        }
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['data'], expected)
+
+    def test_cannot_read_as_anonymous_user(self):
+        self.client.logout()
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
