@@ -474,10 +474,19 @@ export function findRow(assetContent: AssetContent, rowName: string) {
   return assetContent?.survey?.find((row) => getRowName(row) === rowName);
 }
 
+export function findRowByQpath(assetContent: AssetContent, qpath: string) {
+  return assetContent?.survey?.find((row) => row.$qpath === qpath);
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
   const foundRow = findRow(assetContent, rowName);
+  return foundRow?.type;
+}
+
+export function getRowNameByQpath(assetContent: AssetContent, qpath: string) {
+  const foundRow = findRowByQpath(assetContent, qpath);
   if (foundRow) {
-    return foundRow.type;
+    return getRowName(foundRow);
   }
   return undefined;
 }
@@ -722,7 +731,7 @@ export function getAssetProcessingUrl(assetUid: string): string | undefined {
   return undefined;
 }
 
-/** Returns a list of all rows activated for advanced features. */
+/** Returns a list of all rows (their `qpath`s) activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset?.advanced_submission_schema.properties) {
@@ -743,9 +752,9 @@ export function getAssetProcessingRows(assetUid: string) {
   return undefined;
 }
 
-export function isRowProcessingEnabled(assetUid: string, rowName: string) {
+export function isRowProcessingEnabled(assetUid: string, qpath: string) {
   const processingRows = getAssetProcessingRows(assetUid);
-  return Array.isArray(processingRows) && processingRows.includes(rowName);
+  return Array.isArray(processingRows) && processingRows.includes(qpath);
 }
 
 export function isAssetProcessingActivated(assetUid: string) {

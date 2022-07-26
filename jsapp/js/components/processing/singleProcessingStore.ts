@@ -8,11 +8,13 @@ import {
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
 import {
-  findRow,
   getSurveyFlatPaths,
   getAssetProcessingRows,
   isAssetProcessingActivated,
   getAssetAdvancedFeatures,
+  findRowByQpath,
+  getRowName,
+  getRowNameByQpath,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -25,6 +27,7 @@ import type {
   AssetResponse,
   GetProcessingSubmissionsResponse,
 } from 'js/dataInterface';
+import type {AnyRowTypeName} from 'js/constants';
 
 export enum SingleProcessingTabs {
   Transcript = 'trc',
@@ -66,7 +69,7 @@ interface TransxDraft {
  * ```
  */
 interface SubmissionsUuids {
-  [questionName: string]: Array<{
+  [qpath: string]: Array<{
     uuid: string;
     hasResponse: boolean;
   }>;
@@ -117,28 +120,37 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.activeTab = SingleProcessingTabs.Transcript;
   }
 
-  private get currentAssetUid(): string {
+  public get currentAssetUid(): string {
     return getSingleProcessingRouteParameters().uid;
   }
 
-  private get currentQuestionName(): string {
-    return getSingleProcessingRouteParameters().questionName;
+  public get currentQuestionQpath(): string | undefined {
+    return getSingleProcessingRouteParameters().qpath;
   }
 
-  private get currentQuestionQpath(): string | null {
-    const asset = assetStore.getAsset(this.currentAssetUid);
-    if (asset?.content) {
-      const row = findRow(asset.content, this.currentQuestionName);
-      if (row) {
-        return row.$qpath;
-      }
-      return null;
-    }
-    return null;
-  }
-
-  private get currentSubmissionUuid(): string {
+  public get currentSubmissionUuid(): string {
     return getSingleProcessingRouteParameters().submissionUuid;
+  }
+
+  public get currentQuestionName() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.content && this.currentQuestionQpath) {
+      const foundRow = findRowByQpath(asset.content, this.currentQuestionQpath);
+      if (foundRow) {
+        return getRowName(foundRow);
+      }
+      return undefined;
+    }
+    return undefined;
+  }
+
+  public get currentQuestionType(): AnyRowTypeName | undefined {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.content && this.currentQuestionQpath) {
+      const foundRow = findRowByQpath(asset?.content, this.currentQuestionQpath);
+      return foundRow?.type;
+    }
+    return undefined;
   }
 
   init() {
@@ -178,9 +190,10 @@ class SingleProcessingStore extends Reflux.Store {
   /** This is making sure the asset processing features are activated. */
   onAssetLoad(asset: AssetResponse) {
     if (
+      this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
-        this.currentQuestionName,
+        this.currentQuestionQpath,
         this.currentSubmissionUuid,
       ) &&
       this.currentAssetUid === asset.uid
@@ -207,9 +220,10 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private startupStore() {
     if (
+      this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
-        this.currentQuestionName,
+        this.currentQuestionQpath,
         this.currentSubmissionUuid,
       )
     ) {
@@ -273,9 +287,10 @@ class SingleProcessingStore extends Reflux.Store {
       // Case 2: switching into processing route out of other place (most
       // probably from assets data table route).
       this.previousPath !== data.pathname &&
+      this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
-        this.currentQuestionName,
+        this.currentQuestionQpath,
         this.currentSubmissionUuid,
       )
     ) {
@@ -317,17 +332,27 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
     let flatPaths: SurveyFlatPaths = {};
 
+    // We need to get a regular path (not qpath!) for each of the processing
+    // rows. In theory we could just convert the qpath strings, but it's safer
+    // to use the asset data that we already have.
+    const processingRowsPaths: string[] = [];
+
     if (asset?.content?.survey) {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
-    }
 
-    const processingRowsPaths: string[] = [];
-    if (processingRows) {
-      processingRows.forEach((row) => {
-        if (flatPaths[row]) {
-          processingRowsPaths.push(flatPaths[row]);
-        }
-      });
+      if (processingRows) {
+        processingRows.forEach((qpath) => {
+          if (asset?.content) {
+            // Here we need to "convert" qpath into name, as flatPaths work with
+            // names only. We search the row by qpath and use its name.
+            const rowName = getRowNameByQpath(asset.content, qpath);
+
+            if (rowName && flatPaths[rowName]) {
+              processingRowsPaths.push(flatPaths[rowName]);
+            }
+          }
+        });
+      }
     }
 
     actions.submissions.getProcessingSubmissions(
@@ -347,21 +372,29 @@ class SingleProcessingStore extends Reflux.Store {
 
     if (asset?.content?.survey) {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
-    }
 
-    if (processingRows !== undefined) {
-      processingRows.forEach((processingRow) => {
-        submissionsUuids[processingRow] = [];
-      });
+      if (processingRows !== undefined) {
+        processingRows.forEach((qpath) => {
+          submissionsUuids[qpath] = [];
+        });
 
-      response.results.forEach((result) => {
-        processingRows.forEach((processingRow) => {
-          submissionsUuids[processingRow].push({
-            uuid: result._uuid,
-            hasResponse: Object.keys(result).includes(flatPaths[processingRow]),
+        response.results.forEach((result) => {
+          processingRows.forEach((qpath) => {
+            if (asset?.content) {
+              // Here we need to "convert" qpath into name, as flatPaths work with
+              // names only. We search the row by qpath and use its name.
+              const rowName = getRowNameByQpath(asset.content, qpath);
+
+              if (rowName) {
+                submissionsUuids[qpath].push({
+                  uuid: result._uuid,
+                  hasResponse: Object.keys(result).includes(flatPaths[rowName]),
+                });
+              }
+            }
           });
         });
-      });
+      }
     }
 
     this.areUuidsLoaded = true;
@@ -394,7 +427,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionName]?.transcript;
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one
     this.data.transcript = undefined;
     if (
@@ -404,7 +441,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.transcript = transcriptResponse;
     }
 
-    const translationsResponse = response[this.currentQuestionName]?.translated;
+    const translationsResponse = response[this.currentQuestionQpath]?.translated;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: string) => {
@@ -429,7 +466,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onAnyCallFailed(response: FailResponse) {
-    let errorText: string = response.responseJSON?.detail || response.responseJSON?.error || response.statusText;
+    const errorText = (
+      response.responseJSON?.detail ||
+      response.responseJSON?.error ||
+      response.statusText
+    );
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
@@ -437,7 +478,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionName]?.transcript;
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
 
     this.isFetchingData = false;
 
@@ -456,7 +501,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onRequestAutoTranscriptCompleted(response: ProcessingDataResponse) {
-    const googleTsResponse = response[this.currentQuestionName]?.googlets;
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const googleTsResponse = response[this.currentQuestionQpath]?.googlets;
 
     this.isFetchingData = false;
     if (
@@ -479,7 +528,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
-    const googleTxResponse = response[this.currentQuestionName]?.googletx;
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
 
     this.isFetchingData = false;
     if (
@@ -542,7 +595,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode,
       value
@@ -554,7 +607,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid
     );
     this.trigger(this.data);
@@ -615,7 +668,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode,
       value
@@ -627,7 +680,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode
     );
@@ -694,8 +747,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** NOTE: Returns uuids for current question name, not for all of them. */
   getCurrentQuestionSubmissionsUuids() {
-    if (this.data.submissionsUuids !== undefined) {
-      return this.data.submissionsUuids[this.currentQuestionName];
+    if (this.currentQuestionQpath && this.data.submissionsUuids !== undefined) {
+      return this.data.submissionsUuids[this.currentQuestionQpath];
     }
     return undefined;
   }

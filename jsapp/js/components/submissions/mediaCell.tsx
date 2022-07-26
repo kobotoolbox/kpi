@@ -41,7 +41,7 @@ interface MediaCellProps {
  /** Total submissions for text questions. */
  submissionTotal: number;
  assetUid: string;
- questionName: string;
+ qpath: string;
  submissionUuid: string;
 }
 
@@ -88,7 +88,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   openProcessing() {
     openProcessing(
       this.props.assetUid,
-      this.props.questionName,
+      this.props.qpath,
       this.props.submissionUuid
     );
   }

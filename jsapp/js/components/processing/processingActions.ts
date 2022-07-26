@@ -59,7 +59,7 @@ interface TransxRevision {
 }
 
 interface TranscriptRequest {
-  [questionName: string]: TranscriptRequestQuestion | string | undefined;
+  [qpath: string]: TranscriptRequestQuestion | string | undefined;
   submission?: string;
 }
 interface TranscriptRequestQuestion {
@@ -67,7 +67,7 @@ interface TranscriptRequestQuestion {
 }
 
 interface AutoTranscriptRequest {
-  [questionQpath: string]: AutoTranscriptRequestQuestion | string | undefined;
+  [qpath: string]: AutoTranscriptRequestQuestion | string | undefined;
   submission?: string;
 }
 interface AutoTranscriptRequestQuestion {
@@ -78,7 +78,7 @@ interface AutoTranscriptRequestQuestion {
 }
 
 interface TranslationRequest {
-  [questionName: string]: TranslationRequestQuestion | string | undefined;
+  [qpath: string]: TranslationRequestQuestion | string | undefined;
   submission?: string;
 }
 interface TranslationRequestQuestion {
@@ -89,7 +89,7 @@ interface TranslationsRequestObject {
 }
 
 interface AutoTranslationRequest {
-  [questionQpath: string]: AutoTranslationRequestQuestion | string | undefined;
+  [qpath: string]: AutoTranslationRequestQuestion | string | undefined;
   submission?: string;
 }
 interface AutoTranslationRequestQuestion {
@@ -188,7 +188,7 @@ processingActions.getProcessingData.failed.listen(() => {
  */
 function setTranscriptInnerMethod(
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string,
   value: string
@@ -200,7 +200,7 @@ function setTranscriptInnerMethod(
     const data: TranscriptRequest = {
       submission: submissionUuid,
     };
-    data[questionName] = {
+    data[qpath] = {
       transcript: {
         value: value,
         languageCode: languageCode,
@@ -225,7 +225,7 @@ function setTranscriptInnerMethod(
 // before sending translation to avoid rejection.
 processingActions.setTranscript.listen((
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string,
   value: string
@@ -245,7 +245,7 @@ processingActions.setTranscript.listen((
   ) {
     setTranscriptInnerMethod(
       assetUid,
-      questionName,
+      qpath,
       submissionUuid,
       languageCode,
       value
@@ -275,7 +275,7 @@ processingActions.setTranscript.listen((
       onComplete: setTranscriptInnerMethod.bind(
         this,
         assetUid,
-        questionName,
+        qpath,
         submissionUuid,
         languageCode,
         value
@@ -294,7 +294,7 @@ processingActions.setTranscript.failed.listen(() => {
  */
 processingActions.deleteTranscript.listen((
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -304,7 +304,7 @@ processingActions.deleteTranscript.listen((
     const data: TranscriptRequest = {
       submission: submissionUuid,
     };
-    data[questionName] = {
+    data[qpath] = {
       transcript: {
         value: DELETE_CHAR,
         languageCode: '',
@@ -330,7 +330,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 
 processingActions.requestAutoTranscript.listen((
   assetUid: string,
-  questionQpath: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string
 ) => {
@@ -341,7 +341,7 @@ processingActions.requestAutoTranscript.listen((
     const data: AutoTranscriptRequest = {
       submission: submissionUuid,
     };
-    data[questionQpath] = {
+    data[qpath] = {
       googlets: {
         status: 'requested',
         languageCode: languageCode,
@@ -364,10 +364,10 @@ processingActions.requestAutoTranscript.listen((
 
 function pickTranslationsFromProcessingDataResponse(
   response: ProcessingDataResponse,
-  questionName: string
+  qpath: string
 ): TransxObject[] {
   const translations: TransxObject[] = [];
-  Object.values(response[questionName]?.translated).forEach((translation) => {
+  Object.values(response[qpath]?.translated).forEach((translation) => {
     translations.push(translation);
   });
   return translations;
@@ -375,7 +375,7 @@ function pickTranslationsFromProcessingDataResponse(
 
 /** A function that builds translation data object for processing endpoint. */
 function getTranslationDataObject(
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string,
   value: string
@@ -390,7 +390,7 @@ function getTranslationDataObject(
   const data: TranslationRequest = {
     submission: submissionUuid,
   };
-  data[questionName] = {
+  data[qpath] = {
     translated: translationsObj,
   };
   return data;
@@ -402,7 +402,7 @@ function getTranslationDataObject(
  */
 function setTranslationInnerMethod(
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string,
   value: string
@@ -412,7 +412,7 @@ function setTranslationInnerMethod(
     processingActions.setTranslation.failed(NO_FEATURE_ERROR);
   } else {
     const data = getTranslationDataObject(
-      questionName,
+      qpath,
       submissionUuid,
       languageCode,
       value
@@ -428,7 +428,7 @@ function setTranslationInnerMethod(
         processingActions.setTranslation.completed(
           pickTranslationsFromProcessingDataResponse(
             response,
-            questionName
+            qpath
           )
         );
       })
@@ -440,7 +440,7 @@ function setTranslationInnerMethod(
 // before sending translation to avoid rejection.
 processingActions.setTranslation.listen((
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string,
   value: string
@@ -460,7 +460,7 @@ processingActions.setTranslation.listen((
   ) {
     setTranslationInnerMethod(
       assetUid,
-      questionName,
+      qpath,
       submissionUuid,
       languageCode,
       value
@@ -490,7 +490,7 @@ processingActions.setTranslation.listen((
       onComplete: setTranslationInnerMethod.bind(
         this,
         assetUid,
-        questionName,
+        qpath,
         submissionUuid,
         languageCode,
         value
@@ -509,7 +509,7 @@ processingActions.setTranslation.failed.listen(() => {
  */
 processingActions.deleteTranslation.listen((
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string
 ) => {
@@ -518,7 +518,7 @@ processingActions.deleteTranslation.listen((
     processingActions.deleteTranslation.failed(NO_FEATURE_ERROR);
   } else {
     const data = getTranslationDataObject(
-      questionName,
+      qpath,
       submissionUuid,
       languageCode,
       DELETE_CHAR
@@ -542,7 +542,7 @@ processingActions.deleteTranslation.failed.listen(() => {
 
 processingActions.requestAutoTranslation.listen((
   assetUid: string,
-  questionQpath: string,
+  qpath: string,
   submissionUuid: string,
   languageCode: string
 ) => {
@@ -553,7 +553,7 @@ processingActions.requestAutoTranslation.listen((
     const data: AutoTranslationRequest = {
       submission: submissionUuid,
     };
-    data[questionQpath] = {
+    data[qpath] = {
       googletx: {
         status: 'requested',
         languageCode: languageCode,

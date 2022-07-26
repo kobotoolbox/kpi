@@ -10,7 +10,7 @@ bem.AudioCell = makeBem(null, 'audio-cell');
 
 interface AudioCellProps {
   assetUid: string;
-  rowName: string;
+  qpath: string;
   submissionUuid: string;
   /** Required by the mini player. */
   mediaAttachment: SubmissionAttachment;
@@ -38,7 +38,7 @@ export default class AudioCell extends React.Component<AudioCellProps, {}> {
           onClick={() => {
             openProcessing(
               this.props.assetUid,
-              this.props.rowName,
+              this.props.qpath,
               this.props.submissionUuid
             );
           }}

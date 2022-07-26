@@ -47,12 +47,12 @@ export function getSupplementalPathParts(path: string): {
 /** Opens processing view for given response to question in a project. */
 export function openProcessing(
   assetUid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string,
 ) {
   const route = ROUTES.FORM_PROCESSING
     .replace(':uid', assetUid)
-    .replace(':questionName', questionName)
+    .replace(':qpath', qpath)
     .replace(':submissionUuid', submissionUuid);
   hashHistory.push(route);
 }

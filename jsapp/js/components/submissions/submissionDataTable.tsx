@@ -7,7 +7,7 @@ import {
   formatTimeDate,
   formatDate,
 } from 'js/utils';
-import {renderQuestionTypeIcon} from 'js/assetUtils';
+import {findRow, renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
@@ -50,11 +50,17 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   }
 
   openProcessing(name: string) {
-    openProcessing(
-      this.props.asset.uid,
-      name,
-      this.props.submissionData._uuid
-    );
+    if (this.props.asset?.content) {
+      const foundRow = findRow(this.props.asset?.content, name);
+      if (foundRow) {
+        openProcessing(
+          this.props.asset.uid,
+          foundRow.$qpath,
+          this.props.submissionData._uuid
+        );
+      }
+    }
+
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -267,7 +273,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               size='s'
               color='blue'
               endIcon='arrow-up-right'
-              label={t('process')}
+              label={t('Open')}
               onClick={this.openProcessing.bind(this, name)}
             />
 
@@ -276,7 +282,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               size='s'
               color='blue'
               endIcon='download'
-              label={t('download')}
+              label={t('Download')}
               onClick={downloadUrl.bind(this, attachment.download_url)}
             />
           </React.Fragment>

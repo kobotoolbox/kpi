@@ -3,7 +3,6 @@ import clonedeep from 'lodash.clonedeep';
 import envStore from 'js/envStore';
 import bem from 'js/bem';
 import {formatTime} from 'js/utils';
-import type {AnyRowTypeName} from 'js/constants';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import LanguageSelector from 'js/components/languages/languageSelector';
 import languageSelectorActions from 'js/components/languages/languageSelectorActions';
@@ -11,13 +10,7 @@ import Button from 'js/components/common/button';
 import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 
-interface TranscriptTabContentProps {
-  questionType: AnyRowTypeName | undefined;
-}
-
-export default class TranscriptTabContent extends React.Component<
-  TranscriptTabContentProps
-> {
+export default class TranscriptTabContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -194,7 +187,7 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   renderStepBegin() {
-    const typeLabel = this.props.questionType || t('source file');
+    const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
     return (
       <bem.ProcessingBody m='begin'>
         <p>{t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}</p>
@@ -213,7 +206,7 @@ export default class TranscriptTabContent extends React.Component<
   renderStepConfig() {
     const draft = singleProcessingStore.getTranscriptDraft();
 
-    const typeLabel = this.props.questionType || t('source file');
+    const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
     const languageSelectorTitle = t('Please select the original language of the ##type##').replace('##type##', typeLabel);
 
     return (

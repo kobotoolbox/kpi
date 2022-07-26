@@ -1,13 +1,9 @@
 import React from 'react';
 import type {RouteComponentProps} from 'react-router';
-import {
-  getSurveyFlatPaths,
-  isRowProcessingEnabled,
-} from 'js/assetUtils';
+import {isRowProcessingEnabled} from 'js/assetUtils';
 import type {AssetResponse} from 'js/dataInterface';
 import assetStore from 'js/assetStore';
 import bem, {makeBem} from 'js/bem';
-import type {AnyRowTypeName} from 'js/constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
 import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
@@ -25,7 +21,7 @@ bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right'
 
 type SingleProcessingRouteProps = RouteComponentProps<{
   uid: string;
-  questionName: string;
+  qpath: string;
   submissionUuid: string;
 }, unknown>;
 
@@ -36,9 +32,6 @@ interface SingleProcessingRouteState {
 /**
  * Provides the base pieces of data for all processing components. Also renders
  * everything with nice spinners.
- *
- * NOTE: This route component is being loaded with PermProtectedRoute so we know
- * that the call to backend to get asset was already made :happy_face:
  */
 export default class SingleProcessingRoute extends React.Component<
   SingleProcessingRouteProps,
@@ -47,6 +40,9 @@ export default class SingleProcessingRoute extends React.Component<
   constructor(props: SingleProcessingRouteProps) {
     super(props);
     this.state = {
+      // NOTE: This route component is being loaded with PermProtectedRoute so
+      // we know that the call to backend to get asset was already made, and
+      // thus we can safely assume asset data is present :happy_face:
       asset: assetStore.getAsset(this.props.params.uid),
     };
   }
@@ -72,41 +68,19 @@ export default class SingleProcessingRoute extends React.Component<
     this.forceUpdate();
   }
 
-  getQuestionPath() {
-    let questionFlatPath: string | undefined;
-    if (this.state.asset?.content?.survey !== undefined) {
-      const flatPaths = getSurveyFlatPaths(this.state.asset.content.survey);
-      questionFlatPath = flatPaths[this.props.params.questionName];
-    }
-    return questionFlatPath;
-  }
-
-  getQuestionType(): AnyRowTypeName | undefined {
-    if (this.state.asset?.content?.survey) {
-      const foundRow = this.state.asset.content.survey.find((row) =>
-        [row.name, row.$autoname, row.$kuid].includes(this.props.params.questionName)
-      );
-      if (foundRow) {
-        return foundRow.type;
-      }
-    }
-    return undefined;
-  }
-
   /** Is processing enabled for current question. */
   isProcessingEnabled() {
     return isRowProcessingEnabled(
       this.props.params.uid,
-      this.props.params.questionName
+      this.props.params.qpath
     );
   }
 
   /** Whether current submission has a response for current question. */
   isDataProcessable(): boolean {
-    const uuids = singleProcessingStore.getSubmissionsUuids();
-    const questionUuids = uuids?.[this.props.params.questionName];
-    if (Array.isArray(questionUuids)) {
-      const currentUuidItem = questionUuids.find(
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
+    if (Array.isArray(uuids)) {
+      const currentUuidItem = uuids.find(
         (item) => item.uuid === this.props.params.submissionUuid
       );
       if (currentUuidItem) {
@@ -140,7 +114,7 @@ export default class SingleProcessingRoute extends React.Component<
         <React.Fragment>
           <bem.SingleProcessing__bottomLeft>
             {this.isDataProcessable() &&
-              <SingleProcessingContent questionType={this.getQuestionType()}/>
+              <SingleProcessingContent/>
             }
             {!this.isDataProcessable() &&
               <bem.Loading>
@@ -155,8 +129,6 @@ export default class SingleProcessingRoute extends React.Component<
             <SingleProcessingPreview/>
 
             <SingleProcessingSubmissionDetails
-              questionType={this.getQuestionType()}
-              questionName={this.props.params.questionName}
               assetContent={this.state.asset.content}
             />
           </bem.SingleProcessing__bottomRight>
@@ -188,8 +160,6 @@ export default class SingleProcessingRoute extends React.Component<
         />
         <bem.SingleProcessing__top>
           <SingleProcessingHeader
-            questionType={this.getQuestionType()}
-            questionName={this.props.params.questionName}
             submissionUuid={this.props.params.submissionUuid}
             assetUid={this.props.params.uid}
             assetContent={this.state.asset.content}

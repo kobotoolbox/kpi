@@ -713,7 +713,7 @@ export class DataTable extends React.Component {
                 return (
                   <AudioCell
                     assetUid={this.props.asset.uid}
-                    rowName={getRowName(q)}
+                    qpath={q.$qpath}
                     submissionUuid={row.original._uuid}
                     mediaAttachment={mediaAttachment}
                   />
@@ -728,7 +728,7 @@ export class DataTable extends React.Component {
                   submissionIndex={row.index + 1}
                   submissionTotal={this.state.submissions.length}
                   assetUid={this.props.asset.uid}
-                  questionName={getRowName(q)}
+                  qpath={q.$qpath}
                   submissionUuid={row.original._uuid}
                 />
               );

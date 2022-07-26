@@ -1,15 +1,15 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import type {AnyRowTypeName} from 'js/constants';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
-  getRowType,
+  findRowByQpath,
   getRowTypeIcon,
   getTranslatedRowLabel,
+  getRowName,
 } from 'js/assetUtils';
 import {ROUTES} from 'js/router/routerConstants';
 import {hashHistory} from 'react-router';
@@ -18,6 +18,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import './singleProcessingHeader.scss';
+import { openProcessing } from './processingUtils';
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header');
 bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section');
@@ -26,8 +27,6 @@ bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
 bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number');
 
 interface SingleProcessingHeaderProps {
-  questionType: AnyRowTypeName | undefined;
-  questionName: string;
   submissionUuid: string;
   assetUid: string;
   assetContent: AssetContent;
@@ -61,8 +60,8 @@ export default class SingleProcessingHeader extends React.Component<
     this.forceUpdate();
   }
 
-  onQuestionSelectChange(newQuestionName: string) {
-    this.goToSubmission(newQuestionName, this.props.submissionUuid);
+  onQuestionSelectChange(newQpath: string) {
+    this.goToSubmission(newQpath, this.props.submissionUuid);
   }
 
   /** Finds first submission with response for given question. */
@@ -78,31 +77,31 @@ export default class SingleProcessingHeader extends React.Component<
     const options: KoboSelectOption[] = [];
     const uuids = singleProcessingStore.getSubmissionsUuids();
     if (uuids) {
-      Object.keys(uuids).forEach((questionName) => {
+      Object.keys(uuids).forEach((qpath) => {
+        const questionData = findRowByQpath(this.props.assetContent, qpath);
         // At this point we want to find out whether the question has at least
         // one uuid (i.e. there is at least one transcriptable response to
         // the question). Otherwise there's no point in having the question as
         // selectable option.
-        const questionUuids = uuids[questionName];
+        const questionUuids = uuids[qpath];
         const hasAtLeastOneUuid = Boolean(questionUuids.find((uuidOrNull) => uuidOrNull !== null));
-        if (hasAtLeastOneUuid) {
-          const questionType = getRowType(this.props.assetContent, questionName);
-
+        if (questionData && hasAtLeastOneUuid) {
           // Only allow audio questions at this point (we plan to allow text
           // and video in future).
           if (
-            questionType === QUESTION_TYPES.audio.id ||
-            questionType === META_QUESTION_TYPES['background-audio']
+            questionData.type === QUESTION_TYPES.audio.id ||
+            questionData.type === META_QUESTION_TYPES['background-audio']
           ) {
+            const rowName = getRowName(questionData);
             const translatedLabel = getTranslatedRowLabel(
-              questionName,
+              rowName,
               this.props.assetContent.survey,
               0
             );
             options.push({
-              id: questionName,
-              label: translatedLabel !== null ? translatedLabel : questionName,
-              icon: getRowTypeIcon(questionType),
+              id: qpath,
+              label: translatedLabel !== null ? translatedLabel : rowName,
+              icon: getRowTypeIcon(questionData.type),
             });
           }
         }
@@ -118,25 +117,21 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /** Goes to another submission. */
-  goToSubmission(questionName: string, targetSubmissionUuid: string) {
-    const newRoute = ROUTES.FORM_PROCESSING
-      .replace(':uid', this.props.assetUid)
-      .replace(':questionName', questionName)
-      .replace(':submissionUuid', targetSubmissionUuid);
-    hashHistory.push(newRoute);
+  goToSubmission(qpath: string, targetSubmissionUuid: string) {
+    openProcessing(this.props.assetUid, qpath, targetSubmissionUuid);
   }
 
   goPrev() {
     const prevUuid = this.getPrevSubmissionUuid();
-    if (prevUuid !== null) {
-      this.goToSubmission(this.props.questionName, prevUuid);
+    if (prevUuid !== null && singleProcessingStore.currentQuestionQpath) {
+      this.goToSubmission(singleProcessingStore.currentQuestionQpath, prevUuid);
     }
   }
 
   goNext() {
     const nextUuid = this.getNextSubmissionUuid();
-    if (nextUuid !== null) {
-      this.goToSubmission(this.props.questionName, nextUuid);
+    if (nextUuid !== null && singleProcessingStore.currentQuestionQpath) {
+      this.goToSubmission(singleProcessingStore.currentQuestionQpath, nextUuid);
     }
   }
 
@@ -242,7 +237,7 @@ export default class SingleProcessingHeader extends React.Component<
             type='gray'
             size='l'
             options={this.getQuestionSelectorOptions()}
-            selectedOption={this.props.questionName}
+            selectedOption={singleProcessingStore.currentQuestionQpath || null}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
         </bem.SingleProcessingHeader__column>
