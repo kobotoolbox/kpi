@@ -34,17 +34,19 @@ class LanguageSerializer(serializers.ModelSerializer):
         )
 
     def get_transcription_services(self, language):
+        # TODO Optimize. It's very slow because of multiple joins.
         return TranscriptionServiceLanguageM2MSerializer(
-            language.transcription_services.through.objects.filter(
-                language=language
-            ),
+            language.transcription_services.through.objects.select_related(
+                'language', 'region', 'service'
+            ).filter(language=language),
             many=True,
         ).data
 
     def get_translation_services(self, language):
+        # TODO Optimize. It's very slow because of multiple joins.
         return TranslationServiceLanguageM2MSerializer(
-            language.translation_services.through.objects.filter(
-                language=language
-            ),
+            language.translation_services.through.objects.select_related(
+                'language', 'region', 'service'
+            ).filter(language=language),
             many=True,
         ).data

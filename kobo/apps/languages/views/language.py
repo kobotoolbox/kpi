@@ -122,4 +122,4 @@ class LanguageViewSet(BaseViewSet):
 
     serializer_class = LanguageSerializer
     min_search_characters = 2
-    queryset = Language.objects.all()
+    queryset = Language.objects.prefetch_related('regions').all()
