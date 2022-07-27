@@ -86,6 +86,12 @@ class LanguageApiTestCase(BaseApiTestCase):
             'featured': True,
             'transcription_services': [
                 {
+                    'msft': {
+                        'fr-CA': 'fr-CA',
+                        'fr-FR': 'fr-FR',
+                    }
+                },
+                {
                     'goog': {
                         'fr-CA': 'fr-CA',
                         'fr-FR': 'fr-FR',
@@ -94,14 +100,14 @@ class LanguageApiTestCase(BaseApiTestCase):
             ],
             'translation_services': [
                 {
-                    'goog': {
-                        'fr': 'fr'
-                    }
-                },
-                {
                     'msft': {
                         'fr': 'fr',
                         'fr-CA': 'fr-CA'
+                    }
+                },
+                {
+                    'goog': {
+                        'fr': 'fr'
                     }
                 }
             ],
@@ -118,7 +124,7 @@ class LanguageApiTestCase(BaseApiTestCase):
         }
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response['data'], expected)
+        self.assertEqual(response.data, expected)
 
     def test_cannot_read_as_anonymous_user(self):
         self.client.logout()
