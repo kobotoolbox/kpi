@@ -798,7 +798,7 @@ EXTERNAL_SERVICE_LANGUAGE_ALIASES = {
     'zh-TW': ['zh-Hant'],
 }
 
-split_values = lambda o: dict([(k,v.split(' ')) for k,v in o.items()])
+split_values = lambda o: dict([(k, v.split(' ')) for k, v in o.items()])
 
 TRANSCRIPTION_SERVICES = split_values({
     # 'AMZN': 'af-ZA ar-SA ar-AE yue-Hant-HK zh-TW da-DK nl-NL en-AU en-IN '

@@ -1,11 +1,15 @@
 # coding: utf-8
+from collections import defaultdict
+
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 
 from kpi.filters import SearchFilter
 from .base import BaseViewSet
 from ..models.language import Language
-from ..serializers import LanguageSerializer
+from ..serializers import (
+    LanguageSerializer,
+    LanguageListSerializer,
+)
 
 
 class LanguageViewSet(BaseViewSet):
@@ -62,20 +66,17 @@ class LanguageViewSet(BaseViewSet):
     >                   "featured": true,
     >                   "transcription_services": [
     >                       {
-    >                           "goog": {
-    >                               "en-CA": "en-CA",
-    >                               "en-GB": "en-GB",
-    >                               "en-US": "en-US"
-    >                           }
+    >                           "code": "goog",
+    >                           "name": "Google"
     >                       }
     >                   ],
     >                   "translation_services": [
     >                       {
-    >                           "goog": {
-    >                               "en": "en",
-    >                           }
+    >                           "code": "goog",
+    >                           "name": "Google"
     >                       }
-    >                   ]
+    >                   ],
+    >                   "url": "https://[kpi]/api/v2/languages/en/"
     >               },
     >               ...
     >           ]
@@ -120,6 +121,46 @@ class LanguageViewSet(BaseViewSet):
     ### CURRENT ENDPOINT
     """
 
-    serializer_class = LanguageSerializer
+    serializer_class = LanguageListSerializer
     min_search_characters = 2
-    queryset = Language.objects.prefetch_related('regions').all()
+
+    def get_queryset(self):
+        return Language.objects.prefetch_related('regions')
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return LanguageListSerializer
+        else:
+            return LanguageSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action == 'list':
+            # In list view, because of slowness of multiple joins, we only list
+            # the available services without any other details such as the
+            # supported regions and their mapping codes.
+
+            # We cache service objects to avoid multiple queries within the
+            # serializer to retrieve them.
+            transcription_services = defaultdict(set)
+            queryset = (
+                Language.transcription_services.through.objects.select_related(
+                    'service'
+                )
+            )
+            for through in queryset.all():
+                transcription_services[through.language_id].add(through.service)
+
+            translation_services = defaultdict(set)
+            queryset = (
+                Language.translation_services.through.objects.select_related(
+                    'service'
+                )
+            )
+            for through in queryset.all():
+                translation_services[through.language_id].add(through.service)
+
+            context['transcription_services'] = transcription_services
+            context['translation_services'] = translation_services
+
+        return context

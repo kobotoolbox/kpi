@@ -1,8 +1,8 @@
 # coding: utf-8
 from rest_framework import serializers
 
-from .translation import TranslationServiceLanguageM2MSerializer
-from .transcription import TranscriptionServiceLanguageM2MSerializer
+from .translation import TranslationServiceSerializer, TranslationServiceLanguageM2MSerializer
+from .transcription import TranscriptionServiceSerializer, TranscriptionServiceLanguageM2MSerializer
 from ..models.language import Language, LanguageRegion
 
 
@@ -34,7 +34,6 @@ class LanguageSerializer(serializers.ModelSerializer):
         )
 
     def get_transcription_services(self, language):
-        # TODO Optimize. It's very slow because of multiple joins.
         return TranscriptionServiceLanguageM2MSerializer(
             language.transcription_services.through.objects.select_related(
                 'language', 'region', 'service'
@@ -43,10 +42,33 @@ class LanguageSerializer(serializers.ModelSerializer):
         ).data
 
     def get_translation_services(self, language):
-        # TODO Optimize. It's very slow because of multiple joins.
         return TranslationServiceLanguageM2MSerializer(
             language.translation_services.through.objects.select_related(
                 'language', 'region', 'service'
             ).filter(language=language),
             many=True,
+        ).data
+
+
+class LanguageListSerializer(LanguageSerializer):
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name='language-detail', lookup_field='code'
+    )
+
+    class Meta(LanguageSerializer.Meta):
+        fields = LanguageSerializer.Meta.fields + (
+            'url',
+        )
+
+    def get_transcription_services(self, language):
+        transcription_services = self.context['transcription_services']
+        return TranscriptionServiceSerializer(
+            transcription_services.get(language.pk, []), many=True
+        ).data
+
+    def get_translation_services(self, language):
+        translation_services = self.context['translation_services']
+        return TranslationServiceSerializer(
+            translation_services.get(language.pk, []), many=True
         ).data
