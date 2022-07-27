@@ -62,17 +62,22 @@ class LanguageViewSet(BaseViewSet):
     >                   "featured": true,
     >                   "transcription_services": [
     >                       {
-    >                           "code": "goog",
-    >                           "name": "Google"
+    >                           "goog": {
+    >                               "en-CA": "en-CA",
+    >                               "en-GB": "en-GB",
+    >                               "en-US": "en-US"
+    >                           }
     >                       }
     >                   ],
     >                   "translation_services": [
     >                       {
-    >                           "code": "goog",
-    >                           "name": "Google"
-    >                       },
-    >                   ],
+    >                           "goog": {
+    >                               "en": "en",
+    >                           }
+    >                       }
+    >                   ]
     >               },
+    >               ...
     >           ]
     >       }
 
@@ -96,16 +101,19 @@ class LanguageViewSet(BaseViewSet):
     >           "featured": true,
     >           "transcription_services": [
     >               {
-    >                   "code": "goog",
-    >                   "name": "Google"
+    >                   "goog": {
+    >                       "fr-CA": "fr-CA",
+    >                       "fr-FR": "fr-FR"
+    >                   }
     >               }
-    >           ],
-    >           "translation_services": [
-    >               {
-    >                   "code": "goog",
-    >                   "name": "Google"
-    >               },
-    >           ],
+    >            ],
+    >            "translation_services": [
+    >                {
+    >                    "goog": {
+    >                        "fr": "fr",
+    >                    }
+    >                }
+    >            ]
     >       }
 
 
