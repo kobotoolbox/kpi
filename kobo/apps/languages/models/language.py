@@ -114,7 +114,7 @@ class LanguageAdmin(admin.ModelAdmin):
         # Skip for rows. We expect it to be the column headers.
         headers = next(csv_reader)
 
-        # The first 3 fields should be always the same. All others should be
+        # The first 5 fields should be always the same. All others should be
         # treated as services.
         name, code, featured, region_names, region_codes, *asr_mt_services = headers
         asr_mt_services = [s.lower() for s in asr_mt_services]
@@ -216,15 +216,28 @@ class LanguageAdmin(admin.ModelAdmin):
                 if not row[index]:
                     continue
 
-                # We do not have `Language` object primary key value yet.
-                # Let's use its code (which should be unique) to map later after
-                # bulk insert.
+                # The `asr_*` columns should contain a semi-colon seperated
+                # string containing language regions. To help the mapping,
+                # the language regions should be in the exact same order as the
+                # `region_name` and `region_code` columns. `null` should be used
+                # for not supported regions.
+                # For example:
+                #  region_names | region_codes | asr_service |
+                #  -------------|--------------|-------------|
+                #  USA;Canada   | en-US;en-CA  | en-US;en-CA |
+                #  -------------|--------------|-------------|
+                #  France;Canada| fr-FR;fr-CA  | fr-FR;null  |
+                #  -------------|--------------|-------------|
                 mapping_codes = row[index].split(';')
                 for idx, region_code in enumerate(region_codes):
                     # if mapping_codes[idx] == 'null', service
                     # does not provide transcription for this region
                     if mapping_codes[idx] == 'null':
                         continue
+
+                    # We do not have `Language` nor `LanguageRegion` object primary
+                    # keys value yet. Let's use their codes (which should be unique)
+                    # to map later after bulk insert.
                     language_transcription_services_through.append({
                         'language_code': code,
                         'region_code': region_code,
@@ -236,17 +249,38 @@ class LanguageAdmin(admin.ModelAdmin):
                 if not row[index]:
                     continue
 
-                # We do not have `Language` object primary key value yet.
-                # Let's use its code (which should be unique) to map later after
-                # bulk insert.
-
+                # The `mt_*` columns should contain a semi-colon seperated
+                # string containing language codes except some exceptions where
+                # the region can be used. To help the mapping the language codes
+                # (or regions)  should be in the exact same order as the
+                # `region_name` and `region_code` columns. `null` should be used
+                # for not supported regions.
+                # A small difference with `asr_*` columns - which always requires
+                # a region - translation services usually only need the language
+                # code but sometimes support regions too. In some other rarely
+                # cases, it only supports regions.
+                # For example:
+                #  region_names                  | region_codes | mt_service    |
+                #  ------------------------------|--------------|---------------|
+                #  USA;Canada                    | en-US;en-CA  | en            |  # only language
+                #  ------------------------------|--------------|---------------|
+                #  France;Canada                 | fr-FR;fr-CA  | fr;null;fr-CA |  # language and regions
+                #  ------------------------------|--------------|---------------|
+                #  Serbia Latin, Serbia Cyrillic | sr-RS;sr-CS  |sr-Latn;sr-Cyrl|
+                #  ------------------------------|--------------|---------------|
                 mapping_codes = row[index].split(';')
 
+                # If there is only one occurrence and it matches language code,
+                # it is a trivial case and translation service support the
+                # language globally. No regions are needed.
                 if (
                     mapping_codes[0] == code
                     and len(mapping_codes) == len(region_codes) + 1
                 ):
                     mapping_code = mapping_codes.pop(0)
+                    # We do not have `Language` object primary key value yet.
+                    # Let's use its codes (which should be unique) to map later
+                    # after bulk insert.
                     language_translation_services_through.append({
                         'language_code': code,
                         'region_code': None,
@@ -260,11 +294,17 @@ class LanguageAdmin(admin.ModelAdmin):
                     if mapping_code == 'null':
                         continue
 
+                    # In case, we did not enter the trivial case, the translation
+                    # service may support the language globally but some regions
+                    # too (see French in example table above)
                     if mapping_code == code:
                         region_code = None
                     else:
                         region_code = region_codes[idx]
 
+                    # We do not have `Language` nor `LanguageRegion` object primary
+                    # keys value yet. Let's use their codes (which should be unique)
+                    # to map later after bulk insert.
                     language_translation_services_through.append({
                         'language_code': code,
                         'region_code': region_code,
@@ -304,7 +344,6 @@ class LanguageAdmin(admin.ModelAdmin):
                     != through['region_code']
                     else None
                 )
-                print('TROUGH', through, flush=True)
                 throughs.append(Language.transcription_services.through(
                     language_id=languages[through['language_code']].pk,
                     service_id=through['service_id'],
