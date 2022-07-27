@@ -3,6 +3,7 @@
 import json
 
 import constance
+from django.conf import settings
 from django.urls import reverse
 from django.http import HttpRequest
 from markdown import markdown
@@ -71,7 +72,8 @@ class EnvironmentTests(BaseTestCase):
                         constance.config.SUPPORT_EMAIL
                     )
                 ).items()
-            }
+            },
+            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
         }
 
     def _check_response_dict(self, response_dict):

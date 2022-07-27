@@ -729,8 +729,7 @@ export class DataTable extends React.Component {
             }
             if (
               q.type === META_QUESTION_TYPES.start ||
-              q.type === META_QUESTION_TYPES.end ||
-              q.type === ADDITIONAL_SUBMISSION_PROPS._submission_time
+              q.type === META_QUESTION_TYPES.end
             ) {
               return (
                 <span className='trimmed-text'>
@@ -738,6 +737,13 @@ export class DataTable extends React.Component {
                 </span>
               );
             }
+          }
+          if (key === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
+            return (
+              <span className='trimmed-text'>
+                {formatTimeDateShort(row.value)}
+              </span>
+            );
           }
           if (typeof(row.value) === 'object' || row.value === undefined) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
