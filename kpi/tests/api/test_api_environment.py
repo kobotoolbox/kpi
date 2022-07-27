@@ -76,7 +76,7 @@ class EnvironmentTests(BaseTestCase):
                     )
                 ).items()
             },
-            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH']
+            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
         }
 
     def _check_response_dict(self, response_dict):

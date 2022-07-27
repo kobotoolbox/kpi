@@ -12,6 +12,7 @@ interface InlineMessageProps {
   message: ReactElement<any, any> | string;
   /** Additional class names. */
   classNames?: string[];
+  'data-cy'?: string;
 }
 
 /**
@@ -37,7 +38,12 @@ class InlineMessage extends React.Component<InlineMessageProps, {}> {
         }
 
         {this.props.message &&
-          <p className='k-inline-message__message'>{this.props.message}</p>
+          <p
+            className='k-inline-message__message'
+            data-cy={this.props['data-cy']}
+          >
+            {this.props.message}
+          </p>
         }
       </figure>
     );

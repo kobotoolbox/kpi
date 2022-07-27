@@ -116,7 +116,6 @@ export default class ReportContents extends React.Component {
               }
             });
 
-            // TODO: use a better way to store translated labels per row
             for (var vD = vals.length - 1; vD >= 0; vD--) {
               choice = asset.content.choices.find((o) => {
                 return (
