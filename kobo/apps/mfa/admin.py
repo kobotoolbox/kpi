@@ -2,10 +2,13 @@
 from django.contrib import admin
 
 from .models import (
-    MFAMethod,
-    KoboMFAMethod,
-    KoboMFAMethodAdmin,
+    TrenchMFAMethod,
+    MfaAvailableToUser,
+    MfaAvailableToUserAdmin,
+    MfaMethod,
+    MfaMethodAdmin,
 )
 
-admin.site.unregister(MFAMethod)
-admin.site.register(KoboMFAMethod, KoboMFAMethodAdmin)
+admin.site.unregister(TrenchMFAMethod)
+admin.site.register(MfaMethod, MfaMethodAdmin)
+admin.site.register(MfaAvailableToUser, MfaAvailableToUserAdmin)
