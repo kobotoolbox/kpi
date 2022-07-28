@@ -45,8 +45,10 @@ class SubmissionExtras(models.Model):
                             'languageCode': language_code,
                         }
                         for row in self.asset.content['survey']:
-                            if row['$qpath'] == qpath:
-                                xpath = row['$xpath']
+                            if '$qpath' in row and '$xpath' in row:
+                                if row['$qpath'] == qpath:
+                                    xpath = row['$xpath']
+                                    break
                         results = engine.transcribe_file(
                             asset=self.asset,
                             xpath=xpath,
