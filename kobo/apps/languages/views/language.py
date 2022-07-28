@@ -125,7 +125,10 @@ class LanguageViewSet(BaseViewSet):
     min_search_characters = 2
 
     def get_queryset(self):
-        return Language.objects.prefetch_related('regions')
+        if self.action == 'list':
+            return Language.objects.all()
+        else:
+            return Language.objects.prefetch_related('regions')
 
     def get_serializer_class(self):
         if self.action == 'list':

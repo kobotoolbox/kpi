@@ -55,9 +55,15 @@ class LanguageListSerializer(LanguageSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='language-detail', lookup_field='code'
     )
+    regions = None
 
     class Meta(LanguageSerializer.Meta):
-        fields = LanguageSerializer.Meta.fields + (
+        fields = fields = (
+            'name',
+            'code',
+            'featured',
+            'transcription_services',
+            'translation_services',
             'url',
         )
 
