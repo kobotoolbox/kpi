@@ -31,7 +31,7 @@ export function notify(msg: string, atype = 'success') {
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
  */
 export function formatTime(timeStr: string): string {
-  const myMoment = moment(timeStr);
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.calendar(null, {sameElse: 'LL'});
 }
 
@@ -39,7 +39,7 @@ export function formatTime(timeStr: string): string {
  * Returns something like "March 15, 2021 4:06 PM"
  */
 export function formatTimeDate(timeStr: string): string {
-  const myMoment = moment(timeStr);
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.format('LLL');
 }
 
@@ -47,7 +47,7 @@ export function formatTimeDate(timeStr: string): string {
  * Returns something like "Sep 4, 1986 8:30 PM"
  */
 export function formatTimeDateShort(timeStr: string): string {
-  const myMoment = moment(timeStr);
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.format('lll');
 }
 
@@ -55,7 +55,7 @@ export function formatTimeDateShort(timeStr: string): string {
  * Returns something like "Mar 15, 2021"
  */
 export function formatDate(timeStr: string): string {
-  const myMoment = moment(timeStr);
+  const myMoment = moment.utc(timeStr).local();
   return myMoment.format('ll');
 }
 

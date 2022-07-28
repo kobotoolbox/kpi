@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
     'kobo.apps.mfa.MfaAppConfig',
+    'kobo.apps.languages.LanguageAppConfig',
 )
 
 MIDDLEWARE = [
@@ -969,3 +970,5 @@ TRENCH_AUTH = {
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
+
+MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
