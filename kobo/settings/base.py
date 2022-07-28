@@ -302,7 +302,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MFAHelpTextField',
+        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
         {'widget': 'django.forms.Textarea'},
     ],
 }
@@ -928,7 +928,7 @@ KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
 }
 
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'mfa.KoboMFAMethod',
+    'USER_MFA_MODEL': 'mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
