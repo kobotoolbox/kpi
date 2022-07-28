@@ -30,7 +30,7 @@ class SubmissionExtras(models.Model):
     def save(self):
         features = self.asset.advanced_features
         if 'transcript' in features:
-            for key, vals in self.content.items():
+            for qpath, vals in self.content.items():
                 try:
                     autoparams = vals[GOOGLETS]
                     status = autoparams['status']
@@ -44,9 +44,12 @@ class SubmissionExtras(models.Model):
                             'status': 'in_progress',
                             'languageCode': language_code,
                         }
+                        for row in self.asset.content['survey']:
+                            if row['$qpath'] == qpath:
+                                xpath = row['$xpath']
                         results = engine.transcribe_file(
                             asset=self.asset,
-                            xpath=key,
+                            xpath=xpath,
                             source=language_code,
                             submission_id=self.submission_uuid,
                             user=self.asset.owner,

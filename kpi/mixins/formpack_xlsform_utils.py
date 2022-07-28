@@ -21,7 +21,7 @@ from kpi.utils.autoname import (
     autovalue_choices_in_place,
 )
 from kpi.utils.absolute_paths import (
-    insert_qpath_in_place,
+    insert_full_paths_in_place,
 )
 from kpi.utils.kobo_to_xlsform import (
     expand_rank_and_score_in_place,
@@ -62,7 +62,7 @@ class FormpackXLSFormUtilsMixin:
         autovalue_choices_in_place(content, '$autovalue')
 
     def _insert_qpath(self, content):
-        insert_qpath_in_place(content)
+        insert_full_paths_in_place(content)
 
     def _populate_fields_with_autofields(self, content):
         replace_with_autofields(content)
