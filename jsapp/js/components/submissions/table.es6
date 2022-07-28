@@ -770,6 +770,8 @@ export class DataTable extends React.Component {
       QUESTION_TYPES.date.id,
       QUESTION_TYPES.time.id,
       QUESTION_TYPES.datetime.id,
+      QUESTION_TYPES.barcode.id,
+      QUESTION_TYPES.calculate.id,
       META_QUESTION_TYPES.start,
       META_QUESTION_TYPES.end,
       META_QUESTION_TYPES.username,
