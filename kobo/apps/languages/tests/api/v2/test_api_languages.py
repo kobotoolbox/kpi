@@ -65,7 +65,14 @@ class LanguageListApiTestCase(BaseApiTestCase):
         Should sort by featured DESC, name ASC
         """
         response = self.client.get(reverse('language-list'))
-        expected_names = ['English', 'French', 'Aché', 'Afrikaans', 'Hebrew']
+        expected_names = [
+            'English',
+            'French',
+            'Aché',
+            'Afrikaans',
+            'Hebrew',
+            'Serbian',
+        ]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             expected_names,
