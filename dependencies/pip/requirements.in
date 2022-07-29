@@ -13,7 +13,7 @@
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
 # Regular PyPI packages
-Django==3.2
+Django>=3.2,<3.3
 Markdown
 Pygments
 amqp
