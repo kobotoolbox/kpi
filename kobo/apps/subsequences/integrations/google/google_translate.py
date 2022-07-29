@@ -1,8 +1,8 @@
-from hashlib import md5
 from datetime import date
+from hashlib import md5
 
-from google.cloud import translate_v3 as translate, storage
 from google.api_core.exceptions import InvalidArgument
+from google.cloud import translate_v3 as translate, storage
 
 from .utils import google_credentials_from_constance_config
 from ..misc import (
@@ -19,6 +19,7 @@ PARENT = f'projects/{PROJECT_ID}'
 PARENT_ASYNC = f'projects/{PROJECT_ID}/locations/{LOCATION}'
 SOURCE_BASENAME = 'source'
 COST_PER_CHAR = 20 / 1000000  # https://cloud.google.com/translate/pricing
+
 
 def _hashed_strings(self, *strings):
     return md5(''.join(strings).encode()).hexdigest()[0:10]

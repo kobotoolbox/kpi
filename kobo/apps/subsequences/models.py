@@ -1,5 +1,8 @@
+# coding: utf-8
 from django.db import models
 
+from kobo.apps.languages.models.transcription import TranscriptionService
+from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
 from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscribeEngine,
@@ -7,14 +10,8 @@ from kobo.apps.subsequences.integrations.google.google_transcribe import (
 from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationEngine,
 )
-from kobo.apps.subsequences.tasks import (
-    handle_google_translation_operation,
-)
+from kobo.apps.subsequences.tasks import handle_google_translation_operation
 from kpi.models import Asset
-
-TEMP_LANGCODE_EXPANDS = {
-    'en': 'en-US',
-}
 
 
 class SubmissionExtras(models.Model):
@@ -40,9 +37,10 @@ class SubmissionExtras(models.Model):
                     if status == 'requested':
                         username = self.asset.owner.username
                         engine = GoogleTranscribeEngine()
-                        language_code = autoparams['languageCode']
-                        if language_code in TEMP_LANGCODE_EXPANDS:
-                            language_code = TEMP_LANGCODE_EXPANDS[language_code]
+                        service = TranscriptionService.objects.get(code='goog')
+                        language_code = service.get_language_code(
+                            autoparams['languageCode']
+                        )
                         vals[GOOGLETS] = {
                             'status': 'in_progress',
                             'languageCode': language_code,
@@ -72,6 +70,7 @@ class SubmissionExtras(models.Model):
                         continue
                 except KeyError as err:
                     continue
+
         if 'translated' in features:
             for key, vals in self.content.items():
                 try:
@@ -88,6 +87,8 @@ class SubmissionExtras(models.Model):
                 if not content:
                     continue
                 tx_engine = GoogleTranslationEngine()
+                # FIXME Code is hardcoded and should be dynamic
+                service = TranslationService.objects.get(code='goog')
                 if tx_engine.translation_must_be_async(content):
                     # must queue
                     followup_params = tx_engine.translate_async(
@@ -100,21 +101,22 @@ class SubmissionExtras(models.Model):
                         # username is used in the label of the request
                         username=self.asset.owner.username,
                         # the rest
-                        source_lang=source_lang,
-                        target_lang=target_lang,
+                        source_lang=service.get_language_code(source_lang),
+                        target_lang=service.get_language_code(target_lang),
                     )
-                    handle_google_translation_operation(**followup_params,
-                                                 countdown=8)
+                    handle_google_translation_operation(
+                        **followup_params, countdown=8
+                    )
                     vals[GOOGLETX] = {
                         'status': 'in_progress',
-                        'source': source,
+                        'source': source_lang,
                         'languageCode': target_lang,
                     }
                 else:
                     results = tx_engine.translate_sync(
                         content=content,
-                        source_lang=source_lang,
-                        target_lang=target_lang,
+                        source_lang=service.get_language_code(source_lang),
+                        target_lang=service.get_language_code(target_lang),
                         username=self.asset.owner.username,
                     )
                     vals[GOOGLETX] = {
