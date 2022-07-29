@@ -78,7 +78,6 @@ export default class Reports extends React.Component {
         groupBy = reportStyles.default.groupDataBy;
       }
 
-      // TODO: improve the defaults below
       if (reportStyles.default.report_type === undefined) {
         reportStyles.default.report_type = REPORT_STYLES.vertical.value;
       }

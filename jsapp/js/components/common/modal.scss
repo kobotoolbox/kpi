@@ -337,6 +337,7 @@ $modal-custom-header-height: sizes.$x60;
 
 // TODO: Make a better generic modal component
 // Refactor common CSS for modals with custom headers
+// See: https://github.com/kobotoolbox/kpi/issues/3643
 .modal.modal--custom-header {
   border-radius: 6px;
 

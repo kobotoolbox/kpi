@@ -266,17 +266,6 @@ bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav');
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav');
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside');
 
-bem.HelpBubble = makeBem(null, 'help-bubble');
-bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button');
-bem.HelpBubble__back = makeBem(bem.HelpBubble, 'back', 'button');
-bem.HelpBubble__trigger = makeBem(bem.HelpBubble, 'trigger', 'button');
-bem.HelpBubble__triggerCounter = makeBem(bem.HelpBubble, 'trigger-counter', 'span');
-bem.HelpBubble__popup = makeBem(bem.HelpBubble, 'popup');
-bem.HelpBubble__popupContent = makeBem(bem.HelpBubble, 'popup-content');
-bem.HelpBubble__row = makeBem(bem.HelpBubble, 'row');
-bem.HelpBubble__rowAnchor = makeBem(bem.HelpBubble, 'row', 'a');
-bem.HelpBubble__rowWrapper = makeBem(bem.HelpBubble, 'row-wrapper');
-
 bem.SimpleTable = makeBem(null, 'simple-table', 'table');
 bem.SimpleTable__header = makeBem(bem.SimpleTable, 'header', 'thead');
 bem.SimpleTable__body = makeBem(bem.SimpleTable, 'body', 'tbody');

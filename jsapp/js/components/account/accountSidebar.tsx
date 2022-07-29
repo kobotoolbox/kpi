@@ -8,11 +8,6 @@ import envStore from 'js/envStore';
 
 interface AccountSidebarProps {
   submissionsPerMonth: number;
-  /* TODO: Placeholder from mockups, naming and typing subject to change
-    dataStoreage: any,
-    transcriptionMinutes: any,
-	  machineTranslation: any,
-	*/
 }
 
 interface AccountSidebarState {
@@ -83,16 +78,19 @@ export default class AccountSidebar extends React.Component<
           </bem.FormSidebar__label>
           }
 
-          <bem.FormSidebar__label
-            m={{selected: this.isSecuritySelected()}}
-            href={'#' + ROUTES.SECURITY}
-            disabled={ !(envStore.isReady && envStore.data.mfa_enabled) }
-          >
-            <Icon name='lock-alt' size='xl'/>
-            <bem.FormSidebar__labelText>
-              {t('Security')}
-            </bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
+          { /* hide "Security" entirely if nothing there is available */
+            envStore.isReady && envStore.data.mfa_enabled &&
+            <bem.FormSidebar__label
+              m={{selected: this.isSecuritySelected()}}
+              href={'#' + ROUTES.SECURITY}
+              disabled={ !(envStore.isReady && envStore.data.mfa_enabled) }
+            >
+              <Icon name='lock-alt' size='xl'/>
+              <bem.FormSidebar__labelText>
+                {t('Security')}
+              </bem.FormSidebar__labelText>
+            </bem.FormSidebar__label>
+          }
         </bem.FormSidebar>
       );
     }

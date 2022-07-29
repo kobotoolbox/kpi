@@ -95,7 +95,6 @@ class AssetNavigatorListView extends React.Component {
         );
     } else {
 
-      // TODO FIXME
       // HACK: we activate sortable with timeout so it is rendered :puke:
       window.setTimeout(() => {this.activateSortable();}, 1);
 

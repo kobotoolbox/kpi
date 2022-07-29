@@ -25,9 +25,9 @@ CELERY_TASK_ALWAYS_EAGER = True
 
 
 MONGO_CONNECTION_URL = 'mongodb://fakehost/formhub_test'
-MONGO_CONNECTION = MockMongoClient(
-    MONGO_CONNECTION_URL, j=True, tz_aware=True)
-MONGO_DB = MONGO_CONNECTION['formhub_test']
+mongo_client = MockMongoClient(
+    MONGO_CONNECTION_URL, connect=False, journal=True, tz_aware=True)
+MONGO_DB = mongo_client['formhub_test']
 
 ENKETO_URL = 'http://enketo.mock'
 ENKETO_INTERNAL_URL = 'http://enketo.mock'
