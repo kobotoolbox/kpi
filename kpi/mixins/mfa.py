@@ -6,7 +6,7 @@ from rest_framework import exceptions
 from trench.utils import get_mfa_model
 
 
-class MFABlockerMixin:
+class MfaBlockerMixin:
 
     def validate_mfa_not_active(self, user: 'auth.User'):
         """

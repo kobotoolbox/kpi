@@ -907,7 +907,7 @@ class Asset(ObjectPermissionMixin,
         self, version_uid: str, root_node_name: Optional[str] = None
     ) -> AssetSnapshot:
         return self._snapshot(
-            regenerate=True,
+            regenerate=False,
             version_uid=version_uid,
             root_node_name=root_node_name,
         )

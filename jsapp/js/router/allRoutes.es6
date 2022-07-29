@@ -334,6 +334,7 @@ export default class AllRoutes extends React.Component {
                *
                * Used to force refresh form sub routes. It's some kine of a weird
                * way of introducing a loading screen during sub route refresh.
+               * See: https://github.com/kobotoolbox/kpi/issues/3925
                **/}
               <Route
                 path={ROUTES.FORM_RESET}
@@ -362,7 +363,7 @@ export default class AllRoutes extends React.Component {
     return (
       <Router
         history={hashHistory}
-        ref={(ref) => (this.router = ref)}
+        ref={(ref) => this.router = ref}
         routes={this.getRoutes()}
       />
     );
