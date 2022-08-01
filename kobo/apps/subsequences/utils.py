@@ -19,6 +19,7 @@ FEATURE_JSONSCHEMA_DESCRIPTION = (
     'stored and processed accordingly.'
 )
 
+SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 
 def build_action_instances(proj_content):
     instances = []
@@ -104,6 +105,9 @@ SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
 
 def stream_with_extras(submission_stream, extras):
     for submission in submission_stream:
-        uuid = submission['_uuid']
+        if SUBMISSION_UUID_FIELD in submission:
+            uuid = submission[SUBMISSION_UUID_FIELD]
+        else:
+            uuid = submission['_uuid']
         submission[SUPPLEMENTAL_DETAILS_KEY] = extras.get(uuid, {})
         yield submission
