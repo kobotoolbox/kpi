@@ -981,12 +981,15 @@ class Asset(ObjectPermissionMixin,
 
     # TODO: take leading underscore off of `_snapshot()` and call it directly?
     # we would also have to remove or rename the `snapshot` property
-    def versioned_snapshot(
-        self, version_uid: str, root_node_name: Optional[str] = None
+    def versioned_snapshot(self,
+        version_uid: str,
+        root_node_name: Optional[str] = None,
+        submission_uuid: Optional[str] = None,
     ) -> AssetSnapshot:
         return self._snapshot(
             regenerate=False,
             version_uid=version_uid,
+            submission_uuid=submission_uuid,
             root_node_name=root_node_name,
         )
 
@@ -1023,6 +1026,7 @@ class Asset(ObjectPermissionMixin,
         self,
         regenerate: bool = True,
         version_uid: Optional[str] = None,
+        submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,
     ) -> AssetSnapshot:
         if version_uid:
@@ -1030,16 +1034,20 @@ class Asset(ObjectPermissionMixin,
         else:
             asset_version = self.latest_version
 
+        snap_params = {
+            'asset': self,
+            'asset_version': asset_version,
+        }
+        if submission_uuid:
+            snap_params['submission_uuid'] = submission_uuid
         try:
-            snapshot = AssetSnapshot.objects.get(asset=self,
-                                                 asset_version=asset_version)
+            snapshot = AssetSnapshot.objects.get(**snap_params)
             if regenerate:
                 snapshot.delete()
                 snapshot = False
         except AssetSnapshot.MultipleObjectsReturned:
             # how did multiple snapshots get here?
-            snaps = AssetSnapshot.objects.filter(asset=self,
-                                                 asset_version=asset_version)
+            snaps = AssetSnapshot.objects.filter(**snap_params)
             snaps.delete()
             snapshot = False
         except AssetSnapshot.DoesNotExist:
@@ -1065,9 +1073,8 @@ class Asset(ObjectPermissionMixin,
 
             self._append(content, settings=settings_)
 
-            snapshot = AssetSnapshot.objects.create(
-                asset=self, asset_version=asset_version, source=content
-            )
+            snap_params['source'] = content
+            snapshot = AssetSnapshot.objects.create(**snap_params)
 
         return snapshot
 
