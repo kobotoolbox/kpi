@@ -1,16 +1,32 @@
 # coding: utf-8
 from django.contrib import admin
 from django.db import models
+from django.db.models import Q
 
 from .base import (
     BaseLanguageService,
     BaseLanguageServiceAdmin,
     BaseLanguageServiceM2M,
 )
+from ..exceptions import LanguageNotSupported
 
 
 class TranslationService(BaseLanguageService):
-    pass
+
+    def get_language_code(self, value: str) -> str:
+
+        try:
+            through_obj = TranslationServiceLanguageM2M.objects.get(
+                Q(region__code=value) |
+                Q(language__code=value, region__isnull=True),
+                service__code=self.code,
+            )
+        except TranslationServiceLanguageM2M.DoesNotExist:
+            raise LanguageNotSupported
+        else:
+            return (
+                through_obj.mapping_code if through_obj.mapping_code else value
+            )
 
 
 class TranslationServiceAdmin(BaseLanguageServiceAdmin):

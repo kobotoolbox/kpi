@@ -65,7 +65,14 @@ class LanguageListApiTestCase(BaseApiTestCase):
         Should sort by featured DESC, name ASC
         """
         response = self.client.get(reverse('language-list'))
-        expected_names = ['English', 'French', 'Aché', 'Afrikaans', 'Hebrew']
+        expected_names = [
+            'English',
+            'French',
+            'Aché',
+            'Afrikaans',
+            'Hebrew',
+            'Serbian',
+        ]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             expected_names,
@@ -84,27 +91,25 @@ class LanguageApiTestCase(BaseApiTestCase):
             'name': 'French',
             'code': 'fr',
             'featured': True,
-            'transcription_services': [
-                {
-                    'goog': {
-                        'fr-CA': 'fr-CA',
-                        'fr-FR': 'fr-FR',
-                    }
-                }
-            ],
-            'translation_services': [
-                {
-                    'goog': {
-                        'fr': 'fr'
-                    }
+            'transcription_services': {
+                'msft': {
+                    'fr-CA': 'fr-CA',
+                    'fr-FR': 'fr-FR',
                 },
-                {
-                    'msft': {
-                        'fr': 'fr',
-                        'fr-CA': 'fr-CA'
-                    }
+                'goog': {
+                    'fr-CA': 'fr-CA',
+                    'fr-FR': 'fr-FR',
                 }
-            ],
+            },
+            'translation_services': {
+                'msft': {
+                    'fr': 'fr',
+                    'fr-CA': 'fr-CA'
+                },
+                'goog': {
+                    'fr': 'fr'
+                }
+            },
             'regions': [
                 {
                     'code': 'fr-CA',
@@ -118,7 +123,7 @@ class LanguageApiTestCase(BaseApiTestCase):
         }
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response['data'], expected)
+        self.assertEqual(response.data, expected)
 
     def test_cannot_read_as_anonymous_user(self):
         self.client.logout()

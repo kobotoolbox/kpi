@@ -46,6 +46,15 @@
     },
     {
         "fields": {
+            "name": "Serbian",
+            "code": "sr",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 6
+    },
+    {
+        "fields": {
             "name": "France",
             "code": "fr-FR",
             "language_id": 2
@@ -88,6 +97,24 @@
         },
         "model": "languages.languageregion",
         "pk": 5
+    },
+    {
+        "fields": {
+            "name": "Latin",
+            "code": "sr-RS",
+            "language_id": 5
+        },
+        "model": "languages.languageregion",
+        "pk": 6
+    },
+    {
+        "fields": {
+            "name": "Cyrillic",
+            "code": "sr-CS",
+            "language_id": 5
+        },
+        "model": "languages.languageregion",
+        "pk": 7
     },
     {
         "fields": {
@@ -208,7 +235,7 @@
             "region_id": 2
         },
         "model": "languages.translationservicelanguagem2m",
-        "pk": 2
+        "pk": 3
     },
     {
         "fields": {
@@ -216,6 +243,26 @@
             "service_id": 2
         },
         "model": "languages.translationservicelanguagem2m",
-        "pk": 3
+        "pk": 4
+    },
+    {
+        "fields": {
+            "language_id": 5,
+            "service_id": 1,
+            "region_id": 6,
+            "mapping_code": "sr-Latn"
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "language_id": 5,
+            "service_id": 1,
+            "region_id": 7,
+            "mapping_code": "sr-Cyl"
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 6
     }
 ]
