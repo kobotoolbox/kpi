@@ -40,6 +40,12 @@ class BaseServiceLanguageM2MSerializer(serializers.ModelSerializer):
 
 class BaseServiceLanguageM2MListSerializer(serializers.ListSerializer):
 
+    # Force `ListSerializer` to return a dict, not a list
+    @property
+    def data(self):
+        ret = serializers.BaseSerializer.data.fget(self)
+        return serializers.ReturnDict(ret, serializer=self)
+
     def to_representation(self, data):
         """
         Override `ListSerializer` behaviour to display services as a dictionary
@@ -47,7 +53,4 @@ class BaseServiceLanguageM2MListSerializer(serializers.ListSerializer):
         """
         iterable = data.all() if isinstance(data, models.Manager) else data
         formatted_data = self._get_formatted_data(iterable)
-        representation = []
-        for service_code, service in formatted_data.items():
-            representation.append({service_code: service})
-        return representation
+        return formatted_data
