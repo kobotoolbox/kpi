@@ -6,8 +6,11 @@ import Button from 'js/components/common/button';
 import type {EnvStoreDataItem} from 'js/envStore';
 import envStore from 'js/envStore';
 import {FUSE_OPTIONS} from 'js/constants';
+import {observer} from 'mobx-react';
+import {toJS} from 'mobx';
 import languageSelectorActions from './languageSelectorActions';
 import './languageSelector.scss';
+import LanguagesStore from './languagesStore';
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section');
 bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1');
@@ -68,6 +71,7 @@ class LanguageSelector extends React.Component<
   LanguageSelectorState
 > {
   private unlisteners: Function[] = [];
+  private store = new LanguagesStore();
 
   constructor(props: LanguageSelectorProps){
     super(props);
@@ -347,6 +351,8 @@ class LanguageSelector extends React.Component<
   }
 
   render() {
+    console.log('store.languages', toJS(this.store.languages));
+
     return (
       <bem.LanguageSelector>
         <bem.LanguageSelector__title>
@@ -361,4 +367,4 @@ class LanguageSelector extends React.Component<
   }
 }
 
-export default LanguageSelector;
+export default observer(LanguageSelector);

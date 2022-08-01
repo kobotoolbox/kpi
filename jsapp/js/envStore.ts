@@ -27,8 +27,6 @@ class EnvStoreData {
   sector_choices: EnvStoreDataItem[] = [];
   operational_purpose_choices: EnvStoreDataItem[] = [];
   country_choices: EnvStoreDataItem[] = [];
-  /** languages come from `kobo/static_lists.py` **/
-  all_languages: EnvStoreDataItem[] = [];
   interface_languages: EnvStoreDataItem[] = [];
   submission_placeholder = '';
   mfa_localized_help_text: {[name: string]: string} = {};
@@ -106,22 +104,9 @@ class EnvStore extends Reflux.Store {
     if (response.interface_languages) {
       this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs);
     }
-    if (response.all_languages) {
-      this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs);
-    }
 
     this.isReady = true;
     this.trigger(this.data);
-  }
-
-  getLanguages() {
-    return this.data.all_languages;
-  }
-
-  getLanguage(code: string): EnvStoreDataItem | undefined {
-    return this.data.all_languages.find(
-      (item: EnvStoreDataItem) => item.value === code
-    );
   }
 
   getSectorLabel(sectorName: string): string | undefined {
@@ -142,23 +127,6 @@ class EnvStore extends Reflux.Store {
       return foundCountry.label;
     }
     return undefined;
-  }
-
-  /** Returns a know language label or the provided code. */
-  getLanguageDisplayLabel(code: string): string {
-    let displayLabel = code;
-    const envStoreLanguage = this.getLanguage(code);
-    if (envStoreLanguage) {
-      displayLabel = envStoreLanguage.label;
-    }
-    return displayLabel;
-  }
-
-  /** Case-insensitive lookup by localized name */
-  getLanguageByName(label: string): EnvStoreDataItem | undefined {
-    return this.data.all_languages.find(
-      (item: EnvStoreDataItem) => item.label.toLocaleLowerCase() === label.toLocaleLowerCase()
-    );
   }
 }
 

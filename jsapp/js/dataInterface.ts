@@ -581,7 +581,6 @@ export interface EnvironmentResponse {
   sector_choices: string[][];
   operational_purpose_choices: string[][];
   country_choices: string[][];
-  all_languages: string[][];
   interface_languages: string[][];
   submission_placeholder: string;
   frontend_min_retry_time: number;
