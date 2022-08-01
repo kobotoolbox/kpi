@@ -91,33 +91,25 @@ class LanguageApiTestCase(BaseApiTestCase):
             'name': 'French',
             'code': 'fr',
             'featured': True,
-            'transcription_services': [
-                {
-                    'msft': {
-                        'fr-CA': 'fr-CA',
-                        'fr-FR': 'fr-FR',
-                    }
+            'transcription_services': {
+                'msft': {
+                    'fr-CA': 'fr-CA',
+                    'fr-FR': 'fr-FR',
                 },
-                {
-                    'goog': {
-                        'fr-CA': 'fr-CA',
-                        'fr-FR': 'fr-FR',
-                    }
+                'goog': {
+                    'fr-CA': 'fr-CA',
+                    'fr-FR': 'fr-FR',
                 }
-            ],
-            'translation_services': [
-                {
-                    'msft': {
-                        'fr': 'fr',
-                        'fr-CA': 'fr-CA'
-                    }
+            },
+            'translation_services': {
+                'msft': {
+                    'fr': 'fr',
+                    'fr-CA': 'fr-CA'
                 },
-                {
-                    'goog': {
-                        'fr': 'fr'
-                    }
+                'goog': {
+                    'fr': 'fr'
                 }
-            ],
+            },
             'regions': [
                 {
                     'code': 'fr-CA',

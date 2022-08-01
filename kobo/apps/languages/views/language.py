@@ -100,21 +100,26 @@ class LanguageViewSet(BaseViewSet):
     >           "name": "French",
     >           "code": "fr",
     >           "featured": true,
-    >           "transcription_services": [
-    >               {
-    >                   "goog": {
-    >                       "fr-CA": "fr-CA",
-    >                       "fr-FR": "fr-FR"
-    >                   }
+    >           "transcription_services": {
+    >               "goog": {
+    >                   "fr-CA": "fr-CA",
+    >                   "fr-FR": "fr-FR"
+    >               },
+    >               "msft": {
+    >                   "fr-CA": "fr-CA",
+    >                   "fr-FR": "fr-FR"
     >               }
-    >            ],
-    >            "translation_services": [
-    >                {
-    >                    "goog": {
-    >                        "fr": "fr",
-    >                    }
-    >                }
-    >            ]
+    >           },
+    >           "translation_services": {
+    >               "goog": {
+    >                   "fr-CA": "fr-CA",
+    >                   "fr-FR": "fr-FR"
+    >               },
+    >               "msft": {
+    >                   "fr": "fr",
+    >                   "fr-CA": "fr-CA",
+    >               }
+    >           },
     >       }
 
 
