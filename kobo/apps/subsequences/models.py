@@ -18,6 +18,27 @@ TEMP_LANGCODE_EXPANDS = {
     'en': 'en-US',
 }
 
+def _has_value(data):
+    return 'value' in data and len(data['value']) > 0
+
+def all_known_cols(content):
+    modes = []
+    for qpath, vals in content.items():
+        if 'transcript' in vals:
+            data = vals['transcript']
+            if 'value' in data and _has_value(data):
+                modes.append(f'{qpath}:manual_transcript')
+        if GOOGLETS in vals:
+            modes.append(f'{qpath}:autotranscript_google')
+        if 'translated' in vals:
+            langdata = vals['translated']
+            for langcode, data in langdata.items():
+                if _has_value(data):
+                    modes.append(f'{qpath}:manual_translation:{langcode}')
+        if GOOGLETX in vals:
+            modes.append(f'{qpath}:autotranslate_google')
+    return modes
+
 class SubmissionExtras(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -119,6 +140,10 @@ class SubmissionExtras(models.Model):
                         'languageCode': target_lang,
                         'value': results,
                     }
+        _found = all_known_cols(self.content)
+        existing_known_cols = self.asset.known_cols.get('known', [])
+        self.asset.known_cols['known'] = list(set([*_found, *existing_known_cols]))
+        self.asset.save()
         super(SubmissionExtras, self).save()
 
     @property

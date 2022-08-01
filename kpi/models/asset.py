@@ -153,6 +153,7 @@ class Asset(ObjectPermissionMixin,
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     advanced_features = LazyDefaultJSONBField(default=dict)
+    known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey('Asset', related_name='children',
