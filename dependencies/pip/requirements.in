@@ -2,7 +2,8 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@f7f61307b3e8011c5b7e040276afbe32388b957c#egg=a1d05eba1-dorey
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -53,7 +54,11 @@ django-request-cache
 drf-extensions
 future
 geojson-rewind
+google-cloud-speech
+google-cloud-storage
+google-cloud-translate
 jsonfield
+jsonschema
 kombu
 lxml
 oauthlib

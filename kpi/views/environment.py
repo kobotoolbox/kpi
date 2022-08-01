@@ -18,6 +18,18 @@ from kobo.static_lists import (
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 
 
+def _check_asr_mt_access_for_user(user):
+    # This is for proof-of-concept testing and will be replaced with proper
+    # quotas and accounting
+    if user.is_anonymous:
+        return False
+    asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
+    return (
+        asr_mt_invitees.strip() == '*'
+        or user.username in asr_mt_invitees.split('\n')
+    )
+
+
 class EnvironmentView(APIView):
     """
     GET-only view for certain server-provided configuration data
@@ -88,6 +100,11 @@ class EnvironmentView(APIView):
 
             data[key.lower()] = value
 
+        asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
+
+        data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
+            request.user
+        )
         data['country_choices'] = COUNTRIES
         data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES

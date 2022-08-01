@@ -1,76 +1,42 @@
-@use "scss/_colors";
-@use "scss/sizes";
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+@use 'js/components/common/button';
 
 .single-processing-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  color: colors.$kobo-gray-40;
+  @include mixins.centerRowFlex;
+
+  height: 100%;
+  color: colors.$kobo-gray-24;
   background-color: colors.$kobo-white;
+  padding: 0 sizes.$x18;
 }
 
-.single-processing-header__type-icon {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  color: colors.$kobo-white;
-  background-color: colors.$kobo-teal;
-  width: sizes.$x52;
-  height: sizes.$x52;
-  border-radius: sizes.$x8;
+.single-processing-header__submissions {
+  @include mixins.centerRowFlex;
 
-  .k-icon {
-    font-size: sizes.$x24;
-  }
+  height: button.$button-height-l;
+  border-radius: button.$button-border-radius;
+  border-style: solid;
+  border-width: button.$button-border-width;
+  border-color: colors.$kobo-gray-92;
+  padding: 0 sizes.$x4;
 }
 
 .single-processing-header__count {
-  font-size: sizes.$x16;
-}
-
-.single-processing-header__question {
-  font-size: sizes.$x21;
-  font-weight: 500;
-  margin: sizes.$x4 0 0;
+  margin: 0 sizes.$x50;
 }
 
 .single-processing-header__column {
-  &.single-processing-header__column--icon {
-    margin: sizes.$x12;
-  }
-
   &.single-processing-header__column--main {
     flex: 1;
-    margin: 0 sizes.$x12;
+
+    // HACK: this ensures this element doesn't push other flex items off screen
+    // when the content is too long.
+    min-width: 0;
   }
 
-  &.single-processing-header__column--navigation {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-right: sizes.$x18;
-  }
-}
-
-.single-processing-header__number {
-  border-radius: sizes.$x8;
-  height: sizes.$x40;
-  line-height: sizes.$x40 - (2 * sizes.$x2); // minus the border
-  font-size: sizes.$x18;
-  text-transform: uppercase;
-  font-weight: 700;
-  padding: 0 sizes.$x6;
-  min-width: sizes.$x40;
-  text-align: center;
-  border-color: colors.$kobo-gray-92;
-  cursor: default;
-  border-width: sizes.$x2;
-  border-style: solid;
-}
-
-.single-processing-header__column.single-processing-header__column--navigation {
-  > *:not(:last-child) {
-    margin-right: sizes.$x4;
+  & + & {
+    margin-left: sizes.$x10;
   }
 }

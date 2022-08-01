@@ -119,12 +119,6 @@ bem.LibList__label = makeBem(bem.LibList, 'label');
 bem.LibList__dragbox = makeBem(bem.LibList, 'dragbox');
 bem.LibList__qtype = makeBem(bem.LibList, 'qtype');
 
-bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
-bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
-bem.SubmissionDataTable__column = makeBem(bem.SubmissionDataTable, 'column');
-bem.SubmissionDataTable__XMLName = makeBem(bem.SubmissionDataTable, 'xml-name');
-bem.SubmissionDataTable__value = makeBem(bem.SubmissionDataTable, 'value');
-
 bem.TableMeta = makeBem(null, 'table-meta');
 bem.TableMeta__counter = makeBem(bem.TableMeta, 'counter');
 bem.TableMeta__additionalText = makeBem(bem.TableMeta, 'additional-text', 'span'); // generally text not needed on smaller screens

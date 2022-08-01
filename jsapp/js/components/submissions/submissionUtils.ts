@@ -1,9 +1,12 @@
+import _ from 'lodash';
 import {
   getRowName,
   getTranslatedRowLabel,
   getSurveyFlatPaths,
   isRowSpecialLabelHolder,
+  isRowProcessingEnabled,
 } from 'js/assetUtils';
+import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import {
   createEnum,
   SCORE_ROW_TYPE,
@@ -12,16 +15,22 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
-  AnyRowTypeName,
 } from 'js/constants';
-import {
+import type {AnyRowTypeName} from 'js/constants';
+import type {
   SurveyRow,
   SurveyChoice,
   SubmissionResponse,
-  SubmissionAttachment
-} from 'js/dataInterface'
+  SubmissionAttachment,
+  AssetResponse,
+} from 'js/dataInterface';
+import {
+  getSupplementalPathParts,
+  getSupplementalTranscriptPath,
+  getSupplementalTranslationPath,
+} from 'js/components/processing/processingUtils';
 
-enum DisplayGroupTypeName {
+export enum DisplayGroupTypeName {
   group_root = 'group_root',
   group_repeat = 'group_repeat',
   group_regular = 'group_regular',
@@ -35,9 +44,9 @@ export const DISPLAY_GROUP_TYPES = createEnum([
   DisplayGroupTypeName.group_regular,
   DisplayGroupTypeName.group_matrix,
   DisplayGroupTypeName.group_matrix_row,
-]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};;
+]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};
 
-class DisplayGroup {
+export class DisplayGroup {
   public type: DisplayGroupTypeName;
   /** Localized display label */
   public label: string | null = null;
@@ -65,18 +74,9 @@ class DisplayGroup {
   }
 }
 
-/**
- * @typedef {Object} DisplayResponse
- * @property {string} type - One of QUESTION_TYPES
- * @property {string} label - Localized display label
- * @property {string} name - Unique identifier
- * @property {string|undefined} listName - Unique identifier of a choices list,
- *                                         only applicable for question types
- *                                         that uses choices lists
- * @property {string|null} data - User response, `null` for no response
- */
-class DisplayResponse {
-  public type: AnyRowTypeName;
+export class DisplayResponse {
+  /** One of QUESTION_TYPES or `null` for supplemental details */
+  public type: AnyRowTypeName | null;
   /** Localized display label */
   public label: string | null;
   /** Unique identifier */
@@ -90,7 +90,7 @@ class DisplayResponse {
   public data: string | null = null;
 
   constructor(
-    type: AnyRowTypeName,
+    type: AnyRowTypeName | null,
     label: string | null,
     name: string,
     listName: string | undefined,
@@ -112,16 +112,18 @@ class DisplayResponse {
  * Returns a root group with everything inside
  */
 export function getSubmissionDisplayData(
-  survey: SurveyRow[],
-  choices: SurveyChoice[],
+  asset: AssetResponse,
   /** for choosing label to display */
   translationIndex: number,
   submissionData: SubmissionResponse
 ) {
-  const flatPaths = getSurveyFlatPaths(survey, true);
-
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
+
+  const survey = asset?.content?.survey || []
+  const choices = asset?.content?.choices || []
+
+  const flatPaths = getSurveyFlatPaths(survey, true);
 
   /**
    * Recursively generates a nested architecture of survey with data.
@@ -267,6 +269,13 @@ export function getSubmissionDisplayData(
           rowData
         );
         parentGroup.addChild(rowObj);
+
+        const rowSupplementalResponses = getRowSupplementalResponses(
+          asset,
+          submissionData,
+          rowName,
+        );
+        rowSupplementalResponses.forEach((resp) => {parentGroup.addChild(resp)})
       }
     }
   }
@@ -499,9 +508,108 @@ export function getMediaAttachment(
 }
 
 /**
-  Mimics Django get_valid_filename() to match back-end renaming when an
-  attachment is saved in storage.
-  See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
+ * Returns supplemental details for given path,
+ * e.g. `_supplementalDetails/question_name/transcript_pl` or
+ * e.g. `_supplementalDetails/question_name/translated_pl`.
+ *
+ * NOTE: transcripts are actually not nested on language level (because there
+ * can be only one transcript), but we need to use paths with languages in it
+ * to build Submission Modal and Data Table properly.
+ */
+export function getSupplementalDetailsContent(
+  submission: SubmissionResponse,
+  path: string
+) {
+  const pathArray = path.split('/');
+  const pathParts = getSupplementalPathParts(path);
+
+  // Separate route for getting transcripts value.
+  if (pathParts.isTranscript) {
+    // There is always one transcript, not nested in language code object, thus
+    // we don't need the language code in the last element of the path.
+    pathArray.pop();
+    pathArray.push('transcript');
+    const transcriptObj = _.get(submission, pathArray, '');
+    if (
+      transcriptObj.languageCode === pathParts.languageCode &&
+      typeof transcriptObj.value === 'string'
+    ) {
+      return transcriptObj.value;
+    }
+    return t('N/A');
+  }
+
+  // The last element is `translated_<language code>`, but we don't want
+  // the underscore to be there.
+  pathArray.pop();
+  pathArray.push('translated');
+  pathArray.push(pathParts.languageCode);
+
+  // Then we add one more nested level
+  pathArray.push('value');
+  // Moments like these makes you really apprecieate the beauty of lodash.
+  const value = _.get(submission, pathArray, '');
+  // If there is no value it could be either WIP or intentional. We want to be
+  // clear about the fact it could be intentionally empty.
+  return value || t('N/A');
+}
+
+/**
+ * Returns all supplemental details (as rows) for given row. Includes transcript
+ * and all translations.
+ *
+ * Returns empty array if row is not enabled to have supplemental details.
+ *
+ * If there is potential for details, then it will return a full list of
+ * DisplayResponses with existing values (falling back to empty strings).
+ */
+export function getRowSupplementalResponses(
+  asset: AssetResponse,
+  submissionData: SubmissionResponse,
+  rowName: string,
+): DisplayResponse[] {
+  const output: DisplayResponse[] = [];
+  if (isRowProcessingEnabled(asset.uid, rowName)) {
+    const advancedFeatures = asset.advanced_features;
+
+    if (advancedFeatures.transcript?.languages !== undefined) {
+      advancedFeatures.transcript.languages.forEach((languageCode: string) => {
+        const path = getSupplementalTranscriptPath(rowName, languageCode);
+        output.push(
+          new DisplayResponse(
+            null,
+            getColumnLabel(asset, path, false),
+            path,
+            undefined,
+            getSupplementalDetailsContent(submissionData, path)
+          )
+        );
+      });
+    }
+
+    if (advancedFeatures.translated?.languages !== undefined) {
+      advancedFeatures.translated.languages.forEach((languageCode: string) => {
+        const path = getSupplementalTranslationPath(rowName, languageCode);
+        output.push(
+          new DisplayResponse(
+            null,
+            getColumnLabel(asset, path, false),
+            path,
+            undefined,
+            getSupplementalDetailsContent(submissionData, path)
+          )
+        );
+      });
+    }
+  }
+
+  return output;
+}
+
+/**
+ * Mimics Django get_valid_filename() to match back-end renaming when an
+ * attachment is saved in storage.
+ * See https://github.com/django/django/blob/832adb31f27cfc18ad7542c7eda5a1b6ed5f1669/django/utils/text.py#L224
  */
 export function getValidFilename(
   fileName: string

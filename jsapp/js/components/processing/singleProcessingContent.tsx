@@ -1,6 +1,9 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import LanguageSelector from 'js/components/languages/languageSelector';
+import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
+import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
+import TranslationsTabContent from 'js/components/processing/translationsTabContent';
+import protectorHelpers from 'js/protector/protectorHelpers';
 import './singleProcessingContent.scss';
 
 bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section');
@@ -8,48 +11,47 @@ bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs',
 bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li');
 bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section');
 
-enum SingleProcessingTab {
-  Transcript = 'Transcript',
-  Translations = 'Translations',
-  Coding = 'Coding',
-}
+/** This component is handling the tabs for switching the content. */
+export default class SingleProcessingContent extends React.Component<{}> {
+  private unlisteners: Function[] = [];
 
-interface SingleProcessingContentProps {}
-
-interface SingleProcessingContentState {
-  activeTab: SingleProcessingTab;
-}
-
-export default class SingleProcessingContent extends React.Component<
-  SingleProcessingContentProps,
-  SingleProcessingContentState
-> {
-  constructor(props: SingleProcessingContentProps) {
-    super(props);
-    this.state = {
-      activeTab: SingleProcessingTab.Transcript,
-    };
+  componentDidMount() {
+    this.unlisteners.push(
+      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
+    );
   }
 
-  switchTab(newTab: SingleProcessingTab) {
-    this.setState({activeTab: newTab});
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
-  onLanguageChange(newVal: string | undefined) {
-    console.log('language set', newVal);
+  onSingleProcessingStoreChange() {
+    /**
+     * Don't want to store a duplicate of `activeTab` here, so we need to make
+     * the component re-render itself when the store changes :shrug:.
+     */
+    this.forceUpdate();
+  }
+
+  /** DRY wrapper for protector function. */
+  safeExecute(callback: () => void) {
+    protectorHelpers.safeExecute(singleProcessingStore.hasAnyUnsavedWork(), callback);
+  }
+
+  activateTab(tabName: SingleProcessingTabs) {
+    singleProcessingStore.activateTab(tabName);
   }
 
   renderTabContent() {
-    switch (this.state.activeTab) {
-      case SingleProcessingTab.Transcript:
-        // TEMP content
-        return <div style={{padding: '40px'}}>
-          <LanguageSelector onLanguageChange={this.onLanguageChange.bind(this)}/>
-        </div>;
-      case SingleProcessingTab.Translations:
-        return 'TODO translations tab content';
-      case SingleProcessingTab.Coding:
-        return 'TODO coding tab content';
+    switch (singleProcessingStore.getActiveTab()) {
+      case SingleProcessingTabs.Transcript:
+        return (
+          <TranscriptTabContent/>
+        );
+      case SingleProcessingTabs.Translations:
+        return <TranslationsTabContent/>;
+      case SingleProcessingTabs.Analysis:
+        return 'TODO analysis tab content';
       default:
         return null;
     }
@@ -60,24 +62,27 @@ export default class SingleProcessingContent extends React.Component<
       <bem.SingleProcessingContent>
         <bem.SingleProcessingContent__tabs>
           <bem.SingleProcessingContent__tab
-            m={{active: this.state.activeTab === SingleProcessingTab.Transcript}}
-            onClick={this.switchTab.bind(this, SingleProcessingTab.Transcript)}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Transcript}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Transcript))}
           >
             {t('Transcript')}
           </bem.SingleProcessingContent__tab>
 
           <bem.SingleProcessingContent__tab
-            m={{active: this.state.activeTab === SingleProcessingTab.Translations}}
-            onClick={this.switchTab.bind(this, SingleProcessingTab.Translations)}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Translations))}
+            disabled={singleProcessingStore.getTranscript() === undefined}
           >
             {t('Translations')}
           </bem.SingleProcessingContent__tab>
 
           <bem.SingleProcessingContent__tab
-            m={{active: this.state.activeTab === SingleProcessingTab.Coding}}
-            onClick={this.switchTab.bind(this, SingleProcessingTab.Coding)}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Analysis}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Analysis))}
+            // TODO this is disabled until we build the feature.
+            disabled
           >
-            {t('Coding')}
+            {t('Analysis')}
           </bem.SingleProcessingContent__tab>
         </bem.SingleProcessingContent__tabs>
 

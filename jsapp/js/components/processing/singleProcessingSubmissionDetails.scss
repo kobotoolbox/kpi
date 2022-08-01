@@ -2,17 +2,36 @@
 @use "scss/sizes";
 @use "./singleProcessingVariables";
 
-.single-processing-submission-details {
-  padding-top: singleProcessingVariables.$s-single-processing-tabs;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+.single-processing-media-wrapper {
+  &.single-processing-media-wrapper--audio {
+    background-color: colors.$kobo-white;
+    border-radius: sizes.$x6;
+    // right padding is for the audio player to appear centered
+    padding: sizes.$x6 #{sizes.$x20 + sizes.$x12} 0 sizes.$x20;
+  }
+
+  &.single-processing-media-wrapper--video {
+    border-radius: sizes.$x6;
+    overflow: hidden;
+  }
+
+  &:first-child {
+    margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  }
+
+  &:not(:first-child) {
+    margin-top: sizes.$x20;
+  }
 }
 
-.single-processing-submission-details__media-wrapper {
-  background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
-  margin-bottom: sizes.$x20;
-  // right padding is for the audio player to appear centered
-  padding: sizes.$x6 sizes.$x12 0 0;
+.single-processing-data-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: sizes.$x100;
+  margin-top: sizes.$x20;
+}
+
+.single-processing-video-preview {
+  width: 100%;
+  object-fit: contain;
 }

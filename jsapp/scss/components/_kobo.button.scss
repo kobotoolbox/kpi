@@ -52,10 +52,12 @@
   &[disabled] {
     pointer-events: none;
     color: rgba(colors.$kobo-white, 0.75);
+    // We have it so it works with every `background-color` we use.
     background-image: $png-black-10;
   }
 
   &:hover {
+    // We have it so it works with every `background-color` we use.
     background-image: $png-black-6;
   }
 

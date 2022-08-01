@@ -30,7 +30,6 @@ interface AudioPlayerState {
 /** Custom audio player for viewing audio submissions in data table */
 class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   audioInterface: HTMLAudioElement = new Audio();
-
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);
   private onAudioTimeUpdatedBound = this.onAudioTimeUpdated.bind(this);

@@ -4,9 +4,11 @@
 #
 #    pip-compile dependencies/pip/requirements.in
 #
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@f7f61307b3e8011c5b7e040276afbe32388b957c#egg=a1d05eba1-dorey
+    # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -20,9 +22,11 @@ async-timeout==4.0.2
     # via redis
 attrs==21.4.0
     # via jsonschema
-azure-core==1.23.1
-    # via azure-storage-blob
-azure-storage-blob==12.11.0
+azure-core==1.24.1
+    # via
+    #   azure-storage-blob
+    #   msrest
+azure-storage-blob==12.12.0
     # via django-storages
 begins==0.9
     # via formpack
@@ -38,6 +42,8 @@ botocore==1.24.35
     # via
     #   boto3
     #   s3transfer
+cachetools==5.2.0
+    # via google-auth
 celery[redis]==5.2.6
     # via
     #   -r dependencies/pip/requirements.in
@@ -182,6 +188,41 @@ geojson-rewind==1.0.2
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+google-api-core[grpc]==2.8.2
+    # via
+    #   google-cloud-core
+    #   google-cloud-speech
+    #   google-cloud-storage
+    #   google-cloud-translate
+google-auth==2.8.0
+    # via
+    #   google-api-core
+    #   google-cloud-core
+    #   google-cloud-storage
+google-cloud-core==2.3.1
+    # via
+    #   google-cloud-storage
+    #   google-cloud-translate
+google-cloud-speech==2.14.1
+    # via -r dependencies/pip/requirements.in
+google-cloud-storage==2.4.0
+    # via -r dependencies/pip/requirements.in
+google-cloud-translate==3.7.4
+    # via -r dependencies/pip/requirements.in
+google-crc32c==1.3.0
+    # via google-resumable-media
+google-resumable-media==2.3.3
+    # via google-cloud-storage
+googleapis-common-protos==1.56.2
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio==1.46.3
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio-status==1.46.3
+    # via google-api-core
 idna==3.3
     # via requests
 isodate==0.6.1
@@ -192,8 +233,11 @@ jmespath==1.0.0
     #   botocore
 jsonfield==3.1.0
     # via -r dependencies/pip/requirements.in
-jsonschema==4.4.0
-    # via formpack
+jsonschema==3.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   a1d05eba1-dorey
+    #   formpack
 jwcrypto==1.0
     # via django-oauth-toolkit
 kombu==5.2.4
@@ -209,7 +253,7 @@ markdown==3.3.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-markdownx
-msrest==0.6.21
+msrest==0.7.1
     # via azure-storage-blob
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
@@ -222,6 +266,8 @@ openpyxl==3.0.9
     # via
     #   -r dependencies/pip/requirements.in
     #   pyxform
+oyaml==0.9
+    # via a1d05eba1-dorey
 packaging==21.3
     # via redis
 path==16.4.0
@@ -232,12 +278,28 @@ pillow==9.1.0
     # via django-markdownx
 prompt-toolkit==3.0.29
     # via click-repl
+proto-plus==1.20.6
+    # via
+    #   google-cloud-speech
+    #   google-cloud-translate
+protobuf==3.20.1
+    # via
+    #   google-api-core
+    #   google-cloud-speech
+    #   google-cloud-translate
+    #   googleapis-common-protos
+    #   grpcio-status
+    #   proto-plus
 psycopg2==2.8.6
     # via -r dependencies/pip/requirements.in
 pyasn1==0.4.8
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.2.8
+    # via google-auth
 pycparser==2.21
     # via cffi
 pygments==2.11.2
@@ -276,6 +338,8 @@ pyxform==1.9.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+pyyaml==6.0
+    # via oyaml
 redis==4.2.2
     # via
     #   celery
@@ -286,6 +350,8 @@ requests==2.27.1
     #   -r dependencies/pip/requirements.in
     #   azure-core
     #   django-oauth-toolkit
+    #   google-api-core
+    #   google-cloud-storage
     #   msrest
     #   requests-oauthlib
     #   responses
@@ -296,6 +362,8 @@ requests-oauthlib==1.3.1
     # via msrest
 responses==0.20.0
     # via -r dependencies/pip/requirements.in
+rsa==4.8
+    # via google-auth
 s3transfer==0.5.2
     # via boto3
 shortuuid==1.0.8
@@ -304,7 +372,10 @@ six==1.16.0
     # via
     #   azure-core
     #   click-repl
+    #   google-auth
+    #   grpcio
     #   isodate
+    #   jsonschema
     #   python-dateutil
 smsapi-client==2.5.0
     # via django-trench
@@ -362,4 +433,7 @@ xlwt==1.3.0
     #   xlutils
 yubico-client==1.13.0
     # via django-trench
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
 backports-zoneinfo==0.2.1; python_version < '3.9'

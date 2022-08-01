@@ -1,0 +1,175 @@
+import React from 'react';
+import type {RouteComponentProps} from 'react-router';
+import {isRowProcessingEnabled} from 'js/assetUtils';
+import type {AssetResponse} from 'js/dataInterface';
+import assetStore from 'js/assetStore';
+import bem, {makeBem} from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
+import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
+import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
+import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import WorkProtector from 'js/protector/workProtector';
+import './singleProcessing.scss';
+
+bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
+bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
+bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section');
+bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
+bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
+
+type SingleProcessingRouteProps = RouteComponentProps<{
+  uid: string;
+  qpath: string;
+  submissionUuid: string;
+}, unknown>;
+
+interface SingleProcessingRouteState {
+  asset: AssetResponse | undefined;
+}
+
+/**
+ * Provides the base pieces of data for all processing components. Also renders
+ * everything with nice spinners.
+ */
+export default class SingleProcessingRoute extends React.Component<
+  SingleProcessingRouteProps,
+  SingleProcessingRouteState
+> {
+  constructor(props: SingleProcessingRouteProps) {
+    super(props);
+    this.state = {
+      // NOTE: This route component is being loaded with PermProtectedRoute so
+      // we know that the call to backend to get asset was already made, and
+      // thus we can safely assume asset data is present :happy_face:
+      asset: assetStore.getAsset(this.props.params.uid),
+    };
+  }
+
+  private unlisteners: Function[] = [];
+
+  componentDidMount() {
+    this.unlisteners.push(
+      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  /**
+  * Don't want to store a duplicate of store data here just for the sake of
+  * comparison, so we need to make the component re-render itself when the
+  * store changes :shrug:.
+  */
+  onSingleProcessingStoreChange() {
+    this.forceUpdate();
+  }
+
+  /** Is processing enabled for current question. */
+  isProcessingEnabled() {
+    return isRowProcessingEnabled(
+      this.props.params.uid,
+      this.props.params.qpath
+    );
+  }
+
+  /** Whether current submission has a response for current question. */
+  isDataProcessable(): boolean {
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
+    if (Array.isArray(uuids)) {
+      const currentUuidItem = uuids.find(
+        (item) => item.uuid === this.props.params.submissionUuid
+      );
+      if (currentUuidItem) {
+        return currentUuidItem.hasResponse;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  renderBottom() {
+    if (
+      !singleProcessingStore.isReady() ||
+      !this.state.asset?.content?.survey
+    ) {
+      return (<LoadingSpinner/>);
+    }
+
+    if (!this.isProcessingEnabled()) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            {t('There is no data for this question for the current submission')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
+    if (this.isProcessingEnabled()) {
+      return (
+        <React.Fragment>
+          <bem.SingleProcessing__bottomLeft>
+            {this.isDataProcessable() &&
+              <SingleProcessingContent/>
+            }
+            {!this.isDataProcessable() &&
+              <bem.Loading>
+                <bem.Loading__inner>
+                  {t('There is no data for this question for the current submission')}
+                </bem.Loading__inner>
+              </bem.Loading>
+            }
+          </bem.SingleProcessing__bottomLeft>
+
+          <bem.SingleProcessing__bottomRight>
+            <SingleProcessingPreview/>
+
+            <SingleProcessingSubmissionDetails
+              assetContent={this.state.asset.content}
+            />
+          </bem.SingleProcessing__bottomRight>
+        </React.Fragment>
+      );
+    }
+
+    return null;
+  }
+
+  render() {
+    if (
+      !singleProcessingStore.isReady() ||
+      !this.state.asset?.content?.survey
+    ) {
+      return (
+        <bem.SingleProcessing>
+          <LoadingSpinner/>
+        </bem.SingleProcessing>
+      );
+    }
+
+    return (
+      <bem.SingleProcessing>
+        <WorkProtector
+          shouldProtect={singleProcessingStore.hasAnyUnsavedWork()}
+          currentRoute={this.props.route}
+          router={this.props.router}
+        />
+        <bem.SingleProcessing__top>
+          <SingleProcessingHeader
+            submissionUuid={this.props.params.submissionUuid}
+            assetUid={this.props.params.uid}
+            assetContent={this.state.asset.content}
+          />
+        </bem.SingleProcessing__top>
+
+        <bem.SingleProcessing__bottom>
+          {this.renderBottom()}
+        </bem.SingleProcessing__bottom>
+      </bem.SingleProcessing>
+    );
+  }
+}

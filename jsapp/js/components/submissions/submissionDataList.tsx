@@ -19,7 +19,9 @@ interface SubmissionDataListProps {
   assetContent: AssetContent;
   submissionData: SubmissionResponse;
   /** A list of questions that should be omitted from display. */
-  hideQuestions?: string[];
+  hideQuestions?: string[]
+  /** Whether to display the path (the groups) or not. */
+  hideGroups?: boolean
 }
 
 interface SubmissionDataListState {}
@@ -50,7 +52,7 @@ export default class SubmissionDataList extends React.Component<
 
     return (
       <bem.SubmissionDataListQuestion key={question.name}>
-        {question.parents.length >= 1 &&
+        {!this.props.hideGroups && question.parents.length >= 1 &&
           <bem.SubmissionDataListQuestion__path>
             {question.parents.join(' / ')}
           </bem.SubmissionDataListQuestion__path>

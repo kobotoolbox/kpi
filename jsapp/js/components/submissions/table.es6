@@ -23,16 +23,19 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
+  SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
 import {formatTimeDateShort} from 'utils';
 import {
   getRowName,
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
+  getSurveyFlatPaths,
 } from 'js/assetUtils';
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
+  getSupplementalDetailsContent,
 } from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
@@ -56,6 +59,7 @@ import {
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
 import MediaCell from './mediaCell';
+import AudioCell from './audioCell';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -543,6 +547,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
+    const flatPaths = getSurveyFlatPaths(survey);
     allColumns.forEach((key) => {
       var q;
       if (key.includes('/')) {
@@ -604,17 +609,39 @@ export class DataTable extends React.Component {
             index = '_1';
             break;
         default:
-          // set index for questions in current version of survey (including questions in groups)
-          survey.map(function (x, i) {
-            var k = key;
+          // Look for a survey row that matches current column 'key' and set
+          // index for it based on the order in which it is stored in survey
+          // (including questions in groups).
+          survey.forEach((surveyRow, surveyRowIndex) => {
+            // Get the row name (`loopKey`) from possible path (`key`).
+            let loopKey = key;
             if (key.includes('/')) {
-              var kArray = k.split('/');
-              k = kArray[kArray.length - 1];
+              var loopKeyArray = loopKey.split('/');
+              loopKey = loopKeyArray[loopKeyArray.length - 1];
             }
-            if (x.name === k || x.$autoname === k) {
-              index = i.toString();
+
+            if (getRowName(surveyRow) === loopKey) {
+              index = surveyRowIndex.toString();
             }
           });
+
+          // Detect supplemental details column and put it after its source column.
+          if (
+            q === undefined &&
+            key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+          ) {
+            const supplementalColumnSource = key.split('/')[1];
+            const sourceColumn = columnsToRender.find((columnToRender) =>
+              columnToRender.id === flatPaths[supplementalColumnSource]
+            );
+
+            if (sourceColumn) {
+              // This way if we have a source column with index `2`, we will set
+              // the supplemental details column to `2__supplementalDetails/…`
+              // to make sure it keeps the correct order.
+              index = `${sourceColumn.index}_${key}`;
+            }
+          }
       }
 
       const elClassNames = [];
@@ -631,11 +658,12 @@ export class DataTable extends React.Component {
       columnsToRender.push({
         Header: () => {
           const columnName = getColumnLabel(
-            this.props.asset.content.survey,
+            this.props.asset,
             key,
             this.state.showGroupName,
             this.state.translationIndex
           );
+
           const columnHXLTags = getColumnHXLTags(this.props.asset.content.survey, key);
           return (
             <div className='column-header-wrapper'>
@@ -668,14 +696,28 @@ export class DataTable extends React.Component {
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
-        width: this._getColumnWidth(key),
+        width: this._getColumnWidth(q?.type),
         Cell: (row) => {
-          if (showLabels && q && q.type && row.value) {
+          if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
                 mediaAttachment = getMediaAttachment(row.original, row.value);
+              }
+
+              if (
+                q.type === QUESTION_TYPES.audio.id ||
+                q.type === META_QUESTION_TYPES['background-audio']
+              ) {
+                return (
+                  <AudioCell
+                    assetUid={this.props.asset.uid}
+                    qpath={q.$qpath}
+                    submissionUuid={row.original._uuid}
+                    mediaAttachment={mediaAttachment}
+                  />
+                );
               }
 
               return (
@@ -686,8 +728,8 @@ export class DataTable extends React.Component {
                   submissionIndex={row.index + 1}
                   submissionTotal={this.state.submissions.length}
                   assetUid={this.props.asset.uid}
-                  questionName={getRowName(q)}
-                  submissionId={row.original._id}
+                  qpath={q.$qpath}
+                  submissionUuid={row.original._uuid}
                 />
               );
             }
@@ -738,13 +780,24 @@ export class DataTable extends React.Component {
               );
             }
           }
-          if (key === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
+
+          // This identifies supplemental details column
+          if (
+            row.value === undefined &&
+            q === undefined &&
+            key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+          ) {
+            const supplementalDetailsContent = getSupplementalDetailsContent(
+              row.original,
+              key
+            );
             return (
               <span className='trimmed-text'>
-                {formatTimeDateShort(row.value)}
+                {formatTimeDateShort(supplementalDetailsContent)}
               </span>
             );
           }
+
           if (typeof(row.value) === 'object' || row.value === undefined) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
             if (repeatGroupAnswers) {
@@ -765,9 +818,12 @@ export class DataTable extends React.Component {
 
     });
 
-    columnsToRender.sort((columnA, columnB) => {
-      return columnA.index.localeCompare(columnB.index, 'en', {numeric: true});
-    });
+    // Apply stored indexes to all columns to sort them.
+    // NOTE: frozen column index stay as is, it is being moved to the beginning
+    // of table using CSS styling.
+    columnsToRender.sort((columnA, columnB) =>
+      columnA.index.localeCompare(columnB.index, 'en', {numeric: true})
+    );
 
     let frozenColumn = tableStore.getFrozenColumn();
     const textFilterQuestionTypes = [

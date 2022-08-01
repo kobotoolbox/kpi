@@ -93,7 +93,8 @@ export interface ImportResponse {
 
 export interface FailResponse {
   responseJSON?: {
-    detail: string;
+    detail?: string;
+    error?: string;
   };
   responseText: string;
   status: number;
@@ -119,6 +120,39 @@ export interface SubmissionAttachment {
   id: number;
 }
 
+interface SubmissionSupplementalDetails {
+  [questionName: string]: {
+    transcript?: {
+      languageCode: string
+      value: string
+      dateCreated: string
+      dateModified: string
+      engine?: string
+      revisions?: {
+        dateModified: string
+        engine?: string
+        languageCode: string
+        value: string
+      }[]
+    }
+    translated?: {
+      [languageCode: string]: {
+        languageCode: string
+        value: string
+        dateCreated: string
+        dateModified: string
+        engine?: string
+        revisions?: {
+          dateModified: string
+          engine?: string
+          languageCode: string
+          value: string
+        }[]
+      }
+    }
+  }
+}
+
 export interface SubmissionResponse {
   [questionName: string]: any;
   __version__: string;
@@ -142,6 +176,7 @@ export interface SubmissionResponse {
   start?: string;
   today?: string;
   username?: string;
+  _supplementalDetails?: SubmissionSupplementalDetails;
 }
 
 interface AssignablePermission {
@@ -211,6 +246,8 @@ interface ExportSettingSettings {
  * a more complex question type.
  */
 export interface SurveyRow {
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $qpath: string;
   $autoname: string;
   $kuid: string;
   // We use dynamic import to avoid changing this ambient module to a normal
@@ -229,6 +266,8 @@ export interface SurveyRow {
   'kobo--rank-items'?: string;
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
+  /** HXL tags. */
+  tags: string[]
 }
 
 export interface SurveyChoice {
@@ -287,6 +326,41 @@ interface AssetReportStylesSpecified {
 
 interface AssetReportStylesKuidNames {
   [name: string]: {};
+}
+
+interface AdvancedSubmissionSchema {
+  type: 'string' | 'object'
+  $description: string
+  url?: string
+  properties?: AdvancedSubmissionSchemaDefinition
+  additionalProperties?: boolean
+  required?: string[]
+  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
+}
+
+export interface AssetAdvancedFeatures {
+  transcript?: {
+    /** List of question names */
+    values?: string[]
+    /** List of transcript enabled languages. */
+    languages?: string[]
+  }
+  translated?: {
+    /** List of question names */
+    values?: string[]
+    /** List of translations enabled languages. */
+    languages?: string[]
+  }
+}
+
+interface AdvancedSubmissionSchemaDefinition {
+  [name: string]: {
+    type: 'string' | 'object'
+    description: string
+    properties?: {[name: string]: {}}
+    additionalProperties?: boolean
+    required?: string[]
+  }
 }
 
 /**
@@ -351,6 +425,8 @@ interface AssetRequestObject {
   export_settings: ExportSetting[];
   data_sharing: {};
   paired_data: string;
+  advanced_features: AssetAdvancedFeatures
+  advanced_submission_schema: AdvancedSubmissionSchema
 }
 
 /**
@@ -496,6 +572,15 @@ export interface AccountResponse {
   };
 }
 
+export interface TransxLanguages {
+  [languageCode: string]: {
+    /** Human readable and localized language name. */
+    name: string;
+    /** A list of available services. */
+    options: string[];
+  };
+}
+
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -510,9 +595,12 @@ export interface EnvironmentResponse {
   country_choices: string[][];
   all_languages: string[][];
   interface_languages: string[][];
+  transcription_languages: TransxLanguages;
+  translation_languages: TransxLanguages;
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  asr_mt_features_enabled: boolean;
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;

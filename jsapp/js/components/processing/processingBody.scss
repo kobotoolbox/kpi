@@ -1,0 +1,91 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "scss/mixins";
+
+.processing-body {
+  padding: sizes.$x30;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  // The content of these steps is different.
+  &.processing-body--begin,
+  &.processing-body--config {
+    max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
+    padding-top: sizes.$x52;
+    margin: 0 auto;
+  }
+}
+
+.processing-body__transx-header {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  margin-bottom: sizes.$x12;
+}
+
+.processing-body__transx-header-date {
+  font-weight: 300;
+  color: colors.$kobo-gray-40;
+}
+
+.processing-body__transx-header-language-wrapper {
+  @include mixins.centerRowFlex;
+}
+
+.processing-body__transx-header-language {
+  font-weight: 700;
+  margin-left: sizes.$x4;
+  min-width: sizes.$x100;
+}
+
+.processing-body__transx-header-buttons {
+  @include mixins.centerRowFlex;
+
+  gap: sizes.$x12;
+}
+
+.processing-body__text {
+  white-space: pre-wrap;
+  border-top: sizes.$x2 solid colors.$kobo-gray-96;
+  padding-top: sizes.$x16;
+  width: 100%;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.processing-body__textarea {
+  border: sizes.$x2 solid colors.$kobo-gray-96;
+  border-radius: sizes.$x6;
+  padding: sizes.$x16;
+  resize: none;
+  width: 100%;
+  flex: 1;
+}
+
+.processing-body.processing-body--begin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  p {
+    font-size: sizes.$x18;
+    font-weight: 400;
+    text-align: center;
+    line-height: sizes.$x20;
+    margin-bottom: sizes.$x24;
+  }
+}
+
+.processing-body__footer {
+  @include mixins.centerRowFlex;
+
+  padding: sizes.$x20 0;
+  justify-content: space-between;
+  gap: sizes.$x14;
+}
+
+.processing-body__footer-right-buttons {
+  @include mixins.centerRowFlex;
+
+  gap: sizes.$x14;
+}

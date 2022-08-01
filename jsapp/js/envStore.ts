@@ -1,6 +1,9 @@
 import Reflux from 'reflux';
 import {actions} from 'js/actions';
-import type {EnvironmentResponse} from 'js/dataInterface';
+import type {
+  TransxLanguages,
+  EnvironmentResponse,
+} from 'js/dataInterface';
 
 export interface EnvStoreDataItem {
   value: string;
@@ -30,7 +33,10 @@ class EnvStoreData {
   /** languages come from `kobo/static_lists.py` **/
   all_languages: EnvStoreDataItem[] = [];
   interface_languages: EnvStoreDataItem[] = [];
+  transcription_languages: TransxLanguages = {};
+  translation_languages: TransxLanguages = {};
   submission_placeholder = '';
+  asr_mt_features_enabled = false;
   mfa_localized_help_text: {[name: string]: string} = {};
   mfa_enabled = false;
   mfa_code_length = 6;
@@ -106,9 +112,17 @@ class EnvStore extends Reflux.Store {
     if (response.interface_languages) {
       this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs);
     }
+    if (response.transcription_languages) {
+      this.data.transcription_languages = response.transcription_languages;
+    }
+    if (response.translation_languages) {
+      this.data.translation_languages = response.translation_languages;
+    }
     if (response.all_languages) {
       this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs);
     }
+
+    this.data.asr_mt_features_enabled = response.asr_mt_features_enabled;
 
     this.isReady = true;
     this.trigger(this.data);

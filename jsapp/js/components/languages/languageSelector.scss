@@ -104,6 +104,10 @@
 
 .language-selector__selected-language-label {
   color: colors.$kobo-blue;
+  // Add ellipsis for long languages.
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .language-selector__search-box-input {
@@ -183,4 +187,14 @@
   line-height: sizes.$x40 - (2 * sizes.$x2); // mimick the search box size
   margin-top: sizes.$x16;
   padding-top: sizes.$x4;
+}
+
+.language-selector__line {
+  width: calc(100% - #{sizes.$x5});
+  height: 1px;
+  border: 0;
+  // Bottom margin is bigger to be in line with what <li> already have.
+  margin: sizes.$x5 0 #{sizes.$x5 + sizes.$x5} 0;
+  padding: 0;
+  background-color: colors.$kobo-gray-92;
 }
