@@ -5,7 +5,7 @@ from trench.exceptions import MFANotEnabledError
 from trench.utils import get_mfa_model
 
 
-class DeactivateAllMFAMethodCommand(DeactivateMFAMethodCommand):
+class DeactivateAllMfaMethodCommand(DeactivateMFAMethodCommand):
     """
     Overload `django-trench` behaviour introduced with v0.3.0 which blocks the
     deactivation of primary MFA method.
@@ -22,6 +22,6 @@ class DeactivateAllMFAMethodCommand(DeactivateMFAMethodCommand):
         )
 
 
-deactivate_mfa_method_command = DeactivateAllMFAMethodCommand(
+deactivate_mfa_method_command = DeactivateAllMfaMethodCommand(
     mfa_model=get_mfa_model()
 ).execute
