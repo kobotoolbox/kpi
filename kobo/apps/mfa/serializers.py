@@ -5,6 +5,7 @@ from trench.utils import create_secret, get_mfa_model
 
 
 class ActivateMfaMethodSerializer(RequestMFAMethodActivationSerializer):
+    
     def create(self, validated_data):
         """
         When the client requests creation of a new MFA method, *always* create
