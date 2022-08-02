@@ -183,12 +183,12 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES.start,
       META_QUESTION_TYPES.end,
       META_QUESTION_TYPES.today,
-      META_QUESTION_TYPES.deviceid,
       META_QUESTION_TYPES.audit,
     ];
     const rightColumn = [
       META_QUESTION_TYPES.username,
       META_QUESTION_TYPES.phonenumber,
+      META_QUESTION_TYPES.deviceid,
     ];
 
     let backgroundAudioProp = this.getMetaProperty(
