@@ -781,6 +781,14 @@ export class DataTable extends React.Component {
             }
           }
 
+          if (key === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
+            return (
+              <span className='trimmed-text'>
+                {formatTimeDateShort(row.value)}
+              </span>
+            );
+          }
+
           // This identifies supplemental details column
           if (
             row.value === undefined &&
