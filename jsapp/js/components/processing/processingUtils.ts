@@ -48,11 +48,11 @@ export function getSupplementalPathParts(path: string): {
 export function openProcessing(
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
 ) {
   const route = ROUTES.FORM_PROCESSING
     .replace(':uid', assetUid)
     .replace(':qpath', qpath)
-    .replace(':submissionUuid', submissionUuid);
+    .replace(':submissionEditId', submissionEditId);
   hashHistory.push(route);
 }

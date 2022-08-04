@@ -710,11 +710,13 @@ export class DataTable extends React.Component {
                 q.type === QUESTION_TYPES.audio.id ||
                 q.type === META_QUESTION_TYPES['background-audio']
               ) {
+                const { original } = row;
+                const submissionEditId = original['meta/rootUuid'] || original._uuid;
                 return (
                   <AudioCell
                     assetUid={this.props.asset.uid}
                     qpath={q.$qpath}
-                    submissionUuid={row.original._uuid}
+                    submissionEditId={submissionEditId}
                     mediaAttachment={mediaAttachment}
                   />
                 );
