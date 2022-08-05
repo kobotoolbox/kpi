@@ -97,8 +97,6 @@ export function getColumnHXLTags(survey, key) {
 }
 
 /**
- * TODO: if multiple background-audio's are allowed, we should return all
- * background-audio related names
  * @param {object} asset
  * @returns {string|null}
  */

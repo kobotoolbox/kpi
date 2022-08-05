@@ -1,9 +1,6 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import {
-  SEARCH_CONTEXTS,
-  searchBoxStore
-} from '../header/searchBoxStore';
+import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,

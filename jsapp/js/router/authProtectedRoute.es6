@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {stores} from 'js/stores';
 import AccessDenied from 'js/router/accessDenied';
 
@@ -19,7 +19,9 @@ export default class AuthProtectedRoute extends React.Component {
 
   render() {
     if (stores.session.isLoggedIn) {
-      return <this.props.route.protectedComponent {...this.props}/>;
+      return <Suspense fallback={null}>
+        <this.props.route.protectedComponent {...this.props}/>;
+        </Suspense>
     }
     return <AccessDenied/>;
   }
