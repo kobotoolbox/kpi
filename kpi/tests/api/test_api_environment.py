@@ -138,3 +138,16 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
+
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(self):
+        someuser = User.objects.get(username='someuser')
+
+        # Enable MFA only for someuser
+        MfaAvailableToUser.objects.create(user=someuser)
+
+        # someuser should have mfa enabled
+        self.client.logout()
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['mfa_enabled'])
