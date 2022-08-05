@@ -9,6 +9,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum
 from django.http import HttpResponse
+from django.utils import timezone
 
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
@@ -16,6 +17,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatInstance,
+    ReadOnlyMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -69,6 +71,48 @@ class CountryFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         pass
+
+
+class ExtendUserAdmin(UserAdmin):
+    """
+    This extends the changelist view of the User Model on the
+    Django admin page
+    """
+    def __init__(self, *args, **kwargs):
+        super(UserAdmin, self).__init__(*args, **kwargs)
+        UserAdmin.list_display += ('date_joined',)
+        UserAdmin.list_filter += ('date_joined',)
+        UserAdmin.readonly_fields += ('deployed_forms_count', 'monthly_submissions_count')
+        UserAdmin.fieldsets += (
+            'Deployed forms and Submissions Counts', {
+                'fields': ('deployed_forms_count', 'monthly_submissions_count'),
+            }
+        ),
+
+    def deployed_forms_count(self, obj):
+        """
+        Gets the count of deployed forms to be displayed on the
+        Django admin user changelist page
+        """
+        assets_count = obj.assets.filter(
+            _deployment_data__active=True
+        ).aggregate(count=Count('pk'))
+        return assets_count['count']
+
+    def monthly_submissions_count(self, obj):
+        """
+        Gets the number of this month's submissions a user has to be
+        displayed in the Django admin user changelist page
+        """
+        today = timezone.now().date()
+        instances = ReadOnlyMonthlyXFormSubmissionCounter.objects.filter(
+            user=obj.user,
+            year=today.year,
+            month=today.month,
+        ).aggregate(
+            count=Sum('counter')
+        )
+        return instances['count']
 
 
 class SubmissionsByCountry(admin.ModelAdmin):
@@ -205,3 +249,5 @@ class UserStatisticsAdmin(admin.ModelAdmin):
 
 admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
 admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)
+admin.site.unregister(User)
+admin.site.register(User, ExtendUserAdmin)

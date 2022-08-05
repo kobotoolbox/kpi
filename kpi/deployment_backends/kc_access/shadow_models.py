@@ -15,6 +15,7 @@ from django.db import (
     models,
     router,
 )
+from django.db.models.constants import UniqueContraint
 from django.utils import timezone
 from django.utils.http import urlquote
 from django_digest.models import PartialDigest
@@ -645,6 +646,36 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
     @property
     def storage_path(self):
         return str(self.media_file)
+
+
+class ReadOnlyDailyXFormSubmissionCounter(ReadOnlyModel):
+    date = models.DateField()
+    xform = models.ForeignKey(KobocatXForm, related_name='xforms', on_delete=models.CASCADE)
+    counter = models.IntegerField(default=0)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = (('date', 'xform'))
+
+
+class ReadOnlyMonthlyXFormSubmissionCounter(ReadOnlyModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(KobocatUser, related_name='users', on_delete=models.DO_NOTHING)
+    xform = models.ForeignKey('logger.KobocatXForm', null=True, on_delete=models.SET_NULL)
+    counter = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        contraints = [
+            UniqueContraint(fields=['year', 'month', 'user', 'xform'],
+                            name='unique_with_xform'),
+            UniqueContraint(fields=['year', 'month', 'user', 'xform'],
+                            name='unique_without_xform')
+        ]
+        indexes = [
+            models.Index(fields=('year', 'month', 'user'))
+        ]
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
