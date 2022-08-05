@@ -7,6 +7,7 @@ from django.contrib.admin import DateFieldListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum
+from django.utils import timezone
 
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
@@ -14,6 +15,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatInstance,
+    ReadOnlyMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -100,13 +102,15 @@ class ExtendUserAdmin(UserAdmin):
         Gets the number of this month's submissions a user has to be
         displayed in the Django admin user changelist page
         """
-        today = datetime.today()
-        instances = KobocatSubmissionCounter.objects.get(
+        today = timezone.now().date()
+        instances = ReadOnlyMonthlyXFormSubmissionCounter.objects.filter(
             user=obj.user,
-            timestamp__year=today.year,
-            timestamp__month=today.month,
+            year=today.year,
+            month=today.month,
+        ).aggregate(
+            count=Sum('counter')
         )
-        return instances.count
+        return instances['count']
 
 
 class SubmissionsByCountry(admin.ModelAdmin):
