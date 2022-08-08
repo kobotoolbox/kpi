@@ -3,4 +3,3 @@
 -r requirements.in
 
 sentry-sdk
-transifex-client

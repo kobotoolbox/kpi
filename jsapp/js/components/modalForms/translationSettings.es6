@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import bem from 'js/bem';
+import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import assetStore from 'js/assetStore';
@@ -336,14 +337,11 @@ export class TranslationSettings extends React.Component {
             {t('Current languages')}
           </bem.FormView__cell>
           {translations[0] === null && (
-            <bem.FormView__cell m={['warning', 'translation-modal-warning']}>
-              <i className='k-icon k-icon-alert' />
-              <p>
-                {t(
-                  'You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.'
-                )}
-              </p>
-            </bem.FormView__cell>
+            <InlineMessage
+              type='warning'
+              icon='alert'
+              message={t('You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.')}
+            />
           )}
           {translations.map((l, i) => {
             return (

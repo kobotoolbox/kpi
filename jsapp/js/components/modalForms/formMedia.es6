@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
+import InlineMessage from 'js/components/common/inlineMessage';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -224,10 +225,11 @@ class FormMedia extends React.Component {
       <bem.FormView m='form-media'>
         <bem.FormMedia>
           {this.props.asset.deployment__active &&
-            <bem.FormView__cell m='warning'>
-              <i className='k-icon k-icon-alert' />
-              <p>{t('You must redeploy this form to see media changes.')}</p>
-            </bem.FormView__cell>
+            <InlineMessage
+              icon='alert'
+              type='warning'
+              message={t('You must redeploy this form to see media changes.')}
+            />
           }
 
           <bem.FormMedia__title>
@@ -258,10 +260,11 @@ class FormMedia extends React.Component {
                 className='kobo-dropzone kobo-dropzone--form-media'
               >
                 {this.state.fieldsErrors?.base64Encoded && (
-                  <bem.FormView__cell m='error'>
-                    <i className='k-icon k-icon-alert' />
-                    <p>{this.state.fieldsErrors?.base64Encoded}</p>
-                  </bem.FormView__cell>
+                  <InlineMessage
+                    type='error'
+                    icon='alert'
+                    message={this.state.fieldsErrors?.base64Encoded}
+                  />
                 )}
                 <i className='k-icon k-icon-upload' />
                 {t('Drag and drop files here')}

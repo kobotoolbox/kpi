@@ -63,8 +63,9 @@ dataShareActions.getAttachedSources.listen((assetUid) => {
       // 2. We need both the current asset URL as well as it's source data URL
       let allSources = [];
 
-      // TODO: Check is pagination is an issue, if so we should try to use the
-      //       backend response directly
+      // TODO: Check if pagination is an issue, if so we should try to use the
+      // backend response directly.
+      // See: https://github.com/kobotoolbox/kpi/issues/3911
       response.results.forEach((source) => {
         let sourceUid = getAssetUIDFromUrl(source.source);
         allSources.push({
@@ -104,7 +105,8 @@ dataShareActions.getSharingEnabledAssets.failed.listen(() => {
 // differently so we leave them as seperate actions
 
 // TODO: Improve the parameters so these functions are clearly different from
-//       each other
+// each other.
+// See: https://github.com/kobotoolbox/kpi/issues/3912
 dataShareActions.toggleDataSharing.listen((uid, data) => {
   dataInterface.patchDataSharing(uid, data)
     .done(dataShareActions.toggleDataSharing.completed)

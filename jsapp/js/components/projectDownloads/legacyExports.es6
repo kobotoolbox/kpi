@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
+import InlineMessage from 'js/components/common/inlineMessage'
 import {EXPORT_TYPES} from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
@@ -39,10 +40,11 @@ export default class LegacyExports extends React.Component {
         </bem.ProjectDownloads__selectorRow>
 
         {this.state.selectedExportType.value !== EXPORT_TYPES.zip_legacy.value && (
-          <bem.FormView__cell m='warning'>
-            <i className='k-icon-alert' />
-            <p>{t('This export format will not be supported in the future. Please consider using one of the other export types available.')}</p>
-          </bem.FormView__cell>
+          <InlineMessage
+            type='warning'
+            icon='alert'
+            message={t('This export format will not be supported in the future. Please consider using one of the other export types available.')}
+          />
         )}
 
         <div className='project-downloads__legacy-iframe-wrapper'>

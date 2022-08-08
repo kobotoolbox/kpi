@@ -35,7 +35,7 @@ class XlsExportableMixin:
         )
         return content
 
-    def to_xls_io(self, versioned=False, **kwargs):
+    def to_xlsx_io(self, versioned=False, **kwargs):
         """
         To append rows to one or more sheets, pass `append` as a
         dictionary of lists of dictionaries in the following format:

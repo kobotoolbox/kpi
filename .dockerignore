@@ -12,3 +12,4 @@ locale
 deployments.json
 celerybeat-schedule
 src/
+env
