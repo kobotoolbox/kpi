@@ -122,9 +122,11 @@ class EnvironmentTests(BaseTestCase):
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_per_user_availability_while_globally_enabled(self):
-        someuser = User.objects.get(username='someuser')
+        # When MFA is globally enabled, it is allowed for everyone *until* the
+        # first per-user allowance (`MfaAvailableToUser` instance) is created.
 
         # Enable MFA only for someuser
+        someuser = User.objects.get(username='someuser')
         MfaAvailableToUser.objects.create(user=someuser)
 
         # someuser should have mfa enabled
@@ -141,12 +143,14 @@ class EnvironmentTests(BaseTestCase):
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(self):
+        # Enable MFA only for someuser, in order to enter per-user-allowance
+        # mode. MFA should then appear to be disabled for everyone else
+        # (including anonymous users), even though MFA is globally enabled.
         someuser = User.objects.get(username='someuser')
-
-        # Enable MFA only for someuser
         MfaAvailableToUser.objects.create(user=someuser)
 
-        # someuser should have mfa enabled
+        # Now, make sure that the application reports MFA to be disabled for
+        # anonymous users
         self.client.logout()
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
