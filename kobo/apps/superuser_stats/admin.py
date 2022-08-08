@@ -15,7 +15,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatInstance,
-    ReadOnlyMonthlyXFormSubmissionCounter,
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -103,14 +103,14 @@ class ExtendUserAdmin(UserAdmin):
         displayed in the Django admin user changelist page
         """
         today = timezone.now().date()
-        instances = ReadOnlyMonthlyXFormSubmissionCounter.objects.filter(
-            user=obj.user,
+        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            user_id=obj.id,
             year=today.year,
             month=today.month,
         ).aggregate(
-            count=Sum('counter')
+            counter=Sum('counter')
         )
-        return instances['count']
+        return instances.get('counter')
 
 
 class SubmissionsByCountry(admin.ModelAdmin):
