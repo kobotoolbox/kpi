@@ -17,6 +17,7 @@ from kobo.static_lists import (
 )
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.mfa.models import MfaAvailableToUser
+from kpi.utils.object_permission import get_database_user
 
 
 class EnvironmentView(APIView):
@@ -68,7 +69,9 @@ class EnvironmentView(APIView):
                 # record in the table)…
                 not MfaAvailableToUser.objects.all().exists()
                 # global setting is overwritten by request user setting.
-                or MfaAvailableToUser.objects.filter(user=request.user).exists()
+                or MfaAvailableToUser.objects.filter(
+                    user=get_database_user(request.user)
+                ).exists()
             )
         ),
     ]
