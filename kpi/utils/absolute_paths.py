@@ -1,4 +1,8 @@
 DELIMITER = '-'
+pairers = ['score', 'group', 'repeat']
+BEGINNERS = map(lambda ss: f'begin_{ss}', pairers)
+ENDERS = map(lambda ss: f'end_{ss}', pairers)
+
 
 def concat_paths(name, parent_names):
     return DELIMITER.join(
@@ -24,11 +28,12 @@ def insert_full_paths_in_place(content):
     '''
     hierarchy = []
     for row in content.get('survey', []):
-        if row.get('type') == 'end_group':
+        if row.get('type') in ENDERS:
             hierarchy.pop()
         else:
             rowname = get_name(row)
+            # if rowname is not None:
             row['$qpath'] = concat_paths(rowname, hierarchy)
             row['$xpath'] = concat_xpath(rowname, hierarchy)
-            if row.get('type') == 'begin_group':
+            if row.get('type') in BEGINNERS:
                 hierarchy.append(get_name(row))
