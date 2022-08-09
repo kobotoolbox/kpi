@@ -79,7 +79,8 @@
   align-items: center;
   position: relative;
 
-  // we want the magnifying glass icon to click through to text input
+  // We want the icon to click through to text input.
+  .k-icon.k-icon-spinner,
   .k-icon.k-icon-search,
   .k-icon.k-icon-language-alt {
     pointer-events: none;
@@ -139,16 +140,21 @@
 .language-selector__list {
   min-height: sizes.$x100;
   max-height: sizes.$x200;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  list-style: none;
   margin: sizes.$x16 0 0;
-  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 
-  > li {
+  ul {
+    height: 100%;
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+  }
+
+  li {
     width: calc(25% - #{sizes.$x20});
     min-width: sizes.$x150;
     margin-right: sizes.$x50;

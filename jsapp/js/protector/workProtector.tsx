@@ -3,7 +3,7 @@ import alertify from 'alertifyjs'
 import {InjectedRouter, PlainRoute} from 'react-router'
 import {UNSAVED_CHANGES_WARNING} from 'js/protector/protectorConstants'
 
-type TranslationsTabContentProps = {
+type WorkProtectorProps = {
   /**
    * This is a generic component, so it can't be hold responsible for any
    * protection logic - it needs to come from the outside.
@@ -22,7 +22,7 @@ type TranslationsTabContentProps = {
  * `protectorHelpers`.
  */
 export default class WorkProtector extends React.Component<
-  TranslationsTabContentProps,
+  WorkProtectorProps,
   {}
 > {
   private removeRouterLeaveHook?: Function

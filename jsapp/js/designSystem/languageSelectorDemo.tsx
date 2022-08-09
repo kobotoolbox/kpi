@@ -2,11 +2,14 @@ import React from 'react';
 import bem from 'js/bem';
 import Checkbox from 'js/components/common/checkbox';
 import LanguageSelector from 'js/components/languages/languageSelector';
+import type {
+  DetailedLanguage,
+  ListLanguage,
+} from 'js/components/languages/languagesStore';
 
 interface LanguageSelectorDemoState {
   demoHasSourceLanguage: boolean;
   demoHasSuggestedLanguages: boolean;
-  demoIsCustomAllowed: boolean;
 }
 
 export default class LanguageSelectorDemo extends React.Component<{}, LanguageSelectorDemoState> {
@@ -15,11 +18,10 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
     this.state = {
       demoHasSourceLanguage: false,
       demoHasSuggestedLanguages: false,
-      demoIsCustomAllowed: false,
     };
   }
 
-  onLanguageChange(selectedLanguage: string | undefined) {
+  onLanguageChange(selectedLanguage: DetailedLanguage | ListLanguage | null) {
     console.log('language change', selectedLanguage);
   }
 
@@ -29,10 +31,6 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
 
   onHasSuggestedLanguagesChange(isChecked: boolean) {
     this.setState({demoHasSuggestedLanguages: isChecked});
-  }
-
-  onIsCustomAllowedChange(isChecked: boolean) {
-    this.setState({demoIsCustomAllowed: isChecked});
   }
 
   render() {
@@ -72,16 +70,6 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                       />
                     </div>
                   </div>
-
-                  <div className='demo__form-row'>
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='is custom language allowed'
-                        onChange={this.onIsCustomAllowedChange.bind(this)}
-                        checked={this.state.demoIsCustomAllowed}
-                      />
-                    </div>
-                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
@@ -90,7 +78,6 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                     sourceLanguage={this.state.demoHasSourceLanguage ? 'en' : undefined}
                     suggestedLanguages={this.state.demoHasSuggestedLanguages ? ['pl', 'fr'] : undefined}
                     onLanguageChange={this.onLanguageChange.bind(this)}
-                    isCustomAllowed={this.state.demoIsCustomAllowed}
                   />
                 </div>
               </bem.SimpleTable__cell>

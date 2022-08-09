@@ -1,5 +1,4 @@
 import React from 'react';
-import envStore from 'js/envStore';
 import {formatTime} from 'js/utils';
 import bem, {makeBem} from 'js/bem';
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
@@ -76,7 +75,8 @@ export default class SingleProcessingPreview extends React.Component {
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transxHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
+            {/* TODO display name. */}
+            {sourceData.languageCode}
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
       );
@@ -87,7 +87,8 @@ export default class SingleProcessingPreview extends React.Component {
       sources.forEach((source) => {
         selectOptions.push({
           id: source,
-          label: envStore.getLanguageDisplayLabel(source),
+          /* TODO display name. */
+          label: source,
         });
       });
 

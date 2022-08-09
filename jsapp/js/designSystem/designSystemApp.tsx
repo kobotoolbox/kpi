@@ -1,16 +1,30 @@
 import React from 'react';
-import ButtonDemo from 'js/designSystem/buttonDemo'
-import CheckboxDemo from 'js/designSystem/checkboxDemo'
-import IconDemo from 'js/designSystem/iconDemo'
-import InlineMessageDemo from 'js/designSystem/inlineMessageDemo'
-import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo'
-import KoboRangeDemo from 'js/designSystem/koboRangeDemo'
-import KoboSelectDemo from 'js/designSystem/koboSelectDemo'
-import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo'
-import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo'
-import RadioDemo from 'js/designSystem/radioDemo'
-import TextBoxDemo from 'js/designSystem/textboxDemo'
-import './demo.scss'
+import ButtonDemo from 'js/designSystem/buttonDemo';
+import CheckboxDemo from 'js/designSystem/checkboxDemo';
+import IconDemo from 'js/designSystem/iconDemo';
+import InlineMessageDemo from 'js/designSystem/inlineMessageDemo';
+import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo';
+import KoboRangeDemo from 'js/designSystem/koboRangeDemo';
+import KoboSelectDemo from 'js/designSystem/koboSelectDemo';
+import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
+import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo';
+import RadioDemo from 'js/designSystem/radioDemo';
+import TextBoxDemo from 'js/designSystem/textboxDemo';
+import './demo.scss';
+
+const designSystemComponents = [
+  <ButtonDemo/>,
+  <CheckboxDemo/>,
+  <IconDemo/>,
+  <InlineMessageDemo/>,
+  <KoboDropdownDemo/>,
+  <KoboRangeDemo/>,
+  <KoboSelectDemo/>,
+  <LanguageSelectorDemo/>,
+  <MiniAudioPlayerDemo/>,
+  <RadioDemo/>,
+  <TextBoxDemo/>,
+];
 
 /**
  * This is an app for displaying our design system. It is meant as both
@@ -25,19 +39,27 @@ export default class DesignSystemApp extends React.Component {
     return (
       <section className='design-system'>
         <div className='design-system__demo-wrapper'>
-          <ButtonDemo/>
-          <CheckboxDemo/>
-          <IconDemo/>
-          <InlineMessageDemo/>
-          <KoboDropdownDemo/>
-          <KoboRangeDemo/>
-          <KoboSelectDemo/>
-          <LanguageSelectorDemo/>
-          <MiniAudioPlayerDemo/>
-          <RadioDemo/>
-          <TextBoxDemo/>
+          <ul>
+            {designSystemComponents.map((component, key) => {
+              const anchorName = `anchor-${key}`;
+              return (
+                <li>
+                  <a href={`#${anchorName}`}>{component.type.displayName.replace('Demo', '')}</a>
+                </li>
+              );
+            })}
+          </ul>
+          {designSystemComponents.map((component, key) => {
+            const anchorName = `anchor-${key}`;
+            return (
+              <React.Fragment>
+                <a id={anchorName}/>
+                {component}
+              </React.Fragment>
+            );
+          })}
         </div>
       </section>
-    )
+    );
   }
 }

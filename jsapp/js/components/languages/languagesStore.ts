@@ -1,101 +1,119 @@
-import {makeAutoObservable} from 'mobx';
-import type {
-  PaginatedResponse,
-  FailResponse,
-} from 'js/dataInterface';
-import {notify} from 'js/utils';
+import $ from 'jquery';
+import type {FailResponse} from 'js/dataInterface';
 import {ROOT_URL} from 'js/constants';
 
-interface ListLanguageService {
-  code: string;
-  name: string;
-}
+/**
+ * A language code is a string (alias type), but it is more helpful to pass it
+ * around, than vague "string".
+ */
+export type LanguageCode = string;
 
 export interface LanguageBase {
   /** API endpoint for detailed language data. */
   url: string;
   name: string;
-  code: string;
+  code: LanguageCode;
   /** This marks the most popular and featured languages in UI. */
   featured: boolean;
 }
 
-interface ListLanguage extends LanguageBase {
+interface ListLanguageService {
+  code: LanguageCode;
+  name: string;
+}
+
+export interface ListLanguage extends LanguageBase {
   transcription_services: ListLanguageService[];
   translation_services: ListLanguageService[];
 }
 
+interface DetailedLanguageRegion {
+  code: LanguageCode;
+  name: string;
+}
+
+interface DetailedLanguageService {
+  goog: {[languageCode: LanguageCode]: LanguageCode};
+}
+
+export interface DetailedLanguage extends LanguageBase {
+  regions: DetailedLanguageRegion[];
+  transcription_services: DetailedLanguageService[];
+  translation_services: DetailedLanguageService[];
+}
+
 /**
- * NOTE: this requires to be initialized with `new` keyword! This is because
- * we can't handle multiple components using a single store instance in a nice
- * way. Each compoenent will have to have their own instance of `languageStore`.
+ * This store uses the language detail endpoint:
+ * `api/v2/languages/${languageCode}`. It is designed to handle fetching
+ * singular language (with memoization, as languages data on backend will not
+ * change during a lifetime of the app).
  *
- * This store uses the `api/v2/languages` endpoint. It is designed to handle
- * one languages list at a time (filtering by search phrase and loading more
- * pages of results).
+ * If you need a list of languages, please use `languagesStore`.
  */
 class LanguagesStore {
-  /** This list keeps the search results. */
-  public languages: ListLanguage[] = [];
-  public fullLanguages: Map<string, ListLanguage> = new Map();
-  private nextPageUrl: string | null = null;
-  public isInitialised = false;
-  public isLoading = false;
+  private detailedLanguages: Map<LanguageCode, DetailedLanguage> = new Map();
+  private languages: Map<LanguageCode, ListLanguage> = new Map();
 
-  constructor() {
-    makeAutoObservable(this);
+  /**
+   * Returns a promise that gets you a single language (with extended data).
+   * It will either resolve with memoized data, or make a backend call.
+   */
+  public getLanguage(languageCode: LanguageCode): Promise<DetailedLanguage> {
+    return new Promise((resolve, reject) => {
+      const language = this.detailedLanguages.get(languageCode);
+      if (language) {
+        resolve(language);
+      } else {
+        $.ajax({
+          dataType: 'json',
+          method: 'GET',
+          url: `${ROOT_URL}/api/v2/languages/${languageCode}/`,
+        })
+          .done((response: DetailedLanguage) => {
+            this.detailedLanguages.set(response.code, response);
+            resolve(response);
+          })
+          .fail((response: FailResponse) => {
+            reject(response.responseText);
+          });
+      }
+    });
   }
 
-  /** Gets the first page of results filtered by search phrase. */
-  public fetchLanguages(searchPhrase = '') {
-    this.isLoading = true;
-    $.ajax({
-      dataType: 'json',
-      method: 'GET',
-      url: `${ROOT_URL}/api/v2/languages/?q=${searchPhrase}`,
-    })
-      .done(this.onFetchLanguagesDone.bind(this))
-      .fail(this.onAnyFail.bind(this));
+  /**
+   * To be used by `languagesListStore` to memoize data for the
+   * `getLanguageName` method, to avoid unnecessary calls for detailed language,
+   * in cases when we just need a name (which is most of cases).
+   */
+  public setListLanguages(languages: ListLanguage[]) {
+    languages.forEach((language) => {
+      this.languages.set(language.code, language);
+    });
   }
 
-  private onFetchLanguagesDone(response: PaginatedResponse<ListLanguage>) {
-    this.isInitialised = true;
-    this.isLoading = false;
-    this.languages = response.results;
-    this.nextPageUrl = response.next;
-  }
-
-  private onAnyFail(response: FailResponse) {
-    this.isLoading = false;
-    notify(response.responseText, 'error');
-  }
-
-  /** If next page of results is available for current search phrase. */
-  public hasMoreLanguages(): boolean {
-    return this.nextPageUrl !== null;
-  }
-
-  /** Gets the next page of results (if available). */
-  public fetchMoreLanguages() {
-    if (this.nextPageUrl !== null) {
-      $.ajax({
-        dataType: 'json',
-        method: 'GET',
-        url: this.nextPageUrl,
-      })
-        .done(this.onFetchMoreLanguagesDone.bind(this))
-        .fail(this.onAnyFail.bind(this));
-    }
-  }
-
-  private onFetchMoreLanguagesDone(response: PaginatedResponse<ListLanguage>) {
-    // This differs from `onFetchLanguagesDone`, because it adds the languages
-    // to existing ones.
-    this.isLoading = false;
-    this.languages = this.languages.concat(response.results);
-    this.nextPageUrl = response.next;
+  /**
+   * Returns a promist that resolves with a language name. Most of the times
+   * you will get a memoized value.
+   */
+  public getLanguageName(languageCode: LanguageCode): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // First we try to get the name from memoized data.
+      const languageName = (
+        this.detailedLanguages.get(languageCode)?.name ||
+        this.languages.get(languageCode)?.name
+      );
+      if (languageName) {
+        resolve(languageName);
+      } else {
+        this.getLanguage(languageCode)
+          .then((language: DetailedLanguage) => {
+            resolve(language.name);
+          })
+          .catch(reject);
+      }
+    });
   }
 }
 
-export default LanguagesStore;
+export default new LanguagesStore();
 

@@ -1,4 +1,5 @@
 import {SUPPLEMENTAL_DETAILS_PROP} from 'js/constants';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 /**
  * Returns a path that leads to transcription value in the submission response,
@@ -6,7 +7,7 @@ import {SUPPLEMENTAL_DETAILS_PROP} from 'js/constants';
  */
 export function getSupplementalTranscriptPath(
   questionName: string,
-  languageCode: string
+  languageCode: LanguageCode
 ) {
   return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript_${languageCode}`;
 }
@@ -17,7 +18,7 @@ export function getSupplementalTranscriptPath(
  */
 export function getSupplementalTranslationPath(
   questionName: string,
-  languageCode: string
+  languageCode: LanguageCode
 ) {
   return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated_${languageCode}`;
 }
@@ -30,7 +31,7 @@ export function getSupplementalPathParts(path: string): {
   sourceRowName: string;
   isTranscript: boolean;
   isTranslation: boolean;
-  languageCode: string;
+  languageCode: LanguageCode;
 } {
   const pathArr = path.split('/');
   const path2Arr = pathArr[2].split('_');

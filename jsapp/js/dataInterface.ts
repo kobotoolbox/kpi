@@ -11,6 +11,7 @@ import {
   COMMON_QUERIES,
 } from './constants';
 import type {EnvStoreFieldItem} from 'js/envStore';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
   ValidationStatus,
@@ -122,7 +123,7 @@ export interface SubmissionAttachment {
 interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: {
-      languageCode: string
+      languageCode: LanguageCode
       value: string
       dateCreated: string
       dateModified: string
@@ -130,13 +131,13 @@ interface SubmissionSupplementalDetails {
       revisions?: {
         dateModified: string
         engine?: string
-        languageCode: string
+        languageCode: LanguageCode
         value: string
       }[]
     }
     translated?: {
-      [languageCode: string]: {
-        languageCode: string
+      [languageCode: LanguageCode]: {
+        languageCode: LanguageCode
         value: string
         dateCreated: string
         dateModified: string
@@ -144,7 +145,7 @@ interface SubmissionSupplementalDetails {
         revisions?: {
           dateModified: string
           engine?: string
-          languageCode: string
+          languageCode: LanguageCode
           value: string
         }[]
       }
