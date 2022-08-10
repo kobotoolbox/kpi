@@ -190,7 +190,7 @@ class LanguageSelector extends React.Component<
     if (this.props.suggestedLanguages) {
       this.props.suggestedLanguages.forEach(async (languageCode) => {
         const language = await languagesStore.getLanguage(languageCode);
-        // Just a safe check if suggested languages list didn't change as we
+        // Just a safe check if suggested languages list didn't change while we
         // waited for the response.
         if (this.props.suggestedLanguages?.includes(language.code)) {
           const newLanguages = this.state.suggestedLanguages || [];
@@ -246,6 +246,17 @@ class LanguageSelector extends React.Component<
   get languages() {
     return this.store.languages.filter((language) =>
       !this.props.suggestedLanguages?.includes(language.code) &&
+      !this.props.hiddenLanguages?.includes(language.code) &&
+      language.code !== this.props.sourceLanguage
+    );
+  }
+
+  /**
+   * We need to filter out some languages from the list, so we use this neat
+   * little alias to `this.store.suggestedLanguages`.
+   */
+  get suggestedLanguages() {
+    return this.state.suggestedLanguages?.filter((language) =>
       !this.props.hiddenLanguages?.includes(language.code) &&
       language.code !== this.props.sourceLanguage
     );
@@ -348,13 +359,13 @@ class LanguageSelector extends React.Component<
   }
 
   renderSuggestedLanguages() {
-    if (this.state.suggestedLanguages === undefined || this.state.suggestedLanguages.length === 0) {
+    if (this.suggestedLanguages === undefined || this.suggestedLanguages.length === 0) {
       return null;
     }
 
     return (
       <React.Fragment>
-        {this.state.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
+        {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
         <bem.LanguageSelector__line/>
       </React.Fragment>
     );

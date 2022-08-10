@@ -56,3 +56,10 @@ export class AsyncLanguageDisplayLabel extends React.Component<
   }
 }
 
+/**
+ * To be used when you need a string, and can't use `LanguageDisplayLabel` or
+ * `AsyncLanguageDisplayLabel` (they both produce a `JSX.Element`).
+ */
+export function getLanguageDisplayLabel(name: string, code: LanguageCode) {
+  return `${name} (${code})`;
+}

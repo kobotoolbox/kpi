@@ -2,9 +2,9 @@ import React from 'react';
 import {formatTime} from 'js/utils';
 import bem, {makeBem} from 'js/bem';
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
-import KoboSelect from 'js/components/common/koboSelect';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import TransxSelector from './transxSelector';
 import './singleProcessingPreview.scss';
+import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 
 bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section');
 
@@ -75,33 +75,20 @@ export default class SingleProcessingPreview extends React.Component {
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transxHeaderLanguage>
-            {/* TODO display name. */}
-            {sourceData.languageCode}
+            <AsyncLanguageDisplayLabel code={sourceData.languageCode}/>
           </bem.ProcessingBody__transxHeaderLanguage>
         </bem.ProcessingBody__transxHeaderLanguageWrapper>
       );
     }
 
     if (sources.length >= 2) {
-      const selectOptions: KoboSelectOption[] = [];
-      sources.forEach((source) => {
-        selectOptions.push({
-          id: source,
-          /* TODO display name. */
-          label: source,
-        });
-      });
-
       return (
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transxHeaderLanguage>
-            <KoboSelect
-              name='single-processing-preview-language-switcher'
-              type='blue'
-              size='s'
-              selectedOption={sourceData.languageCode}
-              options={selectOptions}
+            <TransxSelector
+              languageCodes={sources}
+              selectedLanguage={sourceData.languageCode}
               onChange={(newSelectedOption: string) => {
                 singleProcessingStore.setSource(newSelectedOption);
               }}

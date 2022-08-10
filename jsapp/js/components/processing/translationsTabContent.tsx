@@ -5,8 +5,6 @@ import bem from 'js/bem';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import Button from 'js/components/common/button';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import KoboSelect from 'js/components/common/koboSelect';
 import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 import type {
@@ -15,6 +13,7 @@ import type {
   ListLanguage,
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import TransxSelector from './transxSelector';
 
 interface TranslationsTabContentState {
   /** Uses languageCode. */
@@ -265,26 +264,14 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing one of translations we want to have an option to select some
     // other translation.
     if (!draft && translations.length >= 2) {
-      const selectOptions: KoboSelectOption[] = [];
-      translations.forEach((translation) => {
-        selectOptions.push({
-          id: translation.languageCode,
-          /* TODO display name. THE MISSING PIECE OF PUZZLE. */
-          label: translation.languageCode,
-        });
-      });
-
       return (
         <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transxHeaderLanguage>
-            <KoboSelect
-              name='translation-header-language-switcher'
-              type='blue'
-              size='s'
-              selectedOption={this.state.selectedTranslation ? this.state.selectedTranslation : null}
-              options={selectOptions}
-              onChange={(newSelectedOption: string) => {
+            <TransxSelector
+              languageCodes={translations.map((translation) => translation.languageCode)}
+              selectedLanguage={this.state.selectedTranslation}
+              onChange={(newSelectedOption: LanguageCode) => {
                 this.selectTranslation(newSelectedOption);
               }}
             />
