@@ -35,6 +35,12 @@ export default class TransxSelector extends React.Component<
     this.fetchNames();
   }
 
+  componentDidUpdate(prevProps: TransxSelectorProps) {
+    if (prevProps.selectedLanguage !== this.props.selectedLanguage) {
+      this.setState({selectedOption: this.props.selectedLanguage});
+    }
+  }
+
   fetchNames() {
     this.setState({options: undefined});
     if (this.props.languageCodes) {

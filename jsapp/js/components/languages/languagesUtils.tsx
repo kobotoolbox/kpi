@@ -50,7 +50,7 @@ export class AsyncLanguageDisplayLabel extends React.Component<
 
   render() {
     if (!this.state.name) {
-      return null;
+      return <span>…</span>;
     }
     return <LanguageDisplayLabel code={this.props.code} name={this.state.name}/>;
   }
