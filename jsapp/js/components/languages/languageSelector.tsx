@@ -192,7 +192,11 @@ class LanguageSelector extends React.Component<
         const language = await languagesStore.getLanguage(languageCode);
         // Just a safe check if suggested languages list didn't change while we
         // waited for the response.
-        if (this.props.suggestedLanguages?.includes(language.code)) {
+        const isAlreadyAdded = Boolean(this.state.suggestedLanguages?.find((stateLanguage) => stateLanguage.code === language.code));
+        if (
+          this.props.suggestedLanguages?.includes(language.code) &&
+          !isAlreadyAdded
+        ) {
           const newLanguages = this.state.suggestedLanguages || [];
           newLanguages.push(language);
           this.setState({suggestedLanguages: newLanguages});
