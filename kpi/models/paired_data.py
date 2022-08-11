@@ -161,7 +161,9 @@ class PairedData(OpenRosaManifestInterface,
         # Avoid circular import
         Asset = self.asset.__class__  # noqa
         try:
-            source_asset = Asset.objects.get(uid=self.source_uid)
+            source_asset = Asset.objects.only(
+                'asset_type', 'data_sharing', 'owner_id', '_deployment_data'
+            ).get(uid=self.source_uid)
         except Asset.DoesNotExist:
             return None
 
@@ -280,4 +282,3 @@ class PairedData(OpenRosaManifestInterface,
             setattr(self, key, value)
 
         self.void_external_xml_cache()
-

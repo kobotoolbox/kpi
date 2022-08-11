@@ -698,7 +698,15 @@ class Asset(ObjectPermissionMixin,
             )
             return
 
-        if self.content is None:
+        # `self.content` must be the second condition. We do not want to get
+        # the value of `self.content` if first condition is false.
+        # The main purpose of this is avoid to load `self.content` when it is
+        # deferred (see `AssetNestedObjectViewsetMixin.asset`) and does not need
+        # to be updated.
+        if (
+            (not update_fields or update_fields and 'content' in update_fields)
+            and self.content is None
+        ):
             self.content = {}
 
         # in certain circumstances, we don't want content to
@@ -706,8 +714,9 @@ class Asset(ObjectPermissionMixin,
         if adjust_content:
             self.adjust_content_on_save()
 
-        # populate summary
-        self._populate_summary()
+        # populate summary (only when required)
+        if not update_fields or update_fields and 'summary' in update_fields:
+            self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -721,7 +730,12 @@ class Asset(ObjectPermissionMixin,
                 elif row_count > 1:
                     self.asset_type = ASSET_TYPE_BLOCK
 
-        self._populate_report_styles()
+        # populate report styles (only when required)
+        if (
+            not update_fields
+            or update_fields and 'report_styles' in update_fields
+        ):
+            self._populate_report_styles()
 
         # Ensure `_deployment_data` is not saved directly
         try:
