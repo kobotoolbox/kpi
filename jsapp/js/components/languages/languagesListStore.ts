@@ -10,8 +10,8 @@ import type {ListLanguage} from './languagesStore';
 
 /**
  * NOTE: this requires to be initialized with `new` keyword! This is because
- * we can't handle multiple components using a single store instance in a nice
- * way. Each compoenent will have to have their own instance of `languageStore`.
+ * we can't handle multiple components using a single search store instance in
+ * a nice way. Each component will have to instantialise their own store.
  *
  * This store uses the `api/v2/languages` endpoint. It is designed to handle
  * one languages list at a time (filtering by search phrase and loading more

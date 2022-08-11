@@ -3,7 +3,7 @@ import type {FailResponse} from 'js/dataInterface';
 import {ROOT_URL} from 'js/constants';
 
 /**
- * A language code is a string (alias type), but it is more helpful to pass it
+ * A language code is a string (type alias), but it is more helpful to pass it
  * around, than vague "string".
  */
 export type LanguageCode = string;
@@ -17,13 +17,16 @@ export interface LanguageBase {
   featured: boolean;
 }
 
+/** Name and identifier of given service. */
 interface ListLanguageService {
-  code: LanguageCode;
+  code: string;
   name: string;
 }
 
 export interface ListLanguage extends LanguageBase {
+  /** A list of available transcription services for given language. */
   transcription_services: ListLanguageService[];
+  /** A list of available translation services for given language. */
   translation_services: ListLanguageService[];
 }
 
@@ -32,14 +35,26 @@ interface DetailedLanguageRegion {
   name: string;
 }
 
-interface DetailedLanguageService {
+interface DetailedLanguageServices {
   goog: {[languageCode: LanguageCode]: LanguageCode};
 }
 
 export interface DetailedLanguage extends LanguageBase {
+  /**
+   * A list of regions for given language with their unique language codes,
+   * e.g. "Canada", "Belgium", "France", and "Switzerland" for French (fr).
+   */
   regions: DetailedLanguageRegion[];
-  transcription_services: DetailedLanguageService[];
-  translation_services: DetailedLanguageService[];
+  /**
+   * A list of available transcription services for given language with a map of
+   * "ours to theirs" language codes.
+   */
+  transcription_services: DetailedLanguageServices;
+  /**
+   * A list of available translation services for given language with a map of
+   * "ours to theirs" language codes.
+   */
+  translation_services: DetailedLanguageServices;
 }
 
 /**
@@ -92,8 +107,8 @@ class LanguagesStore {
   }
 
   /**
-   * Returns a promist that resolves with a language name. Most of the times
-   * you will get a memoized value.
+   * Returns a promise that resolves with a language name. Most of the times
+   * you will get an immediate memoized value.
    */
   public getLanguageName(languageCode: LanguageCode): Promise<string> {
     return new Promise((resolve, reject) => {
