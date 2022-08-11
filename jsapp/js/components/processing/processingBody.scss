@@ -26,16 +26,22 @@
 .processing-body__transx-header-date {
   font-weight: 300;
   color: colors.$kobo-gray-40;
+  margin-right: sizes.$x10;
+  flex: 1;
 }
 
 .processing-body__transx-header-language-wrapper {
   @include mixins.centerRowFlex;
+
+  flex: 1;
 }
 
 .processing-body__transx-header-language {
   font-weight: 700;
   margin-left: sizes.$x4;
-  min-width: sizes.$x100;
+  margin-right: sizes.$x10;
+  max-width: sizes.$x200;
+  flex: 1;
 }
 
 .processing-body__transx-header-buttons {

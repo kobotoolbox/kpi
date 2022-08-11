@@ -12,7 +12,7 @@ import type {
   DetailedLanguage,
   ListLanguage,
 } from 'js/components/languages/languagesStore';
-import {AsyncLanguageDisplayLabel} from '../languages/languagesUtils';
+import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 
 interface TranscriptTabContentProps {
   questionType: AnyRowTypeName | undefined;
@@ -154,12 +154,12 @@ export default class TranscriptTabContent extends React.Component<
 
     return (
       <React.Fragment>
-        <div>
+        <bem.ProcessingBody__transxHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transxHeaderLanguage>
             <AsyncLanguageDisplayLabel code={valueLanguageCode}/>
           </bem.ProcessingBody__transxHeaderLanguage>
-        </div>
+        </bem.ProcessingBody__transxHeaderLanguageWrapper>
 
         {dateText !== '' &&
           <bem.ProcessingBody__transxHeaderDate>

@@ -1,4 +1,5 @@
 import React from 'react';
+import isEqual from 'lodash.isequal';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import {getLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
@@ -39,8 +40,12 @@ export default class TransxSelector extends React.Component<
     if (prevProps.selectedLanguage !== this.props.selectedLanguage) {
       this.setState({selectedOption: this.props.selectedLanguage});
     }
+    if (!isEqual(this.props.languageCodes, prevProps.languageCodes)) {
+      this.fetchNames();
+    }
   }
 
+  /** Rebuilds the options list by fetching all necessary names. */
   fetchNames() {
     this.setState({options: undefined});
     if (this.props.languageCodes) {
@@ -48,7 +53,10 @@ export default class TransxSelector extends React.Component<
         const languageName = await languagesStore.getLanguageName(languageCode);
         // Just a safe check if language codes list didn't change while we waited
         // for the response.
-        if (this.props.languageCodes?.includes(languageCode)) {
+        if (
+          this.props.languageCodes?.includes(languageCode) &&
+          this.state.options?.find((option) => option.id === languageCode) === undefined
+        ) {
           const newOptions = this.state.options || [];
           newOptions.push({
             id: languageCode,
