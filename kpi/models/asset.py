@@ -153,7 +153,7 @@ class Asset(ObjectPermissionMixin,
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     advanced_features = LazyDefaultJSONBField(default=dict)
-    known_cols = LazyDefaultJSONBField(default=list)
+    known_cols = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey('Asset', related_name='children',
@@ -417,10 +417,36 @@ class Asset(ObjectPermissionMixin,
             for key, val in instance.engines():
                 yield key, val
 
+    @staticmethod
+    def _filter_for_known_cols(fields, known_cols):
+        if not known_cols:
+            return fields
+
+        filtered = []
+        for field in fields:
+            include = False
+            for known in known_cols:
+                name, *_, lang = known.split(':')
+                if 'languages' in field and field['source'] == name:
+                    include = True
+                    break
+                if field['source'] == name and field['language'] == lang:
+                    include = True
+                    break
+            if include:
+                filtered.append(field)
+        return filtered
+
     def analysis_form_json(self):
         additional_fields = list(self._get_additional_fields())
         engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
+        known_cols = self.known_cols.get('known', [])
+        return {
+            'engines': engines,
+            'additional_fields': self._filter_for_known_cols(
+                additional_fields, known_cols
+            ),
+        }
 
     def validate_advanced_features(self):
         if self.advanced_features is None:
