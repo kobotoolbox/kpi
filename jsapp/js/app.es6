@@ -96,7 +96,7 @@ export default class App extends React.Component {
             </bem.PageWrapper__content>
           </bem.PageWrapper>
 
-          {/* Default posiiton of all notificaitons, page specific ones can be overwritten*/}
+          {/* Default position of all notifications, page specific ones can be overwritten */}
           <Toaster
             position='bottom-left'
           />

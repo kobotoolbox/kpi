@@ -25,16 +25,33 @@ alertify.defaults.notifier.closeButton = true;
 const cookies = new Cookies();
 
 export function notify(msg: string, atype = 'success') {
+  // To avoid changing too much, the default remains 'success' if unspecified.
+  //   e.g. notify('yay!') // success
+
   switch (atype) {
-    case 'empty':
-      toast(msg); // No icon
+
+    case 'success':
+      toast.success(msg);
       break;
+
     case 'error':
       toast.error(msg);
       break;
-    // To avoid changing too much default remains 'success'
+
+    case 'warning':
+      toast(msg, {icon: '⚠️'});
+      break;
+
+    case 'empty':
+      toast(msg); // No icon
+      break;
+
+    // Defensively render empty if we're passed an unknown atype,
+    // in case we missed something.
+    //   e.g. notify('mystery!', '?') //
     default:
-      toast.success(msg);
+      toast(msg); // No icon
+      break;
   }
 }
 
