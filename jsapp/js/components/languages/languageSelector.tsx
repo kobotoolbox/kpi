@@ -389,16 +389,6 @@ class LanguageSelector extends React.Component<
         </bem.LanguageSelector__searchBoxRow>
 
         <section className='language-selector__list' ref={this.listRef}>
-          {(
-            this.state.searchPhrase !== '' &&
-            this.store.isInitialised &&
-            this.languages.length === 0
-          ) &&
-            <bem.LanguageSelector__notFoundMessage key='empty'>
-              {t("Sorry, didn't find any language…")}
-            </bem.LanguageSelector__notFoundMessage>
-          }
-
           <InfiniteScroll
             pageStart={0}
             loadMore={this.fetchMoreLanguages.bind(this)}
@@ -413,6 +403,16 @@ class LanguageSelector extends React.Component<
               }
             </ul>
           </InfiniteScroll>
+
+          {(
+            this.state.searchPhrase !== '' &&
+            this.store.isInitialised &&
+            this.languages.length === 0
+          ) &&
+            <bem.LanguageSelector__notFoundMessage key='empty'>
+              {t("Sorry, didn't find any language…")}
+            </bem.LanguageSelector__notFoundMessage>
+          }
         </section>
 
         {this.isCannotFindVisible &&

@@ -155,8 +155,11 @@
   }
 
   li {
-    width: calc(25% - #{sizes.$x20});
-    min-width: sizes.$x150;
+    // One third minus margins.
+    width: calc(33.33% - #{sizes.$x50});
+    // This is the size that is small enough to allows 3 columns to appear
+    // in processing view.
+    min-width: sizes.$x140;
     margin-right: sizes.$x50;
     margin-bottom: sizes.$x5;
 
