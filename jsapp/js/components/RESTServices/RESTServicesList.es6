@@ -9,6 +9,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {MODAL_TYPES} from '../../constants';
 import envStore from 'js/envStore';
+import {notify} from 'js/utils';
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
 
@@ -42,7 +43,7 @@ export default class RESTServicesList extends React.Component {
           this.setState({
             isLoadingHooks: false
           });
-          alertify.error(t('Could not load REST Services'));
+          notify.error(t('Could not load REST Services'));
         }
       }
     );

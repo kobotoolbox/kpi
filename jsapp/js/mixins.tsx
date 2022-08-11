@@ -135,7 +135,7 @@ const mixins: MixinsObject = {
             },
             onFailed: () => {
               dialog.destroy();
-              alertify.notify(t('Failed to create new asset!'), 'error');
+              notify.error(t('Failed to create new asset!'));
             },
           });
 
@@ -202,6 +202,7 @@ mixins.dmix = {
   },
 
   _deployAssetFirstTime(asset: AssetResponse) {
+    // TODO: figure out how to switch to toast
     const deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
     actions.resources.deployAsset(asset, false, {
       onDone: () => {
@@ -513,7 +514,7 @@ mixins.droppable = {
               // No message shown for multiple files when successful, to avoid overloading screen
             } else if (!assetUid) {
               // TODO: use a more specific error message here
-              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
+              notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
                 hashHistory.push(`/forms/${params.assetUid}`);
               }
@@ -527,9 +528,9 @@ mixins.droppable = {
             }
           } else if (importData.status === 'processing') {
             // If the import task didn't complete immediately, inform the user accordingly.
-            alertify.warning(t('Your upload is being processed. This may take a few moments.'));
+            notify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
-            alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
+            notify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error') {
             const errLines = [];
             errLines.push(t('Import Failed!'));
@@ -539,19 +540,19 @@ mixins.droppable = {
             if (importData.messages?.error) {
               errLines.push(`<code>${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}</code>`);
             }
-            alertify.error(errLines.join('<br/>'));
+            notify.error(errLines.join('<br/>'));
           } else {
-            alertify.error(t('Import Failed!'));
+            notify.error(t('Import Failed!'));
           }
         }).fail((failData: ImportResponse) => {
-          alertify.error(t('Import Failed!'));
+          notify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();
       }, 2500);
     }, (jqxhr: string) => {
       log('Failed to create import: ', jqxhr);
-      alertify.error(t('Failed to create import.'));
+      notify.error(t('Failed to create import.'));
     });
   },
 
@@ -575,9 +576,9 @@ mixins.droppable = {
       if (rejectedFiles[i].type && rejectedFiles[i].name) {
         let errMsg = t('Upload error: could not recognize Excel file.');
         errMsg += ` (${t('Uploaded file name: ')} ${rejectedFiles[i].name})`;
-        alertify.error(errMsg);
+        notify.error(errMsg);
       } else {
-        alertify.error(t('Could not recognize the dropped item(s).'));
+        notify.error(t('Could not recognize the dropped item(s).'));
         break;
       }
     }

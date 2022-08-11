@@ -24,6 +24,7 @@ import {
   escapeHtml,
   isAValidUrl,
   validFileTypes,
+  notify,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
@@ -495,7 +496,7 @@ class ProjectSettings extends React.Component {
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail((r) => {
-      alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+      notify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
 
@@ -560,7 +561,7 @@ class ProjectSettings extends React.Component {
                 }
               }).fail(() => {
                 this.resetImportUrlButton();
-                alertify.error(t('Failed to reload project after import!'));
+                notify.error(t('Failed to reload project after import!'));
               });
             },
             (response) => {
@@ -573,12 +574,13 @@ class ProjectSettings extends React.Component {
               if (response.messages.error) {
                 errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
               }
-              alertify.error(errLines.join('<br/>'));
+              // TODO: Does this break toast?
+              notify.error(errLines.join('<br/>'));
             }
           );
         },
         () => {
-          alertify.error(t('Could not initialize XLSForm import!'));
+          notify.error(t('Could not initialize XLSForm import!'));
         }
       );
     }
@@ -610,7 +612,7 @@ class ProjectSettings extends React.Component {
                 }
               }).fail(() => {
                 this.setState({isUploadFilePending: false});
-                alertify.error(t('Failed to reload project after upload!'));
+                notify.error(t('Failed to reload project after upload!'));
               });
             },
             (response) => {
@@ -623,13 +625,13 @@ class ProjectSettings extends React.Component {
               if (response.messages.error) {
                 errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
               }
-              alertify.error(errLines.join('<br/>'));
+              notify.error(errLines.join('<br/>'));
             }
           );
         },
         () => {
           this.setState({isUploadFilePending: false});
-          alertify.error(t('Could not import XLSForm!'));
+          notify.error(t('Could not import XLSForm!'));
         }
       );
     }
@@ -679,7 +681,7 @@ class ProjectSettings extends React.Component {
     this.setState({fieldsWithErrors: fieldsWithErrors});
 
     if (fieldsWithErrors.length >= 1) {
-      alertify.error(t('Some fields contain errors!'));
+      notify.error(t('Some fields contain errors!'));
       return;
     }
 

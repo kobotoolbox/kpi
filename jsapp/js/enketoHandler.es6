@@ -1,6 +1,6 @@
 import {ENKETO_ACTIONS} from 'js/constants'
 import {dataInterface} from 'js/dataInterface';
-import {notify} from 'utils';
+import {notify} from 'js/utils';
 
 /**
  * For handling Enketo in DRY way.

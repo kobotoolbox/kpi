@@ -250,7 +250,7 @@ export class TranslationSettings extends React.Component {
       {
         onFailed: () => {
           actions.resources.loadAsset({id: this.state.asset.uid});
-          alertify.error('failed to update translations');
+          notify.error('failed to update translations');
         },
       }
     );

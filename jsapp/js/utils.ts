@@ -9,7 +9,7 @@
 
 import moment from 'moment';
 import alertify from 'alertifyjs';
-import {toast} from 'react-hot-toast';
+import {toast, Toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
@@ -24,7 +24,7 @@ alertify.defaults.notifier.closeButton = true;
 
 const cookies = new Cookies();
 
-export function notify(msg: string, atype = 'success') {
+export function notify(msg: Toast['message'], atype = 'success') {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
@@ -54,6 +54,11 @@ export function notify(msg: string, atype = 'success') {
       break;
   }
 }
+
+// Convenience functions for code readability, consolidated here
+notify.error = (msg: Toast['message']) => notify(msg, 'error');
+notify.warning = (msg: string) => notify(msg, 'warning');
+notify.success = (msg: string) => notify(msg, 'success');
 
 /**
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
