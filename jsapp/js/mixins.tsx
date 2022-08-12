@@ -226,6 +226,7 @@ mixins.dmix = {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Overwrite existing deployment'),
+      // TODO: Split this into two independent translation strings without HTML
       message: t(
         'This form has already been deployed. Are you sure you ' +
         'want overwrite the existing deployment? ' +

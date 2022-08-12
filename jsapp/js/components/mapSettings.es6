@@ -238,6 +238,7 @@ class MapSettings extends React.Component {
 
     let opts = {
       title: t('Delete File'),
+      // TODO: Split this into two independent translation strings without HTML
       message: t(
         'Are you sure you want to delete this file? ' +
           '<br/><br/><strong>This action cannot be undone.</strong>'

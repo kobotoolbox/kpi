@@ -1,4 +1,5 @@
 import alertify from 'alertifyjs';
+import {escapeHtml} from 'js/utils';
 import { KEY_CODES } from 'js/constants';
 
 /**
@@ -74,7 +75,7 @@ export function multiConfirm(confirmId, title, message, buttons) {
           },
           prepare: function() {
             if (message) {
-              this.setContent(message);
+              this.setContent(escapeHtml(message));
             }
           },
           settings: {

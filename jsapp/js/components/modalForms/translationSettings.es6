@@ -11,10 +11,14 @@ import {stores} from 'js/stores';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
-import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
+import {
+  getLangString,
+  notify,
+  escapeHtml,
+} from 'utils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -229,7 +233,7 @@ export class TranslationSettings extends React.Component {
       title: t('Change default language?'),
       message: t(
         'Are you sure you would like to set ##lang## as the default language for this form?'
-      ).replace('##lang##', langString),
+      ).replace('##lang##', escapeHtml(langString)),
       labels: {ok: t('Confirm'), cancel: t('Cancel')},
       onok: () => {
         this.setState({isUpdatingDefaultLanguage: true});
