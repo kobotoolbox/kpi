@@ -6,9 +6,30 @@ import {
   truncateFile,
   generateAutoname,
   formatSeconds,
+  join,
 } from 'utils';
 
 describe('utils', () => {
+
+  describe('join', () => {
+    it('should make an array with separators between array elements', () => {
+      [
+        [['hi', 'hello', 'how are you'], '<br/>',
+          ['hi', '<br/>', 'hello', '<br/>', 'how are you'],
+        ],
+        [['a', 'b', 'c'], '\n',
+          ['a', '\n', 'b', '\n', 'c'],
+        ],
+        [[1, 2, 3], 0, [1, 0, 2, 0, 3]],
+        [['a', 2, {hello: 'world'}], [], ['a', [], 2, [], {hello: 'world'}]],
+        // We could add a real JSX test case here (we'd have to import React)
+      ].forEach((testCase) => {
+        const test = join(testCase[0], testCase[1]);
+        chai.expect(test).to.deep.equal(testCase[2]);
+      });
+    });
+  });
+
   describe('formatSeconds', () => {
     it('should format properly', () => {
       [

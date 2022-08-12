@@ -57,8 +57,27 @@ export function notify(msg: Toast['message'], atype = 'success') {
 
 // Convenience functions for code readability, consolidated here
 notify.error = (msg: Toast['message']) => notify(msg, 'error');
-notify.warning = (msg: string) => notify(msg, 'warning');
-notify.success = (msg: string) => notify(msg, 'success');
+notify.warning = (msg: Toast['message']) => notify(msg, 'warning');
+notify.success = (msg: Toast['message']) => notify(msg, 'success');
+
+/**
+ * Returns a copy of arr with separator inserted in every other place.
+ * It's like Array.join('\n'), but more generic.
+ *
+ * Usage: join(['hi', 'hello', 'how are you'], <br/>)
+ *          => ['hi', <br/>, 'hello', <br/>, 'how are you']
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function join(arr: any[], separator: any): any[] {
+  // Allocate enough indices to place separators between every element.
+  const result = Array(arr.length * 2 - 1);
+  result[0] = arr[0]; // Start with first element from original array
+  for (let i = 1; i < arr.length; i++) {
+    result[i * 2 - 1] = separator; // Place separators ...
+    result[i * 2] = arr[i]; // ... and original elements from the array
+  }
+  return result;
+}
 
 /**
  * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"

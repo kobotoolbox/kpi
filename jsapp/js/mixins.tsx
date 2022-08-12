@@ -37,6 +37,7 @@ import {
   escapeHtml,
   buildUserUrl,
   renderCheckbox,
+  join,
 } from 'js/utils';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import type {
@@ -535,12 +536,12 @@ mixins.droppable = {
             const errLines = [];
             errLines.push(t('Import Failed!'));
             if (params.name) {
-              errLines.push(`<code>Name: ${params.name}</code>`);
+              errLines.push(<code>Name: {params.name}</code>);
             }
             if (importData.messages?.error) {
-              errLines.push(`<code>${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}</code>`);
+              errLines.push(<code>${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}</code>);
             }
-            notify.error(errLines.join('<br/>'));
+            notify.error(<div>{join(errLines, <br/>)}</div>);
           } else {
             notify.error(t('Import Failed!'));
           }

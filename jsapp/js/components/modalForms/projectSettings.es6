@@ -25,6 +25,7 @@ import {
   isAValidUrl,
   validFileTypes,
   notify,
+  join,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
@@ -569,13 +570,12 @@ class ProjectSettings extends React.Component {
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (importUrl) {
-                errLines.push(`<code>Name: ${this.getFilenameFromURI(importUrl)}</code>`);
+                errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>);
               }
               if (response.messages.error) {
-                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+                errLines.push(<code>{response.messages.error_type}: {response.messages.error}</code>);
               }
-              // TODO: Does this break toast?
-              notify.error(errLines.join('<br/>'));
+              notify.error(join(errLines, <br/>));
             }
           );
         },
@@ -620,12 +620,12 @@ class ProjectSettings extends React.Component {
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (files[0].name) {
-                errLines.push(`<code>Name: ${files[0].name}</code>`);
+                errLines.push(<code>Name: ${files[0].name}</code>);
               }
               if (response.messages.error) {
-                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+                errLines.push(<code>{response.messages.error_type}: {escapeHtml(response.messages.error)}</code>);
               }
-              notify.error(errLines.join('<br/>'));
+              notify.error(join(errLines, <br/>));
             }
           );
         },

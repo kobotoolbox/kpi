@@ -67,9 +67,12 @@ const enketoHandler = {
             } else {
               let errorMsg = t('There was an error loading Enketo.');
               if (enketoData?.responseJSON?.detail) {
-                errorMsg += `<br><code>${enketoData.responseJSON.detail}</code>`;
+                // TODO: Format this to code with JSX with error template.
+                // Removed these tags because toast already escapes them.
+                //errorMsg += `<br><code>${enketoData.responseJSON.detail}</code>`;
+                errorMsg += enketoData.responseJSON.detail;
               }
-              notify(errorMsg, 'error');
+              notify.error(errorMsg);
               reject();
             }
           });
