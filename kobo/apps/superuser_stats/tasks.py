@@ -1,8 +1,6 @@
 # coding: utf-8
 import datetime
-
 import unicodecsv
-
 from celery import shared_task
 from collections import Counter
 
@@ -10,7 +8,9 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F, Value, DateField
+from django.db.models.functions import Cast, Concat
+from django.utils import timezone
 
 from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
@@ -20,7 +20,9 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
     KobocatUser,
     KobocatUserProfile,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
     ReadOnlyKobocatInstance,
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -54,6 +56,8 @@ def generate_country_report(
                     settings__country__value=code_,
                 )
             )
+            # Doing it this way because this report is focused on crises in
+            # very specific time frames
             instances_count = ReadOnlyKobocatInstance.objects.filter(
                 xform__id_string__in=xform_id_strings,
                 date_created__range=(start_date, end_date),
@@ -103,33 +107,40 @@ def generate_continued_usage_report(output_filename: str, end_date):
         assets = user.assets.values('pk', 'date_created').filter(
             date_created__range=(twelve_months_time, end_date),
         )
-        submissions_count = KobocatSubmissionCounter.objects.filter(
-            user__username=user.username,
-            timestamp__range=(twelve_months_time, end_date),
+        submissions_count = (
+            ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
+                date=Cast(
+                    Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                    DateField(),
+                )
+            ).filter(
+                user_id=user.id,
+                date__range=(twelve_months_time, end_date),
+            )
         )
         twelve_asset_count = assets.aggregate(asset_count=Count('pk'))
         twelve_submission_count = submissions_count.aggregate(
-            submissions_count=Sum('count'),
+            submissions_count=Sum('counter'),
         )
 
         # six months
         assets = assets.filter(date_created__gte=six_months_time)
         submissions_count = submissions_count.filter(
-            timestamp__gte=six_months_time,
+            date__gte=six_months_time,
         )
         six_asset_count = assets.aggregate(asset_count=Count('pk'))
         six_submissions_count = submissions_count.aggregate(
-            submissions_count=Sum('count'),
+            submissions_count=Sum('counter'),
         )
 
         # three months
         assets = assets.filter(date_created__gte=three_months_time)
         submissions_count = submissions_count.filter(
-            timestamp__gte=three_months_time,
+            date__gte=three_months_time,
         )
         three_asset_count = assets.aggregate(asset_count=Count('pk'))
         three_submissions_count = submissions_count.aggregate(
-            submissions_count=Sum('count'),
+            submissions_count=Sum('counter'),
         )
         data.append([
             user.username,
@@ -184,10 +195,17 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
     # get a count of the submissions
     domain_submissions = {
-        domain: KobocatSubmissionCounter.objects.filter(
+        domain: ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
+            date=Cast(
+                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                DateField(),
+            )
+        ).filter(
             user__email__endswith='@' + domain,
-            timestamp__range=(start_date, end_date),
-        ).aggregate(Sum('count'))['count__sum']
+            date__range=(start_date, end_date),
+        ).aggregate(
+            Sum('counter')
+        )['counter__sum']
         if domain_assets[domain] else 0
         for domain in domain_users.keys()
     }
@@ -423,15 +441,22 @@ def generate_user_statistics_report(
 
     # Get records from SubmissionCounter
     records = (
-        KobocatSubmissionCounter.objects.filter().values(
+        ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
+            date=Cast(
+                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                DateField(),
+            )
+        ).filter().values(
             'user_id',
             'user__username',
             'user__date_joined',
-        ).order_by('user__date_joined').annotate(count_sum=Sum('count'))
+        ).order_by('user__date_joined').annotate(count_sum=Sum('counter'))
     )
 
     for record in records:
-        user_details = ExtraUserDetail.objects.get(user__username=record['user__username']).data
+        user_details = ExtraUserDetail.objects.get(
+            user__username=record['user__username']
+        ).data
         data.append([
             record['user__username'],
             record['user__date_joined'],

@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import get_storage_class
 from django.http import HttpResponse, StreamingHttpResponse, Http404
 from django.urls import reverse
+from django.utils import timezone
 
 from .tasks import (
     generate_country_report,
@@ -110,14 +111,21 @@ def domain_report(request):
     # Generate the file basename
     base_filename = 'domain-report_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
-        date.today(),
-        datetime.now().microsecond
+        timezone.now(),
+        timezone.now().microsecond
     )
 
     # Get the date filters from the query and set defaults
-    start_date = request.GET.get('start_date', date.today())
-    tomorrow = date.today() + timedelta(days=1)
-    end_date = request.GET.get('end_date', tomorrow)
+    today = timezone.now().date()
+    start_date = request.GET.get(
+        'start_date',
+        f'{today.year}-{today.month}-{today.day}'
+    )
+    tomorrow = timezone.now() + timedelta(days=1)
+    end_date = request.GET.get(
+        'end_date',
+        f'{tomorrow.year}-{tomorrow.month}-{tomorrow.day}'
+    )
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
