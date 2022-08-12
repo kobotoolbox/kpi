@@ -6,12 +6,12 @@ ENDERS = map(lambda ss: f'end_{ss}', pairers)
 
 def concat_paths(name, parent_names):
     return DELIMITER.join(
-        [*parent_names, name]
+        [*parent_names, name or '']
     )
 
 def concat_xpath(name, parent_names):
     return '/'.join(
-        [*parent_names, name]
+        [*parent_names, name or '']
     )
 
 def get_name(row):
