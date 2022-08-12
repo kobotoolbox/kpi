@@ -10,6 +10,9 @@ from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
+from django.utils import timezone
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -54,11 +57,10 @@ from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
-    KobocatSubmissionCounter,
     KobocatXForm,
-    KobocatXFormSubmissionCounter,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -919,13 +921,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_counter(self):
-        today = date.today()
-        monthly_counter = KobocatXFormSubmissionCounter.objects.get(
-            xform__id_string=str(self.asset.uid),
-            timestamp__year=today.year,
-            timestamp__month=today.month,
-        )
-        count = monthly_counter.count
+        today = timezone.now().date()
+        monthly_counter = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.get(
+            xform__id_string=self.asset.uid,
+            year=today.year,
+            month=today.month,
+        ) or 0
+        count = monthly_counter.counter
         return count
 
     def set_active(self, active):
