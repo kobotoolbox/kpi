@@ -1,3 +1,4 @@
+import React from 'react';
 import {ENKETO_ACTIONS} from 'js/constants'
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'js/utils';
@@ -65,13 +66,18 @@ const enketoHandler = {
               this._openEnketoUrl(urlId);
               resolve();
             } else {
-              let errorMsg = t('There was an error loading Enketo.');
-              if (enketoData?.responseJSON?.detail) {
-                // TODO: Format this to code with JSX with error template.
-                // Removed these tags because toast already escapes them.
-                //errorMsg += `<br><code>${enketoData.responseJSON.detail}</code>`;
-                errorMsg += enketoData.responseJSON.detail;
-              }
+              const errorMsg = (
+                <div>
+                  {t('There was an error loading Enketo.')}
+                  {enketoData?.responseJSON?.detail && (
+                    <div>
+                      <br />
+                      <code>{enketoData.responseJSON.detail}</code>
+                    </div>
+                  )}
+                </div>
+              );
+
               notify.error(errorMsg);
               reject();
             }
