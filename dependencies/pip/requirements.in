@@ -54,6 +54,9 @@ django-request-cache
 drf-extensions
 future
 geojson-rewind
+google-cloud-speech
+google-cloud-storage
+google-cloud-translate
 jsonfield
 jsonschema
 kombu

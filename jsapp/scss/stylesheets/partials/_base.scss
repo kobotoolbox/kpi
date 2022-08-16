@@ -65,6 +65,11 @@ video {
   vertical-align: middle;
 }
 
+img {
+  max-width: 100%;
+  object-fit: contain;
+}
+
 fieldset {
   border: 0;
   margin: 0;

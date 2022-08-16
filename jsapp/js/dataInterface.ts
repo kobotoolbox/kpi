@@ -94,7 +94,8 @@ export interface ImportResponse {
 
 export interface FailResponse {
   responseJSON?: {
-    detail: string;
+    detail?: string;
+    error?: string;
   };
   responseText: string;
   status: number;
@@ -246,6 +247,8 @@ interface ExportSettingSettings {
  * a more complex question type.
  */
 export interface SurveyRow {
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $qpath: string;
   $autoname: string;
   $kuid: string;
   // We use dynamic import to avoid changing this ambient module to a normal
@@ -570,6 +573,15 @@ export interface AccountResponse {
   };
 }
 
+export interface TransxLanguages {
+  [languageCode: string]: {
+    /** Human readable and localized language name. */
+    name: string;
+    /** A list of available services. */
+    options: string[];
+  };
+}
+
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -583,9 +595,12 @@ export interface EnvironmentResponse {
   operational_purpose_choices: string[][];
   country_choices: string[][];
   interface_languages: string[][];
+  transcription_languages: TransxLanguages;
+  translation_languages: TransxLanguages;
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  asr_mt_features_enabled: boolean;
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;

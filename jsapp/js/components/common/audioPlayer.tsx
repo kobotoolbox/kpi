@@ -46,10 +46,6 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   componentDidMount() {
-    this.prepareAudio();
-  }
-
-  prepareAudio() {
     // Prepare audio.
     this.audioInterface = new Audio(this.props.mediaURL);
 

@@ -54,7 +54,7 @@ submissionsActions.getSubmissions.listen((options) => {
 });
 
 /**
- * This gets an array of submission ids
+ * This gets an array of submission uuids
  * @param {string} assetUid
  */
 submissionsActions.getProcessingSubmissions.listen((assetUid, questionsPaths) => {

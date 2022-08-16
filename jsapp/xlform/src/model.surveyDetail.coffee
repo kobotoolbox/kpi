@@ -47,7 +47,12 @@ module.exports = do ->
       if (dtobj = @get(detail.type))
         if detail.parameters
           dtobj.set("parameters", detail.parameters)
-        dtobj.set("value", true)
+        if dtobj.get("deprecated")
+          # …unless the detail (aka metadata) is deprecated, in which case its
+          # value is forced to the default
+          dtobj.set("value", dtobj.get("default"))
+        else
+          dtobj.set("value", true)
       else
         throw new Error("SurveyDetail `#{key}` not loaded from schema. [Aliases have not been implemented]")
       return

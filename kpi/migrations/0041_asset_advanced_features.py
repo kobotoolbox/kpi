@@ -7,7 +7,7 @@ import kpi.fields.lazy_default_jsonb
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0039_add_support_paired_data_to_asset_file'),
+        ('kpi', '0040_synchronous_export'),
     ]
 
     operations = [

@@ -1,6 +1,5 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import type {AnyRowTypeName} from 'js/constants';
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
 import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
 import TranslationsTabContent from 'js/components/processing/translationsTabContent';
@@ -12,14 +11,8 @@ bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs',
 bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li');
 bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section');
 
-interface SingleProcessingContentProps {
-  questionType: AnyRowTypeName | undefined;
-}
-
 /** This component is handling the tabs for switching the content. */
-export default class SingleProcessingContent extends React.Component<
-  SingleProcessingContentProps
-> {
+export default class SingleProcessingContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -53,9 +46,7 @@ export default class SingleProcessingContent extends React.Component<
     switch (singleProcessingStore.getActiveTab()) {
       case SingleProcessingTabs.Transcript:
         return (
-          <TranscriptTabContent
-            questionType={this.props.questionType}
-          />
+          <TranscriptTabContent/>
         );
       case SingleProcessingTabs.Translations:
         return <TranslationsTabContent/>;

@@ -80,6 +80,7 @@ interface LanguageSelectorProps {
   hiddenLanguages?: LanguageCode[];
   /** Triggered after language is selected or cleared. */
   onLanguageChange: (selectedLanguage: DetailedLanguage | ListLanguage | null) => void;
+  isDisabled?: boolean;
 }
 
 interface LanguageSelectorState {
@@ -275,6 +276,7 @@ class LanguageSelector extends React.Component<
           size='m'
           label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
           onClick={this.selectLanguage.bind(this, language)}
+          isDisabled={this.props.isDisabled}
         />
       </li>
     );
@@ -298,6 +300,7 @@ class LanguageSelector extends React.Component<
 
         <bem.LanguageSelector__clearSelectedLanguage
           onClick={this.clearSelectedLanguage.bind(this)}
+          disabled={this.props.isDisabled}
         >
           <Icon name='close' size='s'/>
         </bem.LanguageSelector__clearSelectedLanguage>
@@ -348,11 +351,13 @@ class LanguageSelector extends React.Component<
             value={this.state.searchPhrase}
             onChange={this.onSearchPhraseInputChange.bind(this)}
             placeholder={t('Search for a language')}
+            disabled={this.props.isDisabled}
           />
 
           {this.state.searchPhrase !== '' &&
             <bem.LanguageSelector__clearSearchBox
               onClick={this.clearSearchPhrase.bind(this)}
+              disabled={this.props.isDisabled}
             >
               <Icon name='close' size='s'/>
             </bem.LanguageSelector__clearSearchBox>

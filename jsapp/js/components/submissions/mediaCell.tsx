@@ -12,8 +12,8 @@ import type {
   MetaQuestionTypeName,
 } from 'js/constants';
 import Button from 'js/components/common/button';
-import {ROUTES} from 'js/router/routerConstants';
 import {truncateString} from 'js/utils';
+import {openProcessing} from 'js/components/processing/processingUtils';
 import {hashHistory} from 'react-router';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
@@ -41,7 +41,7 @@ interface MediaCellProps {
  /** Total submissions for text questions. */
  submissionTotal: number;
  assetUid: string;
- questionName: string;
+ qpath: string;
  submissionUuid: string;
 }
 
@@ -86,11 +86,11 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   }
 
   openProcessing() {
-    const finalRoute = ROUTES.FORM_PROCESSING
-      .replace(':uid', this.props.assetUid)
-      .replace(':questionName', this.props.questionName)
-      .replace(':submissionUuid', this.props.submissionUuid);
-    hashHistory.push(finalRoute);
+    openProcessing(
+      this.props.assetUid,
+      this.props.qpath,
+      this.props.submissionUuid
+    );
   }
 
   launchMediaModal(evt: MouseEvent | TouchEvent) {

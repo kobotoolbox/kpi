@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
+import alertify from 'alertifyjs';
 import type {Location} from 'history';
 import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
 import {
@@ -11,6 +12,9 @@ import {
   getAssetProcessingRows,
   isAssetProcessingActivated,
   getAssetAdvancedFeatures,
+  findRowByQpath,
+  getRowName,
+  getRowNameByQpath,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -18,11 +22,13 @@ import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
 import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 import type {
+  FailResponse,
   SubmissionResponse,
   AssetResponse,
   GetProcessingSubmissionsResponse,
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {AnyRowTypeName} from 'js/constants';
 
 export enum SingleProcessingTabs {
   Transcript = 'trc',
@@ -46,18 +52,28 @@ interface TransxDraft {
 
 /**
  * This contains a list of submissions for every processing-enabled question.
- * In a list: for every submission we store either an `uuid` (when given
- * submission has a response to the question) or a `null` (when given submission
- * doesn't have a response to the question).
+ * In a list: for every submission we store the `uuid` and a `hasResponse`
+ * boolean. We use it to navigate through submissions with meaningful data
+ * in context of a question. Example:
  *
- * We use it to navigate through submissions with meaningful data in context of
- * a question.
- *
- * We also use it to navigate through questions - making sure we only allow
- * ones with any meaningful data.
+ * ```
+ * {
+ *   first_question: [
+ *     {uuid: 'abc123', hasResponse: true},
+ *     {uuid: 'asd345', hasResponse: false},
+ *   ],
+ *   second_question: [
+ *     {uuid: 'abc123', hasResponse: true},
+ *     {uuid: 'asd345', hasResponse: true},
+ *   ]
+ * }
+ * ```
  */
 interface SubmissionsUuids {
-  [questionName: string]: Array<string | null>;
+  [qpath: string]: Array<{
+    uuid: string;
+    hasResponse: boolean;
+  }>;
 }
 
 interface SingleProcessingStoreData {
@@ -69,10 +85,7 @@ interface SingleProcessingStoreData {
   source?: string;
   activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
-  /**
-   * A list of all submissions ids, we store `null` for submissions that don't
-   * have a response for the question.
-   */
+  /** A list of all submissions uuids. */
   submissionsUuids?: SubmissionsUuids;
 }
 
@@ -108,16 +121,37 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.activeTab = SingleProcessingTabs.Transcript;
   }
 
-  private get currentAssetUid(): string {
+  public get currentAssetUid(): string {
     return getSingleProcessingRouteParameters().uid;
   }
 
-  private get currentQuestionName(): string {
-    return getSingleProcessingRouteParameters().questionName;
+  public get currentQuestionQpath(): string | undefined {
+    return getSingleProcessingRouteParameters().qpath;
   }
 
-  private get currentSubmissionUuid(): string {
+  public get currentSubmissionUuid(): string {
     return getSingleProcessingRouteParameters().submissionUuid;
+  }
+
+  public get currentQuestionName() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.content && this.currentQuestionQpath) {
+      const foundRow = findRowByQpath(asset.content, this.currentQuestionQpath);
+      if (foundRow) {
+        return getRowName(foundRow);
+      }
+      return undefined;
+    }
+    return undefined;
+  }
+
+  public get currentQuestionType(): AnyRowTypeName | undefined {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.content && this.currentQuestionQpath) {
+      const foundRow = findRowByQpath(asset?.content, this.currentQuestionQpath);
+      return foundRow?.type;
+    }
+    return undefined;
   }
 
   init() {
@@ -137,11 +171,15 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranscript.completed.listen(this.onRequestAutoTranscriptCompleted.bind(this));
+    processingActions.requestAutoTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
     processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this));
     processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranslation.completed.listen(this.onRequestAutoTranslationCompleted.bind(this));
+    processingActions.requestAutoTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this));
 
     // We need the asset to be loaded for the store to work (we get the
@@ -153,9 +191,10 @@ class SingleProcessingStore extends Reflux.Store {
   /** This is making sure the asset processing features are activated. */
   onAssetLoad(asset: AssetResponse) {
     if (
+      this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
-        this.currentQuestionName,
+        this.currentQuestionQpath,
         this.currentSubmissionUuid,
       ) &&
       this.currentAssetUid === asset.uid
@@ -182,9 +221,10 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private startupStore() {
     if (
+      this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
-        this.currentQuestionName,
+        this.currentQuestionQpath,
         this.currentSubmissionUuid,
       )
     ) {
@@ -248,9 +288,10 @@ class SingleProcessingStore extends Reflux.Store {
       // Case 2: switching into processing route out of other place (most
       // probably from assets data table route).
       this.previousPath !== data.pathname &&
+      this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
-        this.currentQuestionName,
+        this.currentQuestionQpath,
         this.currentSubmissionUuid,
       )
     ) {
@@ -292,17 +333,27 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
     let flatPaths: SurveyFlatPaths = {};
 
+    // We need to get a regular path (not qpath!) for each of the processing
+    // rows. In theory we could just convert the qpath strings, but it's safer
+    // to use the asset data that we already have.
+    const processingRowsPaths: string[] = [];
+
     if (asset?.content?.survey) {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
-    }
 
-    const processingRowsPaths: string[] = [];
-    if (processingRows) {
-      processingRows.forEach((row) => {
-        if (flatPaths[row]) {
-          processingRowsPaths.push(flatPaths[row]);
-        }
-      });
+      if (processingRows) {
+        processingRows.forEach((qpath) => {
+          if (asset?.content) {
+            // Here we need to "convert" qpath into name, as flatPaths work with
+            // names only. We search the row by qpath and use its name.
+            const rowName = getRowNameByQpath(asset.content, qpath);
+
+            if (rowName && flatPaths[rowName]) {
+              processingRowsPaths.push(flatPaths[rowName]);
+            }
+          }
+        });
+      }
     }
 
     actions.submissions.getProcessingSubmissions(
@@ -322,22 +373,29 @@ class SingleProcessingStore extends Reflux.Store {
 
     if (asset?.content?.survey) {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
-    }
 
-    if (processingRows !== undefined) {
-      processingRows.forEach((processingRow) => {
-        submissionsUuids[processingRow] = [];
-      });
-
-      response.results.forEach((result) => {
-        processingRows.forEach((processingRow) => {
-          if (Object.keys(result).includes(flatPaths[processingRow])) {
-            submissionsUuids[processingRow].push(result._uuid);
-          } else {
-            submissionsUuids[processingRow].push(null);
-          }
+      if (processingRows !== undefined) {
+        processingRows.forEach((qpath) => {
+          submissionsUuids[qpath] = [];
         });
-      });
+
+        response.results.forEach((result) => {
+          processingRows.forEach((qpath) => {
+            if (asset?.content) {
+              // Here we need to "convert" qpath into name, as flatPaths work with
+              // names only. We search the row by qpath and use its name.
+              const rowName = getRowNameByQpath(asset.content, qpath);
+
+              if (rowName) {
+                submissionsUuids[qpath].push({
+                  uuid: result._uuid,
+                  hasResponse: Object.keys(result).includes(flatPaths[rowName]),
+                });
+              }
+            }
+          });
+        });
+      }
     }
 
     this.areUuidsLoaded = true;
@@ -370,7 +428,11 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionName]?.transcript;
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one
     this.data.transcript = undefined;
     if (
@@ -380,7 +442,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.transcript = transcriptResponse;
     }
 
-    const translationsResponse = response[this.currentQuestionName]?.translated;
+    const translationsResponse = response[this.currentQuestionQpath]?.translated;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: LanguageCode) => {
@@ -404,14 +466,24 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onAnyCallFailed() {
+  private onAnyCallFailed(response: FailResponse) {
+    const errorText = (
+      response.responseJSON?.detail ||
+      response.responseJSON?.error ||
+      response.statusText
+    );
+    alertify.notify(errorText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
     this.trigger(this.data);
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionName]?.transcript;
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
 
     this.isFetchingData = false;
 
@@ -429,12 +501,48 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  private onRequestAutoTranscriptCompleted(response: ProcessingDataResponse) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const googleTsResponse = response[this.currentQuestionQpath]?.googlets;
+
+    this.isFetchingData = false;
+    if (
+      googleTsResponse &&
+      this.data.transcriptDraft &&
+      googleTsResponse.languageCode === this.data.transcriptDraft.languageCode
+    ) {
+      this.data.transcriptDraft.value = googleTsResponse.value;
+    }
+    this.trigger(this.data);
+  }
+
   private onSetTranslationCompleted(newTranslations: Transx[]) {
     this.isFetchingData = false;
     this.data.translations = newTranslations;
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
     this.data.source = undefined;
+    this.trigger(this.data);
+  }
+
+  private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
+    const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
+
+    this.isFetchingData = false;
+    if (
+      googleTxResponse &&
+      this.data.translationDraft &&
+      googleTxResponse.languageCode === this.data.translationDraft.languageCode
+    ) {
+      this.data.translationDraft.value = googleTxResponse.value;
+    }
     this.trigger(this.data);
   }
 
@@ -488,7 +596,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode,
       value
@@ -500,8 +608,19 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid
+    );
+    this.trigger(this.data);
+  }
+
+  requestAutoTranscript(languageCode: string) {
+    this.isFetchingData = true;
+    processingActions.requestAutoTranscript(
+      this.currentAssetUid,
+      this.currentQuestionQpath,
+      this.currentSubmissionUuid,
+      languageCode
     );
     this.trigger(this.data);
   }
@@ -522,7 +641,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   /**
    * Returns a list of language codes of languages that are activated within
-   * advanced_features.transcript
+   * advanced_features.transcript, i.e. languages that were already used for
+   * transcripts with other submissions in this project.
    */
   getAssetTranscriptableLanguages() {
     const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid);
@@ -549,7 +669,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode,
       value
@@ -561,7 +681,18 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
-      this.currentQuestionName,
+      this.currentQuestionQpath,
+      this.currentSubmissionUuid,
+      languageCode
+    );
+    this.trigger(this.data);
+  }
+
+  requestAutoTranslation(languageCode: string) {
+    this.isFetchingData = true;
+    processingActions.requestAutoTranslation(
+      this.currentAssetUid,
+      this.currentQuestionQpath,
       this.currentSubmissionUuid,
       languageCode
     );
@@ -575,7 +706,9 @@ class SingleProcessingStore extends Reflux.Store {
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
     // We use transcript as source by default.
-    this.data.source = this.data.transcript?.languageCode;
+    if (this.data.source === undefined) {
+      this.data.source = this.data.transcript?.languageCode;
+    }
     this.trigger(this.data);
   }
 
@@ -615,8 +748,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** NOTE: Returns uuids for current question name, not for all of them. */
   getCurrentQuestionSubmissionsUuids() {
-    if (this.data.submissionsUuids !== undefined) {
-      return this.data.submissionsUuids[this.currentQuestionName];
+    if (this.currentQuestionQpath && this.data.submissionsUuids !== undefined) {
+      return this.data.submissionsUuids[this.currentQuestionQpath];
     }
     return undefined;
   }

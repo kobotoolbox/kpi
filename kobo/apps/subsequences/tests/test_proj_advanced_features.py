@@ -1,8 +1,4 @@
-# from kobo.apps.projs.models import Proj
-# import json
-
 from kpi.models import Asset
-# from kobo.apps.subsequences.models import SubmissionExtras
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from jsonschema import Draft7Validator

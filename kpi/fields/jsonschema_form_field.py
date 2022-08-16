@@ -52,7 +52,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
         super().__init__(*args, schema=schema, **kwargs)
 
 
-class MFAHelpTextField(JsonSchemaFormField):
+class MfaHelpTextField(JsonSchemaFormField):
     """
     Validates that the input is an object which contains at least the 'default'
     key.

@@ -1,6 +1,5 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import type {AnyRowTypeName} from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
   QUESTION_TYPES,
@@ -33,8 +32,6 @@ bem.SingleProcessingDataListWrapper = makeBem(
 );
 
 interface SingleProcessingSubmissionDetailsProps {
-  questionType: AnyRowTypeName | undefined;
-  questionName: string;
   assetContent: AssetContent;
 }
 
@@ -68,7 +65,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   /** We want only the processing related data (the actual form questions) */
   getQuestionsToHide(): string[] {
     return [
-      this.props.questionName,
+      singleProcessingStore.currentQuestionName || '',
       ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
       ...Object.keys(META_QUESTION_TYPES),
     ];
@@ -86,9 +83,13 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       return null;
     }
 
+    if (!singleProcessingStore.currentQuestionName) {
+      return null;
+    }
+
     // We need row data.
     const rowData = getRowData(
-      this.props.questionName,
+      singleProcessingStore.currentQuestionName,
       this.props.assetContent.survey,
       submissionData
     );
@@ -102,7 +103,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       return;
     }
 
-    switch (this.props.questionType) {
+    switch (singleProcessingStore.currentQuestionType) {
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
         return (

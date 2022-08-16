@@ -171,12 +171,12 @@ export function isFormKobocatRoute(uid: string): boolean {
 
 export function isFormSingleProcessingRoute(
   uid: string,
-  questionName: string,
+  qpath: string,
   submissionUuid: string
 ): boolean {
   return getCurrentPath() === ROUTES.FORM_PROCESSING
     .replace(':uid', uid)
-    .replace(':questionName', questionName)
+    .replace(':qpath', qpath)
     .replace(':submissionUuid', submissionUuid);
 }
 
@@ -229,14 +229,14 @@ export function getRouteAssetUid() {
 
 /** Returns parameters from path for single processing route. */
 export function getSingleProcessingRouteParameters(): {
-  uid: string,
-  questionName: string,
-  submissionUuid: string,
+  uid: string;
+  qpath: string;
+  submissionUuid: string;
 } {
   const splitPath = getCurrentPath().split('/');
   return {
     uid: splitPath[2],
-    questionName: splitPath[5],
+    qpath: splitPath[5],
     submissionUuid: splitPath[6],
-  }
+  };
 }

@@ -2,7 +2,6 @@ import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import {formatTime} from 'js/utils';
-import type {AnyRowTypeName} from 'js/constants';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import Button from 'js/components/common/button';
@@ -14,13 +13,7 @@ import type {
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 
-interface TranscriptTabContentProps {
-  questionType: AnyRowTypeName | undefined;
-}
-
-export default class TranscriptTabContent extends React.Component<
-  TranscriptTabContentProps
-> {
+export default class TranscriptTabContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -71,8 +64,10 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   selectModeAuto() {
-    // TODO: this will display an automated service selector that will
-    // ultimately produce a draft value.
+    const toLanguageCode = singleProcessingStore.getTranscriptDraft()?.languageCode;
+    if (toLanguageCode) {
+      singleProcessingStore.requestAutoTranscript(toLanguageCode);
+    }
   }
 
   back() {
@@ -135,6 +130,30 @@ export default class TranscriptTabContent extends React.Component<
     );
   }
 
+  /**
+   * Checks if language is selected and if it is available in the automated
+   * services we use.
+   */
+  isAutoEnabled() {
+    const draft = singleProcessingStore.getTranscriptDraft();
+
+    // HACK: Automatic services use long language codes ("en-GB"), but we use
+    // short ones ("en"), so here we check only first two letters.
+    // This will be fixed in next releases, so relax and keep calm.
+    const isLanguageAvailable = Boolean(
+      Object.keys(envStore.data.transcription_languages).find((longLanguageCode) =>
+        draft?.languageCode && longLanguageCode.startsWith(draft?.languageCode)
+      )
+    );
+
+    return draft?.languageCode !== undefined && isLanguageAvailable;
+  }
+
+  /** Whether automatic services are available for current user. */
+  isAutoAvailable() {
+    return envStore.data.asr_mt_features_enabled;
+  }
+
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript();
     const draft = singleProcessingStore.getTranscriptDraft();
@@ -171,7 +190,7 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   renderStepBegin() {
-    const typeLabel = this.props.questionType || t('source file');
+    const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
     return (
       <bem.ProcessingBody m='begin'>
         <p>{t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}</p>
@@ -190,8 +209,8 @@ export default class TranscriptTabContent extends React.Component<
   renderStepConfig() {
     const draft = singleProcessingStore.getTranscriptDraft();
 
-    const typeLabel = this.props.questionType || t('source file');
-    const languageSelectorTitle = t('Please selet the original language of the ##type##').replace('##type##', typeLabel);
+    const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
+    const languageSelectorTitle = t('Please select the original language of the ##type##').replace('##type##', typeLabel);
 
     return (
       <bem.ProcessingBody m='config'>
@@ -209,6 +228,7 @@ export default class TranscriptTabContent extends React.Component<
             label={t('back')}
             startIcon='caret-left'
             onClick={this.back.bind(this)}
+            isDisabled={singleProcessingStore.isFetchingData}
           />
 
           <bem.ProcessingBody__footerRightButtons>
@@ -216,20 +236,23 @@ export default class TranscriptTabContent extends React.Component<
               type='frame'
               color='blue'
               size='m'
-              label={t('manual')}
+              label={this.isAutoAvailable() ? t('manual') : t('transcribe')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={draft?.languageCode === undefined}
+              isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            <Button
-              type='full'
-              color='blue'
-              size='m'
-              label={t('automatic')}
-              onClick={this.selectModeAuto.bind(this)}
-              // TODO: This is disabled until we actually work on automated services integration.
-              isDisabled
-            />
+            {/* We hide button for users that don't have access to the feature. */}
+            {this.isAutoAvailable() &&
+              <Button
+                type='full'
+                color='blue'
+                size='m'
+                label={t('automatic')}
+                onClick={this.selectModeAuto.bind(this)}
+                isDisabled={!this.isAutoEnabled()}
+                isPending={singleProcessingStore.isFetchingData}
+              />
+            }
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>

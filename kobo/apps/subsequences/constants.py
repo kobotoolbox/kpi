@@ -1,0 +1,2 @@
+GOOGLETX = 'googletx'
+GOOGLETS = 'googlets'
