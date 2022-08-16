@@ -66,6 +66,7 @@ class PairedData(OpenRosaManifestInterface,
             self.paired_data_uid = paired_data_uid
 
         self._asset_file = None
+        self._source_asset = None
 
     def __str__(self):
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
@@ -156,7 +157,11 @@ class PairedData(OpenRosaManifestInterface,
                        args=(self.asset.uid, self.paired_data_uid, 'xml'),
                        request=request)
 
-    def get_source(self) -> Union['Asset', None]:
+    def get_source(self, force: bool = False) -> Union['Asset', None]:
+        # if `self._source_asset` has been already set once, use the cache
+        # object instead of fetching it from DB again.
+        if not force and self._source_asset:
+            return self._source_asset
 
         # Avoid circular import
         Asset = self.asset.__class__  # noqa
@@ -183,7 +188,9 @@ class PairedData(OpenRosaManifestInterface,
         ):
             return None
 
-        return source_asset
+        self._source_asset = source_asset
+
+        return self._source_asset
 
     @property
     def md5_hash(self):
