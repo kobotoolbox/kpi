@@ -9,6 +9,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
@@ -509,11 +510,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 # We do not want to include the version field.
                 # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
                 # for field name alternatives.
-                version_pattern = r'^__?version__?(\d{3})?$'
                 valid_fields = [
                     f.path for f in form_pack.get_fields_for_versions(
                         form_pack.versions.keys()
-                    ) if not re.match(version_pattern, f.path)
+                    ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:
