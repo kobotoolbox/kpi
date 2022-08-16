@@ -86,7 +86,7 @@ dict2xml==1.7.1
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
-django==3.2
+django==3.2.15
     # via
     #   -r dependencies/pip/requirements.in
     #   django-amazon-ses
