@@ -2,12 +2,13 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
+from trench.settings import api_settings
 from trench.utils import get_mfa_model
 
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-class MFAApiTestCase(BaseTestCase):
+class MfaApiTestCase(BaseTestCase):
 
     fixtures = ['test_data']
 
@@ -43,3 +44,26 @@ class MFAApiTestCase(BaseTestCase):
         ]
         for field in expected_fields:
             self.assertTrue(field in results[0])
+
+    def test_mfa_activation_always_creates_new_secret(self):
+        self.client.login(username='anotheruser', password='anotheruser')
+        mfa_methods = api_settings.MFA_METHODS.keys()
+        for method in mfa_methods:
+            first_response = self.client.post(
+                reverse('mfa-activate', args=(method,))
+            )
+            first_secret = (
+                get_mfa_model()
+                .objects.get(user__username='anotheruser', name=method)
+                .secret
+            )
+            second_response = self.client.post(
+                reverse('mfa-activate', args=(method,))
+            )
+            second_secret = (
+                get_mfa_model()
+                .objects.get(user__username='anotheruser', name=method)
+                .secret
+            )
+            assert first_secret != second_secret
+            assert first_response.json() != second_response.json()

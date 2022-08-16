@@ -2,6 +2,9 @@ stages:
   - build
   - test
   - deploy
+  
+include:
+  - template: SAST.gitlab-ci.yml
 
 build:
   image: docker

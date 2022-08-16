@@ -9,6 +9,7 @@
 
 import moment from 'moment';
 import alertify from 'alertifyjs';
+import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
@@ -24,7 +25,34 @@ alertify.defaults.notifier.closeButton = true;
 const cookies = new Cookies();
 
 export function notify(msg: string, atype = 'success') {
-  alertify.notify(msg, atype);
+  // To avoid changing too much, the default remains 'success' if unspecified.
+  //   e.g. notify('yay!') // success
+
+  switch (atype) {
+
+    case 'success':
+      toast.success(msg);
+      break;
+
+    case 'error':
+      toast.error(msg);
+      break;
+
+    case 'warning':
+      toast(msg, {icon: '⚠️'});
+      break;
+
+    case 'empty':
+      toast(msg); // No icon
+      break;
+
+    // Defensively render empty if we're passed an unknown atype,
+    // in case we missed something.
+    //   e.g. notify('mystery!', '?') //
+    default:
+      toast(msg); // No icon
+      break;
+  }
 }
 
 /**

@@ -56,6 +56,7 @@ jobs:
       run: >-
         sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
         gdal-bin gettext libproj-dev postgresql-client ffmpeg
+        gcc libc-dev
     - name: Install Python dependencies
       run: pip-sync dependencies/pip/dev_requirements.txt
     - name: Install JavaScript dependencies
