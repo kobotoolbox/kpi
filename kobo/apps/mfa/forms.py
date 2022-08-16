@@ -10,7 +10,7 @@ from trench.utils import (
 )
 
 
-class MFALoginForm(AuthenticationForm):
+class MfaLoginForm(AuthenticationForm):
     """
     Authenticating users.
     If 2FA is activated, first step (of two) of the login process.
@@ -42,7 +42,7 @@ class MFALoginForm(AuthenticationForm):
         return self.ephemeral_token_cache
 
 
-class MFATokenForm(forms.Form):
+class MfaTokenForm(forms.Form):
     """
     Validate 2FA token.
     Second (and last) step of login process when MFA is activated.

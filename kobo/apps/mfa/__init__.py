@@ -8,6 +8,5 @@ class MfaAppConfig(AppConfig):
 
     def ready(self):
         # Makes sure all signal handlers are connected
-        # Uncomment the lines below if you need signals
-        # from kobo.apps.mfa import signals
+        from kobo.apps.mfa import signals
         super().ready()
