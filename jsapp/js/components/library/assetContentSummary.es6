@@ -63,6 +63,7 @@ class AssetContentSummary extends React.Component {
     }
 
     // TODO add a language selection to display localized questions labels
+    // See: https://github.com/kobotoolbox/kpi/issues/3916
     let items = getFlatQuestionsList(this.props.asset.content.survey);
     const isExpandable = items.length > DISPLAY_LIMIT;
 

@@ -252,6 +252,7 @@ export class FormMap extends React.Component {
 
   requestData(map, nextViewBy = '') {
     // TODO: support area / line geodata questions
+    // See: https://github.com/kobotoolbox/kpi/issues/3913
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
 
     this.props.asset.content.survey.forEach(function(row) {
@@ -349,7 +350,6 @@ export class FormMap extends React.Component {
 
       if (colorSet !== undefined && colorSet !== 'a' && question && question.type == 'select_one') {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
-        // TODO: should we expose this for users to choose in map settings?
         mM.sort(function(a, b) {
           var aIndex = currentQuestionChoices.findIndex(ch => ch.name === a.value);
           var bIndex = currentQuestionChoices.findIndex(ch => ch.name === b.value);

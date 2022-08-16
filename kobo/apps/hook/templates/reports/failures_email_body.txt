@@ -27,4 +27,4 @@
 {% endfor %}
 
 {% trans "Best," %}
-KoBoToolbox
+KoboToolbox
