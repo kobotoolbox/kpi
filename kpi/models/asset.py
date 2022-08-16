@@ -46,6 +46,7 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import (
+    AssetAdjustContentError,
     BadPermissionsException,
     DeploymentDataException,
 )
@@ -698,13 +699,34 @@ class Asset(ObjectPermissionMixin,
             )
             return
 
+        update_content_field = update_fields and 'content' in update_fields
+
+        # Raise an exception if we want to adjust asset content
+        # (i.e. `adjust_content` is True) but we are trying to update only
+        # certain fields and `content` is not part of them, or if we
+        # specifically ask to not adjust asset content, but trying to
+        # update only certain fields and `content` is one of them.
+        if (
+            (adjust_content and update_fields and 'content' not in update_fields)
+            or
+            (not adjust_content and update_content_field)
+        ):
+            raise AssetAdjustContentError
+
+        # If `content` is part of the updated fields, `summary` and
+        # `report_styles` must be too.
+        if update_content_field:
+            update_fields += ['summary', 'report_styles']
+            # Avoid duplicates
+            update_fields = list(set(update_fields))
+
         # `self.content` must be the second condition. We do not want to get
         # the value of `self.content` if first condition is false.
         # The main purpose of this is avoid to load `self.content` when it is
         # deferred (see `AssetNestedObjectViewsetMixin.asset`) and does not need
         # to be updated.
         if (
-            (not update_fields or update_fields and 'content' in update_fields)
+            (not update_fields or update_content_field)
             and self.content is None
         ):
             self.content = {}
