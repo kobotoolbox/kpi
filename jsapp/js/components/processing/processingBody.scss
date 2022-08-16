@@ -41,9 +41,7 @@
 .processing-body__transx-header-buttons {
   @include mixins.centerRowFlex;
 
-  & > *:not(:last-child) {
-    margin-right: sizes.$x12;
-  }
+  gap: sizes.$x12;
 }
 
 .processing-body__text {
@@ -80,14 +78,14 @@
 
 .processing-body__footer {
   @include mixins.centerRowFlex;
+
   padding: sizes.$x20 0;
   justify-content: space-between;
-
-  *:not(:first-child) {
-    margin-left: sizes.$x14;
-  }
+  gap: sizes.$x14;
 }
 
 .processing-body__footer-right-buttons {
   @include mixins.centerRowFlex;
+
+  gap: sizes.$x14;
 }

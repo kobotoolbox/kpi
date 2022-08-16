@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('kpi', '0040_asset_advanced_features'),
+        ('kpi', '0041_asset_advanced_features'),
     ]
 
     operations = [
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('uuid', models.CharField(max_length=40, null=True)),
+                ('submission_uuid', models.CharField(max_length=40, null=True)),
                 ('content', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
                 ('asset', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='submission_extras', to='kpi.Asset')),
             ],

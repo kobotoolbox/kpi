@@ -21,8 +21,8 @@ export default class TranslationsTabContent extends React.Component<
   {},
   TranslationsTabContentState
 > {
-  constructor() {
-    super({});
+  constructor(props: {}) {
+    super(props);
 
     this.state = {
       // We want to always have a translation selected when there is at least
@@ -106,8 +106,12 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   selectModeAuto() {
-    // TODO: this will display an automated service selector that will
-    // ultimately produce a draft value.
+    // Currently we only support automatic translation from transcript language,
+    // but we should also allow to use the source data language.
+    const languageCode = singleProcessingStore.getTranslationDraft()?.languageCode;
+    if (languageCode) {
+      singleProcessingStore.requestAutoTranslation(languageCode);
+    }
   }
 
   back() {
@@ -204,6 +208,30 @@ export default class TranslationsTabContent extends React.Component<
       languages.push(translation.languageCode);
     });
     return languages;
+  }
+
+  /**
+   * Checks if language is selected and if it is available in the automated
+   * services we use.
+   */
+  isAutoEnabled() {
+    const draft = singleProcessingStore.getTranslationDraft();
+
+    // HACK: Automatic services use long language codes ("en-GB"), but we use
+    // short ones ("en"), so here we check only first two letters.
+    // This will be fixed in next releases, so relax and keep calm.
+    const isLanguageAvailable = Boolean(
+      Object.keys(envStore.data.translation_languages).find((longLanguageCode) =>
+        draft?.languageCode && longLanguageCode.startsWith(draft?.languageCode)
+      )
+    );
+
+    return draft?.languageCode !== undefined && isLanguageAvailable;
+  }
+
+  /** Whether automatic services are available for current user. */
+  isAutoAvailable() {
+    return envStore.data.asr_mt_features_enabled;
   }
 
   renderLanguageAndDate() {
@@ -316,11 +344,12 @@ export default class TranslationsTabContent extends React.Component<
     return (
       <bem.ProcessingBody m='config'>
         <LanguageSelector
-          titleOverride={t('Please selet the language you want to translate to')}
+          titleOverride={t('Please select the language you want to translate to')}
           onLanguageChange={this.onLanguageChange.bind(this)}
           sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
           hiddenLanguages={this.getTranslationsLanguages()}
           suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
+          isDisabled={singleProcessingStore.isFetchingData}
         />
 
         <bem.ProcessingBody__footer>
@@ -331,6 +360,7 @@ export default class TranslationsTabContent extends React.Component<
             label={t('back')}
             startIcon='caret-left'
             onClick={this.back.bind(this)}
+            isDisabled={singleProcessingStore.isFetchingData}
           />
 
           <bem.ProcessingBody__footerRightButtons>
@@ -338,20 +368,23 @@ export default class TranslationsTabContent extends React.Component<
               type='frame'
               color='blue'
               size='m'
-              label={t('manual')}
+              label={this.isAutoAvailable() ? t('manual') : t('translate')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={draft?.languageCode === undefined}
+              isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            <Button
-              type='full'
-              color='blue'
-              size='m'
-              label={t('automatic')}
-              onClick={this.selectModeAuto.bind(this)}
-              // TODO: This is disabled until we actually work on automated services integration.
-              isDisabled
-            />
+            {/* We hide button for users that don't have access to the feature. */}
+            {this.isAutoAvailable() &&
+              <Button
+                type='full'
+                color='blue'
+                size='m'
+                label={t('automatic')}
+                onClick={this.selectModeAuto.bind(this)}
+                isDisabled={!this.isAutoEnabled()}
+                isPending={singleProcessingStore.isFetchingData}
+              />
+            }
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>

@@ -632,6 +632,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'pk': attachment_id,
             }
 
+        # Ensure the attachment actually belongs to this project!
+        # FIXME: this is only needed when querying by uuid, right?
+        # FIXME: refactor this method to always convert uuids to PKs
+        filters['instance__xform_id'] = self.xform_id
+
         try:
             attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
         except ReadOnlyKobocatAttachment.DoesNotExist:
@@ -1305,7 +1310,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if add_supplemental_details_to_query:
             extras_query = self.asset.submission_extras
-            extras_data = dict(extras_query.values_list('uuid', 'content'))
+            extras_data = dict(extras_query.values_list('submission_uuid', 'content'))
             mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
 
         return (

@@ -1,15 +1,13 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {hashHistory} from 'react-router';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
-import {ROUTES} from 'js/router/routerConstants';
 import {
   downloadUrl,
   formatTimeDate,
   formatDate,
 } from 'js/utils';
-import {renderQuestionTypeIcon} from 'js/assetUtils';
+import {findRow, renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
@@ -30,6 +28,7 @@ import type {
   SubmissionResponse,
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
+import {openProcessing} from 'js/components/processing/processingUtils';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -51,11 +50,17 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   }
 
   openProcessing(name: string) {
-    const finalRoute = ROUTES.FORM_PROCESSING
-      .replace(':uid', this.props.asset.uid)
-      .replace(':questionName', name)
-      .replace(':submissionUuid', this.props.submissionData._uuid);
-    hashHistory.push(finalRoute);
+    if (this.props.asset?.content) {
+      const foundRow = findRow(this.props.asset?.content, name);
+      if (foundRow) {
+        openProcessing(
+          this.props.asset.uid,
+          foundRow.$qpath,
+          this.props.submissionData._uuid
+        );
+      }
+    }
+
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -268,7 +273,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               size='s'
               color='blue'
               endIcon='arrow-up-right'
-              label={t('process')}
+              label={t('Open')}
               onClick={this.openProcessing.bind(this, name)}
             />
 
@@ -277,7 +282,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               size='s'
               color='blue'
               endIcon='download'
-              label={t('download')}
+              label={t('Download')}
               onClick={downloadUrl.bind(this, attachment.download_url)}
             />
           </React.Fragment>

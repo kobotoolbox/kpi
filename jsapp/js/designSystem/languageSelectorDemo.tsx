@@ -7,6 +7,7 @@ interface LanguageSelectorDemoState {
   demoHasSourceLanguage: boolean;
   demoHasSuggestedLanguages: boolean;
   demoIsCustomAllowed: boolean;
+  demoIsDisabled: boolean;
 }
 
 export default class LanguageSelectorDemo extends React.Component<{}, LanguageSelectorDemoState> {
@@ -16,6 +17,7 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
       demoHasSourceLanguage: false,
       demoHasSuggestedLanguages: false,
       demoIsCustomAllowed: false,
+      demoIsDisabled: false,
     };
   }
 
@@ -33,6 +35,10 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
 
   onIsCustomAllowedChange(isChecked: boolean) {
     this.setState({demoIsCustomAllowed: isChecked});
+  }
+
+  onIsDisabledChange(isChecked: boolean) {
+    this.setState({demoIsDisabled: isChecked});
   }
 
   render() {
@@ -81,6 +87,14 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                         checked={this.state.demoIsCustomAllowed}
                       />
                     </div>
+
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='is disabled'
+                        onChange={this.onIsDisabledChange.bind(this)}
+                        checked={this.state.demoIsDisabled}
+                      />
+                    </div>
                   </div>
                 </form>
               </bem.SimpleTable__cell>
@@ -91,6 +105,7 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                     suggestedLanguages={this.state.demoHasSuggestedLanguages ? ['pl', 'fr'] : undefined}
                     onLanguageChange={this.onLanguageChange.bind(this)}
                     isCustomAllowed={this.state.demoIsCustomAllowed}
+                    isDisabled={this.state.demoIsDisabled}
                   />
                 </div>
               </bem.SimpleTable__cell>

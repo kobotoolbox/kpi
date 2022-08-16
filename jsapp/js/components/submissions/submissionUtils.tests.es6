@@ -195,25 +195,25 @@ describe('getRowSupplementalResponses', () => {
       {
         data: 'This is french transcript text.',
         type: null,
-        label: 'Secret password as an audio file - transcript (fr)',
+        label: 'transcript (fr) | Secret password as an audio file',
         name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
       },
       {
         data: 'N/A',
         type: null,
-        label: 'Secret password as an audio file - transcript (pl)',
+        label: 'transcript (pl) | Secret password as an audio file',
         name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_pl',
       },
       {
         data: 'This is polish translation text.',
         type: null,
-        label: 'Secret password as an audio file - translation (pl)',
+        label: 'translation (pl) | Secret password as an audio file',
         name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl',
       },
       {
         data: 'This is german translation text.',
         type: null,
-        label: 'Secret password as an audio file - translation (de)',
+        label: 'translation (de) | Secret password as an audio file',
         name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_de',
       },
     ]);
