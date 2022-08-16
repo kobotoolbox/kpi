@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 
 from django.conf import settings
 from django.utils.translation import gettext as t
@@ -498,7 +499,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             else:
                 asset = self.instance
                 fields = data_sharing['fields']
-                not_supported_types = ['calculate']
                 # We used to get all fields for every version for valid fields,
                 # but the UI shows the latest version only, so only its fields
                 # can be picked up. It is easier then to compare valid fields with
@@ -506,10 +506,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 form_pack, _unused = build_formpack(
                     asset, submission_stream=[], use_all_form_versions=False
                 )
+                # We do not want to include the version field.
+                # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
+                # for field name alternatives.
+                version_pattern = r'^__?version__?(\d{3})?$'
                 valid_fields = [
                     f.path for f in form_pack.get_fields_for_versions(
                         form_pack.versions.keys()
-                    ) if f.data_type not in not_supported_types
+                    ) if not re.match(version_pattern, f.path)
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:

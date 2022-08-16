@@ -124,7 +124,6 @@ class PairedDataSerializer(serializers.Serializer):
             return
 
         source = attrs['source']
-        not_supported_types = ['calculate']
         # We used to get all fields for every version for valid fields,
         # but the UI shows the latest version only, so only its fields
         # can be picked up. It is easier then to compare valid fields with
@@ -132,10 +131,14 @@ class PairedDataSerializer(serializers.Serializer):
         form_pack, _unused = build_formpack(
             source, submission_stream=[], use_all_form_versions=False
         )
+        # We do not want to include the version field.
+        # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
+        # for field name alternatives.
+        version_pattern = r'^__?version__?(\d{3})?$'
         valid_fields = [
             f.path for f in form_pack.get_fields_for_versions(
                 form_pack.versions.keys()
-            ) if f.data_type not in not_supported_types
+            ) if not re.match(version_pattern, f.path)
         ]
 
         source_fields = source.data_sharing.get('fields') or valid_fields
