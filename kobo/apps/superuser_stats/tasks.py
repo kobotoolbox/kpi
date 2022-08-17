@@ -211,8 +211,8 @@ def generate_user_details_report(output_filename: str):
 
     def flatten_metadata_inplace(metadata):
         for k, v in metadata.items():
-            if isinstance(v, list):
-                v = v[0] if v else ''
+            if isinstance(v, list) and v:
+                metadata[k] = ', '.join([item['value'] for item in v])
             if isinstance(v, dict) and 'value' in v:
                 metadata[k] = v['value']
 
