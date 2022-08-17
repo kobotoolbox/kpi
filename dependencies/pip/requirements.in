@@ -13,7 +13,7 @@
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
 # Regular PyPI packages
-Django>=2.2,<2.3
+Django>=3.2,<3.3
 Markdown
 Pygments
 amqp
@@ -43,7 +43,7 @@ django-markdownx
 django-markitup
 django-mptt
 
-django-reversion<3.0.2 # Migration issue with 3.0.2
+django-reversion
 django-taggit
 django-private-storage
 djangorestframework
@@ -59,7 +59,7 @@ lxml
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
-psycopg2>=2.8,<2.9
+psycopg2
 pymongo==3.12.3
 python-dateutil
 pyxform==1.9.0
@@ -87,6 +87,9 @@ deepmerge
 
 # MFA
 django-trench==0.2.3
+
+# Sentry
+sentry-sdk
 
 # Python 3.8 support
 backports.zoneinfo; python_version < '3.9'

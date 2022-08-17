@@ -12,10 +12,12 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
     # via -r dependencies/pip/requirements.in
-amqp==5.1.0
+amqp==5.1.1
     # via
     #   -r dependencies/pip/requirements.in
     #   kombu
+asgiref==3.5.0
+    # via django
 async-timeout==4.0.2
     # via redis
 attrs==21.4.0
@@ -30,11 +32,11 @@ billiard==3.6.4.0
     # via
     #   -r dependencies/pip/requirements.in
     #   celery
-boto3==1.21.35
+boto3==1.22.2
     # via
     #   django-amazon-ses
     #   django-storages
-botocore==1.24.35
+botocore==1.25.2
     # via
     #   boto3
     #   s3transfer
@@ -46,6 +48,7 @@ certifi==2021.10.8
     # via
     #   msrest
     #   requests
+    #   sentry-sdk
 cffi==1.15.0
     # via cryptography
 charset-normalizer==2.0.12
@@ -62,7 +65,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.2.0
     # via celery
-cryptography==36.0.2
+cryptography==37.0.1
     # via
     #   azure-storage-blob
     #   jwcrypto
@@ -83,7 +86,7 @@ dict2xml==1.7.1
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
-django==2.2.27
+django==3.2.15
     # via
     #   -r dependencies/pip/requirements.in
     #   django-amazon-ses
@@ -136,7 +139,7 @@ django-markitup==4.0.0
     # via -r dependencies/pip/requirements.in
 django-mptt==0.13.4
     # via -r dependencies/pip/requirements.in
-django-oauth-toolkit==1.7.1
+django-oauth-toolkit==2.0.0
     # via -r dependencies/pip/requirements.in
 django-picklefield==3.0.1
     # via django-constance
@@ -150,7 +153,7 @@ django-registration-redux==2.10
     # via -r dependencies/pip/requirements.in
 django-request-cache==1.2
     # via -r dependencies/pip/requirements.in
-django-reversion==3.0.1
+django-reversion==5.0.0
     # via -r dependencies/pip/requirements.in
 django-storages[azure,boto3]==1.12.3
     # via -r dependencies/pip/requirements.in
@@ -194,7 +197,7 @@ jsonfield==3.1.0
     # via -r dependencies/pip/requirements.in
 jsonschema==4.4.0
     # via formpack
-jwcrypto==1.0
+jwcrypto==1.2
     # via django-oauth-toolkit
 kombu==5.2.4
     # via
@@ -232,7 +235,7 @@ pillow==9.1.0
     # via django-markdownx
 prompt-toolkit==3.0.29
     # via click-repl
-psycopg2==2.8.6
+psycopg2==2.9.3
     # via -r dependencies/pip/requirements.in
 pyasn1==0.4.8
     # via
@@ -240,7 +243,7 @@ pyasn1==0.4.8
     #   ndg-httpsclient
 pycparser==2.21
     # via cffi
-pygments==2.11.2
+pygments==2.12.0
     # via -r dependencies/pip/requirements.in
 pyjwt==2.3.0
     # via twilio
@@ -252,7 +255,7 @@ pyopenssl==22.0.0
     #   ndg-httpsclient
 pyotp==2.6.0
     # via django-trench
-pyparsing==3.0.7
+pyparsing==3.0.8
     # via packaging
 pyquery==1.4.3
     # via formpack
@@ -298,6 +301,8 @@ responses==0.20.0
     # via -r dependencies/pip/requirements.in
 s3transfer==0.5.2
     # via boto3
+sentry-sdk==1.5.12
+    # via -r dependencies/pip/requirements.in
 shortuuid==1.0.8
     # via -r dependencies/pip/requirements.in
 six==1.16.0
@@ -306,7 +311,7 @@ six==1.16.0
     #   click-repl
     #   isodate
     #   python-dateutil
-smsapi-client==2.5.0
+smsapi-client==2.6.0
     # via django-trench
 sqlparse==0.4.2
     # via
@@ -321,7 +326,7 @@ statistics==1.0.3.5
     # via formpack
 tabulate==0.8.9
     # via -r dependencies/pip/requirements.in
-twilio==7.8.0
+twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
     # via azure-core
@@ -332,6 +337,7 @@ urllib3==1.26.9
     #   botocore
     #   requests
     #   responses
+    #   sentry-sdk
 uwsgi==2.0.20
     # via -r dependencies/pip/requirements.in
 vine==5.0.0
