@@ -6,9 +6,10 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.pagination import LimitOffsetPagination
 
-from kpi.tasks import sync_kobocat_xforms
+from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer
+from kpi.tasks import sync_kobocat_xforms
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -18,9 +19,13 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
 
     queryset = User.objects.all()
+    filter_backends = (SearchFilter,)
     serializer_class = UserSerializer
     lookup_field = 'username'
     pagination_class = LimitOffsetPagination
+    search_default_field_lookups = [
+        'username__icontains',
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,16 +41,8 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if not request.user.is_superuser:
             raise exceptions.PermissionDenied()
 
-        # Filtering by username
-        username = request.GET.get('username')
-        if username:
-            queryset = self.queryset.filter(username=username)
-            if not queryset:
-                return Response('User does not exist')
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data[0])
-
-        page = self.paginate_queryset(self.queryset)
+        filtered_queryset = self.filter_queryset(self.queryset).order_by('id')
+        page = self.paginate_queryset(filtered_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)

@@ -14,10 +14,27 @@ class UserListTests(BaseTestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
 
-    def test_user_list_forbidden(self):
+    def test_user_list_allowed_superuser(self):
         """
-        we cannot query the entire user list
+        a superuser can query the entire user list and search
         """
+        url = reverse(self._get_endpoint('user-list'))
+        response = self.client.get(url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        # test filtering by username
+        q = '?q=admin'
+        response = self.client.get(url + q, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['username'] == 'admin'
+
+    def test_user_list_forbidden_non_superuser(self):
+        """
+        a non-superuser cannot query the entire user list
+        """
+        self.client.logout()
+        self.client.login(username='someuser')
         url = reverse(self._get_endpoint('user-list'))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

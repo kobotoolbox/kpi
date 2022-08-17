@@ -4,6 +4,9 @@ import unicodecsv
 from celery import shared_task
 from django.conf import settings
 from django.core.files.storage import get_storage_class
+from django.contrib.auth.models import User
+from django.db.models import CharField, F, Count
+from django.db.models.functions import Cast
 
 from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
@@ -167,3 +170,74 @@ def generate_user_report(output_filename: str):
             except Exception as e:
                 row = ['!FAILED!', 'User PK: {}'.format(kc_user.pk), repr(e)]
             writer.writerow(row)
+
+
+@shared_task
+def generate_user_details_report(output_filename: str):
+    USER_COLS = [
+        'id',
+        'username',
+        'is_superuser',
+        'is_staff',
+        'date_joined_str',
+        'last_login_str',
+        'first_name',
+        'last_name',
+        'is_active',
+        'email',
+        'mfa_is_active',
+        'asset_count',
+    ]
+    METADATA_COL = ['metadata']
+    EXTRA_DETAILS_COLS = [
+        'name',
+        'gender',
+        'sector',
+        'country',
+        'city',
+        'bio',
+        'organization',
+        'require_auth',
+        'phone_number',
+        'primarySector',
+        'address',
+        'default_language',
+        'organization_website',
+        'twitter',
+        'linkedin',
+        'instagram',
+        'metadata',
+    ]
+
+    def flatten_metadata_inplace(metadata):
+        for k, v in metadata.items():
+            if isinstance(v, list):
+                v = v[0] if v else ''
+            if isinstance(v, dict) and 'value' in v:
+                metadata[k] = v['value']
+
+    values = USER_COLS + METADATA_COL
+    data = (
+        User.objects.all()
+        .annotate(
+            mfa_is_active=F('mfa_methods__is_active'),
+            metadata=F('extra_details__data'),
+            date_joined_str=Cast('date_joined', CharField()),
+            last_login_str=Cast('last_login', CharField()),
+            asset_count=Count('assets'),
+        )
+        .values(*values)
+        .order_by('id')
+    )
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as f:
+        columns = USER_COLS + EXTRA_DETAILS_COLS
+        writer = unicodecsv.writer(f)
+        writer.writerow(columns)
+        for row in data:
+            metadata = row.pop('metadata', {}) or dict()
+            flatten_metadata_inplace(metadata)
+            row.update(metadata)
+            flat_row = [row.get(col, '') for col in columns]
+            writer.writerow(flat_row)

@@ -79,7 +79,6 @@ class UserListSerializer(UserSerializer):
             'username',
             'is_superuser',
             'is_staff',
-            'asset_count',
             'date_joined',
             'last_login',
             'first_name',
@@ -87,6 +86,7 @@ class UserListSerializer(UserSerializer):
             'is_active',
             'email',
             'mfa_is_active',
+            'asset_count',
             'metadata',
         )
 
