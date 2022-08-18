@@ -9,7 +9,6 @@ from jsonschema import validate as jsonschema_validate
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -146,10 +145,10 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONBField(default=dict)
-    summary = JSONBField(default=dict)
-    report_styles = JSONBField(default=dict)
-    report_custom = JSONBField(default=dict)
+    content = models.JSONField(default=dict)
+    summary = models.JSONField(default=dict)
+    report_styles = models.JSONField(default=dict)
+    report_custom = models.JSONField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     advanced_features = LazyDefaultJSONBField(default=dict)
@@ -161,12 +160,12 @@ class Asset(ObjectPermissionMixin,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings = JSONBField(default=dict)
+    settings = models.JSONField(default=dict)
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
     # ToDo Move the field to another table with one-to-one relationship
-    _deployment_data = JSONBField(default=dict)
+    _deployment_data = models.JSONField(default=dict)
 
     # JSON with subset of fields to share
     # {

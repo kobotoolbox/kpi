@@ -505,6 +505,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
                 'kpi.context_processors.external_service_tokens',
@@ -972,3 +973,6 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
+
+# Django 3.2 required settings
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
