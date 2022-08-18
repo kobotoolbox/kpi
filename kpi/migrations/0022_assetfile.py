@@ -3,7 +3,6 @@ import django.utils.timezone
 import private_storage.fields
 import private_storage.storage.files
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import migrations, models
 
 import kpi.fields
@@ -28,7 +27,7 @@ class Migration(migrations.Migration):
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('content', private_storage.fields.PrivateFileField(storage=private_storage.storage.files.PrivateFileSystemStorage(),
                                                                     max_length=380, upload_to=kpi.models.asset_file.upload_to)),
-                ('metadata', JSONBField(default=dict)),
+                ('metadata', models.JSONField(default=dict)),
             ],
         ),
         # Why did `manage.py makemigrations` create these as separate operations?
