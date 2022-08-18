@@ -1,7 +1,6 @@
 # coding: utf-8
 from collections import defaultdict
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
 
@@ -38,7 +37,7 @@ class AssetUserPartialPermission(models.Model):
                               on_delete=models.CASCADE)
     user = models.ForeignKey('auth.User', related_name='user_partial_permissions',
                              on_delete=models.CASCADE)
-    permissions = JSONBField(default=dict)
+    permissions = models.JSONField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
 

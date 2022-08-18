@@ -2,7 +2,6 @@
 # 😬
 import copy
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from rest_framework.reverse import reverse
 
@@ -63,8 +62,8 @@ class AssetSnapshot(
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONBField(default=dict)
-    details = JSONBField(default=dict)
+    source = models.JSONField(default=dict)
+    details = models.JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)

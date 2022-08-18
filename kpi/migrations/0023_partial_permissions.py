@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.contrib.postgres.fields import JSONField as JSONBField
+
 from django.conf import settings
 from django.db import migrations, models
 import django.utils.timezone
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='AssetUserPartialPermission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('permissions', JSONBField(default=dict)),
+                ('permissions', models.JSONField(default=dict)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
             ],

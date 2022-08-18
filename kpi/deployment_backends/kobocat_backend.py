@@ -75,7 +75,7 @@ from kobo.apps.subsequences.utils import stream_with_extras
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
     Used to deploy a project into KoBoCAT. Stores the project identifiers in the
-    `self.asset._deployment_data` JSONBField (referred as "deployment data")
+    `self.asset._deployment_data` models.JSONField (referred as "deployment data")
     """
 
     PROTECTED_XML_FIELDS = [

@@ -2,7 +2,6 @@
 # 😇
 import datetime
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
@@ -78,7 +77,7 @@ class InAppMessageFile(models.Model):
 class InAppMessageUserInteractions(models.Model):
     message = models.ForeignKey(InAppMessage, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    interactions = JSONBField(default=dict)
+    interactions = models.JSONField(default=dict)
 
     class Meta:
         unique_together = ('message', 'user')
