@@ -7,8 +7,8 @@ from django.views.i18n import JavaScriptCatalog
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from kobo.apps.mfa.views import (
-    MFALoginView,
-    MFATokenView,
+    MfaLoginView,
+    MfaTokenView,
 )
 from kobo.apps.superuser_stats.views import (
     user_report,

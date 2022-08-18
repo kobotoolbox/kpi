@@ -4,7 +4,7 @@
 #
 #    pip-compile dependencies/pip/dev_requirements.in
 #
--e git+https://github.com/kobotoolbox/a1d05eba1.git@f7f61307b3e8011c5b7e040276afbe32388b957c#egg=a1d05eba1-dorey
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@4816baeb76e4e01368addbf3ee5837569a163c5c#egg=a1d05eba1-dorey
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
@@ -272,7 +272,10 @@ jmespath==1.0.0
 jsonfield==3.1.0
     # via -r dependencies/pip/requirements.in
 jsonschema==4.4.0
-    # via formpack
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   a1d05eba1-dorey
+    #   formpack
 jwcrypto==1.2
     # via django-oauth-toolkit
 kombu==5.2.4
@@ -462,7 +465,6 @@ six==1.16.0
     #   google-auth
     #   grpcio
     #   isodate
-    #   jsonschema
     #   mongomock
     #   paramiko
     #   pathlib2
