@@ -9,6 +9,7 @@ from jsonschema import validate as jsonschema_validate
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -19,16 +20,17 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
-from kobo.apps.subsequences.utils import advanced_submission_jsonschema
-from kobo.apps.subsequences.utils import advanced_feature_instances
-
-from django.core.exceptions import ObjectDoesNotExist
-
+from kobo.apps.reports.constants import (
+    SPECIFIC_REPORTS_KEY,
+    DEFAULT_REPORTS_KEY,
+)
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
-from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
-                                         DEFAULT_REPORTS_KEY)
+from kobo.apps.subsequences.utils import (
+    advanced_feature_instances,
+    advanced_submission_jsonschema,
+)
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
