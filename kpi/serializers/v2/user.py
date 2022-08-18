@@ -94,6 +94,8 @@ class UserListSerializer(UserSerializer):
         return user.assets.count()
 
     def get_metadata(self, user):
+        if not hasattr(user, 'extra_details'):
+            return {}
         return user.extra_details.data
 
     def get_mfa_is_active(self, user):
