@@ -1,31 +1,34 @@
 from django.db import models
-from django.contrib.postgres.fields import JSONField
 
-from kpi.models import Asset
 from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
-from kobo.apps.subsequences.integrations.google.google_translate import  (
-    GoogleTranslationEngine,
-)
-from kobo.apps.subsequences.integrations.google.google_transcribe import  (
+from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscribeEngine,
 )
-
+from kobo.apps.subsequences.integrations.google.google_translate import (
+    GoogleTranslationEngine,
+)
 from kobo.apps.subsequences.tasks import (
     handle_google_translation_operation,
 )
+from kpi.models import Asset
 
 TEMP_LANGCODE_EXPANDS = {
     'en': 'en-US',
 }
 
+
 class SubmissionExtras(models.Model):
+
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     submission_uuid = models.CharField(max_length=40, null=True)
-    content = JSONField(default=dict)
-
-    asset = models.ForeignKey(Asset, related_name='submission_extras',
-                              on_delete=models.CASCADE, null=True)
+    content = models.JSONField(default=dict)
+    asset = models.ForeignKey(
+        Asset,
+        related_name='submission_extras',
+        on_delete=models.CASCADE,
+        null=True,
+    )
 
     def save(self):
         features = self.asset.advanced_features

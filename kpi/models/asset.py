@@ -9,6 +9,7 @@ from jsonschema import validate as jsonschema_validate
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -19,16 +20,17 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
-from kobo.apps.subsequences.utils import advanced_submission_jsonschema
-from kobo.apps.subsequences.utils import advanced_feature_instances
-
-from django.core.exceptions import ObjectDoesNotExist
-
+from kobo.apps.reports.constants import (
+    SPECIFIC_REPORTS_KEY,
+    DEFAULT_REPORTS_KEY,
+)
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
-from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
-                                         DEFAULT_REPORTS_KEY)
+from kobo.apps.subsequences.utils import (
+    advanced_feature_instances,
+    advanced_submission_jsonschema,
+)
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
@@ -55,6 +57,7 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import (
+    AssetAdjustContentError,
     BadPermissionsException,
     DeploymentDataException,
 )
@@ -772,7 +775,36 @@ class Asset(ObjectPermissionMixin,
             )
             return
 
-        if self.content is None:
+        update_content_field = update_fields and 'content' in update_fields
+
+        # Raise an exception if we want to adjust asset content
+        # (i.e. `adjust_content` is True) but we are trying to update only
+        # certain fields and `content` is not part of them, or if we
+        # specifically ask to not adjust asset content, but trying to
+        # update only certain fields and `content` is one of them.
+        if (
+            (adjust_content and update_fields and 'content' not in update_fields)
+            or
+            (not adjust_content and update_content_field)
+        ):
+            raise AssetAdjustContentError
+
+        # If `content` is part of the updated fields, `summary` and
+        # `report_styles` must be too.
+        if update_content_field:
+            update_fields += ['summary', 'report_styles']
+            # Avoid duplicates
+            update_fields = list(set(update_fields))
+
+        # `self.content` must be the second condition. We do not want to get
+        # the value of `self.content` if first condition is false.
+        # The main purpose of this is avoid to load `self.content` when it is
+        # deferred (see `AssetNestedObjectViewsetMixin.asset`) and does not need
+        # to be updated.
+        if (
+            (not update_fields or update_content_field)
+            and self.content is None
+        ):
             self.content = {}
 
         # in certain circumstances, we don't want content to
@@ -780,10 +812,15 @@ class Asset(ObjectPermissionMixin,
         if adjust_content:
             self.adjust_content_on_save()
 
-        self.validate_advanced_features()
+        if (
+            not update_fields
+            or update_fields and 'advanced_features' in update_fields
+        ):
+            self.validate_advanced_features()
 
-        # populate summary
-        self._populate_summary()
+        # populate summary (only when required)
+        if not update_fields or update_fields and 'summary' in update_fields:
+            self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -797,7 +834,12 @@ class Asset(ObjectPermissionMixin,
                 elif row_count > 1:
                     self.asset_type = ASSET_TYPE_BLOCK
 
-        self._populate_report_styles()
+        # populate report styles (only when required)
+        if (
+            not update_fields
+            or update_fields and 'report_styles' in update_fields
+        ):
+            self._populate_report_styles()
 
         # Ensure `_deployment_data` is not saved directly
         try:
