@@ -810,7 +810,11 @@ class Asset(ObjectPermissionMixin,
         if adjust_content:
             self.adjust_content_on_save()
 
-        self.validate_advanced_features()
+        if (
+            not update_fields
+            or update_fields and 'advanced_features' in update_fields
+        ):
+            self.validate_advanced_features()
 
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
