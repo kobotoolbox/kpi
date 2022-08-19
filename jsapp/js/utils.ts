@@ -8,8 +8,8 @@
  */
 
 import moment from 'moment';
-import alertify from 'alertifyjs';
-import {toast, Toast} from 'react-hot-toast';
+import type {Toast, ToastOptions} from 'react-hot-toast';
+import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
@@ -18,47 +18,43 @@ export const LANGUAGE_COOKIE_NAME = 'django_language';
 
 export const assign = require('object-assign');
 
-alertify.defaults.notifier.delay = 10;
-alertify.defaults.notifier.position = 'bottom-left';
-alertify.defaults.notifier.closeButton = true;
-
 const cookies = new Cookies();
 
-export function notify(msg: Toast['message'], atype = 'success') {
+
+/**
+ * Pop up a notification with react-hot-toast
+ * Some default options are set in the <Toaster/> component
+ */
+export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOptions): Toast['id'] {
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
   switch (atype) {
 
     case 'success':
-      toast.success(msg);
-      break;
+      return toast.success(msg, opts);
 
     case 'error':
-      toast.error(msg);
-      break;
+      return toast.error(msg, opts);
 
     case 'warning':
-      toast(msg, {icon: '⚠️'});
-      break;
+      return toast(msg, Object.assign({icon: '⚠️'}, opts));
 
     case 'empty':
-      toast(msg); // No icon
-      break;
+      return toast(msg, opts); // No icon
 
     // Defensively render empty if we're passed an unknown atype,
     // in case we missed something.
     //   e.g. notify('mystery!', '?') //
     default:
-      toast(msg); // No icon
-      break;
+      return toast(msg, opts); // No icon
   }
 }
 
 // Convenience functions for code readability, consolidated here
-notify.error = (msg: Toast['message']) => notify(msg, 'error');
-notify.warning = (msg: Toast['message']) => notify(msg, 'warning');
-notify.success = (msg: Toast['message']) => notify(msg, 'success');
+notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'error', opts);
+notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'warning', opts);
+notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'success', opts);
 
 /**
  * Returns a copy of arr with separator inserted in every other place.

@@ -15,6 +15,7 @@
 import React from 'react';
 import _ from 'lodash';
 import alertify from 'alertifyjs';
+import toast from 'react-hot-toast';
 import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
@@ -203,21 +204,16 @@ mixins.dmix = {
   },
 
   _deployAssetFirstTime(asset: AssetResponse) {
-    // TODO: figure out how to switch to toast
-    const deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
+    const deployment_toast = notify.warning(t('deploying to kobocat...'), {duration: 60 * 1000});
     actions.resources.deployAsset(asset, false, {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
         hashHistory.push(`/forms/${asset.uid}`);
-        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
-          deployment_alert.dismiss();
-        }
+        toast.dismiss(deployment_toast);
       },
       onFail: () => {
-        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
-          deployment_alert.dismiss();
-        }
+        toast.dismiss(deployment_toast);
       },
     });
   },

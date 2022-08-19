@@ -99,6 +99,7 @@ export default class App extends React.Component {
           {/* Default position of all notifications, page specific ones can be overwritten */}
           <Toaster
             position='bottom-left'
+            toastOptions={{duration: 10000}}
           />
         </React.Fragment>
       </DocumentTitle>
