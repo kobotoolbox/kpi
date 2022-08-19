@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.core.checks import Error
 from django.db import connections
+from django.db.utils import OperationalError
 from django.utils.translation import gettext as t
 
 from kpi.management.commands.is_database_empty import (
@@ -74,8 +75,14 @@ class TwoDatabaseConfigurationChecker:
         `check_for_migration_from_shared_database()`
         """
         connection = connections['kobocat']
-        with connection.cursor() as cursor:
-            return test_table_exists_and_has_any_row(cursor, 'kpi_asset')
+        try:
+            with connection.cursor() as cursor:
+                return test_table_exists_and_has_any_row(cursor, 'kpi_asset')
+        except OperationalError as e:
+            # It's possible (and okay) that this runs before the kobocat
+            # database even exists
+            if str(e).strip().endswith('does not exist'):
+                return False
 
     def check_for_migration_from_shared_database(self):
         def db_contains_app_migrations(db_connection, app):
