@@ -22,6 +22,7 @@ celery
 celery[redis]
 dict2xml
 dj-static
+dj-stripe
 django-braces
 django-celery-beat
 django-constance[database]
@@ -32,6 +33,7 @@ django-environ
 django-filter
 django-extensions
 django-oauth-toolkit
+django-organizations
 django-redis
 django-registration-redux
 django-storages[azure,boto3]
