@@ -25,11 +25,12 @@ bem.SingleProcessingMediaWrapper = makeBem(
   'single-processing-media-wrapper',
   'section'
 );
-bem.SingleProcessingDataListWrapper = makeBem(
+bem.SingleProcessingDataList = makeBem(
   null,
-  'single-processing-data-list-wrapper',
+  'single-processing-data-list',
   'section'
 );
+bem.SingleProcessingDataList__body = makeBem(bem.SingleProcessingDataList, 'body');
 
 interface SingleProcessingSubmissionDetailsProps {
   assetContent: AssetContent;
@@ -140,14 +141,16 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     }
 
     return (
-      <bem.SingleProcessingDataListWrapper key='data-list'>
-        <SubmissionDataList
-          assetContent={this.props.assetContent}
-          submissionData={submissionData}
-          hideQuestions={this.getQuestionsToHide()}
-          hideGroups
-        />
-      </bem.SingleProcessingDataListWrapper>
+      <bem.SingleProcessingDataList key='data-list'>
+        <bem.SingleProcessingDataList__body>
+          <SubmissionDataList
+            assetContent={this.props.assetContent}
+            submissionData={submissionData}
+            hideQuestions={this.getQuestionsToHide()}
+            hideGroups
+          />
+        </bem.SingleProcessingDataList__body>
+      </bem.SingleProcessingDataList>
     );
   }
 
