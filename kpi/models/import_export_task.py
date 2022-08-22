@@ -17,7 +17,6 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.urls import reverse
@@ -98,8 +97,8 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    data = JSONBField()
-    messages = JSONBField(default=dict)
+    data = models.JSONField()
+    messages = models.JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
