@@ -7,7 +7,7 @@
     background-color: colors.$kobo-white;
     border-radius: sizes.$x6;
     // right padding is for the audio player to appear centered
-    padding: sizes.$x6 #{sizes.$x20 + sizes.$x12} 0 sizes.$x20;
+    padding: sizes.$x20 #{sizes.$x20 + sizes.$x12} sizes.$x14 sizes.$x20;
   }
 
   &.single-processing-media-wrapper--video {

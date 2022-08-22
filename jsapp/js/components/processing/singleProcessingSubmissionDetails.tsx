@@ -109,7 +109,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       case META_QUESTION_TYPES['background-audio']:
         return (
           <bem.SingleProcessingMediaWrapper m='audio' key='audio'>
-            <AudioPlayer mediaURL={attachment.download_url} />
+            <AudioPlayer mediaURL={attachment.download_url} filename={attachment.filename}/>
           </bem.SingleProcessingMediaWrapper>
         );
       case QUESTION_TYPES.video.id:
