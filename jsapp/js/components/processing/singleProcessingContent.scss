@@ -1,7 +1,7 @@
-@use "scss/_colors";
-@use "scss/sizes";
-@use "./singleProcessingVariables";
-@use "scss/mixins";
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use './singleProcessingVariables';
+@use 'scss/mixins';
 
 .single-processing-content {
   display: flex;
@@ -12,8 +12,9 @@
 }
 
 .single-processing-content__tabs {
-  @include mixins.centerRowFlex;
-  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
   width: 100%;
   height: singleProcessingVariables.$s-single-processing-tabs;
 }
@@ -23,14 +24,11 @@
   color: colors.$kobo-gray-55;
   position: relative;
   font-weight: 900;
-  font-size: sizes.$x16;
-  line-height: sizes.$x52;
+  font-size: sizes.$x14;
+  line-height: sizes.$x48;
   text-transform: uppercase;
-  padding: 0;
-
-  &:not(:first-of-type) {
-    margin-left: sizes.$x40;
-  }
+  padding: 0 sizes.$x24;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
 
   &:hover {
     color: colors.$kobo-gray-40;
@@ -40,22 +38,23 @@
     transform: translateY(#{sizes.$x1});
   }
 
+  // We need this for covering the border radius of the white box underneath
+  // the tabbed menu - for the first element.
   &::after {
-    content: "";
+    content: '';
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0%;
     top: 100%;
-    width: sizes.$x50;
-    max-width: 100%;
-    height: sizes.$x8;
+    width: 100%;
+    height: sizes.$x6;
   }
 
   &.single-processing-content__tab--active {
     color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-white;
 
     &::after {
-      background-color: colors.$kobo-teal;
+      background-color: inherit;
     }
   }
 
