@@ -8,7 +8,7 @@ source /etc/profile
 cd "${KPI_SRC_DIR}"
 
 AUTOSCALE_MIN="${CELERY_AUTOSCALE_MIN:-2}"
-AUTOSCALE_MAX="${CELERY_AUTOSCALE_MAX:-2}"
+AUTOSCALE_MAX="${CELERY_AUTOSCALE_MAX:-6}"
 
 exec celery -A kobo worker --loglevel=info \
     --hostname=kpi_main_worker@%h \
