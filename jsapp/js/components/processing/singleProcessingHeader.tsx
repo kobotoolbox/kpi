@@ -27,7 +27,7 @@ bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
 bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number');
 
 interface SingleProcessingHeaderProps {
-  submissionUuid: string;
+  submissionEditId: string;
   assetUid: string;
   assetContent: AssetContent;
 }
@@ -61,31 +61,31 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   onQuestionSelectChange(newQpath: string) {
-    this.goToSubmission(newQpath, this.props.submissionUuid);
+    this.goToSubmission(newQpath, this.props.submissionEditId);
   }
 
   /** Finds first submission with response for given question. */
-  getFirstNonNullUuid(questionName: string) {
-    const uuids = singleProcessingStore.getSubmissionsUuids();
-    if (uuids) {
-      return uuids[questionName]?.find((uuidOrNull) => uuidOrNull !== null) || null;
+  getFirstNonNullEditId(questionName: string) {
+    const editIds = singleProcessingStore.getSubmissionsEditIds();
+    if (editIds) {
+      return editIds[questionName]?.find((editIdOrNull) => editIdOrNull !== null) || null;
     }
     return null;
   }
 
   getQuestionSelectorOptions() {
     const options: KoboSelectOption[] = [];
-    const uuids = singleProcessingStore.getSubmissionsUuids();
-    if (uuids) {
-      Object.keys(uuids).forEach((qpath) => {
+    const editIds = singleProcessingStore.getSubmissionsEditIds();
+    if (editIds) {
+      Object.keys(editIds).forEach((qpath) => {
         const questionData = findRowByQpath(this.props.assetContent, qpath);
         // At this point we want to find out whether the question has at least
-        // one uuid (i.e. there is at least one transcriptable response to
+        // one editId (i.e. there is at least one transcriptable response to
         // the question). Otherwise there's no point in having the question as
         // selectable option.
-        const questionUuids = uuids[qpath];
-        const hasAtLeastOneUuid = Boolean(questionUuids.find((uuidOrNull) => uuidOrNull !== null));
-        if (questionData && hasAtLeastOneUuid) {
+        const questionEditIds = editIds[qpath];
+        const hasAtLeastOneEditId = Boolean(questionEditIds.find((editIdOrNull) => editIdOrNull !== null));
+        if (questionData && hasAtLeastOneEditId) {
           // Only allow audio questions at this point (we plan to allow text
           // and video in future).
           if (
@@ -117,32 +117,32 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /** Goes to another submission. */
-  goToSubmission(qpath: string, targetSubmissionUuid: string) {
-    openProcessing(this.props.assetUid, qpath, targetSubmissionUuid);
+  goToSubmission(qpath: string, targetSubmissionEditId: string) {
+    openProcessing(this.props.assetUid, qpath, targetSubmissionEditId);
   }
 
   goPrev() {
-    const prevUuid = this.getPrevSubmissionUuid();
-    if (prevUuid !== null && singleProcessingStore.currentQuestionQpath) {
-      this.goToSubmission(singleProcessingStore.currentQuestionQpath, prevUuid);
+    const prevEditId = this.getPrevSubmissionEditId();
+    if (prevEditId !== null && singleProcessingStore.currentQuestionQpath) {
+      this.goToSubmission(singleProcessingStore.currentQuestionQpath, prevEditId);
     }
   }
 
   goNext() {
-    const nextUuid = this.getNextSubmissionUuid();
-    if (nextUuid !== null && singleProcessingStore.currentQuestionQpath) {
-      this.goToSubmission(singleProcessingStore.currentQuestionQpath, nextUuid);
+    const nextEditId = this.getNextSubmissionEditId();
+    if (nextEditId !== null && singleProcessingStore.currentQuestionQpath) {
+      this.goToSubmission(singleProcessingStore.currentQuestionQpath, nextEditId);
     }
   }
 
   /** Returns index or `null` (if store is not ready yet). */
   getCurrentSubmissionIndex(): number | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
-    if (Array.isArray(uuids)) {
-      const submissionUuidIndex = uuids.findIndex(
-        (item) => item.uuid === this.props.submissionUuid
+    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    if (Array.isArray(editIds)) {
+      const submissionEditIdIndex = editIds.findIndex(
+        (item) => item.editId === this.props.submissionEditId
       );
-      return submissionUuidIndex;
+      return submissionEditIdIndex;
     }
     return null;
   }
@@ -157,13 +157,13 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Looks for closest previous submissionUuid that has data - i.e. it omits all
-   * `null`s in `submissionsUuids` array. If there is no such `submissionUuid`
+   * Looks for closest previous submissionEditId that has data - i.e. it omits all
+   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
    * found, simply returns `null`.
    */
-  getPrevSubmissionUuid(): string | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
-    if (!Array.isArray(uuids)) {
+  getPrevSubmissionEditId(): string | null {
+    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    if (!Array.isArray(editIds)) {
       return null;
     }
 
@@ -177,13 +177,13 @@ export default class SingleProcessingHeader extends React.Component<
       return null;
     }
 
-    // Finds the closest non-`null` submissionUuid going backwards from
+    // Finds the closest non-`null` submissionEditId going backwards from
     // the current one.
-    const previousUuids = uuids.slice(0, currentIndex);
+    const previousEditIds = editIds.slice(0, currentIndex);
     let foundId: string | null = null;
-    previousUuids.forEach((item) => {
+    previousEditIds.forEach((item) => {
       if (item.hasResponse) {
-        foundId = item.uuid;
+        foundId = item.editId;
       }
     });
 
@@ -191,13 +191,13 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Looks for closest next submissionUuid that has data - i.e. it omits all
-   * `null`s in `submissionsUuids` array. If there is no such `submissionUuid`
+   * Looks for closest next submissionEditId that has data - i.e. it omits all
+   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
    * found, simply returns `null`.
    */
-  getNextSubmissionUuid(): string | null {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
-    if (!Array.isArray(uuids)) {
+  getNextSubmissionEditId(): string | null {
+    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    if (!Array.isArray(editIds)) {
       return null;
     }
 
@@ -205,19 +205,19 @@ export default class SingleProcessingHeader extends React.Component<
     // If not found, or we are on last element, there is no next.
     if (
       currentIndex === -1 ||
-      currentIndex === uuids.length - 1 ||
+      currentIndex === editIds.length - 1 ||
       currentIndex === null
     ) {
       return null;
     }
 
-    // Finds the closest non-`null` submissionUuid going forwards from
+    // Finds the closest non-`null` submissionEditId going forwards from
     // the current one.
-    const nextUuids = uuids.slice(currentIndex + 1);
+    const nextEditIds = editIds.slice(currentIndex + 1);
     let foundId: string | null = null;
-    nextUuids.find((item) => {
+    nextEditIds.find((item) => {
       if (item.hasResponse) {
-        foundId = item.uuid;
+        foundId = item.editId;
         return true;
       }
       return false;
@@ -227,7 +227,7 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   render() {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
+    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
 
     return (
       <bem.SingleProcessingHeader>
@@ -250,7 +250,7 @@ export default class SingleProcessingHeader extends React.Component<
               color='storm'
               startIcon='caret-left'
               onClick={this.goPrev.bind(this)}
-              isDisabled={this.getPrevSubmissionUuid() === null}
+              isDisabled={this.getPrevSubmissionEditId() === null}
             />
 
             <bem.SingleProcessingHeader__count>
@@ -260,8 +260,8 @@ export default class SingleProcessingHeader extends React.Component<
                 {this.getCurrentSubmissionNumber()}
               </strong>
               &nbsp;
-              {Array.isArray(uuids) &&
-                t('of ##total_count##').replace('##total_count##', String(uuids.length))
+              {Array.isArray(editIds) &&
+                t('of ##total_count##').replace('##total_count##', String(editIds.length))
               }
             </bem.SingleProcessingHeader__count>
 
@@ -271,7 +271,7 @@ export default class SingleProcessingHeader extends React.Component<
               color='storm'
               endIcon='caret-right'
               onClick={this.goNext.bind(this)}
-              isDisabled={this.getNextSubmissionUuid() === null}
+              isDisabled={this.getNextSubmissionEditId() === null}
             />
           </bem.SingleProcessingHeader__submissions>
         </bem.SingleProcessingHeader__column>

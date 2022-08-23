@@ -51,26 +51,26 @@ interface TransxDraft {
 
 /**
  * This contains a list of submissions for every processing-enabled question.
- * In a list: for every submission we store the `uuid` and a `hasResponse`
+ * In a list: for every submission we store the `editId` and a `hasResponse`
  * boolean. We use it to navigate through submissions with meaningful data
  * in context of a question. Example:
  *
  * ```
  * {
  *   first_question: [
- *     {uuid: 'abc123', hasResponse: true},
- *     {uuid: 'asd345', hasResponse: false},
+ *     {editId: 'abc123', hasResponse: true},
+ *     {editId: 'asd345', hasResponse: false},
  *   ],
  *   second_question: [
- *     {uuid: 'abc123', hasResponse: true},
- *     {uuid: 'asd345', hasResponse: true},
+ *     {editId: 'abc123', hasResponse: true},
+ *     {editId: 'asd345', hasResponse: true},
  *   ]
  * }
  * ```
  */
-interface SubmissionsUuids {
+interface SubmissionsEditIds {
   [qpath: string]: Array<{
-    uuid: string;
+    editId: string;
     hasResponse: boolean;
   }>;
 }
@@ -84,8 +84,8 @@ interface SingleProcessingStoreData {
   source?: string;
   activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
-  /** A list of all submissions uuids. */
-  submissionsUuids?: SubmissionsUuids;
+  /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
+  submissionsEditIds?: SubmissionsEditIds;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -95,9 +95,9 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private abortFetchData?: Function;
   private previousPath: string | undefined;
-  // For the store to work we need all three: asset, submission, and uuids. The
+  // For the store to work we need all three: asset, submission, and editIds. The
   // (ability to fetch) processing data is being unlocked by having'em all.
-  private areUuidsLoaded = false;
+  private areEditIdsLoaded = false;
   private isSubmissionLoaded = false;
   private isProcessingDataLoaded = false;
 
@@ -128,8 +128,8 @@ class SingleProcessingStore extends Reflux.Store {
     return getSingleProcessingRouteParameters().qpath;
   }
 
-  public get currentSubmissionUuid(): string {
-    return getSingleProcessingRouteParameters().submissionUuid;
+  public get currentSubmissionEditId(): string {
+    return getSingleProcessingRouteParameters().submissionEditId;
   }
 
   public get currentQuestionName() {
@@ -194,7 +194,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
-        this.currentSubmissionUuid,
+        this.currentSubmissionEditId,
       ) &&
       this.currentAssetUid === asset.uid
     ) {
@@ -224,7 +224,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
-        this.currentSubmissionUuid,
+        this.currentSubmissionEditId,
       )
     ) {
       const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
@@ -260,7 +260,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.activateAsset();
     } else {
       this.fetchSubmissionData();
-      this.fetchUuids();
+      this.fetchEditIds();
       this.fetchProcessingData();
     }
   }
@@ -291,7 +291,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         this.currentAssetUid,
         this.currentQuestionQpath,
-        this.currentSubmissionUuid,
+        this.currentSubmissionEditId,
       )
     ) {
       this.fetchAllInitialDataForAsset();
@@ -305,7 +305,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.submissionData = undefined;
     this.trigger(this.data);
 
-    actions.submissions.getSubmissionByUuid(this.currentAssetUid, this.currentSubmissionUuid);
+    actions.submissions.getSubmissionByUuid(this.currentAssetUid, this.currentSubmissionEditId);
   }
 
   private onGetSubmissionByUuidCompleted(response: SubmissionResponse): void {
@@ -323,9 +323,9 @@ class SingleProcessingStore extends Reflux.Store {
    * NOTE: We only need to call this once for given asset. We assume that while
    * processing view is opened, submissions will not be deleted or added.
    */
-  private fetchUuids(): void {
-    this.areUuidsLoaded = false;
-    this.data.submissionsUuids = undefined;
+  private fetchEditIds(): void {
+    this.areEditIdsLoaded = false;
+    this.data.submissionsEditIds = undefined;
     this.trigger(this.data);
 
     const processingRows = getAssetProcessingRows(this.currentAssetUid);
@@ -364,7 +364,7 @@ class SingleProcessingStore extends Reflux.Store {
   private onGetProcessingSubmissionsCompleted(
     response: GetProcessingSubmissionsResponse
   ) {
-    const submissionsUuids: SubmissionsUuids = {};
+    const submissionsEditIds: SubmissionsEditIds = {};
     const processingRows = getAssetProcessingRows(this.currentAssetUid);
 
     const asset = assetStore.getAsset(this.currentAssetUid);
@@ -375,7 +375,7 @@ class SingleProcessingStore extends Reflux.Store {
 
       if (processingRows !== undefined) {
         processingRows.forEach((qpath) => {
-          submissionsUuids[qpath] = [];
+          submissionsEditIds[qpath] = [];
         });
 
         response.results.forEach((result) => {
@@ -386,8 +386,8 @@ class SingleProcessingStore extends Reflux.Store {
               const rowName = getRowNameByQpath(asset.content, qpath);
 
               if (rowName) {
-                submissionsUuids[qpath].push({
-                  uuid: result._uuid,
+                submissionsEditIds[qpath].push({
+                  editId: result._uuid,
                   hasResponse: Object.keys(result).includes(flatPaths[rowName]),
                 });
               }
@@ -397,13 +397,13 @@ class SingleProcessingStore extends Reflux.Store {
       }
     }
 
-    this.areUuidsLoaded = true;
-    this.data.submissionsUuids = submissionsUuids;
+    this.areEditIdsLoaded = true;
+    this.data.submissionsEditIds = submissionsEditIds;
     this.trigger(this.data);
   }
 
   private onGetProcessingSubmissionsFailed(): void {
-    this.areUuidsLoaded = true;
+    this.areEditIdsLoaded = true;
     this.trigger(this.data);
   }
 
@@ -416,7 +416,7 @@ class SingleProcessingStore extends Reflux.Store {
 
     processingActions.getProcessingData(
       this.currentAssetUid,
-      this.currentSubmissionUuid
+      this.currentSubmissionEditId
     );
   }
 
@@ -596,7 +596,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
-      this.currentSubmissionUuid,
+      this.currentSubmissionEditId,
       languageCode,
       value
     );
@@ -608,7 +608,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.deleteTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
-      this.currentSubmissionUuid
+      this.currentSubmissionEditId
     );
     this.trigger(this.data);
   }
@@ -618,7 +618,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranscript(
       this.currentAssetUid,
       this.currentQuestionQpath,
-      this.currentSubmissionUuid,
+      this.currentSubmissionEditId,
       languageCode
     );
     this.trigger(this.data);
@@ -669,7 +669,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
-      this.currentSubmissionUuid,
+      this.currentSubmissionEditId,
       languageCode,
       value
     );
@@ -681,7 +681,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.deleteTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
-      this.currentSubmissionUuid,
+      this.currentSubmissionEditId,
       languageCode
     );
     this.trigger(this.data);
@@ -692,7 +692,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
       this.currentQuestionQpath,
-      this.currentSubmissionUuid,
+      this.currentSubmissionEditId,
       languageCode
     );
     this.trigger(this.data);
@@ -745,16 +745,16 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.submissionData;
   }
 
-  /** NOTE: Returns uuids for current question name, not for all of them. */
-  getCurrentQuestionSubmissionsUuids() {
-    if (this.currentQuestionQpath && this.data.submissionsUuids !== undefined) {
-      return this.data.submissionsUuids[this.currentQuestionQpath];
+  /** NOTE: Returns editIds for current question name, not for all of them. */
+  getCurrentQuestionSubmissionsEditIds() {
+    if (this.currentQuestionQpath && this.data.submissionsEditIds !== undefined) {
+      return this.data.submissionsEditIds[this.currentQuestionQpath];
     }
     return undefined;
   }
 
-  getSubmissionsUuids() {
-    return this.data.submissionsUuids;
+  getSubmissionsEditIds() {
+    return this.data.submissionsEditIds;
   }
 
   getActiveTab() {
@@ -787,7 +787,7 @@ class SingleProcessingStore extends Reflux.Store {
   isReady() {
     return (
       isAssetProcessingActivated(this.currentAssetUid) &&
-      this.areUuidsLoaded &&
+      this.areEditIdsLoaded &&
       this.isSubmissionLoaded &&
       this.isProcessingDataLoaded
     );
