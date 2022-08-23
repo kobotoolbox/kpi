@@ -118,5 +118,5 @@ class RegistrationForm(registration_forms.RegistrationForm):
             return email
         else:
             raise forms.ValidationError(
-                t('This email domain is not allowed to create an account')
+                constance.config.REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE
             )
