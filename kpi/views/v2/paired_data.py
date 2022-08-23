@@ -7,6 +7,7 @@ from rest_framework import renderers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from shortuuid import ShortUUID
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
@@ -252,6 +253,8 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             format_type=SUBMISSION_FORMAT_TYPE_XML
         )
         parsed_submissions = []
+        allowed_fields = paired_data.allowed_fields
+        random_uuid = ShortUUID().random(24)
 
         for submission in submissions:
             # Use `rename_root_node_to='data'` to rename the root node of each
@@ -263,9 +266,10 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             parsed_submissions.append(
                 strip_nodes(
                     submission,
-                    paired_data.allowed_fields,
+                    allowed_fields,
                     use_xpath=True,
                     rename_root_node_to='data',
+                    bulk_action_cache_key=random_uuid,
                 )
             )
 
