@@ -39,7 +39,8 @@ class KobocatFileSystemStorage(FileSystemStorage):
 
 
 class KobocatS3Boto3Storage(S3Boto3Storage):
+
     def __init__(self, **settings):
         # This allows KoboCat to have a different bucket name, which is not recommended
-        settings["bucket_name"] = django_settings.KOBOCAT_AWS_STORAGE_BUCKET_NAME
+        settings['bucket_name'] = django_settings.KOBOCAT_AWS_STORAGE_BUCKET_NAME
         super().__init__(**settings)
