@@ -12,6 +12,7 @@ import type {
   ListLanguage,
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import envStore from 'js/envStore';
 
 export default class TranscriptTabContent extends React.Component<{}> {
   private unlisteners: Function[] = [];

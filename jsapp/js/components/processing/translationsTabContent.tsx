@@ -14,6 +14,7 @@ import type {
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import TransxSelector from './transxSelector';
+import envStore from 'js/envStore';
 
 interface TranslationsTabContentState {
   /** Uses languageCode. */
