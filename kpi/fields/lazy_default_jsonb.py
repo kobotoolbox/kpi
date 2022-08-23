@@ -1,11 +1,11 @@
 # coding: utf-8
 from collections.abc import Callable
 
+from django.db.models import JSONField
 from django.core.exceptions import FieldError
-from django.contrib.postgres.fields import JSONField as JSONBField
 
 
-class LazyDefaultJSONBField(JSONBField):
+class LazyDefaultJSONBField(JSONField):
     """
     Allows specifying a default value for a new field without having to rewrite
     every row in the corresponding table when migrating the database.
@@ -42,7 +42,7 @@ class LazyDefaultJSONBField(JSONBField):
     def from_db_value(self, value, *args, **kwargs):
         if value is None:
             return self._get_lazy_default()
-        return value
+        return super().from_db_value(value, *args, **kwargs)
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname)

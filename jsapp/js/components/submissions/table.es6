@@ -50,6 +50,8 @@ import {
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
+  TEXT_FILTER_QUESTION_TYPES,
+  TEXT_FILTER_QUESTION_IDS,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
@@ -836,29 +838,6 @@ export class DataTable extends React.Component {
     );
 
     let frozenColumn = tableStore.getFrozenColumn();
-    const textFilterQuestionTypes = [
-      QUESTION_TYPES.text.id,
-      QUESTION_TYPES.integer.id,
-      QUESTION_TYPES.decimal.id,
-      QUESTION_TYPES.select_multiple.id,
-      QUESTION_TYPES.date.id,
-      QUESTION_TYPES.time.id,
-      QUESTION_TYPES.datetime.id,
-      META_QUESTION_TYPES.start,
-      META_QUESTION_TYPES.end,
-      META_QUESTION_TYPES.username,
-      META_QUESTION_TYPES.deviceid,
-      META_QUESTION_TYPES.phonenumber,
-      META_QUESTION_TYPES.today,
-      META_QUESTION_TYPES['background-audio'],
-    ];
-    const textFilterQuestionIds = [
-      '__version__',
-      ADDITIONAL_SUBMISSION_PROPS._id,
-      ADDITIONAL_SUBMISSION_PROPS._uuid,
-      ADDITIONAL_SUBMISSION_PROPS._submission_time,
-      ADDITIONAL_SUBMISSION_PROPS._submitted_by,
-    ];
 
     columnsToRender.forEach(function (col) {
       // TODO: see if this can work for select_multiple too
@@ -879,8 +858,8 @@ export class DataTable extends React.Component {
           </select>;
       }
       if (
-        (col.question && textFilterQuestionTypes.includes(col.question.type))
-        || textFilterQuestionIds.includes(col.id)
+        (col.question && TEXT_FILTER_QUESTION_TYPES.includes(col.question.type))
+        || TEXT_FILTER_QUESTION_IDS.includes(col.id)
       ) {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>

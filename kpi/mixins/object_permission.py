@@ -209,8 +209,8 @@ class ObjectPermissionMixin:
         # Add the calculated `delete_` permission for the owner
         content_type = ContentType.objects.get_for_model(self)
         if (
-            self.owner is not None
-            and (user is None or user.pk == self.owner.pk)
+            self.owner_id is not None
+            and (user is None or user.pk == self.owner_id)
             and (codename is None or codename.startswith('delete_'))
         ):
             matching_permissions = self.__get_permissions_for_content_type(
@@ -229,7 +229,7 @@ class ObjectPermissionMixin:
                     # doesn't match exactly. Necessary because `Asset` has
                     # `delete_submissions` in addition to `delete_asset`
                     continue
-                effective_perms.add((self.owner.pk, perm_pk))
+                effective_perms.add((self.owner_id, perm_pk))
 
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
@@ -280,7 +280,7 @@ class ObjectPermissionMixin:
             # if we use it when we're not supposed to
             objects_to_return = []
         # The owner gets every assignable permission
-        if self.owner is not None:
+        if self.owner_id is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
                 codename__in=self.get_assignable_permissions(

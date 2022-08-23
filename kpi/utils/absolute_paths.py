@@ -32,8 +32,8 @@ def insert_full_paths_in_place(content):
             hierarchy.pop()
         else:
             rowname = get_name(row)
-            # if rowname is not None:
-            row['$qpath'] = concat_paths(rowname, hierarchy)
-            row['$xpath'] = concat_xpath(rowname, hierarchy)
-            if row.get('type') in BEGINNERS:
-                hierarchy.append(get_name(row))
+            if rowname is not None:
+                row['$qpath'] = concat_paths(rowname, hierarchy)
+                row['$xpath'] = concat_xpath(rowname, hierarchy)
+                if row.get('type') in BEGINNERS:
+                    hierarchy.append(rowname)

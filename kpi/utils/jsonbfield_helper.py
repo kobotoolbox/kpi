@@ -7,7 +7,7 @@ from django.db.models.expressions import Func, Value
 
 class ReplaceValues(Func):
     """
-    Updates several properties at once of a JSONBField without overwriting the
+    Updates several properties at once of a models.JSONField without overwriting the
     whole document.
     Avoids race conditions when document is saved in two different transactions
     at the same time. (i.e.: `Asset._deployment['status']`)
