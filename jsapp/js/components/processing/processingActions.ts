@@ -157,7 +157,7 @@ processingActions.activateAsset.listen((
 
 processingActions.getProcessingData.listen((
   assetUid: string,
-  submissionUuid: string
+  submissionEditId: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
@@ -168,7 +168,7 @@ processingActions.getProcessingData.listen((
       contentType: 'application/json',
       method: 'GET',
       url: processingUrl,
-      data: {submission: submissionUuid},
+      data: {submission: submissionEditId},
     })
       .done((response: ProcessingDataResponse) => {
         processingActions.getProcessingData.completed(response);
@@ -189,7 +189,7 @@ processingActions.getProcessingData.failed.listen(() => {
 function setTranscriptInnerMethod(
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string,
   value: string
 ) {
@@ -198,7 +198,7 @@ function setTranscriptInnerMethod(
     processingActions.setTranscript.failed(NO_FEATURE_ERROR);
   } else {
     const data: TranscriptRequest = {
-      submission: submissionUuid,
+      submission: submissionEditId,
     };
     data[qpath] = {
       transcript: {
@@ -226,7 +226,7 @@ function setTranscriptInnerMethod(
 processingActions.setTranscript.listen((
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string,
   value: string
 ) => {
@@ -246,7 +246,7 @@ processingActions.setTranscript.listen((
     setTranscriptInnerMethod(
       assetUid,
       qpath,
-      submissionUuid,
+      submissionEditId,
       languageCode,
       value
     );
@@ -276,7 +276,7 @@ processingActions.setTranscript.listen((
         this,
         assetUid,
         qpath,
-        submissionUuid,
+        submissionEditId,
         languageCode,
         value
       ),
@@ -295,14 +295,14 @@ processingActions.setTranscript.failed.listen(() => {
 processingActions.deleteTranscript.listen((
   assetUid: string,
   qpath: string,
-  submissionUuid: string
+  submissionEditId: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
     processingActions.deleteTranscript.failed(NO_FEATURE_ERROR);
   } else {
     const data: TranscriptRequest = {
-      submission: submissionUuid,
+      submission: submissionEditId,
     };
     data[qpath] = {
       transcript: {
@@ -331,7 +331,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 processingActions.requestAutoTranscript.listen((
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -339,7 +339,7 @@ processingActions.requestAutoTranscript.listen((
     processingActions.requestAutoTranscript.failed(NO_FEATURE_ERROR);
   } else {
     const data: AutoTranscriptRequest = {
-      submission: submissionUuid,
+      submission: submissionEditId,
     };
     data[qpath] = {
       googlets: {
@@ -376,7 +376,7 @@ function pickTranslationsFromProcessingDataResponse(
 /** A function that builds translation data object for processing endpoint. */
 function getTranslationDataObject(
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string,
   value: string
 ): TranslationRequest {
@@ -388,7 +388,7 @@ function getTranslationDataObject(
     languageCode: languageCode,
   };
   const data: TranslationRequest = {
-    submission: submissionUuid,
+    submission: submissionEditId,
   };
   data[qpath] = {
     translated: translationsObj,
@@ -403,7 +403,7 @@ function getTranslationDataObject(
 function setTranslationInnerMethod(
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string,
   value: string
 ) {
@@ -413,7 +413,7 @@ function setTranslationInnerMethod(
   } else {
     const data = getTranslationDataObject(
       qpath,
-      submissionUuid,
+      submissionEditId,
       languageCode,
       value
     );
@@ -441,7 +441,7 @@ function setTranslationInnerMethod(
 processingActions.setTranslation.listen((
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string,
   value: string
 ) => {
@@ -461,7 +461,7 @@ processingActions.setTranslation.listen((
     setTranslationInnerMethod(
       assetUid,
       qpath,
-      submissionUuid,
+      submissionEditId,
       languageCode,
       value
     );
@@ -491,7 +491,7 @@ processingActions.setTranslation.listen((
         this,
         assetUid,
         qpath,
-        submissionUuid,
+        submissionEditId,
         languageCode,
         value
       ),
@@ -510,7 +510,7 @@ processingActions.setTranslation.failed.listen(() => {
 processingActions.deleteTranslation.listen((
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -519,7 +519,7 @@ processingActions.deleteTranslation.listen((
   } else {
     const data = getTranslationDataObject(
       qpath,
-      submissionUuid,
+      submissionEditId,
       languageCode,
       DELETE_CHAR
     );
@@ -543,7 +543,7 @@ processingActions.deleteTranslation.failed.listen(() => {
 processingActions.requestAutoTranslation.listen((
   assetUid: string,
   qpath: string,
-  submissionUuid: string,
+  submissionEditId: string,
   languageCode: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -551,7 +551,7 @@ processingActions.requestAutoTranslation.listen((
     processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR);
   } else {
     const data: AutoTranslationRequest = {
-      submission: submissionUuid,
+      submission: submissionEditId,
     };
     data[qpath] = {
       googletx: {

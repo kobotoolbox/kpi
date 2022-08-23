@@ -109,8 +109,8 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',
+    'kobo.apps.mfa.apps.MfaAppConfig',
 )
 
 MIDDLEWARE = [
@@ -961,7 +961,7 @@ TRENCH_AUTH = {
                 'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
             ),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
+            'HANDLER': 'kobo.apps.mfa.backends.application.ApplicationBackend',
         },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),

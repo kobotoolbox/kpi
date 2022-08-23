@@ -22,7 +22,7 @@ bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right'
 type SingleProcessingRouteProps = RouteComponentProps<{
   uid: string;
   qpath: string;
-  submissionUuid: string;
+  submissionEditId: string;
 }, unknown>;
 
 interface SingleProcessingRouteState {
@@ -78,13 +78,13 @@ export default class SingleProcessingRoute extends React.Component<
 
   /** Whether current submission has a response for current question. */
   isDataProcessable(): boolean {
-    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids();
-    if (Array.isArray(uuids)) {
-      const currentUuidItem = uuids.find(
-        (item) => item.uuid === this.props.params.submissionUuid
+    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    if (Array.isArray(editIds)) {
+      const currentItem = editIds.find(
+        (item) => item.editId === this.props.params.submissionEditId
       );
-      if (currentUuidItem) {
-        return currentUuidItem.hasResponse;
+      if (currentItem) {
+        return currentItem.hasResponse;
       }
       return false;
     }
@@ -160,7 +160,7 @@ export default class SingleProcessingRoute extends React.Component<
         />
         <bem.SingleProcessing__top>
           <SingleProcessingHeader
-            submissionUuid={this.props.params.submissionUuid}
+            submissionEditId={this.props.params.submissionEditId}
             assetUid={this.props.params.uid}
             assetContent={this.state.asset.content}
           />
