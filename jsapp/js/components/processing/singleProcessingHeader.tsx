@@ -244,15 +244,6 @@ export default class SingleProcessingHeader extends React.Component<
 
         <bem.SingleProcessingHeader__column>
           <bem.SingleProcessingHeader__submissions>
-            <Button
-              type='bare'
-              size='s'
-              color='storm'
-              startIcon='caret-left'
-              onClick={this.goPrev.bind(this)}
-              isDisabled={this.getPrevSubmissionEditId() === null}
-            />
-
             <bem.SingleProcessingHeader__count>
               <strong>
                 {t('Submission')}
@@ -269,7 +260,16 @@ export default class SingleProcessingHeader extends React.Component<
               type='bare'
               size='s'
               color='storm'
-              endIcon='caret-right'
+              startIcon='arrow-up'
+              onClick={this.goPrev.bind(this)}
+              isDisabled={this.getPrevSubmissionEditId() === null}
+            />
+
+            <Button
+              type='bare'
+              size='s'
+              color='storm'
+              endIcon='arrow-down'
               onClick={this.goNext.bind(this)}
               isDisabled={this.getNextSubmissionEditId() === null}
             />
