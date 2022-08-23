@@ -96,6 +96,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
+    'kobo.apps.organizations',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'constance',
@@ -525,6 +526,25 @@ else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
 
+''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
+STRIPE_ENABLED = False
+if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
+    STRIPE_ENABLED = True
+
+DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+if STRIPE_ENABLED:
+    INSTALLED_APPS += ('djstripe',)
+    STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
+    STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
+    STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
+    STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
+    STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE')
+    DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)
+    DJSTRIPE_USE_NATIVE_JSONFIELD = True
+    DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
+    DJSTRIPE_WEBHOOK_VALIDATION = env.str('DJSTRIPE_WEBHOOK_VALIDATION', 'verify_signature')
+
+
 ''' Enketo configuration '''
 ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_URL = ENKETO_URL.rstrip('/')  # Remove any trailing slashes
@@ -566,6 +586,7 @@ CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'https://*.opentopomap.org',
     'https://*.arcgisonline.com'
 ]
+CSP_FRAME_SRC = CSP_DEFAULT_SRC
 
 if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
@@ -577,6 +598,10 @@ if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
     CSP_SCRIPT_SRC.append(raven_js_url)
     CSP_CONNECT_SRC.append(raven_js_url)
+if STRIPE_ENABLED:
+    stripe_domain = "https://js.stripe.com"
+    CSP_SCRIPT_SRC.append(stripe_domain)
+    CSP_FRAME_SRC.append(stripe_domain)
 
 csp_report_uri = env.url('CSP_REPORT_URI', None)
 if csp_report_uri:  # Let environ validate uri, but set as string
