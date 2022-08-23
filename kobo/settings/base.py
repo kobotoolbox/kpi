@@ -108,7 +108,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.MfaAppConfig',
+    'kobo.apps.mfa.apps.MfaAppConfig',
 )
 
 MIDDLEWARE = [
