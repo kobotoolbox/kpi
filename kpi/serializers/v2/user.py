@@ -81,8 +81,6 @@ class UserListSerializer(UserSerializer):
             'is_staff',
             'date_joined',
             'last_login',
-            'first_name',
-            'last_name',
             'is_active',
             'email',
             'mfa_is_active',
