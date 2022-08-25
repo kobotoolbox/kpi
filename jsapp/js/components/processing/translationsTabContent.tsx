@@ -266,12 +266,9 @@ export default class TranslationsTabContent extends React.Component<
     // When editing we want to display just a text
     if (draft?.languageCode) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(draft.languageCode)}
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          {envStore.getLanguageDisplayLabel(draft.languageCode)}
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
@@ -280,12 +277,9 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing the only translation we want to display just a text
     if (!draft && translations.length === 1) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(translations[0].languageCode)}
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          {envStore.getLanguageDisplayLabel(translations[0].languageCode)}
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
@@ -301,21 +295,18 @@ export default class TranslationsTabContent extends React.Component<
       });
 
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <KoboSelect
-              name='translation-header-language-switcher'
-              type='blue'
-              size='s'
-              selectedOption={this.state.selectedTranslation ? this.state.selectedTranslation : null}
-              options={selectOptions}
-              onChange={(newSelectedOption: string) => {
-                this.selectTranslation(newSelectedOption);
-              }}
-            />
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <KoboSelect
+            name='translation-header-language-switcher'
+            type='blue'
+            size='s'
+            selectedOption={this.state.selectedTranslation ? this.state.selectedTranslation : null}
+            options={selectOptions}
+            onChange={(newSelectedOption: string) => {
+              this.selectTranslation(newSelectedOption);
+            }}
+          />
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
