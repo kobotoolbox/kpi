@@ -5,20 +5,12 @@ from django.urls import reverse
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
-from trench.views import RequestMFAMethodActivationView
 
 from .forms import (
     MfaLoginForm,
     MfaTokenForm,
 )
-from .serializers import (
-    ActivateMfaMethodSerializer,
-    UserMfaMethodSerializer,
-)
-
-
-class ActivateMfaMethodView(RequestMFAMethodActivationView):
-    serializer_class = ActivateMfaMethodSerializer
+from .serializers import UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):

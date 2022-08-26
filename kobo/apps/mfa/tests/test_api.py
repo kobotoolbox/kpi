@@ -2,7 +2,7 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
-from trench.settings import api_settings
+from trench.settings import trench_settings
 from trench.utils import get_mfa_model
 
 from kpi.tests.kpi_test_case import BaseTestCase
@@ -47,7 +47,7 @@ class MfaApiTestCase(BaseTestCase):
 
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
-        mfa_methods = api_settings.MFA_METHODS.keys()
+        mfa_methods = trench_settings.MFA_METHODS.keys()
         for method in mfa_methods:
             first_response = self.client.post(
                 reverse('mfa-activate', args=(method,))
