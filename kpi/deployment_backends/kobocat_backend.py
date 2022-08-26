@@ -22,6 +22,7 @@ from lxml import etree
 from django.core.files import File
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
+from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -1365,8 +1366,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: requests.models.Response
         """
         if not is_user_anonymous(user):
-            token, created = Token.objects.get_or_create(user=user)
-            kc_request.headers['Authorization'] = 'Token %s' % token.key
+            kc_request.headers.update(get_request_headers(user.username))
         session = requests.Session()
         return session.send(kc_request.prepare())
 
