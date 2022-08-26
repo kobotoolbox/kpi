@@ -533,7 +533,7 @@ if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', 
 
 DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
 if STRIPE_ENABLED:
-    INSTALLED_APPS += ('djstripe',)
+    INSTALLED_APPS += ('djstripe', "kobo.apps.stripe")
     STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
     STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
     STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
