@@ -98,8 +98,15 @@ export default class App extends React.Component {
 
           {/* Default position of all notifications, page specific ones can be overwritten */}
           <Toaster
-            position='bottom-left'
-            toastOptions={{duration: 10000}}
+            toastOptions={{
+              // TODO: get colours from a single file: https://github.com/kobotoolbox/kobo-common/issues/1
+              style: {
+                padding: '16px',
+                background: '#1e2129', //$kobo-gray-14
+                color: '#fff',
+              },
+              duration: 10000,
+            }}
           />
         </React.Fragment>
       </DocumentTitle>
