@@ -500,6 +500,7 @@ TEMPLATES = [
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
                 'kpi.context_processors.mfa',
+                'kpi.context_processors.django_settings',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },

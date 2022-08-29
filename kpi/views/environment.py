@@ -109,4 +109,5 @@ class EnvironmentView(APIView):
         data['translation_languages'] = TRANSLATION_LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        data['stripe_enabled'] = settings.STRIPE_ENABLED
         return Response(data)

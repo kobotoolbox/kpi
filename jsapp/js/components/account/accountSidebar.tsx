@@ -45,6 +45,10 @@ export default class AccountSidebar extends React.Component<
     return location.hash.split('#')[1] === ROUTES.SECURITY;
   }
 
+  isPlanSelected(): boolean {
+    return location.hash.split('#')[1] === ROUTES.PLAN;
+  }
+
   render() {
     const sidebarModifier = 'account';
 
@@ -91,7 +95,21 @@ export default class AccountSidebar extends React.Component<
               </bem.FormSidebar__labelText>
             </bem.FormSidebar__label>
           }
+
+          {
+            envStore.isReady && envStore.data.stripe_enabled &&
+            <bem.FormSidebar__label
+              m={{selected: this.isPlanSelected()}}
+              href={'#' + ROUTES.PLAN}
+            >
+              <Icon name='lock-alt' size='xl'/>
+              <bem.FormSidebar__labelText>
+                {t('Your plan')}
+              </bem.FormSidebar__labelText>
+            </bem.FormSidebar__label>
+          }
         </bem.FormSidebar>
+
       );
     }
   }

@@ -509,6 +509,7 @@ export interface EnvironmentResponse {
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;
+  stripe_enabled: boolean;
 }
 
 const DEFAULT_PAGE_SIZE = 100;
