@@ -24,7 +24,6 @@ from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
 from kobo_service_account.utils import get_request_headers
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 
 from kpi.constants import (
