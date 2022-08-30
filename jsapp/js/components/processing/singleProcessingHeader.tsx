@@ -246,7 +246,7 @@ export default class SingleProcessingHeader extends React.Component<
           <bem.SingleProcessingHeader__submissions>
             <bem.SingleProcessingHeader__count>
               <strong>
-                {t('Submission')}
+                {t('Item')}
                 &nbsp;
                 {this.getCurrentSubmissionNumber()}
               </strong>

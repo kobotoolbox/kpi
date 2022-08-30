@@ -805,7 +805,7 @@ export class DataTable extends React.Component {
             );
             return (
               <span className='trimmed-text'>
-                {formatTimeDateShort(supplementalDetailsContent)}
+                {supplementalDetailsContent}
               </span>
             );
           }
