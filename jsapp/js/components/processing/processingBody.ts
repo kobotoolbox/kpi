@@ -7,7 +7,6 @@ bem.ProcessingBody = makeBem(null, 'processing-body');
 // For both transcripts and translations.
 bem.ProcessingBody__transxHeader = makeBem(bem.ProcessingBody, 'transx-header', 'header');
 bem.ProcessingBody__transxHeaderLanguage = makeBem(bem.ProcessingBody, 'transx-header-language', 'label');
-bem.ProcessingBody__transxHeaderLanguageWrapper = makeBem(bem.ProcessingBody, 'transx-header-language-wrapper');
 bem.ProcessingBody__transxHeaderDate = makeBem(bem.ProcessingBody, 'transx-header-date', 'time');
 bem.ProcessingBody__transxHeaderButtons = makeBem(bem.ProcessingBody, 'transx-header-buttons', 'nav');
 

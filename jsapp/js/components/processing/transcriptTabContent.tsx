@@ -170,12 +170,9 @@ export default class TranscriptTabContent extends React.Component<{}> {
 
     return (
       <React.Fragment>
-        <div>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(valueLanguageCode)}
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </div>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          {envStore.getLanguageDisplayLabel(valueLanguageCode)}
+        </bem.ProcessingBody__transxHeaderLanguage>
 
         {dateText !== '' &&
           <bem.ProcessingBody__transxHeaderDate>
