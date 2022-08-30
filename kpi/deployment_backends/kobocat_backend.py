@@ -52,7 +52,6 @@ from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
-    KobocatOneTimeAuthToken,
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
@@ -189,21 +188,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
             # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
-            headers = {}
-            if partial_perms:
-                headers.update(
-                    KobocatOneTimeAuthToken.get_or_create_token(
-                        user,
-                        method='POST',
-                        request_identifier='bulk_update_submissions',
-                    ).get_header()
-                )
-
             kc_request = requests.Request(
                 method='POST',
                 url=self.submission_url,
                 files=files,
-                headers=headers,
             )
             kc_response = self.__kobocat_proxy_request(
                 kc_request, user=user
@@ -342,22 +330,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=[submission_id]
         )
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
-        headers = {}
-        if submission_ids:
-            headers.update(
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user,
-                    method='DELETE',
-                    request_identifier='delete_submission',
-                ).get_header()
-            )
 
         kc_url = self.get_submission_detail_url(submission_id)
-        kc_request = requests.Request(
-            method='DELETE', url=kc_url, headers=headers
-        )
+        kc_request = requests.Request(method='DELETE', url=kc_url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -384,24 +359,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
-        headers = {}
         if submission_ids:
             # Remove query from `data` because all the submission ids have been
             # already retrieved
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            headers.update(
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user,
-                    method='DELETE',
-                    request_identifier='delete_submissions',
-                ).get_header()
-            )
 
         kc_url = self.submission_list_url
-        kc_request = requests.Request(
-            method='DELETE', url=kc_url, json=data, headers=headers
-        )
+        kc_request = requests.Request(method='DELETE', url=kc_url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -420,23 +385,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         """
 
-        submission_ids = self.validate_access_with_partial_perms(
+        self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=[submission_id],
         )
-
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
-        headers = {}
-        if submission_ids:
-            headers.update(
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user,
-                    method='POST',
-                    request_identifier='duplicate_submission',
-                ).get_header()
-            )
 
         submission = self.get_submission(
             submission_id,
@@ -465,7 +418,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
         kc_request = requests.Request(
-            method='POST', url=self.submission_url, files=files, headers=headers
+            method='POST', url=self.submission_url, files=files
         )
         kc_response = self.__kobocat_proxy_request(
             kc_request, user=user
@@ -534,8 +487,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_request = requests.Request(
             method='POST', url=self.submission_url, files=files
         )
-        # ToDo use system account instead of asset.owner
-        kc_response = self.__kobocat_proxy_request(kc_request, self.asset.owner)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(
             kc_response, expected_response_format='xml'
         )
@@ -978,28 +930,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        submission_ids = self.validate_access_with_partial_perms(
+        self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=[submission_id],
         )
 
-        # If `submission_ids` is not empty, user has partial permissions.
-        # Otherwise, they have have full access.
-        headers = {}
-        if submission_ids:
-            headers.update(
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user,
-                    method='PATCH',
-                    request_identifier='set_validation_status',
-                ).get_header()
-            )
-
         kc_request_params = {
             'method': method,
             'url': self.get_submission_validation_status_url(submission_id),
-            'headers': headers
         }
 
         if method == 'PATCH':
@@ -1030,25 +969,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
-        headers = {}
         if submission_ids:
             # Remove query from `data` because all the submission ids have been
             # already retrieved
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            headers.update(
-                KobocatOneTimeAuthToken.get_or_create_token(
-                    user,
-                    method='PATCH',
-                    request_identifier='set_validation_statuses',
-                ).get_header()
-            )
 
         # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
-        kc_request = requests.Request(
-            method='PATCH', url=url, headers=headers, json=data
-        )
+        kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
@@ -1072,8 +1001,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_url(self) -> str:
+        # Use internal host to secure calls to KoBoCAT API,
+        # kobo-service-account can restrict requests per hosts.
         url = '{kc_base}/submission'.format(
-            kc_base=settings.KOBOCAT_URL,
+            kc_base=settings.KOBOCAT_INTERNAL_URL,
         )
         return url
 
@@ -1367,6 +1298,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         if not is_user_anonymous(user):
             kc_request.headers.update(get_request_headers(user.username))
+
         session = requests.Session()
         return session.send(kc_request.prepare())
 
