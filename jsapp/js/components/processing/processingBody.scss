@@ -19,15 +19,19 @@
 
 .processing-body__transx-header {
   @include mixins.centerRowFlex;
-  justify-content: space-between;
   margin-bottom: sizes.$x12;
 }
 
 .processing-body__transx-header-date {
-  font-weight: 300;
-  color: colors.$kobo-gray-40;
-  margin-right: sizes.$x10;
-  flex: 1;
+  background-color: colors.$kobo-cloud;
+  height: sizes.$x28;
+  line-height: sizes.$x28;
+  border-radius: sizes.$x14;
+  padding: 0 sizes.$x14;
+
+  &:not(:first-child) {
+    margin-left: sizes.$x20;
+  }
 }
 
 .processing-body__transx-header-language-wrapper {
@@ -38,15 +42,18 @@
 
 .processing-body__transx-header-language {
   font-weight: 700;
-  margin-left: sizes.$x4;
-  margin-right: sizes.$x10;
-  max-width: sizes.$x200;
-  flex: 1;
+
+  &:not(:first-child) {
+    margin-left: sizes.$x4;
+  }
 }
 
 .processing-body__transx-header-buttons {
   @include mixins.centerRowFlex;
 
+  flex: 1;
+  margin-left: sizes.$x20;
+  justify-content: flex-end;
   gap: sizes.$x12;
 }
 

@@ -72,29 +72,23 @@ export default class SingleProcessingPreview extends React.Component {
     // If there is only one source, we display it as a text.
     if (sources.length === 1) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <AsyncLanguageDisplayLabel code={sourceData.languageCode}/>
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <AsyncLanguageDisplayLabel code={sourceData.languageCode}/>
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
     if (sources.length >= 2) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <TransxSelector
-              languageCodes={sources}
-              selectedLanguage={sourceData.languageCode}
-              onChange={(newSelectedOption: string) => {
-                singleProcessingStore.setSource(newSelectedOption);
-              }}
-            />
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <TransxSelector
+            languageCodes={sources}
+            selectedLanguage={sourceData.languageCode}
+            onChange={(newSelectedOption: string) => {
+              singleProcessingStore.setSource(newSelectedOption);
+            }}
+          />
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 

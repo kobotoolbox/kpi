@@ -267,12 +267,9 @@ export default class TranslationsTabContent extends React.Component<
     // When editing we want to display just a text
     if (draft?.languageCode) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <AsyncLanguageDisplayLabel code={draft.languageCode}/>
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <AsyncLanguageDisplayLabel code={draft.languageCode}/>
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
@@ -281,12 +278,9 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing the only translation we want to display just a text
     if (!draft && translations.length === 1) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <AsyncLanguageDisplayLabel code={translations[0].languageCode}/>
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <AsyncLanguageDisplayLabel code={translations[0].languageCode}/>
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
@@ -294,18 +288,15 @@ export default class TranslationsTabContent extends React.Component<
     // other translation.
     if (!draft && translations.length >= 2) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <TransxSelector
-              languageCodes={translations.map((translation) => translation.languageCode)}
-              selectedLanguage={this.state.selectedTranslation}
-              onChange={(newSelectedOption: LanguageCode) => {
-                this.selectTranslation(newSelectedOption);
-              }}
-            />
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <TransxSelector
+            languageCodes={translations.map((translation) => translation.languageCode)}
+            selectedLanguage={this.state.selectedTranslation}
+            onChange={(newSelectedOption: LanguageCode) => {
+              this.selectTranslation(newSelectedOption);
+            }}
+          />
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
