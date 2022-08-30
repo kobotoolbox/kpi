@@ -5,6 +5,7 @@ import re
 import time
 import uuid
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
 try:
@@ -16,6 +17,7 @@ from deepmerge import always_merger
 from dict2xml import dict2xml
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from lxml import etree
 from rest_framework import status
@@ -336,6 +338,22 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
+
+    def get_daily_counts(self, filters: Optional[dict] = None):
+        today = timezone.now().date()
+
+        daily_counts = self.submission_count
+        data = {
+            'total_submissions_count': self.submission_count,
+            'daily_submission_counts': [],
+        }
+
+        data['daily_submission_counts'].append({
+            'date': str(today),
+            'count': daily_counts,
+        })
+
+        return data
 
     def get_submissions(
         self,

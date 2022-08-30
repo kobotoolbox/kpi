@@ -50,7 +50,7 @@ class MockAttachment(MP3ConverterMixin):
     Mock object to simulate ReadOnlyKobocatAttachment.
     Relationship with ReadOnlyKobocatInstance is ignored but could be implemented
     """
-    def __init__(self, pk: int, filename: str, mimetype: str = None, **kwargs):
+    def  __init__(self, pk: int, filename: str, mimetype: str = None, **kwargs):
 
         self.id = pk  # To mimic Django model instances
         self.pk = pk

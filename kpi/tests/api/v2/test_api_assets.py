@@ -6,6 +6,7 @@ from io import StringIO
 
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kpi.constants import (
@@ -494,6 +495,48 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
                          self.asset.version_id)
         self.assertEqual(response.data['version__content_hash'],
                          self.asset.latest_version.content_hash)
+
+    def test_count_endpoint(self):
+        self.asset.content = {
+            'survey': [
+                {
+                    'type': 'select_one',
+                    'label': 'q1',
+                    'select_from_list_name': 'iu0sl99'
+                },
+            ],
+            'choices': [
+                {'name': 'a1', 'label': ['a1'], 'list_name': 'iu0sl99'},
+                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
+            ]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        submissions = [
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a1',
+                '_submitted_by': 'anotheruser',
+            },
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a3',
+                '_submitted_by': '',
+            },
+        ]
+
+        self.asset.deployment.mock_submissions(submissions)
+        count_url = reverse(
+            self._get_endpoint('asset-counts'), kwargs={'uid': self.asset_uid}
+        )
+        today = timezone.now().date()
+
+        response = self.client.get(count_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['total_submissions_count'], 2)
+        self.assertEqual(len(response.data['daily_submission_counts']), 1)
+        self.assertEqual(response.data['daily_submission_counts'][0]['count'], 2)
+        self.assertEqual(response.data['daily_submission_counts'][0]['date'], str(today))
 
     def test_submission_count(self):
         anotheruser = User.objects.get(username='anotheruser')

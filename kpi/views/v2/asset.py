@@ -191,6 +191,28 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     When creating a new `block` or `question` asset, settings are not saved either.
 
+    ### Counts
+
+    Retrieves total and daily counts of submissions
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/counts/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/
+
+    uses the `days` query to get the daily counts from the last x amount of days.
+    Default amount is 30 days
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/counts/?days=7
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
+
+
     ### Data
 
     Retrieves data
@@ -740,6 +762,19 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = ReportsDetailSerializer(asset, 
                                              context=self.get_serializer_context())
         return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def counts(self, request, *args, **kwargs):
+        asset = self.get_object()
+        filters = request.query_params
+        # if not asset.has_deployment:
+        #     raise Http404
+        data = asset.deployment.get_daily_counts(filters)
+        return Response(data)
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def valid_content(self, request, uid):

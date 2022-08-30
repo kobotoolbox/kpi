@@ -7,6 +7,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
@@ -21,6 +22,7 @@ from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -55,6 +57,7 @@ from .kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -656,6 +659,29 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return ReadOnlyKobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
+
+    def get_daily_counts(self, filters: Optional[dict] = None):
+        today = timezone.now().date()
+        if 'days' in filters:
+            start_date = today - relativedelta(days=int(filters['days'])-1)
+        else:
+            start_date = today - relativedelta(days=31)
+
+        daily_counts = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+            xform__id_string=self.asset.uid,
+            date__gte=start_date,
+        ).order_by('-date')
+        data = {
+            'total_submissions_count': self.submission_count,
+            'daily_submission_counts': [],
+        }
+        for daily in daily_counts:
+            data['daily_submission_counts'].append({
+                'date': str(daily.date),
+                'count': daily.counter,
+            })
+
+        return data
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
