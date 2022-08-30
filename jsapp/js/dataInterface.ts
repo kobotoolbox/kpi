@@ -509,7 +509,8 @@ export interface EnvironmentResponse {
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;
-  stripe_enabled: boolean;
+  stripe_public_key: string | null;
+  stripe_pricing_table_id: string | null;
 }
 
 const DEFAULT_PAGE_SIZE = 100;

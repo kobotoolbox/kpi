@@ -1,5 +1,6 @@
 import React from "react";
 import bem, {makeBem} from 'js/bem';
+import envStore from 'js/envStore';
 
 bem.PlanSection = makeBem(null, 'plan-section');
 bem.PlanRow = makeBem(null, 'plan-row');
@@ -7,6 +8,9 @@ bem.PlanRow__header = makeBem(bem.PlanRow, 'header');
 
 export default class PlanRoute extends React.Component {
   render() {
+    const stripePublicKey = envStore.data.stripe_public_key;
+    const stripePricingTableID = envStore.data.stripe_pricing_table_id;
+
     return (
       <bem.SecuritySection>
         <bem.SecurityRow>
@@ -16,7 +20,9 @@ export default class PlanRoute extends React.Component {
             </bem.SecurityRow__title>
           </bem.SecurityRow__header>
         </bem.SecurityRow>
-        <stripe-pricing-table pricing-table-id="prctbl_1LXtWCAR39rDI89s1EcrJUHk" publishable-key="pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"/>
+        {envStore.isReady && stripePublicKey && stripePricingTableID &&
+          <stripe-pricing-table pricing-table-id={stripePricingTableID} publishable-key={stripePublicKey}/>
+        }
 
       </bem.SecuritySection>
     )

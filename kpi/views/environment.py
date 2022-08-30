@@ -109,5 +109,6 @@ class EnvironmentView(APIView):
         data['translation_languages'] = TRANSLATION_LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
-        data['stripe_enabled'] = settings.STRIPE_ENABLED
+        data['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+        data['stripe_pricing_table_id'] = settings.STRIPE_PRICING_TABLE_ID
         return Response(data)

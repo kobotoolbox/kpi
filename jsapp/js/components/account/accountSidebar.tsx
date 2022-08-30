@@ -97,12 +97,12 @@ export default class AccountSidebar extends React.Component<
           }
 
           {
-            envStore.isReady && envStore.data.stripe_enabled &&
+            envStore.isReady && envStore.data.stripe_public_key &&
             <bem.FormSidebar__label
               m={{selected: this.isPlanSelected()}}
               href={'#' + ROUTES.PLAN}
             >
-              <Icon name='lock-alt' size='xl'/>
+              <Icon name='editor' size='xl'/>
               <bem.FormSidebar__labelText>
                 {t('Your plan')}
               </bem.FormSidebar__labelText>

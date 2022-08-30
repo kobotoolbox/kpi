@@ -34,7 +34,8 @@ class EnvStoreData {
   mfa_localized_help_text: {[name: string]: string} = {};
   mfa_enabled = false;
   mfa_code_length = 6;
-  stripe_enabled = false;
+  stripe_public_key: string | null = null;
+  stripe_pricing_table_id: string | null = null;
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -94,7 +95,8 @@ class EnvStore extends Reflux.Store {
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
     this.data.mfa_code_length = response.mfa_code_length;
-    this.data.stripe_enabled = response.stripe_enabled;
+    this.data.stripe_public_key = response.stripe_public_key;
+    this.data.stripe_pricing_table_id = response.stripe_pricing_table_id;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);
