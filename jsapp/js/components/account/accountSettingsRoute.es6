@@ -95,7 +95,6 @@ export default class AccountSettings extends React.Component {
         metadata: currentAccount.extra_details.metadata,
       },
       fieldsWithErrors: {},
-      languageChoices: environment.all_languages,
       countryChoices: environment.country_choices,
       sectorChoices: environment.sector_choices,
       genderChoices: [

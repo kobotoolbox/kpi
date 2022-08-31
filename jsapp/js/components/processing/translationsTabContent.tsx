@@ -1,16 +1,20 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
-import envStore from 'js/envStore';
 import {formatTime} from 'js/utils';
 import bem from 'js/bem';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import LanguageSelector from 'js/components/languages/languageSelector';
-import languageSelectorActions from 'js/components/languages/languageSelectorActions';
+import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import Button from 'js/components/common/button';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import KoboSelect from 'js/components/common/koboSelect';
 import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
+import type {
+  DetailedLanguage,
+  LanguageCode,
+  ListLanguage,
+} from 'js/components/languages/languagesStore';
+import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import TransxSelector from './transxSelector';
+import envStore from 'js/envStore';
 
 interface TranslationsTabContentState {
   /** Uses languageCode. */
@@ -69,9 +73,9 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   /** Changes the draft language, preserving the other draft properties. */
-  onLanguageChange(newVal: string | undefined) {
+  onLanguageChange(newVal: DetailedLanguage | ListLanguage | null) {
     const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
-    newDraft.languageCode = newVal;
+    newDraft.languageCode = newVal?.code;
     singleProcessingStore.setTranslationDraft(newDraft);
   }
 
@@ -131,7 +135,7 @@ export default class TranslationsTabContent extends React.Component<
       draft?.value === undefined
     ) {
       singleProcessingStore.setTranslationDraft({});
-      languageSelectorActions.resetAll();
+      resetAllLanguageSelectors();
     }
   }
 
@@ -166,7 +170,7 @@ export default class TranslationsTabContent extends React.Component<
     }
   }
 
-  openEditor(languageCode: string) {
+  openEditor(languageCode: LanguageCode) {
     const translation = singleProcessingStore.getTranslation(languageCode);
 
     if (translation) {
@@ -178,16 +182,13 @@ export default class TranslationsTabContent extends React.Component<
     }
   }
 
-  deleteTranslation(languageCode: string) {
+  deleteTranslation(languageCode: LanguageCode) {
     destroyConfirm(
       singleProcessingStore.deleteTranslation.bind(
         singleProcessingStore,
         languageCode
       ),
-      t('Delete ##language name## translation?').replace(
-        '##language name##',
-        envStore.getLanguageDisplayLabel(languageCode)
-      )
+      t('Delete translation?')
     );
   }
 
@@ -203,7 +204,7 @@ export default class TranslationsTabContent extends React.Component<
   /** Returns languages of all translations */
   getTranslationsLanguages() {
     const translations = singleProcessingStore.getTranslations();
-    const languages: string[] = [];
+    const languages: LanguageCode[] = [];
     translations.forEach((translation) => {
       languages.push(translation.languageCode);
     });
@@ -267,7 +268,7 @@ export default class TranslationsTabContent extends React.Component<
     if (draft?.languageCode) {
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          {envStore.getLanguageDisplayLabel(draft.languageCode)}
+          <AsyncLanguageDisplayLabel code={draft.languageCode}/>
         </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
@@ -278,7 +279,7 @@ export default class TranslationsTabContent extends React.Component<
     if (!draft && translations.length === 1) {
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          {envStore.getLanguageDisplayLabel(translations[0].languageCode)}
+          <AsyncLanguageDisplayLabel code={translations[0].languageCode}/>
         </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
@@ -286,23 +287,12 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing one of translations we want to have an option to select some
     // other translation.
     if (!draft && translations.length >= 2) {
-      const selectOptions: KoboSelectOption[] = [];
-      translations.forEach((translation) => {
-        selectOptions.push({
-          id: translation.languageCode,
-          label: envStore.getLanguageDisplayLabel(translation.languageCode),
-        });
-      });
-
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          <KoboSelect
-            name='translation-header-language-switcher'
-            type='blue'
-            size='s'
-            selectedOption={this.state.selectedTranslation ? this.state.selectedTranslation : null}
-            options={selectOptions}
-            onChange={(newSelectedOption: string) => {
+          <TransxSelector
+            languageCodes={translations.map((translation) => translation.languageCode)}
+            selectedLanguage={this.state.selectedTranslation}
+            onChange={(newSelectedOption: LanguageCode) => {
               this.selectTranslation(newSelectedOption);
             }}
           />

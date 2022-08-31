@@ -35,6 +35,7 @@ import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
 } from 'js/components/processing/processingUtils';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -548,7 +549,7 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     }
     // NOTE: the values for transcripts are not nested in submission, but we
     // need the path to contain language for other parts of code to work.
-    advancedFeatures.transcript?.languages?.forEach((languageCode: string) => {
+    advancedFeatures.transcript?.languages?.forEach((languageCode: LanguageCode) => {
       paths[questionName].push(
         getSupplementalTranscriptPath(questionName, languageCode)
       );
@@ -559,7 +560,7 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = [];
     }
-    advancedFeatures.translated?.languages?.forEach((languageCode: string) => {
+    advancedFeatures.translated?.languages?.forEach((languageCode: LanguageCode) => {
       paths[questionName].push(
         getSupplementalTranslationPath(questionName, languageCode)
       );

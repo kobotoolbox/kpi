@@ -27,6 +27,7 @@ import type {
   AssetResponse,
   GetProcessingSubmissionsResponse,
 } from 'js/dataInterface';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
 
 export enum SingleProcessingTabs {
@@ -38,7 +39,7 @@ export enum SingleProcessingTabs {
 /** Shared interface for transcript and translations. */
 export interface Transx {
   value: string;
-  languageCode: string;
+  languageCode: LanguageCode;
   dateCreated: string;
   dateModified: string;
 }
@@ -444,7 +445,7 @@ class SingleProcessingStore extends Reflux.Store {
     const translationsResponse = response[this.currentQuestionQpath]?.translated;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
-      Object.keys(translationsResponse).forEach((languageCode: string) => {
+      Object.keys(translationsResponse).forEach((languageCode: LanguageCode) => {
         const translation = translationsResponse[languageCode];
         if (translation.languageCode) {
           translationsArray.push({
@@ -565,7 +566,7 @@ class SingleProcessingStore extends Reflux.Store {
     return sources;
   }
 
-  setSource(languageCode: string) {
+  setSource(languageCode: LanguageCode) {
     this.data.source = languageCode;
     this.trigger(this.data);
   }
@@ -591,7 +592,7 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcript;
   }
 
-  setTranscript(languageCode: string, value: string) {
+  setTranscript(languageCode: LanguageCode, value: string) {
     this.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
@@ -652,7 +653,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** Returns a local cached translation data. */
-  getTranslation(languageCode: string | undefined) {
+  getTranslation(languageCode: LanguageCode | undefined) {
     return this.data.translations.find(
       (translation) => translation.languageCode === languageCode
     );
@@ -664,7 +665,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** This stores the translation on backend. */
-  setTranslation(languageCode: string, value: string) {
+  setTranslation(languageCode: LanguageCode, value: string) {
     this.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
@@ -676,7 +677,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  deleteTranslation(languageCode: string) {
+  deleteTranslation(languageCode: LanguageCode) {
     this.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,

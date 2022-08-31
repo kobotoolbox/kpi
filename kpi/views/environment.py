@@ -11,9 +11,10 @@ from rest_framework.views import APIView
 
 from kobo.static_lists import (
     COUNTRIES,
-    LANGUAGES,
-    TRANSCRIPTION_LANGUAGES,
-    TRANSLATION_LANGUAGES
+    # TODO remove when branch `3104-automatic-processing` is merged in `feature/nlp`
+    # LANGUAGES,
+    # TRANSCRIPTION_LANGUAGES,
+    # TRANSLATION_LANGUAGES
 )
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.mfa.models import MfaAvailableToUser
@@ -120,10 +121,11 @@ class EnvironmentView(APIView):
             request.user
         )
         data['country_choices'] = COUNTRIES
-        data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
-        data['transcription_languages'] = TRANSCRIPTION_LANGUAGES
-        data['translation_languages'] = TRANSLATION_LANGUAGES
+        # TODO remove when branch `3104-automatic-processing` is merged in `feature/nlp`
+        # data['all_languages'] = LANGUAGES
+        # data['transcription_languages'] = TRANSCRIPTION_LANGUAGES
+        # data['translation_languages'] = TRANSLATION_LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         return Response(data)

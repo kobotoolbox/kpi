@@ -1,14 +1,18 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
-import envStore from 'js/envStore';
 import bem from 'js/bem';
 import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import LanguageSelector from 'js/components/languages/languageSelector';
-import languageSelectorActions from 'js/components/languages/languageSelectorActions';
+import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import Button from 'js/components/common/button';
 import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
+import type {
+  DetailedLanguage,
+  ListLanguage,
+} from 'js/components/languages/languagesStore';
+import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import envStore from 'js/envStore';
 
 export default class TranscriptTabContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
@@ -33,9 +37,9 @@ export default class TranscriptTabContent extends React.Component<{}> {
   }
 
   /** Changes the draft language, preserving the other draft properties. */
-  onLanguageChange(newVal: string | undefined) {
+  onLanguageChange(newVal: DetailedLanguage | ListLanguage | null) {
     const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
-    newDraft.languageCode = newVal;
+    newDraft.languageCode = newVal?.code;
     singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
@@ -83,7 +87,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
       draft?.value === undefined
     ) {
       singleProcessingStore.setTranslationDraft({});
-      languageSelectorActions.resetAll();
+      resetAllLanguageSelectors();
     }
   }
 
@@ -171,7 +175,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
     return (
       <React.Fragment>
         <bem.ProcessingBody__transxHeaderLanguage>
-          {envStore.getLanguageDisplayLabel(valueLanguageCode)}
+          <AsyncLanguageDisplayLabel code={valueLanguageCode}/>
         </bem.ProcessingBody__transxHeaderLanguage>
 
         {dateText !== '' &&

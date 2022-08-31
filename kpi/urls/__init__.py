@@ -20,10 +20,6 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
-from kobo.apps.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
-)
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1

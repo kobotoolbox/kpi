@@ -1,11 +1,10 @@
 import React from 'react';
-import envStore from 'js/envStore';
 import {formatTime} from 'js/utils';
 import bem, {makeBem} from 'js/bem';
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
-import KoboSelect from 'js/components/common/koboSelect';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import TransxSelector from './transxSelector';
 import './singleProcessingPreview.scss';
+import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 
 bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section');
 
@@ -74,28 +73,17 @@ export default class SingleProcessingPreview extends React.Component {
     if (sources.length === 1) {
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
+          <AsyncLanguageDisplayLabel code={sourceData.languageCode}/>
         </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
     if (sources.length >= 2) {
-      const selectOptions: KoboSelectOption[] = [];
-      sources.forEach((source) => {
-        selectOptions.push({
-          id: source,
-          label: envStore.getLanguageDisplayLabel(source),
-        });
-      });
-
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          <KoboSelect
-            name='single-processing-preview-language-switcher'
-            type='blue'
-            size='s'
-            selectedOption={sourceData.languageCode}
-            options={selectOptions}
+          <TransxSelector
+            languageCodes={sources}
+            selectedLanguage={sourceData.languageCode}
             onChange={(newSelectedOption: string) => {
               singleProcessingStore.setSource(newSelectedOption);
             }}

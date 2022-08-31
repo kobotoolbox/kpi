@@ -1,13 +1,22 @@
 import React from 'react';
-import Fuse from 'fuse.js';
+import type {RefObject} from 'react';
+import InfiniteScroll from 'react-infinite-scroller';
+import debounce from 'lodash.debounce';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import type {EnvStoreDataItem} from 'js/envStore';
 import envStore from 'js/envStore';
-import {FUSE_OPTIONS} from 'js/constants';
-import languageSelectorActions from './languageSelectorActions';
+import {observer} from 'mobx-react';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import './languageSelector.scss';
+import LanguagesListStore from './languagesListStore';
+import {LanguageDisplayLabel} from './languagesUtils';
+import languagesStore from './languagesStore';
+import type {
+  DetailedLanguage,
+  LanguageCode,
+  ListLanguage,
+} from './languagesStore';
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section');
 bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1');
@@ -24,78 +33,124 @@ bem.LanguageSelector__clearSearchBox = makeBem(bem.LanguageSelector, 'clear-sear
 bem.LanguageSelector__selectedLanguage = makeBem(bem.LanguageSelector, 'selected-language');
 bem.LanguageSelector__selectedLanguageLabel = makeBem(bem.LanguageSelector, 'selected-language-label');
 bem.LanguageSelector__clearSelectedLanguage = makeBem(bem.LanguageSelector, 'clear-selected-language', 'button');
-bem.LanguageSelector__list = makeBem(bem.LanguageSelector, 'list', 'ol');
 bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'li');
 bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'footer');
 
 const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-list';
 
+const LANGUAGE_SELECTOR_RESET_EVENT = 'LanguageSelector:resetall';
+
+/** Use this function to reset all LanguageSelectors :) */
+export function resetAllLanguageSelectors() {
+  const event = new CustomEvent(LANGUAGE_SELECTOR_RESET_EVENT);
+  document.dispatchEvent(event);
+}
+
+/**
+ * Use `fullLanguagesStore` to fetch source language (if present).
+ * Use `fullLanguagesStore` to fetch selected language - to get regions.
+ * Add regions.
+ *
+ * Use `languageStore` to fetch first list of results.
+ * Use `languageStore` to load more pages.
+ * Use `languageStore` to fetch fresh list when search phrase changes.
+ * Search phrase being applied to `languageStore` needs some debounce.
+ *
+ * We need `isLoading` for results (fresh).
+ * We need `isLoading` for results (more pages).
+ * We need `isLoading` for source language.
+ * We need `isLoading` for selected language.
+ */
+
 interface LanguageSelectorProps {
   /** Replaces the title on top. */
   titleOverride?: string;
-  /** Jumpstarts the selector with a pre-selected language. */
-  preselectedLanguage?: string;
   /**
    * Useful for translations (adds some UI). Also the source language is
    * not selectable from the list.
    */
-  sourceLanguage?: string;
+  sourceLanguage?: LanguageCode;
   /**
    * A list of languages that should be displayed in front of other languages.
    * Most possibly these languages were already chosen for other parts of given
    * feature or can be found in existing data.
    */
-  suggestedLanguages?: string[];
+  suggestedLanguages?: LanguageCode[];
   /** A list of languages that should be omitted from display. */
-  hiddenLanguages?: string[];
+  hiddenLanguages?: LanguageCode[];
   /** Triggered after language is selected or cleared. */
-  onLanguageChange: (selectedLanguage: string | undefined) => void;
+  onLanguageChange: (selectedLanguage: DetailedLanguage | ListLanguage | null) => void;
   isDisabled?: boolean;
-  /** Enables custom language feature. Disabled by default. */
-  isCustomAllowed?: boolean;
 }
 
 interface LanguageSelectorState {
-  filterPhrase: string;
-  selectedLanguage?: string;
-  allLanguages: EnvStoreDataItem[];
+  searchPhrase: string;
+  sourceLanguage?: DetailedLanguage;
+  /**
+   * A list of language objects. We use `languagesStore` to get the
+   * necessary data. Due to memoization and how the app is built, all of these
+   * languages should be already available (i.e. no fetching needed).
+   */
+  suggestedLanguages?: DetailedLanguage[];
+  selectedLanguage: DetailedLanguage | ListLanguage | null;
 }
 
 /**
- * A complex language selector component.
+ * A complex language selector component with some features:
+ * - source language
+ * - huge searchable list of languages
+ * - regions (TBD)
  */
 class LanguageSelector extends React.Component<
   LanguageSelectorProps,
   LanguageSelectorState
 > {
-  private unlisteners: Function[] = [];
+  store = new LanguagesListStore();
+  clearSelectedLanguageBound = this.clearSelectedLanguage.bind(this);
+  fetchLanguagesDebounced = debounce(this.fetchLanguages, 300);
+  listRef: RefObject<HTMLElement>;
 
   constructor(props: LanguageSelectorProps){
     super(props);
     this.state = {
-      filterPhrase: '',
-      selectedLanguage: props.preselectedLanguage,
-      allLanguages: envStore.getLanguages(),
+      searchPhrase: '',
+      selectedLanguage: null,
     };
+    this.listRef = React.createRef();
   }
 
   componentDidMount() {
-    this.unlisteners.push(
-      envStore.listen(this.onEnvStoreChange.bind(this), this),
-      languageSelectorActions.resetAll.requested.listen(this.clearSelectedLanguage.bind(this))
+    document.addEventListener(
+      LANGUAGE_SELECTOR_RESET_EVENT,
+      this.clearSelectedLanguageBound
     );
+
+    // Make initial fetch with no search phrase.
+    this.fetchLanguages();
+
+    if (this.props.sourceLanguage) {
+      this.fetchSourceLanguage();
+    }
+
+    if (this.props.suggestedLanguages) {
+      this.fetchSuggestedLanguages();
+    }
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    document.removeEventListener(
+      LANGUAGE_SELECTOR_RESET_EVENT,
+      this.clearSelectedLanguageBound
+    );
   }
 
-  /**
-   * Ensures we have languages if this component renders faster than envStore
-   * gets its languages.
-   */
-  onEnvStoreChange() {
-    this.setState({allLanguages: envStore.getLanguages()});
+  componentDidUpdate(prevProps: LanguageSelectorProps) {
+    if (prevProps.sourceLanguage !== this.props.sourceLanguage) {
+      this.fetchSourceLanguage();
+    }
+    if (prevProps.suggestedLanguages !== this.props.suggestedLanguages) {
+      this.fetchSuggestedLanguages();
+    }
   }
 
   notifyParentComponent() {
@@ -106,97 +161,121 @@ class LanguageSelector extends React.Component<
     window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank');
   }
 
-  isCustomLanguageVisible() {
-    return (
-      !this.state.selectedLanguage &&
-      // there is something typed in the search
-      this.state.filterPhrase !== '' &&
-      // the typed thing is not a known language code
-      envStore.getLanguage(this.state.filterPhrase) === undefined &&
-      // the typed thing is not a known language label
-      envStore.getLanguageByName(this.state.filterPhrase) === undefined
+  /** Initializes search on `languageStore` with current `searchPhrase`. */
+  fetchLanguages() {
+    this.store.fetchLanguages(this.state.searchPhrase);
+    // Reset scroll position to top whenever a fresh list is being fetched
+    // (unlike fetching more languages, when we don't want to reset anything).
+    if (this.listRef.current) {
+      this.listRef.current.scrollTop = 0;
+    }
+  }
+
+  fetchMoreLanguages() {
+    this.store.fetchMoreLanguages();
+  }
+
+  async fetchSourceLanguage() {
+    this.setState({sourceLanguage: undefined});
+    if (this.props.sourceLanguage) {
+      const language = await languagesStore.getLanguage(this.props.sourceLanguage);
+      // Just a safe check if source didn't change as we waited for the response.
+      if (this.props.sourceLanguage === language.code) {
+        this.setState({sourceLanguage: language});
+      }
+    }
+  }
+
+  fetchSuggestedLanguages() {
+    this.setState({suggestedLanguages: undefined});
+    if (this.props.suggestedLanguages) {
+      this.props.suggestedLanguages.forEach(async (languageCode) => {
+        const language = await languagesStore.getLanguage(languageCode);
+        // Just a safe check if suggested languages list didn't change while we
+        // waited for the response.
+        const isAlreadyAdded = Boolean(this.state.suggestedLanguages?.find((stateLanguage) => stateLanguage.code === language.code));
+        if (
+          this.props.suggestedLanguages?.includes(language.code) &&
+          !isAlreadyAdded
+        ) {
+          const newLanguages = this.state.suggestedLanguages || [];
+          newLanguages.push(language);
+          this.setState({suggestedLanguages: newLanguages});
+        }
+      });
+    }
+  }
+
+  onSearchPhraseInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
+    this.setSearchPhrase(evt.target.value);
+  }
+
+  clearSearchPhrase() {
+    this.setSearchPhrase('');
+  }
+
+  setSearchPhrase(searchPhrase: string) {
+    this.setState({searchPhrase: searchPhrase});
+    this.fetchLanguagesDebounced();
+  }
+
+  selectLanguage(language: DetailedLanguage | ListLanguage) {
+    this.setState(
+      {selectedLanguage: language},
+      this.notifyParentComponent.bind(this)
     );
   }
 
-  onFilterPhraseChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({filterPhrase: evt.target.value});
-  }
-
-  clearFilterPhrase() {
-    this.setState({filterPhrase: ''});
-  }
-
-  selectLanguage(code: string) {
-    this.setState({
-      selectedLanguage: code,
-      filterPhrase: '',
-    }, this.notifyParentComponent.bind(this));
-  }
-
   clearSelectedLanguage() {
-    this.setState({selectedLanguage: undefined}, this.notifyParentComponent.bind(this));
+    this.setState(
+      {selectedLanguage: null},
+      this.notifyParentComponent.bind(this)
+    );
   }
 
-
-  /** Return two lists of languages. */
-  getFilteredLanguages(): {
-    suggested: Array<Fuse.FuseResult<EnvStoreDataItem>> | EnvStoreDataItem[];
-    other: Array<Fuse.FuseResult<EnvStoreDataItem>> | EnvStoreDataItem[];
-  } {
-    const hiddenLanguages = this.props.hiddenLanguages || [];
-    const suggestedLanguages = this.props.suggestedLanguages || [];
-
-    // Filter out the source language and hidden languages first. They should
-    // not be displayed to user.
-    const visible = [...this.state.allLanguages].filter((language) => (
-        language.value !== this.props.sourceLanguage &&
-        !hiddenLanguages.includes(language.value)
-      ));
-
-    // Split languages into suggested and the rest.
-    const suggested = [...visible].filter((language) => suggestedLanguages.includes(language.value));
-    const fuseSuggested = new Fuse(suggested, {...FUSE_OPTIONS, keys: ['value', 'label']});
-
-    const other = [...visible].filter((language) => !suggestedLanguages.includes(language.value));
-    const fuseOther = new Fuse(other, {...FUSE_OPTIONS, keys: ['value', 'label']});
-
-    if (this.state.filterPhrase !== '') {
-      return {
-        suggested: fuseSuggested.search(this.state.filterPhrase),
-        other: fuseOther.search(this.state.filterPhrase),
-      };
-    }
-    return {
-      suggested,
-      other,
-    };
-  }
-
-  renderLanguageItem(
-    languageObj: EnvStoreDataItem | Fuse.FuseResult<EnvStoreDataItem>
-  ) {
-    let value;
-    let label;
-    if ('value' in languageObj) {
-      value = languageObj.value;
-      label = languageObj.label;
-    } else if ('item' in languageObj) {
-      value = languageObj.item.value;
-      label = languageObj.item.label;
-    }
-
-    if (!value) {
-      return null;
-    }
-
+  get isCannotFindVisible() {
+    // We want to display this information only after user have used the search
+    // feature and went through the whole list of results. Or if there are no
+    // results for given phrase.
     return (
-      <li key={value}>
+      this.state.searchPhrase &&
+      !this.store.isLoading &&
+      !this.store.hasMoreLanguages
+    );
+  }
+
+  /**
+   * We need to filter out some languages from the list, so we use this neat
+   * little alias to `this.store.languages`.
+   */
+  get languages() {
+    return this.store.languages.filter((language) =>
+      !this.props.suggestedLanguages?.includes(language.code) &&
+      !this.props.hiddenLanguages?.includes(language.code) &&
+      language.code !== this.props.sourceLanguage
+    );
+  }
+
+  /**
+   * We need to filter out some languages from the list, so we use this neat
+   * little alias to `this.store.suggestedLanguages`.
+   */
+  get suggestedLanguages() {
+    return this.state.suggestedLanguages?.filter((language) =>
+      !this.props.hiddenLanguages?.includes(language.code) &&
+      language.code !== this.props.sourceLanguage
+    );
+  }
+
+  renderLanguageItem(language: DetailedLanguage | ListLanguage) {
+    return (
+      <li key={language.code}>
         <Button
           type='bare'
           color='storm'
           size='m'
-          label={(<span>{label}&nbsp;<small>({value})</small></span>)}
-          onClick={this.selectLanguage.bind(this, value)}
+          label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
+          onClick={this.selectLanguage.bind(this, language)}
           isDisabled={this.props.isDisabled}
         />
       </li>
@@ -213,7 +292,10 @@ class LanguageSelector extends React.Component<
         <Icon name='language-alt' size='m'/>
 
         <bem.LanguageSelector__selectedLanguageLabel>
-          {envStore.getLanguageDisplayLabel(this.state.selectedLanguage)}
+          <LanguageDisplayLabel
+            code={this.state.selectedLanguage.code}
+            name={this.state.selectedLanguage.name}
+          />
         </bem.LanguageSelector__selectedLanguageLabel>
 
         <bem.LanguageSelector__clearSelectedLanguage
@@ -227,7 +309,7 @@ class LanguageSelector extends React.Component<
   }
 
   renderSourceLanguage() {
-    if (!this.props.sourceLanguage) {
+    if (!this.state.sourceLanguage) {
       return null;
     }
 
@@ -239,7 +321,10 @@ class LanguageSelector extends React.Component<
 
         <bem.LanguageSelector__sourceLanguage>
           <Icon name='language-alt' size='m'/>
-          <span>{envStore.getLanguageDisplayLabel(this.props.sourceLanguage)}</span>
+          <LanguageDisplayLabel
+            code={this.state.sourceLanguage.code}
+            name={this.state.sourceLanguage.name}
+          />
         </bem.LanguageSelector__sourceLanguage>
       </bem.LanguageSelector__source>
     );
@@ -248,25 +333,30 @@ class LanguageSelector extends React.Component<
   renderSearchBox() {
     return (
       <bem.LanguageSelector__searchBoxWrapper>
-        {this.props.sourceLanguage &&
+        {this.state.sourceLanguage &&
           <bem.LanguageSelector__searchBoxLabel>
             {t('translation')}
           </bem.LanguageSelector__searchBoxLabel>
         }
         <bem.LanguageSelector__searchBox>
-          <Icon name='search' size='m'/>
+          {this.store.isLoading &&
+            <Icon name='spinner' size='s' classNames={['k-spin']}/>
+          }
+          {!this.store.isLoading &&
+            <Icon name='search' size='m'/>
+          }
 
           <bem.LanguageSelector__searchBoxInput
             type='text'
-            value={this.state.filterPhrase}
-            onChange={this.onFilterPhraseChange.bind(this)}
+            value={this.state.searchPhrase}
+            onChange={this.onSearchPhraseInputChange.bind(this)}
             placeholder={t('Search for a language')}
             disabled={this.props.isDisabled}
           />
 
-          {this.state.filterPhrase !== '' &&
+          {this.state.searchPhrase !== '' &&
             <bem.LanguageSelector__clearSearchBox
-              onClick={this.clearFilterPhrase.bind(this)}
+              onClick={this.clearSearchPhrase.bind(this)}
               disabled={this.props.isDisabled}
             >
               <Icon name='close' size='s'/>
@@ -278,77 +368,70 @@ class LanguageSelector extends React.Component<
   }
 
   renderSuggestedLanguages() {
-    const filteredLanguages = this.getFilteredLanguages();
-
-    if (filteredLanguages.suggested.length === 0) {
+    if (this.suggestedLanguages === undefined || this.suggestedLanguages.length === 0) {
       return null;
     }
 
     return (
       <React.Fragment>
-        {filteredLanguages.suggested.map(this.renderLanguageItem.bind(this))}
+        {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
         <bem.LanguageSelector__line/>
       </React.Fragment>
     );
   }
 
   renderSearchForm() {
-    const filteredLanguages = this.getFilteredLanguages();
-
     return (
       <React.Fragment>
         <bem.LanguageSelector__searchBoxRow>
-          {this.props.sourceLanguage &&
-            this.renderSourceLanguage()
-          }
-          {this.props.sourceLanguage &&
-            <Icon name='arrow-right' size='l'/>
+          {this.state.sourceLanguage &&
+            <React.Fragment>
+              {this.renderSourceLanguage()}
+              <Icon name='arrow-right' size='l'/>
+            </React.Fragment>
           }
           {this.renderSearchBox()}
         </bem.LanguageSelector__searchBoxRow>
 
-        <bem.LanguageSelector__list>
+        <section className='language-selector__list' ref={this.listRef}>
+          <InfiniteScroll
+            pageStart={0}
+            loadMore={this.fetchMoreLanguages.bind(this)}
+            hasMore={this.store.hasMoreLanguages}
+            loader={<LoadingSpinner hideMessage key='loadingspinner'/>}
+            useWindow={false}
+          >
+            <ul key='unorderedlist'>
+              {this.renderSuggestedLanguages()}
+              {this.languages.length >= 1 &&
+                this.languages.map(this.renderLanguageItem.bind(this))
+              }
+            </ul>
+          </InfiniteScroll>
+
           {(
-            filteredLanguages.suggested.length === 0 &&
-            filteredLanguages.other.length === 0
+            this.state.searchPhrase !== '' &&
+            this.store.isInitialised &&
+            this.languages.length === 0
           ) &&
             <bem.LanguageSelector__notFoundMessage key='empty'>
               {t("Sorry, didn't find any language…")}
             </bem.LanguageSelector__notFoundMessage>
           }
+        </section>
 
-          {this.renderSuggestedLanguages()}
-          {filteredLanguages.other.length >= 1 &&
-            filteredLanguages.other.map(this.renderLanguageItem.bind(this))
-          }
-
-          {this.props.isCustomAllowed && this.isCustomLanguageVisible() &&
-            <li key='custom'>
-              <Button
-                type='bare'
-                color='storm'
-                size='m'
-                label={(<span>
-                  {t('I want to use')}&nbsp;"<strong>{this.state.filterPhrase}</strong>"
-                </span>)}
-                onClick={this.selectLanguage.bind(this, this.state.filterPhrase)}
-                isDisabled={this.props.isDisabled}
-              />
-            </li>
-          }
-        </bem.LanguageSelector__list>
-
-        <bem.LanguageSelector__helpBar>
-          <Button
-            type='bare'
-            color='blue'
-            startIcon='information'
-            size='s'
-            onClick={this.openSupportPage.bind(this)}
-            label={t('I cannot find my language')}
-            isDisabled={this.props.isDisabled}
-          />
-        </bem.LanguageSelector__helpBar>
+        {this.isCannotFindVisible &&
+          <bem.LanguageSelector__helpBar>
+            <Button
+              type='bare'
+              color='blue'
+              startIcon='information'
+              size='s'
+              onClick={this.openSupportPage.bind(this)}
+              label={t('I cannot find my language')}
+            />
+          </bem.LanguageSelector__helpBar>
+        }
       </React.Fragment>
     );
   }
@@ -368,4 +451,4 @@ class LanguageSelector extends React.Component<
   }
 }
 
-export default LanguageSelector;
+export default observer(LanguageSelector);

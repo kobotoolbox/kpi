@@ -7,6 +7,7 @@ import {
   getAssetProcessingUrl,
 } from 'js/assetUtils';
 import type {AssetAdvancedFeatures} from 'js/dataInterface';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!');
 
@@ -35,14 +36,14 @@ interface GoogleTxResponse {
 interface TransxQuestion {
   transcript: TransxObject;
   translated: {
-    [languageCode: string]: TransxObject;
+    [languageCode: LanguageCode]: TransxObject;
   };
   googlets?: GoogleTsResponse;
   googletx?: GoogleTxResponse;
 }
 /** Both transcript and translation are built in same way. */
 interface TransxRequestObject {
-  languageCode: string;
+  languageCode: LanguageCode;
   value: string;
 }
 interface TransxObject extends TransxRequestObject {
@@ -54,7 +55,7 @@ interface TransxObject extends TransxRequestObject {
 interface TransxRevision {
   dateModified: string;
   engine?: string;
-  languageCode: string;
+  languageCode: LanguageCode;
   value: string;
 }
 
@@ -85,7 +86,7 @@ interface TranslationRequestQuestion {
   translated: TranslationsRequestObject;
 }
 interface TranslationsRequestObject {
-  [languageCode: string]: TransxRequestObject;
+  [languageCode: LanguageCode]: TransxRequestObject;
 }
 
 interface AutoTranslationRequest {
@@ -190,7 +191,7 @@ function setTranscriptInnerMethod(
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string,
+  languageCode: LanguageCode,
   value: string
 ) {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -227,7 +228,7 @@ processingActions.setTranscript.listen((
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string,
+  languageCode: LanguageCode,
   value: string
 ) => {
   // This first block of code is about getting currently enabled languages.
@@ -377,7 +378,7 @@ function pickTranslationsFromProcessingDataResponse(
 function getTranslationDataObject(
   qpath: string,
   submissionEditId: string,
-  languageCode: string,
+  languageCode: LanguageCode,
   value: string
 ): TranslationRequest {
   // Sorry for this object being built in such a lengthy way, but it is needed
@@ -404,7 +405,7 @@ function setTranslationInnerMethod(
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string,
+  languageCode: LanguageCode,
   value: string
 ) {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -442,7 +443,7 @@ processingActions.setTranslation.listen((
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string,
+  languageCode: LanguageCode,
   value: string
 ) => {
   // This first block of code is about getting currently enabled languages.
@@ -511,7 +512,7 @@ processingActions.deleteTranslation.listen((
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string
+  languageCode: LanguageCode
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {

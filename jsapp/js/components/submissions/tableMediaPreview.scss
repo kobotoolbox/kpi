@@ -31,6 +31,12 @@
   padding: sizes.$x32;
 }
 
+.table-media-preview-header__options {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
 .table-media-preview__video {
   width: 100%;
   height: 100%;

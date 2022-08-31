@@ -7,10 +7,27 @@ from .base import (
     BaseLanguageServiceAdmin,
     BaseLanguageServiceM2M,
 )
+from ..exceptions import LanguageNotSupported
 
 
 class TranscriptionService(BaseLanguageService):
-    pass
+
+    def get_language_code(self, value: str) -> str:
+
+        try:
+            through_obj = TranscriptionServiceLanguageM2M.objects.get(
+                service__code=self.code, region__code=value
+            )
+        except TranscriptionServiceLanguageM2M.DoesNotExist:
+            # Fall back on language itself and let the service detect the region.
+            if self.language_set.filter(code=value).exists():
+                return value
+            else:
+                raise LanguageNotSupported
+        else:
+            return (
+                through_obj.mapping_code if through_obj.mapping_code else value
+            )
 
 
 class TranscriptionServiceAdmin(BaseLanguageServiceAdmin):

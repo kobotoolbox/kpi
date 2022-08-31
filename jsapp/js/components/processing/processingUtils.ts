@@ -1,5 +1,6 @@
 import {ROUTES} from 'js/router/routerConstants';
 import {SUPPLEMENTAL_DETAILS_PROP} from 'js/constants';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 import {hashHistory} from 'react-router';
 
 /**
@@ -8,7 +9,7 @@ import {hashHistory} from 'react-router';
  */
 export function getSupplementalTranscriptPath(
   questionName: string,
-  languageCode: string
+  languageCode: LanguageCode
 ) {
   return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript_${languageCode}`;
 }
@@ -19,7 +20,7 @@ export function getSupplementalTranscriptPath(
  */
 export function getSupplementalTranslationPath(
   questionName: string,
-  languageCode: string
+  languageCode: LanguageCode
 ) {
   return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated_${languageCode}`;
 }
@@ -32,7 +33,7 @@ export function getSupplementalPathParts(path: string): {
   sourceRowName: string;
   isTranscript: boolean;
   isTranslation: boolean;
-  languageCode: string;
+  languageCode: LanguageCode;
 } {
   const pathArr = path.split('/');
   const path2Arr = pathArr[2].split('_');
