@@ -3,6 +3,10 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import gettext_lazy as t
+from trench.command.authenticate_second_factor import (
+    authenticate_second_step_command
+)
+from trench.exceptions import MFAValidationError
 from trench.serializers import CodeLoginSerializer
 from trench.utils import (
     get_mfa_model,
@@ -10,7 +14,7 @@ from trench.utils import (
 )
 
 
-class MFALoginForm(AuthenticationForm):
+class MfaLoginForm(AuthenticationForm):
     """
     Authenticating users.
     If 2FA is activated, first step (of two) of the login process.
@@ -42,7 +46,7 @@ class MFALoginForm(AuthenticationForm):
         return self.ephemeral_token_cache
 
 
-class MFATokenForm(forms.Form):
+class MfaTokenForm(forms.Form):
     """
     Validate 2FA token.
     Second (and last) step of login process when MFA is activated.
@@ -79,7 +83,14 @@ class MFATokenForm(forms.Form):
         if not code_login_serializer.is_valid():
             raise self.get_invalid_mfa_error()
 
-        self.user_cache = code_login_serializer.user
+        try:
+            self.user_cache = authenticate_second_step_command(
+                code=code_login_serializer.validated_data['code'],
+                ephemeral_token=code_login_serializer.validated_data['ephemeral_token'],
+            )
+        except MFAValidationError:
+            raise self.get_invalid_mfa_error()
+
         # When login is successful, `django.contrib.auth.login()` expects the
         # authentication backend class to be attached to user object.
         # See https://github.com/django/django/blob/b87820668e7bd519dbc05f6ee46f551858fb1d6d/django/contrib/auth/__init__.py#L111

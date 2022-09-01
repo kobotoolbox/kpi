@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import unittest
+from urllib.parse import unquote_plus
 
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -10,13 +11,14 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import ASSET_TYPE_COLLECTION
-from kpi.models import Asset
-from kpi.models import ExportTask
+from kpi.models import Asset, ExportTask
+from kpi.models.import_export_task import export_upload_to
 from kpi.serializers.v1.asset import AssetListSerializer
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
+
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
@@ -329,7 +331,12 @@ class AssetExportTaskTest(BaseTestCase):
     def test_owner_can_create_and_delete_export(self):
         detail_response = self.test_owner_can_create_export()
         result_response = self.client.get(detail_response.data['result'])
-        file_name = str(result_response._closable_objects[0].name)
+        file_name = unquote_plus(
+            result_response.headers['Content-Disposition'].replace(
+                "inline; filename*=utf-8''", ''
+            )
+        )
+        file_path = export_upload_to(self, file_name)
 
         detail_url = reverse('exporttask-detail', kwargs={
             'uid': detail_response.data['uid']
@@ -337,7 +344,7 @@ class AssetExportTaskTest(BaseTestCase):
 
         # checking if file exists before attempting to delete
         file_exists_before_delete = ExportTask.result.field.storage.exists(
-            name=file_name
+            name=file_path
         )
         assert file_exists_before_delete
 
@@ -347,7 +354,7 @@ class AssetExportTaskTest(BaseTestCase):
 
         # checking if file still exists after attempting to delete it
         file_exists_after_delete = ExportTask.result.field.storage.exists(
-            name=file_name
+            name=file_path
         )
         assert not file_exists_after_delete
 

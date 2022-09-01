@@ -416,7 +416,6 @@ module.exports = do ->
       $skipLogicHelpers.question_types[@getTypeId()] || $skipLogicHelpers.question_types['default']
 
     _isSelectQuestion: ->
-      # TODO [ald]: pull this from $aliases
       @get('type').get('typeId') in ['select_one', 'select_multiple']
 
     getAcceptedFiles: -> return @attributes['body::accept']?.attributes?.value

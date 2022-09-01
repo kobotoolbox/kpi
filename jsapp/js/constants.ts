@@ -57,7 +57,7 @@ export const PERMISSIONS_CODENAMES = createEnum([
   'discover_asset',
 
   // Is user able to manage some aspects of asset (it is different from editing)
-  // such as: saving export settings, sharing asset (TODO)…
+  // such as: saving export settings, sharing asset (in future)…
   'manage_asset',
 
   // Is user able to add submissions - handled by Backend submissions endpoint.
@@ -118,6 +118,7 @@ export const MODAL_TYPES = {
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
+  MFA_MODALS: 'mfa-modals',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({

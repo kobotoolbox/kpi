@@ -21,9 +21,6 @@ module.exports = do ->
 
   _.extend(Backbone.Model.prototype, validation.mixin);
 
-  # TODO: Extend Backbone Validation
-  # _.extend Backbone.Model.prototype, Backbone.Validation.mixin
-
   base = {}
   class base.BaseCollection extends Backbone.Collection
     constructor: (arg, opts)->

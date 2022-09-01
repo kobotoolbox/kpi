@@ -1,16 +1,25 @@
 # coding: utf-8
-"""
-WSGI config for kobo project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/
-"""
 import os
 
-from django.core.wsgi import get_wsgi_application
+import django
+from django.conf import settings
+from django.core.handlers.wsgi import WSGIHandler
+from django.db import connections
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kobo.settings.prod')
 
-application = get_wsgi_application()
+django.setup(set_prefix=False)
+
+# Close DB connections to avoid deadlock when uwsgi forks process.
+# see https://github.com/unbit/uwsgi/issues/1599#issuecomment-336584282
+
+# Close PostgreSQL connections
+for conn in connections.all():
+    conn.close()
+
+# Close MongoDB connections if MongoClient has been instantiated already.
+if hasattr(settings, 'mongo_client'):
+    settings.mongo_client.close()
+
+application = WSGIHandler()

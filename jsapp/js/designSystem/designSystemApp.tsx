@@ -6,6 +6,7 @@ import InlineMessageDemo from 'js/designSystem/inlineMessageDemo'
 import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo'
 import KoboRangeDemo from 'js/designSystem/koboRangeDemo'
 import KoboSelectDemo from 'js/designSystem/koboSelectDemo'
+import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo'
 import RadioDemo from 'js/designSystem/radioDemo'
 import TextBoxDemo from 'js/designSystem/textboxDemo'
 import './demo.scss'
@@ -30,6 +31,7 @@ export default class DesignSystemApp extends React.Component {
           <KoboDropdownDemo/>
           <KoboRangeDemo/>
           <KoboSelectDemo/>
+          <MiniAudioPlayerDemo/>
           <RadioDemo/>
           <TextBoxDemo/>
         </div>

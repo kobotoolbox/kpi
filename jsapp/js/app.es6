@@ -16,10 +16,11 @@ import mixins from 'js/mixins';
 import MainHeader from 'js/components/header';
 import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
-import IntercomHandler from 'js/components/intercomHandler';
+import IntercomHandler from 'js/components/support/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
+import {Toaster} from 'react-hot-toast';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -94,6 +95,11 @@ export default class App extends React.Component {
               {this.props.children}
             </bem.PageWrapper__content>
           </bem.PageWrapper>
+
+          {/* Default position of all notifications, page specific ones can be overwritten */}
+          <Toaster
+            position='bottom-left'
+          />
         </React.Fragment>
       </DocumentTitle>
     );
