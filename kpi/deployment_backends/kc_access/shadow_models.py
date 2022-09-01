@@ -500,7 +500,7 @@ class KobocatToken(ShadowModel):
     def sync(cls, auth_token):
         try:
             # Token use a One-to-One relationship on User.
-            # Thus, we can retrieve tokens from users' id. 
+            # Thus, we can retrieve tokens from users' id.
             kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KobocatToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
@@ -673,6 +673,34 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
+
+
+class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
+
+    date = models.DateField()
+    xform = models.ForeignKey(
+        KobocatXForm, related_name='xforms', on_delete=models.CASCADE
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+
+
+class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
+
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        KobocatUser, related_name='users', on_delete=models.DO_NOTHING
+    )
+    xform = models.ForeignKey(
+        'logger.XForm', null=True, on_delete=models.SET_NULL
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_monthlyxformsubmissioncounter'
 
 
 def safe_kc_read(func):
