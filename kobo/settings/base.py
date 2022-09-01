@@ -108,7 +108,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.MfaAppConfig',
+    'kobo.apps.mfa.apps.MfaAppConfig',
 )
 
 MIDDLEWARE = [
@@ -221,7 +221,34 @@ CONSTANCE_CONFIG = {
     ),
     'MFA_ENABLED': (
         True,
-        'Enable two-factor authentication',
+        'Enable two-factor authentication'
+    ),
+    'MFA_LOCALIZED_HELP_TEXT': (
+        json.dumps({
+            'default': (
+                'If you cannot access your authenticator app, please enter one '
+                'of your backup codes instead. If you cannot access those '
+                'either, then you will need to request assistance by '
+                'contacting [##support email##](mailto:##support email##).'
+            ),
+            'some-other-language': (
+                'This will never appear because `some-other-language` is not '
+                'a valid language code, but this entry is here to show you '
+                'an example of adding another message in a different language.'
+            )
+        }, indent=0),  # `indent=0` at least adds newlines
+        (
+            'JSON object of guidance messages presented to users when they '
+            'click the "Problems with the token" link after being prompted for '
+            'their verification token. Markdown syntax is supported, and '
+            '`##support email##` will be replaced with the value of the '
+            '`SUPPORT_EMAIL` setting on this page.\n'
+            'To add messages in other languages, follow the example of '
+            '`some-other-language`, but use a valid language code (e.g. `fr` '
+            'for French).'
+        ),
+        # Use custom field for schema validation
+        'mfa_help_text_fields_jsonschema'
     ),
     'USER_METADATA_FIELDS': (
         json.dumps([
@@ -259,7 +286,7 @@ CONSTANCE_CONFIG = {
         'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
-        '\r\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
         "Options available for the 'sector' metadata field, one per line."
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
@@ -268,15 +295,21 @@ CONSTANCE_CONFIG = {
         'field, one per line.'
     ),
 }
+
 CONSTANCE_ADDITIONAL_FIELDS = {
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
-    ]
+    ],
+    'mfa_help_text_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
+        {'widget': 'django.forms.Textarea'},
+    ],
 }
 
 # Tell django-constance to use a database model instead of Redis
-CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_BACKEND = 'kobo.apps.constance_backends.database.DatabaseBackend'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -320,10 +353,13 @@ SKIP_HEAVY_MIGRATIONS = env.bool('SKIP_HEAVY_MIGRATIONS', False)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
-    'default': env.db(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': env.db_url(
+        'KPI_DATABASE_URL' if 'KPI_DATABASE_URL' in os.environ else 'DATABASE_URL',
+        default='sqlite:///%s/db.sqlite3' % BASE_DIR
+    ),
 }
+
 if 'KC_DATABASE_URL' in os.environ:
     DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
 
@@ -455,6 +491,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
                 'kpi.context_processors.external_service_tokens',
@@ -523,7 +560,12 @@ CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
 CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
-CSP_IMG_SRC = CSP_DEFAULT_SRC + ['data:']
+CSP_IMG_SRC = CSP_DEFAULT_SRC + [
+    'data:',
+    'https://*.openstreetmap.org',
+    'https://*.opentopomap.org',
+    'https://*.arcgisonline.com'
+]
 
 if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
@@ -635,12 +677,16 @@ if os.environ.get('EMAIL_USE_TLS'):
 
 
 ''' AWS configuration (email and storage) '''
-if os.environ.get('AWS_ACCESS_KEY_ID'):
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
-    AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+if env.str('AWS_ACCESS_KEY_ID', False):
+    AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
+    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+    # Only set the region if it is present in environment.
+    if region := env.str('AWS_S3_REGION_NAME', False):
+        AWS_S3_REGION_NAME = region
 
 
 ''' Storage configuration '''
@@ -719,8 +765,8 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-
-if (os.getenv("RAVEN_DSN") or "") != "":
+sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
+if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -732,13 +778,13 @@ if (os.getenv("RAVEN_DSN") or "") != "":
         event_level=logging.WARNING  # Send warnings as events
     )
     sentry_sdk.init(
-        dsn=os.environ['RAVEN_DSN'],
+        dsn=sentry_dsn,
         integrations=[
             DjangoIntegration(),
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=0.2,
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
         send_default_pii=True
     )
 
@@ -781,34 +827,48 @@ TESTING = False
 
 
 ''' Auxiliary database configuration '''
-# KPI must connect to the same Mongo database as KoBoCAT
-MONGO_DATABASE = {
-    'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
-    'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
-    'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
-    'USER': os.environ.get('KPI_MONGO_USER', ''),
-    'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
-}
-if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
-        format(
-            user=MONGO_DATABASE['USER'],
-            password=quote_plus(MONGO_DATABASE['PASSWORD']),
-            host=MONGO_DATABASE['HOST'],
-            port=MONGO_DATABASE['PORT'],
-            db_name=MONGO_DATABASE['NAME']
-        )
+if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
+    # ToDo Remove all this block by the end of 2022.
+    #   Update kobo-install accordingly
+    logging.warning(
+        '`MONGO_DB_URL` is not found. '
+        '`KPI_MONGO_HOST`, `KPI_MONGO_PORT`, `KPI_MONGO_NAME`, '
+        '`KPI_MONGO_USER`, `KPI_MONGO_PASS` '
+        'are deprecated and will not be supported anymore soon.'
+    )
+
+    MONGO_DATABASE = {
+        'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
+        'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
+        'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
+        'USER': os.environ.get('KPI_MONGO_USER', ''),
+        'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
+    }
+
+    if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
+        MONGO_DB_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+            format(
+                user=MONGO_DATABASE['USER'],
+                password=quote_plus(MONGO_DATABASE['PASSWORD']),
+                host=MONGO_DATABASE['HOST'],
+                port=MONGO_DATABASE['PORT'],
+                db_name=MONGO_DATABASE['NAME']
+            )
+    else:
+        MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
+    mongo_db_name = MONGO_DATABASE['NAME']
 else:
-    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
-MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL,
-    journal=True,
-    tz_aware=True,
-    connect=False,
-    tls=env.bool('MONGO_USE_TLS', False),
-    tlsCAFile=env.str('MONGO_TLS_CA_FILE', None),
+    # Attempt to get collection name from the connection string
+    # fallback on MONGO_DB_NAME or 'formhub' if it is empty or None or unable to parse
+    try:
+        mongo_db_name = env.db_url('MONGO_DB_URL').get('NAME') or env.str('MONGO_DB_NAME', 'formhub')
+    except ValueError:  # db_url is unable to parse replica set strings
+        mongo_db_name = env.str('MONGO_DB_NAME', 'formhub')
+
+mongo_client = MongoClient(
+    MONGO_DB_URL, connect=False, journal=True, tz_aware=True
 )
-MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
@@ -824,6 +884,11 @@ SESSION_REDIS = {
     'url': redis_session_url['LOCATION'],
     'prefix': env.str('REDIS_SESSION_PREFIX', 'session'),
     'socket_timeout': env.int('REDIS_SESSION_SOCKET_TIMEOUT', 1),
+}
+
+CACHES = {
+    # Set CACHE_URL to override
+    'default': env.cache(default='redis://redis_cache:6380/3'),
 }
 
 ENV = None
@@ -864,7 +929,7 @@ KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
 }
 
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'mfa.KoboMFAMethod',
+    'USER_MFA_MODEL': 'mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
@@ -882,7 +947,7 @@ TRENCH_AUTH = {
                 'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
             ),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
+            'HANDLER': 'kobo.apps.mfa.backends.application.ApplicationBackend',
         },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
@@ -892,3 +957,6 @@ TRENCH_AUTH = {
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
+
+# Django 3.2 required settings
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

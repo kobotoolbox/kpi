@@ -72,7 +72,7 @@ export const ASSETS_TABLE_COLUMNS: {[id: string]: AssetsTableColumn} = Object.fr
   'items-count': {
     label: t('Items'),
     id: 'items-count',
-    // TODO: currently it is not possible to order by summary.row_count and children.count at the same time
+    // NOTE: currently it is not possible to order by summary.row_count and children.count at the same time
     // so we disable this column
     orderBy: null,
     defaultValue: null,

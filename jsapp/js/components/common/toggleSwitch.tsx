@@ -1,26 +1,23 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import './toggleSwitch.scss';
 
+interface ToggleSwitchProps {
+  checked?: boolean;
+  label?: string;
+  disabled?: boolean;
+  name?: string;
+  id?: number;
+  onChange: (isChecked: boolean) => void;
+  'data-cy'?: string;
+}
+
 /**
  * A toggle switch generic component. Operates same as checkbox, different look.
- *
- * @prop {boolean} checked
- * @prop {function} onChange required
- * @prop {string} label
  */
-class ToggleSwitch extends React.Component {
-  constructor(props){
-    if (typeof props.onChange !== 'function') {
-      throw new Error('onChange callback in ToggleSwitch missing!');
-    }
-    super(props);
-    autoBind(this);
-  }
-
-  onChange(evt) {
-    this.props.onChange(evt.currentTarget.checked);
+class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
+  onChange(evt: React.ChangeEvent<HTMLInputElement>) {
+    this.props.onChange(evt.currentTarget?.checked);
   }
 
   render() {
@@ -31,9 +28,10 @@ class ToggleSwitch extends React.Component {
             type='checkbox'
             name={this.props.name}
             id={this.props.id}
-            onChange={this.onChange}
+            onChange={this.onChange.bind(this)}
             checked={this.props.checked}
             disabled={this.props.disabled}
+            data-cy={this.props['data-cy']}
           />
           <bem.ToggleSwitch__slider
             disabled={this.props.disabled}

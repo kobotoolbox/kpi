@@ -43,7 +43,6 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   SORT_BY: 'sort-by',
 });
 
-// TODO: Append this list with transcriptions/translations when they get added (NLP)
 export const TABLE_MEDIA_TYPES = createEnum([
   QUESTION_TYPES.image.id,
   QUESTION_TYPES.audio.id,
@@ -68,3 +67,30 @@ CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.audio.id] = 110;
 CELLS_WIDTH_OVERRIDES[QUESTION_TYPES.video.id] = 110;
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES['background-audio']] = 110;
 Object.freeze(CELLS_WIDTH_OVERRIDES);
+
+export const TEXT_FILTER_QUESTION_TYPES = [
+  QUESTION_TYPES.text.id,
+  QUESTION_TYPES.integer.id,
+  QUESTION_TYPES.decimal.id,
+  QUESTION_TYPES.select_multiple.id,
+  QUESTION_TYPES.date.id,
+  QUESTION_TYPES.time.id,
+  QUESTION_TYPES.datetime.id,
+  QUESTION_TYPES.barcode.id,
+  QUESTION_TYPES.calculate.id,
+  META_QUESTION_TYPES.start,
+  META_QUESTION_TYPES.end,
+  META_QUESTION_TYPES.username,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES['background-audio'],
+];
+
+export const TEXT_FILTER_QUESTION_IDS = [
+  '__version__',
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
+  ADDITIONAL_SUBMISSION_PROPS._submitted_by,
+];

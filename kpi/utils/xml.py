@@ -3,6 +3,9 @@ import re
 from typing import Optional, Union, List
 from lxml import etree
 
+from django_request_cache import cache_for_request
+from shortuuid import ShortUUID
+
 
 def strip_nodes(
     source: Union[str, bytes],
@@ -10,12 +13,16 @@ def strip_nodes(
     use_xpath: bool = False,
     xml_declaration: bool = False,
     rename_root_node_to: Optional[str] = None,
+    bulk_action_cache_key: str = None,
 ) -> str:
     """
     Returns a stripped version of `source`. It keeps only nodes provided in
     `nodes_to_keep`.
     If `rename_root_node_to` is provided, the root node will be renamed to the
     value of that parameter in the returned XML string.
+
+    A random string can be passed to `bulk_action_cache_key` to get the
+    XPaths only once if calling `strip_nodes()` several times in a loop.
     """
     # Force `source` to be bytes in case it contains an XML declaration
     # `etree` does not support strings with xml declarations.
@@ -28,7 +35,13 @@ def strip_nodes(
     root_element = tree.getroot()
     root_path = tree.getpath(root_element)
 
-    def get_xpath_matches():
+    # `@cache_for_request` uses the parameters of the function it decorates
+    # to generate the key under which the returned value of the function is
+    # stored for cache purpose.
+    # `cache_key` is only there to serve that purpose and ensure
+    # `@cache_for_request` uniqueness.
+    @cache_for_request
+    def get_xpath_matches(cache_key: str):
         if use_xpath:
             xpaths_ = []
             for xpath_ in nodes_to_keep:
@@ -118,7 +131,14 @@ def strip_nodes(
         return path_.replace(root_path, '')
 
     if len(nodes_to_keep):
-        xpath_matches = get_xpath_matches()
+        # Always sends an unique string to `get_xpath_matches()`
+        # See comments above the function
+        if bulk_action_cache_key is None:
+            cache_key = ShortUUID().random(24)
+        else:
+            cache_key = bulk_action_cache_key
+
+        xpath_matches = get_xpath_matches(cache_key=cache_key)
         process_node(root_element, xpath_matches)
 
     if rename_root_node_to:

@@ -17,7 +17,7 @@ import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute
 import AssetRoute from 'js/components/library/assetRoute';
 import AccountSettings from 'js/components/account/accountSettingsRoute';
 import DataStorage from 'js/components/account/dataStorageRoute';
-import Security from 'js/components/account/securityRoute';
+import SecurityRoute from 'js/components/account/securityRoute';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
@@ -131,7 +131,7 @@ export default class AllRoutes extends React.Component {
           <IndexRedirect to={ROUTES.FORMS} />
 
           {/* MISC */}
-          <Route path={ROUTES.SECURITY} component={Security} />
+          <Route path={ROUTES.SECURITY} component={SecurityRoute} />
           <Route path={ROUTES.DATA_STORAGE} component={DataStorage} />
           <Route
             path={ROUTES.ACCOUNT_SETTINGS}
@@ -334,6 +334,7 @@ export default class AllRoutes extends React.Component {
                *
                * Used to force refresh form sub routes. It's some kine of a weird
                * way of introducing a loading screen during sub route refresh.
+               * See: https://github.com/kobotoolbox/kpi/issues/3925
                **/}
               <Route
                 path={ROUTES.FORM_RESET}
@@ -362,7 +363,7 @@ export default class AllRoutes extends React.Component {
     return (
       <Router
         history={hashHistory}
-        ref={(ref) => (this.router = ref)}
+        ref={(ref) => this.router = ref}
         routes={this.getRoutes()}
       />
     );

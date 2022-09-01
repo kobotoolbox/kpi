@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional
 
+from django.db import transaction
 from django.contrib.auth.models import Permission, User
 from django.urls import Resolver404
 from django.utils.translation import gettext as t
@@ -326,6 +327,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         permission_codename: str
         partial_permissions_json: Optional[str] = None
 
+    @transaction.atomic
     def create(self, validated_data):
         asset = self.context['asset']
         user_pk_to_obj_cache = dict()
@@ -468,10 +470,10 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         Validate users and permissions, and convert them from API URLs into
         model instances, using a minimal number of database queries
         """
-        # A dictionary for looking up usernames by API user URLs
-        url_to_username = dict()
-        # …for looking up codenames by API permission URLs
-        url_to_codename = dict()
+        # A dictionary for looking up API user URLs by username
+        username_to_url = dict()
+        # …for looking up by API permission URLs by codename
+        codename_to_url = dict()
 
         assignable_permissions = self.context[
             'asset'
@@ -497,9 +499,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             codename = self._get_arg_from_url('codename', perm_url)
             if codename not in assignable_permissions:
                 raise serializers.ValidationError(INVALID_PERMISSION_ERROR)
-            url_to_codename[perm_url] = codename
+            codename_to_url[codename] = perm_url
             username = self._get_arg_from_url('username', user_url)
-            url_to_username[user_url] = username
+            username_to_url[username] = user_url
             for partial_assignment in assignment.get('partial_permissions', []):
                 partial_codename = self._get_arg_from_url(
                     'codename', partial_assignment['url']
@@ -511,42 +513,28 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                     raise serializers.ValidationError(
                         INVALID_PARTIAL_PERMISSION_ERROR
                     )
-                url_to_codename[partial_assignment['url']] = partial_codename
+                codename_to_url[partial_codename] = partial_assignment['url']
 
         # Create a dictionary of API user URLs to `User` objects
-        urls_sorted_by_username = [
-            url
-            for url, username in sorted(
-                url_to_username.items(), key=lambda item: item[1]
-            )
-        ]
-        url_to_user = dict(
-            zip(
-                urls_sorted_by_username,
-                User.objects.only('pk', 'username')
-                .filter(username__in=url_to_username.values())
-                .order_by('username'),
-            )
-        )
-        if len(url_to_user) != len(url_to_username):
+        url_to_user = dict()
+        for user in User.objects.only('pk', 'username').filter(
+            username__in=username_to_url.keys()
+        ):
+            url = username_to_url[user.username]
+            url_to_user[url] = user
+        if len(url_to_user) != len(username_to_url):
             raise serializers.ValidationError(INVALID_USER_ERROR)
 
         # Create a dictionary of API permission URLs to `Permission` objects
-        urls_sorted_by_codename = [
-            url
-            for url, codename in sorted(
-                url_to_codename.items(), key=lambda item: item[1]
-            )
-        ]
-        url_to_permission = dict(
-            zip(
-                urls_sorted_by_codename,
-                Permission.objects.filter(codename__in=assignable_permissions)
-                .filter(codename__in=url_to_codename.values())
-                .order_by('codename'),
-            )
-        )
-        if len(url_to_permission) != len(url_to_codename):
+        url_to_permission = dict()
+        for permission in (
+            Permission.objects.filter(codename__in=assignable_permissions)
+            .filter(codename__in=codename_to_url.keys())
+            .order_by('codename')
+        ):
+            url = codename_to_url[permission.codename]
+            url_to_permission[url] = permission
+        if len(url_to_permission) != len(codename_to_url):
             # This should never happen since all codenames were found within
             # `assignable_permissions`
             raise RuntimeError(
@@ -569,11 +557,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                     list
                 )
                 for partial_assignment in assignment['partial_permissions']:
-                    # Convert partial permission URLs to codenames only; it's
-                    # unnecessary to instantiate objects for them
-                    partial_codename = url_to_codename[
+                    partial_codename = url_to_permission[
                         partial_assignment['url']
-                    ]
+                    ].codename
                     assignment_with_objects['partial_permissions'][
                         partial_codename
                     ] = partial_assignment['filters']

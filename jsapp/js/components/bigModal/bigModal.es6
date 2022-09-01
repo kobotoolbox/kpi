@@ -28,6 +28,7 @@ import TableSettings from 'js/components/submissions/tableSettings';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
+import MFAModals from 'js/components/account/mfaModals';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -183,15 +184,26 @@ class BigModal extends React.Component {
         });
         break;
 
+      // TODO: Make a better generic modal component
+      // See: https://github.com/kobotoolbox/kpi/issues/3643
       case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
         // Size and title will depend on its props
         this.setState({
-          modalClass: 'modal-media-preview'
+          modalClass: 'modal--custom-header modal--media-preview'
         });
         break;
 
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
         // title is set by DataAttachmentColumnsForm
+        break;
+
+      // TODO: Make a better generic modal component
+      // See: https://github.com/kobotoolbox/kpi/issues/3643
+      case MODAL_TYPES.MFA_MODALS:
+        // Size and title will depend on its props
+        this.setState({
+          modalClass: 'modal--custom-header modal--mfa-setup'
+        });
         break;
 
       default:
@@ -292,6 +304,8 @@ class BigModal extends React.Component {
         className={this.state.modalClass}
         isDuplicated={this.props.params.isDuplicated}
         customModalHeader={this.props.params.customModalHeader}
+        disableBackdropClose={this.props.params.disableBackdropClose}
+        disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
@@ -424,6 +438,12 @@ class BigModal extends React.Component {
             { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
               <DataAttachmentColumnsForm
                 onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.MFA_MODALS &&
+              <MFAModals
                 onModalClose={this.onModalClose}
                 {...this.props.params}
               />
