@@ -324,7 +324,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        submission_ids = self.validate_access_with_partial_perms(
+        self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=[submission_id]
@@ -1199,9 +1199,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         If related KPI file is provided (i.e. `file_`), it is deleted too.
         """
         # Delete file in KC
-        self._kobocat_request('DELETE',
-                              url=kc_file_['url'],
-                              expect_formid=False)
+
+        delete_url = self.external_to_internal_url(kc_file_['url'])
+        self._kobocat_request('DELETE', url=delete_url, expect_formid=False)
 
         if file_ is None:
             return
