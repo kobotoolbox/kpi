@@ -3,21 +3,19 @@ import csv
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin import DateFieldListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum
-from django.http import HttpResponse
 from django.utils import timezone
 
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
-    # KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatInstance,
-    ReadOnlyMonthlyXFormSubmissionCounter,
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -105,7 +103,7 @@ class ExtendUserAdmin(UserAdmin):
         displayed in the Django admin user changelist page
         """
         today = timezone.now().date()
-        instances = ReadOnlyMonthlyXFormSubmissionCounter.objects.filter(
+        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
             user=obj.user,
             year=today.year,
             month=today.month,
@@ -231,7 +229,7 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         records = (
             qs.values('user_id', 'user__username', 'user__date_joined')
             .order_by('user__date_joined')
-            .annotate(count_sum=Sum('count'))
+            .annotate(count_sum=Sum('counter'))
         )
         for record in records:
             data.append({
@@ -248,7 +246,7 @@ class UserStatisticsAdmin(admin.ModelAdmin):
 
 
 # TODO Update this admin page
-# admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
+admin.site.register(ReadOnlyKobocatMonthlyXFormSubmissionCounter, UserStatisticsAdmin)
 admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)
 admin.site.unregister(User)
 admin.site.register(User, ExtendUserAdmin)

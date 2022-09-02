@@ -15,7 +15,6 @@ from django.db import (
     models,
     router,
 )
-from django.db.models.constants import UniqueContraint
 from django.utils import timezone
 from django.utils.http import urlquote
 from django_digest.models import PartialDigest
@@ -300,31 +299,6 @@ class KobocatPermission(ShadowModel):
             str(self.name))
 
 
-# class KobocatSubmissionCounter(ShadowModel):
-#     user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
-#     count = models.IntegerField(default=0)
-#     timestamp = models.DateField()
-#
-#     class Meta(ShadowModel.Meta):
-#         app_label = 'superuser_stats'
-#         db_table = 'logger_submissioncounter'
-#         verbose_name_plural = 'User Statistics'
-#
-#     @classmethod
-#     def sync(cls, user):
-#         """
-#         Creates rows when the user is created so that the Admin UI doesn't freak
-#         out because it's looking for a row that doesn't exist
-#         """
-#         today = date.today()
-#         first = today.replace(day=1)
-#
-#         queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
-#         if not queryset.exists():
-#             # Todo: Handle race conditions
-#             cls.objects.create(user_id=user.pk, timestamp=first)
-
-
 class KobocatUser(ShadowModel):
 
     username = models.CharField('username', max_length=30, unique=True)
@@ -550,16 +524,6 @@ class KobocatXForm(ShadowModel):
         return "md5:%s" % self.md5_hash
 
 
-class KobocatXFormSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
-    xform = models.ForeignKey(KobocatXForm, on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'logger_xformsubmissioncounter'
-
-
 class ReadOnlyModel(ShadowModel):
 
     read_only = True
@@ -660,7 +624,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         return str(self.media_file)
 
 
-class ReadOnlyDailyXFormSubmissionCounter(ReadOnlyModel):
+class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
     date = models.DateField()
     xform = models.ForeignKey(KobocatXForm, related_name='xforms', on_delete=models.CASCADE)
     counter = models.IntegerField(default=0)
@@ -670,24 +634,17 @@ class ReadOnlyDailyXFormSubmissionCounter(ReadOnlyModel):
         unique_together = (('date', 'xform'))
 
 
-class ReadOnlyMonthlyXFormSubmissionCounter(ReadOnlyModel):
+class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
     year = models.IntegerField()
     month = models.IntegerField()
-    user = models.ForeignKey(KobocatUser, related_name='users', on_delete=models.DO_NOTHING)
-    xform = models.ForeignKey('logger.KobocatXForm', null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey('shadow_model.KobocatUser', related_name='monthly_counts', on_delete=models.DO_NOTHING)
+    xform = models.ForeignKey('shadow_model.KobocatXForm', null=True, on_delete=models.SET_NULL)
     counter = models.IntegerField(default=0)
 
     class Meta:
+        app_label = 'superuser_stats'
         db_table = 'logger_monthlyxformsubmissioncounter'
-        contraints = [
-            UniqueContraint(fields=['year', 'month', 'user', 'xform'],
-                            name='unique_with_xform'),
-            UniqueContraint(fields=['year', 'month', 'user', 'xform'],
-                            name='unique_without_xform')
-        ]
-        indexes = [
-            models.Index(fields=('year', 'month', 'user'))
-        ]
+        verbose_name_plural = 'User Statistics'
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
@@ -708,30 +665,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
-
-
-class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
-
-    date = models.DateField()
-    xform = models.ForeignKey(KobocatXForm, on_delete=models.CASCADE)
-    counter = models.IntegerField(default=0)
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_dailyxformsubmissioncounter'
-
-
-class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
-
-    year = models.IntegerField()
-    month = models.IntegerField()
-    user = models.ForeignKey(
-        KobocatUser, related_name='users', on_delete=models.DO_NOTHING
-    )
-    xform = models.ForeignKey(KobocatUser, null=True, on_delete=models.SET_NULL)
-    counter = models.IntegerField(default=0)
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_monthlyxformsubmissioncounter'
 
 
 def safe_kc_read(func):
