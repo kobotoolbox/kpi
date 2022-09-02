@@ -299,29 +299,30 @@ class KobocatPermission(ShadowModel):
             str(self.name))
 
 
-class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateField()
+# class KobocatSubmissionCounter(ShadowModel):
+#     user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
+#     count = models.IntegerField(default=0)
+#     timestamp = models.DateField()
+#
+#     class Meta(ShadowModel.Meta):
+#         app_label = 'superuser_stats'
+#         db_table = 'logger_submissioncounter'
+#         verbose_name_plural = 'User Statistics'
+#
+#     @classmethod
+#     def sync(cls, user):
+#         """
+#         Creates rows when the user is created so that the Admin UI doesn't freak
+#         out because it's looking for a row that doesn't exist
+#         """
+#         today = date.today()
+#         first = today.replace(day=1)
+#
+#         queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
+#         if not queryset.exists():
+#             # Todo: Handle race conditions
+#             cls.objects.create(user_id=user.pk, timestamp=first)
 
-    class Meta(ShadowModel.Meta):
-        app_label = 'superuser_stats'
-        db_table = 'logger_submissioncounter'
-        verbose_name_plural = 'User Statistics'
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Creates rows when the user is created so that the Admin UI doesn't freak
-        out because it's looking for a row that doesn't exist
-        """
-        today = date.today()
-        first = today.replace(day=1)
-
-        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
-        if not queryset.exists():
-            # Todo: Handle race conditions
-            cls.objects.create(user_id=user.pk, timestamp=first)
 
 class KobocatUser(ShadowModel):
 
@@ -371,7 +372,8 @@ class KobocatUser(ShadowModel):
 
         # Add the user to the table to prevent the errors in the admin page
         # and to ensure the user has a counter started for reporting
-        KobocatSubmissionCounter.sync(kc_auth_user)
+        # TODO Update with correct counter
+        # KobocatSubmissionCounter.sync(kc_auth_user)
 
 
 class KobocatUserObjectPermission(ShadowModel):
@@ -678,9 +680,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
 class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
 
     date = models.DateField()
-    xform = models.ForeignKey(
-        KobocatXForm, related_name='xforms', on_delete=models.CASCADE
-    )
+    xform = models.ForeignKey(KobocatXForm, on_delete=models.CASCADE)
     counter = models.IntegerField(default=0)
 
     class Meta(ReadOnlyModel.Meta):
@@ -694,9 +694,7 @@ class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
     user = models.ForeignKey(
         KobocatUser, related_name='users', on_delete=models.DO_NOTHING
     )
-    xform = models.ForeignKey(
-        'logger.XForm', null=True, on_delete=models.SET_NULL
-    )
+    xform = models.ForeignKey(KobocatUser, null=True, on_delete=models.SET_NULL)
     counter = models.IntegerField(default=0)
 
     class Meta(ReadOnlyModel.Meta):

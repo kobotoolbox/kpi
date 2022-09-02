@@ -13,7 +13,7 @@ from django.http import HttpResponse
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatSubmissionCounter,
+    # KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatInstance,
 )
@@ -203,5 +203,6 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         return data
 
 
-admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
+# TODO Update this admin page
+# admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
 admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)

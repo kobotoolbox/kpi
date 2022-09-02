@@ -922,13 +922,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def current_month_submission_counter(self):
         today = timezone.now().date()
-        monthly_counter = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.get(
-            xform__id_string=self.asset.uid,
-            year=today.year,
-            month=today.month,
-        ) or 0
-        count = monthly_counter.counter
-        return count
+        try:
+            monthly_counter = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.get(
+                xform_id=self.xform_id,
+                year=today.year,
+                month=today.month,
+            )
+        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            return 0
+        else:
+            count = monthly_counter.counter
+            return count
 
     def set_active(self, active):
         """
