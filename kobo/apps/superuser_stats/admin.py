@@ -7,7 +7,8 @@ from django.contrib import admin
 from django.contrib.admin import DateFieldListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Value, F, DateField
+from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 
 from kobo.static_lists import COUNTRIES
@@ -52,7 +53,15 @@ class TimePeriodFilter(admin.SimpleListFilter):
         if self.__model == Asset:
             condition = {'date_created__gte': from_date}
         else:
-            condition = {'timestamp__gte': from_date}
+            queryset = queryset.annotate(
+                date=Cast(
+                    Concat(
+                        F('year'), Value('-'), F('month'), Value('-'), 1
+                    ),
+                    DateField(),
+                )
+            )
+            condition = {'date__gte': from_date}
 
         return queryset.filter(**condition)
 
