@@ -46,22 +46,6 @@ export function resetAllLanguageSelectors() {
   document.dispatchEvent(event);
 }
 
-/**
- * Use `fullLanguagesStore` to fetch source language (if present).
- * Use `fullLanguagesStore` to fetch selected language - to get regions.
- * Add regions.
- *
- * Use `languageStore` to fetch first list of results.
- * Use `languageStore` to load more pages.
- * Use `languageStore` to fetch fresh list when search phrase changes.
- * Search phrase being applied to `languageStore` needs some debounce.
- *
- * We need `isLoading` for results (fresh).
- * We need `isLoading` for results (more pages).
- * We need `isLoading` for source language.
- * We need `isLoading` for selected language.
- */
-
 interface LanguageSelectorProps {
   /** Replaces the title on top. */
   titleOverride?: string;
