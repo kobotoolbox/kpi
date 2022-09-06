@@ -12,6 +12,7 @@ import type {
 } from './languagesStore';
 
 bem.RegionSelector = makeBem(null, 'region-selector', 'section');
+bem.RegionSelector__loading = makeBem(bem.RegionSelector, 'loading');
 bem.RegionSelector__rootLanguage = makeBem(bem.RegionSelector, 'root-language');
 
 interface RegionSelectorProps {
@@ -65,8 +66,6 @@ export default class RegionSelector extends React.Component<
           this.setState({
             language: language,
             options: options,
-            // Preselect first option?
-            // selectedOption: options[0]?.id || undefined,
           });
         }
       } catch (error) {
@@ -93,7 +92,7 @@ export default class RegionSelector extends React.Component<
 
   render() {
     if (this.state.language === undefined) {
-      return (<span>…</span>);
+      return (<bem.RegionSelector__loading>…</bem.RegionSelector__loading>);
     }
 
     return (
@@ -115,15 +114,17 @@ export default class RegionSelector extends React.Component<
           />
         </bem.RegionSelector__rootLanguage>
 
-        <KoboSelect
-          name='regionselector'
-          type='gray'
-          size='m'
-          options={this.state.options}
-          selectedOption={this.state.selectedOption}
-          onChange={this.onOptionChange.bind(this)}
-          isDisabled={this.props.isDisabled}
-        />
+        {this.state.options.length !== 0 &&
+          <KoboSelect
+            name='regionselector'
+            type='gray'
+            size='m'
+            options={this.state.options}
+            selectedOption={this.state.selectedOption}
+            onChange={this.onOptionChange.bind(this)}
+            isDisabled={this.props.isDisabled}
+          />
+        }
       </bem.RegionSelector>
     );
   }

@@ -27,3 +27,9 @@
   white-space: nowrap;
   margin: 0 sizes.$x10;
 }
+
+.region-selector__loading {
+  @include mixins.centerRowFlex;
+
+  height: button.$button-height-m;
+}
