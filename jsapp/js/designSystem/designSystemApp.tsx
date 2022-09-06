@@ -9,6 +9,7 @@ import KoboSelectDemo from 'js/designSystem/koboSelectDemo';
 import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
 import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo';
 import RadioDemo from 'js/designSystem/radioDemo';
+import RegionSelectorDemo from 'js/designSystem/regionSelectorDemo';
 import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
@@ -23,6 +24,7 @@ const designSystemComponents = [
   <LanguageSelectorDemo/>,
   <MiniAudioPlayerDemo/>,
   <RadioDemo/>,
+  <RegionSelectorDemo/>,
   <TextBoxDemo/>,
 ];
 

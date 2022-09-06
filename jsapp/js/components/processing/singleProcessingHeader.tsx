@@ -60,8 +60,10 @@ export default class SingleProcessingHeader extends React.Component<
     this.forceUpdate();
   }
 
-  onQuestionSelectChange(newQpath: string) {
-    this.goToSubmission(newQpath, this.props.submissionEditId);
+  onQuestionSelectChange(newQpath: string | null) {
+    if (newQpath !== null) {
+      this.goToSubmission(newQpath, this.props.submissionEditId);
+    }
   }
 
   /** Finds first submission with response for given question. */

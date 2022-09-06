@@ -1,0 +1,29 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+@use 'js/components/common/button';
+
+.region-selector {
+  @include mixins.centerRowFlex;
+}
+
+.region-selector__root-language {
+  @include mixins.centerRowFlex;
+
+  height: button.$button-height-m;
+  padding: 0 sizes.$x1 0 sizes.$x10;
+  margin-right: sizes.$x10;
+  border-width: button.$button-border-width;
+  border-style: solid;
+  border-color: colors.$kobo-gray-92;
+  border-radius: button.$button-border-radius;
+}
+
+.region-selector__root-language label {
+  min-width: sizes.$x50;
+  max-width: sizes.$x150;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 sizes.$x10;
+}

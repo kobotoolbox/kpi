@@ -3,6 +3,7 @@ import clonedeep from 'lodash.clonedeep';
 import {formatTime} from 'js/utils';
 import bem from 'js/bem';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
 import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import Button from 'js/components/common/button';
 import 'js/components/processing/processingBody';
@@ -292,8 +293,8 @@ export default class TranslationsTabContent extends React.Component<
           <TransxSelector
             languageCodes={translations.map((translation) => translation.languageCode)}
             selectedLanguage={this.state.selectedTranslation}
-            onChange={(newSelectedOption: LanguageCode) => {
-              this.selectTranslation(newSelectedOption);
+            onChange={(newSelectedOption: LanguageCode | null) => {
+              this.selectTranslation(newSelectedOption || undefined);
             }}
           />
         </bem.ProcessingBody__transxHeaderLanguage>
@@ -354,18 +355,11 @@ export default class TranslationsTabContent extends React.Component<
               isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            {/* We hide button for users that don't have access to the feature. */}
-            {this.isAutoAvailable() &&
-              <Button
-                type='full'
-                color='blue'
-                size='m'
-                label={t('automatic')}
-                onClick={this.selectModeAuto.bind(this)}
-                isDisabled={!this.isAutoEnabled()}
-                isPending={singleProcessingStore.isFetchingData}
-              />
-            }
+            <TransxAutomaticButton
+              onClick={this.selectModeAuto.bind(this)}
+              selectedLanguage={draft?.languageCode}
+              type='translation'
+            />
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>

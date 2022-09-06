@@ -10,11 +10,11 @@ interface TransxSelectorProps {
   /** A list of selectable languages. */
   languageCodes: LanguageCode[];
   selectedLanguage?: LanguageCode;
-  onChange: Function;
+  onChange: (code: LanguageCode | null) => void;
 }
 
 interface TransxSelectorState {
-  selectedOption?: LanguageCode;
+  selectedOption: LanguageCode | null;
   options?: KoboSelectOption[];
 }
 
@@ -29,7 +29,7 @@ export default class TransxSelector extends React.Component<
 > {
   constructor(props: TransxSelectorProps) {
     super(props);
-    this.state = {selectedOption: this.props.selectedLanguage};
+    this.state = {selectedOption: this.props.selectedLanguage || null};
   }
 
   componentDidMount() {
@@ -38,7 +38,7 @@ export default class TransxSelector extends React.Component<
 
   componentDidUpdate(prevProps: TransxSelectorProps) {
     if (prevProps.selectedLanguage !== this.props.selectedLanguage) {
-      this.setState({selectedOption: this.props.selectedLanguage});
+      this.setState({selectedOption: this.props.selectedLanguage || null});
     }
     if (!isEqual(this.props.languageCodes, prevProps.languageCodes)) {
       this.fetchNames();
@@ -50,19 +50,25 @@ export default class TransxSelector extends React.Component<
     this.setState({options: undefined});
     if (this.props.languageCodes) {
       this.props.languageCodes.forEach(async (languageCode) => {
-        const languageName = await languagesStore.getLanguageName(languageCode);
-        // Just a safe check if language codes list didn't change while we waited
-        // for the response.
-        if (
-          this.props.languageCodes?.includes(languageCode) &&
-          this.state.options?.find((option) => option.id === languageCode) === undefined
-        ) {
-          const newOptions = this.state.options || [];
-          newOptions.push({
-            id: languageCode,
-            label: getLanguageDisplayLabel(languageName, languageCode),
-          });
-          this.setState({options: newOptions});
+        let languageName = languageCode;
+        try {
+          languageName = await languagesStore.getLanguageName(languageCode);
+        } catch (error) {
+          console.error(`Language ${languageCode} not found`);
+        } finally {
+          // Just a safe check if language codes list didn't change while we waited
+          // for the response.
+          if (
+            this.props.languageCodes?.includes(languageCode) &&
+            this.state.options?.find((option) => option.id === languageCode) === undefined
+          ) {
+            const newOptions = this.state.options || [];
+            newOptions.push({
+              id: languageCode,
+              label: getLanguageDisplayLabel(languageName, languageCode),
+            });
+            this.setState({options: newOptions});
+          }
         }
       });
     }
@@ -74,7 +80,7 @@ export default class TransxSelector extends React.Component<
     return this.props.languageCodes.length === this.state.options?.length;
   }
 
-  onSelectChange(newSelectedOption: LanguageCode) {
+  onSelectChange(newSelectedOption: LanguageCode | null) {
     this.setState({selectedOption: newSelectedOption});
     this.props.onChange(newSelectedOption);
   }

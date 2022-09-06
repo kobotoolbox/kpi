@@ -22,6 +22,7 @@ interface AsyncLanguageDisplayLabelProps {
 }
 interface AsyncLanguageDisplayLabelState {
   name?: string;
+  isLoading: boolean;
 }
 
 /**
@@ -29,6 +30,8 @@ interface AsyncLanguageDisplayLabelState {
  * only a single language code and fetches stuff in the background.
  * In reality it would rarely cause a backend call, as would mostly rely on
  * memoized data (an assumption).
+ *
+ * Displays provided `LanguageCode` as fallback mechanism.
  */
 export class AsyncLanguageDisplayLabel extends React.Component<
   AsyncLanguageDisplayLabelProps,
@@ -36,7 +39,7 @@ export class AsyncLanguageDisplayLabel extends React.Component<
 > {
   constructor(props: AsyncLanguageDisplayLabelProps) {
     super(props);
-    this.state = {};
+    this.state = {isLoading: true};
   }
 
   componentDidMount() {
@@ -44,15 +47,28 @@ export class AsyncLanguageDisplayLabel extends React.Component<
   }
 
   async getData() {
-    const name = await languagesStore.getLanguageName(this.props.code);
-    this.setState({name: name});
+    this.setState({isLoading: true});
+    try {
+      const name = await languagesStore.getLanguageName(this.props.code);
+      this.setState({
+        name: name,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error(`Language ${this.props.code} not found`);
+      this.setState({isLoading: false});
+    }
   }
 
   render() {
-    if (!this.state.name) {
+    if (this.state.isLoading) {
       return <span>…</span>;
     }
-    return <LanguageDisplayLabel code={this.props.code} name={this.state.name}/>;
+    if (this.state.name) {
+      return <LanguageDisplayLabel code={this.props.code} name={this.state.name}/>;
+    }
+    // Display code as fallback mechanism.
+    return this.props.code;
   }
 }
 
@@ -62,4 +78,32 @@ export class AsyncLanguageDisplayLabel extends React.Component<
  */
 export function getLanguageDisplayLabel(name: string, code: LanguageCode) {
   return `${name} (${code})`;
+}
+
+/** Checks if given language has any automated transcription services available. */
+export async function hasTranscriptionServicesAvailable(code: LanguageCode): Promise<boolean> {
+  try {
+    const language = await languagesStore.getLanguage(code);
+    if (language) {
+      return Object.keys(language.transcription_services).length >= 1;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+}
+
+/** Checks if given language has any automated translation services available. */
+export async function hasTranslationServicesAvailable(code: LanguageCode): Promise<boolean> {
+  try {
+    const language = await languagesStore.getLanguage(code);
+    if (language) {
+      return Object.keys(language.transcription_services).length >= 1;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import {formatTime} from 'js/utils';
+import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import Button from 'js/components/common/button';
@@ -131,27 +132,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
     );
   }
 
-  /**
-   * Checks if language is selected and if it is available in the automated
-   * services we use.
-   */
-  isAutoEnabled() {
-    const draft = singleProcessingStore.getTranscriptDraft();
-
-    // HACK: Automatic services use long language codes ("en-GB"), but we use
-    // short ones ("en"), so here we check only first two letters.
-    // This will be fixed in next releases, so relax and keep calm.
-    const isLanguageAvailable = Boolean(
-      Object.keys(envStore.data.transcription_languages).find((longLanguageCode) =>
-        draft?.languageCode && longLanguageCode.startsWith(draft?.languageCode)
-      )
-    );
-
-    return draft?.languageCode !== undefined && isLanguageAvailable;
-  }
-
   /** Whether automatic services are available for current user. */
-  isAutoAvailable() {
+  isAutoEnabled() {
     return envStore.data.asr_mt_features_enabled;
   }
 
@@ -234,23 +216,16 @@ export default class TranscriptTabContent extends React.Component<{}> {
               type='frame'
               color='blue'
               size='m'
-              label={this.isAutoAvailable() ? t('manual') : t('transcribe')}
+              label={this.isAutoEnabled() ? t('manual') : t('transcribe')}
               onClick={this.selectModeManual.bind(this)}
               isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            {/* We hide button for users that don't have access to the feature. */}
-            {this.isAutoAvailable() &&
-              <Button
-                type='full'
-                color='blue'
-                size='m'
-                label={t('automatic')}
-                onClick={this.selectModeAuto.bind(this)}
-                isDisabled={!this.isAutoEnabled()}
-                isPending={singleProcessingStore.isFetchingData}
-              />
-            }
+            <TransxAutomaticButton
+              onClick={this.selectModeAuto.bind(this)}
+              selectedLanguage={draft?.languageCode}
+              type='transcription'
+            />
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
