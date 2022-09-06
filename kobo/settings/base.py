@@ -108,7 +108,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.MfaAppConfig',
+    'kobo.apps.mfa.apps.MfaAppConfig',
 )
 
 MIDDLEWARE = [
@@ -302,7 +302,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MFAHelpTextField',
+        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
         {'widget': 'django.forms.Textarea'},
     ],
 }
@@ -491,6 +491,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
                 'kpi.context_processors.external_service_tokens',
@@ -928,7 +929,7 @@ KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
 }
 
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'mfa.KoboMFAMethod',
+    'USER_MFA_MODEL': 'mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
@@ -946,7 +947,7 @@ TRENCH_AUTH = {
                 'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
             ),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
+            'HANDLER': 'kobo.apps.mfa.backends.application.ApplicationBackend',
         },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
@@ -956,3 +957,6 @@ TRENCH_AUTH = {
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
+
+# Django 3.2 required settings
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

@@ -9,7 +9,9 @@ class AssetNestedObjectViewsetMixin:
     @property
     def asset(self):
         if not hasattr(self, '_asset'):
-            asset = get_object_or_404(Asset, uid=self.asset_uid)
+            asset = get_object_or_404(
+                Asset.objects.defer('content'), uid=self.asset_uid
+            )
             setattr(self, '_asset', asset)
         return self._asset
 
