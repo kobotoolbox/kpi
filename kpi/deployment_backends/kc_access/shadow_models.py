@@ -620,6 +620,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
 
 
 class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
+
     date = models.DateField()
     xform = models.ForeignKey(
         KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
@@ -656,11 +657,13 @@ class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
     month = models.IntegerField()
     user = models.ForeignKey(
         'shadow_model.KobocatUser',
-        related_name='monthly_counts',
         on_delete=models.DO_NOTHING,
     )
     xform = models.ForeignKey(
-        'shadow_model.KobocatXForm', null=True, on_delete=models.SET_NULL
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
     )
     counter = models.IntegerField(default=0)
 

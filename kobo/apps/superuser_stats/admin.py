@@ -1,6 +1,5 @@
 # coding: utf-8
-import csv
-from datetime import date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from django.contrib import admin
@@ -80,6 +79,50 @@ class CountryFilter(admin.SimpleListFilter):
         pass
 
 
+class ExtendUserAdmin(UserAdmin):
+    """
+    This extends the changelist view of the User Model on the
+    Django admin page
+    """
+    list_display = UserAdmin.list_display + ('date_joined',)
+    list_filter = UserAdmin.list_filter + ('date_joined',)
+    readonly_fields = UserAdmin.readonly_fields + (
+        'deployed_forms_count',
+        'monthly_submissions_count',
+    )
+    fieldsets = UserAdmin.fieldsets + (
+        (
+            'Deployed forms and Submissions Counts',
+            {'fields': ('deployed_forms_count', 'monthly_submissions_count')},
+        ),
+    )
+
+    def deployed_forms_count(self, obj):
+        """
+        Gets the count of deployed forms to be displayed on the
+        Django admin user changelist page
+        """
+        assets_count = obj.assets.filter(
+            _deployment_data__active=True
+        ).aggregate(count=Count('pk'))
+        return assets_count['count']
+
+    def monthly_submissions_count(self, obj):
+        """
+        Gets the number of this month's submissions a user has to be
+        displayed in the Django admin user changelist page
+        """
+        today = timezone.now().date()
+        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            user_id=obj.id,
+            year=today.year,
+            month=today.month,
+        ).aggregate(
+            counter=Sum('counter')
+        )
+        return instances.get('counter')
+
+
 class SubmissionsByCountry(admin.ModelAdmin):
     change_list_template = 'submissions_by_country.html'
     list_filter = (('date_created', DateFieldListFilter), CountryFilter)
@@ -115,7 +158,11 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         countries = COUNTRIES
         if country_filter.value():
-            countries = [country for country in COUNTRIES if country[0] == country_filter.value()]
+            countries = [
+                country
+                for country in COUNTRIES
+                if country[0] == country_filter.value()
+            ]
 
         # Filter for individual countries
         for code, name in countries:
@@ -131,8 +178,9 @@ class SubmissionsByCountry(admin.ModelAdmin):
                     asset_type=ASSET_TYPE_SURVEY,
                 ))
 
-                result = KobocatXForm.objects.filter(id_string__in=xform_id_strings).aggregate(
-                    instances_count=Sum('num_of_submissions'))
+                result = KobocatXForm.objects.filter(
+                    id_string__in=xform_id_strings
+                ).aggregate(instances_count=Sum('num_of_submissions'))
                 instances_count = result['instances_count']
 
             data.append({
@@ -192,7 +240,7 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             for record in records
         }
 
-        # Get records from SubmissionCounter
+        # Get records from ReadOnlyKobocatMonthlyXFormSubmissionCounter
         records = (
             qs.values('user_id', 'user__username', 'user__date_joined')
             .order_by('user__date_joined')
@@ -216,3 +264,5 @@ admin.site.register(
     ReadOnlyKobocatMonthlyXFormSubmissionCounter, UserStatisticsAdmin
 )
 admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)
+admin.site.unregister(User)
+admin.site.register(User, ExtendUserAdmin)
