@@ -21,6 +21,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
 from kpi.authentication import EnketoSessionAuthentication
@@ -338,6 +339,23 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         bulk_actions_validator.is_valid(raise_exception=True)
         json_response = action_(bulk_actions_validator.data, request.user)
 
+        submission_ids = json_response.pop('submission_ids', [])
+        if (
+            json_response['status'] == status.HTTP_200_OK
+            and request.method == 'DELETE'
+        ):
+            audit_logs = []
+            for submission_id in submission_ids:
+                audit_logs.append(AuditLog(
+                    app_label='logger',
+                    model_name='instance',
+                    object_id=submission_id,
+                    user=request.user,
+                ))
+
+            if audit_logs:
+                AuditLog.objects.bulk_create(audit_logs)
+
         return Response(**json_response)
 
     def destroy(self, request, pk, *args, **kwargs):
@@ -347,6 +365,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.delete_submission(
             submission_id, user=request.user
         )
+
+        if json_response['status'] == status.HTTP_204_NO_CONTENT:
+            AuditLog.objects.create(
+                app_label='logger',
+                model_name='instance',
+                object_id=pk,
+                user=request.user,
+            )
+
         return Response(**json_response)
 
     @action(
