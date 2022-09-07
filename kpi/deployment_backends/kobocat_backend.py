@@ -93,6 +93,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         AssetFile.PAIRED_DATA: 'paired_data',
     }
 
+    @property
+    def attachment_storage_bytes(self):
+        return self.xform.attachment_storage_bytes
+
     def bulk_assign_mapped_perms(self):
         """
         Bulk assign all KoBoCAT permissions related to KPI permissions.
@@ -229,6 +233,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             user, validate_count=True, **kwargs
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
+
+    @property
+    def current_month_submission_count(self):
+        today = timezone.now().date()
+        try:
+            monthly_counter = (
+                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
+                    'counter'
+                ).get(
+                    xform_id=self.xform_id,
+                    year=today.year,
+                    month=today.month,
+                )
+            )
+        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            return 0
+        else:
+            return monthly_counter.counter
 
     def connect(self, identifier=None, active=False):
         """
@@ -887,50 +909,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         ObjectPermission.objects.filter(**filters).delete()
 
-    def service_usage(self, request):
-        env = environ.Env()
-        data = {
-            'asset': '',
-            'asset__name': '',
-            'submission_count_current_month': '',
-            'submission_count_all_time': '',
-            'storage_bytes': '',
-        }
-
-        url = env.ENVIRON.get('KOBOFORM_URL') + reverse('api_v2:asset-detail', {self.asset.uid})
-        data['asset'] = url
-        data['asset__name'] = self.asset.name
-
-        current_month = self.asset.deployment.current_month_submission_counter
-        data['submission_count_current_month'] = current_month
-
-        all_time = self.asset.deployment.submission_count
-        data['submission_count_all_time'] = all_time
-
-        attachments_queryset = ReadOnlyKobocatAttachment.objects.filter(
-            instance__xform__user__username=request.user.username,
-            instance__xform__id_string=self.asset.uid
-        )
-        if attachments_queryset.exists():
-            attachments_usage = attachments_queryset.aggregate(count_sum=Sum('media_file_size'))
-            attachments_usage_total = attachments_usage['count_sum']
-        else:
-            attachments_usage_total = 0
-        data['storage_bytes'] = attachments_usage_total
-
-        return data
-
-    @property
-    def current_month_submission_counter(self):
-        today = timezone.now().date()
-        monthly_counter = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.get(
-            xform__id_string=self.asset.uid,
-            year=today.year,
-            month=today.month,
-        ) or 0
-        count = monthly_counter.counter
-        return count
-
     def set_active(self, active):
         """
         `PATCH` active boolean of the survey.
@@ -1104,13 +1082,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        id_string = self.backend_response['id_string']
-        # avoid migrations from being created for kc_access mocked models
-        # there should be a better way to do this, right?
-        return instance_count(
-            xform_id_string=id_string,
-            user_id=self.asset.owner.pk,
-        )
+        return self.xform.num_of_submissions
 
     @property
     def submission_list_url(self):
@@ -1209,8 +1181,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def xform(self):
         if not hasattr(self, '_xform'):
             pk = self.backend_response['formid']
-            xform = KobocatXForm.objects.filter(pk=pk).only(
-                'user__username', 'id_string').first()
+            xform = (
+                KobocatXForm.objects.filter(pk=pk)
+                .only(
+                    'user__username',
+                    'id_string',
+                    'num_of_submissions',
+                    'attachment_storage_bytes',
+                )
+                .select_related(
+                    'user'
+                )  # Avoid extra query to validate username below
+                .first()
+            )
             if not (xform.user.username == self.asset.owner.username and
                     xform.id_string == self.xform_id_string):
                 raise Exception(
