@@ -32,6 +32,17 @@ root@kpi:/srv/src/kpi#  DJANGO_SETTINGS_MODULE=kobo.settings.testing  \
 
 ## How to run a test
 
+<details>
+<summary>Prerequisite: Install Cypress</summary>
+
+### Installing Cypress
+
+1. Navigate to the `cypress` folder. 
+2. Install cypress with `npm install`. 
+
+Cypress will likely ask you to install [some OS dependencies](https://on.cypress.io/required-dependencies) (about .5 GB) when you try to run a test.
+</details>
+
 ### Command line only tests
 
     kpi/cypress$ npx cypress run
@@ -39,7 +50,6 @@ root@kpi:/srv/src/kpi#  DJANGO_SETTINGS_MODULE=kobo.settings.testing  \
 ### Cypress UI
 
     kpi/cypress$ npx cypress open
-
 
 ## Structure/Folders:
 
