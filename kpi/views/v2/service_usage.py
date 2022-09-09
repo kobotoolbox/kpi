@@ -21,9 +21,26 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     <pre class="prettyprint">
     <b>GET</b> /api/v2/service_usage/
     </pre>
+
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/service_usage/
+    >       {
+    >           "per_asset_usage": [
+    >               {
+    >                   "asset": {asset_url},
+    >                   "asset_name": {string},
+    >                   "submissions_count_current_month": {integer},
+    >                   "submissions_count_all_time": {integer},
+    >                   "storage_bytes": {integer},
+    >               },
+    >           ],
+    >           "total_submissions_count_current_month": {integer},
+    >           "total_submissions_count_all_time": {integer},
+    >           "total_storage_bytes": {integer},
+    >       }
+
+
     ### CURRENT ENDPOINT
     """
     renderer_classes = (

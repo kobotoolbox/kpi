@@ -250,7 +250,7 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             data.append({
                 'username': record['user__username'],
                 'date_joined': record['user__date_joined'],
-                'submission_count': record['count_sum'],
+                'submissions_count': record['count_sum'],
                 'form_count': forms_count.get(record['user_id'], 0),
                 'deployed_form_count': deployment_count.get(
                     record['user_id'], 0

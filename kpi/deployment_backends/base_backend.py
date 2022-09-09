@@ -40,6 +40,10 @@ class BaseDeploymentBackend(abc.ABC):
         return self.get_data('active', False)
 
     @property
+    def attachment_storage_bytes(self):
+        return 0
+
+    @property
     def backend(self):
         return self.get_data('backend')
 
@@ -60,6 +64,11 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
         pass
+
+    @property
+    @abc.abstractmethod
+    def current_month_submissions_count(self):
+        return 0
 
     @abc.abstractmethod
     def connect(self, active=False):
@@ -302,7 +311,6 @@ class BaseDeploymentBackend(abc.ABC):
         return self.__stored_data_key
 
     @property
-    @abc.abstractmethod
     def submission_count(self):
         pass
 
@@ -558,3 +566,7 @@ class BaseDeploymentBackend(abc.ABC):
         else:
             queryset = PairedData.objects(self.asset).values()
             return queryset
+
+    @abc.abstractmethod
+    def xform(self):
+        pass

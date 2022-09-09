@@ -235,7 +235,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     @property
-    def current_month_submission_count(self):
+    def current_month_submissions_count(self):
         today = timezone.now().date()
         try:
             monthly_counter = (
