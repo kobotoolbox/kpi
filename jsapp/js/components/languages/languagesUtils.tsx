@@ -81,7 +81,7 @@ export function getLanguageDisplayLabel(name: string, code: LanguageCode) {
 }
 
 /** Checks if given language has any automated transcription services available. */
-export async function hasTranscriptionServicesAvailable(code: LanguageCode): Promise<boolean> {
+export async function hasTranscriptServicesAvailable(code: LanguageCode): Promise<boolean> {
   try {
     const language = await languagesStore.getLanguage(code);
     if (language) {

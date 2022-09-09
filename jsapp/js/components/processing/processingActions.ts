@@ -116,7 +116,7 @@ const processingActions = Reflux.createActions({
   // Transcript stuff
   setTranscript: {children: ['completed', 'failed']},
   deleteTranscript: {children: ['completed', 'failed']},
-  requestAutoTranscript: {children: ['completed', 'failed']},
+  requestAutoTranscription: {children: ['completed', 'failed']},
   // Translation stuff
   setTranslation: {children: ['completed', 'failed']},
   deleteTranslation: {children: ['completed', 'failed']},
@@ -329,7 +329,7 @@ processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error');
 });
 
-processingActions.requestAutoTranscript.listen((
+processingActions.requestAutoTranscription.listen((
   assetUid: string,
   qpath: string,
   submissionEditId: string,
@@ -337,7 +337,7 @@ processingActions.requestAutoTranscript.listen((
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
-    processingActions.requestAutoTranscript.failed(NO_FEATURE_ERROR);
+    processingActions.requestAutoTranscription.failed(NO_FEATURE_ERROR);
   } else {
     const data: AutoTranscriptRequest = {
       submission: submissionEditId,
@@ -357,9 +357,9 @@ processingActions.requestAutoTranscript.listen((
       data: JSON.stringify(data),
     })
       .done((response: ProcessingDataResponse) => {
-        processingActions.requestAutoTranscript.completed(response);
+        processingActions.requestAutoTranscription.completed(response);
       })
-      .fail(processingActions.requestAutoTranscript.failed);
+      .fail(processingActions.requestAutoTranscription.failed);
   }
 });
 

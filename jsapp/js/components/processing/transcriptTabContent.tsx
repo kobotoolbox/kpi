@@ -2,8 +2,8 @@ import React from 'react';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import {formatTime} from 'js/utils';
-import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
 import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
 import RegionSelector from 'js/components/languages/regionSelector';
 import Button from 'js/components/common/button';
@@ -11,8 +11,8 @@ import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 import type {
   DetailedLanguage,
-  ListLanguage,
   LanguageCode,
+  ListLanguage,
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import envStore from 'js/envStore';
@@ -87,7 +87,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
       singleProcessingStore.getTranscriptDraft()?.languageCode
     );
     if (toLanguageCode) {
-      singleProcessingStore.requestAutoTranscript(toLanguageCode);
+      singleProcessingStore.requestAutoTranscription(toLanguageCode);
     }
   }
 
@@ -251,7 +251,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
             <TransxAutomaticButton
               onClick={this.selectModeAuto.bind(this)}
               selectedLanguage={draft?.languageCode}
-              type='transcription'
+              type='transcript'
             />
           </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
@@ -269,7 +269,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
     return (
       <bem.ProcessingBody m='config'>
         <bem.ProcessingBody__header>
-          {t('Automatic transcrition of audio file from')}
+          {t('Automatic transcription of audio file from')}
         </bem.ProcessingBody__header>
 
         <RegionSelector

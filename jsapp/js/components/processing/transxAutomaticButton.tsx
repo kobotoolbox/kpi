@@ -3,7 +3,7 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import Button from 'js/components/common/button';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import {
-  hasTranscriptionServicesAvailable,
+  hasTranscriptServicesAvailable,
   hasTranslationServicesAvailable,
 } from 'js/components/languages/languagesUtils';
 import envStore from 'js/envStore';
@@ -12,7 +12,7 @@ interface TransxAutomaticButtonProps {
   onClick: () => void;
   selectedLanguage?: LanguageCode;
   /** Which type of service the button should check availability for. */
-  type: 'transcription' | 'translation';
+  type: 'transcript' | 'translation';
 }
 
 interface TransxAutomaticButtonState {
@@ -83,8 +83,8 @@ export default class TransxAutomaticButton extends React.Component<
 
     let hasServicesAvailable = false;
     try {
-      if (this.props.type === 'transcription') {
-        hasServicesAvailable = await hasTranscriptionServicesAvailable(languageCode);
+      if (this.props.type === 'transcript') {
+        hasServicesAvailable = await hasTranscriptServicesAvailable(languageCode);
       }
       if (this.props.type === 'translation') {
         hasServicesAvailable = await hasTranslationServicesAvailable(languageCode);

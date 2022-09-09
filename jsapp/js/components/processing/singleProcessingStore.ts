@@ -173,8 +173,8 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.requestAutoTranscript.completed.listen(this.onRequestAutoTranscriptCompleted.bind(this));
-    processingActions.requestAutoTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranscription.completed.listen(this.onRequestAutoTranscriptionCompleted.bind(this));
+    processingActions.requestAutoTranscription.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
@@ -503,7 +503,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptCompleted(response: ProcessingDataResponse) {
+  private onRequestAutoTranscriptionCompleted(response: ProcessingDataResponse) {
     if (!this.currentQuestionQpath) {
       return;
     }
@@ -619,9 +619,9 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  requestAutoTranscript(languageCode: string) {
+  requestAutoTranscription(languageCode: string) {
     this.isFetchingData = true;
-    processingActions.requestAutoTranscript(
+    processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
       this.currentSubmissionEditId,
