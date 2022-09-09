@@ -47,7 +47,9 @@ export interface Transx {
 /** Transcript or translation draft. */
 interface TransxDraft {
   value?: string;
-  languageCode?: string;
+  languageCode?: LanguageCode;
+  /** To be used with automatic services. */
+  regionCode?: LanguageCode | null;
 }
 
 /**
@@ -512,7 +514,10 @@ class SingleProcessingStore extends Reflux.Store {
     if (
       googleTsResponse &&
       this.data.transcriptDraft &&
-      googleTsResponse.languageCode === this.data.transcriptDraft.languageCode
+      (
+        googleTsResponse.languageCode === this.data.transcriptDraft.languageCode ||
+        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode
+      )
     ) {
       this.data.transcriptDraft.value = googleTsResponse.value;
     }

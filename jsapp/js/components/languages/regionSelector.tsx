@@ -31,6 +31,11 @@ interface RegionSelectorState {
   language?: DetailedLanguage;
 }
 
+/**
+ * For provided language code, this component displays a region selector (if
+ * regions are available for that language). UI also has a cancel button that
+ * is just notifying the parent.
+ */
 export default class RegionSelector extends React.Component<
   RegionSelectorProps,
   RegionSelectorState
@@ -69,6 +74,7 @@ export default class RegionSelector extends React.Component<
           });
         }
       } catch (error) {
+        // Here we use memoized value, as at this point the props might've changed.
         console.error(`Language ${targetLanguage} not found`);
       }
     }

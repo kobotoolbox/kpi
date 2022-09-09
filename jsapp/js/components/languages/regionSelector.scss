@@ -5,6 +5,12 @@
 
 .region-selector {
   @include mixins.centerRowFlex;
+
+  justify-content: center;
+}
+
+.region-selector .k-select {
+  max-width: sizes.$x200;
 }
 
 .region-selector__root-language {
@@ -12,16 +18,19 @@
 
   height: button.$button-height-m;
   padding: 0 sizes.$x1 0 sizes.$x10;
-  margin-right: sizes.$x10;
   border-width: button.$button-border-width;
   border-style: solid;
   border-color: colors.$kobo-gray-92;
   border-radius: button.$button-border-radius;
+
+  &:not(:last-child) {
+    margin-right: sizes.$x10;
+  }
 }
 
 .region-selector__root-language label {
-  min-width: sizes.$x50;
-  max-width: sizes.$x150;
+  min-width: sizes.$x100;
+  max-width: sizes.$x200;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
