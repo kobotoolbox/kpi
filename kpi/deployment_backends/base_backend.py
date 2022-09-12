@@ -40,8 +40,9 @@ class BaseDeploymentBackend(abc.ABC):
         return self.get_data('active', False)
 
     @property
+    @abc.abstractmethod
     def attachment_storage_bytes(self):
-        return 0
+        pass
 
     @property
     def backend(self):
@@ -142,6 +143,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_enketo_survey_links(self):
         pass
 
+    @abc.abstractmethod
     def get_submission(
         self,
         submission_id: int,
@@ -566,7 +568,3 @@ class BaseDeploymentBackend(abc.ABC):
         else:
             queryset = PairedData.objects(self.asset).values()
             return queryset
-
-    @abc.abstractmethod
-    def xform(self):
-        pass
