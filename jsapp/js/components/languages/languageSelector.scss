@@ -79,7 +79,8 @@
   align-items: center;
   position: relative;
 
-  // we want the magnifying glass icon to click through to text input
+  // We want the icon to click through to text input.
+  .k-icon.k-icon-spinner,
   .k-icon.k-icon-search,
   .k-icon.k-icon-language-alt {
     pointer-events: none;
@@ -139,18 +140,26 @@
 .language-selector__list {
   min-height: sizes.$x100;
   max-height: sizes.$x200;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  list-style: none;
   margin: sizes.$x16 0 0;
-  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 
-  > li {
-    width: calc(25% - #{sizes.$x20});
-    min-width: sizes.$x150;
+  ul {
+    height: 100%;
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+  }
+
+  li {
+    // One third minus margins.
+    width: calc(33.33% - #{sizes.$x50});
+    // This is the size that is small enough to allows 3 columns to appear
+    // in processing view.
+    min-width: sizes.$x140;
     margin-right: sizes.$x50;
     margin-bottom: sizes.$x5;
 

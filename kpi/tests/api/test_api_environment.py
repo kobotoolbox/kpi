@@ -49,22 +49,22 @@ class EnvironmentTests(BaseTestCase):
                 self.assertGreater(len(x), 200) and self.assertIn(
                     ('KEN', 'Kenya'), x
                 ),
-            'all_languages': lambda x: \
-                self.assertGreater(len(x), 100) and self.assertIn(
-                    ('fa', 'Persian'), x
-                ),
+            #'all_languages': lambda x: \
+            #    self.assertGreater(len(x), 100) and self.assertIn(
+            #        ('fa', 'Persian'), x
+            #    ),
             'interface_languages': lambda x: \
                 self.assertGreater(len(x), 5) and self.assertIn(
                     ('ar', 'العربيّة'), x
                 ),
-            'transcription_languages': lambda x: \
-                self.assertGreater(len(x), 50) and self.assertIn(
-                    'uk-UA', x
-                ),
-            'translation_languages': lambda x: \
-                self.assertGreater(len(x), 50) and self.assertIn(
-                    'fa-IR', x
-                ),
+            #'transcription_languages': lambda x: \
+            #    self.assertGreater(len(x), 50) and self.assertIn(
+            #        'uk-UA', x
+            #    ),
+            #'translation_languages': lambda x: \
+            #    self.assertGreater(len(x), 50) and self.assertIn(
+            #        'fa-IR', x
+            #    ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,

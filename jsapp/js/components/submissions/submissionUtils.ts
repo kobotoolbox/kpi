@@ -29,6 +29,7 @@ import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
 } from 'js/components/processing/processingUtils';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -573,7 +574,7 @@ export function getRowSupplementalResponses(
     const advancedFeatures = asset.advanced_features;
 
     if (advancedFeatures.transcript?.languages !== undefined) {
-      advancedFeatures.transcript.languages.forEach((languageCode: string) => {
+      advancedFeatures.transcript.languages.forEach((languageCode: LanguageCode) => {
         const path = getSupplementalTranscriptPath(rowName, languageCode);
         output.push(
           new DisplayResponse(
@@ -588,7 +589,7 @@ export function getRowSupplementalResponses(
     }
 
     if (advancedFeatures.translated?.languages !== undefined) {
-      advancedFeatures.translated.languages.forEach((languageCode: string) => {
+      advancedFeatures.translated.languages.forEach((languageCode: LanguageCode) => {
         const path = getSupplementalTranslationPath(rowName, languageCode);
         output.push(
           new DisplayResponse(
