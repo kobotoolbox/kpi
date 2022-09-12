@@ -34,15 +34,11 @@ $k-select-menu-padding: sizes.$x6;
   }
 }
 
-.k-select__trigger .k-icon + input,
-.k-select__trigger .k-icon + label,
-.k-select__option .k-icon + label {
-  margin-left: sizes.$x6;
-}
-
-.k-select__clear {
-  margin-left: sizes.$x6;
-  margin-right: sizes.$x6;
+.k-select__trigger,
+.k-select__trigger-selected-option {
+  > *:not(:last-child) {
+    margin-right: sizes.$x6;
+  }
 }
 
 // Styles for when menu is opened.
@@ -57,16 +53,12 @@ $k-select-menu-padding: sizes.$x6;
 .k-select__search-box,
 .k-select__trigger-selected-option {
   @include mixins.centerRowFlex;
-  max-width: 80%;
-  margin-right: auto;
+
+  min-width: 0; // HACKFIX for flex
 }
 
 .k-select__trigger-selected-option:not(.k-select__trigger-selected-option--empty) label {
   color: colors.$kobo-gray-24;
-}
-
-.k-select__search-box {
-  max-width: 70%;
 }
 
 .k-select__menu {
