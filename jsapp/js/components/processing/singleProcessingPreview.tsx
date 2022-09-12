@@ -73,12 +73,9 @@ export default class SingleProcessingPreview extends React.Component {
     // If there is only one source, we display it as a text.
     if (sources.length === 1) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
@@ -92,21 +89,18 @@ export default class SingleProcessingPreview extends React.Component {
       });
 
       return (
-        <bem.ProcessingBody__transxHeaderLanguageWrapper>
-          {t('Language')}
-          <bem.ProcessingBody__transxHeaderLanguage>
-            <KoboSelect
-              name='single-processing-preview-language-switcher'
-              type='blue'
-              size='s'
-              selectedOption={sourceData.languageCode}
-              options={selectOptions}
-              onChange={(newSelectedOption: string) => {
-                singleProcessingStore.setSource(newSelectedOption);
-              }}
-            />
-          </bem.ProcessingBody__transxHeaderLanguage>
-        </bem.ProcessingBody__transxHeaderLanguageWrapper>
+        <bem.ProcessingBody__transxHeaderLanguage>
+          <KoboSelect
+            name='single-processing-preview-language-switcher'
+            type='blue'
+            size='s'
+            selectedOption={sourceData.languageCode}
+            options={selectOptions}
+            onChange={(newSelectedOption: string) => {
+              singleProcessingStore.setSource(newSelectedOption);
+            }}
+          />
+        </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
 
