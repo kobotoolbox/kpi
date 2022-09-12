@@ -544,7 +544,10 @@ class SingleProcessingStore extends Reflux.Store {
     if (
       googleTxResponse &&
       this.data.translationDraft &&
-      googleTxResponse.languageCode === this.data.translationDraft.languageCode
+      (
+        googleTxResponse.languageCode === this.data.translationDraft.languageCode ||
+        googleTxResponse.languageCode === this.data.translationDraft.regionCode
+      )
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
     }

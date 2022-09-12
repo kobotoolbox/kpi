@@ -382,7 +382,7 @@ export default class TranslationsTabContent extends React.Component<
     return (
       <bem.ProcessingBody m='config'>
         <bem.ProcessingBody__header>
-          {t('Automatic translation of transcript from')}
+          {t('Automatic translation of transcript to')}
         </bem.ProcessingBody__header>
 
         <RegionSelector
