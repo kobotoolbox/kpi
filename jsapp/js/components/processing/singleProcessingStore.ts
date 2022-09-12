@@ -47,7 +47,9 @@ export interface Transx {
 /** Transcript or translation draft. */
 interface TransxDraft {
   value?: string;
-  languageCode?: string;
+  languageCode?: LanguageCode;
+  /** To be used with automatic services. */
+  regionCode?: LanguageCode | null;
 }
 
 /**
@@ -171,8 +173,8 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
-    processingActions.requestAutoTranscript.completed.listen(this.onRequestAutoTranscriptCompleted.bind(this));
-    processingActions.requestAutoTranscript.failed.listen(this.onAnyCallFailed.bind(this));
+    processingActions.requestAutoTranscription.completed.listen(this.onRequestAutoTranscriptionCompleted.bind(this));
+    processingActions.requestAutoTranscription.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
@@ -501,7 +503,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptCompleted(response: ProcessingDataResponse) {
+  private onRequestAutoTranscriptionCompleted(response: ProcessingDataResponse) {
     if (!this.currentQuestionQpath) {
       return;
     }
@@ -512,7 +514,10 @@ class SingleProcessingStore extends Reflux.Store {
     if (
       googleTsResponse &&
       this.data.transcriptDraft &&
-      googleTsResponse.languageCode === this.data.transcriptDraft.languageCode
+      (
+        googleTsResponse.languageCode === this.data.transcriptDraft.languageCode ||
+        googleTsResponse.languageCode === this.data.transcriptDraft.regionCode
+      )
     ) {
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
@@ -539,7 +544,10 @@ class SingleProcessingStore extends Reflux.Store {
     if (
       googleTxResponse &&
       this.data.translationDraft &&
-      googleTxResponse.languageCode === this.data.translationDraft.languageCode
+      (
+        googleTxResponse.languageCode === this.data.translationDraft.languageCode ||
+        googleTxResponse.languageCode === this.data.translationDraft.regionCode
+      )
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
     }
@@ -614,9 +622,9 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  requestAutoTranscript(languageCode: string) {
+  requestAutoTranscription(languageCode: string) {
     this.isFetchingData = true;
-    processingActions.requestAutoTranscript(
+    processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
       this.currentSubmissionEditId,

@@ -162,10 +162,14 @@ class LanguageSelector extends React.Component<
   async fetchSourceLanguage() {
     this.setState({sourceLanguage: undefined});
     if (this.props.sourceLanguage) {
-      const language = await languagesStore.getLanguage(this.props.sourceLanguage);
-      // Just a safe check if source didn't change as we waited for the response.
-      if (this.props.sourceLanguage === language.code) {
-        this.setState({sourceLanguage: language});
+      try {
+        const language = await languagesStore.getLanguage(this.props.sourceLanguage);
+        // Just a safe check if source didn't change as we waited for the response.
+        if (this.props.sourceLanguage === language.code) {
+          this.setState({sourceLanguage: language});
+        }
+      } catch (error) {
+        console.error(`Language ${this.props.sourceLanguage} not found`);
       }
     }
   }
@@ -174,17 +178,21 @@ class LanguageSelector extends React.Component<
     this.setState({suggestedLanguages: undefined});
     if (this.props.suggestedLanguages) {
       this.props.suggestedLanguages.forEach(async (languageCode) => {
-        const language = await languagesStore.getLanguage(languageCode);
-        // Just a safe check if suggested languages list didn't change while we
-        // waited for the response.
-        const isAlreadyAdded = Boolean(this.state.suggestedLanguages?.find((stateLanguage) => stateLanguage.code === language.code));
-        if (
-          this.props.suggestedLanguages?.includes(language.code) &&
-          !isAlreadyAdded
-        ) {
-          const newLanguages = this.state.suggestedLanguages || [];
-          newLanguages.push(language);
-          this.setState({suggestedLanguages: newLanguages});
+        try {
+          const language = await languagesStore.getLanguage(languageCode);
+          // Just a safe check if suggested languages list didn't change while we
+          // waited for the response.
+          const isAlreadyAdded = Boolean(this.state.suggestedLanguages?.find((stateLanguage) => stateLanguage.code === language.code));
+          if (
+            this.props.suggestedLanguages?.includes(language.code) &&
+            !isAlreadyAdded
+          ) {
+            const newLanguages = this.state.suggestedLanguages || [];
+            newLanguages.push(language);
+            this.setState({suggestedLanguages: newLanguages});
+          }
+        } catch (error) {
+          console.error(`Language ${languageCode} not found`);
         }
       });
     }

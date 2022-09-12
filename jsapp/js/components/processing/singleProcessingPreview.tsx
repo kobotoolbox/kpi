@@ -5,6 +5,7 @@ import singleProcessingStore, {SingleProcessingTabs} from 'js/components/process
 import TransxSelector from './transxSelector';
 import './singleProcessingPreview.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section');
 
@@ -84,8 +85,10 @@ export default class SingleProcessingPreview extends React.Component {
           <TransxSelector
             languageCodes={sources}
             selectedLanguage={sourceData.languageCode}
-            onChange={(newSelectedOption: string) => {
-              singleProcessingStore.setSource(newSelectedOption);
+            onChange={(newSelectedOption: LanguageCode | null) => {
+              if (newSelectedOption !== null) {
+                singleProcessingStore.setSource(newSelectedOption);
+              }
             }}
           />
         </bem.ProcessingBody__transxHeaderLanguage>

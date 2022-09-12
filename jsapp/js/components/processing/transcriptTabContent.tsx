@@ -3,12 +3,15 @@ import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
 import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
 import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
+import RegionSelector from 'js/components/languages/regionSelector';
 import Button from 'js/components/common/button';
 import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 import type {
   DetailedLanguage,
+  LanguageCode,
   ListLanguage,
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
@@ -43,6 +46,13 @@ export default class TranscriptTabContent extends React.Component<{}> {
     singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
+  /** Changes the draft region, preserving the other draft properties. */
+  onRegionChange(newVal: LanguageCode | null | undefined) {
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    newDraft.regionCode = newVal;
+    singleProcessingStore.setTranscriptDraft(newDraft);
+  }
+
   /** Changes the draft value, preserving the other draft properties. */
   setDraftValue(newVal: string | undefined) {
     const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
@@ -65,10 +75,25 @@ export default class TranscriptTabContent extends React.Component<{}> {
   }
 
   selectModeAuto() {
-    const toLanguageCode = singleProcessingStore.getTranscriptDraft()?.languageCode;
+    // The `null` value tells us that no region was selected yet, but we are
+    // interested in regions right now - i.e. when this property exists (is
+    // defined) we show the automatic service configuration step.
+    this.onRegionChange(null);
+  }
+
+  requestAutoTranscription() {
+    const toLanguageCode = (
+      singleProcessingStore.getTranscriptDraft()?.regionCode ||
+      singleProcessingStore.getTranscriptDraft()?.languageCode
+    );
     if (toLanguageCode) {
-      singleProcessingStore.requestAutoTranscript(toLanguageCode);
+      singleProcessingStore.requestAutoTranscription(toLanguageCode);
     }
+  }
+
+  /** Goes back from the automatic service configuration step. */
+  cancelAuto() {
+    this.onRegionChange(undefined);
   }
 
   back() {
@@ -131,27 +156,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
     );
   }
 
-  /**
-   * Checks if language is selected and if it is available in the automated
-   * services we use.
-   */
-  isAutoEnabled() {
-    const draft = singleProcessingStore.getTranscriptDraft();
-
-    // HACK: Automatic services use long language codes ("en-GB"), but we use
-    // short ones ("en"), so here we check only first two letters.
-    // This will be fixed in next releases, so relax and keep calm.
-    const isLanguageAvailable = Boolean(
-      Object.keys(envStore.data.transcription_languages).find((longLanguageCode) =>
-        draft?.languageCode && longLanguageCode.startsWith(draft?.languageCode)
-      )
-    );
-
-    return draft?.languageCode !== undefined && isLanguageAvailable;
-  }
-
   /** Whether automatic services are available for current user. */
-  isAutoAvailable() {
+  isAutoEnabled() {
     return envStore.data.asr_mt_features_enabled;
   }
 
@@ -191,7 +197,9 @@ export default class TranscriptTabContent extends React.Component<{}> {
     const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
     return (
       <bem.ProcessingBody m='begin'>
-        <p>{t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}</p>
+        <bem.ProcessingBody__header>
+          {t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}
+        </bem.ProcessingBody__header>
 
         <Button
           type='full'
@@ -208,7 +216,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
     const draft = singleProcessingStore.getTranscriptDraft();
 
     const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
-    const languageSelectorTitle = t('Please select the original language of the ##type##').replace('##type##', typeLabel);
+    const languageSelectorTitle = t('Please select the original language of the ##type##')
+      .replace('##type##', typeLabel);
 
     return (
       <bem.ProcessingBody m='config'>
@@ -234,24 +243,66 @@ export default class TranscriptTabContent extends React.Component<{}> {
               type='frame'
               color='blue'
               size='m'
-              label={this.isAutoAvailable() ? t('manual') : t('transcribe')}
+              label={this.isAutoEnabled() ? t('manual') : t('transcribe')}
               onClick={this.selectModeManual.bind(this)}
               isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
             />
 
-            {/* We hide button for users that don't have access to the feature. */}
-            {this.isAutoAvailable() &&
-              <Button
-                type='full'
-                color='blue'
-                size='m'
-                label={t('automatic')}
-                onClick={this.selectModeAuto.bind(this)}
-                isDisabled={!this.isAutoEnabled()}
-                isPending={singleProcessingStore.isFetchingData}
-              />
-            }
+            <TransxAutomaticButton
+              onClick={this.selectModeAuto.bind(this)}
+              selectedLanguage={draft?.languageCode}
+              type='transcript'
+            />
           </bem.ProcessingBody__footerRightButtons>
+        </bem.ProcessingBody__footer>
+      </bem.ProcessingBody>
+    );
+  }
+
+  renderStepConfigAuto() {
+    const draft = singleProcessingStore.getTranscriptDraft();
+
+    if (draft?.languageCode === undefined) {
+      return null;
+    }
+
+    return (
+      <bem.ProcessingBody m='config'>
+        <bem.ProcessingBody__header>
+          {t('Automatic transcription of audio file from')}
+        </bem.ProcessingBody__header>
+
+        <RegionSelector
+          isDisabled={singleProcessingStore.isFetchingData}
+          rootLanguage={draft.languageCode}
+          onRegionChange={this.onRegionChange.bind(this)}
+          onCancel={this.cancelAuto.bind(this)}
+        />
+
+        <h2>{t('Transcription provider')}</h2>
+
+        <p>{t('Please note that the audio will be sent outside of the KoBoToolbox platform and shared with Google. This is the only API provider available at the moment. If you do not want to share data with Google, please cancel this operation.')}</p>
+
+        <bem.ProcessingBody__footer>
+          <bem.ProcessingBody__footerCenterButtons>
+            <Button
+              type='frame'
+              color='blue'
+              size='m'
+              label={t('cancel')}
+              onClick={this.cancelAuto.bind(this)}
+              isDisabled={singleProcessingStore.isFetchingData}
+            />
+
+            <Button
+              type='full'
+              color='blue'
+              size='m'
+              label={t('create transcript')}
+              onClick={this.requestAutoTranscription.bind(this)}
+              isDisabled={singleProcessingStore.isFetchingData}
+            />
+          </bem.ProcessingBody__footerCenterButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
     );
@@ -356,9 +407,22 @@ export default class TranscriptTabContent extends React.Component<{}> {
       (
         draft.languageCode === undefined ||
         draft.value === undefined
-      )
+      ) &&
+      draft.regionCode === undefined
     ) {
       return this.renderStepConfig();
+    }
+
+    // Step 2.1: Config Automatic - for selecting region and other automatic options
+    if (
+      draft !== undefined &&
+      (
+        draft.languageCode === undefined ||
+        draft.value === undefined
+      ) &&
+      draft.regionCode !== undefined
+    ) {
+      return this.renderStepConfigAuto();
     }
 
     // Step 3: Editor - display editor of draft transcript.

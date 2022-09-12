@@ -10,8 +10,11 @@ bem.ProcessingBody__transxHeaderLanguage = makeBem(bem.ProcessingBody, 'transx-h
 bem.ProcessingBody__transxHeaderDate = makeBem(bem.ProcessingBody, 'transx-header-date', 'time');
 bem.ProcessingBody__transxHeaderButtons = makeBem(bem.ProcessingBody, 'transx-header-buttons', 'nav');
 
+bem.ProcessingBody__header = makeBem(bem.ProcessingBody, 'header', 'header');
+
 bem.ProcessingBody__footer = makeBem(bem.ProcessingBody, 'footer', 'footer');
 bem.ProcessingBody__footerRightButtons = makeBem(bem.ProcessingBody, 'footer-right-buttons');
+bem.ProcessingBody__footerCenterButtons = makeBem(bem.ProcessingBody, 'footer-center-buttons');
 
 bem.ProcessingBody__text = makeBem(bem.ProcessingBody, 'text', 'article');
 bem.ProcessingBody__textarea = makeBem(bem.ProcessingBody, 'textarea', 'textarea');
