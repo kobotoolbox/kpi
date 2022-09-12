@@ -29,11 +29,10 @@
 }
 
 .region-selector__root-language label {
+  @include mixins.textEllipsis;
+
   min-width: sizes.$x100;
   max-width: sizes.$x200;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   margin: 0 sizes.$x10;
 }
 

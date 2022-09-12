@@ -1,6 +1,7 @@
-@use "scss/_colors";
-@use "scss/sizes";
-@use "scss/mixins";
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+@use 'scss/breakpoints';
 
 .processing-body {
   padding: sizes.$x30;
@@ -51,6 +52,8 @@
 }
 
 .processing-body__transx-header-date {
+  @include mixins.textEllipsis;
+
   background-color: colors.$kobo-cloud;
   height: sizes.$x28;
   line-height: sizes.$x28;
@@ -62,17 +65,18 @@
   }
 }
 
-.processing-body__transx-header-language-wrapper {
-  @include mixins.centerRowFlex;
-
-  flex: 1;
-}
-
 .processing-body__transx-header-language {
   font-weight: 700;
 
   &:not(:first-child) {
     margin-left: sizes.$x4;
+  }
+
+  @media screen and (min-width: #{breakpoints.$b1440}) {
+    max-width: sizes.$x300;
+  }
+  @media screen and (max-width: #{breakpoints.$b1440 - 1px}) {
+    max-width: sizes.$x200;
   }
 }
 
