@@ -69,9 +69,9 @@ class AssetSnapshot(
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
     submission_uuid = models.CharField(null=True, max_length=41)
     _reversion_version_id = models.IntegerField(null=True)
-    asset_version = models.ForeignKey('AssetVersion',
-                                         on_delete=models.CASCADE,
-                                         null=True)
+    asset_version = models.ForeignKey(
+        'AssetVersion', on_delete=models.CASCADE, null=True
+    )
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 

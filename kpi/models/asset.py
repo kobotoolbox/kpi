@@ -73,11 +73,11 @@ from kpi.mixins import (
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-from .asset_user_partial_permission import AssetUserPartialPermission
-from .asset_version import AssetVersion
+from kpi.tasks import remove_asset_snapshots
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -685,6 +685,17 @@ class Asset(ObjectPermissionMixin,
         return self.deployed_versions.first()
 
     @property
+    def latest_deployed_version_uid(self) -> Optional[str]:
+        """
+        Use this property to only load the `uid` field (and avoid big contents
+        like `AssetVersion.content`)
+        """
+        version = self.deployed_versions.only('uid', 'asset_id').first()
+        if not version:
+            return None
+        return version.uid
+
+    @property
     def latest_version(self):
         versions = None
         try:
@@ -1027,8 +1038,9 @@ class Asset(ObjectPermissionMixin,
         root_node_name: Optional[str] = None,
         submission_uuid: Optional[str] = None,
     ) -> AssetSnapshot:
+        # Always regenerate a new snapshot when editing.
         return self._snapshot(
-            regenerate=False,
+            regenerate=True,
             version_uid=version_uid,
             submission_uuid=submission_uuid,
             root_node_name=root_node_name,
@@ -1081,18 +1093,15 @@ class Asset(ObjectPermissionMixin,
         }
         if submission_uuid:
             snap_params['submission_uuid'] = submission_uuid
-        try:
-            snapshot = AssetSnapshot.objects.get(**snap_params)
-            if regenerate:
-                snapshot.delete()
-                snapshot = False
-        except AssetSnapshot.MultipleObjectsReturned:
-            # how did multiple snapshots get here?
-            snaps = AssetSnapshot.objects.filter(**snap_params)
-            snaps.delete()
+
+        if regenerate:
             snapshot = False
-        except AssetSnapshot.DoesNotExist:
-            snapshot = False
+            # Let's do some housekeeping
+            remove_asset_snapshots.delay(self.id)
+        else:
+            snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
+                '-date_created'
+            ).first()
 
         if not snapshot:
             try:

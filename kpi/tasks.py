@@ -1,9 +1,11 @@
 # coding: utf-8
+from datetime import timedelta
+import constance
 import requests
 from django.conf import settings
 from django.core.management import call_command
-from rest_framework import status
-from rest_framework.reverse import reverse
+from django.db.models import Max
+from django.utils.timezone import now
 
 from kobo.celery import celery_app
 
@@ -64,3 +66,19 @@ def enketo_flush_cached_preview(server_url, form_id):
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()
+
+
+@celery_app.task
+def remove_asset_snapshots(asset_id: int):
+    """
+    Temporary task to delete old snapshots.
+    TODO remove when kpi#2434 is merged
+    """
+    from kpi.models.asset_snapshot import AssetSnapshot
+
+    threshold = now() - timedelta(days=constance.config.ASSET_SNAPSHOT_DAYS_RETENTION)
+    # Retrieve all records older than `threshold` related to asset and delete
+    # them.
+    return AssetSnapshot.objects.filter(
+        date_created__lt=threshold, asset_id=asset_id
+    ).delete()

@@ -294,6 +294,10 @@ CONSTANCE_CONFIG = {
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
     ),
+    'ASSET_SNAPSHOT_DAYS_RETENTION': (
+        30,
+        "Number of days to keep asset snapshots"
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
