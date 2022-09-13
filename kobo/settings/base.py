@@ -600,7 +600,7 @@ CELERY_BEAT_SCHEDULE = {
     "send-hooks-failures-reports": {
         "task": "kobo.apps.hook.tasks.failures_reports",
         "schedule": crontab(hour=0, minute=0),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
 
