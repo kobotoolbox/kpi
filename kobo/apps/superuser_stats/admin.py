@@ -1,21 +1,21 @@
 # coding: utf-8
-import csv
-from datetime import date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin import DateFieldListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.db.models import Count, Sum
-from django.http import HttpResponse
+from django.db.models import Count, Sum, Value, F, DateField
+from django.db.models.functions import Cast, Concat
+from django.utils import timezone
 
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatInstance,
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
 
@@ -52,7 +52,15 @@ class TimePeriodFilter(admin.SimpleListFilter):
         if self.__model == Asset:
             condition = {'date_created__gte': from_date}
         else:
-            condition = {'timestamp__gte': from_date}
+            queryset = queryset.annotate(
+                date=Cast(
+                    Concat(
+                        F('year'), Value('-'), F('month'), Value('-'), 1
+                    ),
+                    DateField(),
+                )
+            )
+            condition = {'date__gte': from_date}
 
         return queryset.filter(**condition)
 
@@ -69,6 +77,50 @@ class CountryFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         pass
+
+
+class ExtendUserAdmin(UserAdmin):
+    """
+    This extends the changelist view of the User Model on the
+    Django admin page
+    """
+    list_display = UserAdmin.list_display + ('date_joined',)
+    list_filter = UserAdmin.list_filter + ('date_joined',)
+    readonly_fields = UserAdmin.readonly_fields + (
+        'deployed_forms_count',
+        'monthly_submissions_count',
+    )
+    fieldsets = UserAdmin.fieldsets + (
+        (
+            'Deployed forms and Submissions Counts',
+            {'fields': ('deployed_forms_count', 'monthly_submissions_count')},
+        ),
+    )
+
+    def deployed_forms_count(self, obj):
+        """
+        Gets the count of deployed forms to be displayed on the
+        Django admin user changelist page
+        """
+        assets_count = obj.assets.filter(
+            _deployment_data__active=True
+        ).aggregate(count=Count('pk'))
+        return assets_count['count']
+
+    def monthly_submissions_count(self, obj):
+        """
+        Gets the number of this month's submissions a user has to be
+        displayed in the Django admin user changelist page
+        """
+        today = timezone.now().date()
+        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            user_id=obj.id,
+            year=today.year,
+            month=today.month,
+        ).aggregate(
+            counter=Sum('counter')
+        )
+        return instances.get('counter')
 
 
 class SubmissionsByCountry(admin.ModelAdmin):
@@ -106,7 +158,11 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         countries = COUNTRIES
         if country_filter.value():
-            countries = [country for country in COUNTRIES if country[0] == country_filter.value()]
+            countries = [
+                country
+                for country in COUNTRIES
+                if country[0] == country_filter.value()
+            ]
 
         # Filter for individual countries
         for code, name in countries:
@@ -122,8 +178,9 @@ class SubmissionsByCountry(admin.ModelAdmin):
                     asset_type=ASSET_TYPE_SURVEY,
                 ))
 
-                result = KobocatXForm.objects.filter(id_string__in=xform_id_strings).aggregate(
-                    instances_count=Sum('num_of_submissions'))
+                result = KobocatXForm.objects.filter(
+                    id_string__in=xform_id_strings
+                ).aggregate(instances_count=Sum('num_of_submissions'))
                 instances_count = result['instances_count']
 
             data.append({
@@ -183,11 +240,11 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             for record in records
         }
 
-        # Get records from SubmissionCounter
+        # Get records from ReadOnlyKobocatMonthlyXFormSubmissionCounter
         records = (
             qs.values('user_id', 'user__username', 'user__date_joined')
             .order_by('user__date_joined')
-            .annotate(count_sum=Sum('count'))
+            .annotate(count_sum=Sum('counter'))
         )
         for record in records:
             data.append({
@@ -203,5 +260,9 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         return data
 
 
-admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
+admin.site.register(
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter, UserStatisticsAdmin
+)
 admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)
+admin.site.unregister(User)
+admin.site.register(User, ExtendUserAdmin)

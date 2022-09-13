@@ -192,7 +192,9 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 # Mark all logs as PENDING
                 HookLog.objects.filter(id__in=hooklogs_ids).update(status=HOOK_LOG_PENDING)
                 # Delegate to Celery
-                retry_all_task.delay(hooklogs_ids)
+                retry_all_task.apply_async(
+                    queue='kpi_low_priority_queue', args=(hooklogs_ids,)
+                )
                 response.update({
                     "pending_uids": hooklogs_uids
                 })
