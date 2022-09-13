@@ -1113,7 +1113,8 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             )
             submission_urls.append(url)
         # Post all edits to their submission URLs. There is no valid XML being
-        # sent, so we expect a KeyError exeption if all is good
+        # sent, so we expect a KeyError exception if all is good
+
         for url in submission_urls:
             with pytest.raises(KeyError) as e:
                 res = self.client.post(url)

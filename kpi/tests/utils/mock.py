@@ -82,7 +82,7 @@ class MockAttachment(AudioTranscodingMixin):
         if format_ == 'mp3':
             suffix = f'.mp3'
             with NamedTemporaryFile(suffix=suffix) as f:
-                self.content = self.get_mp3_content()
+                self.content = self.get_transcoded_audio('mp3')
             return f.name
         else:
             return self.absolute_path
