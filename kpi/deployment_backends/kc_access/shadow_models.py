@@ -299,30 +299,6 @@ class KobocatPermission(ShadowModel):
             str(self.name))
 
 
-class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateField()
-
-    class Meta(ShadowModel.Meta):
-        app_label = 'superuser_stats'
-        db_table = 'logger_submissioncounter'
-        verbose_name_plural = 'User Statistics'
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Creates rows when the user is created so that the Admin UI doesn't freak
-        out because it's looking for a row that doesn't exist
-        """
-        today = date.today()
-        first = today.replace(day=1)
-
-        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
-        if not queryset.exists():
-            # Todo: Handle race conditions
-            cls.objects.create(user_id=user.pk, timestamp=first)
-
 class KobocatUser(ShadowModel):
 
     username = models.CharField('username', max_length=30, unique=True)
@@ -368,10 +344,6 @@ class KobocatUser(ShadowModel):
         # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
-
-        # Add the user to the table to prevent the errors in the admin page
-        # and to ensure the user has a counter started for reporting
-        KobocatSubmissionCounter.sync(kc_auth_user)
 
 
 class KobocatUserObjectPermission(ShadowModel):
@@ -501,7 +473,7 @@ class KobocatToken(ShadowModel):
     def sync(cls, auth_token):
         try:
             # Token use a One-to-One relationship on User.
-            # Thus, we can retrieve tokens from users' id. 
+            # Thus, we can retrieve tokens from users' id.
             kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KobocatToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
@@ -647,6 +619,19 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         return str(self.media_file)
 
 
+class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
+
+    date = models.DateField()
+    xform = models.ForeignKey(
+        KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = ('date', 'xform')
+
+
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
@@ -665,6 +650,27 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
+
+
+class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser',
+        on_delete=models.DO_NOTHING,
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta:
+        app_label = 'superuser_stats'
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        verbose_name_plural = 'User Statistics'
 
 
 def safe_kc_read(func):
