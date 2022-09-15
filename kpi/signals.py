@@ -8,7 +8,6 @@ from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
 from kobo.apps.hook.models.hook import Hook
-from kobo.celery import update_concurrency_from_constance
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
@@ -16,15 +15,6 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
 from kpi.models import Asset, TagUid
 from kpi.utils.permissions import grant_default_model_level_perms
-
-
-@receiver(config_updated)
-def constance_updated(sender, key, old_value, new_value, **kwargs):
-    if key in (
-        'CELERY_WORKER_MAX_CONCURRENCY',
-        'CELERY_WORKER_MIN_CONCURRENCY',
-    ):
-        update_concurrency_from_constance()
 
 
 @receiver(post_save, sender=User)
