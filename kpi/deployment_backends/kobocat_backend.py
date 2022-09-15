@@ -155,7 +155,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             query=data['query'],
         )
 
-        if not self.current_submissions_count:
+        if not self.current_submission_count:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=t('No submissions match the given `submission_ids`')
             )
@@ -1321,7 +1321,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = total_count
+        self.current_submission_count = total_count
 
         return (
             self.__rewrite_json_attachment_urls(
@@ -1368,7 +1368,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         if not use_mongo:
-            self.current_submissions_count = queryset.count()
+            self.current_submission_count = queryset.count()
 
         # Force Sort by id
         # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`

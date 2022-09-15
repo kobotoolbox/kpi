@@ -88,7 +88,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             query=data['query'],
         )
 
-        if not self.current_submissions_count:
+        if not self.current_submission_count:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=t('No submissions match the given `submission_ids`')
             )
@@ -388,7 +388,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = total_count
+        self.current_submission_count = total_count
 
         submissions = [
             MongoHelper.to_readable_dict(submission)
@@ -552,7 +552,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             fields=['_id'],
         )
 
-        submissions_count = 0
+        submission_count = 0
 
         for submission in submissions:
             if not data['validation_status.uid']:
@@ -568,13 +568,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 {'$set': {'_validation_status': validation_status}},
             )
 
-            submissions_count += 1
+            submission_count += 1
 
         return {
             'content_type': 'application/json',
             'status': status.HTTP_200_OK,
             'data': {
-                'detail': f'{submissions_count} submissions have been updated'
+                'detail': f'{submission_count} submissions have been updated'
             }
         }
 
