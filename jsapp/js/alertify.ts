@@ -2,6 +2,7 @@
 import alertify from 'alertifyjs';
 import {KeyNames} from 'js/constants';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import {escapeHtml} from 'js/utils';
 
 interface MultiConfirmButton {
   label: string;
@@ -87,9 +88,9 @@ export function multiConfirm(
               },
             };
           },
-          prepare: function () {
+          prepare: function() {
             if (message && this.setContent) {
-              this.setContent(message);
+              this.setContent(escapeHtml(message));
             }
           },
           settings: {

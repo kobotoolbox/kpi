@@ -514,8 +514,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         # User `anotheruser` should only see submissions where `submitted_by`
         # is filled in and equals to `anotheruser`
-        viewable_submissions_count = len(self.submissions_submitted_by_anotheruser)
-        self.assertTrue(response.data.get('count') == viewable_submissions_count)
+        viewable_submission_count = len(self.submissions_submitted_by_anotheruser)
+        self.assertTrue(response.data.get('count') == viewable_submission_count)
         for submission in response.data['results']:
             self.assertTrue(submission['_submitted_by'] == 'anotheruser')
 

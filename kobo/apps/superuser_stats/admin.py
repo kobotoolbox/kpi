@@ -88,12 +88,12 @@ class ExtendUserAdmin(UserAdmin):
     list_filter = UserAdmin.list_filter + ('date_joined',)
     readonly_fields = UserAdmin.readonly_fields + (
         'deployed_forms_count',
-        'monthly_submissions_count',
+        'monthly_submission_count',
     )
     fieldsets = UserAdmin.fieldsets + (
         (
             'Deployed forms and Submissions Counts',
-            {'fields': ('deployed_forms_count', 'monthly_submissions_count')},
+            {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
 
@@ -107,7 +107,7 @@ class ExtendUserAdmin(UserAdmin):
         ).aggregate(count=Count('pk'))
         return assets_count['count']
 
-    def monthly_submissions_count(self, obj):
+    def monthly_submission_count(self, obj):
         """
         Gets the number of this month's submissions a user has to be
         displayed in the Django admin user changelist page

@@ -14,7 +14,7 @@ import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
 import {txtid} from '../../../xlform/src/model.utils';
 import alertify from 'alertifyjs';
-import {launchPrinting} from 'utils';
+import {notify, launchPrinting} from 'utils';
 import {REPORT_STYLES} from './reportsConstants';
 import CustomReportForm from './customReportForm';
 import QuestionGraphSettings from './questionGraphSettings';
@@ -138,7 +138,7 @@ export default class Reports extends React.Component {
               // reset default report groupBy if it fails and notify user
               reportStyles.default.groupDataBy = '';
               this.setState({reportStyles: reportStyles});
-              alertify.error(
+              notify.error(
                 t(
                   'Could not load grouped results via "##". Will attempt to load the ungrouped report.'
                 ).replace('##', groupBy)
@@ -204,7 +204,7 @@ export default class Reports extends React.Component {
         });
       })
       .fail((err) => {
-        alertify.error(t('Could not refresh report.'));
+        notify.error(t('Could not refresh report.'));
         this.setState({error: err});
       });
   }

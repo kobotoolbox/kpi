@@ -431,7 +431,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
         # It avoids retrieving all the objects from MongoDB
-        dummy_submissions_list = [None] * deployment.current_submissions_count
+        dummy_submissions_list = [None] * deployment.current_submission_count
         page = self.paginate_queryset(dummy_submissions_list)
         if page is not None:
             return self.get_paginated_response(submissions)
