@@ -4,7 +4,6 @@ import constance
 import requests
 from django.conf import settings
 from django.core.management import call_command
-from django.db.models import Max
 from django.utils.timezone import now
 
 from kobo.celery import celery_app
@@ -74,11 +73,8 @@ def remove_asset_snapshots(asset_id: int):
     Temporary task to delete old snapshots.
     TODO remove when kpi#2434 is merged
     """
-    from kpi.models.asset_snapshot import AssetSnapshot
-
-    threshold = now() - timedelta(days=constance.config.ASSET_SNAPSHOT_DAYS_RETENTION)
-    # Retrieve all records older than `threshold` related to asset and delete
-    # them.
-    return AssetSnapshot.objects.filter(
-        date_created__lt=threshold, asset_id=asset_id
-    ).delete()
+    call_command(
+        'delete_assets_snapshots',
+        days=constance.config.ASSET_SNAPSHOT_DAYS_RETENTION,
+        asset_id=asset_id,
+    )
