@@ -28,7 +28,6 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
-    SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.models import Asset
@@ -1149,7 +1148,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
 
         # Create a snapshot without specifying the root name. The default root
         # name will be the name saved in the settings of the asset version.
-        snapshot = self.asset.snapshot
+        snapshot = self.asset.snapshot(
+            version_uid=self.asset.latest_deployed_version_uid,
+            submission_uuid=f"uuid:{self.submission['_uuid']}"
+        )
 
         (
             form_root_name,
