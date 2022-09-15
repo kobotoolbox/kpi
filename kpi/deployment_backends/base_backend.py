@@ -68,8 +68,8 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def current_month_submissions_count(self):
-        return 0
+    def current_month_submission_count(self):
+        pass
 
     @abc.abstractmethod
     def connect(self, active=False):
@@ -143,7 +143,6 @@ class BaseDeploymentBackend(abc.ABC):
     def get_enketo_survey_links(self):
         pass
 
-    @abc.abstractmethod
     def get_submission(
         self,
         submission_id: int,
@@ -313,6 +312,7 @@ class BaseDeploymentBackend(abc.ABC):
         return self.__stored_data_key
 
     @property
+    @abc.abstractmethod
     def submission_count(self):
         pass
 

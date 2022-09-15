@@ -7,12 +7,10 @@ import posixpath
 import re
 import uuid
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
-from django.utils import timezone
 
 try:
     from zoneinfo import ZoneInfo
@@ -20,13 +18,12 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import requests
-import environ
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
-from django.db.models import Sum
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -65,7 +62,6 @@ from .kc_access.shadow_models import (
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
-    instance_count,
     last_submission_time
 )
 from ..exceptions import (
@@ -235,7 +231,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     @property
-    def current_month_submissions_count(self):
+    def current_month_submission_count(self):
         today = timezone.now().date()
         try:
             monthly_counter = (
@@ -1361,7 +1357,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 submission.get('_id')
                 for submission in submissions
             ]
-            self.current_submissions_count = count
+            self.current_submission_count = count
 
         queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,

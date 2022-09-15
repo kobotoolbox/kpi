@@ -145,7 +145,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         })
 
     @property
-    def current_month_submissions_count(self):
+    def current_month_submission_count(self):
         monthly_counter = len(
             self.get_submissions(self.asset.owner)
         )

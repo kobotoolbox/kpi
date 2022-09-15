@@ -12,8 +12,8 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         view_name='asset-detail',
     )
     asset__name = serializers.ReadOnlyField(source='name')
-    submissions_count_current_month = serializers.SerializerMethodField()
-    submissions_count_all_time = serializers.SerializerMethodField()
+    submission_count_current_month = serializers.SerializerMethodField()
+    submission_count_all_time = serializers.SerializerMethodField()
     storage_bytes = serializers.SerializerMethodField()
 
     class Meta:
@@ -22,18 +22,18 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'asset',
             'asset__name',
-            'submissions_count_current_month',
-            'submissions_count_all_time',
+            'submission_count_current_month',
+            'submission_count_all_time',
             'storage_bytes',
         )
 
-    def get_submissions_count_current_month(self, asset):
+    def get_submission_count_current_month(self, asset):
         if not asset.has_deployment:
             return 0
 
-        return asset.deployment.current_month_submissions_count
+        return asset.deployment.current_month_submission_count
 
-    def get_submissions_count_all_time(self, asset):
+    def get_submission_count_all_time(self, asset):
         if not asset.has_deployment:
             return 0
 
@@ -50,27 +50,27 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
 class ServiceUsageSerializer(serializers.Serializer):
 
     per_asset_usage = serializers.SerializerMethodField()
-    total_submissions_count_current_month = serializers.SerializerMethodField()
-    total_submissions_count_all_time = serializers.SerializerMethodField()
+    total_submission_count_current_month = serializers.SerializerMethodField()
+    total_submission_count_all_time = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
 
         self._total_storage_bytes = 0
-        self._total_submissions_count_all_time = 0
-        self._total_submissions_count_current_month = 0
+        self._total_submission_count_all_time = 0
+        self._total_submission_count_current_month = 0
         self._per_asset_usage = None
         self._get_per_asset_usage(instance)
 
     def get_per_asset_usage(self, user):
         return self._per_asset_usage
 
-    def get_total_submissions_count_all_time(self, user):
-        return self._total_submissions_count_all_time
+    def get_total_submission_count_all_time(self, user):
+        return self._total_submission_count_all_time
 
-    def get_total_submissions_count_current_month(self, user):
-        return self._total_submissions_count_current_month
+    def get_total_submission_count_current_month(self, user):
+        return self._total_submission_count_current_month
 
     def get_total_storage_bytes(self, user):
         return self._total_storage_bytes
@@ -90,11 +90,11 @@ class ServiceUsageSerializer(serializers.Serializer):
 
             for asset in self._per_asset_usage:
                 self._total_storage_bytes += asset['storage_bytes']
-                self._total_submissions_count_current_month += asset[
-                    'submissions_count_current_month'
+                self._total_submission_count_current_month += asset[
+                    'submission_count_current_month'
                 ]
-                self._total_submissions_count_all_time += asset[
-                    'submissions_count_all_time'
+                self._total_submission_count_all_time += asset[
+                    'submission_count_all_time'
                 ]
 
         return self._per_asset_usage

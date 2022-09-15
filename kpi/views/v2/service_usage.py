@@ -30,13 +30,13 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     >               {
     >                   "asset": {asset_url},
     >                   "asset_name": {string},
-    >                   "submissions_count_current_month": {integer},
-    >                   "submissions_count_all_time": {integer},
+    >                   "submission_count_current_month": {integer},
+    >                   "submission_count_all_time": {integer},
     >                   "storage_bytes": {integer},
     >               },
     >           ],
-    >           "total_submissions_count_current_month": {integer},
-    >           "total_submissions_count_all_time": {integer},
+    >           "total_submission_count_current_month": {integer},
+    >           "total_submission_count_all_time": {integer},
     >           "total_storage_bytes": {integer},
     >       }
 
