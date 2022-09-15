@@ -32,7 +32,7 @@ class BaseDeploymentBackend(abc.ABC):
     def __init__(self, asset):
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = 0
+        self.current_submission_count = 0
         self.__stored_data_key = None
 
     @property
