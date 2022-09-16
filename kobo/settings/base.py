@@ -731,6 +731,12 @@ else:
     KOBOCAT_DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
 
+
+# Google Cloud Storage
+# Not fully supported as a generic storage backend
+GS_BUCKET_NAME = env.str('GS_BUCKET_NAME', 'kobo-transcription-test') # TODO make this None
+
+
 ''' Django error logging configuration '''
 LOGGING = {
     'version': 1,

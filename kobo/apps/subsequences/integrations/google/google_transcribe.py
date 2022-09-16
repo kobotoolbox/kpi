@@ -1,13 +1,15 @@
 # coding: utf-8
 import uuid
+from concurrent.futures import TimeoutError
 
-from google.cloud import speech_v1
-from google.cloud import storage
+from django.conf import settings
+
+from google.cloud import speech, storage
 
 from .utils import google_credentials_from_constance_config
 
-
-BUCKET_NAME = 'kobo-transcription-test'
+GS_BUCKET_PREFIX = "speech_tmp"
+REQUEST_TIMEOUT = 120 # seconds
 
 
 class AutoTranscription:
@@ -22,19 +24,10 @@ class GoogleTranscribeEngine(AutoTranscription):
     def __init__(self):
         self.asset = None
         self.destination_path = None
-        self.bucket_name = 'kobo-transcription-test'
         self.storage_client = storage.Client(
             credentials=google_credentials_from_constance_config()
         )
-        self.bucket = self.storage_client.bucket(bucket_name=BUCKET_NAME)
-
-    def delete_google_file(self):
-        """
-        Files need to be deleted from google storage after
-        the transcript finished to avoid running up the bill
-        """
-        blob = self.bucket.blob(self.destination_path)
-        blob.delete()
+        self.bucket = self.storage_client.bucket(bucket_name=settings.GS_BUCKET_NAME)
 
     def get_converted_audio(
             self,
@@ -48,8 +41,12 @@ class GoogleTranscribeEngine(AutoTranscription):
         return attachment.get_transcoded_audio('flac')
 
     def store_file(self, content):
+        # Store temporary file. Needed to avoid 10mb limit.
+        # https://cloud.google.com/speech-to-text/quotas#content
+        # Set Life cycle expiration to delete after 1 day
+        # https://cloud.google.com/storage/docs/lifecycle
         self.destination_path = (
-            f'{self.asset.owner.username}/{self.asset.uid}/{uuid.uuid4()}.flac'
+            f'{GS_BUCKET_PREFIX}/{uuid.uuid4()}.flac'
         )
 
         # send the audio file to google storage
@@ -78,24 +75,30 @@ class GoogleTranscribeEngine(AutoTranscription):
             user=user
         )
 
-        # Make sure the file is stored in Google storage or long
-        # files won't run
-        gcs_path = self.store_file(flac_content)
-
         # Create the parameters required for the transcription
-        speech_client = speech_v1.SpeechClient(
+        speech_client = speech.SpeechClient(
             credentials=google_credentials_from_constance_config()
         )
-        audio = speech_v1.RecognitionAudio(uri=f'gs://{BUCKET_NAME}/{gcs_path}')
-        config = speech_v1.RecognitionConfig(
-            encoding=speech_v1.RecognitionConfig.AudioEncoding.FLAC,
+        config = speech.RecognitionConfig(
             language_code=source,
             enable_automatic_punctuation=True,
         )
 
-        # `long_running_recognize()` blocks until the transcription is done
-        speech_results = speech_client.long_running_recognize(config=config, audio=audio)
-        results = speech_results.result()
+        if len(flac_content) > 10000000:  # 10mb
+            # Store larger files on gcloud
+            gcs_path = self.store_file(flac_content)
+            audio = speech.RecognitionAudio(uri=f'gs://{settings.GS_BUCKET_NAME}/{gcs_path}')
+        else:
+            # Performance optimization, it's faster directly
+            audio = speech.RecognitionAudio(content=flac_content)
+
+        speech_results = speech_client.long_running_recognize(audio=audio, config=config)
+        # TODO cache set with value speech_results.operation.name
+        try:
+            results = speech_results.result(timeout=REQUEST_TIMEOUT)
+        except TimeoutError as err:
+            # TODO handle this
+            raise err
 
         transcript = []
         for result in results.results:
@@ -104,11 +107,5 @@ class GoogleTranscribeEngine(AutoTranscription):
                 'transcript': alternatives[0].transcript,
                 'confidence': alternatives[0].confidence,
             })
-
-        # delete the audio file from storage
-        # FIXME: if the transcription takes too long to generate, e.g. it
-        # exceeds the uWSGI timeout, this process will be killed and the audio
-        # file will never be cleaned up
-        self.delete_google_file()
 
         return transcript
