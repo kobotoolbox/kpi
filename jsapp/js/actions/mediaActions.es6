@@ -2,9 +2,9 @@
  * Form Media related actions
  */
 
-import alertify from 'alertifyjs';
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
+import {notify} from 'js/utils';
 
 const FORM_MEDIA_FILE_TYPE = 'form_media';
 
@@ -25,7 +25,7 @@ formMediaActions.uploadMedia.completed.listen((uid) => {
   formMediaActions.loadMedia(uid);
 });
 formMediaActions.uploadMedia.failed.listen(() => {
-  alertify.error(t('Could not upload your media'));
+  notify.error(t('Could not upload your media'));
 });
 
 formMediaActions.loadMedia.listen((uid) => {
@@ -34,7 +34,7 @@ formMediaActions.loadMedia.listen((uid) => {
     .fail(formMediaActions.loadMedia.failed);
 });
 formMediaActions.loadMedia.failed.listen(() => {
-  alertify.error(t('Something went wrong with getting your media'));
+  notify.error(t('Something went wrong with getting your media'));
 });
 
 formMediaActions.deleteMedia.listen((uid, url) => {
@@ -45,11 +45,11 @@ formMediaActions.deleteMedia.listen((uid, url) => {
     .fail(formMediaActions.deleteMedia.failed);
 });
 formMediaActions.deleteMedia.completed.listen((uid) => {
-  alertify.success(t('Successfully deleted media'));
+  notify(t('Successfully deleted media'));
   formMediaActions.loadMedia(uid);
 });
 formMediaActions.deleteMedia.failed.listen(() => {
-  alertify.error(t('Failed to delete media!'));
+  notify.error(t('Failed to delete media!'));
 });
 
 export default formMediaActions;

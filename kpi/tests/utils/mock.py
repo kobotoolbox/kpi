@@ -64,6 +64,7 @@ class MockAttachment(MP3ConverterMixin):
 
         self.media_file = File(open(file_, 'rb'), basename)
         self.media_file.path = file_
+        self.media_file_size = os.path.getsize(file_)
         self.content = self.media_file.read()
         self.media_file_basename = basename
         if not mimetype:
