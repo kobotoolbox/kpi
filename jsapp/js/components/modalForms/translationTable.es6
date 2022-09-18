@@ -7,7 +7,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {getLangString} from 'utils';
+import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {
   MODAL_TYPES,
@@ -254,7 +254,7 @@ export class TranslationTable extends React.Component {
       {
         onFailed: () => {
           actions.resources.loadAsset({id: this.props.asset.uid});
-          alertify.error('failed to update translations');
+          notify.error('failed to update translations');
         },
       }
     );
