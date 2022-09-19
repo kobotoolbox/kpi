@@ -3,9 +3,12 @@ import uuid
 from concurrent.futures import TimeoutError
 
 from django.conf import settings
+from django.core.cache import cache
 
 from google.cloud import speech, storage
 
+from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
+from ...exceptions import SubsequenceTimeoutError
 from .utils import google_credentials_from_constance_config
 
 GS_BUCKET_PREFIX = "speech_tmp"
@@ -93,12 +96,13 @@ class GoogleTranscribeEngine(AutoTranscription):
             audio = speech.RecognitionAudio(content=flac_content)
 
         speech_results = speech_client.long_running_recognize(audio=audio, config=config)
-        # TODO cache set with value speech_results.operation.name
+        cache_key = make_async_cache_key(user.pk, submission_id, xpath, source)
+        cache.set(cache_key, speech_results.operation.name, GOOGLE_CACHE_TIMEOUT)
         try:
             results = speech_results.result(timeout=REQUEST_TIMEOUT)
         except TimeoutError as err:
-            # TODO handle this
-            raise err
+            raise SubsequenceTimeoutError from err
+        cache.delete(cache_key)
 
         transcript = []
         for result in results.results:

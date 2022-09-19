@@ -9,4 +9,5 @@ ASSET_UID_PARAM=f'(?P<asset_uid>{KPI_UID_RE})'
 patch_submission_extras = re_path(
     f'^advanced_submission_post/{ASSET_UID_PARAM}$',
     advanced_submission_post,
+    name="advanced-submission-post"
 )

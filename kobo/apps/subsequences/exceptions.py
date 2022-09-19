@@ -1,0 +1,2 @@
+class SubsequenceTimeoutError(Exception):
+    pass
