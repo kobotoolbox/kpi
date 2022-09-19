@@ -734,7 +734,7 @@ else:
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
-GS_BUCKET_NAME = env.str('GS_BUCKET_NAME', 'kobo-transcription-test') # TODO make this None
+GS_BUCKET_NAME = env.str('GS_BUCKET_NAME', None)
 
 
 ''' Django error logging configuration '''
