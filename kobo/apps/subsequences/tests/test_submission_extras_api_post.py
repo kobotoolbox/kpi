@@ -294,9 +294,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
 
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
-    @patch(
-        'google.cloud.storage.Client'
-    )
+    @patch('google.cloud.storage.Client')
     def test_google_transcript_post(self, m1, m2):
         m1.return_value = MagicMock()
         m2.return_value = DummySpeechClient()
@@ -322,5 +320,8 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        res = self.client.post(url, data, format='json')
+        with self.assertNumQueries(16):
+            res = self.client.post(url, data, format='json')
         self.assertContains(res, "complete")
+        with self.assertNumQueries(12):
+            self.client.post(url, data, format='json')

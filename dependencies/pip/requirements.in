@@ -54,6 +54,7 @@ django-request-cache
 drf-extensions
 future
 geojson-rewind
+google-api-python-client
 google-cloud-speech
 google-cloud-storage
 google-cloud-translate

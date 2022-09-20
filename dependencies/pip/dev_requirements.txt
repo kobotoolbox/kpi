@@ -220,15 +220,22 @@ geojson-rewind==1.0.2
     #   formpack
 google-api-core[grpc]==2.8.2
     # via
+    #   google-api-python-client
     #   google-cloud-core
     #   google-cloud-speech
     #   google-cloud-storage
     #   google-cloud-translate
+google-api-python-client==2.62.0
+    # via -r dependencies/pip/requirements.in
 google-auth==2.8.0
     # via
     #   google-api-core
+    #   google-api-python-client
+    #   google-auth-httplib2
     #   google-cloud-core
     #   google-cloud-storage
+google-auth-httplib2==0.1.0
+    # via google-api-python-client
 google-cloud-core==2.3.1
     # via
     #   google-cloud-storage
@@ -253,6 +260,10 @@ grpcio==1.46.3
     #   grpcio-status
 grpcio-status==1.46.3
     # via google-api-core
+httplib2==0.20.4
+    # via
+    #   google-api-python-client
+    #   google-auth-httplib2
 idna==3.3
     # via requests
 iniconfig==1.1.1
@@ -386,7 +397,9 @@ pyopenssl==22.0.0
 pyotp==2.6.0
     # via django-trench
 pyparsing==3.0.8
-    # via packaging
+    # via
+    #   httplib2
+    #   packaging
 pyquery==1.4.3
     # via formpack
 pyrsistent==0.18.1
@@ -463,6 +476,7 @@ six==1.16.0
     #   bcrypt
     #   click-repl
     #   google-auth
+    #   google-auth-httplib2
     #   grpcio
     #   isodate
     #   mongomock
@@ -500,6 +514,8 @@ typing-extensions==4.2.0
     # via azure-core
 unicodecsv==0.14.1
     # via -r dependencies/pip/requirements.in
+uritemplate==4.1.1
+    # via google-api-python-client
 urllib3==1.26.9
     # via
     #   botocore
