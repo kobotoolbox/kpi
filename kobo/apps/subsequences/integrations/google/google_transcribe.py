@@ -1,6 +1,7 @@
 # coding: utf-8
 import uuid
 from concurrent.futures import TimeoutError
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
@@ -8,11 +9,15 @@ from django.core.cache import cache
 from google.cloud import speech, storage
 
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
-from ...exceptions import SubsequenceTimeoutError
+from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
 from .utils import google_credentials_from_constance_config
 
 GS_BUCKET_PREFIX = "speech_tmp"
 REQUEST_TIMEOUT = 120 # seconds
+# https://cloud.google.com/speech-to-text/quotas#content
+ASYNC_MAX_LENGTH = timedelta(minutes=479)
+SYNC_MAX_LENGTH = timedelta(seconds=59)
+SYNC_MAX_BYTES = 10000000  # 10MB
 
 
 class AutoTranscription:
@@ -41,11 +46,10 @@ class GoogleTranscribeEngine(AutoTranscription):
         attachment = self.asset.deployment.get_attachment(
             submission_id, user, xpath=xpath
         )
-        return attachment.get_transcoded_audio('flac')
+        return attachment.get_transcoded_audio('flac', include_duration=True)
 
     def store_file(self, content):
-        # Store temporary file. Needed to avoid 10mb limit.
-        # https://cloud.google.com/speech-to-text/quotas#content
+        # Store temporary file. Needed to avoid limits.
         # Set Life cycle expiration to delete after 1 day
         # https://cloud.google.com/storage/docs/lifecycle
         self.destination_path = (
@@ -72,10 +76,10 @@ class GoogleTranscribeEngine(AutoTranscription):
         self.asset = asset
 
         # get the audio file in a Google supported format
-        flac_content = self.get_converted_audio(
+        flac_content, duration = self.get_converted_audio(
             xpath=xpath,
             submission_id=submission_id,
-            user=user
+            user=user,
         )
 
         # Create the parameters required for the transcription
@@ -86,14 +90,15 @@ class GoogleTranscribeEngine(AutoTranscription):
             language_code=source,
             enable_automatic_punctuation=True,
         )
-
-        if len(flac_content) > 10000000:  # 10mb
+        if duration < SYNC_MAX_LENGTH and len(flac_content) < SYNC_MAX_BYTES:
+            # Performance optimization, it's faster directly
+            audio = speech.RecognitionAudio(content=flac_content)
+        elif duration < ASYNC_MAX_LENGTH:
             # Store larger files on gcloud
             gcs_path = self.store_file(flac_content)
             audio = speech.RecognitionAudio(uri=f'gs://{settings.GS_BUCKET_NAME}/{gcs_path}')
         else:
-            # Performance optimization, it's faster directly
-            audio = speech.RecognitionAudio(content=flac_content)
+            raise AudioTooLongError("Audio file of duration %s is too long." % duration)
 
         speech_results = speech_client.long_running_recognize(audio=audio, config=config)
         cache_key = make_async_cache_key(user.pk, submission_id, xpath, source)

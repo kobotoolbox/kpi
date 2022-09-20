@@ -1,5 +1,6 @@
 # coding: utf-8
 import subprocess
+from datetime import datetime, timedelta
 
 from kpi.exceptions import FFMpegException, NotSupportedFormatException
 from kpi.utils.log import logging
@@ -10,7 +11,7 @@ class AudioTranscodingMixin:
     AVAILABLE_OUTPUT_FORMATS = ('mp3', 'flac')
     SUPPORTED_INPUT_MIMETYPE_PREFIXES = ('audio', 'video')
 
-    def get_transcoded_audio(self, audio_format: str) -> bytes:
+    def get_transcoded_audio(self, audio_format: str, include_duration=False) -> bytes | tuple[bytes, timedelta]:
         """
         Use ffmpeg to remove video (if any) and return transcoded audio from
         the file located at `self.absolute_path`
@@ -49,5 +50,11 @@ class AudioTranscodingMixin:
         if pipe.returncode:
             logging.error(f'ffmpeg error: {pipe.stderr}')
             raise FFMpegException
+
+        if include_duration:
+            duration = str(pipe.stderr).split('Duration: ')[-1].split('.')[0]
+            t = datetime.strptime(duration,'%H:%M:%S')
+            delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+            return (pipe.stdout, delta)
 
         return pipe.stdout
