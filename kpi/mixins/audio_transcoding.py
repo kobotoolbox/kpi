@@ -1,7 +1,7 @@
 # coding: utf-8
 import subprocess
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Tuple, Union
 
 from kpi.exceptions import FFMpegException, NotSupportedFormatException
 from kpi.utils.log import logging
@@ -12,7 +12,11 @@ class AudioTranscodingMixin:
     AVAILABLE_OUTPUT_FORMATS = ('mp3', 'flac')
     SUPPORTED_INPUT_MIMETYPE_PREFIXES = ('audio', 'video')
 
-    def get_transcoded_audio(self, audio_format: str, include_duration=False) -> bytes | Tuple[bytes, timedelta]:
+    def get_transcoded_audio(
+        self,
+        audio_format: str,
+        include_duration=False
+    ) -> Union[bytes, Tuple[bytes, timedelta]]:
         """
         Use ffmpeg to remove video (if any) and return transcoded audio from
         the file located at `self.absolute_path`
