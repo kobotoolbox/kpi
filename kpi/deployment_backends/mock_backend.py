@@ -55,6 +55,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         'meta',
     ]
 
+    @property
+    def attachment_storage_bytes(self):
+        submissions = self.get_submissions(self.asset.owner)
+        storage_bytes = 0
+        for submission in submissions:
+            attachments = self.get_attachment_objects_from_dict(submission)
+            storage_bytes += sum([attachment.media_file_size for attachment in attachments])
+        return storage_bytes
+
     def bulk_assign_mapped_perms(self):
         pass
 
@@ -80,7 +89,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             query=data['query'],
         )
 
-        if not self.current_submissions_count:
+        if not self.current_submission_count:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=t('No submissions match the given `submission_ids`')
             )
@@ -135,6 +144,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'kpi_asset_uid': self.asset.uid
             }
         })
+
+    @property
+    def current_month_submission_count(self):
+        monthly_counter = len(
+            self.get_submissions(self.asset.owner)
+        )
+        return monthly_counter
+
 
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
@@ -307,7 +324,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         if not submission.get('_attachments'):
             return []
-
+        attachments = submission.get('_attachments')
         return [
             MockAttachment(pk=attachment['id'], **attachment)
             for attachment in attachments
@@ -388,7 +405,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = total_count
+        self.current_submission_count = total_count
 
         submissions = [
             MongoHelper.to_readable_dict(submission)
@@ -552,7 +569,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             fields=['_id'],
         )
 
-        submissions_count = 0
+        submission_count = 0
 
         for submission in submissions:
             if not data['validation_status.uid']:
@@ -568,13 +585,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 {'$set': {'_validation_status': validation_status}},
             )
 
-            submissions_count += 1
+            submission_count += 1
 
         return {
             'content_type': 'application/json',
             'status': status.HTTP_200_OK,
             'data': {
-                'detail': f'{submissions_count} submissions have been updated'
+                'detail': f'{submission_count} submissions have been updated'
             }
         }
 

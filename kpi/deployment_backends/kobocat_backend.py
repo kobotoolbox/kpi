@@ -1,4 +1,5 @@
 # coding: utf-8
+
 import copy
 import io
 import json
@@ -11,6 +12,7 @@ from dateutil.relativedelta import relativedelta
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -58,10 +60,10 @@ from .kc_access.shadow_models import (
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
-    instance_count,
     last_submission_time
 )
 from ..exceptions import (
@@ -88,6 +90,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         AssetFile.FORM_MEDIA: 'media',
         AssetFile.PAIRED_DATA: 'paired_data',
     }
+
+    @property
+    def attachment_storage_bytes(self):
+        return self.xform.attachment_storage_bytes
 
     def bulk_assign_mapped_perms(self):
         """
@@ -151,7 +157,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             query=data['query'],
         )
 
-        if not self.current_submissions_count:
+        if not self.current_submission_count:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=t('No submissions match the given `submission_ids`')
             )
@@ -225,6 +231,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             user, validate_count=True, **kwargs
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
+
+    @property
+    def current_month_submission_count(self):
+        today = timezone.now().date()
+        try:
+            monthly_counter = (
+                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
+                    'counter'
+                ).get(
+                    xform_id=self.xform_id,
+                    year=today.year,
+                    month=today.month,
+                )
+            )
+        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            return 0
+        else:
+            return monthly_counter.counter
 
     def connect(self, identifier=None, active=False):
         """
@@ -660,29 +684,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             instance_id=submission['_id']
         )
 
-    def get_daily_counts(self, filters: Optional[dict] = None):
-        today = timezone.now().date()
-        if 'days' in filters:
-            start_date = today - relativedelta(days=int(filters['days'])-1)
-        else:
-            start_date = today - relativedelta(days=31)
-
-        daily_counts = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
-            xform__id_string=self.asset.uid,
-            date__gte=start_date,
-        ).order_by('-date')
-        data = {
-            'total_submissions_count': self.submission_count,
-            'daily_submission_counts': [],
-        }
-        for daily in daily_counts:
-            data['daily_submission_counts'].append({
-                'date': str(daily.date),
-                'count': daily.counter,
-            })
-
-        return data
-
     def get_data_download_links(self):
         exports_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
@@ -1079,13 +1080,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        id_string = self.backend_response['id_string']
-        # avoid migrations from being created for kc_access mocked models
-        # there should be a better way to do this, right?
-        return instance_count(
-            xform_id_string=id_string,
-            user_id=self.asset.owner.pk,
-        )
+        return self.xform.num_of_submissions
 
     @property
     def submission_list_url(self):
@@ -1184,8 +1179,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def xform(self):
         if not hasattr(self, '_xform'):
             pk = self.backend_response['formid']
-            xform = KobocatXForm.objects.filter(pk=pk).only(
-                'user__username', 'id_string').first()
+            xform = (
+                KobocatXForm.objects.filter(pk=pk)
+                .only(
+                    'user__username',
+                    'id_string',
+                    'num_of_submissions',
+                    'attachment_storage_bytes',
+                )
+                .select_related(
+                    'user'
+                )  # Avoid extra query to validate username below
+                .first()
+            )
             if not (xform.user.username == self.asset.owner.username and
                     xform.id_string == self.xform_id_string):
                 raise Exception(
@@ -1317,7 +1323,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = total_count
+        self.current_submission_count = total_count
 
         return (
             self.__rewrite_json_attachment_urls(
@@ -1353,7 +1359,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 submission.get('_id')
                 for submission in submissions
             ]
-            self.current_submissions_count = count
+            self.current_submission_count = count
 
         queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,
@@ -1364,7 +1370,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         if not use_mongo:
-            self.current_submissions_count = queryset.count()
+            self.current_submission_count = queryset.count()
 
         # Force Sort by id
         # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
