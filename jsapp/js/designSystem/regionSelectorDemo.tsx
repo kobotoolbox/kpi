@@ -76,6 +76,8 @@ export default class RegionSelectorDemo extends React.Component<{}, LanguageSele
                 <div className='demo__preview'>
                   <RegionSelector
                     isDisabled={this.state.demoIsDisabled}
+                    serviceCode='goog'
+                    serviceType='transcription'
                     rootLanguage={this.state.demoRootLanguage}
                     onRegionChange={this.onRegionChange.bind(this)}
                     onCancel={this.onCancel.bind(this)}

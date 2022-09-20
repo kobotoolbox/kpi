@@ -274,6 +274,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
 
         <RegionSelector
           isDisabled={singleProcessingStore.isFetchingData}
+          serviceCode='goog'
+          serviceType='transcription'
           rootLanguage={draft.languageCode}
           onRegionChange={this.onRegionChange.bind(this)}
           onCancel={this.cancelAuto.bind(this)}

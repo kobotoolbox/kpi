@@ -8,6 +8,8 @@ import {ROOT_URL} from 'js/constants';
  */
 export type LanguageCode = string;
 
+export type TransxServiceCode = string;
+
 export interface LanguageBase {
   /** API endpoint for detailed language data. */
   url: string;
@@ -19,7 +21,7 @@ export interface LanguageBase {
 
 /** Name and identifier of given service. */
 interface ListLanguageService {
-  code: string;
+  code: TransxServiceCode;
   name: string;
 }
 
@@ -36,7 +38,7 @@ interface DetailedLanguageRegion {
 }
 
 interface DetailedLanguageServices {
-  goog: {[languageCode: LanguageCode]: LanguageCode};
+  [serviceCode: TransxServiceCode]: {[languageCode: LanguageCode]: LanguageCode};
 }
 
 export interface DetailedLanguage extends LanguageBase {

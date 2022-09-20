@@ -9,6 +9,7 @@ import languagesStore from './languagesStore';
 import type {
   DetailedLanguage,
   LanguageCode,
+  TransxServiceCode,
 } from './languagesStore';
 
 bem.RegionSelector = makeBem(null, 'region-selector', 'section');
@@ -19,9 +20,12 @@ interface RegionSelectorProps {
   isDisabled?: boolean;
   /** The root language code of a language that possibly has regions. */
   rootLanguage: LanguageCode;
-  /** Passed when a region is being selected. */
+  /** We display regions only from selected provider of given type. */
+  serviceCode: TransxServiceCode;
+  serviceType: 'transcription' | 'translation';
+  /** Callback for a region is being selected. */
   onRegionChange: (selectedRegion: LanguageCode | null) => void;
-  /** Passed when "x" next to the root language is clicked. */
+  /** Callback for clicking "x" next to the root language. */
   onCancel: () => void;
 }
 
@@ -82,11 +86,28 @@ export default class RegionSelector extends React.Component<
 
   buildOptions(language: DetailedLanguage): KoboSelectOption[] {
     const outcome = [];
-    for (const region of language.regions) {
-      outcome.push({
-        label: region.name,
-        id: region.code,
-      });
+
+    let serviceRegions;
+    if (this.props.serviceType === 'transcription') {
+      serviceRegions = language.transcription_services[this.props.serviceCode];
+    } else if (this.props.serviceType === 'translation') {
+      serviceRegions = language.translation_services[this.props.serviceCode];
+    }
+
+    if (serviceRegions) {
+      for (const ourLanguageCode in serviceRegions) {
+        const serviceLanguageCode = serviceRegions[ourLanguageCode];
+        const label = language.regions.find((region) =>
+          region.code === ourLanguageCode
+        )?.name;
+
+        if (serviceLanguageCode && label) {
+          outcome.push({
+            label: label,
+            id: serviceLanguageCode,
+          });
+        }
+      }
     }
     return outcome;
   }

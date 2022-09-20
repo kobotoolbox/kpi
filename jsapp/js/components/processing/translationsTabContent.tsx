@@ -387,6 +387,8 @@ export default class TranslationsTabContent extends React.Component<
 
         <RegionSelector
           isDisabled={singleProcessingStore.isFetchingData}
+          serviceCode='goog'
+          serviceType='translation'
           rootLanguage={draft.languageCode}
           onRegionChange={this.onRegionChange.bind(this)}
           onCancel={this.cancelAuto.bind(this)}
