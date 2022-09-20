@@ -13,7 +13,7 @@ from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
 from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
 from .utils import google_credentials_from_constance_config
 
-GS_BUCKET_PREFIX = "speech_tmp"
+GS_BUCKET_PREFIX = 'speech_tmp'
 REQUEST_TIMEOUT = 30 # seconds
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -89,11 +89,11 @@ class GoogleTranscribeEngine(AutoTranscription):
             if not operation["done"]:
                 raise SubsequenceTimeoutError
             # operations api uses a dict, while speech api uses objects
-            for result in operation["response"]["results"]:
-                alternatives = result["alternatives"]
+            for result in operation['response']['results']:
+                alternatives = result['alternatives']
                 transcript.append({
-                    'transcript': alternatives[0]["transcript"],
-                    'confidence': alternatives[0]["confidence"],
+                    'transcript': alternatives[0]['transcript'],
+                    'confidence': alternatives[0]['confidence'],
                 })
         else:
             # get the audio file in a Google supported format
