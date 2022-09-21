@@ -1,5 +1,6 @@
 import React from 'react';
 import type {RouteComponentProps} from 'react-router';
+import DocumentTitle from 'react-document-title';
 import {isRowProcessingEnabled} from 'js/assetUtils';
 import type {AssetResponse} from 'js/dataInterface';
 import assetStore from 'js/assetStore';
@@ -140,36 +141,42 @@ export default class SingleProcessingRoute extends React.Component<
   }
 
   render() {
+    const pageTitle = 'Data | KoboToolbox';
+
     if (
       !singleProcessingStore.isReady() ||
       !this.state.asset?.content?.survey
     ) {
       return (
-        <bem.SingleProcessing>
-          <LoadingSpinner/>
-        </bem.SingleProcessing>
+        <DocumentTitle title={pageTitle}>
+          <bem.SingleProcessing>
+            <LoadingSpinner/>
+          </bem.SingleProcessing>
+        </DocumentTitle>
       );
     }
 
     return (
-      <bem.SingleProcessing>
-        <WorkProtector
-          shouldProtect={singleProcessingStore.hasAnyUnsavedWork()}
-          currentRoute={this.props.route}
-          router={this.props.router}
-        />
-        <bem.SingleProcessing__top>
-          <SingleProcessingHeader
-            submissionEditId={this.props.params.submissionEditId}
-            assetUid={this.props.params.uid}
-            assetContent={this.state.asset.content}
+      <DocumentTitle title={pageTitle}>
+        <bem.SingleProcessing>
+          <WorkProtector
+            shouldProtect={singleProcessingStore.hasAnyUnsavedWork()}
+            currentRoute={this.props.route}
+            router={this.props.router}
           />
-        </bem.SingleProcessing__top>
+          <bem.SingleProcessing__top>
+            <SingleProcessingHeader
+              submissionEditId={this.props.params.submissionEditId}
+              assetUid={this.props.params.uid}
+              assetContent={this.state.asset.content}
+            />
+          </bem.SingleProcessing__top>
 
-        <bem.SingleProcessing__bottom>
-          {this.renderBottom()}
-        </bem.SingleProcessing__bottom>
-      </bem.SingleProcessing>
+          <bem.SingleProcessing__bottom>
+            {this.renderBottom()}
+          </bem.SingleProcessing__bottom>
+        </bem.SingleProcessing>
+      </DocumentTitle>
     );
   }
 }
