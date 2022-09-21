@@ -34,6 +34,9 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
+from kpi.deployment_backends.kc_access.shadow_models import (
+    ReadOnlyKobocatInstance,
+)
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -345,10 +348,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             and request.method == 'DELETE'
         ):
             audit_logs = []
+            (
+                app_label,
+                model_name,
+            ) = deployment.submission_model.get_app_label_and_model_name()
             for submission_id in submission_ids:
                 audit_logs.append(AuditLog(
-                    app_label='logger',
-                    model_name='instance',
+                    app_label=app_label,
+                    model_name=model_name,
                     object_id=submission_id,
                     user=request.user,
                 ))
@@ -367,9 +374,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
 
         if json_response['status'] == status.HTTP_204_NO_CONTENT:
+            (
+                app_label,
+                model_name,
+            ) = deployment.submission_model.get_app_label_and_model_name()
             AuditLog.objects.create(
-                app_label='logger',
-                model_name='instance',
+                app_label=app_label,
+                model_name=model_name,
                 object_id=pk,
                 user=request.user,
             )

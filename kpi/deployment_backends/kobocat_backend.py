@@ -1030,6 +1030,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return url
 
     @property
+    def submission_model(self):
+        return ReadOnlyKobocatInstance
+
+    @property
     def submission_url(self) -> str:
         # Use internal host to secure calls to KoBoCAT API,
         # kobo-service-account can restrict requests per hosts.

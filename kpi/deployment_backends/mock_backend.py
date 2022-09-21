@@ -603,6 +603,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return reverse(view_name,
                        kwargs={'parent_lookup_asset': self.asset.uid})
 
+    @property
+    def submission_model(self):
+
+        class MockLoggerInstance:
+            @classmethod
+            def get_app_label_and_model_name(cls):
+                return 'mocklogger', 'instance'
+
+        return MockLoggerInstance
+
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:

@@ -8,7 +8,7 @@ class AuditLog(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # We cannot use ContentType FK because we handling models and shadow models.
+    # We cannot use ContentType FK because we handle models and shadow models.
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
