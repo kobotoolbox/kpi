@@ -4,7 +4,7 @@
 // all `color`, `background-color` etc. should use variables defined here).
 
 /*
- * The KoBo gray scale
+ * The Kobo gray scale
  *
  * NOTE: the list constist of colors with same hue (225) and saturation (16).
  */
@@ -46,57 +46,34 @@ $kobo-white: hsl(225, 16%, 100%); // #ffffff
  * Primary colours & shades
  */
 
-$kobo-blue: hsl(206, 90%, 55%);
-$kobo-blue-darker: hsl(206, 90%, 33%);
-$kobo-blue-dark: hsl(206, 90%, 45%);
-$kobo-blue-light: hsl(206, 90%, 60%);
-$kobo-blue-pale: hsl(206, 90%, 80%);
+$kobo-blue: hsl(206, 90%, 55%); // # 2095f3
+$kobo-alt-blue: hsl(206, 100%, 71%); // #64c0ff
+$kobo-mid-blue: hsl(206, 85%, 80%); // #a1d2f7
+$kobo-light-blue: hsl(206, 100%, 95%); // #e8f4ff
+$kobo-dark-blue: hsl(206, 90%, 31%); // #00599d
 
-$kobo-teal: hsl(187, 70%, 45%);
-// the row hover color
-$kobo-teal-light: hsl(187, 70%, 95%);
-$kobo-teal-pale: hsl(187, 60%, 60%);
-$kobo-teal-pale-dark: hsl(187, 58%, 33%);
-// the table sorted column colors
-$kobo-teal-white: hsl(193, 35%, 92%);
-$kobo-teal-white-light: hsl(189, 64%, 98%);
+$kobo-teal: hsl(185, 57%, 57%); // #52c5d0
+$kobo-dark-teal: hsl(185, 61%, 28%); // #1c6d74
+$kobo-light-teal: hsl(185, 56%, 89%); // #d4f0f3
 
 /*
  * Secondary & tertiary colors
  */
 
+$kobo-red: hsl(352, 100%, 70%); // #fe6b7d
+$kobo-dark-red: hsl(352, 30%, 44%); // #924f58
+$kobo-light-red: hsl(352, 100%, 92%); // #ffd5da
+
+$kobo-dark-amber: hsl(30, 20%, 35%); // #6c5a49
+$kobo-amber: hsl(30, 100%, 72%); // #fdb670
+$kobo-light-amber: hsl(30, 100%, 90%); // #ffe8cc
+
 // For big general backgrounds as an alternative to desaturated grays.
+$kobo-storm: hsl(225, 33%, 59%); // #7386b9
 $kobo-cloud: hsl(225, 65%, 97%); // #f1f4fc
 
-// positive colors
-$kobo-green: hsl(149, 65%, 45%);
-$kobo-green-dark: hsl(149, 65%, 35%);
-$kobo-green-light: hsl(149, 65%, 90%);
+$kobo-violet: hsl(271, 92%, 85%); // #dab6fc
+$kobo-pink: hsl(290, 53%, 93%); // #f4e5f7
 
-// error/negative colors
-$kobo-red: hsl(352, 77%, 60%);
-$kobo-red-dark: hsl(352, 70%, 40%);
-$kobo-red-light: hsl(352, 70%, 90%);
-$kobo-red-pale: hsl(352, 100%, 92%);
-$kobo-red-pale-dark: hsl(352, 30%, 44%);
-
-// warning colors
-$kobo-orange: hsl(30, 80%, 50%);
-$kobo-orange-dark: hsl(30, 80%, 40%);
-$kobo-orange-light: hsl(30, 80%, 95%);
-$kobo-orange-pale: hsl(30, 100%, 89%);
-$kobo-orange-pale-dark: hsl(30, 20%, 35%);
-
-// DEPRACATED COLORS GUIDE
-//
-// please use this migration guide if your PR uses one of them:
-//
-// $kobo-black --> $kobo-gray-24;
-// $kobo-darkgray --> $kobo-gray-40;
-// $kobo-midgray --> $kobo-gray-65;
-// $kobo-lightgray --> $kobo-gray-92;
-// $kobo-whitegray --> $kobo-gray-96;
-//
-// NOTE: should definitely be deleted around may 2022
-//
-// ENDGUIDE
+$kobo-green: hsl(126, 68%, 75%); // #96eb9e
+$kobo-lime: hsl(104, 71%, 92%); // #e3f9db

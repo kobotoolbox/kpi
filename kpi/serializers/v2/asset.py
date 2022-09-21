@@ -1,13 +1,15 @@
 # coding: utf-8
 import json
+import re
 
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
@@ -310,8 +312,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 return obj.deployment.submission_count
 
             if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
-                return obj.deployment.calculated_submission_count(
-                    user=user)
+                return obj.deployment.calculated_submission_count(user=user)
         except KeyError:
             pass
 
@@ -491,26 +492,40 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return data_sharing
 
         if 'enabled' not in data_sharing:
-            errors['enabled'] = _('The property is required')
+            errors['enabled'] = t('The property is required')
 
         if 'fields' in data_sharing:
             if not isinstance(data_sharing['fields'], list):
-                errors['fields'] = _('The property must be an array')
+                errors['fields'] = t('The property must be an array')
             else:
                 asset = self.instance
                 fields = data_sharing['fields']
-                form_pack, _unused = build_formpack(asset, submission_stream=[])
+                # We used to get all fields for every version for valid fields,
+                # but the UI shows the latest version only, so only its fields
+                # can be picked up. It is easier then to compare valid fields with
+                # user's choice.
+                form_pack, _unused = build_formpack(
+                    asset, submission_stream=[], use_all_form_versions=False
+                )
+                # We do not want to include the version field.
+                # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
+                # for field name alternatives.
                 valid_fields = [
                     f.path for f in form_pack.get_fields_for_versions(
                         form_pack.versions.keys()
-                    )
+                    ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:
-                    errors['fields'] = _(
+                    errors['fields'] = t(
                         'Some fields are invalid, '
                         'choices are: `{valid_fields}`'
                     ).format(valid_fields='`,`'.join(valid_fields))
+
+                # Force `fields` to be an empty list to avoid useless parsing when
+                # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<paired_data_uid>/external.xml)
+                if sorted(valid_fields) == sorted(fields):
+                    data_sharing['fields'] = []
         else:
             data_sharing['fields'] = []
 
@@ -525,7 +540,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if self.instance and self.instance.parent is not None:
             if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
                 raise serializers.ValidationError(
-                    _('User cannot update current parent collection'))
+                    t('User cannot update current parent collection'))
 
         # Target collection is `None`, no need to check permissions
         if parent is None:
@@ -535,11 +550,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # move the asset.
         parent_perms = parent.get_perms(user)
         if PERM_VIEW_ASSET not in parent_perms:
-            raise serializers.ValidationError(_('Target collection not found'))
+            raise serializers.ValidationError(t('Target collection not found'))
 
         if PERM_CHANGE_ASSET not in parent_perms:
             raise serializers.ValidationError(
-                _('User cannot update target parent collection'))
+                t('User cannot update target parent collection'))
 
         return parent
 

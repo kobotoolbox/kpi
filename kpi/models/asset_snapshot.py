@@ -2,7 +2,6 @@
 # 😬
 import copy
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from rest_framework.reverse import reverse
 
@@ -17,6 +16,7 @@ from kpi.mixins import (
 from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
+from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 
 
 class AbstractFormList(
@@ -62,8 +62,8 @@ class AssetSnapshot(
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONBField(default=dict)
-    details = JSONBField(default=dict)
+    source = models.JSONField(default=dict)
+    details = models.JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
@@ -146,29 +146,42 @@ class AssetSnapshot(
         self._strip_empty_rows(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)
+        # TODO: move these inside `generate_xml_from_source()`?
         _settings = _source.get('settings', {})
         form_title = _settings.get('form_title')
         id_string = _settings.get('id_string')
-
-        self.xml, self.details = \
-            self.generate_xml_from_source(_source,
-                                          include_note=_note,
-                                          root_node_name='data',
-                                          form_title=form_title,
-                                          id_string=id_string)
+        root_node_name = _settings.get('name')
+        self.xml, self.details = self.generate_xml_from_source(
+            _source,
+            include_note=_note,
+            root_node_name=root_node_name,
+            form_title=form_title,
+            id_string=id_string,
+        )
         self.source = _source
         return super().save(*args, **kwargs)
 
     def generate_xml_from_source(self,
                                  source,
                                  include_note=False,
-                                 root_node_name='snapshot_xml',
+                                 root_node_name=None,
                                  form_title=None,
                                  id_string=None):
-        if form_title is None:
-            form_title = 'Snapshot XML'
+
+        if not root_node_name:
+            if self.asset and self.asset.uid:
+                root_node_name = self.asset.uid
+            else:
+                root_node_name = 'snapshot_xml'
+
+        if not form_title:
+            if self.asset and self.asset.name:
+                form_title = self.asset.name
+            else:
+                form_title = 'Snapshot XML'
+
         if id_string is None:
-            id_string = 'snapshot_xml'
+            id_string = root_node_name
 
         if include_note and 'survey' in source:
             _translations = source.get('translations', [])
@@ -183,6 +196,8 @@ class AssetSnapshot(
         self._expand_kobo_qs(source_copy)
         self._populate_fields_with_autofields(source_copy)
         self._strip_kuids(source_copy)
+
+        allow_choice_duplicates(source_copy)
 
         warnings = []
         details = {}

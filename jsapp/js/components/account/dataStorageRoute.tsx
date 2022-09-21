@@ -24,16 +24,16 @@ const PLACEHOLDER = 3407 // TODO remove this once endpoint exists
 
 export default class DataStorage extends React.Component {
   constructor(props: any) {
-    super(props)
+    super(props);
     this.state = {
       isLoading: true,
-    }
+    };
   }
 
   componentDidMount() {
     this.setState({
       isLoading: false,
-    })
+    });
   }
 
   render() {

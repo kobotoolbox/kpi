@@ -1,36 +1,38 @@
-import React from 'react'
-import bem, {makeBem} from 'js/bem'
-import './koboRange.scss'
+import React from 'react';
+import bem, {makeBem} from 'js/bem';
+import './koboRange.scss';
 
-bem.KoboRange = makeBem(null, 'kobo-range')
-bem.KoboRange__values = makeBem(bem.KoboRange, 'values', 'div')
-bem.KoboRange__maxValue = makeBem(bem.KoboRange, 'max-value', 'span')
-bem.KoboRange__currentValue = makeBem(bem.KoboRange, 'current-value', 'span')
-bem.KoboRange__number = makeBem(bem.KoboRange, 'number', 'span')
-bem.KoboRange__unit = makeBem(bem.KoboRange, 'unit', 'span')
-bem.KoboRange__progress = makeBem(bem.KoboRange, 'progress', 'div')
-bem.KoboRange__input = makeBem(bem.KoboRange, 'input', 'input')
+bem.KoboRange = makeBem(null, 'kobo-range');
+bem.KoboRange__values = makeBem(bem.KoboRange, 'values', 'div');
+bem.KoboRange__maxValue = makeBem(bem.KoboRange, 'max-value', 'span');
+bem.KoboRange__currentValue = makeBem(bem.KoboRange, 'current-value', 'span');
+bem.KoboRange__number = makeBem(bem.KoboRange, 'number', 'span');
+bem.KoboRange__unit = makeBem(bem.KoboRange, 'unit', 'span');
+bem.KoboRange__progress = makeBem(bem.KoboRange, 'progress', 'div');
+bem.KoboRange__input = makeBem(bem.KoboRange, 'input', 'input');
 
-export enum KoboRangeColours {
-  'default' =  'default',
+export enum KoboRangeColors {
+  'default' = 'default',
   'warning' = 'warning',
   'teal' = 'teal',
 }
 
-type KoboRangeProps = {
-  max: number,
+interface KoboRangeProps {
+  max: number;
   /** `value` should be un-converted seconds if using `isTime` */
-  value: number,
+  value: number;
   /** uses time display for all required values */
-  isTime?: boolean,
+  isTime?: boolean;
+  isDisabled?: boolean;
   /** required for input to be enabled (disabled without)*/
-  onChange?: Function,
+  onChange?: Function;
   /** defaults to $kobo-blue */
-  color?: string,
+  color?: KoboRangeColors;
   /** optional string to append to max */
-  totalLabel?: string,
+  totalLabel?: string;
   /** optional string to append to value */
-  currentLabel?: string,
+  currentLabel?: string;
+  'data-cy'?: string;
 }
 
 /**
@@ -38,40 +40,36 @@ type KoboRangeProps = {
  *
  */
 export default class KoboRange extends React.Component<KoboRangeProps> {
-  constructor(props: KoboRangeProps) {
-    super(props)
-  }
-
   /** We deal internally with un-converted seconds for easier computing. Only use
    * this if `props.isTime` and when it's time to display
    */
   convertToClock(time: number) {
-    let minutes = Math.floor(time / 60)
+    const minutes = Math.floor(time / 60);
     // The duration is given in decimal seconds, so we have to do ceiling here
-    let seconds = Math.ceil(time - minutes * 60)
+    const seconds = Math.ceil(time - minutes * 60);
 
     let finalSeconds: string;
     if (seconds < 10) {
-      finalSeconds = '0' + seconds
+      finalSeconds = '0' + seconds;
     } else {
-      finalSeconds = String(seconds)
+      finalSeconds = String(seconds);
     }
 
-    return minutes + ':' + finalSeconds
+    return minutes + ':' + finalSeconds;
   }
 
   onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
     if (this.props.onChange) {
-      const currentValue = evt.currentTarget.value
-      this.props.onChange(currentValue)
+      const currentValue = evt.currentTarget.value;
+      this.props.onChange(currentValue);
     }
   }
 
   render() {
-    let isDataLoaded = !(this.props.max === 0)
+    const isDataLoaded = !(this.props.max === 0);
 
     return (
-      <bem.KoboRange>
+      <bem.KoboRange data-cy={this.props['data-cy']}>
         {isDataLoaded &&
           <bem.KoboRange__values>
             <bem.KoboRange__currentValue>
@@ -100,15 +98,15 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
 
         <bem.KoboRange__progress>
           <bem.KoboRange__input
-            m={this.props?.color ? this.props.color : KoboRangeColours.default}
+            m={this.props?.color ? this.props.color : KoboRangeColors.default}
             type='range'
             max={this.props.max}
             value={this.props.value}
-            disabled={!this.props.onChange}
+            disabled={!this.props.onChange || this.props.isDisabled}
             onChange={this.props?.onChange && this.onChange.bind(this)}
           />
         </bem.KoboRange__progress>
       </bem.KoboRange>
-    )
+    );
   }
 }

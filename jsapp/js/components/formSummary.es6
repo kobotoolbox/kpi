@@ -10,9 +10,11 @@ import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import DocumentTitle from 'react-document-title';
+import Icon from 'js/components/common/icon';
 import moment from 'moment';
 import Chart from 'chart.js';
 import {getFormDataTabs} from './formViewTabs';
+import assetUtils from 'js/assetUtils';
 import {
   formatTime,
   formatDate,
@@ -215,17 +217,18 @@ class FormSummary extends React.Component {
           to={`/forms/${this.state.uid}/landing`}
           key='landing'
           data-path={`/forms/${this.state.uid}/landing`}
-          onClick={this.triggerRefresh}>
+          onClick={this.triggerRefresh}
+        >
             <i className='k-icon k-icon-projects' />
             {t('Collect data')}
-            <i className='k-icon k-icon-next' />
+            <Icon name='angle-right' size='s'/>
         </Link>
 
         {this.userCan('change_asset', this.state) &&
           <button onClick={this.sharingModal}>
             <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
-            <i className='k-icon k-icon-next' />
+            <Icon name='angle-right' size='s'/>
           </button>
         }
 
@@ -238,14 +241,14 @@ class FormSummary extends React.Component {
           >
             <i className='k-icon k-icon-edit' />
             {t('Edit form')}
-            <i className='k-icon k-icon-next' />
+            <Icon name='angle-right' size='s'/>
           </Link>
         }
 
         <button onClick={this.enketoPreviewModal}>
           <i className='k-icon k-icon-view' />
           {t('Preview form')}
-          <i className='k-icon k-icon-next' />
+          <Icon name='angle-right' size='s'/>
         </button>
       </bem.FormView__cell>
     );
@@ -266,7 +269,7 @@ class FormSummary extends React.Component {
           >
             <i className={`k-icon ${item.icon}`} />
             {item.label}
-            <i className='k-icon k-icon-next' />
+            <Icon name='angle-right' size='s'/>
           </Link>
         )}
       </bem.FormView__cell>
@@ -330,6 +333,22 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+    let hasCountry = (
+      this.state.settings?.country &&
+      (
+        !Array.isArray(this.state.settings?.country) ||
+        !!this.state.settings?.country.length
+      )
+    );
+    let hasProjectInfo = (
+      this.state.settings &&
+      (
+        hasCountry ||
+        this.state.settings.sector ||
+        this.state.settings.operational_purpose ||
+        this.state.settings.collects_pii
+      )
+    );
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);
@@ -339,32 +358,51 @@ class FormSummary extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) &&
+            {hasProjectInfo &&
               <bem.FormView__row m='summary-description'>
                 <bem.FormView__cell m={['label', 'first']}>
-                  {t('Description')}
+                  {t('Project information')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box', 'padding']}>
-                  {(this.state.settings.country || this.state.settings.sector) &&
+                  {(hasCountry || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
-                      {this.state.settings.country &&
-                        <bem.FormView__cell>
-                          <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
-                          {this.state.settings.country.label}
+                      {hasCountry &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='country'>{t('Country')}</bem.FormView__label>
+                          {assetUtils.getCountryDisplayString(this.state)}
                         </bem.FormView__cell>
                       }
                       {this.state.settings.sector &&
-                        <bem.FormView__cell>
+                        <bem.FormView__cell m='padding'>
                           <bem.FormView__label m='sector'>{t('Sector')}</bem.FormView__label>
-                          {this.state.settings.sector.label}
+                          {assetUtils.getSectorDisplayString(this.state)}
+                        </bem.FormView__cell>
+                      }
+                    </bem.FormView__group>
+                  }
+                  {(this.state.settings.operational_purpose || this.state.settings.collects_pii) &&
+                    <bem.FormView__group m={['items', 'description-cols']}>
+                      {this.state.settings.operational_purpose &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='operational-purpose'>{t('Operational purpose of data')}</bem.FormView__label>
+                          {this.state.settings.operational_purpose.label}
+                        </bem.FormView__cell>
+                      }
+                      {this.state.settings.collects_pii &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='collects-pii'>{t('Collects personally identifiable information')}</bem.FormView__label>
+                          {this.state.settings.collects_pii.label}
                         </bem.FormView__cell>
                       }
                     </bem.FormView__group>
                   }
                   {this.state.settings.description &&
-                    <bem.FormView__cell m={['padding', 'description']}>
-                      {this.state.settings.description}
-                    </bem.FormView__cell>
+                    <bem.FormView__group m='items'>
+                      <bem.FormView__cell m={['padding', 'description']}>
+                        <bem.FormView__label m='description'>{t('Description')}</bem.FormView__label>
+                        {this.state.settings.description}
+                      </bem.FormView__cell>
+                    </bem.FormView__group>
                   }
                 </bem.FormView__cell>
               </bem.FormView__row>

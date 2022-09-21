@@ -1,5 +1,7 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "scss/libs/_mdl";
+@use "scss/_variables";
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -328,54 +330,85 @@ $z-modal-x: 10;
     background: colors.$kobo-gray-96;
     text-align: center;
     line-height: 1em;
-
-    i {
-      color: colors.$kobo-orange;
-      font-size: 28px;
-      margin-right: 13px;
-      vertical-align: middle;
-      display: inline-block;
-    }
-
-    span {
-      line-height: 1.4em;
-      display: inline-block;
-      vertical-align: middle;
-      width: calc(100% - 60px);
-    }
-
-    + .submission--warning {
-      margin-top: -30px;
-      border-top: 1px solid colors.$kobo-gray-92;
-    }
   }
 }
 
-.modal.modal-media-preview {
+$modal-custom-header-height: sizes.$x60;
+
+// TODO: Make a better generic modal component
+// Refactor common CSS for modals with custom headers
+// See: https://github.com/kobotoolbox/kpi/issues/3643
+.modal.modal--custom-header {
   border-radius: 6px;
-  min-width: 25%;
 
   .modal__content {
-    background-color: colors.$kobo-gray-98;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .modal__header {
-    min-height: 0;
-    padding: 16px;
-    background-color: colors.$kobo-white;
     color: colors.$kobo-gray-24;
+    height: $modal-custom-header-height;
 
     .modal__x {
       padding: 0;
       margin: 0;
     }
+  }
+
+  .modal__body {
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+    flex: 1;
+  }
+}
+
+.modal.modal--mfa-setup {
+  // FIXME: Fixed size for standardization
+  width: 570px;
+  height: 700px;
+  // Overwrite regular modal % based sizes
+  min-width: 0;
+  min-height: 0;
+
+  .modal__header {
+    background-color: colors.$kobo-gray-98;
+    font-size: sizes.$x24;
+    padding: sizes.$x32 sizes.$x32 sizes.$x48 sizes.$x32;
+
+    .modal__x {
+      font-size: sizes.$x12;
+      color: rgba(colors.$kobo-gray-24, 0.4);
+    }
+  }
+
+  .modal__body {
+    overflow: hidden;
+
+    .mfa-setup {
+      padding: 0 sizes.$x32 sizes.$x32 sizes.$x32;
+      margin: auto;
+    }
+  }
+}
+
+.modal.modal--media-preview {
+  min-width: 25%;
+
+  .modal__content {
+    background-color: colors.$kobo-gray-98;
+  }
+
+  .modal__header {
+    background-color: colors.$kobo-white;
+    padding: 16px;
 
     .table-media-preview-header {
       width: 100%;
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       font-weight: 600;
       margin-right: 12px;
 
@@ -409,36 +442,9 @@ $z-modal-x: 10;
   }
 
   .modal__body {
-    padding: 0;
-    margin: 0;
     max-height: 600px;
+    height: calc(100% - #{$modal-custom-header-height});
     overflow: auto;
-
-    .table-media-preview {
-      padding: 32px 0 12px 0;
-      text-align: center;
-      max-width: 600px;
-      min-width: 400px;
-      margin: auto;
-
-      .audio-player {
-        margin-right: 12px;
-      }
-
-      .table-media-preview__text {
-        text-align: left;
-        padding: 0 32px 32px 32px;
-      }
-
-      img, video {
-        width: 100%;
-      }
-
-      i.k-icon-file-audio {
-        font-size: 128px;
-        color: colors.$kobo-gray-92
-      }
-    }
   }
 }
 
@@ -453,7 +459,7 @@ $z-modal-x: 10;
     }
 
     .k-icon {
-      color: colors.$kobo-blue-light;
+      color: colors.$kobo-blue;
       font-size: 24px;
     }
   }
@@ -469,7 +475,7 @@ $z-modal-x: 10;
 
 .enketo-iframe-icon {
   color: colors.$kobo-white;
-  background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
+  background-image: url("~/node_modules/jquery-ui/themes/base/images/ui-icons_ffffff_256x240.png");
   background-color: colors.$kobo-gray-65;
   background-position: -81px -129px;
   position: absolute;
@@ -821,7 +827,7 @@ $z-modal-x: 10;
         padding: 0px;
         color: colors.$kobo-gray-40;
         textarea {
-          background: colors.$kobo-green-light;
+          background: colors.$kobo-lime;
           display: block;
           padding: 10px;
           border: none;
@@ -902,8 +908,14 @@ $z-modal-x: 10;
       margin-top: 12px;
     }
   }
+}
 
-  .table-media-preview {
-    min-width: 0px !important;
+// FIXME: Due to the need to hardcode height of mfa modals, we allow scrolling
+// on mobile until we standardize all modals (see comment on mfaModals.scss)
+@media screen and (max-height: 800px) {
+  .modal.modal--mfa-setup {
+    .modal__body {
+      overflow-y: auto;
+    }
   }
 }

@@ -4,7 +4,7 @@ from datetime import timedelta
 import constance
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -171,7 +171,7 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     @action(detail=True, methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):
         hook = self.get_object()
-        response = {"detail": _("Task successfully scheduled")}
+        response = {"detail": t("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
             seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
@@ -192,16 +192,18 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 # Mark all logs as PENDING
                 HookLog.objects.filter(id__in=hooklogs_ids).update(status=HOOK_LOG_PENDING)
                 # Delegate to Celery
-                retry_all_task.delay(hooklogs_ids)
+                retry_all_task.apply_async(
+                    queue='kpi_low_priority_queue', args=(hooklogs_ids,)
+                )
                 response.update({
                     "pending_uids": hooklogs_uids
                 })
 
             else:
-                response["detail"] = _("No data to retry")
+                response["detail"] = t("No data to retry")
                 status_code = status.HTTP_304_NOT_MODIFIED
         else:
-            response["detail"] = _("Can not retry on disabled hooks")
+            response["detail"] = t("Can not retry on disabled hooks")
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

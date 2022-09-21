@@ -2,52 +2,48 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@ad78349d259dfce5f01e7dd308ee78f9b0e80315#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
--e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
+-e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
 
 # ssrf protect
--e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect
-
-# Necessary to use this fork until the resolution of
-# https://github.com/jschneier/django-storages/issues/566
--e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
+-e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
 # Regular PyPI packages
-Django>=2.2,<2.3
+Django>=3.2,<3.3
 Markdown
 Pygments
 amqp
-anyjson
 billiard
-boto3
-celery>=4.0,<5.0
+celery
 celery[redis]
-dicttoxml
+dict2xml
 dj-static
-dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
+django-csp
 django-debug-toolbar
+django-environ
+django-filter
 django-extensions
 django-oauth-toolkit
+django-redis
 django-registration-redux
+django-storages[azure,boto3]
 django-amazon-ses
 django-webpack-loader
 django-loginas
 django-markdownx
 
-# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
-
 django-markitup
 django-mptt
 
-django-reversion<3.0.2 # Migration issue with 3.0.2
+django-reversion
 django-taggit
 django-private-storage
 djangorestframework
@@ -61,12 +57,12 @@ jsonfield
 kombu
 lxml
 oauthlib
+openpyxl
 #py-gfm # Incompatible with markdown 3.x
 psycopg2
-pymongo
+pymongo==3.12.3
 python-dateutil
-pytz
-pyxform==1.7.0
+pyxform==1.9.0
 requests
 responses
 shortuuid
@@ -75,7 +71,7 @@ static3
 tabulate
 unicodecsv
 uWSGI
-Werkzeug
+Werkzeug<=2.0.3
 xlrd
 xlwt
 xlutils
@@ -88,3 +84,12 @@ pyasn1
 
 # This package is only needed for unit tests but MockBackend is loaded even on production environment
 deepmerge
+
+# MFA
+django-trench
+
+# Sentry
+sentry-sdk
+
+# Python 3.8 support
+backports.zoneinfo; python_version < '3.9'

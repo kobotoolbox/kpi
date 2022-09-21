@@ -1,12 +1,18 @@
 # coding: utf-8
-import constance
 from datetime import timedelta
+
+import constance
 from django.db import models
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
 from kpi.utils.log import logging
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
+from ..constants import (
+    HookLogStatus,
+    HOOK_LOG_PENDING,
+    HOOK_LOG_FAILED,
+    KOBO_INTERNAL_ERROR_STATUS_CODE
+)
 
 
 class HookLog(models.Model):
@@ -15,7 +21,10 @@ class HookLog(models.Model):
     uid = KpiUidField(uid_prefix="hl")
     submission_id = models.IntegerField(default=0, db_index=True)  # `KoBoCAT.logger.Instance.id`
     tries = models.PositiveSmallIntegerField(default=0)
-    status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries
+    status = models.PositiveSmallIntegerField(
+        choices=[[e.value, e.name.title()] for e in HookLogStatus],
+        default=HookLogStatus.PENDING.value
+    )  # Could use status_code, but will speed-up queries
     status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
@@ -105,15 +114,6 @@ class HookLog(models.Model):
             self.tries += 1
             self.hook.reset_totals()
         super().save(*args, **kwargs)
-
-    @property
-    def status_str(self):
-        if self.status == HOOK_LOG_PENDING:
-            return "Pending"
-        elif self.status == HOOK_LOG_FAILED:
-            return "Failed"
-        elif self.status == HOOK_LOG_SUCCESS:
-            return "Success"
 
     def __str__(self):
         return "<HookLog {uid}>".format(uid=self.uid)

@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import copy
 from collections import defaultdict
 from typing import Optional
@@ -207,8 +209,8 @@ class ObjectPermissionMixin:
         # Add the calculated `delete_` permission for the owner
         content_type = ContentType.objects.get_for_model(self)
         if (
-            self.owner is not None
-            and (user is None or user.pk == self.owner.pk)
+            self.owner_id is not None
+            and (user is None or user.pk == self.owner_id)
             and (codename is None or codename.startswith('delete_'))
         ):
             matching_permissions = self.__get_permissions_for_content_type(
@@ -227,7 +229,7 @@ class ObjectPermissionMixin:
                     # doesn't match exactly. Necessary because `Asset` has
                     # `delete_submissions` in addition to `delete_asset`
                     continue
-                effective_perms.add((self.owner.pk, perm_pk))
+                effective_perms.add((self.owner_id, perm_pk))
 
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
@@ -278,7 +280,7 @@ class ObjectPermissionMixin:
             # if we use it when we're not supposed to
             objects_to_return = []
         # The owner gets every assignable permission
-        if self.owner is not None:
+        if self.owner_id is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
                 codename__in=self.get_assignable_permissions(
@@ -346,18 +348,23 @@ class ObjectPermissionMixin:
             return objects_to_return
 
     @classmethod
-    def get_implied_perms(cls, explicit_perm, reverse=False, for_instance=None):
+    def get_implied_perms(
+        cls,
+        explicit_perm: str,
+        reverse: bool = False,
+        for_instance: Optional['kpi.models.Asset'] = None,
+    ) -> set[str]:
         """
         Determine which permissions are implied by `explicit_perm` based on
         the `IMPLIED_PERMISSIONS` attribute.
-        :param explicit_perm: str. The `codename` of the explicitly-assigned
-            permission.
-        :param reverse: bool When `True`, exchange the keys and values of
-            `IMPLIED_PERMISSIONS`. Useful for working with `deny=True`
-            permissions. Defaults to `False`.
-        :rtype: set of `codename`s
+        `explicit_perm` is the `codename` of the explicitly-assigned permission.
+        When `reverse` is `True`, exchange the keys and values of
+        `IMPLIED_PERMISSIONS`. Useful for working with `deny=True` permissions.
+        When an asset is passed via `for_instance`, the returned permissions
+        are restricted to only those permissions that can be assigned to that
+        particular asset's type.
+        Returns a set of permission `codename`s.
         """
-        # TODO: document `for_instance` NOMERGE
         implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
@@ -413,8 +420,10 @@ class ObjectPermissionMixin:
             'change_submissions': ['view_submissions']
         }
         ```
+        When an asset is passed via `for_instance`, the returned permissions
+        are restricted to only those permissions that can be assigned to that
+        particular asset's type.
         """
-        # TODO: document `for_instance` NOMERGE
         return {
             codename: list(cls.get_implied_perms(codename, for_instance))
             for codename in cls.IMPLIED_PERMISSIONS.keys()

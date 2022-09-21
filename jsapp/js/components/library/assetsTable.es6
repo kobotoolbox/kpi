@@ -239,20 +239,17 @@ export default class AssetsTable extends React.Component {
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
       if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
-        icon = (<i className='k-icon k-icon-up'/>);
+        icon = (<i className='k-icon k-icon-angle-up'/>);
       }
       if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
-        icon = (<i className='k-icon k-icon-down'/>);
+        icon = (<i className='k-icon k-icon-angle-down'/>);
       }
     }
-
-    const classNames = [];
 
     return (
       <bem.AssetsTableRow__column
         m={columnDef.id}
         onClick={this.onChangeOrder.bind(this, columnDef.id)}
-        classNames={classNames}
       >
         {!hideLabel &&
           <bem.AssetsTableRow__headerLabel>{columnDef.label}</bem.AssetsTableRow__headerLabel>
@@ -280,7 +277,7 @@ export default class AssetsTable extends React.Component {
             disabled={this.props.currentPage === 0}
             onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
           >
-            <i className='k-icon k-icon-prev'/>
+            <i className='k-icon k-icon-angle-left'/>
             {t('Previous')}
           </bem.AssetsTablePagination__button>
 
@@ -294,7 +291,7 @@ export default class AssetsTable extends React.Component {
             onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
           >
             {t('Next')}
-            <i className='k-icon k-icon-next'/>
+            <i className='k-icon k-icon-angle-right'/>
           </bem.AssetsTablePagination__button>
         </bem.AssetsTablePagination>
       );

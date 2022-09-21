@@ -10,6 +10,7 @@ import {
   getAssetUIDFromUrl,
   truncateFile,
   truncateString,
+  notify,
 } from 'js/utils';
 
 const dataShareActions = Reflux.createActions({
@@ -29,7 +30,7 @@ dataShareActions.attachToSource.listen((assetUid, data) => {
   dataShareActions.attachToSource.started();
 });
 dataShareActions.attachToSource.failed.listen((response) => {
-  alertify.error(
+  notify.error(
     response?.responseJSON?.filename[0] ||
       response?.responseJSON ||
       t('Failed to attach to source')
@@ -42,7 +43,7 @@ dataShareActions.detachSource.listen((attachmentUrl) => {
     .fail(dataShareActions.detachSource.failed);
 });
 dataShareActions.detachSource.failed.listen((response) => {
-  alertify.error(response?.responseJSON || t('Failed to detach from source'));
+  notify.error(response?.responseJSON || t('Failed to detach from source'));
 });
 
 dataShareActions.patchSource.listen((attachmentUrl, data) => {
@@ -52,7 +53,7 @@ dataShareActions.patchSource.listen((attachmentUrl, data) => {
   dataShareActions.patchSource.started();
 });
 dataShareActions.patchSource.failed.listen((response) => {
-  alertify(response?.responseJSON || t('Failed to patch source'));
+  notify.error(response?.responseJSON || t('Failed to patch source'));
 });
 
 dataShareActions.getAttachedSources.listen((assetUid) => {
@@ -63,8 +64,9 @@ dataShareActions.getAttachedSources.listen((assetUid) => {
       // 2. We need both the current asset URL as well as it's source data URL
       let allSources = [];
 
-      // TODO: Check is pagination is an issue, if so we should try to use the
-      //       backend response directly
+      // TODO: Check if pagination is an issue, if so we should try to use the
+      // backend response directly.
+      // See: https://github.com/kobotoolbox/kpi/issues/3911
       response.results.forEach((source) => {
         let sourceUid = getAssetUIDFromUrl(source.source);
         allSources.push({
@@ -97,21 +99,22 @@ dataShareActions.getSharingEnabledAssets.listen(() => {
     .fail(dataShareActions.getSharingEnabledAssets.failed);
 });
 dataShareActions.getSharingEnabledAssets.failed.listen(() => {
-  alertify.error(t('Failed to retrieve sharing enabled assets'));
+  notify.error(t('Failed to retrieve sharing enabled assets'));
 });
 
 // The next two actions have the same endpoint but must be handled very
 // differently so we leave them as seperate actions
 
 // TODO: Improve the parameters so these functions are clearly different from
-//       each other
+// each other.
+// See: https://github.com/kobotoolbox/kpi/issues/3912
 dataShareActions.toggleDataSharing.listen((uid, data) => {
   dataInterface.patchDataSharing(uid, data)
     .done(dataShareActions.toggleDataSharing.completed)
     .fail(dataShareActions.toggleDataSharing.failed);
 });
 dataShareActions.toggleDataSharing.failed.listen((response) => {
-  alertify.error(response?.responseJSON?.detail || t('Failed to toggle sharing'))
+  notify.error(response?.responseJSON?.detail || t('Failed to toggle sharing'))
 });
 
 dataShareActions.updateColumnFilters.listen((uid, data) => {
@@ -120,7 +123,7 @@ dataShareActions.updateColumnFilters.listen((uid, data) => {
     .fail(dataShareActions.updateColumnFilters.failed);
 });
 dataShareActions.updateColumnFilters.failed.listen((response) => {
-  alertify.error(response?.responseJSON || t('Failed to update column filters'));
+  notify.error(response?.responseJSON || t('Failed to update column filters'));
 });
 
 export default dataShareActions;

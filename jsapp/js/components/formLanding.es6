@@ -9,6 +9,7 @@ import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -228,7 +229,7 @@ export class FormLanding extends React.Component {
                           data-tip={t('Clone this version as a new project')}
                           onClick={this.saveCloneAs}
                         >
-                          <i className='k-icon k-icon-clone' />
+                          <i className='k-icon k-icon-duplicate' />
                         </bem.FormView__link>
                       </bem.FormView__label>
                     }
@@ -477,7 +478,7 @@ export class FormLanding extends React.Component {
             return (
                 <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                     key={`dl-${dl.format}`}>
-                  <i className={`k-icon k-icon-${dl.format}-file`}/>
+                  <i className={`k-icon k-icon-file-${dl.format}`}/>
                   {t('Download')}&nbsp;
                   {dl.format.toString().toUpperCase()}
                 </bem.PopoverMenu__link>
@@ -502,7 +503,7 @@ export class FormLanding extends React.Component {
 
           {isLoggedIn &&
             <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-              <i className='k-icon k-icon-clone'/>
+              <i className='k-icon k-icon-duplicate'/>
               {t('Clone this project')}
             </bem.PopoverMenu__link>
           }
@@ -595,9 +596,12 @@ export class FormLanding extends React.Component {
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() &&
-                <bem.FormView__cell m='warning'>
-                  <i className='k-icon k-icon-alert' />
-                  <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
+                <bem.FormView__cell>
+                  <InlineMessage
+                    icon='alert'
+                    type='warning'
+                    message={t('If you want to make these changes public, you must deploy this form.')}
+                  />
                 </bem.FormView__cell>
               }
               {this.renderFormInfo(userCanEdit)}

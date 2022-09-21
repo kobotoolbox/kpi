@@ -18,19 +18,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{}.settings.prod'.format(
     PROJECT_NAME))
 
 Celery = celery.Celery
-if hasattr(settings, 'RAVEN_CONFIG'):
-    from raven.contrib.celery import register_signal, register_logger_signal
-    from raven.contrib.django.raven_compat.models import client as raven_client
-
-    # Log to Sentry from Celery jobs per
-    # https://docs.getsentry.com/hosted/clients/python/integrations/celery/
-    class RavenCelery(celery.Celery):
-        def on_configure(self):
-            # register a custom filter to filter out duplicate logs
-            register_logger_signal(raven_client, loglevel=logging.WARNING)
-            # hook into the Celery error handler
-            register_signal(raven_client)
-    Celery = RavenCelery
 
 celery_app = Celery(PROJECT_NAME)
 # Using a string here means the worker will not have to
@@ -46,29 +33,6 @@ celery_app.config_from_object('django.conf:settings', namespace='CELERY')
 # Ask Solem recommends the following workaround; see
 # https://github.com/celery/celery/issues/2248#issuecomment-97404667
 celery_app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
-
-
-@celery_app.task
-def update_concurrency_from_constance():
-    """
-    Reads Celery worker concurrency configuration from django-constance
-    and applies maximum and minimum settings to the Celery worker process
-    autoscaler. Requires `celery worker` to be started with the `--autoscale=`
-    argument; see `docker/run_celery.bash`.
-    """
-    try:
-        max_ = int(constance.config.CELERY_WORKER_MAX_CONCURRENCY)
-    except ValueError:
-        max_ = min(multiprocessing.cpu_count(), 6)
-    try:
-        min_ = int(constance.config.CELERY_WORKER_MIN_CONCURRENCY)
-    except ValueError:
-        min_ = 2
-
-    # If the configured values don't make sense, let the minimum prevail
-    max_ = max(max_, min_)
-
-    celery_app.control.autoscale(max_, min_)
 
 
 @celery_app.task(bind=True)

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {%block head %}
+  {% include "./snippets/modern_browsers_redirect.html" %}
   {% load static %}
   {% if config.login_background %}
   <style>
@@ -17,7 +18,7 @@
     {% if config.logo %}
         <img src="{{ config.logo }}"/>
     {% else %}
-        <img src="{% static 'img/kobologo.svg' %}"/>
+        <img src="{% static 'kobologo.svg' %}"/>
     {% endif %}
 {% endblock %}
 

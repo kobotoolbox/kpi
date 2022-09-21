@@ -9,7 +9,7 @@ import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import assetStore from 'js/assetStore';
 import {actions} from '../../actions';
-import {notify} from 'utils';
+import {notify, escapeHtml} from 'utils';
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
@@ -71,8 +71,8 @@ class CopyTeamPermissions extends React.Component {
     if (this.state.sourceUid) {
       const dialog = alertify.dialog('confirm');
       const finalMessage = t('You are about to copy permissions from ##source to ##target. This action cannot be undone.')
-        .replace('##source', `<strong>${this.state.sourceName}</strong>`)
-        .replace('##target', `<strong>${this.state.targetName}</strong>`);
+        .replace('##source', `<strong>${escapeHtml(this.state.sourceName)}</strong>`)
+        .replace('##target', `<strong>${escapeHtml(this.state.targetName)}</strong>`);
       let dialogOptions = {
         title: t('Are you sure you want to copy permissions?'),
         message: finalMessage,
@@ -122,7 +122,7 @@ class CopyTeamPermissions extends React.Component {
         >
           {t('Copy team from another project')}
 
-          <i className='k-icon k-icon-next'/>
+          <i className='k-icon k-icon-angle-right'/>
         </button>
 
         {this.state.isCopyFormVisible && (

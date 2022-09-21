@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import exceptions, viewsets, status, renderers
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
@@ -24,7 +24,6 @@ from kpi.serializers.v2.asset_permission_assignment import (
 from kpi.utils.object_permission import (
     get_user_permission_assignments_queryset,
 )
-
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -171,42 +170,13 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         :param request:
         :return: JSON
         """
-
-        assignments = request.data
-
-        # We don't want to lock tables, only queries to rollback in case
-        # one assignment fails.
-        with transaction.atomic():
-
-            # First, delete *all* `from_kc_only` flags
-            # TODO: Remove after kobotoolbox/kobocat#642
-            if self.asset.has_deployment:
-                self.asset.deployment.remove_from_kc_only_flag()
-
-            # Then delete all assignments before assigning new ones.
-            # If something fails later, this query should rollback
-            perms_to_delete = self.asset.permissions.exclude(
-                user__username=self.asset.owner.username)
-            for perm in perms_to_delete.all():
-                self.asset.remove_perm(perm.user,
-                                       perm.permission.codename)
-
-            for assignment in assignments:
-                context_ = dict(self.get_serializer_context())
-                context_['bulk'] = True
-                if 'partial_permissions' in assignment:
-                    context_['partial_permissions'] = assignment['partial_permissions']
-
-                serializer = AssetBulkInsertPermissionSerializer(
-                    data=assignment,
-                    context=context_
-                )
-                serializer.is_valid(raise_exception=True)
-                serializer.save(asset=self.asset)
-
-            # returns asset permissions. Users who can change permissions can
-            # see all permissions.
-            return self.list(request, *args, **kwargs)
+        serializer = AssetBulkInsertPermissionSerializer(
+            data={'assignments': request.data},
+            context=self.get_serializer_context()
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return self.list(request, *args, **kwargs)
 
     @action(detail=False, methods=['PATCH'],
             renderer_classes=[renderers.JSONRenderer])
@@ -220,7 +190,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
                 user.has_perm(PERM_VIEW_ASSET, source_asset):
             if not self.asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {'detail': _("Source and destination objects don't "
+                response = {'detail': t("Source and destination objects don't "
                                         "seem to have the same type")}
                 return Response(response, status=http_status)
         else:
@@ -247,7 +217,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
             raise exceptions.PermissionDenied()
         elif user.pk == self.asset.owner_id:
             return Response({
-                'detail': _("Owner's permissions cannot be deleted")
+                'detail': t("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)
 
         codename = object_permission.permission.codename
@@ -257,12 +227,14 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     def get_serializer_context(self):
         """
         Extra context provided to the serializer class.
-        Inject asset_uid to avoid extra queries to DB inside the serializer.
+        Inject asset_uid and asset to avoid extra queries to DB inside
+        the serializer.
         """
 
         context_ = super().get_serializer_context()
         context_.update({
-            'asset_uid': self.asset.uid
+            'asset_uid': self.asset.uid,
+            'asset': self.asset,
         })
         return context_
 

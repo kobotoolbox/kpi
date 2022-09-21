@@ -2,10 +2,11 @@
 import os
 import re
 
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -83,12 +84,12 @@ class PairedDataSerializer(serializers.Serializer):
 
         if self.instance and self.instance.source_uid != source.uid:
             raise serializers.ValidationError(
-                _('Source cannot be changed')
+                t('Source cannot be changed')
             )
 
         # Source data sharing must be enabled before going further
         if not source.data_sharing.get('enabled'):
-            raise serializers.ValidationError(_(
+            raise serializers.ValidationError(t(
                 'Data sharing for `{source_uid}` is not enabled'
             ).format(source_uid=source.uid))
 
@@ -100,12 +101,12 @@ class PairedDataSerializer(serializers.Serializer):
             PERM_VIEW_SUBMISSIONS,
         ]
         if not source.has_perms(asset.owner, required_perms, all_=False):
-            raise serializers.ValidationError(_(
+            raise serializers.ValidationError(t(
                 'Pairing data with `{source_uid}` is not allowed'
             ).format(source_uid=source.uid))
 
         if not self.instance and source.uid in asset.paired_data:
-            raise serializers.ValidationError(_(
+            raise serializers.ValidationError(t(
                 'Source `{source}` is already paired'
             ).format(source=source.name))
 
@@ -124,11 +125,20 @@ class PairedDataSerializer(serializers.Serializer):
             return
 
         source = attrs['source']
-        form_pack, _unused = build_formpack(source, submission_stream=[])
+        # We used to get all fields for every version for valid fields,
+        # but the UI shows the latest version only, so only its fields
+        # can be picked up. It is easier then to compare valid fields with
+        # user's choice.
+        form_pack, _unused = build_formpack(
+            source, submission_stream=[], use_all_form_versions=False
+        )
+        # We do not want to include the version field.
+        # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
+        # for field name alternatives.
         valid_fields = [
             f.path for f in form_pack.get_fields_for_versions(
                 form_pack.versions.keys()
-            )
+            ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
         ]
 
         source_fields = source.data_sharing.get('fields') or valid_fields
@@ -138,12 +148,17 @@ class PairedDataSerializer(serializers.Serializer):
         if unknown_fields and source_fields:
             raise serializers.ValidationError(
                 {
-                    'fields': _(
+                    'fields': t(
                         'Some fields are invalid, '
                         'choices are: `{source_fields}`'
                     ).format(source_fields='`,`'.join(source_fields))
                 }
             )
+
+        # Force `posted_fields` to be an empty list to avoid useless parsing when
+        # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<paired_data_uid>/external.xml)
+        if sorted(valid_fields) == sorted(posted_fields):
+            posted_fields = []
 
         attrs['fields'] = posted_fields
 
@@ -159,14 +174,14 @@ class PairedDataSerializer(serializers.Serializer):
         if not re.match(r'^[\w\d-]+$', filename):
             raise serializers.ValidationError(
                 {
-                    'filename': _('Only letters, numbers and `-` are allowed')
+                    'filename': t('Only letters, numbers and `-` are allowed')
                 }
             )
 
         if extension.lower() != '.xml' and extension != '':
             raise serializers.ValidationError(
                 {
-                    'filename': _('Extension must be `xml`')
+                    'filename': t('Extension must be `xml`')
                 }
             )
 
@@ -198,7 +213,7 @@ class PairedDataSerializer(serializers.Serializer):
         ):
             raise serializers.ValidationError(
                 {
-                    'filename': _(
+                    'filename': t(
                         '`{basename}` is already used'
                     ).format(basename=basename)
                 }

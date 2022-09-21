@@ -5,8 +5,6 @@
  * You can observe action result through Reflux callbacks in your component, or
  * more preferably (where applicable) use the update eveont of one of the stores
  * from `jsapp/js/stores.es6`
- *
- * TODO: Group and split actions to separate files. For a working example see `./actions/help`.
  */
 
 import alertify from 'alertifyjs';
@@ -14,7 +12,6 @@ import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
 import {permissionsActions} from './actions/permissions';
-import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
@@ -30,7 +27,6 @@ Reflux.use(RefluxPromise(window.Promise));
 
 export const actions = {
   permissions: permissionsActions,
-  help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
   media: formMediaActions,
@@ -96,8 +92,6 @@ actions.misc = Reflux.createActions({
   updateProfile: {children: ['completed', 'failed']},
 });
 
-// TODO move these callbacks to `actions/permissions.es6` after moving
-// `actions.resources` to separate file (circular dependency issue)
 permissionsActions.assignAssetPermission.failed.listen(() => {
   notify(t('Failed to update permissions'), 'error');
 });
@@ -164,9 +158,9 @@ actions.misc.updateProfile.failed.listen(function(data) {
   }
 
   if (hadFieldsErrors) {
-    notify(t('Some fields contain errors'), 'error');
+    notify(t('Some fields contain errors!'), 'error');
   } else {
-    notify(t('failed to update profile'), 'error');
+    notify(t('Failed to update profile!'), 'error');
   }
 });
 
@@ -256,6 +250,7 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
   } else if(!!data.responseJSON.xform_id_string){
     // TODO: now that the id_string is automatically generated, this failure
     // mode probably doesn't need special handling
+    // see: https://github.com/kobotoolbox/kpi/issues/3902
     failure_message = `
       <p>${t('your form id was not valid:')}</p>
       <p><pre>${data.responseJSON.xform_id_string}</pre></p>
@@ -524,7 +519,7 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
       actions.resources.loadAsset({id: uid});
     })
     .fail(() => {
-      alertify.error(t('failed to delete submission'));
+      notify.error(t('failed to delete submission'));
       actions.resources.deleteSubmission.failed();
     });
 });
@@ -537,7 +532,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
       actions.resources.loadAsset({id: uid});
     })
     .fail((response) => {
-      alertify.error(t('Failed to duplicate submission'));
+      notify.error(t('Failed to duplicate submission'));
       actions.resources.duplicateSubmission.failed(response);
     });
 });
@@ -601,7 +596,7 @@ actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
 actions.hooks.update.failed.listen(() => {
-  alertify.error(t('Failed saving REST Service'));
+  notify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {

@@ -31,6 +31,10 @@
     display: none;
   }
 
+  .k-drawer + .mdl-layout__content {
+    margin: 0;
+  }
+
   .form-view__reportButtons {
     display: none;
   }
@@ -95,6 +99,10 @@
       transform: none;
       max-height: none;
     }
+  }
+
+  .form-view.form-view--fullscreen {
+    position: static;
   }
 
   .page-wrapper {

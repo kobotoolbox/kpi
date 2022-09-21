@@ -10,7 +10,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
-import {formatTime} from 'utils';
+import {formatTime, notify} from 'utils';
 import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES
@@ -50,7 +50,7 @@ export default class RESTServiceLogs extends React.Component {
         this.setState({
           isLoadingHook: false
         });
-        alertify.error(t('Could not load REST Service'));
+        notify.error(t('Could not load REST Service'));
       });
 
     actions.hooks.getLogs(
@@ -69,7 +69,7 @@ export default class RESTServiceLogs extends React.Component {
           this.setState({
             isLoadingLogs: false
           });
-          alertify.error(t('Could not load REST Service logs'));
+          notify.error(t('Could not load REST Service logs'));
         }
       }
     );
@@ -90,7 +90,7 @@ export default class RESTServiceLogs extends React.Component {
       })
       .fail(() => {
         this.setState({isLoadingLogs: false});
-        alertify.error(t('Could not load REST Service logs'));
+        notify.error(t('Could not load REST Service logs'));
       });
   }
 
@@ -207,7 +207,7 @@ export default class RESTServiceLogs extends React.Component {
           className='rest-services-list__header-back-button'
           href={`/#/forms/${this.state.assetUid}/settings/rest`}
         >
-          <i className='k-icon k-icon-prev' />
+          <i className='k-icon k-icon-angle-left' />
           {t('Back to REST Services')}
         </a>
 

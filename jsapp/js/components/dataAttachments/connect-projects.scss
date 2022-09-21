@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 .connect-projects {
   i.k-icon {
@@ -7,7 +8,7 @@
   }
 
   .form-view__cell--page-title {
-    font-size: 14px !important;
+    font-size: variables.$base-font-size !important;
     display: flex;
     margin-top: 20px !important;
     i {
@@ -32,6 +33,7 @@
 
       // TODO: Create a BEM element that acts as column wrappers (and use
       //       modifiers for different columns)
+      // See: https://github.com/kobotoolbox/kpi/issues/3912
       .checkbox {
         width: 50%;
       }
@@ -60,6 +62,9 @@
     .connect-projects__import-form {
       position: relative;
       display: flex;
+      flex-direction: row;
+      align-items: center;
+      align-content: center;
       margin-top: 10px;
 
       .kobo-select__wrapper {
@@ -87,7 +92,7 @@
 
     label {
       margin-top: 20px;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       font-weight: bold;
       color: colors.$kobo-gray-40;
     }
@@ -209,6 +214,7 @@
 // Compensate for when sidebar(s) messes up modal a bit
 
 //TODO: Clean this up via PR changes
+// See: https://github.com/kobotoolbox/kpi/issues/3912
 @media
   (min-width: 1000px) and (max-width: 1140px),
   (min-width: 770px) and (max-width: 860px),

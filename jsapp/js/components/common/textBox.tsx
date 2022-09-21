@@ -3,40 +3,35 @@ import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
 
-export enum AvailableType {
-  'text-multiline' = 'text-multiline',
-  text = 'text',
-  email = 'email',
-  password = 'password',
-  url = 'url',
-  number = 'number',
+export type AvailableType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url';
+
+const DefaultType: AvailableType = 'text';
+
+interface TextBoxProps {
+  type?: AvailableType;
+  value: string;
+  onChange: Function;
+  onBlur?: Function;
+  onKeyPress?: Function;
+  /**
+   * Visual error indication and displaying error messages. Pass `true` to make
+   * the input red. Pass string or multiple strings to also display
+   * the error message(s).
+   */
+  errors?: string[] | boolean | string;
+  label?: string;
+  placeholder?: string;
+  description?: string;
+  readOnly?: boolean;
+  disabled?: boolean;
+  customModifiers?: string[]|string;
+  'data-cy'?: string;
 }
-
-const DefaultType = AvailableType.text;
-
-type TextBoxProps = {
-  type?: AvailableType // one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
-  value: string
-  onChange: Function
-  onBlur?: Function
-  onKeyPress?: Function
-  errors?: string[]|string|boolean // for visual error indication and displaying error messages
-  label?: string
-  placeholder?: string
-  description?: string
-  readOnly?: boolean
-  disabled?: boolean
-  customModifiers?: string[]|string
-};
 
 /**
  * A text box generic component.
  */
 class TextBox extends React.Component<TextBoxProps, {}> {
-  constructor(props: TextBoxProps){
-    super(props);
-  }
-
   /**
    * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
    * types to stop TextareaAutosize complaining.
@@ -83,10 +78,8 @@ class TextBox extends React.Component<TextBoxProps, {}> {
     }
 
     let type = DefaultType;
-    if (this.props.type && Object.keys(AvailableType).indexOf(this.props.type) !== -1) {
+    if (this.props.type) {
       type = this.props.type;
-    } else if (this.props.type) {
-      throw new Error(`Unknown TextBox type: ${this.props.type}!`);
     }
 
     const inputProps = {
@@ -97,6 +90,7 @@ class TextBox extends React.Component<TextBoxProps, {}> {
       onKeyPress: this.onKeyPress.bind(this),
       readOnly: this.props.readOnly,
       disabled: this.props.disabled,
+      'data-cy': this.props['data-cy'],
     };
 
     return (
@@ -128,7 +122,9 @@ class TextBox extends React.Component<TextBoxProps, {}> {
 
         {errors.length > 0 &&
           <bem.TextBox__error>
-            {errors.join('\n')}
+            {errors.map((message: string, index: number) => (
+              <div key={`textbox-error-${index}`}>{message}</div>
+            ))}
           </bem.TextBox__error>
         }
       </bem.TextBox>

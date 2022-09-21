@@ -1,4 +1,8 @@
 import {assign} from 'js/utils';
+import {
+  AssetResponse,
+  AssetContentSettings
+} from 'js/dataInterface'
 
 export function parseTags(asset: AssetResponse) {
   return {

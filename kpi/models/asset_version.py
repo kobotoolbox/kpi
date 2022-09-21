@@ -2,7 +2,6 @@
 import datetime
 import json
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
 from formpack.utils.expand_content import expand_content
@@ -28,10 +27,10 @@ class AssetVersion(models.Model):
                                               null=True,
                                               on_delete=models.SET_NULL,
                                               )
-    version_content = JSONBField()
-    uid_aliases = JSONBField(null=True)
-    deployed_content = JSONBField(null=True)
-    _deployment_data = JSONBField(default=dict)
+    version_content = models.JSONField()
+    uid_aliases = models.JSONField(null=True)
+    deployed_content = models.JSONField(null=True)
+    _deployment_data = models.JSONField(default=dict)
     deployed = models.BooleanField(default=False)
 
     class Meta:
@@ -61,6 +60,14 @@ class AssetVersion(models.Model):
         # not saved, only compared with other asset_versions
         _json_string = json.dumps(self.version_content, sort_keys=True)
         return calculate_hash(_json_string, 'sha1')
+
+    @property
+    def form_title(self):
+        if self.name != '':
+            return self.name
+        else:
+            _settings = self.version_content.get('settings', {})
+            return _settings.get('id_string', 'Untitled')
 
     def __str__(self):
         return '{}@{} T{}{}'.format(
