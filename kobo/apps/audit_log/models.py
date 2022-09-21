@@ -14,7 +14,10 @@ class AuditLog(models.Model):
     model_name = models.CharField(max_length=100)
     object_id = models.BigIntegerField()
     date_deleted = models.DateTimeField(default=now, db_index=True)
+    metadata = models.JSONField(default=dict)
 
     class Meta:
         unique_together = ('app_label', 'model_name', 'object_id')
         index_together = ('app_label', 'model_name')
+
+        ordering = ['-date_deleted']

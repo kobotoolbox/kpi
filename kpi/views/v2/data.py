@@ -358,6 +358,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                     model_name=model_name,
                     object_id=submission_id,
                     user=request.user,
+                    metadata={
+                        'asset_uid': self.asset.uid,
+                    }
                 ))
 
             if audit_logs:
@@ -383,6 +386,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 model_name=model_name,
                 object_id=pk,
                 user=request.user,
+                metadata={
+                    'asset_uid': self.asset.uid,
+                }
             )
 
         return Response(**json_response)
