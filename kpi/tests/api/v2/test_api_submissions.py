@@ -166,7 +166,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
 
         self.assertEqual(response.data['count'], 0)
@@ -243,7 +243,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
 
@@ -273,7 +273,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
@@ -343,7 +343,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], count - len(random_submissions))
 

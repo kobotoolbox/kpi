@@ -224,8 +224,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             )
 
         return {
+            'submission_ids': [s['_id'] for s in submissions],
             'content_type': 'application/json',
-            'status': status.HTTP_204_NO_CONTENT,
+            'status': status.HTTP_200_OK,
         }
 
     def duplicate_submission(
