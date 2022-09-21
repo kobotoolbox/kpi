@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from constance.test import override_config
 from django.contrib.auth.models import User
+from django.test import override_settings
 from django.urls import reverse
 from jsonschema import validate
 from kobo.apps.languages.models.language import Language, LanguageRegion
@@ -257,23 +258,6 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         # validate(package, schema)
 
 
-class DummyOperation():
-    name = ""
-
-class DummySpeechResult():
-    @property
-    def operation(self):
-        return DummyOperation()
-
-    @property
-    def result(self):
-        return MagicMock()
-
-class DummySpeechClient():
-    def long_running_recognize(*args, **kargs):
-        return DummySpeechResult()
-
-
 class GoogleTranscriptionSubmissionTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='someuser', email='user@example.com')
@@ -292,12 +276,13 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             service=service
         )
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
     @patch('google.cloud.storage.Client')
     def test_google_transcript_post(self, m1, m2):
         m1.return_value = MagicMock()
-        m2.return_value = DummySpeechClient()
+        m2.return_value = MagicMock()
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
         submission = {
@@ -325,6 +310,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         with self.assertNumQueries(12):
             self.client.post(url, data, format='json')
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_google_transcript_permissions(self):
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
