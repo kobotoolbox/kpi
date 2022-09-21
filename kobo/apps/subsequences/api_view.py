@@ -48,8 +48,10 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
 
 
 class AdvancedSubmissionView(APIView):
+    queryset = Asset.objects.all()
+
     def get_object(self, uid):
-        return Asset.objects.get(uid=uid)
+        return self.queryset.get(uid=uid)
 
     def get(self, request, asset_uid, format=None):
         asset = self.get_object(asset_uid)
