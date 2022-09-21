@@ -1,15 +1,14 @@
 import json
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import ValidationError as APIValidationError
-from jsonschema.exceptions import ValidationError as SchemaValidationError
 from jsonschema import validate
-
+from jsonschema.exceptions import ValidationError as SchemaValidationError
+from kobo.apps.subsequences.models import SubmissionExtras
 from kpi.models import Asset
 from kpi.views.environment import _check_asr_mt_access_for_user
-from kobo.apps.subsequences.models import SubmissionExtras
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError as APIValidationError
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 
 def _check_asr_mt_access_if_applicable(user, posted_data):
@@ -48,26 +47,31 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
                     raise PermissionDenied('ASR/MT features are not available')
 
 
-@api_view(['GET', 'POST', 'PATCH'])
-def advanced_submission_post(request, asset_uid=None):
-    asset = Asset.objects.get(uid=asset_uid)
-    if request.method == 'GET':
+class AdvancedSubmissionView(APIView):
+    def get_object(self, uid):
+        return Asset.objects.get(uid=uid)
+
+    def get(self, request, asset_uid, format=None):
+        asset = self.get_object(asset_uid)
         if 'submission' in request.data:
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
         return get_submission_processing(asset, s_uuid)
-    posted_data = request.data
-    schema = asset.get_advanced_submission_schema()
-    try:
-        validate(posted_data, schema)
-    except SchemaValidationError as err:
-        raise APIValidationError({'error': err})
 
-    _check_asr_mt_access_if_applicable(request.user, posted_data)
+    def post(self, request, asset_uid, format=None):
+        asset = self.get_object(asset_uid)
+        posted_data = request.data
+        schema = asset.get_advanced_submission_schema()
+        try:
+            validate(posted_data, schema)
+        except SchemaValidationError as err:
+            raise APIValidationError({'error': err})
 
-    submission = asset.update_submission_extra(posted_data)
-    return Response(submission.content)
+        _check_asr_mt_access_if_applicable(request.user, posted_data)
+
+        submission = asset.update_submission_extra(posted_data)
+        return Response(submission.content)
 
 
 def get_submission_processing(asset, s_uuid):

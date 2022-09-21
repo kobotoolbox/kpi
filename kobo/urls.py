@@ -5,7 +5,6 @@ from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 
 from kobo.apps.service_health.views import service_health
-from kobo.apps.subsequences.urls import patch_submission_extras
 
 
 admin.autodiscover()
@@ -14,7 +13,7 @@ urlpatterns = [
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),
     re_path(r'^admin/', admin.site.urls),
-    patch_submission_extras,
+    re_path(r'^', include('kobo.apps.subsequences.urls')),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
     re_path(r'^markitup/', include('markitup.urls')),
