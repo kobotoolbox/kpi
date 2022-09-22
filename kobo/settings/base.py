@@ -108,7 +108,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.MfaAppConfig',
+    'kobo.apps.mfa.apps.MfaAppConfig',
 )
 
 MIDDLEWARE = [
@@ -188,20 +188,6 @@ CONSTANCE_CONFIG = {
     'EXPOSE_GIT_REV': (
         False,
         'Display information about the running commit to non-superusers',
-    ),
-    'CELERY_WORKER_MAX_CONCURRENCY': (
-        '',
-        'Maximum number of asynchronous worker processes to run. When '
-        'unspecified, the default is the number of CPU cores on your server, '
-        'down to a minimum of 2 and up to a maximum of 6. You may override '
-        'here with larger values',
-        # Omit type specification because int doesn't allow an empty default
-    ),
-    'CELERY_WORKER_MIN_CONCURRENCY': (
-        2,
-        'Minimum number of asynchronous worker processes to run. If larger '
-        'than the maximum, the maximum will be ignored',
-        int
     ),
     'FRONTEND_MIN_RETRY_TIME': (
         2,
@@ -491,6 +477,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
                 'kpi.context_processors.external_service_tokens',
@@ -613,7 +600,7 @@ CELERY_BEAT_SCHEDULE = {
     "send-hooks-failures-reports": {
         "task": "kobo.apps.hook.tasks.failures_reports",
         "schedule": crontab(hour=0, minute=0),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
 
@@ -946,7 +933,7 @@ TRENCH_AUTH = {
                 'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
             ),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
+            'HANDLER': 'kobo.apps.mfa.backends.application.ApplicationBackend',
         },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
@@ -956,3 +943,6 @@ TRENCH_AUTH = {
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
+
+# Django 3.2 required settings
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
