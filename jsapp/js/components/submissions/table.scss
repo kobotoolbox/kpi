@@ -91,6 +91,7 @@ $z-table-frozen: 10;
         font-size: 20px;
         color: colors.$kobo-gray-55;
         vertical-align: top;
+        display: inline-block;
         margin-right: 3px;
       }
     }
@@ -204,9 +205,16 @@ $z-table-frozen: 10;
     .rt-resizable-header-content {
       overflow: visible;
       text-overflow: inherit;
-      height: $data-table-row-height - (2 * 5px);;
+      min-height: $data-table-row-height - (2 * 5px);;
 
-      .column-header-title,
+      .column-header-title {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        white-space: normal;
+      }
+
       .column-header-hxl-tags {
         display: block;
         width: 100%;
@@ -245,7 +253,8 @@ $z-table-frozen: 10;
     padding: 5px 8px;
     border-right: $data-table-border;
     line-height: $data-table-row-height - (2 * 5px);
-    height: $data-table-row-height;
+    min-height: $data-table-row-height;
+    height: 100%;
   }
 
   .rt-td .trimmed-text,
@@ -456,7 +465,7 @@ $z-table-frozen: 10;
   .rt-th.is-frozen.is-last-frozen,
   .rt-td.is-frozen.is-last-frozen {
     order: -1;
-    height: $data-table-row-height;
+    min-height: $data-table-row-height;
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }
