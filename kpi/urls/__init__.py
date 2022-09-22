@@ -40,6 +40,7 @@ urlpatterns = [
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
+    re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
