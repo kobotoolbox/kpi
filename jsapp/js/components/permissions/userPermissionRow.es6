@@ -7,7 +7,10 @@ import mixins from 'js/mixins';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
-import {stringToColor} from 'utils';
+import {
+  stringToColor,
+  escapeHtml,
+} from 'utils';
 import {
   ASSET_TYPES,
   PERMISSIONS_CODENAMES
@@ -39,7 +42,7 @@ class UserPermissionRow extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.user.name}</strong>`),
+      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${escapeHtml(this.props.user.name)}</strong>`),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
       onok: this.removeAllPermissions,
       oncancel: dialog.destroy

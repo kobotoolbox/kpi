@@ -89,7 +89,7 @@ pyasn1
 deepmerge
 
 # MFA
-django-trench==0.2.3
+django-trench
 
 # Sentry
 sentry-sdk

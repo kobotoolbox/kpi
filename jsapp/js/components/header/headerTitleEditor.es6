@@ -2,7 +2,7 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import alertify from 'alertifyjs';
+import {notify} from 'js/utils';
 import bem from 'js/bem';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
@@ -42,7 +42,7 @@ class HeaderTitleEditor extends React.Component {
   updateAssetTitle() {
     // surveys are required to have name
     if (!this.state.name.trim() && this.props.asset.asset_type === ASSET_TYPES.survey.id) {
-      alertify.error(t('Please enter a title for your ##type##').replace('##type##', ASSET_TYPES[this.props.asset.asset_type].label));
+      notify.error(t('Please enter a title for your ##type##').replace('##type##', ASSET_TYPES[this.props.asset.asset_type].label));
       return false;
     } else {
       this.setState({isPending: true});

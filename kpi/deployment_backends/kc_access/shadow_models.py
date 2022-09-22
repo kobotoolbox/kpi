@@ -223,30 +223,6 @@ class KobocatPermission(ShadowModel):
             str(self.name))
 
 
-class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateField()
-
-    class Meta(ShadowModel.Meta):
-        app_label = 'superuser_stats'
-        db_table = 'logger_submissioncounter'
-        verbose_name_plural = 'User Statistics'
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Creates rows when the user is created so that the Admin UI doesn't freak
-        out because it's looking for a row that doesn't exist
-        """
-        today = date.today()
-        first = today.replace(day=1)
-
-        queryset = cls.objects.filter(user_id=user.pk, timestamp=first)
-        if not queryset.exists():
-            # Todo: Handle race conditions
-            cls.objects.create(user_id=user.pk, timestamp=first)
-
 class KobocatUser(ShadowModel):
 
     username = models.CharField('username', max_length=30, unique=True)
@@ -292,10 +268,6 @@ class KobocatUser(ShadowModel):
         # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
-
-        # Add the user to the table to prevent the errors in the admin page
-        # and to ensure the user has a counter started for reporting
-        KobocatSubmissionCounter.sync(kc_auth_user)
 
 
 class KobocatUserObjectPermission(ShadowModel):
@@ -391,6 +363,7 @@ class KobocatUserProfile(ShadowModel):
     created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
+    attachment_storage_bytes = models.BigIntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)
     # We need to cast `is_active` to an (positive small) integer because KoBoCAT
     # is using `LazyBooleanField` which is an integer behind the scene.
@@ -454,6 +427,7 @@ class KobocatXForm(ShadowModel):
     uuid = models.CharField(max_length=32, default='')
     last_submission_time = models.DateTimeField(blank=True, null=True)
     num_of_submissions = models.IntegerField(default=0)
+    attachment_storage_bytes = models.BigIntegerField(default=0)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
 
     @property
@@ -569,6 +543,19 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         return str(self.media_file)
 
 
+class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
+
+    date = models.DateField()
+    xform = models.ForeignKey(
+        KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = ('date', 'xform')
+
+
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
@@ -587,6 +574,27 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
+
+
+class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser',
+        on_delete=models.DO_NOTHING,
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta:
+        app_label = 'superuser_stats'
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        verbose_name_plural = 'User Statistics'
 
 
 def safe_kc_read(func):
