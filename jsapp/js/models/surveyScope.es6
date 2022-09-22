@@ -32,35 +32,27 @@ class SurveyScope {
   }
 
   addQuestionToLibrary(row, unnullifiedContent) {
-    let content;
-    var rowJSON = row.toJSON2();
+    const rowJSON = row.toJSON2();
+
+    const question = unnullifiedContent.survey.find((s) =>
+      s.$kuid === rowJSON.$kuid
+    );
+
+    let choices;
     if (
       rowJSON.type === QUESTION_TYPES.select_one.id ||
       rowJSON.type === QUESTION_TYPES.select_multiple.id
     ) {
-      var choices = unnullifiedContent.choices.filter((s) =>
+      choices = unnullifiedContent.choices.filter((s) =>
         s.list_name === rowJSON.select_from_list_name
       );
-      for (var i in unnullifiedContent.survey) {
-        if (unnullifiedContent.survey[i].$kuid === row.toJSON2().$kuid) {
-          content = JSON.stringify({
-            survey: [unnullifiedContent.survey[i]],
-            choices: choices,
-            settings: unnullifiedContent.settings,
-          });
-        }
-      }
-    } else {
-      for (var j in unnullifiedContent.survey) {
-        if (unnullifiedContent.survey[j].$kuid === row.toJSON2().$kuid) {
-          content = JSON.stringify({
-            survey: [unnullifiedContent.survey[j]],
-            choices: choices,
-            settings: unnullifiedContent.settings,
-          });
-        }
-      }
     }
+
+    const content = JSON.stringify({
+      survey: [question],
+      choices, // included only if question is select_one or select_multiple
+      settings: unnullifiedContent.settings,
+    });
 
     actions.resources.createResource.triggerAsync({
       asset_type: ASSET_TYPES.question.id,
@@ -71,7 +63,6 @@ class SurveyScope {
   }
 
   addGroupToLibrary(row, unnullifiedContent) {
-    let content;
     let contents = [];
     let choices = [];
     const groupKuid = row.toJSON2().$kuid;
@@ -102,7 +93,7 @@ class SurveyScope {
       }
     }
 
-    content = JSON.stringify({
+    const content = JSON.stringify({
       survey: contents,
       choices: choices,
       settings: unnullifiedContent.settings,
@@ -126,7 +117,7 @@ class SurveyScope {
       position: position,
       uid: itemUid,
       survey: this.survey,
-      groupId: groupId
+      groupId: groupId,
     });
   }
 }
