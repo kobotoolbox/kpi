@@ -4,6 +4,7 @@ from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from kobo.apps.subsequences.models import SubmissionExtras
 from kpi.models import Asset
+from kpi.permissions import PostMappedToChangePermission
 from kpi.views.environment import _check_asr_mt_access_for_user
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
@@ -48,10 +49,13 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
 
 
 class AdvancedSubmissionView(APIView):
+    permission_classes = [PostMappedToChangePermission]
     queryset = Asset.objects.all()
 
     def get_object(self, uid):
-        return self.queryset.get(uid=uid)
+        asset = self.queryset.get(uid=uid)
+        self.check_object_permissions(self.request, asset)
+        return asset
 
     def get(self, request, asset_uid, format=None):
         asset = self.get_object(asset_uid)

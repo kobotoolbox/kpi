@@ -23,13 +23,12 @@ class ValidateSubmissionTest(APITestCase):
     def setUp(self):
         user = User.objects.create_user(username='someuser', email='user@example.com')
 
-        asset = sample_asset(advanced_features={})
-        asset.owner = user
-        asset.save()
-        asset.deploy(backend='mock', active=True)
-        self.asset_uid = asset.uid
-        self.asset_url = f'/api/v2/assets/{asset.uid}/?format=json'
-        self.asset = Asset.objects.get(uid=asset.uid)
+        self.asset = sample_asset(advanced_features={})
+        self.asset.owner = user
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset_uid = self.asset.uid
+        self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
         self.client.force_login(user)
 
     def set_asset_advanced_features(self, features):
@@ -304,10 +303,10 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(16):
+        with self.assertNumQueries(21):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, "complete")
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(17):
             self.client.post(url, data, format='json')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
@@ -328,24 +327,10 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             asset=self.asset
         )
 
-        self.asset.owner = User.objects.create_user(username="foo", email="foo@example.com")
-        self.asset.save()
-        self.asset.permissions.all().delete()
-        # TODO Currently fails
-        # res = self.client.get(url + '?submission=' + submission_id, format='json')
+        with override_config(ASR_MT_INVITEE_USERNAMES='*'):
+            res = self.client.post(url, {}, format='json')
+            self.assertEqual(res.status_code, 400)
 
-        # data = {
-        #     'submission': submission_id,
-        #     'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
-        # }
-        # res = self.client.post(url, data, format='json')
-        # self.assertEqual(res.status_code, 403)
-
-        # self.asset.owner = User.objects.create_user(username="foo", email="foo@example.com")
-        # self.asset.save()
-        # res = self.client.get(url, format='json')
-        # self.assertEqual(res.status_code, 403)
-
-        # with override_config(ASR_MT_INVITEE_USERNAMES='*'):
-            # res = self.client.post(url, data, format='json')
-            # self.assertEqual(res.status_code, 403)
+        self.asset.permissions.all().filter().delete()
+        res = self.client.get(url + '?submission=' + submission_id, format='json')
+        self.assertEqual(res.status_code, 404)
