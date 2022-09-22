@@ -1,4 +1,5 @@
 # coding: utf-8
+import csv
 import unicodecsv
 
 from celery import shared_task
@@ -226,12 +227,12 @@ def generate_user_details_report(output_filename: str):
     )
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as f:
+    with default_storage.open(output_filename, 'w') as f:
         columns = USER_COLS + EXTRA_DETAILS_COLS
-        writer = unicodecsv.writer(f)
+        writer = csv.writer(f)
         writer.writerow(columns)
         for row in data:
-            metadata = row.pop('metadata', {}) or dict()
+            metadata = row.pop('metadata', {})
             flatten_metadata_inplace(metadata)
             row.update(metadata)
             flat_row = [row.get(col, '') for col in columns]

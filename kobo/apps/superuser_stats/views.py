@@ -88,10 +88,11 @@ def user_details_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.'
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.'
         '</body></html>'
-    ).format(base_filename)
+    )
     return HttpResponse(template_ish)
 
 
