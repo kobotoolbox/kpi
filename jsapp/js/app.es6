@@ -101,11 +101,30 @@ export default class App extends React.Component {
             toastOptions={{
               // TODO: get colours from a single file: https://github.com/kobotoolbox/kobo-common/issues/1
               style: {
+                borderRadius: '6px',
                 padding: '16px',
-                background: '#1e2129', //$kobo-gray-14
-                color: '#fff',
+                background: '#1e2129', // $kobo-gray-14
+                color: '#fff', // $kobo-white
               },
               duration: 10000,
+              success: {
+                iconTheme: {
+                  primary: '#96eb9e', // $kobo-green
+                  secondary: '#1e2129', // $kobo-gray-14
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#fe6b7d', // $kobo-red
+                  secondary: '#1e2129', // $kobo-gray-14
+                },
+              },
+              loading: {
+                iconTheme: {
+                  primary: '#979fb4', // $kobo-gray-65
+                  secondary: '#1e2129', // $kobo-gray-14
+                },
+              },
             }}
           />
         </React.Fragment>
