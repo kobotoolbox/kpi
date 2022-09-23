@@ -22,9 +22,12 @@ getGroupFeatures = require('js/components/locking/lockingUtils').getGroupFeature
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 $icons = require('./view.icons')
+# TODO: port this and others from alertify.dialog to new modal system
+# https://github.com/kobotoolbox/kpi/issues/3977
 multiConfirm = require('js/alertify').multiConfirm
 alertify = require('alertifyjs')
 constants = require('js/constants')
+notify = require('js/utils').notify
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -383,7 +386,7 @@ module.exports = do ->
           $appearanceField.find('input:checkbox').prop('checked', false)
           appearanceModel = @model.get('appearance')
           if appearanceModel.getValue()
-            alertify.warning(t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
+            notify.warning(t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
           appearanceModel.set('value', '')
 
       @model.on 'remove', (row) =>

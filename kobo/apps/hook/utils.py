@@ -25,6 +25,8 @@ class HookUtils:
                 submission_id=submission_id, hook_id=hook_id
             ).exists():
                 success = True
-                service_definition_task.delay(hook_id, submission_id)
+                service_definition_task.apply_async(
+                    queue='kpi_low_priority_queue', args=(hook_id, submission_id)
+                )
 
         return success
