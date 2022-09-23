@@ -331,6 +331,8 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             res = self.client.post(url, {}, format='json')
             self.assertEqual(res.status_code, 400)
 
-        self.asset.permissions.all().filter().delete()
+        self.asset.permissions.all().delete()
+        self.asset.owner = None
+        self.asset.save()
         res = self.client.get(url + '?submission=' + submission_id, format='json')
         self.assertEqual(res.status_code, 404)

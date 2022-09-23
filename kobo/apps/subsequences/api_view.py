@@ -4,7 +4,7 @@ from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from kobo.apps.subsequences.models import SubmissionExtras
 from kpi.models import Asset
-from kpi.permissions import PostMappedToChangePermission
+from kpi.permissions import SubmissionPermission
 from kpi.views.environment import _check_asr_mt_access_for_user
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
@@ -49,8 +49,15 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
 
 
 class AdvancedSubmissionView(APIView):
-    permission_classes = [PostMappedToChangePermission]
+    permission_classes = [SubmissionPermission]
     queryset = Asset.objects.all()
+    asset = None
+
+    def initial(self, request, asset_uid, *args, **kwargs):
+        # This must be done first in order to work with SubmissionPermission
+        # which typically expects to be a nested view under Asset
+        self.asset = self.get_object(asset_uid)
+        return super().initial(request, asset_uid, *args, **kwargs)
 
     def get_object(self, uid):
         asset = self.queryset.get(uid=uid)
@@ -58,17 +65,15 @@ class AdvancedSubmissionView(APIView):
         return asset
 
     def get(self, request, asset_uid, format=None):
-        asset = self.get_object(asset_uid)
         if 'submission' in request.data:
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
-        return get_submission_processing(asset, s_uuid)
+        return get_submission_processing(self.asset, s_uuid)
 
     def post(self, request, asset_uid, format=None):
-        asset = self.get_object(asset_uid)
         posted_data = request.data
-        schema = asset.get_advanced_submission_schema()
+        schema = self.asset.get_advanced_submission_schema()
         try:
             validate(posted_data, schema)
         except SchemaValidationError as err:
@@ -76,7 +81,7 @@ class AdvancedSubmissionView(APIView):
 
         _check_asr_mt_access_if_applicable(request.user, posted_data)
 
-        submission = asset.update_submission_extra(posted_data)
+        submission = self.asset.update_submission_extra(posted_data)
         return Response(submission.content)
 
 
