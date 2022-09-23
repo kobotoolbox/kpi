@@ -306,7 +306,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         }
         with self.assertNumQueries(21):
             res = self.client.post(url, data, format='json')
-        self.assertContains(res, "complete")
+        self.assertContains(res, 'complete')
         with self.assertNumQueries(17):
             self.client.post(url, data, format='json')
 
@@ -318,9 +318,9 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         """Tests when slow running operation has already started"""
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
-        xpath = "q1"
-        source = ""
-        operation_name = "testop"
+        xpath = 'q1'
+        source = ''
+        operation_name = 'testop'
         cache.set(make_async_cache_key(self.user.pk, submission_id, xpath, source), operation_name)
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
@@ -336,7 +336,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
         res = self.client.post(url, data, format='json')
-        self.assertContains(res, "complete")
+        self.assertContains(res, 'complete')
 
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
