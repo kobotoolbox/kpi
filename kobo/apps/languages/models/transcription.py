@@ -18,12 +18,12 @@ class TranscriptionService(BaseLanguageService):
             through_obj = TranscriptionServiceLanguageM2M.objects.get(
                 service__code=self.code, region__code=value
             )
-        except TranscriptionServiceLanguageM2M.DoesNotExist:
+        except TranscriptionServiceLanguageM2M.DoesNotExist as err:
             # Fall back on language itself and let the service detect the region.
             if self.language_set.filter(code=value).exists():
                 return value
             else:
-                raise LanguageNotSupported
+                raise LanguageNotSupported from err
         else:
             return (
                 through_obj.mapping_code if through_obj.mapping_code else value

@@ -27,7 +27,7 @@ class SubmissionExtras(models.Model):
         null=True,
     )
 
-    def save(self):
+    def save(self, *args, **kwargs):
         features = self.asset.advanced_features
         if 'transcript' in features:
             for qpath, vals in self.content.items():
@@ -68,7 +68,7 @@ class SubmissionExtras(models.Model):
                         }
                     else:
                         continue
-                except KeyError as err:
+                except (KeyError, TypeError) as err:
                     continue
 
         if 'translated' in features:
@@ -124,7 +124,7 @@ class SubmissionExtras(models.Model):
                         'languageCode': target_lang,
                         'value': results,
                     }
-        super(SubmissionExtras, self).save()
+        super().save(*args, **kwargs)
 
     @property
     def full_content(self):

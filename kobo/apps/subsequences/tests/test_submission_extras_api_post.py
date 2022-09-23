@@ -1,12 +1,19 @@
 from copy import deepcopy
+from unittest.mock import MagicMock, patch
 
-from jsonschema import validate
-
+from constance.test import override_config
 from django.contrib.auth.models import User
-from rest_framework.test import APITestCase, APIClient
-
+from django.test import override_settings
+from django.urls import reverse
+from jsonschema import validate
+from kobo.apps.languages.models.language import Language, LanguageRegion
+from kobo.apps.languages.models.transcription import (
+    TranscriptionService, TranscriptionServiceLanguageM2M)
 from kpi.models import Asset
+from rest_framework.test import APIClient, APITestCase
 
+from ..constants import GOOGLETS
+from ..models import SubmissionExtras
 from .test_submission_extras_content import sample_asset
 
 TRANSLATED = 'translated'
@@ -14,34 +21,31 @@ TRANSLATED = 'translated'
 
 class ValidateSubmissionTest(APITestCase):
     def setUp(self):
-        user = User(username='someuser', email='user@example.com')
-        user.set_password('someuser')
-        user.save()
+        user = User.objects.create_user(username='someuser', email='user@example.com')
 
-        asset = sample_asset(advanced_features={})
-        asset.owner = user
-        asset.save()
-        asset.deploy(backend='mock', active=True)
-        self.asset_uid = asset.uid
-        self.asset_url = f'/api/v2/assets/{asset.uid}/?format=json'
-        self.asset = Asset.objects.get(uid=asset.uid)
-        self.client = APIClient()
-        self.client.login(username='someuser', password='someuser')
+        self.asset = sample_asset(advanced_features={})
+        self.asset.owner = user
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset_uid = self.asset.uid
+        self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
+        self.client.force_login(user)
 
     def set_asset_advanced_features(self, features):
         self.asset.advanced_features = features
         self.asset.save()
-        self.asset = Asset.objects.get(uid=self.asset.uid)
 
     def test_asset_post_submission_extra_with_transcript(self):
         self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
         resp = self.client.get(self.asset_url)
         schema = resp.json()['advanced_submission_schema']
-        package = {'submission': 'abc123-def456'}
-        package['q1'] = {
-            'transcript': {
+        package = {
+            'submission': 'abc123-def456',
+            'q1': {
+              'transcript': {
                 'value': 'they said hello',
-            },
+              }
+            }
         }
 
         validate(package, schema)
@@ -251,3 +255,84 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
             },
         }
         # validate(package, schema)
+
+
+class GoogleTranscriptionSubmissionTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='someuser', email='user@example.com')
+        self.asset = sample_asset(advanced_features={'transcript': {'values': ['q1']}})
+        self.asset.owner = self.user
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
+        self.client.force_login(self.user)
+        service = TranscriptionService.objects.create(code='goog')
+        language = Language.objects.create(name='', code='')
+        language_region = LanguageRegion.objects.create(language=language, name='', code='')
+        TranscriptionServiceLanguageM2M.objects.create(
+            language=language,
+            region=language_region,
+            service=service
+        )
+
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_config(ASR_MT_INVITEE_USERNAMES='*')
+    @patch('google.cloud.speech.SpeechClient')
+    @patch('google.cloud.storage.Client')
+    def test_google_transcript_post(self, m1, m2):
+        m1.return_value = MagicMock()
+        m2.return_value = MagicMock()
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        submission_id = 'abc123-def456'
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'audio_conversion_test_clip.mp4',
+            '_uuid': submission_id,
+            '_attachments': [
+                {
+                    'id': 1,
+                    'filename': 'someuser/audio_conversion_test_clip.mp4',
+                    'mimetype': 'video/mp4',
+                },
+            ],
+            '_submitted_by': self.user.username
+        }
+        self.asset.deployment.mock_submissions([submission])
+
+        data = {
+            'submission': submission_id,
+            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
+        }
+        with self.assertNumQueries(21):
+            res = self.client.post(url, data, format='json')
+        self.assertContains(res, "complete")
+        with self.assertNumQueries(17):
+            self.client.post(url, data, format='json')
+
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    def test_google_transcript_permissions(self):
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        submission_id = 'abc123-def456'
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'audio_conversion_test_clip.mp4',
+            '_uuid': submission_id,
+            '_attachments': [],
+            '_submitted_by': self.user.username
+        }
+        self.asset.deployment.mock_submissions([submission])
+        SubmissionExtras.objects.create(
+            submission_uuid=submission_id,
+            content={'q1': {'transcript': {'value': 'hello'}}},
+            asset=self.asset
+        )
+
+        with override_config(ASR_MT_INVITEE_USERNAMES='*'):
+            res = self.client.post(url, {}, format='json')
+            self.assertEqual(res.status_code, 400)
+
+        self.asset.permissions.all().delete()
+        self.asset.owner = None
+        self.asset.save()
+        res = self.client.get(url + '?submission=' + submission_id, format='json')
+        self.assertEqual(res.status_code, 404)
