@@ -14,18 +14,18 @@ import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
 const designSystemComponents = [
-  <ButtonDemo/>,
-  <CheckboxDemo/>,
-  <IconDemo/>,
-  <InlineMessageDemo/>,
-  <KoboDropdownDemo/>,
-  <KoboRangeDemo/>,
-  <KoboSelectDemo/>,
-  <LanguageSelectorDemo/>,
-  <MiniAudioPlayerDemo/>,
-  <RadioDemo/>,
-  <RegionSelectorDemo/>,
-  <TextBoxDemo/>,
+  ['Button', <ButtonDemo/>],
+  ['Checkbox', <CheckboxDemo/>],
+  ['Icon', <IconDemo/>],
+  ['InlineMessage', <InlineMessageDemo/>],
+  ['KoboDropdown', <KoboDropdownDemo/>],
+  ['KoboRange', <KoboRangeDemo/>],
+  ['KoboSelect', <KoboSelectDemo/>],
+  ['LanguageSelector', <LanguageSelectorDemo/>],
+  ['MiniAudioPlayer', <MiniAudioPlayerDemo/>],
+  ['Radio', <RadioDemo/>],
+  ['RegionSelector', <RegionSelectorDemo/>],
+  ['TextBox', <TextBoxDemo/>],
 ];
 
 /**
@@ -42,21 +42,21 @@ export default class DesignSystemApp extends React.Component {
       <section className='design-system'>
         <div className='design-system__demo-wrapper'>
           <ul>
-            {designSystemComponents.map((component, key) => {
+            {designSystemComponents.map((componentArray, key) => {
               const anchorName = `anchor-${key}`;
               return (
                 <li>
-                  <a href={`#${anchorName}`}>{component.type.displayName.replace('Demo', '')}</a>
+                  <a href={`#${anchorName}`}>{componentArray[0]}</a>
                 </li>
               );
             })}
           </ul>
-          {designSystemComponents.map((component, key) => {
+          {designSystemComponents.map((componentArray, key) => {
             const anchorName = `anchor-${key}`;
             return (
               <React.Fragment>
                 <a id={anchorName}/>
-                {component}
+                {componentArray[1]}
               </React.Fragment>
             );
           })}
