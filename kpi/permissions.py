@@ -241,11 +241,6 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
 
-    def xhas_object_permission(self, request, view, obj):
-        result = super().has_object_permission(request, view, obj)
-        import pdb; pdb.set_trace()
-        return True
-
 
 class PostMappedToChangePermission(IsOwnerOrReadOnly):
     """
