@@ -1,18 +1,21 @@
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from constance.test import override_config
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
+
+from constance.test import override_config
 from jsonschema import validate
+from rest_framework.test import APIClient, APITestCase
+
 from kobo.apps.languages.models.language import Language, LanguageRegion
 from kobo.apps.languages.models.transcription import (
     TranscriptionService, TranscriptionServiceLanguageM2M)
 from kpi.models import Asset
-from rest_framework.test import APIClient, APITestCase
 
-from ..constants import GOOGLETS
+from ..constants import GOOGLETS, make_async_cache_key
 from ..models import SubmissionExtras
 from .test_submission_extras_content import sample_asset
 
@@ -280,8 +283,6 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
     @patch('google.cloud.speech.SpeechClient')
     @patch('google.cloud.storage.Client')
     def test_google_transcript_post(self, m1, m2):
-        m1.return_value = MagicMock()
-        m2.return_value = MagicMock()
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
         submission = {
@@ -308,6 +309,35 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
         self.assertContains(res, "complete")
         with self.assertNumQueries(17):
             self.client.post(url, data, format='json')
+
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
+    @override_config(ASR_MT_INVITEE_USERNAMES='*')
+    @patch('google.cloud.storage.Client')
+    @patch('googleapiclient.discovery.build')
+    def test_google_transcript_slow_post(self, m1, m2):
+        """Tests when slow running operation has already started"""
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        submission_id = 'abc123-def456'
+        xpath = "q1"
+        source = ""
+        operation_name = "testop"
+        cache.set(make_async_cache_key(self.user.pk, submission_id, xpath, source), operation_name)
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'audio_conversion_test_clip.mp4',
+            '_uuid': submission_id,
+            '_attachments': [],
+            '_submitted_by': self.user.username
+        }
+        self.asset.deployment.mock_submissions([submission])
+
+        data = {
+            'submission': submission_id,
+            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
+        }
+        res = self.client.post(url, data, format='json')
+        self.assertContains(res, "complete")
+
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_google_transcript_permissions(self):
