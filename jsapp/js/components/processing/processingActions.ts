@@ -16,7 +16,7 @@ const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabl
 const DELETE_CHAR = '⌫';
 
 interface GoogleTsResponse {
-  status: 'complete';
+  status: 'complete' | 'in_progress';
   /** Full transcript text. */
   value: string;
   /** Transcript text split into chunks - scored by transcription quality. */
@@ -116,7 +116,7 @@ const processingActions = Reflux.createActions({
   // Transcript stuff
   setTranscript: {children: ['completed', 'failed']},
   deleteTranscript: {children: ['completed', 'failed']},
-  requestAutoTranscription: {children: ['completed', 'failed']},
+  requestAutoTranscription: {children: ['completed', 'in_progress', 'failed']},
   // Translation stuff
   setTranslation: {children: ['completed', 'failed']},
   deleteTranslation: {children: ['completed', 'failed']},
@@ -126,6 +126,7 @@ const processingActions = Reflux.createActions({
 /**
  * Processing is database heavy, so assets need to be have the feature activated
  * first. Activations requires providing a lists of question names and a lists
+ * processingActions.requestAutoTranscription.in_progress(response);
  * of language codes - this means that asset might be re-activated multiple
  * times, e.g. when a new translation language is added. Backend handles
  * un-activation automagically - e.g. when you delete last translation for given
@@ -357,7 +358,25 @@ processingActions.requestAutoTranscription.listen((
       data: JSON.stringify(data),
     })
       .done((response: ProcessingDataResponse) => {
-        processingActions.requestAutoTranscription.completed(response);
+        // Get question for request and check if in_progress
+        const statuses = Object.entries(response)
+          .filter(response => response[0] === qpath)
+          .map(entry => entry[1])
+          .filter(question => question.googlets?.status)
+          .map(question => question.googlets?.status);
+        if (statuses.includes('in_progress')) {
+          processingActions.requestAutoTranscription.in_progress(response);
+          setTimeout(() =>
+            processingActions.requestAutoTranscription(
+              assetUid,
+              qpath,
+              submissionEditId,
+              languageCode
+            )
+          , 5000);
+        } else {
+          processingActions.requestAutoTranscription.completed(response);
+        }
       })
       .fail(processingActions.requestAutoTranscription.failed);
   }
