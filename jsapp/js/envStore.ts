@@ -1,6 +1,6 @@
-import Reflux from 'reflux';
 import {actions} from 'js/actions';
 import type {EnvironmentResponse} from 'js/dataInterface';
+import {makeAutoObservable} from 'mobx';
 
 export interface EnvStoreDataItem {
   value: string;
@@ -14,28 +14,28 @@ export interface EnvStoreFieldItem {
 }
 
 class EnvStoreData {
-  terms_of_service_url = '';
-  privacy_policy_url = '';
-  source_code_url = '';
-  support_email = '';
-  support_url = '';
-  community_url = '';
-  min_retry_time = 4; // seconds
-  max_retry_time: number = 4 * 60; // seconds
-  project_metadata_fields: EnvStoreFieldItem[] = [];
-  user_metadata_fields: EnvStoreFieldItem[] = [];
-  sector_choices: EnvStoreDataItem[] = [];
-  operational_purpose_choices: EnvStoreDataItem[] = [];
-  country_choices: EnvStoreDataItem[] = [];
+  public terms_of_service_url = '';
+  public privacy_policy_url = '';
+  public source_code_url = '';
+  public support_email = '';
+  public support_url = '';
+  public community_url = '';
+  public min_retry_time = 4; // seconds
+  public max_retry_time: number = 4 * 60; // seconds
+  public project_metadata_fields: EnvStoreFieldItem[] = [];
+  public user_metadata_fields: EnvStoreFieldItem[] = [];
+  public sector_choices: EnvStoreDataItem[] = [];
+  public operational_purpose_choices: EnvStoreDataItem[] = [];
+  public country_choices: EnvStoreDataItem[] = [];
   /** languages come from `kobo/static_lists.py` **/
-  all_languages: EnvStoreDataItem[] = [];
-  interface_languages: EnvStoreDataItem[] = [];
-  submission_placeholder = '';
-  mfa_localized_help_text: {[name: string]: string} = {};
-  mfa_enabled = false;
-  mfa_code_length = 6;
+  public all_languages: EnvStoreDataItem[] = [];
+  public interface_languages: EnvStoreDataItem[] = [];
+  public submission_placeholder = '';
+  public mfa_localized_help_text: {[name: string]: string} = {};
+  public mfa_enabled = false;
+  public mfa_code_length = 6;
 
-  getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+  public getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
       if (f.name === fieldName) {
         return f;
@@ -43,7 +43,7 @@ class EnvStoreData {
     }
     return false;
   }
-  getUserMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+  public getUserMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.user_metadata_fields) {
       if (f.name === fieldName) {
         return f;
@@ -53,13 +53,16 @@ class EnvStoreData {
   }
 }
 
-class EnvStore extends Reflux.Store {
+class EnvStore {
   data: EnvStoreData;
   isReady = false;
 
   constructor() {
-    super();
+    makeAutoObservable(this);
     this.data = new EnvStoreData();
+
+    actions.auth.getEnvironment.completed.listen(this.onGetEnvCompleted.bind(this));
+    actions.auth.getEnvironment();
   }
 
   /**
@@ -73,12 +76,7 @@ class EnvStore extends Reflux.Store {
     };
   };
 
-  init() {
-    actions.auth.getEnvironment.completed.listen(this.onGetEnvCompleted.bind(this));
-    actions.auth.getEnvironment();
-  }
-
-  onGetEnvCompleted(response: EnvironmentResponse) {
+  private onGetEnvCompleted(response: EnvironmentResponse) {
     this.data.terms_of_service_url = response.terms_of_service_url;
     this.data.privacy_policy_url = response.privacy_policy_url;
     this.data.source_code_url = response.source_code_url;
@@ -111,20 +109,15 @@ class EnvStore extends Reflux.Store {
     }
 
     this.isReady = true;
-    this.trigger(this.data);
   }
 
-  getLanguages() {
-    return this.data.all_languages;
-  }
-
-  getLanguage(code: string): EnvStoreDataItem | undefined {
+  public getLanguage(code: string): EnvStoreDataItem | undefined {
     return this.data.all_languages.find(
       (item: EnvStoreDataItem) => item.value === code
     );
   }
 
-  getSectorLabel(sectorName: string): string | undefined {
+  public getSectorLabel(sectorName: string): string | undefined {
     const foundSector = this.data.sector_choices.find(
       (item: EnvStoreDataItem) => item.value === sectorName
     );
@@ -134,7 +127,7 @@ class EnvStore extends Reflux.Store {
     return undefined;
   }
 
-  getCountryLabel(code: string): string | undefined {
+  public getCountryLabel(code: string): string | undefined {
     const foundCountry = this.data.country_choices.find(
       (item: EnvStoreDataItem) => item.value === code
     );
@@ -145,7 +138,7 @@ class EnvStore extends Reflux.Store {
   }
 
   /** Returns a know language label or the provided code. */
-  getLanguageDisplayLabel(code: string): string {
+  public getLanguageDisplayLabel(code: string): string {
     let displayLabel = code;
     const envStoreLanguage = this.getLanguage(code);
     if (envStoreLanguage) {
@@ -155,7 +148,7 @@ class EnvStore extends Reflux.Store {
   }
 
   /** Case-insensitive lookup by localized name */
-  getLanguageByName(label: string): EnvStoreDataItem | undefined {
+  public getLanguageByName(label: string): EnvStoreDataItem | undefined {
     return this.data.all_languages.find(
       (item: EnvStoreDataItem) => item.label.toLocaleLowerCase() === label.toLocaleLowerCase()
     );
@@ -166,7 +159,4 @@ class EnvStore extends Reflux.Store {
  * This store keeps all environment data (constants) like languages, countries,
  * external urls…
  */
-const envStore = new EnvStore();
-envStore.init();
-
-export default envStore;
+export default new EnvStore;
