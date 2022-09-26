@@ -2,6 +2,15 @@ import {actions} from 'js/actions';
 import type {EnvironmentResponse} from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
 
+/*
+ * NOTE: This store is written to use MobX, but its imports do not need to be
+ * exported with `observer()`. We also do not need to add this to a root store.
+ *
+ * This is because this store's value does not actually change as they store
+ * constant environment variables that are set by the docker container. Thus it
+ * JustWorks™ given our frontend architecture.
+ */
+
 export interface EnvStoreDataItem {
   value: string;
   /** Note: the labels are always localized in the current UI language */
