@@ -52,6 +52,7 @@ from kpi.renderers import (
 )
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.serializers.v2.asset_counts import AssetCountsSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -364,6 +365,21 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'uid': asset.uid,
             'data': asset.to_ss_structure(),
         })
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def counts(self, request, *args, **kwargs):
+        asset = self.get_object()
+        if not asset.has_deployment:
+            raise Http404
+        context = self.get_serializer_context()
+        if 'days' in request.query_params:
+            context['days'] = request.query_params['days']
+        serializer = AssetCountsSerializer(asset, context=context)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
@@ -762,19 +778,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = ReportsDetailSerializer(asset, 
                                              context=self.get_serializer_context())
         return Response(serializer.data)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
-    )
-    def counts(self, request, *args, **kwargs):
-        asset = self.get_object()
-        filters = request.query_params
-        # if not asset.has_deployment:
-        #     raise Http404
-        data = asset.deployment.get_daily_counts(filters)
-        return Response(data)
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def valid_content(self, request, uid):

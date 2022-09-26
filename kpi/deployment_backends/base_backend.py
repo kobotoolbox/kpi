@@ -2,6 +2,7 @@
 import abc
 import copy
 import json
+from datetime import date
 from typing import Union, Iterator, Optional
 
 from bson import json_util
@@ -103,6 +104,10 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def get_attachment_objects_from_dict(self, submission: dict) -> list:
+        pass
+
+    @abc.abstractmethod
+    def get_daily_counts(self, timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(

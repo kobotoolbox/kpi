@@ -4,10 +4,11 @@ import os
 import re
 import time
 import uuid
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from collections import defaultdict
+from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -16,6 +17,7 @@ except ImportError:
 from deepmerge import always_merger
 from dict2xml import dict2xml
 from django.conf import settings
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
@@ -151,7 +153,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             self.get_submissions(self.asset.owner)
         )
         return monthly_counter
-
 
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
@@ -356,21 +357,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_daily_counts(self, filters: Optional[dict] = None):
-        today = timezone.now().date()
+    def get_daily_counts(self, timeframe: tuple[date, date]) -> dict:
+        submissions = self.get_submissions(user=self.asset.owner)
+        daily_counts = defaultdict(int)
+        for submission in submissions:
+            submission_date = datetime.strptime(
+                submission['_submission_time'],
+                '%Y-%m-%dT%H:%M:%S'
+            )
+            daily_counts[str(submission_date.date())] += 1
 
-        daily_counts = self.submission_count
-        data = {
-            'total_submissions_count': self.submission_count,
-            'daily_submission_counts': [],
-        }
-
-        data['daily_submission_counts'].append({
-            'date': str(today),
-            'count': daily_counts,
-        })
-
-        return data
+        return daily_counts
 
     def get_submissions(
         self,

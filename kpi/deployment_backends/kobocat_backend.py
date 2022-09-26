@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 
 import copy
 import io
@@ -7,8 +8,7 @@ import posixpath
 import re
 import uuid
 from collections import defaultdict
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
@@ -683,6 +683,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return ReadOnlyKobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
+
+    def get_daily_counts(self, timeframe: tuple[date, date]) -> dict:
+        daily_counts = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+            'date', 'counter'
+        ).filter(
+            xform_id=self.xform_id,
+            date__range=timeframe,
+        )
+        data = {str(count['date']): count['counter'] for count in daily_counts}
+        return data
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((

@@ -517,11 +517,19 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
                 '__version__': self.asset.latest_deployed_version.uid,
                 'q1': 'a1',
                 '_submitted_by': 'anotheruser',
+                '_submission_time': '2022-09-07T13:21:33',
             },
             {
                 '__version__': self.asset.latest_deployed_version.uid,
                 'q1': 'a3',
                 '_submitted_by': '',
+                '_submission_time': '2022-09-12T16:31:33',
+            },
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a1',
+                '_submitted_by': '',
+                '_submission_time': '2022-09-12T17:31:33',
             },
         ]
 
@@ -529,14 +537,12 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         count_url = reverse(
             self._get_endpoint('asset-counts'), kwargs={'uid': self.asset_uid}
         )
-        today = timezone.now().date()
 
         response = self.client.get(count_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['total_submissions_count'], 2)
-        self.assertEqual(len(response.data['daily_submission_counts']), 1)
-        self.assertEqual(response.data['daily_submission_counts'][0]['count'], 2)
-        self.assertEqual(response.data['daily_submission_counts'][0]['date'], str(today))
+        self.assertEqual(response.data['total_submission_count'], 3)
+        self.assertEqual(len(response.data['daily_submission_counts']), 2)
+        self.assertEqual(response.data['daily_submission_counts']['2022-09-12'], 2)
 
     def test_submission_count(self):
         anotheruser = User.objects.get(username='anotheruser')
