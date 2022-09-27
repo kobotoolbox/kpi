@@ -66,3 +66,38 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             user_id=settings.ANONYMOUS_USER_ID,
             permission__codename=PERM_DISCOVER_ASSET).values_list('asset_id',
                                                                   flat=True)
+
+
+class UserListSerializer(UserSerializer):
+    mfa_is_active = serializers.SerializerMethodField()
+    metadata = serializers.SerializerMethodField()
+    asset_count = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = (
+            'id',
+            'username',
+            'is_superuser',
+            'is_staff',
+            'date_joined',
+            'last_login',
+            'is_active',
+            'email',
+            'mfa_is_active',
+            'asset_count',
+            'metadata',
+        )
+
+    def get_asset_count(self, user):
+        return user.assets.count()
+
+    def get_metadata(self, user):
+        if not hasattr(user, 'extra_details'):
+            return {}
+        return user.extra_details.data
+
+    def get_mfa_is_active(self, user):
+        mfa_methods = user.mfa_methods.first()
+        if mfa_methods is None:
+            return False
+        return mfa_methods.is_active
