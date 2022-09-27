@@ -134,9 +134,18 @@ module.exports = do ->
         </div>
         <i class="group__caret js-toggle-group-expansion k-icon k-icon-caret-down"></i>
         <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
-        <div class="group__header__buttons">
-          <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="k-icon k-icon-settings"></i></span>
-          <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="k-icon k-icon-trash"></i></span>
+        <div class="card__buttons">
+          <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings">
+            <i class="k-icon k-icon-settings"></i>
+          </span>
+
+          <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-group">
+            <i class="k-icon k-icon-trash"></i>
+          </span>
+
+          <span class="card__buttons__button card__buttons__button--add card__buttons__button--green js-add-group-to-library">
+            <i class="k-icon k-icon-folder-plus"></i>
+          </span>
         </div>
       </header>
       <ul class="group__rows"></ul>
