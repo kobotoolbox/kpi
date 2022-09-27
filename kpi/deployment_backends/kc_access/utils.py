@@ -426,7 +426,7 @@ def delete_kc_users(deleted_pks: list) -> bool:
     return True
 
 
-def kc_transaction_atomic(using=None, savepoint=True):
+def kc_transaction_atomic(using='kobocat', *args, **kwargs):
     """
     KoBoCAT database does not exist in testing environment.
     `transaction.atomic(using='kobocat') cannot be called without raising errors.
@@ -445,6 +445,10 @@ def kc_transaction_atomic(using=None, savepoint=True):
         def __exit__(self, exc_type, exc_value, traceback):
             pass
 
+    assert (
+        callable(using) or using == 'kobocat'
+    ), "`kc_transaction_atomic` may only be used with the 'kobocat' database"
+
     if settings.TESTING:
         # Bare decorator: @atomic -- although the first argument is called
         # `using`, it's actually the function being decorated.
@@ -453,11 +457,8 @@ def kc_transaction_atomic(using=None, savepoint=True):
         else:
             return DummyAtomic()
 
-    # Copied from django.db.transaction.atomic
-    # Bare decorator: @atomic -- although the first argument is called
-    # `using`, it's actually the function being decorated.
+    # Not in a testing environment; use the real `atomic`
     if callable(using):
-        return Atomic('kobocat', savepoint)(using)
-    # Decorator: @atomic(...) or context manager: with atomic(...): ...
+        return transaction.atomic('kobocat', *args, **kwargs)(using)
     else:
-        return Atomic('kobocat', savepoint)
+        return transaction.atomic('kobocat', *args, **kwargs)
