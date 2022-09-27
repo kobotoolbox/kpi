@@ -1206,8 +1206,6 @@ class Asset(ObjectPermissionMixin,
           `_deployment_data` has been altered directly
         """
 
-    # FIXME: this model should have a `unique_together` constraint
-
         # When fields are deferred, Django instantiates another copy
         # of the current Asset object to retrieve the value of the
         # requested field. Because we need to get a copy at the very
