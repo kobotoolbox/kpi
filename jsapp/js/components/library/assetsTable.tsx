@@ -1,63 +1,102 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autoBind from 'react-autobind';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import bem from 'js/bem';
 import {
   hasVerticalScrollbar,
   getScrollbarWidth,
-} from 'utils';
+} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
 import {
   ASSETS_TABLE_CONTEXTS,
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
+import type {
+  AssetsTableContextName,
+  AssetsTableColumn,
+} from './libraryConstants';
+import type {
+  AssetResponse,
+  MetadataResponse,
+} from 'js/dataInterface';
 import './assetsTable.scss';
+
+type ColumnChangeCallback = (columnId: string | null, columnValue: string | null) => void;
+type SwitchPageCallback = (pageNumber: number) => void;
+
+interface AssetsTableProps {
+ context: AssetsTableContextName;
+ /** Displays a spinner */
+ isLoading?: boolean;
+ /** To display contextual empty message when zero assets. */
+ emptyMessage?: string;
+ /** List of assets to be displayed. */
+ assets: AssetResponse[];
+ /** Number of assets on all pages. */
+ totalAssets: number;
+ /** List of available filters values. */
+ metadata: MetadataResponse; // this type ??
+ /** Seleceted order column id, one of ASSETS_TABLE_COLUMNS. */
+ orderColumnId: string;
+ /** Seleceted order column value. */
+ orderValue: string;
+ /** Called when user selects a column for odering. */
+ onOrderChange: ColumnChangeCallback;
+ /** Seleceted filter column, one of ASSETS_TABLE_COLUMNS. */
+ filterColumnId: string;
+ /** Seleceted filter column value. */
+ filterValue: string;
+ /** Called when user selects a column for filtering. */
+ onFilterChange: ColumnChangeCallback;
+ /** For displaying pagination. */
+ currentPage: number;
+ /** For displaying pagination. */
+ totalPages: number;
+ /** Called when user clicks page change. */
+ onSwitchPage: SwitchPageCallback;
+}
+
+interface AssetsTableState {
+  shouldHidePopover: boolean;
+  isPopoverVisible: boolean;
+  scrollbarWidth: number | null;
+  isFullscreen: boolean;
+}
 
 /**
  * Displays a table of assets.
- *
- * @prop {string} context - One of ASSETS_TABLE_CONTEXTS.
- * @prop {boolean} [isLoading] - To display spinner.
- * @prop {string} [emptyMessage] - To display contextual empty message when zero assets.
- * @prop {Array<object>} assets - List of assets to be displayed.
- * @prop {number} totalAssets - Number of assets on all pages.
- * @prop {Array<object>} metadata - List of available filters values.
- * @prop {string} orderColumnId - Seleceted order column id, one of ASSETS_TABLE_COLUMNS.
- * @prop {string} orderValue - Seleceted order column value.
- * @prop {columnChangeCallback} onOrderChange - Called when user selects a column for odering.
- * @prop {string} filterColumnId - Seleceted filter column, one of ASSETS_TABLE_COLUMNS.
- * @prop {string} filterValue - Seleceted filter column value.
- * @prop {columnChangeCallback} onFilterChange - Called when user selects a column for filtering.
- * @prop {number} [currentPage] - For displaying pagination.
- * @prop {number} [totalPages] - For displaying pagination.
- * @prop {switchPageCallback} [onSwitchPage] - Called when user clicks page change.
  */
-export default class AssetsTable extends React.Component {
-  constructor(props){
+export default class AssetsTable extends React.Component<
+  AssetsTableProps,
+  AssetsTableState
+> {
+  constructor(props: AssetsTableProps){
     super(props);
     this.state = {
       shouldHidePopover: false,
       isPopoverVisible: false,
       scrollbarWidth: null,
-      isFullscreen: false
+      isFullscreen: false,
     };
     this.bodyRef = React.createRef();
-    autoBind(this);
   }
+
+  private updateScrollbarWidthBound = this.updateScrollbarWidth.bind(this);
+
+  bodyRef: React.RefObject<any>;
 
   componentDidMount() {
     this.updateScrollbarWidth();
-    window.addEventListener('resize', this.updateScrollbarWidth);
+    window.addEventListener('resize', this.updateScrollbarWidthBound);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.updateScrollbarWidth);
+    window.removeEventListener('resize', this.updateScrollbarWidthBound);
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: AssetsTableProps) {
     if (prevProps.isLoading !== this.props.isLoading) {
       this.updateScrollbarWidth();
     }
@@ -68,33 +107,26 @@ export default class AssetsTable extends React.Component {
   }
 
   updateScrollbarWidth() {
-    if (
-      this.bodyRef &&
-      this.bodyRef.current &&
-      hasVerticalScrollbar(ReactDOM.findDOMNode(this.bodyRef.current))
-    ) {
+    const bodyNode = ReactDOM.findDOMNode(this.bodyRef?.current) as HTMLElement;
+    if (bodyNode && hasVerticalScrollbar(bodyNode)) {
       this.setState({scrollbarWidth: getScrollbarWidth()});
     } else {
       this.setState({scrollbarWidth: null});
     }
   }
 
-  /**
-   * @param {number} newPageNumber
-   */
-  switchPage(newPageNumber) {
+  switchPage(newPageNumber: number) {
     this.props.onSwitchPage(newPageNumber);
   }
 
   /**
    * This function is only a callback handler, as the asset reordering itself
    * should be handled by the component that is providing the assets list.
-   * @param {string} columnId
    */
-  onChangeOrder(columnId) {
+  onChangeOrder(columnId: string) {
     if (this.props.orderColumnId === columnId) {
       // clicking already selected column results in switching the order direction
-      let newVal;
+      let newVal = null;
       if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
         newVal = ORDER_DIRECTIONS.descending;
       } else if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
@@ -103,17 +135,15 @@ export default class AssetsTable extends React.Component {
       this.props.onOrderChange(this.props.orderColumnId, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS[columnId].defaultValue);
+      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS[columnId].defaultValue || null);
     }
   }
 
   /**
    * This function is only a callback handler, as the asset filtering itself
    * should be handled by the component that is providing the assets list.
-   * @param {string} columnId
-   * @param {string} filterValue
    */
-  onChangeFilter(columnId, filterValue) {
+  onChangeFilter(columnId: string, filterValue: string | null = null) {
     if (
       this.props.filterColumnId === columnId &&
       this.props.filterValue === filterValue
@@ -125,20 +155,16 @@ export default class AssetsTable extends React.Component {
     }
   }
 
-  onClearFilter(evt) {
+  onClearFilter(evt: React.MouseEvent | React.TouchEvent) {
     evt.stopPropagation();
     this.props.onFilterChange(null, null);
   }
 
-  /**
-   * @param {AssetsTableColumn} columnDef - Given column definition.
-   * @param {string} [option] - Currently either 'first' or 'last'.
-   */
-  renderHeader(columnDef, option) {
+  renderHeader(columnDef: AssetsTableColumn) {
     if (columnDef.orderBy) {
-      return this.renderOrderableHeader(columnDef, option);
+      return this.renderOrderableHeader(columnDef);
     } else if (columnDef.filterBy) {
-      return this.renderFilterableHeader(columnDef, option);
+      return this.renderFilterableHeader(columnDef);
     } else {
       let displayLabel = columnDef.label;
       if (
@@ -155,23 +181,27 @@ export default class AssetsTable extends React.Component {
     }
   }
 
-  onMouseLeave() {
-    // force hide popover in next render cycle
-    // (PopoverMenu interface handles it this way)
-    if (this.state.isPopoverVisible) {
-      this.setState({shouldHidePopover: true});
-    }
-  }
-
   onPopoverSetVisible() {
     this.setState({isPopoverVisible: true});
   }
 
-  renderFilterableHeader(columnDef) {
-    let options = [];
-    if (this.props.metadata[columnDef.filterByMetadataName]) {
-      options = this.props.metadata[columnDef.filterByMetadataName];
+  getColumnMetadata(columnDef: AssetsTableColumn) {
+    switch (columnDef.filterByMetadataName) {
+      case 'languages':
+        return this.props.metadata.languages;
+      case 'countries':
+        return this.props.metadata.countries;
+      case 'sectors':
+        return this.props.metadata.sectors;
+      case 'organizations':
+        return this.props.metadata.organizations;
+      default:
+        return [];
     }
+  }
+
+  renderFilterableHeader(columnDef: AssetsTableColumn) {
+    const options = this.getColumnMetadata(columnDef);
 
     if (options.length === 0) {
       return (
@@ -183,7 +213,7 @@ export default class AssetsTable extends React.Component {
 
     let icon = (<i className='k-icon k-icon-filter-arrows'/>);
     if (this.props.filterColumnId === columnDef.id) {
-      icon = (<i className='k-icon k-icon-close' onClick={this.onClearFilter}/>);
+      icon = (<i className='k-icon k-icon-close' onClick={this.onClearFilter.bind(this)}/>);
     }
 
     return (
@@ -192,7 +222,7 @@ export default class AssetsTable extends React.Component {
           type='assets-table'
           triggerLabel={<span>{columnDef.label} {icon}</span>}
           clearPopover={this.state.shouldHidePopover}
-          popoverSetVisible={this.onPopoverSetVisible}
+          popoverSetVisible={this.onPopoverSetVisible.bind(this)}
         >
           {options.map((option, index) => {
             let optionValue;
@@ -224,7 +254,7 @@ export default class AssetsTable extends React.Component {
     );
   }
 
-  renderOrderableHeader(columnDef) {
+  renderOrderableHeader(columnDef: AssetsTableColumn) {
     let hideIcon = false;
     let hideLabel = false;
 
@@ -305,7 +335,7 @@ export default class AssetsTable extends React.Component {
       <bem.AssetsTable__footer>
         {this.props.totalAssets !== null &&
           <span>
-            {t('##count## items').replace('##count##', this.props.totalAssets)}
+            {t('##count## items').replace('##count##', String(this.props.totalAssets))}
           </span>
         }
 
@@ -314,7 +344,7 @@ export default class AssetsTable extends React.Component {
         {this.props.totalAssets !== null &&
           <button
             className='mdl-button'
-            onClick={this.toggleFullscreen}
+            onClick={this.toggleFullscreen.bind(this)}
           >
             {t('Toggle fullscreen')}
             <i className='k-icon k-icon-expand' />
@@ -325,7 +355,7 @@ export default class AssetsTable extends React.Component {
   }
 
   render() {
-    const modifiers = [this.props.context];
+    const modifiers: string[] = [this.props.context];
     if (this.state.isFullscreen) {
       modifiers.push('fullscreen');
     }
@@ -334,7 +364,7 @@ export default class AssetsTable extends React.Component {
       <bem.AssetsTable m={modifiers}>
         <bem.AssetsTable__header>
           <bem.AssetsTableRow m='header'>
-            {this.renderHeader(ASSETS_TABLE_COLUMNS['icon-status'], 'first')}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['icon-status'])}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.name)}
             {this.renderHeader(ASSETS_TABLE_COLUMNS['items-count'])}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.owner)}
@@ -345,7 +375,7 @@ export default class AssetsTable extends React.Component {
             {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
               this.renderHeader(ASSETS_TABLE_COLUMNS['primary-sector'])
             }
-            {this.renderHeader(ASSETS_TABLE_COLUMNS['date-modified'], 'last')}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['date-modified'])}
 
             {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
               <div
@@ -367,15 +397,13 @@ export default class AssetsTable extends React.Component {
             </bem.AssetsTableRow>
           }
 
-          {!this.props.isLoading && this.props.assets.map((asset) => {
-            return (
-              <AssetsTableRow
-                asset={asset}
-                key={asset.uid}
-                context={this.props.context}
-              />
-            );
-          })}
+          {!this.props.isLoading && this.props.assets.map((asset) =>
+            <AssetsTableRow
+              asset={asset}
+              key={asset.uid}
+              context={this.props.context}
+            />
+          )}
         </bem.AssetsTable__body>
 
         {this.renderFooter()}
@@ -383,14 +411,3 @@ export default class AssetsTable extends React.Component {
     );
   }
 }
-
-/**
- * @callback columnChangeCallback
- * @param {string} columnId
- * @param {string} columnValue
- */
-
-/**
- * @callback switchPageCallback
- * @param {string} pageNumber
- */

@@ -443,6 +443,11 @@ export interface MetadataResponse {
   organizations: string[];
 }
 
+export interface DeleteAssetResponse {
+  uid: string;
+  assetType: AssetTypeName;
+}
+
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
@@ -489,6 +494,19 @@ export interface AccountResponse {
   };
 }
 
+interface UserNotLoggedInResponse {
+  message: string;
+}
+
+export interface UserResponse {
+  url: string;
+  username: string;
+  assets: PaginatedResponse<{url: string}>;
+  date_joined: string;
+  public_collection_subscribers_count: number;
+  public_collections_count: number;
+}
+
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -509,6 +527,31 @@ export interface EnvironmentResponse {
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;
+}
+
+export interface AssetSubscriptionsResponse {
+  /** url of subscription */
+  url: string;
+  /** url of asset */
+  asset: string;
+  /** uid of subscription */
+  uid: string;
+}
+
+interface AssetSnapshotResponse {
+  url: string;
+  uid: string;
+  owner: string;
+  date_created: string;
+  xml: string;
+  enketopreviewlink: string;
+  asset: string;
+  asset_version_id: number;
+  details: {
+    status: string;
+    warnings: string[];
+  };
+  source: AssetContent;
 }
 
 const DEFAULT_PAGE_SIZE = 100;
@@ -538,17 +581,17 @@ interface DataInterface {
 const $ajax = (o: {}) => $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
-  selfProfile: () => $ajax({url: `${ROOT_URL}/me/`}),
+  selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> => $ajax({url: `${ROOT_URL}/me/`}),
 
-  apiToken: () => $ajax({
+  apiToken: (): JQuery.jqXHR<{token: string}> => $ajax({
       url: `${ROOT_URL}/token/?format=json`,
     }),
 
-  getUser: (userUrl: string) => $ajax({
+  getUser: (userUrl: string): JQuery.jqXHR<UserResponse> => $ajax({
       url: userUrl,
     }),
 
-  queryUserExistence: (username: string) => {
+  queryUserExistence: (username: string): JQuery.Promise<string, boolean> => {
     const d = $.Deferred();
     $ajax({url: `${ROOT_URL}/api/v2/users/${username}/`})
       .done(() => {d.resolve(username, true);})
@@ -556,7 +599,7 @@ export const dataInterface: DataInterface = {
     return d.promise();
   },
 
-  logout: () => {
+  logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();
     $ajax({url: `${ROOT_URL}/accounts/logout/`}).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
       // logout request wasn't successful, but may have logged the user out
@@ -591,7 +634,7 @@ export const dataInterface: DataInterface = {
     };
     current_password?: string;
     new_password?: string;
-  }) {
+  }): JQuery.jqXHR<AccountResponse> {
     return $ajax({
       url: `${ROOT_URL}/me/`,
       method: 'PATCH',
@@ -599,7 +642,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  listTemplates() {
+  listTemplates(): JQuery.jqXHR<AssetsResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.t}`,
     });
@@ -609,7 +652,7 @@ export const dataInterface: DataInterface = {
     owner?: string;
     pageSize?: number;
     page?: number;
-  } = {}) {
+  } = {}): JQuery.jqXHR<AssetsResponse> {
     let q = COMMON_QUERIES.c;
     if (params.owner) {
       q += ` AND owner__username__exact:${params.owner}`;
@@ -626,7 +669,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  createAssetSnapshot(data: AssetResponse) {
+  createAssetSnapshot(data: AssetResponse): JQuery.jqXHR<AssetSnapshotResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/asset_snapshots/`,
       method: 'POST',
@@ -638,21 +681,21 @@ export const dataInterface: DataInterface = {
    * external services
    */
 
-  getHooks(uid: string) {
+  getHooks(uid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/`,
       method: 'GET',
     });
   },
 
-  getHook(uid: string, hookUid: string) {
+  getHook(uid: string, hookUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/`,
       method: 'GET',
     });
   },
 
-  addExternalService(uid: string, data: ExternalServiceRequestData) {
+  addExternalService(uid: string, data: ExternalServiceRequestData): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/`,
       method: 'POST',
@@ -666,7 +709,7 @@ export const dataInterface: DataInterface = {
     uid: string,
     hookUid: string,
     data: ExternalServiceRequestData
-  ) {
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/`,
       method: 'PATCH',
@@ -676,35 +719,35 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deleteExternalService(uid: string, hookUid: string) {
+  deleteExternalService(uid: string, hookUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/`,
       method: 'DELETE',
     });
   },
 
-  getHookLogs(uid: string, hookUid: string) {
+  getHookLogs(uid: string, hookUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/`,
       method: 'GET',
     });
   },
 
-  getHookLog(uid: string, hookUid: string, lid: string) {
+  getHookLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
       method: 'GET',
     });
   },
 
-  retryExternalServiceLogs(uid: string, hookUid: string) {
+  retryExternalServiceLogs(uid: string, hookUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/retry/`,
       method: 'PATCH',
     });
   },
 
-  retryExternalServiceLog(uid: string, hookUid: string, lid: string) {
+  retryExternalServiceLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
       method: 'PATCH',
@@ -715,7 +758,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }) {
+  }): JQuery.jqXHR<any> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;
@@ -733,7 +776,7 @@ export const dataInterface: DataInterface = {
     version_id: string;
     new_asset_type: AssetTypeName;
     parent: string;
-  }) {
+  }): JQuery.jqXHR<any> {
     const data: {[key: string]: any} = {
       clone_from: params.uid,
     };
@@ -751,7 +794,7 @@ export const dataInterface: DataInterface = {
   /*
    * form media
    */
-  postFormMedia(uid: string, data: AssetFileRequest) {
+  postFormMedia(uid: string, data: AssetFileRequest): JQuery.jqXHR<any> {
     return $ajax({
       method: 'POST',
       url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
@@ -759,7 +802,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deleteFormMedia(url: string) {
+  deleteFormMedia(url: string): JQuery.jqXHR<any> {
     return $ajax({
       method: 'DELETE',
       url: url,
@@ -773,7 +816,7 @@ export const dataInterface: DataInterface = {
     source: string;
     fields: string[];
     filename: string;
-  }) {
+  }): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
       method: 'POST',
@@ -782,7 +825,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  detachSource(attachmentUrl: string) {
+  detachSource(attachmentUrl: string): JQuery.jqXHR<any> {
     return $ajax({
       url: attachmentUrl,
       method: 'DELETE',
@@ -792,7 +835,7 @@ export const dataInterface: DataInterface = {
   patchSource(attachmentUrl: string, data: {
     fields: string;
     filename: string;
-  }) {
+  }): JQuery.jqXHR<any> {
     return $ajax({
       url: attachmentUrl,
       method: 'PATCH',
@@ -801,14 +844,14 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAttachedSources(assetUid: string) {
+  getAttachedSources(assetUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
       method: 'GET',
     });
   },
 
-  getSharingEnabledAssets() {
+  getSharingEnabledAssets(): JQuery.jqXHR<AssetsResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
       method: 'GET',
@@ -820,7 +863,7 @@ export const dataInterface: DataInterface = {
       enabled: boolean;
       fields: string[];
     };
-  }) {
+  }): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
       method: 'PATCH',
@@ -833,21 +876,24 @@ export const dataInterface: DataInterface = {
    * permissions
    */
 
-  getPermissionsConfig() {
+  getPermissionsConfig(): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/permissions/`,
       method: 'GET',
     });
   },
 
-  getAssetPermissions(assetUid: string) {
+  getAssetPermissions(assetUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
       method: 'GET',
     });
   },
 
-  bulkSetAssetPermissions(assetUid: string, perms: Array<{user: string; permission: string}>) {
+  bulkSetAssetPermissions(
+    assetUid: string,
+    perms: Array<{user: string; permission: string}>
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'POST',
@@ -857,7 +903,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  assignAssetPermission(assetUid: string, perm: {user: string; permission: string}) {
+  assignAssetPermission(
+    assetUid: string,
+    perm: {user: string; permission: string}
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
       method: 'POST',
@@ -867,14 +916,14 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  removePermission(permUrl: string) {
+  removePermission(permUrl: string): JQuery.jqXHR<any> {
     return $ajax({
       method: 'DELETE',
       url: permUrl,
     });
   },
 
-  copyPermissionsFrom(sourceUid: string, targetUid: string) {
+  copyPermissionsFrom(sourceUid: string, targetUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${targetUid}/permission-assignments/clone/`,
       method: 'PATCH',
@@ -884,14 +933,14 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deleteAsset(params: {uid: string}) {
+  deleteAsset(params: {uid: string}): JQuery.jqXHR<DeleteAssetResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${params.uid}/`,
       method: 'DELETE',
     });
   },
 
-  subscribeToCollection(assetUrl: string) {
+  subscribeToCollection(assetUrl: string): JQuery.jqXHR<AssetSubscriptionsResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/asset_subscriptions/`,
       data: {
@@ -914,11 +963,11 @@ export const dataInterface: DataInterface = {
       }));
   },
 
-  getImportDetails(params: {uid: string}) {
+  getImportDetails(params: {uid: string}): JQuery.jqXHR<any> {
     return $.getJSON(`${ROOT_URL}/api/v2/imports/${params.uid}/`);
   },
 
-  getAsset(params: {url?: string; id?: string} = {}) {
+  getAsset(params: {url?: string; id?: string} = {}): JQuery.jqXHR<any> {
     if (params.url) {
       return $.getJSON(params.url);
     } else {
@@ -927,7 +976,7 @@ export const dataInterface: DataInterface = {
     }
   },
 
-  getAssetExports(assetUid: string) {
+  getAssetExports(assetUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       data: {
@@ -939,7 +988,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  createAssetExport(assetUid: string, data: ExportSettingSettings) {
+  createAssetExport(assetUid: string, data: ExportSettingSettings): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       method: 'POST',
@@ -949,21 +998,21 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetExport(assetUid: string, exportUid: string) {
+  getAssetExport(assetUid: string, exportUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
       method: 'GET',
     });
   },
 
-  deleteAssetExport(assetUid: string, exportUid: string) {
+  deleteAssetExport(assetUid: string, exportUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
       method: 'DELETE',
     });
   },
 
-  getExportSettings(assetUid: string) {
+  getExportSettings(assetUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
       // NOTE: we make an educated guess that there would be no real world
@@ -973,13 +1022,17 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getExportSetting(assetUid: string, settingUid: string) {
+  getExportSetting(assetUid: string, settingUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
     });
   },
 
-  updateExportSetting(assetUid: string, settingUid: string, data: ExportSettingRequest) {
+  updateExportSetting(
+    assetUid: string,
+    settingUid: string,
+    data: ExportSettingRequest
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
       method: 'PATCH',
@@ -987,7 +1040,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  createExportSetting(assetUid: string, data: ExportSettingRequest) {
+  createExportSetting(
+    assetUid: string,
+    data: ExportSettingRequest
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
       method: 'POST',
@@ -995,21 +1051,24 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deleteExportSetting(assetUid: string, settingUid: string) {
+  deleteExportSetting(
+    assetUid: string,
+    settingUid: string
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
       method: 'DELETE',
     });
   },
 
-  getAssetXformView(uid: string) {
+  getAssetXformView(uid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/xform/`,
       dataType: 'html',
     });
   },
 
-  searchAssets(searchData: AssetsRequestData) {
+  searchAssets(searchData: AssetsRequestData): JQuery.jqXHR<AssetsResponse> {
     // TODO https://github.com/kobotoolbox/kpi/issues/1983
     // force set limit to get hacky "all" assets
     searchData.limit = 200;
@@ -1025,7 +1084,7 @@ export const dataInterface: DataInterface = {
   _searchAssetsWithPredefinedQuery(
     params: SearchAssetsPredefinedParams,
     predefinedQuery: string
-  ) {
+  ): JQuery.jqXHR<AssetsResponse> {
     const searchData: AssetsRequestData = {
       q: predefinedQuery,
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
@@ -1071,7 +1130,7 @@ export const dataInterface: DataInterface = {
   _searchMetadataWithPredefinedQuery(
     params: SearchAssetsPredefinedParams,
     predefinedQuery: string
-  ) {
+  ): JQuery.jqXHR<any> {
     const searchData: AssetsMetadataRequestData = {
       q: predefinedQuery,
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
@@ -1106,7 +1165,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  searchMyCollectionAssets(params: SearchAssetsPredefinedParams = {}) {
+  searchMyCollectionAssets(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
     return this._searchAssetsWithPredefinedQuery(
       params,
       // we only want the currently viewed collection's assets
@@ -1114,7 +1173,7 @@ export const dataInterface: DataInterface = {
     );
   },
 
-  searchMyLibraryAssets(params: SearchAssetsPredefinedParams = {}) {
+  searchMyLibraryAssets(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
     // we only want orphans (assets not inside collection)
     // unless it's a search
     let query = COMMON_QUERIES.qbtc;
@@ -1125,7 +1184,7 @@ export const dataInterface: DataInterface = {
     return this._searchAssetsWithPredefinedQuery(params, query);
   },
 
-  searchMyCollectionMetadata(params: SearchAssetsPredefinedParams = {}) {
+  searchMyCollectionMetadata(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
     return this._searchMetadataWithPredefinedQuery(
       params,
       // we only want the currently viewed collection's assets
@@ -1133,7 +1192,7 @@ export const dataInterface: DataInterface = {
     );
   },
 
-  searchMyLibraryMetadata(params: SearchAssetsPredefinedParams = {}) {
+  searchMyLibraryMetadata(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
     // we only want orphans (assets not inside collection)
     // unless it's a search
     let query = COMMON_QUERIES.qbtc;
@@ -1144,7 +1203,7 @@ export const dataInterface: DataInterface = {
     return this._searchMetadataWithPredefinedQuery(params, query);
   },
 
-  searchPublicCollections(params: SearchAssetsPredefinedParams = {}) {
+  searchPublicCollections(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
     params.status = 'public-discoverable';
     return this._searchAssetsWithPredefinedQuery(
       params,
@@ -1152,7 +1211,7 @@ export const dataInterface: DataInterface = {
     );
   },
 
-  searchPublicCollectionsMetadata(params: SearchAssetsPredefinedParams = {}) {
+  searchPublicCollectionsMetadata(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
     params.status = 'public-discoverable';
     return this._searchMetadataWithPredefinedQuery(
       params,
@@ -1160,14 +1219,14 @@ export const dataInterface: DataInterface = {
     );
   },
 
-  assetsHash() {
+  assetsHash(): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/hash/`,
       method: 'GET',
     });
   },
 
-  createResource(details: AssetRequestObject) {
+  createResource(details: AssetRequestObject): JQuery.jqXHR<any> {
     return $ajax({
       method: 'POST',
       url: `${ROOT_URL}/api/v2/assets/`,
@@ -1175,7 +1234,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  patchAsset(uid: string, data: AssetRequestObject) {
+  patchAsset(uid: string, data: AssetRequestObject): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/`,
       method: 'PATCH',
@@ -1185,7 +1244,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  listTags(data: {q: string}) {
+  listTags(data: {q: string}): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/tags/`,
       method: 'GET',
@@ -1197,14 +1256,14 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  loadNextPageUrl(nextPageUrl: string){
+  loadNextPageUrl(nextPageUrl: string): JQuery.jqXHR<any> {
     return $ajax({
       url: nextPageUrl,
       method: 'GET',
     });
   },
 
-  deployAsset(asset: AssetResponse, redeployment: boolean) {
+  deployAsset(asset: AssetResponse, redeployment: boolean): JQuery.jqXHR<any> {
     const data: {
       active: boolean;
       version_id?: string | null;
@@ -1223,7 +1282,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  setDeploymentActive(params: {asset: AssetResponse; active: boolean}) {
+  setDeploymentActive(params: {asset: AssetResponse; active: boolean}): JQuery.jqXHR<any> {
     return $ajax({
       method: 'PATCH',
       url: `${params.asset.url}deployment/`,
@@ -1233,7 +1292,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  createImport(data: CreateImportRequest) {
+  createImport(data: CreateImportRequest): JQuery.jqXHR<any> {
     const formData = new FormData();
     for (const [key, value] of Object.entries(data)) {
       formData.append(key, value);
@@ -1255,7 +1314,7 @@ export const dataInterface: DataInterface = {
     sort: Array<{desc: boolean; id: string}> = [],
     fields: string[] = [],
     filter = ''
-  ) {
+  ): JQuery.jqXHR<any> {
     const query = `limit=${pageSize}&start=${page}`;
     let s = '&sort={"_id":-1}'; // default sort
     let f = '';
@@ -1272,21 +1331,25 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getSubmission(uid: string, sid: string) {
+  getSubmission(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'GET',
     });
   },
 
-  duplicateSubmission(uid: string, sid: string) {
+  duplicateSubmission(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/duplicate/`,
       method: 'POST',
     });
   },
 
-  bulkPatchSubmissionsValues(uid: string, submissionIds: string[], data: {[questionPath: string]: any}) {
+  bulkPatchSubmissionsValues(
+    uid: string,
+    submissionIds: string[],
+    data: {[questionPath: string]: any}
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
       method: 'PATCH',
@@ -1300,7 +1363,7 @@ export const dataInterface: DataInterface = {
   bulkPatchSubmissionsValidationStatus(
     uid: string,
     data: BulkSubmissionsValidationStatusRequest
-  ) {
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
       method: 'PATCH',
@@ -1311,7 +1374,7 @@ export const dataInterface: DataInterface = {
   bulkRemoveSubmissionsValidationStatus(
     uid: string,
     data: BulkSubmissionsValidationStatusRequest
-  ) {
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
       method: 'DELETE',
@@ -1319,7 +1382,11 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  updateSubmissionValidationStatus(uid: string, sid: string, data: {'validation_status.uid': ValidationStatus}) {
+  updateSubmissionValidationStatus(
+    uid: string,
+    sid: string,
+    data: {'validation_status.uid': ValidationStatus}
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
       method: 'PATCH',
@@ -1327,28 +1394,28 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  removeSubmissionValidationStatus(uid: string, sid: string) {
+  removeSubmissionValidationStatus(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
       method: 'DELETE',
     });
   },
 
-  getSubmissionsQuery(uid: string, query = '') {
+  getSubmissionsQuery(uid: string, query = ''): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}`,
       method: 'GET',
     });
   },
 
-  deleteSubmission(uid: string, sid: string) {
+  deleteSubmission(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'DELETE',
     });
   },
 
-  bulkDeleteSubmissions(uid: string, data: BulkSubmissionsRequest) {
+  bulkDeleteSubmissions(uid: string, data: BulkSubmissionsRequest): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
       method: 'DELETE',
@@ -1356,20 +1423,20 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getEnketoEditLink(uid: string, sid: string) {
+  getEnketoEditLink(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
       method: 'GET',
     });
   },
-  getEnketoViewLink(uid: string, sid: string) {
+  getEnketoViewLink(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
       method: 'GET',
     });
   },
 
-  uploadAssetFile(uid: string, data: AssetFileRequest) {
+  uploadAssetFile(uid: string, data: AssetFileRequest): JQuery.jqXHR<any> {
     const formData = new FormData();
     for (const [key, value] of Object.entries(data)) {
       formData.append(key, value);
@@ -1384,21 +1451,21 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetFiles(uid: string, fileType: AssetFileType) {
+  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
       method: 'GET',
     });
   },
 
-  deleteAssetFile(assetUid: string, uid: string) {
+  deleteAssetFile(assetUid: string, uid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/files/${uid}/`,
       method: 'DELETE',
     });
   },
 
-  setLanguage(data: {language: string}) {
+  setLanguage(data: {language: string}): JQuery.jqXHR<void> {
     return $ajax({
       url: `${ROOT_URL}/i18n/setlang/`,
       method: 'POST',
@@ -1406,7 +1473,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  environment() {
+  environment(): JQuery.jqXHR<EnvironmentResponse> {
     return $ajax({url: `${ROOT_URL}/environment/`});
   },
 };

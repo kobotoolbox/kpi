@@ -1,5 +1,4 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import {
   isSelfOwned,
@@ -9,21 +8,18 @@ import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import myLibraryStore from './myLibraryStore';
 import publicCollectionsStore from './publicCollectionsStore';
 import {ROOT_BREADCRUMBS} from './libraryConstants';
+import type {AssetResponse} from 'js/dataInterface';
 import {
   ACCESS_TYPES,
   ASSET_TYPES,
 } from 'js/constants';
 import './assetBreadcrumbs.scss';
 
-/**
- * @prop asset
- */
-class AssetBreadcrumbs extends React.Component {
-  constructor(props){
-    super(props);
-    autoBind(this);
-  }
+interface AssetBreadcrumbsProps {
+  asset: AssetResponse;
+}
 
+class AssetBreadcrumbs extends React.Component<AssetBreadcrumbsProps> {
   getRootBreadcrumb() {
     const parentAssetData = this.getParentAssetData();
 
@@ -68,10 +64,10 @@ class AssetBreadcrumbs extends React.Component {
     let foundParent = null;
     const parentUid = this.getParentUid();
     if (parentUid) {
-      foundParent = myLibraryStore.findAsset(this.getParentUid());
+      foundParent = myLibraryStore.findAsset(parentUid);
     }
     if (parentUid && !foundParent) {
-      foundParent = publicCollectionsStore.findAsset(this.getParentUid());
+      foundParent = publicCollectionsStore.findAsset(parentUid);
     }
     return foundParent;
   }

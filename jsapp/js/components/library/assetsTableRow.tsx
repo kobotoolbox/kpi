@@ -1,20 +1,20 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
 import AssetName from 'js/components/common/assetName';
-import {formatTime} from 'utils';
+import {formatTime} from 'js/utils';
+import type {AssetResponse} from 'js/dataInterface';
 import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
+import type {AssetsTableContextName} from 'js/components/library/libraryConstants';
 import {ASSETS_TABLE_CONTEXTS} from 'js/components/library/libraryConstants';
 
+interface AssetsTableRowProps {
+  asset: AssetResponse;
+  context: AssetsTableContextName;
+}
 
-class AssetsTableRow extends React.Component {
-  constructor(props){
-    super(props);
-    autoBind(this);
-  }
-
+class AssetsTableRow extends React.Component<AssetsTableRowProps> {
   render() {
     let iconClassName = '';
     if (this.props.asset) {
@@ -51,9 +51,9 @@ class AssetsTableRow extends React.Component {
 
           {this.props.asset.settings && this.props.asset.tag_string && this.props.asset.tag_string.length > 0 &&
             <bem.AssetsTableRow__tags>
-              {this.props.asset.tag_string.split(',').map((tag) => {
-                return ([' ', <bem.AssetsTableRow__tag key={tag}>{tag}</bem.AssetsTableRow__tag>]);
-              })}
+              {this.props.asset.tag_string.split(',').map((tag) =>
+                ([' ', <bem.AssetsTableRow__tag key={tag}>{tag}</bem.AssetsTableRow__tag>])
+              )}
             </bem.AssetsTableRow__tags>
           }
         </bem.AssetsTableRow__column>

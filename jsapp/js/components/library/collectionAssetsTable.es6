@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
 import AssetsTable from './assetsTable';

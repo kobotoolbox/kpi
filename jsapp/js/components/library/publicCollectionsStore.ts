@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
+import type {Location} from 'history';
 import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
@@ -9,57 +10,94 @@ import {
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
+import type {AssetsTableColumn} from './libraryConstants';
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
+import type {
+  AssetResponse,
+  AssetsResponse,
+  DeleteAssetResponse,
+  MetadataResponse,
+  AssetSubscriptionResponse,
+} from 'js/dataInterface';
 
-const publicCollectionsStore = Reflux.createStore({
+interface PublicCollectionsStoreData {
+  isFetchingData: boolean;
+  currentPage: number;
+  totalPages: number | null;
+  totalSearchAssets: number | null;
+  assets: AssetResponse[];
+  metadata: MetadataResponse;
+  orderColumnId?: string;
+  orderValue?: string | null;
+  filterColumnId?: string | null;
+  filterValue?: string | null;
+}
+
+/**  search params shared by all searches */
+interface SearchParams {
+  searchPhrase: string;
+  pageSize: number;
+  page: number;
+  filterProperty?: string | null;
+  filterValue?: string | null;
+  metadata?: boolean;
+  ordering?: string;
+}
+
+class PublicCollectionsStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
-  abortFetchData: undefined,
-  previousPath: getCurrentPath(),
-  previousSearchPhrase: searchBoxStore.getSearchPhrase(),
-  PAGE_SIZE: 100,
-  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
+  abortFetchData?: Function;
+  previousPath = getCurrentPath();
+  previousSearchPhrase = searchBoxStore.getSearchPhrase();
+  PAGE_SIZE = 100;
+  DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
 
-  isInitialised: false,
+  isInitialised = false;
 
-  data: {
+  data: PublicCollectionsStoreData = {
     isFetchingData: false,
     currentPage: 0,
     totalPages: null,
     totalSearchAssets: null,
     assets: [],
-    metadata: {}
-  },
+    metadata: {
+      languages: [],
+      countries: [],
+      sectors: [],
+      organizations: [],
+    },
+  };
 
   init() {
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
-    searchBoxStore.listen(this.searchBoxStoreChanged);
-    actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
-    actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
-    actions.library.searchPublicCollections.failed.listen(this.onSearchFailed);
-    actions.library.searchPublicCollectionsMetadata.completed.listen(this.onSearchMetadataCompleted);
-    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted);
-    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted);
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
-    actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
-    actions.resources.createResource.completed.listen(this.onAssetCreated);
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
+    searchBoxStore.listen(this.searchBoxStoreChanged.bind(this), this);
+    actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
+    actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));
+    actions.library.searchPublicCollections.failed.listen(this.onSearchFailed.bind(this));
+    actions.library.searchPublicCollectionsMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
+    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted.bind(this));
+    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted.bind(this));
+    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
+    actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this));
+    actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this));
+    actions.resources.cloneAsset.completed.listen(this.onAssetCreated.bind(this));
+    actions.resources.createResource.completed.listen(this.onAssetCreated.bind(this));
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.startupStore);
-  },
+    actions.permissions.getConfig.completed.listen(this.startupStore.bind(this));
+  }
 
   /**
    * Only makes a call to BE when loaded app on a library route
@@ -69,28 +107,25 @@ const publicCollectionsStore = Reflux.createStore({
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
-  },
+  }
 
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
     this.data.filterColumnId = null;
     this.data.filterValue = null;
-  },
+  }
 
   // methods for handling search and data fetch
 
-  /**
-   * @return {object} search params shared by all searches
-   */
   getSearchParams() {
-    const params = {
+    const params: SearchParams = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage
+      page: this.data.currentPage,
     };
 
-    if (this.data.filterColumnId !== null) {
+    if (this.data.filterColumnId) {
       const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
       params.filterValue = this.data.filterValue;
@@ -103,11 +138,11 @@ const publicCollectionsStore = Reflux.createStore({
     }
 
     return params;
-  },
+  }
 
   fetchMetadata() {
     actions.library.searchPublicCollectionsMetadata(this.getSearchParams());
-  },
+  }
 
   /**
    * @param {boolean} needsMetadata
@@ -121,14 +156,17 @@ const publicCollectionsStore = Reflux.createStore({
 
     params.metadata = needsMetadata;
 
-    const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
-    params.ordering = `${direction}${orderColumn.orderBy}`;
+    let orderColumn: AssetsTableColumn;
+    if (this.data.orderColumnId) {
+      orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
+      const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
+      params.ordering = `${direction}${orderColumn.orderBy}`;
+    }
 
     actions.library.searchPublicCollections(params);
-  },
+  }
 
-  onRouteChange(data) {
+  onRouteChange(data: Location) {
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
@@ -140,7 +178,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.fetchData(true);
     }
     this.previousPath = data.pathname;
-  },
+  }
 
   searchBoxStoreChanged() {
     if (
@@ -154,15 +192,15 @@ const publicCollectionsStore = Reflux.createStore({
       this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
       this.fetchData(true);
     }
-  },
+  }
 
-  onSearchStarted(abort) {
+  onSearchStarted(abort: () => void) {
     this.abortFetchData = abort;
     this.data.isFetchingData = true;
     this.trigger(this.data);
-  },
+  }
 
-  onSearchCompleted(response) {
+  onSearchCompleted(response: AssetsResponse) {
     delete this.abortFetchData;
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
     this.data.assets = response.results;
@@ -174,41 +212,39 @@ const publicCollectionsStore = Reflux.createStore({
     this.data.isFetchingData = false;
     this.isInitialised = true;
     this.trigger(this.data);
-  },
+  }
 
   onSearchFailed() {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
     this.trigger(this.data);
-  },
+  }
 
-  onSearchMetadataCompleted(response) {
+  onSearchMetadataCompleted(response: MetadataResponse) {
     this.data.metadata = response;
     this.trigger(this.data);
-  },
+  }
 
   // methods for handling actions that update assets
 
-  onSubscribeCompleted(subscriptionData) {
+  onSubscribeCompleted(subscriptionData: AssetSubscriptionResponse) {
     this.onAssetAccessTypeChanged(subscriptionData.asset, true);
-  },
+  }
 
-  onUnsubscribeCompleted(assetUid) {
+  onUnsubscribeCompleted(assetUid: string) {
     this.onAssetAccessTypeChanged(assetUid, false);
-  },
+  }
 
-  onAssetAccessTypeChanged(assetUidOrUrl, setSubscribed) {
+  onAssetAccessTypeChanged(assetUidOrUrl: string, setSubscribed: boolean) {
     let wasUpdated = false;
     for (let i = 0; i < this.data.assets.length; i++) {
-      if (
-        this.data.assets[i].uid === assetUidOrUrl ||
-        this.data.assets[i].url === assetUidOrUrl
-      ) {
+      const assetObj = this.data.assets[i];
+      if (assetObj.uid === assetUidOrUrl || assetObj.url === assetUidOrUrl) {
         if (setSubscribed) {
-          this.data.assets[i].access_types.push(ACCESS_TYPES.subscribed);
+          assetObj.access_types?.push(ACCESS_TYPES.subscribed);
         } else {
-          this.data.assets[i].access_types.splice(
-            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.subscribed),
+          assetObj.access_types?.splice(
+            assetObj.access_types?.indexOf(ACCESS_TYPES.subscribed),
             1
           );
         }
@@ -219,18 +255,18 @@ const publicCollectionsStore = Reflux.createStore({
     if (wasUpdated) {
       this.trigger(this.data);
     }
-  },
+  }
 
-  onMoveToCollectionCompleted(asset) {
+  onMoveToCollectionCompleted(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
       assetUtils.isAssetPublic(asset.permissions)
     ) {
       this.fetchData(true);
     }
-  },
+  }
 
-  onAssetChanged(asset) {
+  onAssetChanged(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
       assetUtils.isAssetPublic(asset.permissions) &&
@@ -249,18 +285,18 @@ const publicCollectionsStore = Reflux.createStore({
         this.fetchMetadata();
       }
     }
-  },
+  }
 
-  onAssetCreated(asset) {
+  onAssetCreated(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
       assetUtils.isAssetPublic(asset.permissions)
     ) {
       this.fetchData(true);
     }
-  },
+  }
 
-  onDeleteAssetCompleted({uid, assetType}) {
+  onDeleteAssetCompleted({uid, assetType}: DeleteAssetResponse) {
     if (assetType === ASSET_TYPES.collection.id) {
       const found = this.findAsset(uid);
       if (found) {
@@ -269,20 +305,16 @@ const publicCollectionsStore = Reflux.createStore({
       // if not found it is possible it is on other page of results, but it is
       // not important enough to do a data fetch
     }
-  },
+  }
 
   // public methods
 
-  setCurrentPage(newCurrentPage) {
+  setCurrentPage(newCurrentPage: number) {
     this.data.currentPage = newCurrentPage;
     this.fetchData();
-  },
+  }
 
-  /**
-   * @param {string} orderColumnId
-   * @param {string} orderValue
-   */
-  setOrder(orderColumnId, orderValue) {
+  setOrder(orderColumnId: string, orderValue: string) {
     if (
       this.data.orderColumnId !== orderColumnId ||
       this.data.orderValue !== orderValue
@@ -291,13 +323,13 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.orderValue = orderValue;
       this.fetchData();
     }
-  },
+  }
 
   /**
-   * @param {string|null} filterColumnId - pass null to clear filter column
-   * @param {string} filterValue - pass null to clear filter column
+   * `filterColumnId` - pass null to clear filter column
+   * `filterValue` - pass null to clear filter column
    */
-  setFilter(filterColumnId, filterValue) {
+  setFilter(filterColumnId: string | null, filterValue: string | null) {
     if (
       this.data.filterColumnId !== filterColumnId ||
       this.data.filterValue !== filterValue
@@ -306,12 +338,12 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterValue = filterValue;
       this.fetchData(true);
     }
-  },
+  }
 
   resetOrderAndFilter() {
     this.setDefaultColumns();
     this.fetchData(true);
-  },
+  }
 
   hasAllDefaultValues() {
     return (
@@ -320,11 +352,14 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
-  },
-
-  findAsset(uid) {
-    return this.data.assets.find((asset) => {return asset.uid === uid;});
   }
-});
+
+  findAsset(uid: string) {
+    return this.data.assets.find((asset) => asset.uid === uid);
+  }
+}
+
+const publicCollectionsStore = new PublicCollectionsStore();
+publicCollectionsStore.init();
 
 export default publicCollectionsStore;

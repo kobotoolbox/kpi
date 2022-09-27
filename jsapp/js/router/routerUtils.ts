@@ -1,6 +1,6 @@
 /*
  * NOTE: before using this file to check if route matches current route, please
- * try using react router way (we have it set up in `mixins.es6` as
+ * try using react router way (we have it set up in `mixins.tsx` as
  * `contextRouter` methods)
  *
  * This file has a list of functions that allows for simple checking if given
