@@ -109,7 +109,19 @@ export default class RegionSelector extends React.Component<
         }
       }
     }
-    return outcome;
+
+    // We return the options sorted by their labels.
+    return outcome.sort((a, b) => {
+      const labelA = a.label.toLowerCase(); // ignore upper and lowercase
+      const labelB = b.label.toLowerCase(); // ignore upper and lowercase
+      if (labelA < labelB) {
+        return -1;
+      }
+      if (labelA > labelB) {
+        return 1;
+      }
+      return 0; // happens when labels are equal (should not happen in real life)
+    });
   }
 
   onOptionChange(option: LanguageCode | null) {
