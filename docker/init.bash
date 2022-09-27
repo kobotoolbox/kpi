@@ -17,11 +17,11 @@ fi
 KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     # `diff` returns exit code 1 if it finds a difference between the files
-    if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+    if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/requirements.txt" "/srv/tmp/pip_dependencies.txt"
     then
         echo "Syncing production pip dependencies..."
-        pip-sync dependencies/pip/external_services.txt 1>/dev/null
-        cp "dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+        pip-sync dependencies/pip/requirements.txt 1>/dev/null
+        cp "dependencies/pip/requirements.txt" "/srv/tmp/pip_dependencies.txt"
     fi
 else
     if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
@@ -29,10 +29,6 @@ else
         echo "Syncing development pip dependencies..."
         pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
         cp "dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
-    fi
-    if [[ -n "$RAVEN_DSN" ]]; then
-        echo "Sentry detected. Installing \`raven\` pip dependency..."
-        pip install raven
     fi
 fi
 
@@ -73,7 +69,7 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     echo "Fetching translations..."
     git submodule init && \
     git submodule update --remote && \
-    gosu "${UWSGI_USER}" python manage.py compilemessages
+    python manage.py compilemessages
 fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh

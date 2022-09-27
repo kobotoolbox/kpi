@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
+import Button from 'js/components/common/button';
 import clonedeep from 'lodash.clonedeep';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
@@ -23,6 +24,8 @@ import {
   escapeHtml,
   isAValidUrl,
   validFileTypes,
+  notify,
+  join,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
@@ -134,6 +137,18 @@ class ProjectSettings extends React.Component {
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null;
 
     return fields;
+  }
+
+  /**
+   * Function used whenever some endpoint calls return an asset.
+   */
+  applyAssetToState(asset) {
+    this.setState({
+      fields: this.getInitialFieldsFromAsset(asset),
+      isUploadFilePending: false,
+      isImportFromURLPending: false,
+      formAsset: asset,
+    });
   }
 
   setInitialStep() {
@@ -482,7 +497,7 @@ class ProjectSettings extends React.Component {
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail((r) => {
-      alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+      notify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
 
@@ -542,16 +557,12 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  this.setState({
-                    formAsset: finalAsset,
-                    fields: this.getInitialFieldsFromAsset(finalAsset),
-                    isImportFromURLPending: false,
-                  });
+                  this.applyAssetToState(finalAsset);
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
                 this.resetImportUrlButton();
-                alertify.error(t('Failed to reload project after import!'));
+                notify.error(t('Failed to reload project after import!'));
               });
             },
             (response) => {
@@ -559,17 +570,17 @@ class ProjectSettings extends React.Component {
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (importUrl) {
-                errLines.push(`<code>Name: ${this.getFilenameFromURI(importUrl)}</code>`);
+                errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>);
               }
               if (response.messages.error) {
-                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+                errLines.push(<code>{response.messages.error_type}: {response.messages.error}</code>);
               }
-              alertify.error(errLines.join('<br/>'));
+              notify.error(join(errLines, <br/>));
             }
           );
         },
         () => {
-          alertify.error(t('Could not initialize XLSForm import!'));
+          notify.error(t('Could not initialize XLSForm import!'));
         }
       );
     }
@@ -589,22 +600,19 @@ class ProjectSettings extends React.Component {
                 // to identify bugs.
                 // Until we switch this code to use actions we HACK it so other
                 // places are notified.
+                // See: https://github.com/kobotoolbox/kpi/issues/3919
                 actions.resources.loadAsset.completed(finalAsset);
 
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  this.setState({
-                    formAsset: finalAsset,
-                    fields: this.getInitialFieldsFromAsset(finalAsset),
-                    isUploadFilePending: false,
-                  });
+                  this.applyAssetToState(finalAsset);
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
                 this.setState({isUploadFilePending: false});
-                alertify.error(t('Failed to reload project after upload!'));
+                notify.error(t('Failed to reload project after upload!'));
               });
             },
             (response) => {
@@ -612,18 +620,18 @@ class ProjectSettings extends React.Component {
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (files[0].name) {
-                errLines.push(`<code>Name: ${files[0].name}</code>`);
+                errLines.push(<code>Name: ${files[0].name}</code>);
               }
               if (response.messages.error) {
-                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+                errLines.push(<code>{response.messages.error_type}: {escapeHtml(response.messages.error)}</code>);
               }
-              alertify.error(errLines.join('<br/>'));
+              notify.error(join(errLines, <br/>));
             }
           );
         },
         () => {
           this.setState({isUploadFilePending: false});
-          alertify.error(t('Could not import XLSForm!'));
+          notify.error(t('Could not import XLSForm!'));
         }
       );
     }
@@ -673,7 +681,7 @@ class ProjectSettings extends React.Component {
     this.setState({fieldsWithErrors: fieldsWithErrors});
 
     if (fieldsWithErrors.length >= 1) {
-      alertify.error(t('Some fields contain errors!'));
+      notify.error(t('Some fields contain errors!'));
       return;
     }
 
@@ -924,7 +932,7 @@ class ProjectSettings extends React.Component {
                 options={countries}
                 isLimitedHeight
                 isClearable
-                error={this.hasFieldError('country') ? t('Please select at least one contry') : false}
+                error={this.hasFieldError('country') ? t('Please select at least one country') : false}
               />
             </bem.FormModal__item>
           }
@@ -991,21 +999,23 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
-                  <bem.KoboButton
-                    m='blue'
+                  <Button
+                    type='frame'
+                    color='blue'
+                    size='l'
+                    label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
-                  >
-                    {t('Unarchive Project')}
-                  </bem.KoboButton>
+                  />
                 }
 
                 {this.isArchivable() &&
-                  <bem.KoboButton
-                    m='red'
+                  <Button
+                    type='frame'
+                    color='red'
+                    size='l'
+                    label={t('Archive Project')}
                     onClick={this.archiveProject}
-                  >
-                    {t('Archive Project')}
-                  </bem.KoboButton>
+                  />
                 }
               </bem.FormModal__item>
 
@@ -1025,9 +1035,13 @@ class ProjectSettings extends React.Component {
 
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
-              <bem.KoboButton m='red' onClick={this.deleteProject}>
-                {t('Delete Project and Data')}
-              </bem.KoboButton>
+              <Button
+                type='full'
+                color='red'
+                size='l'
+                label={t('Delete Project and Data')}
+                onClick={this.deleteProject}
+              />
             </bem.FormModal__item>
           }
         </bem.FormModal__item>

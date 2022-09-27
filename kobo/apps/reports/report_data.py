@@ -108,6 +108,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     return pack, submission_stream
 
 
+# TODO validate if this function is still in used.
 def _vnames(asset, cache=False):
     if not cache or not hasattr(asset, '_available_report_uids'):
         content = deepcopy(asset.content)

@@ -1,14 +1,12 @@
 # coding: utf-8
 # 😬
 import copy
-from collections import defaultdict
 from functools import reduce
 from operator import add
 from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -47,6 +45,7 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import (
+    AssetAdjustContentError,
     BadPermissionsException,
     DeploymentDataException,
 )
@@ -61,8 +60,8 @@ from kpi.mixins import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
+from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
-from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
 from .asset_user_partial_permission import AssetUserPartialPermission
@@ -137,10 +136,10 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONBField(default=dict)
-    summary = JSONBField(default=dict)
-    report_styles = JSONBField(default=dict)
-    report_custom = JSONBField(default=dict)
+    content = models.JSONField(default=dict)
+    summary = models.JSONField(default=dict)
+    report_styles = models.JSONField(default=dict)
+    report_custom = models.JSONField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
@@ -151,12 +150,12 @@ class Asset(ObjectPermissionMixin,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings = JSONBField(default=dict)
+    settings = models.JSONField(default=dict)
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
     # ToDo Move the field to another table with one-to-one relationship
-    _deployment_data = JSONBField(default=dict)
+    _deployment_data = models.JSONField(default=dict)
 
     # JSON with subset of fields to share
     # {
@@ -699,7 +698,36 @@ class Asset(ObjectPermissionMixin,
             )
             return
 
-        if self.content is None:
+        update_content_field = update_fields and 'content' in update_fields
+
+        # Raise an exception if we want to adjust asset content
+        # (i.e. `adjust_content` is True) but we are trying to update only
+        # certain fields and `content` is not part of them, or if we
+        # specifically ask to not adjust asset content, but trying to
+        # update only certain fields and `content` is one of them.
+        if (
+            (adjust_content and update_fields and 'content' not in update_fields)
+            or
+            (not adjust_content and update_content_field)
+        ):
+            raise AssetAdjustContentError
+
+        # If `content` is part of the updated fields, `summary` and
+        # `report_styles` must be too.
+        if update_content_field:
+            update_fields += ['summary', 'report_styles']
+            # Avoid duplicates
+            update_fields = list(set(update_fields))
+
+        # `self.content` must be the second condition. We do not want to get
+        # the value of `self.content` if first condition is false.
+        # The main purpose of this is avoid to load `self.content` when it is
+        # deferred (see `AssetNestedObjectViewsetMixin.asset`) and does not need
+        # to be updated.
+        if (
+            (not update_fields or update_content_field)
+            and self.content is None
+        ):
             self.content = {}
 
         # in certain circumstances, we don't want content to
@@ -707,8 +735,9 @@ class Asset(ObjectPermissionMixin,
         if adjust_content:
             self.adjust_content_on_save()
 
-        # populate summary
-        self._populate_summary()
+        # populate summary (only when required)
+        if not update_fields or update_fields and 'summary' in update_fields:
+            self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -722,7 +751,12 @@ class Asset(ObjectPermissionMixin,
                 elif row_count > 1:
                     self.asset_type = ASSET_TYPE_BLOCK
 
-        self._populate_report_styles()
+        # populate report styles (only when required)
+        if (
+            not update_fields
+            or update_fields and 'report_styles' in update_fields
+        ):
+            self._populate_report_styles()
 
         # Ensure `_deployment_data` is not saved directly
         try:
@@ -788,13 +822,18 @@ class Asset(ObjectPermissionMixin,
         except AttributeError:
             tag_names = self.tags.values_list('name', flat=True)
         else:
-            tag_names = [t.name for t in tag_list]
+            tag_names = [tag.name for tag in tag_list]
         return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
         intended_tags = value.split(',')
-        self.tags.set(*intended_tags)
+        # Backwards incompatible: TaggableManager.set now takes a list of tags
+        # (instead of varargs) so that its API matches Django’s RelatedManager.set.
+        # Example:
+        # previously: item.tags.set("red", "blue")
+        # now: item.tags.set(["red", "blue"])
+        self.tags.set(intended_tags)
 
     def to_clone_dict(
             self,
@@ -904,7 +943,7 @@ class Asset(ObjectPermissionMixin,
         self, version_uid: str, root_node_name: Optional[str] = None
     ) -> AssetSnapshot:
         return self._snapshot(
-            regenerate=True,
+            regenerate=False,
             version_uid=version_uid,
             root_node_name=root_node_name,
         )
@@ -1060,122 +1099,11 @@ class Asset(ObjectPermissionMixin,
                     t("Can not assign '{}' permission. "
                       "Partial permissions are missing.".format(perm)))
 
-            new_partial_perms = defaultdict(list)
-            in_op = MongoHelper.IN_OPERATOR
-
-            for partial_perm, filters in partial_perms.items():
-
-                if partial_perm not in new_partial_perms:
-                    new_partial_perms[partial_perm] = filters
-
-                implied_perms = [
-                    implied_perm
-                    for implied_perm in self.get_implied_perms(partial_perm)
-                    if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
-                ]
-
-                for implied_perm in implied_perms:
-
-                    if (
-                        implied_perm not in new_partial_perms
-                        and implied_perm in partial_perms
-                    ):
-                        new_partial_perms[implied_perm] = partial_perms[implied_perm]
-
-                    new_partial_perm = new_partial_perms[implied_perm]
-                    # Trivial case, i.e.: permissions are built with front end.
-                    # All permissions have only one filter and the same filter
-                    # Example:
-                    # ```
-                    # partial_perms = {
-                    #   'view_submissions' : [
-                    #       {'_submitted_by': {'$in': ['johndoe']}
-                    #   ],
-                    #   'delete_submissions':  [
-                    #       {'_submitted_by': {'$in': ['quidam']}
-                    #   ]
-                    # }
-                    # ```
-                    # should give
-                    # ```
-                    # new_partial_perms = {
-                    #   'view_submissions' : [
-                    #       {'_submitted_by': {'$in': ['johndoe', 'quidam']}
-                    #   ],
-                    #   'delete_submissions':  [
-                    #       {'_submitted_by': {'$in': ['quidam']}
-                    #   ]
-                    # }
-                    if (
-                        len(filters) == 1
-                        and len(new_partial_perm) == 1
-                        and isinstance(new_partial_perm, list)
-                    ):
-                        current_filters = new_partial_perms[implied_perm][0]
-                        filter_ = filters[0]
-                        # Front end only supports `_submitted_by`, but if users
-                        # use the API, it could be something else.
-                        filter_key = list(filter_)[0]
-                        try:
-                            new_value = filter_[filter_key][in_op]
-                            current_values = current_filters[filter_key][in_op]
-                        except (KeyError, TypeError):
-                            pass
-                        else:
-                            new_partial_perm[0][filter_key][in_op] = list(
-                                set(current_values + new_value)
-                            )
-                            continue
-
-                    # As said earlier, front end only supports `'_submitted_by'`
-                    # filter, but many different and more complex filters could
-                    # be used.
-                    # If we reach these lines, it means conditions cannot be
-                    # merged, so we concatenate then with an `OR` operator.
-                    # Example:
-                    # ```
-                    # partial_perms = {
-                    #   'view_submissions' : [{'_submitted_by': 'johndoe'}],
-                    #   'delete_submissions':  [
-                    #       {'_submission_date': {'$lte': '2021-01-01'},
-                    #       {'_submission_date': {'$gte': '2020-01-01'}
-                    #   ]
-                    # }
-                    # ```
-                    # should give
-                    # ```
-                    # new_partial_perms = {
-                    #   'view_submissions' : [
-                    #           [{'_submitted_by': 'johndoe'}],
-                    #           [
-                    #               {'_submission_date': {'$lte': '2021-01-01'},
-                    #               {'_submission_date': {'$gte': '2020-01-01'}
-                    #           ]
-                    #   },
-                    #   'delete_submissions':  [
-                    #       {'_submission_date': {'$lte': '2021-01-01'},
-                    #       {'_submission_date': {'$gte': '2020-01-01'}
-                    #   ]
-                    # }
-
-                    # To avoid more complexity (and different syntax than
-                    # trivial case), we delegate to MongoHelper the task to join
-                    # lists with the `$or` operator.
-                    try:
-                        new_partial_perm = new_partial_perms[implied_perm][0]
-                    except IndexError:
-                        # If we get an IndexError, implied permission does not
-                        # belong to current assignment. Let's copy the filters
-                        #
-                        new_partial_perms[implied_perm] = filters
-                    else:
-                        if not isinstance(new_partial_perm, list):
-                            new_partial_perms[implied_perm] = [
-                                filters,
-                                new_partial_perms[implied_perm]
-                            ]
-                        else:
-                            new_partial_perms[implied_perm].append(filters)
+            new_partial_perms = AssetUserPartialPermission\
+                .update_partial_perms_to_include_implied(
+                    self,
+                    partial_perms
+                )
 
             AssetUserPartialPermission.objects.update_or_create(
                 asset_id=self.pk,

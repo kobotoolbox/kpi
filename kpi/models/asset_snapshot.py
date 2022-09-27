@@ -2,7 +2,6 @@
 # 😬
 import copy
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from rest_framework.reverse import reverse
 
@@ -17,6 +16,7 @@ from kpi.mixins import (
 from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
+from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 
 
 class AbstractFormList(
@@ -62,8 +62,8 @@ class AssetSnapshot(
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONBField(default=dict)
-    details = JSONBField(default=dict)
+    source = models.JSONField(default=dict)
+    details = models.JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
@@ -196,6 +196,8 @@ class AssetSnapshot(
         self._expand_kobo_qs(source_copy)
         self._populate_fields_with_autofields(source_copy)
         self._strip_kuids(source_copy)
+
+        allow_choice_duplicates(source_copy)
 
         warnings = []
         details = {}

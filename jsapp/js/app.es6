@@ -16,10 +16,11 @@ import mixins from 'js/mixins';
 import MainHeader from 'js/components/header';
 import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
-import IntercomHandler from 'js/components/intercomHandler';
+import IntercomHandler from 'js/components/support/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
+import {Toaster} from 'react-hot-toast';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -67,7 +68,7 @@ export default class App extends React.Component {
     }
 
     return (
-      <DocumentTitle title='KoBoToolbox'>
+      <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
           <PermValidator/>
           <IntercomHandler/>
@@ -94,6 +95,19 @@ export default class App extends React.Component {
               {this.props.children}
             </bem.PageWrapper__content>
           </bem.PageWrapper>
+
+          {/* Default position of all notifications, page specific ones can be overwritten */}
+          <Toaster
+            toastOptions={{
+              // TODO: get colours from a single file: https://github.com/kobotoolbox/kobo-common/issues/1
+              style: {
+                padding: '16px',
+                background: '#1e2129', //$kobo-gray-14
+                color: '#fff',
+              },
+              duration: 10000,
+            }}
+          />
         </React.Fragment>
       </DocumentTitle>
     );

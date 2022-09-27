@@ -7,7 +7,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {getLangString} from 'utils';
+import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {
   MODAL_TYPES,
@@ -97,8 +97,9 @@ export class TranslationTable extends React.Component {
           // Disabling has no effect on this cell, but we do it to gray out the
           // text to indicate that the label is locked
           // TODO: Figure out what to do for the case of adding a new language
-          //       when there are locked labels. These labels should be unlocked
-          //       for the newly added languages and their translations only.
+          // when there are locked labels. These labels should be unlocked
+          // for the newly added languages and their translations only.
+          // See: https://github.com/kobotoolbox/kpi/issues/3920
           return (
             <div
               className={
@@ -253,7 +254,7 @@ export class TranslationTable extends React.Component {
       {
         onFailed: () => {
           actions.resources.loadAsset({id: this.props.asset.uid});
-          alertify.error('failed to update translations');
+          notify.error('failed to update translations');
         },
       }
     );

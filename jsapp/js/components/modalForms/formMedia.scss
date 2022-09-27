@@ -1,5 +1,6 @@
-@use "scss/_colors";
-@use "scss/_variables";
+@use 'scss/sizes';
+@use 'scss/_colors';
+@use 'scss/_variables';
 
 .form-view--form-media {
   background-color: colors.$kobo-white;
@@ -7,10 +8,6 @@
 
 .form-media {
   padding: 30px 40px;
-
-  .form-view__cell--warning {
-    margin-bottom: 24px;
-  }
 
   .form-media__title {
     display: inline-block;
@@ -100,6 +97,7 @@
       justify-content: space-between;
 
       // TODO: Find a better way to implement button size without editing parent
+      // See: https://github.com/kobotoolbox/kpi/issues/3917
       button.kobo-light-button {
         padding-bottom: 25px;
 

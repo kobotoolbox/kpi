@@ -2,7 +2,6 @@
 # 😇
 import datetime
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
@@ -30,6 +29,12 @@ class InAppMessage(models.Model):
         default=False,
         help_text='When published, this message appears to all users. '
                   'It otherwise appears only to the last editor'
+    )
+    always_display_as_new = models.BooleanField(
+        default=False,
+        help_text='When enabled, this message reappears each time the '
+                  'application loads, even if it has already been '
+                  'acknowledged.'
     )
     # Make the author deliberately set these dates to something valid
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
@@ -72,7 +77,7 @@ class InAppMessageFile(models.Model):
 class InAppMessageUserInteractions(models.Model):
     message = models.ForeignKey(InAppMessage, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    interactions = JSONBField(default=dict)
+    interactions = models.JSONField(default=dict)
 
     class Meta:
         unique_together = ('message', 'user')

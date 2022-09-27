@@ -7,13 +7,14 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
 import PopoverMenu from 'js/popoverMenu';
+import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
 import {txtid} from '../../../xlform/src/model.utils';
 import alertify from 'alertifyjs';
-import {launchPrinting} from 'utils';
+import {notify, launchPrinting} from 'utils';
 import {REPORT_STYLES} from './reportsConstants';
 import CustomReportForm from './customReportForm';
 import QuestionGraphSettings from './questionGraphSettings';
@@ -77,7 +78,6 @@ export default class Reports extends React.Component {
         groupBy = reportStyles.default.groupDataBy;
       }
 
-      // TODO: improve the defaults below
       if (reportStyles.default.report_type === undefined) {
         reportStyles.default.report_type = REPORT_STYLES.vertical.value;
       }
@@ -138,7 +138,7 @@ export default class Reports extends React.Component {
               // reset default report groupBy if it fails and notify user
               reportStyles.default.groupDataBy = '';
               this.setState({reportStyles: reportStyles});
-              alertify.error(
+              notify.error(
                 t(
                   'Could not load grouped results via "##". Will attempt to load the ungrouped report.'
                 ).replace('##', groupBy)
@@ -204,7 +204,7 @@ export default class Reports extends React.Component {
         });
       })
       .fail((err) => {
-        alertify.error(t('Could not refresh report.'));
+        notify.error(t('Could not refresh report.'));
         this.setState({error: err});
       });
   }
@@ -566,14 +566,11 @@ export default class Reports extends React.Component {
                     </bem.FormView__cell>
                   )}
 
-                <bem.FormView__cell m='warning'>
-                  <i className='k-icon k-icon-alert' />
-                  <p>
-                    {t(
-                      'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. '
-                    )}
-                  </p>
-                </bem.FormView__cell>
+                <InlineMessage
+                  type='warning'
+                  icon='alert'
+                  message={t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page.')}
+                />
 
                 <ReportContents
                   parentState={this.state}

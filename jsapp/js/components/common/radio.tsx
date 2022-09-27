@@ -3,23 +3,24 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 
 export interface RadioOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
   /** Disables just this option. */
-  isDisabled?: boolean
+  isDisabled?: boolean;
 }
 
-type RadioProps = {
-  options: RadioOption[]
+interface RadioProps {
+  options: RadioOption[];
   /** Displays a label/title on top of the radio options. */
-  title?: string
+  title?: string;
   /** Internal ID useful for the identification of radio. */
-  name: string
-  onChange: Function
+  name: string;
+  onChange: Function;
   /** The `value` of selected option. */
-  selected: string
+  selected: string;
   /** Disables whole radio component. */
-  isDisabled?: boolean
+  isDisabled?: boolean;
+  'data-cy'?: string;
 }
 
 /** A radio input generic component. */
@@ -45,8 +46,7 @@ class Radio extends React.Component<RadioProps> {
         {this.props.title &&
           <bem.Radio__row m='title'>{this.props.title}</bem.Radio__row>
         }
-        {this.props.options.map((option) => {
-          return (
+        {this.props.options.map((option) => (
             <bem.Radio__row key={option.value}>
               <bem.Radio__input
                 type='radio'
@@ -55,14 +55,14 @@ class Radio extends React.Component<RadioProps> {
                 onChange={this.onChange.bind(this)}
                 checked={this.props.selected === option.value}
                 disabled={this.props.isDisabled || option.isDisabled}
+                data-cy={this.props['data-cy']}
               />
 
               <bem.Radio__label>
                 {option.label}
               </bem.Radio__label>
             </bem.Radio__row>
-          );
-        })}
+          ))}
       </bem.Radio>
     );
   }

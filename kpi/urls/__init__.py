@@ -8,6 +8,7 @@ from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
     user_report,
+    user_details_report,
     country_report,
     retrieve_reports,
 )
@@ -17,8 +18,8 @@ from kpi.views import home, one_time_login, browser_tests, design_system, modern
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kobo.apps.mfa.views import (
-    MFALoginView,
-    MFATokenView,
+    MfaLoginView,
+    MfaTokenView,
 )
 from kpi.views.token import TokenView
 
@@ -42,8 +43,8 @@ urlpatterns = [
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
-    re_path(r'^accounts/login/mfa/', MFATokenView.as_view(), name='mfa_token'),
-    re_path(r'^accounts/login/', MFALoginView.as_view(), name='kobo_login'),
+    re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
+    re_path(r'^accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
@@ -66,6 +67,9 @@ urlpatterns = [
     # Statistics for superusers
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+            retrieve_reports),
+    path('superuser_stats/user_details_report/', user_details_report),
+    re_path(r'^superuser_stats/user_details_report/(?P<base_filename>[^/]+)$',
             retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),

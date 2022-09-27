@@ -5,9 +5,51 @@ import {
   truncateUrl,
   truncateFile,
   generateAutoname,
+  formatSeconds,
+  join,
 } from 'utils';
 
 describe('utils', () => {
+
+  describe('join', () => {
+    it('should make an array with separators between array elements', () => {
+      [
+        [['hi', 'hello', 'how are you'], '<br/>',
+          ['hi', '<br/>', 'hello', '<br/>', 'how are you'],
+        ],
+        [['a', 'b', 'c'], '\n',
+          ['a', '\n', 'b', '\n', 'c'],
+        ],
+        [[1, 2, 3], 0, [1, 0, 2, 0, 3]],
+        [['a', 2, {hello: 'world'}], [], ['a', [], 2, [], {hello: 'world'}]],
+        // We could add a real JSX test case here (we'd have to import React)
+      ].forEach((testCase) => {
+        const test = join(testCase[0], testCase[1]);
+        chai.expect(test).to.deep.equal(testCase[2]);
+      });
+    });
+  });
+
+  describe('formatSeconds', () => {
+    it('should format properly', () => {
+      [
+        [10, '00:10'],
+        [0, '00:00'],
+        [1.333, '00:01'],
+        [1.777, '00:02'],
+        [60, '01:00'],
+        [671, '11:11'],
+        [1111, '18:31'],
+        [3599, '59:59'],
+        [6000, '100:00'],
+        [6666, '111:06'],
+      ].forEach((testCase) => {
+        const test = formatSeconds(testCase[0]);
+        chai.expect(test).to.equal(testCase[1]);
+      });
+    });
+  });
+
   describe('getLangAsObject', () => {
     it('should return object for valid langString', () => {
       const langObj = getLangAsObject('English (en)');

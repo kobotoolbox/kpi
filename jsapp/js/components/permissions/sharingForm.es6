@@ -9,7 +9,11 @@ import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {buildUserUrl} from 'utils';
+import InlineMessage from 'js/components/common/inlineMessage';
+import {
+  buildUserUrl,
+  replaceBracketsWithLink
+} from 'utils';
 import {
   ASSET_TYPES,
   ANON_USERNAME,
@@ -116,18 +120,23 @@ class SharingForm extends React.Component {
           {this.state.asset.name}
         </bem.Modal__subheader>
 
-        {stores.session.currentAccount.extra_details?.require_auth !== true &&
+        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
           <bem.FormModal__item>
-            <bem.FormView__cell m='warning'>
-              <i className='k-icon k-icon-alert' />
-              <p>
-                {t('Anyone can see this blank form and add submissions to it because you have not set ')}
-                <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
-                  {t('your account')}
-                </a>
-                {t(' to require authentication.')}
-              </p>
-            </bem.FormView__cell>
+            <InlineMessage
+              type='warning'
+              icon='alert'
+              message={
+                <span dangerouslySetInnerHTML={{__html: (
+                  replaceBracketsWithLink(
+                    t(
+                      'Anyone can see this blank form and add submissions to it ' +
+                      'because you have not set [your account] to require authentication.'
+                    ),
+                    `/#${ROUTES.ACCOUNT_SETTINGS}`
+                  )
+                )}} />
+              }
+            />
           </bem.FormModal__item>
         }
 

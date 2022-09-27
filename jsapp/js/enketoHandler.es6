@@ -1,6 +1,7 @@
+import React from 'react';
 import {ENKETO_ACTIONS} from 'js/constants'
 import {dataInterface} from 'js/dataInterface';
-import {notify} from 'utils';
+import {notify} from 'js/utils';
 
 /**
  * For handling Enketo in DRY way.
@@ -65,11 +66,19 @@ const enketoHandler = {
               this._openEnketoUrl(urlId);
               resolve();
             } else {
-              let errorMsg = t('There was an error loading Enketo.');
-              if (enketoData?.responseJSON?.detail) {
-                errorMsg += `<br><code>${enketoData.responseJSON.detail}</code>`;
-              }
-              notify(errorMsg, 'error');
+              const errorMsg = (
+                <div>
+                  {t('There was an error loading Enketo.')}
+                  {enketoData?.responseJSON?.detail && (
+                    <div>
+                      <br />
+                      <code>{enketoData.responseJSON.detail}</code>
+                    </div>
+                  )}
+                </div>
+              );
+
+              notify.error(errorMsg);
               reject();
             }
           });

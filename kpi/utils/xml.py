@@ -3,6 +3,9 @@ import re
 from typing import Optional, Union, List
 from lxml import etree
 
+from django_request_cache import cache_for_request
+from shortuuid import ShortUUID
+
 
 def strip_nodes(
     source: Union[str, bytes],
@@ -10,12 +13,16 @@ def strip_nodes(
     use_xpath: bool = False,
     xml_declaration: bool = False,
     rename_root_node_to: Optional[str] = None,
+    bulk_action_cache_key: str = None,
 ) -> str:
     """
     Returns a stripped version of `source`. It keeps only nodes provided in
     `nodes_to_keep`.
     If `rename_root_node_to` is provided, the root node will be renamed to the
     value of that parameter in the returned XML string.
+
+    A random string can be passed to `bulk_action_cache_key` to get the
+    XPaths only once if calling `strip_nodes()` several times in a loop.
     """
     # Force `source` to be bytes in case it contains an XML declaration
     # `etree` does not support strings with xml declarations.
@@ -28,7 +35,13 @@ def strip_nodes(
     root_element = tree.getroot()
     root_path = tree.getpath(root_element)
 
-    def get_xpath_matches():
+    # `@cache_for_request` uses the parameters of the function it decorates
+    # to generate the key under which the returned value of the function is
+    # stored for cache purpose.
+    # `cache_key` is only there to serve that purpose and ensure
+    # `@cache_for_request` uniqueness.
+    @cache_for_request
+    def get_xpath_matches(cache_key: str):
         if use_xpath:
             xpaths_ = []
             for xpath_ in nodes_to_keep:
@@ -118,7 +131,14 @@ def strip_nodes(
         return path_.replace(root_path, '')
 
     if len(nodes_to_keep):
-        xpath_matches = get_xpath_matches()
+        # Always sends an unique string to `get_xpath_matches()`
+        # See comments above the function
+        if bulk_action_cache_key is None:
+            cache_key = ShortUUID().random(24)
+        else:
+            cache_key = bulk_action_cache_key
+
+        xpath_matches = get_xpath_matches(cache_key=cache_key)
         process_node(root_element, xpath_matches)
 
     if rename_root_node_to:
@@ -132,9 +152,11 @@ def strip_nodes(
     ).decode()
 
 
-def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
+def add_xml_declaration(
+    xml_content: Union[str, bytes], newlines: bool = False
+) -> Union[str, bytes]:
     xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
-    # Should support ̀ lmxl` and `dicttoxml`
+    # Should support ̀ lmxl` and `dict2xml`
     start_of_declaration = '<?xml'
     use_bytes = False
     xml_content_as_str = xml_content.strip()
@@ -144,13 +166,14 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
         xml_content_as_str = xml_content.decode()
 
     if (
-       xml_content_as_str[:len(start_of_declaration)].lower()
+        xml_content_as_str[:len(start_of_declaration)].lower()
         == start_of_declaration.lower()
     ):
         # There's already a declaration. Don't add anything.
         return xml_content
 
-    xml_ = f'{xml_declaration}\n{xml_content_as_str}'
+    newlines_char = '\n' if newlines else ''
+    xml_ = f'{xml_declaration}{newlines_char}{xml_content_as_str}'
     if use_bytes:
         return xml_.encode()
     return xml_

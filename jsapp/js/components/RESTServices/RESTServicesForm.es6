@@ -13,6 +13,7 @@ import Radio from 'js/components/common/radio';
 import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
+import {notify} from 'js/utils';
 
 const EXPORT_TYPES = {
   json: {
@@ -104,7 +105,7 @@ export default class RESTServicesForm extends React.Component {
         })
         .fail(() => {
           this.setState({isSubmitPending: false});
-          alertify.error(t('Could not load REST Service'));
+          notify.error(t('Could not load REST Service'));
         });
     } else {
       this.setState({isLoadingHook: false});
@@ -245,7 +246,7 @@ export default class RESTServicesForm extends React.Component {
     evt.preventDefault();
 
     if (!this.validateForm()) {
-      alertify.error(t('Please enter both name and url of your service.'));
+      notify.error(t('Please enter both name and url of your service.'));
       return;
     }
 

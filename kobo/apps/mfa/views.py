@@ -7,23 +7,23 @@ from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
 
 from .forms import (
-    MFALoginForm,
-    MFATokenForm,
+    MfaLoginForm,
+    MfaTokenForm,
 )
-from .serializers import UserMFAMethodSerializer
+from .serializers import UserMfaMethodSerializer
 
 
-class MFALoginView(LoginView):
+class MfaLoginView(LoginView):
 
-    form_class = MFALoginForm
+    form_class = MfaLoginForm
 
     def form_valid(self, form):
         if form.get_ephemeral_token():
-            mfa_token_form = MFATokenForm(initial={
+            mfa_token_form = MfaTokenForm(initial={
                 'ephemeral_token': form.get_ephemeral_token()
             })
             context = self.get_context_data(
-                view=MFATokenView, form=mfa_token_form
+                view=MfaTokenView, form=mfa_token_form
             )
 
             return self.response_class(
@@ -57,23 +57,23 @@ class MFALoginView(LoginView):
         return redirect_to
 
 
-class MFATokenView(LoginView):
+class MfaTokenView(LoginView):
 
     """
     Display the login form and handle the login action.
     """
-    form_class = MFATokenForm
+    form_class = MfaTokenForm
     authentication_form = None
     template_name = 'mfa_token.html'
     redirect_authenticated_user = False
     extra_context = None
 
 
-class MFAListUserMethodsView(ListAPIView):
+class MfaListUserMethodsView(ListAPIView):
     """
     Display user's methods with dates
     """
-    serializer_class = UserMFAMethodSerializer
+    serializer_class = UserMfaMethodSerializer
     permission_classes = (IsAuthenticated,)
     pagination_class = None
 

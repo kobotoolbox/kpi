@@ -3,6 +3,7 @@
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
+// See: https://github.com/kobotoolbox/kpi/issues/3926
 //
 // Best things to do here:
 // 1. For sure don't add anything new, unless it really makes sense to be part
@@ -35,7 +36,9 @@ $side-tabs-width-mobile: 70px;
   background: $kobo-gray-96;
 
   &.form-view--fullscreen {
-    position: fixed;
+    // We force the position to avoid problems with stronger specificity
+    // breaking the fullscreen functionality.
+    position: fixed !important;
     z-index: $z-fullscreen;
     top: 0;
     left: 0;
@@ -467,58 +470,6 @@ $side-tabs-width-mobile: 70px;
     background-color: $kobo-green;
     border-radius: 2px;
   }
-
-  &.form-view__cell--warning {
-    background-color: $kobo-light-amber;
-    color: $kobo-dark-amber;
-    padding: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    i {
-      color: inherit;
-      font-size: 28px;
-      margin-right: 5px;
-      vertical-align: -11px;
-      display: inline-block;
-    }
-
-    p {
-      margin: 0;
-    }
-
-    a {
-      color: inherit;
-      font-weight: bold;
-      text-decoration: underline;
-
-      &:hover {
-        text-decoration: none;
-      }
-    }
-  }
-
-  &.form-view__cell--error {
-    background-color: $kobo-light-red;
-    color: $kobo-dark-red;
-    border: 1px solid $kobo-red;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    i {
-      color: $kobo-red;
-      font-size: 28px;
-      margin-right: 5px;
-      // If used in a dropzone, need to overwrite left margin
-      margin-left: 0px;
-    }
-  }
-
-
-  &.form-view__cell--translation-modal-warning {
-    margin-bottom: 20px;
-  }
 }
 
 .form-view__icon-button {
@@ -907,8 +858,6 @@ $side-tabs-width-mobile: 70px;
 }
 
 // Compensate for when sidebar(s) messes up modal a bit
-
-// TODO: Clean this up via PR changes
 @media
   (min-width: 770px) and (max-width: 1020px),
   (max-width: 560px) {

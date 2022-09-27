@@ -12,11 +12,10 @@ from rest_framework.authentication import (
 )
 from rest_framework.exceptions import AuthenticationFailed
 
-from kpi.constants import ENKETO_CSRF_COOKIE_NAME
-from kpi.mixins.mfa import MFABlockerMixin
+from kpi.mixins.mfa import MfaBlockerMixin
 
 
-class BasicAuthentication(MFABlockerMixin, DRFBasicAuthentication):
+class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication):
     """
     Extend DRF class to support MFA.
 
@@ -33,7 +32,7 @@ class BasicAuthentication(MFABlockerMixin, DRFBasicAuthentication):
         return user, _
 
 
-class DigestAuthentication(MFABlockerMixin, BaseAuthentication):
+class DigestAuthentication(MfaBlockerMixin, BaseAuthentication):
 
     verbose_name = 'Digest authentication'
 
@@ -83,8 +82,8 @@ class EnketoSessionAuthentication(SessionAuthentication):
         POST data into the places expected by Django. Then, call the super-
         class to handle CSRF enforcement.
         """
-        enketo_post_data_token = request.POST.get(ENKETO_CSRF_COOKIE_NAME)
-        enketo_cookie_token = request.COOKIES.get(ENKETO_CSRF_COOKIE_NAME)
+        enketo_post_data_token = request.POST.get(settings.ENKETO_CSRF_COOKIE_NAME)
+        enketo_cookie_token = request.COOKIES.get(settings.ENKETO_CSRF_COOKIE_NAME)
         if enketo_post_data_token and enketo_cookie_token:
             request.META[settings.CSRF_HEADER_NAME] = enketo_post_data_token
             request.COOKIES[settings.CSRF_COOKIE_NAME] = enketo_cookie_token
@@ -100,14 +99,14 @@ class EnketoSessionAuthentication(SessionAuthentication):
         """
         csrf_token = context_processors.csrf(request)['csrf_token']
         response.set_cookie(
-            key=ENKETO_CSRF_COOKIE_NAME,
+            key=settings.ENKETO_CSRF_COOKIE_NAME,
             value=csrf_token,
             domain=settings.SESSION_COOKIE_DOMAIN,
             secure=settings.SESSION_COOKIE_SECURE or None,
         )
 
 
-class TokenAuthentication(MFABlockerMixin, DRFTokenAuthentication):
+class TokenAuthentication(MfaBlockerMixin, DRFTokenAuthentication):
     """
     Extend DRF class to support MFA.
 
