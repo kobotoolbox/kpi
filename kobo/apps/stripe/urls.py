@@ -1,11 +1,15 @@
-from django.shortcuts import reverse
 from django.urls import include, re_path
 from rest_framework.routers import SimpleRouter
 
-from .views import ProductViewSet
+
+from kobo.apps.stripe.views import (
+    ProductViewSet,
+    SubscriptionViewSet,
+)
 
 router = SimpleRouter()
-router.register(r'products', ProductViewSet)
+router.register(r'products', ProductViewSet, basename='products')
+router.register(r'subscriptions', SubscriptionViewSet, basename='subscriptions')
 
 urlpatterns = [
     re_path(r'^', include(router.urls)),

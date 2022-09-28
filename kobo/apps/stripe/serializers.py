@@ -1,16 +1,15 @@
 from django.core.exceptions import SuspiciousOperation
-from djstripe.models import Customer, Plan, Product
+from djstripe.models import Customer, Plan, Product, Subscription
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
 
 
-class BaseProductSerializer(ModelSerializer):
+class BaseProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
 
-class PlanSerializer(ModelSerializer):
+class PlanSerializer(serializers.ModelSerializer):
     product = BaseProductSerializer()
 
     class Meta:
@@ -23,3 +22,9 @@ class ProductSerializer(BaseProductSerializer):
 
     class Meta(BaseProductSerializer.Meta):
         fields = ('id', 'name', 'description', 'type', 'plans', 'metadata')
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
