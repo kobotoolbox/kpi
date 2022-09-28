@@ -10,5 +10,4 @@ from .object_permission import ObjectPermission
 from .import_export_task import ImportTask, ExportTask, SynchronousExport
 from .tag_uid import TagUid
 from .authorized_application import AuthorizedApplication
-from .authorized_application import OneTimeAuthenticationKey
 from .paired_data import PairedData

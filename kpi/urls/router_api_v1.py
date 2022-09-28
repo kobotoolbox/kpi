@@ -15,7 +15,6 @@ from kpi.views.v1 import (
     ExportTaskViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
-    OneTimeAuthenticationKeyViewSet,
     SitewideMessageViewSet,
     SubmissionViewSet,
     UserViewSet,
@@ -72,5 +71,3 @@ router_api_v1.register(r'sitewide_messages', SitewideMessageViewSet)
 router_api_v1.register(r'authorized_application/users',
                        AuthorizedApplicationUserViewSet,
                        basename='authorized_applications')
-router_api_v1.register(r'authorized_application/one_time_authentication_keys',
-                       OneTimeAuthenticationKeyViewSet)
