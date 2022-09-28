@@ -14,6 +14,7 @@ from django.db import (
     connections,
     models,
     router,
+    transaction,
 )
 from django.utils import timezone
 from django.utils.http import urlquote
@@ -30,7 +31,6 @@ from .storage import (
     get_kobocat_storage,
     KobocatFileSystemStorage,
 )
-
 
 def update_autofield_sequence(model):
     """
@@ -126,15 +126,20 @@ class KobocatDigestPartial(ShadowModel):
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
+        # Because of circular imports, we cannot decorate the method with
+        # `@kc_transaction_atomic`
+        from .utils import kc_transaction_atomic
+
+        with kc_transaction_atomic():
+            cls.objects.filter(user=user).delete()
+            # Query for `user_id` since user PKs are synchronized
+            for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+                cls.objects.create(
+                    user=user,
+                    login=partial_digest.login,
+                    confirmed=partial_digest.confirmed,
+                    partial_digest=partial_digest.partial_digest,
+                )
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -240,6 +245,7 @@ class KobocatUser(ShadowModel):
         db_table = 'auth_user'
 
     @classmethod
+    @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT
