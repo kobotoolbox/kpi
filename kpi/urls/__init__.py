@@ -12,6 +12,7 @@ from kobo.apps.mfa.views import (
 )
 from kobo.apps.superuser_stats.views import (
     user_report,
+    user_details_report,
     country_report,
     retrieve_reports,
 )
@@ -67,6 +68,9 @@ urlpatterns = [
     # Statistics for superusers
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+            retrieve_reports),
+    path('superuser_stats/user_details_report/', user_details_report),
+    re_path(r'^superuser_stats/user_details_report/(?P<base_filename>[^/]+)$',
             retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),

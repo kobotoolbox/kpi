@@ -68,7 +68,6 @@ export const TEXT_FILTER_QUESTION_TYPES = [
   QUESTION_TYPES.text.id,
   QUESTION_TYPES.integer.id,
   QUESTION_TYPES.decimal.id,
-  QUESTION_TYPES.select_multiple.id,
   QUESTION_TYPES.date.id,
   QUESTION_TYPES.time.id,
   QUESTION_TYPES.datetime.id,

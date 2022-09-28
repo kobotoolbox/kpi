@@ -99,6 +99,7 @@ def one_time_login(request):
         expiry__lt=datetime.datetime.now()).delete()
     with transaction.atomic():
         try:
+            # FIXME: select_for_update!!!
             otak = OneTimeAuthenticationKey.objects.get(
                 key=key,
                 expiry__gte=datetime.datetime.now()
