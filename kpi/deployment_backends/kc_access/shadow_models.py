@@ -14,6 +14,7 @@ from django.db import (
     connections,
     models,
     router,
+    transaction,
 )
 from django.utils import timezone
 from django.utils.http import urlquote
@@ -30,7 +31,6 @@ from .storage import (
     get_kobocat_storage,
     KobocatFileSystemStorage,
 )
-
 
 def update_autofield_sequence(model):
     """
@@ -126,15 +126,20 @@ class KobocatDigestPartial(ShadowModel):
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
+        # Because of circular imports, we cannot decorate the method with
+        # `@kc_transaction_atomic`
+        from .utils import kc_transaction_atomic
+
+        with kc_transaction_atomic():
+            cls.objects.filter(user=user).delete()
+            # Query for `user_id` since user PKs are synchronized
+            for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+                cls.objects.create(
+                    user=user,
+                    login=partial_digest.login,
+                    confirmed=partial_digest.confirmed,
+                    partial_digest=partial_digest.partial_digest,
+                )
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -202,82 +207,6 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 return []
 
 
-class KobocatOneTimeAuthToken(ShadowModel):
-    """
-    One time authenticated token
-    """
-    HEADER = 'X-KOBOCAT-OTA-TOKEN'
-    QS_PARAM = 'kc_ota_token'
-
-    user = models.ForeignKey(
-        'KobocatUser',
-        related_name='authenticated_requests',
-        on_delete=models.CASCADE,
-    )
-    token = models.CharField(max_length=50, default=token_urlsafe)
-    expiration_time = models.DateTimeField()
-    method = models.CharField(max_length=6)
-    request_identifier = models.CharField(max_length=1000)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'api_onetimeauthtoken'
-        unique_together = ('user', 'token', 'method')
-
-    def get_header(self) -> dict:
-        return {self.HEADER: self.token}
-
-    @classmethod
-    def get_or_create_token(
-            cls,
-            user: 'auth.User',
-            method: str,
-            request_identifier: str,
-            use_identifier_as_token: bool = False,
-            expiration_time: Optional[datetime] = None,
-    ) -> 'KobocatOneTimeAuthToken':
-        """
-        Get or create an instance of KobocatOneTimeAuthToken and return it.
-
-        If `use_identifier_as_token` is True, it generates the token based on
-        the `request_identifier` instead of auto-generating it.
-        """
-        kc_user = KobocatUser.objects.get(id=user.pk)
-        token_attrs = dict(
-            user=kc_user, method=method, request_identifier=request_identifier,
-            defaults={'expiration_time': expiration_time},
-        )
-
-        if use_identifier_as_token:
-            # `Signer()` returns 'url:encoded-string'.
-            # E.g: https://ee.kt.org/edit:a123bc'
-            # We only want the last part.
-            # When KoBoCAT tries to get the token, it reads the headers, then
-            # the querystring parameters and finally uses the HTTP referrer if
-            # none of the others worked. The headers and querystring parameters
-            # cannot be transferred through Enketo Express, so we use its URL
-            # to generate the token and let KoBoCAT compare it to its referrer.
-            parts = Signer().sign(request_identifier).split(':')
-            # TODO: consider removing Signer() as it's only value here is to
-            # assure that the token will always be a consistent length (and,
-            # for example, not overrun the size of the database column for long
-            # URLs)
-            token_attrs['token'] = parts[-1]
-
-        auth_token, created = cls.objects.get_or_create(**token_attrs)
-        if not created:
-            # Make sure to reset the validity period of an existing token
-            auth_token.expiration_time = expiration_time
-            auth_token.save()
-
-        return auth_token
-
-    def save(self, *args, **kwargs):
-        if not self.expiration_time:
-            self.expiration_time = one_minute_from_now()
-
-        super().save(*args, **kwargs)
-
-
 class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
@@ -316,6 +245,7 @@ class KobocatUser(ShadowModel):
         db_table = 'auth_user'
 
     @classmethod
+    @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT

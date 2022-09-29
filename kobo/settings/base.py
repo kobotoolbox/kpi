@@ -974,3 +974,10 @@ MFA_SUPPORTED_AUTH_CLASSES = [
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+SERVICE_ACCOUNT = {
+    'BACKEND': env.cache_url(
+        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://redis_cache:6380/6'
+    ),
+    'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
+}
