@@ -394,17 +394,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         drf_response = self.__prepare_as_drf_response_signature(kc_response)
-        # We need to return submission ids to log deletions when this method
-        # is called in the viewset. If it is empty, user is trying to delete all
-        # or they are using a query.
-        # Only do it when KoBoCAT returned a 200.
-        if drf_response['status'] == status.HTTP_200_OK:
-            if not data['submission_ids']:
-                submission_ids = self.get_submissions(user, fields=['_id'])
-                drf_response['submission_ids'] = submission_ids
-            else:
-                drf_response['submission_ids'] = data['submission_ids']
-
         return drf_response
 
     def duplicate_submission(

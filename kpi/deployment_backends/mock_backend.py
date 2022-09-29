@@ -151,7 +151,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return monthly_counter
 
-
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
@@ -224,7 +223,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             )
 
         return {
-            'submission_ids': [s['_id'] for s in submissions],
             'content_type': 'application/json',
             'status': status.HTTP_200_OK,
         }
