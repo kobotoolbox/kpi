@@ -3,6 +3,19 @@ from django.db import models
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
+from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
+from kobo.apps.subsequences.integrations.google.google_transcribe import (
+    GoogleTranscribeEngine,
+)
+from kobo.apps.subsequences.integrations.google.google_translate import (
+    GoogleTranslationEngine,
+)
+from kobo.apps.subsequences.tasks import handle_google_translation_operation
+from kobo.apps.subsequences.utils.parse_knowncols import parse_knowncols
+from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
+    determine_export_cols_indiv,
+)
+
 from kpi.models import Asset
 
 from .constants import GOOGLETS, GOOGLETX
@@ -125,6 +138,18 @@ class SubmissionExtras(models.Model):
                         'languageCode': target_lang,
                         'value': results,
                     }
+
+        asset_changes = False
+        asset_known_cols = self.asset.known_cols
+        for kc in determine_export_cols_indiv(self.content):
+            if kc not in asset_known_cols:
+                asset_changes = True
+                asset_known_cols.append(kc)
+        if asset_changes:
+            # is this next line necessary?
+            self.asset.known_cols = asset_known_cols
+            self.asset.save()
+
         super().save(*args, **kwargs)
 
     @property
