@@ -30,7 +30,11 @@ class AuditLog(models.Model):
     )
 
     class Meta:
-        unique_together = ('app_label', 'model_name', 'object_id', 'method')
+        unique_together = (
+            'app_label',
+            'model_name',
+            'object_id',
+            'method',
+            'date_created',
+        )
         index_together = ('app_label', 'model_name')
-
-        ordering = ['-date_created']
