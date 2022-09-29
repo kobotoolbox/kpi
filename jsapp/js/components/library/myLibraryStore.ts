@@ -1,7 +1,6 @@
 import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
 import {Location} from 'history';
-import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
@@ -76,7 +75,7 @@ class MyLibraryStore extends Reflux.Store {
 
     this.setDefaultColumns();
 
-    hashHistory.listen(this.onRouteChange.bind(this));
+    // hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged, this);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));

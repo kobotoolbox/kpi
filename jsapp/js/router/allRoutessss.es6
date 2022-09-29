@@ -4,7 +4,6 @@ import {
   IndexRoute,
   IndexRedirect,
   Route,
-  hashHistory,
   Router,
 } from 'react-router';
 import App from 'js/app';
@@ -362,7 +361,7 @@ export default class AllRoutes extends React.Component {
 
     return (
       <Router
-        history={hashHistory}
+        // history={hashHistory}
         ref={(ref) => this.router = ref}
         routes={this.getRoutes()}
       />

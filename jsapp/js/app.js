@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
@@ -18,20 +17,22 @@ import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
 import IntercomHandler from 'js/components/support/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
+import { withRouter } from "js/router/legacy";
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
 
-export default class App extends React.Component {
+class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = assign({
       pageState: stores.pageState.state,
     });
+    this.context = this.props;
   }
 
   componentDidMount() {
-    hashHistory.listen(this.onRouteChange.bind(this));
+    // hashHistory.listen(this.onRouteChange.bind(this));
   }
 
   onRouteChange() {
@@ -47,7 +48,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    var assetid = this.props.params.assetid || this.props.params.uid || null;
+    var assetid = this.props.params?.assetid || this.props.params?.uid || null;
 
     const pageWrapperContentModifiers = [];
     if (this.isFormSingle()) {
@@ -118,3 +119,5 @@ App.contextTypes = {router: PropTypes.object};
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
+
+export default withRouter(App);

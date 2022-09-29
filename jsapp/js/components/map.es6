@@ -3,7 +3,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
-import {hashHistory} from 'react-router';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
@@ -551,9 +550,9 @@ export class FormMap extends React.Component {
 
     let name = evt.target.getAttribute('data-name') || undefined;
     if (name != undefined) {
-      hashHistory.push(`/forms/${this.props.asset.uid}/data/map/${name}`);
+      // hashHistory.push(`/forms/${this.props.asset.uid}/data/map/${name}`);
     } else {
-      hashHistory.push(`/forms/${this.props.asset.uid}/data/map`);
+      // hashHistory.push(`/forms/${this.props.asset.uid}/data/map`);
     }
   }
   filterLanguage (evt) {

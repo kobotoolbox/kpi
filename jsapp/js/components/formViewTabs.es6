@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import assetStore from 'js/assetStore';
-import {Link, hashHistory} from 'react-router';
+import {Link} from 'react-router-dom';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
@@ -62,11 +62,11 @@ class FormViewTabs extends Reflux.Component {
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
-      hashHistory.push(`/forms/${this.state.asset.uid}/reset`);
+      // hashHistory.push(`/forms/${this.state.asset.uid}/reset`);
 
       var path = evt.target.getAttribute('data-path');
       window.setTimeout(function () {
-        hashHistory.push(path);
+        // hashHistory.push(path);
       }, 50);
 
       evt.preventDefault();

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link, hashHistory } from 'react-router';
+import { Link } from 'react-router-dom';
 import {stores} from '../stores';
 import bem from 'js/bem';
 import {searches} from '../searches';
@@ -47,9 +47,9 @@ class FormSidebar extends Reflux.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.unlisteners.push(
-      hashHistory.listen(this.onRouteChange.bind(this))
-    );
+    // this.unlisteners.push(
+    //   hashHistory.listen(this.onRouteChange.bind(this))
+    // );
   }
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});

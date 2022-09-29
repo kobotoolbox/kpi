@@ -14,7 +14,6 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import assetUtils from 'js/assetUtils';
 import {stores} from 'js/stores';
-import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
@@ -117,7 +116,7 @@ class ProjectSettings extends React.Component {
       actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      hashHistory.listen(this.onRouteChange.bind(this))
+      // hashHistory.listen(this.onRouteChange.bind(this))
     );
   }
 
@@ -348,7 +347,7 @@ class ProjectSettings extends React.Component {
 
   goToFormBuilder(assetUid) {
     stores.pageState.hideModal();
-    hashHistory.push(`/forms/${assetUid}/edit`);
+    // hashHistory.push(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
@@ -367,12 +366,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
+    // hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    hashHistory.push(ROUTES.FORMS);
+    // hashHistory.push(ROUTES.FORMS);
   }
 
   /*

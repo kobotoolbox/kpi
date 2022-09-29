@@ -25,7 +25,6 @@ import {
 } from 'utils';
 import {
   Link,
-  hashHistory,
 } from 'react-router';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
@@ -407,7 +406,7 @@ export class FormLanding extends React.Component {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   goToProjectsList() {
-    hashHistory.push(ROUTES.FORMS);
+    // hashHistory.push(ROUTES.FORMS);
   }
   nonOwnerSelfRemoval(evt) {
     evt.preventDefault();

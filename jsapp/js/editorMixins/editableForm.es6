@@ -7,7 +7,6 @@ import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
@@ -322,7 +321,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push(this.state.backRoute);
+          // hashHistory.push(this.state.backRoute);
         });
     } else {
       // update existing asset
@@ -512,7 +511,7 @@ export default assign({
 
   safeNavigateToRoute(route) {
     if (!this.needsSave()) {
-      hashHistory.push(route);
+      // hashHistory.push(route);
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
@@ -520,7 +519,7 @@ export default assign({
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
-          hashHistory.push(route);
+          // hashHistory.push(route);
         },
         oncancel: dialog.destroy
       };

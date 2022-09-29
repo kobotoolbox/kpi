@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';

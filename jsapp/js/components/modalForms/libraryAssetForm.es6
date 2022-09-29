@@ -11,7 +11,6 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {hashHistory} from 'react-router';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
 import {renderBackButton} from './modalHelpers';
@@ -94,9 +93,9 @@ export class LibraryAssetForm extends React.Component {
     notify(t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name));
     stores.pageState.hideModal();
     if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
-      hashHistory.push(`/library/asset/${response.uid}`);
+      // hashHistory.push(`/library/asset/${response.uid}`);
     } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
-      hashHistory.push(`/library/asset/${response.uid}/edit`);
+      // hashHistory.push(`/library/asset/${response.uid}/edit`);
     }
   }
 

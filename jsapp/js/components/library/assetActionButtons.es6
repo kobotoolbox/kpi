@@ -9,7 +9,6 @@
 import React from 'react';
 import Reflux from 'reflux';
 import autoBind from 'react-autobind';
-import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';
@@ -125,10 +124,10 @@ class AssetActionButtons extends React.Component {
    */
   onDeleteComplete(assetUid) {
     if (this.isLibrarySingle() && this.currentAssetID() === assetUid) {
-      hashHistory.push(ROUTES.LIBRARY);
+      // hashHistory.push(ROUTES.LIBRARY);
     }
     if (this.isFormSingle() && this.currentAssetID() === assetUid) {
-      hashHistory.push(ROUTES.FORMS);
+      // hashHistory.push(ROUTES.FORMS);
     }
   }
 
@@ -179,8 +178,8 @@ class AssetActionButtons extends React.Component {
   viewContainingCollection() {
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
-    hashHistory.push(`/library/asset/${parentAssetUid}`);
-    hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
+    // hashHistory.push(`/library/asset/${parentAssetUid}`);
+    // hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
   }
 
   getFormBuilderLink() {

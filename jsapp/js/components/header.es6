@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import { hashHistory } from 'react-router';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import assetStore from 'js/assetStore';
@@ -111,7 +110,7 @@ class MainHeader extends Reflux.Component {
   accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
-      hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
+      // hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
 

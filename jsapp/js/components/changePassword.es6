@@ -7,7 +7,6 @@ import {actions} from '../actions';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import TextBox from 'js/components/common/textBox';
-import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
@@ -37,7 +36,7 @@ export default class ChangePassword extends React.Component {
   }
 
   close() {
-    hashHistory.goBack();
+    // hashHistory.goBack();
   }
 
   changePassword() {

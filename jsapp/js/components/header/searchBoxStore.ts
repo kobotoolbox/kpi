@@ -1,6 +1,5 @@
 import Reflux from 'reflux';
 import type {Location} from 'history';
-import {hashHistory} from 'react-router';
 import {
   getCurrentPath,
   isMyLibraryRoute,
@@ -31,7 +30,7 @@ class SearchBoxStore extends Reflux.Store {
   };
 
   init() {
-    hashHistory.listen(this.onRouteChange.bind(this));
+    // hashHistory.listen(this.onRouteChange.bind(this));
     this.resetContext();
   }
 
