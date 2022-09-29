@@ -2,7 +2,7 @@ from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from djstripe.models import Customer, Product, Subscription
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, renderers, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -32,6 +32,11 @@ class SubscriptionViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
+
+    renderer_classes = (
+        renderers.BrowsableAPIRenderer,
+        renderers.JSONRenderer,
+    )
     model = Subscription
     serializer_class = SubscriptionSerializer
     lookup_field = 'id'

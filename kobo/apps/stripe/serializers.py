@@ -10,11 +10,13 @@ class BaseProductSerializer(serializers.ModelSerializer):
 
 
 class PlanSerializer(serializers.ModelSerializer):
+
     product = BaseProductSerializer()
 
     class Meta:
         model = Plan
-        fields = ('id', 'nickname', 'amount', 'metadata', 'product')
+        exclude = ('djstripe_id',)
+        # fields = ('id', 'nickname', 'amount', 'metadata', 'product')
 
 
 class ProductSerializer(BaseProductSerializer):
@@ -25,6 +27,13 @@ class ProductSerializer(BaseProductSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+
+    plan = serializers.SerializerMethodField()
+
     class Meta:
         model = Subscription
-        fields = '__all__'
+        exclude = ('djstripe_id',)
+
+    def get_plan(self, subscription):
+        plan = Plan.objects.get(id=subscription.plan.id)
+        return PlanSerializer(plan, many=False, context=self.context).data
