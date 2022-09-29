@@ -300,7 +300,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
               type='full'
               color='blue'
               size='m'
-              label={t('create transcript')}
+              label={singleProcessingStore.transcriptIsSlow ? t('in progress') : t('create transcript')}
               onClick={this.requestAutoTranscription.bind(this)}
               isDisabled={singleProcessingStore.isFetchingData}
             />

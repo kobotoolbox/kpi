@@ -5,9 +5,9 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
-from googleapiclient import discovery
 
 from google.cloud import speech, storage
+from googleapiclient import discovery
 
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
 from ...exceptions import AudioTooLongError, SubsequenceTimeoutError

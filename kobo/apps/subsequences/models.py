@@ -3,15 +3,13 @@ from django.db import models
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
-from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
-from kobo.apps.subsequences.integrations.google.google_transcribe import (
-    GoogleTranscribeEngine,
-)
-from kobo.apps.subsequences.integrations.google.google_translate import (
-    GoogleTranslationEngine,
-)
-from kobo.apps.subsequences.tasks import handle_google_translation_operation
 from kpi.models import Asset
+
+from .constants import GOOGLETS, GOOGLETX
+from .exceptions import SubsequenceTimeoutError
+from .integrations.google.google_transcribe import GoogleTranscribeEngine
+from .integrations.google.google_translate import GoogleTranslationEngine
+from .tasks import handle_google_translation_operation
 
 
 class SubmissionExtras(models.Model):
@@ -50,13 +48,16 @@ class SubmissionExtras(models.Model):
                                 if row['$qpath'] == qpath:
                                     xpath = row['$xpath']
                                     break
-                        results = engine.transcribe_file(
-                            asset=self.asset,
-                            xpath=xpath,
-                            source=language_code,
-                            submission_id=self.submission_uuid,
-                            user=self.asset.owner,
-                        )
+                        try:
+                            results = engine.transcribe_file(
+                                asset=self.asset,
+                                xpath=xpath,
+                                source=language_code,
+                                submission_id=self.submission_uuid,
+                                user=self.asset.owner,
+                            )
+                        except SubsequenceTimeoutError:
+                            continue
                         result_string = ' '.join(
                             [r['transcript'] for r in results]
                         )

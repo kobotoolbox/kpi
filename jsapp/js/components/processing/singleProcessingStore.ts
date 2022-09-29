@@ -81,6 +81,7 @@ interface SubmissionsEditIds {
 interface SingleProcessingStoreData {
   transcript?: Transx;
   transcriptDraft?: TransxDraft;
+  transcriptIsSlow?: boolean;
   translations: Transx[];
   translationDraft?: TransxDraft;
   /** Being displayed on the left side of the screen during translation editing. */
@@ -117,10 +118,15 @@ class SingleProcessingStore extends Reflux.Store {
 
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
+    this.data.transcriptIsSlow = false;
     this.data.translations = [];
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.activeTab = SingleProcessingTabs.Transcript;
+  }
+
+  public get transcriptIsSlow() {
+    return this.data.transcriptIsSlow;
   }
 
   public get currentAssetUid(): string {
@@ -174,6 +180,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this));
     processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.requestAutoTranscription.completed.listen(this.onRequestAutoTranscriptionCompleted.bind(this));
+    processingActions.requestAutoTranscription.in_progress.listen(this.onRequestAutoTranscriptionInProgress.bind(this));
     processingActions.requestAutoTranscription.failed.listen(this.onAnyCallFailed.bind(this));
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this));
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this));
@@ -521,6 +528,11 @@ class SingleProcessingStore extends Reflux.Store {
     ) {
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
+    this.trigger(this.data);
+  }
+
+  private onRequestAutoTranscriptionInProgress() {
+    this.data.transcriptIsSlow = true;
     this.trigger(this.data);
   }
 
