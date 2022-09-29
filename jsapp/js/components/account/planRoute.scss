@@ -7,32 +7,72 @@
 // There will be repeated styles in elements such as the header, title, and the containing div for the component.
 // Every component except for `profile` should share this frame.
 
-.plan-section {
-  padding: sizes.$x50;
-  overflow-y: auto;
-  height: 100%;
+ @import "scss/_colors";
+ 
+.plan {
+  padding: 30px 40px;
 }
 
-.plan-row {
-  .plan-row__header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: sizes.$x14;
-    border-bottom: sizes.$x1 solid;
-    border-color: colors.$kobo-gray-85;
-  }
+.plan__info {
+  display: flex;
+}
 
-  .plan-row__title {
-    color: colors.$kobo-gray-40;
-    font-weight: 600;
-  }
+.data-row__data {
+  display: flex;
+}
 
-  .plan-row__buttons {
-    margin: sizes.$x20 sizes.$x20 sizes.$x14 0;
+.plan__description {
+  flex: 1;
+  padding-left: 14px;
+}
 
-    .toggle-switch__label {
-      font-weight: 600;
-      color: colors.$kobo-gray-40;
-    }
-  }
+.plan__data {
+  flex: 1;
+  padding-right: 14px;
+}
+
+.kobo-range {
+  flex: 85;
+}
+
+.kobo-range__number {
+  font-size: 14px !important;
+}
+
+.kobo-range__unit {
+  font-size: 12px !important;
+}
+
+.kobo-dropdown {
+  flex: 15;
+  margin-left: 12px;
+  top: 10px;
+  font-size: 14px !important;
+}
+
+.submissions-title-wrapper {
+  display: inline;
+  margin-right: 12px;
+  color: $kobo-gray-40;
+  font-weight: 700;
+}
+
+.submissions-hint-wrapper {
+  display: inline;
+  color: $kobo-gray-24;
+}
+
+i.k-icon {
+  position: relative;
+  top: 3px;
+}
+
+// TODO: replace icon with proper one from mockups
+i.k-icon-spinner {
+  top: 2px;
+  margin-right: 1px !important;
+}
+
+label.count {
+  font-size: 12px !important;
 }
