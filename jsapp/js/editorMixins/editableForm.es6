@@ -327,7 +327,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push(this.state.backRoute);
+          hashHistory.push(`/library/${asset.uid}/edit`);
         });
     } else {
       // update existing asset

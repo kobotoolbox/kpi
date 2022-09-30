@@ -224,19 +224,24 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
 });
 
 actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
-  dataInterface.deployAsset(asset, redeployment)
-    .done((data) => {
-      actions.resources.deployAsset.completed(data.asset);
-      if (typeof params.onDone === 'function') {
-        params.onDone(data, redeployment);
-      }
-    })
-    .fail((data) => {
-      actions.resources.deployAsset.failed(data, redeployment);
-      if (typeof params.onFail === 'function') {
-        params.onFail(data,  redeployment);
-      }
-    });
+  var asset_type = asset.asset_type;
+  if (asset_type === "survey") {
+    dataInterface.deployAsset(asset, redeployment)
+      .done((data) => {
+        actions.resources.deployAsset.completed(data.asset);
+        if (typeof params.onDone === 'function') {
+          params.onDone(data, redeployment);
+        }
+      })
+      .fail((data) => {
+        actions.resources.deployAsset.failed(data, redeployment);
+        if (typeof params.onFail === 'function') {
+          params.onFail(data,  redeployment);
+        }
+      });
+  } else {
+    notify(t(`Asset of type ${asset_type} deployment is disabled`));
+  }
 });
 
 actions.resources.deployAsset.failed.listen(function(data, redeployment){
