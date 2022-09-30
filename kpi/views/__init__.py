@@ -20,10 +20,17 @@ from rest_framework.response import Response
 from kpi.models import AuthorizedApplication, OneTimeAuthenticationKey
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
+from kpi.utils.ona_authentication import JWTAuthentication
 
 
 def home(request):
-    return HttpResponseRedirect(getattr(settings, "ONADATA_HOME", "https://onadata.com"))
+    cookie_jwt = request.COOKIES.get(settings.KPI_COOKIE_NAME)
+    if request.user.is_anonymous and cookie_jwt:
+        auth_class = JWTAuthentication()
+        user, token = auth_class.authenticate(request)
+        user.backend = settings.AUTHENTICATION_BACKENDS[0]
+        login(request, user)
+    return TemplateResponse(request, "index.html")
 
 
 def browser_tests(request):
