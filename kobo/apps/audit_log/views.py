@@ -1,9 +1,9 @@
 from rest_framework import mixins, viewsets
-from rest_framework.permissions import IsAdminUser
 from rest_framework.renderers import JSONRenderer
 
 from kpi.filters import SearchFilter
 from .models import AuditLog
+from .permissions import SuperUserPermission
 from .serializers import AuditLogSerializer
 
 
@@ -51,7 +51,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     model = AuditLog
     serializer_class = AuditLogSerializer
-    permission_classes = (IsAdminUser,)  # Allow any user with `is_staff=True`
+    permission_classes = (SuperUserPermission,)  # Allow any user with `is_staff=True`
     renderer_classes = (JSONRenderer,)
     queryset = (
         AuditLog.objects.select_related('user').all().order_by('-date_created')
