@@ -27,6 +27,16 @@ class ApiAuditLogTestCase(BaseTestCase):
         response = self.client.get(self.audit_log_list_url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_list_as_staff_user(self):
+        someuser = get_user_model().objects.get(username='someuser')
+        # Promote someuser as a staff user.
+        someuser.is_staff = True
+        someuser.save()
+
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(self.audit_log_list_url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_list_as_superuser(self):
         someuser = get_user_model().objects.get(username='someuser')
         date_created = now().strftime('%Y-%m-%dT%H:%M:%SZ')
