@@ -670,8 +670,15 @@ CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 ''' Django Registration configuration '''
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_UNIQUE_EMAIL = False
 REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
+
+SOCIALACCOUNT_PROVIDERS = {}
+if MICROSOFT_TENANT := env.str("SOCIALACCOUNT_PROVIDERS_microsoft_TENANT", None):
+    SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
 
 WEBPACK_LOADER = {
     'DEFAULT': {

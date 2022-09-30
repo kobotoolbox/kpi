@@ -12,6 +12,7 @@ urlpatterns = [
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),
     re_path(r'^admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
     re_path(r'^markitup/', include('markitup.urls')),
