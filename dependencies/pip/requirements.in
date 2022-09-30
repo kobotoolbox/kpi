@@ -90,3 +90,6 @@ django-trench==0.2.3
 
 # Python 3.8 support
 backports.zoneinfo; python_version < '3.9'
+
+# OnaData support
+PyJWT

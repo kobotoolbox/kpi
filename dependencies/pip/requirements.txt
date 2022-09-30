@@ -243,7 +243,9 @@ pycparser==2.21
 pygments==2.11.2
     # via -r dependencies/pip/requirements.in
 pyjwt==2.3.0
-    # via twilio
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   twilio
 pymongo==3.12.3
     # via -r dependencies/pip/requirements.in
 pyopenssl==22.0.0
