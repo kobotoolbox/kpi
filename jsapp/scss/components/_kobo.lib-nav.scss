@@ -31,6 +31,40 @@
   }
 }
 
+.lib-nav__helperContainer {
+  background-color: #bee5eb;
+  border: 1px solid #e0e1e6;
+  padding-top: 5px;
+  padding-bottom: 5px;
+
+  .header {
+    display: flex;
+    padding-top: 10px;
+    margin-bottom: -6px;
+
+    .icon-container {
+      margin-top: -6px;
+      margin-bottom: -12px;
+
+      .k-icon-information {
+        font-size: 32px;
+      }
+    }
+  }
+
+  hr {
+    border-top: 1px solid #737b92;
+    margin-left: 7px;
+    margin-right: 7px;
+  }
+
+  .body {
+    margin-top: -7px;
+    margin-left: 7px;
+    margin-right: 7px;
+  }
+}
+
 .lib-nav__search {
   margin: 0 0 10px;
   flex-grow: 1;

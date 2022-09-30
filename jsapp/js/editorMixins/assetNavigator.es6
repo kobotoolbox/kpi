@@ -221,6 +221,16 @@ class AssetNavigator extends Reflux.Component {
         </bem.LibNav__header>
 
         <bem.LibNav__content>
+          <bem.LibNav__helperContainer>
+            <div className="header">
+              <span className="icon-container"><i className='k-icon-information' /></span>
+              <span><b>Quick tip</b></span>
+            </div>
+            <hr/>
+            <div className="body">
+              {t('You can drag and drop the items below to the form editor on the left')}
+            </div>
+          </bem.LibNav__helperContainer>
           <AssetNavigatorListView searchContext={this.state.searchContext} />
         </bem.LibNav__content>
 

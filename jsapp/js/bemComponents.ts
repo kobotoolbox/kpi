@@ -100,6 +100,7 @@ bem.LibNav__search = makeBem(bem.LibNav, 'search');
 bem.LibNav__expanded = makeBem(bem.LibNav, 'expanded');
 bem.LibNav__count = makeBem(bem.LibNav, 'count');
 bem.LibNav__expandedToggle = makeBem(bem.LibNav, 'expandedToggle');
+bem.LibNav__helperContainer = makeBem(bem.LibNav, 'helperContainer');
 
 bem.TemplatesList = makeBem(null, 'templates-list');
 bem.TemplatesList__header = makeBem(bem.TemplatesList, 'header');
