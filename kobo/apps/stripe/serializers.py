@@ -16,7 +16,6 @@ class PlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
         exclude = ('djstripe_id',)
-        # fields = ('id', 'nickname', 'amount', 'metadata', 'product')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
