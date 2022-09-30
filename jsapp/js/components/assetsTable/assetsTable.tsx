@@ -12,18 +12,20 @@ import {
   ASSETS_TABLE_CONTEXTS,
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
-} from './libraryConstants';
+} from './assetsTableConstants';
 import type {
+  OrderDirection,
   AssetsTableContextName,
   AssetsTableColumn,
-} from './libraryConstants';
+} from './assetsTableConstants';
 import type {
   AssetResponse,
   MetadataResponse,
 } from 'js/dataInterface';
 import './assetsTable.scss';
 
-type ColumnChangeCallback = (columnId: string | null, columnValue: string | null) => void;
+type OrderChangeCallback = (columnId: string, columnValue: OrderDirection) => void;
+type FilterChangeCallback = (columnId: string | null, columnValue: string | null) => void;
 type SwitchPageCallback = (pageNumber: number) => void;
 
 interface AssetsTableProps {
@@ -43,19 +45,21 @@ interface AssetsTableProps {
  /** Seleceted order column value. */
  orderValue: string;
  /** Called when user selects a column for odering. */
- onOrderChange: ColumnChangeCallback;
+ onOrderChange: OrderChangeCallback;
  /** Seleceted filter column, one of ASSETS_TABLE_COLUMNS. */
- filterColumnId: string;
+ filterColumnId: string | null;
  /** Seleceted filter column value. */
- filterValue: string;
+ filterValue: string | null;
  /** Called when user selects a column for filtering. */
- onFilterChange: ColumnChangeCallback;
- /** For displaying pagination. */
- currentPage: number;
- /** For displaying pagination. */
- totalPages: number;
+ onFilterChange: FilterChangeCallback;
+ /**
+  * For displaying pagination. If you omit any of these, pagination will simply
+  * not be rendered. Good to use when you actually don't need it.
+  */
+ currentPage?: number;
+ totalPages?: number;
  /** Called when user clicks page change. */
- onSwitchPage: SwitchPageCallback;
+ onSwitchPage?: SwitchPageCallback;
 }
 
 interface AssetsTableState {
@@ -116,7 +120,9 @@ export default class AssetsTable extends React.Component<
   }
 
   switchPage(newPageNumber: number) {
-    this.props.onSwitchPage(newPageNumber);
+    if (this.props.onSwitchPage) {
+      this.props.onSwitchPage(newPageNumber);
+    }
   }
 
   /**
@@ -129,13 +135,13 @@ export default class AssetsTable extends React.Component<
       let newVal = null;
       if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
         newVal = ORDER_DIRECTIONS.descending;
-      } else if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
+      } else {
         newVal = ORDER_DIRECTIONS.ascending;
       }
       this.props.onOrderChange(this.props.orderColumnId, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS[columnId].defaultValue || null);
+      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS[columnId].defaultValue || ORDER_DIRECTIONS.ascending);
     }
   }
 
@@ -293,14 +299,12 @@ export default class AssetsTable extends React.Component<
    * Safe: returns nothing if pagination properties are not set.
    */
   renderPagination() {
-    const hasPagination = (
-      typeof this.props.currentPage === 'number' &&
-      typeof this.props.totalPages === 'number' &&
-      typeof this.props.onSwitchPage === 'function'
-    );
-    const naturalCurrentPage = this.props.currentPage + 1;
-
-    if (hasPagination) {
+    if (
+      this.props.currentPage &&
+      this.props.totalPages &&
+      this.props.onSwitchPage
+    ) {
+      const naturalCurrentPage = this.props.currentPage + 1;
       return (
         <bem.AssetsTablePagination>
           <bem.AssetsTablePagination__button

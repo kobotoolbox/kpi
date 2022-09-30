@@ -26,8 +26,8 @@ import {
   getRouteAssetUid,
   isAnyFormRoute,
 } from 'js/router/routerUtils';
-import ownedCollectionsStore from './ownedCollectionsStore';
-import type {OwnedCollectionsStoreData} from './ownedCollectionsStore';
+import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
 
 const assetActions = mixins.clickAssets.click.asset;

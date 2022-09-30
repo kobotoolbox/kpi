@@ -1,4 +1,5 @@
 import Reflux from 'reflux';
+import type {Location} from 'history';
 import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
@@ -10,56 +11,87 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
-} from './libraryConstants';
+} from 'js/components/assetsTable/assetsTableConstants';
+import type {OrderDirection} from 'js/components/assetsTable/assetsTableConstants';
+import type {
+  AssetResponse,
+  AssetsResponse,
+  MetadataResponse,
+  SearchAssetsPredefinedParams,
+} from 'js/dataInterface';
 import {ROUTES} from 'js/router/routerConstants';
+import type {AssetTypeName} from 'js/constants';
+
+interface SingleCollectionStoreData {
+  isFetchingData: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  totalUserAssets: number | null;
+  totalSearchAssets: number;
+  assets: AssetResponse[];
+  metadata: MetadataResponse;
+  orderColumnId: string;
+  orderValue: OrderDirection;
+  filterColumnId: string | null;
+  filterValue: string | null;
+}
 
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:
 // - searchMyLibraryAssets.* -> searchMyCollectionAssets.*
 // - searchMyLibraryMetadata.completed -> searchMyCollectionMetadata.completed
-const singleCollectionStore = Reflux.createStore({
+class SingleCollectionStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
-  abortFetchData: undefined,
-  previousPath: getCurrentPath(),
-  PAGE_SIZE: 100,
-  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
+  abortFetchData?: Function;
+  previousPath = getCurrentPath();
+  PAGE_SIZE = 100;
+  DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
 
-  isInitialised: false,
+  isInitialised = false;
 
-  data: {
+  data: SingleCollectionStoreData = {
     isFetchingData: false,
-    currentPage: 0,
-    totalPages: null,
+    currentPage: undefined,
+    totalPages: undefined,
     totalUserAssets: null,
-    totalSearchAssets: null,
+    totalSearchAssets: 0,
     assets: [],
-    metadata: {},
-  },
+    metadata: {
+      languages: [],
+      countries: [],
+      sectors: [],
+      organizations: [],
+    },
+    orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
+    orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue || ORDER_DIRECTIONS.ascending,
+    filterColumnId: null,
+    filterValue: null,
+  };
 
   init() {
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
-    actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
-    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
-    actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
-    actions.resources.createResource.completed.listen(this.onAssetCreated);
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
+    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
+    actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this));
+    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this));
+    actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this));
+    actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this));
+    actions.resources.cloneAsset.completed.listen(this.onAssetCreated.bind(this));
+    actions.resources.createResource.completed.listen(this.onAssetCreated.bind(this));
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
     // Actions unique to a single collection store (overwriting myLibraryStore)
-    actions.library.searchMyCollectionAssets.started.listen(this.onSearchStarted);
-    actions.library.searchMyCollectionAssets.completed.listen(this.onSearchCompleted);
-    actions.library.searchMyCollectionAssets.failed.listen(this.onSearchFailed);
-    actions.library.searchMyCollectionMetadata.completed.listen(this.onSearchMetadataCompleted);
+    actions.library.searchMyCollectionAssets.started.listen(this.onSearchStarted.bind(this));
+    actions.library.searchMyCollectionAssets.completed.listen(this.onSearchCompleted.bind(this));
+    actions.library.searchMyCollectionAssets.failed.listen(this.onSearchFailed.bind(this));
+    actions.library.searchMyCollectionMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
 
     // startup store after config is ready
     actions.permissions.getConfig.completed.listen(this.startupStore);
-  },
+  }
 
   /**
    * Only makes a call to BE when loaded app on a library route
@@ -69,43 +101,37 @@ const singleCollectionStore = Reflux.createStore({
     if (!this.isInitialised && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
-  },
+  }
 
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
-    this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
+    this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue || ORDER_DIRECTIONS.ascending;
     this.data.filterColumnId = null;
     this.data.filterValue = null;
-  },
+  }
 
   // methods for handling search and data fetch
 
-  /**
-   * @return {object} search params shared by all searches
-   */
   getSearchParams() {
-    const params = {
+    const params: SearchAssetsPredefinedParams = {
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      uid: getRouteAssetUid(),
+      uid: getRouteAssetUid() || undefined,
     };
 
     if (this.data.filterColumnId !== null) {
       const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
-      params.filterValue = this.data.filterValue;
+      params.filterValue = this.data.filterValue || undefined;
     }
 
     return params;
-  },
+  }
 
   fetchMetadata() {
     actions.library.searchMyCollectionMetadata(this.getSearchParams());
-  },
+  }
 
-  /**
-   * @param {boolean} needsMetadata
-   */
   fetchData(needsMetadata = false) {
     // Avoid triggering search if not on the collection route (e.g. subscribed
     // to a collection from Public Collections list) as it will cause 500 error
@@ -127,14 +153,16 @@ const singleCollectionStore = Reflux.createStore({
 
     params.metadata = needsMetadata;
 
-    const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
-    params.ordering = `${direction}${orderColumn.orderBy}`;
+    if (this.data.orderColumnId !== null) {
+      const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
+      const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
+      params.ordering = `${direction}${orderColumn.orderBy}`;
+    }
 
     actions.library.searchMyCollectionAssets(params);
-  },
+  }
 
-  onRouteChange(data) {
+  onRouteChange(data: Location) {
     if (!this.isInitialised && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
@@ -152,15 +180,15 @@ const singleCollectionStore = Reflux.createStore({
       this.fetchData(true);
     }
     this.previousPath = data.pathname;
-  },
+  }
 
-  onSearchStarted(abort) {
+  onSearchStarted(abort: Function) {
     this.abortFetchData = abort;
     this.data.isFetchingData = true;
     this.trigger(this.data);
-  },
+  }
 
-  onSearchCompleted(response) {
+  onSearchCompleted(response: AssetsResponse) {
     delete this.abortFetchData;
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
     this.data.assets = response.results;
@@ -176,34 +204,36 @@ const singleCollectionStore = Reflux.createStore({
     this.data.isFetchingData = false;
     this.isInitialised = true;
     this.trigger(this.data);
-  },
+  }
 
   onSearchFailed() {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
     this.trigger(this.data);
-  },
+  }
 
-  onSearchMetadataCompleted(response) {
+  onSearchMetadataCompleted(response: MetadataResponse) {
     this.data.metadata = response;
     this.trigger(this.data);
-  },
+  }
 
   // methods for handling actions that update assets
 
-  onMoveToCollectionCompleted(asset) {
+  onMoveToCollectionCompleted(asset: AssetResponse) {
     if (assetUtils.isLibraryAsset(asset.asset_type)) {
-      // update total root assets after moving asset into/out of collection
-      if (asset.parent === null) {
-        this.data.totalUserAssets++;
-      } else {
-        this.data.totalUserAssets--;
+      if (this.data.totalUserAssets !== null) {
+        // update total root assets after moving asset into/out of collection
+        if (asset.parent === null) {
+          this.data.totalUserAssets++;
+        } else {
+          this.data.totalUserAssets--;
+        }
       }
       this.fetchData(true);
     }
-  },
+  }
 
-  onAssetChanged(asset) {
+  onAssetChanged(asset: AssetResponse) {
     if (
       assetUtils.isLibraryAsset(asset.asset_type) &&
       this.data.assets.length !== 0
@@ -230,42 +260,42 @@ const singleCollectionStore = Reflux.createStore({
         this.fetchMetadata();
       }
     }
-  },
+  }
 
-  onAssetCreated(asset) {
+  onAssetCreated(asset: AssetResponse) {
     if (
       assetUtils.isLibraryAsset(asset.asset_type) &&
       asset.parent === null
     ) {
-      this.data.totalUserAssets++;
+      if (this.data.totalUserAssets !== null) {
+        this.data.totalUserAssets++;
+      }
       this.fetchData(true);
     }
-  },
+  }
 
-  onDeleteAssetCompleted({uid, assetType}) {
-    if (assetUtils.isLibraryAsset(assetType)) {
-      const found = this.findAsset(uid);
+  onDeleteAssetCompleted(response: {uid: string; assetType: AssetTypeName;}) {
+    if (assetUtils.isLibraryAsset(response.assetType)) {
+      const found = this.findAsset(response.uid);
       if (found) {
-        this.data.totalUserAssets--;
+        if (this.data.totalUserAssets !== null) {
+          this.data.totalUserAssets--;
+        }
         this.fetchData(true);
       }
       // if not found it is possible it is on other page of results, but it is
       // not important enough to do a data fetch
     }
-  },
+  }
 
   // public methods
 
-  setCurrentPage(newCurrentPage) {
+  setCurrentPage(newCurrentPage: number) {
     this.data.currentPage = newCurrentPage;
     this.fetchData();
-  },
+  }
 
-  /**
-   * @param {string} orderColumnId
-   * @param {string} orderValue
-   */
-  setOrder(orderColumnId, orderValue) {
+  setOrder(orderColumnId: string, orderValue: OrderDirection) {
     if (
       this.data.orderColumnId !== orderColumnId ||
       this.data.orderValue !== orderValue
@@ -274,13 +304,10 @@ const singleCollectionStore = Reflux.createStore({
       this.data.orderValue = orderValue;
       this.fetchData();
     }
-  },
+  }
 
-  /**
-   * @param {string|null} filterColumnId - pass null to clear filter column
-   * @param {string} filterValue - pass null to clear filter column
-   */
-  setFilter(filterColumnId, filterValue) {
+  /** Pass `null`s to clear filter column */
+  setFilter(filterColumnId: string | null, filterValue: string | null) {
     if (
       this.data.filterColumnId !== filterColumnId ||
       this.data.filterValue !== filterValue
@@ -293,12 +320,12 @@ const singleCollectionStore = Reflux.createStore({
       this.data.currentPage = 0;
       this.fetchData(true);
     }
-  },
+  }
 
   resetOrderAndFilter() {
     this.setDefaultColumns();
     this.fetchData(true);
-  },
+  }
 
   hasAllDefaultValues() {
     return (
@@ -307,15 +334,18 @@ const singleCollectionStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
-  },
+  }
 
   getCurrentUserTotalAssets() {
     return this.data.totalUserAssets;
-  },
+  }
 
-  findAsset(uid) {
-    return this.data.assets.find((asset) => {return asset.uid === uid;});
-  },
-});
+  findAsset(uid: string) {
+    return this.data.assets.find((asset) => asset.uid === uid);
+  }
+}
+
+const singleCollectionStore = new SingleCollectionStore();
+singleCollectionStore.init();
 
 export default singleCollectionStore;

@@ -25,18 +25,18 @@ class OwnedCollectionsStore extends Reflux.Store {
   };
 
   init() {
-    hashHistory.listen(this.startupStore);
-    stores.session.listen(this.startupStore);
-    actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted);
-    actions.library.getCollections.failed.listen(this.onGetCollectionsFailed);
+    hashHistory.listen(this.startupStore.bind(this));
+    stores.session.listen(this.startupStore.bind(this));
+    actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted.bind(this));
+    actions.library.getCollections.failed.listen(this.onGetCollectionsFailed.bind(this));
     // NOTE: this could update the list of collections, but currently nothing is using
     // these parts of data that will be updated by this, thus it is commented out:
-    // // actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
-    actions.resources.loadAsset.completed.listen(this.onAssetChangedOrCreated);
-    actions.resources.updateAsset.completed.listen(this.onAssetChangedOrCreated);
-    actions.resources.cloneAsset.completed.listen(this.onAssetChangedOrCreated);
-    actions.resources.createResource.completed.listen(this.onAssetChangedOrCreated);
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
+    // // actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
+    actions.resources.loadAsset.completed.listen(this.onAssetChangedOrCreated.bind(this));
+    actions.resources.updateAsset.completed.listen(this.onAssetChangedOrCreated.bind(this));
+    actions.resources.cloneAsset.completed.listen(this.onAssetChangedOrCreated.bind(this));
+    actions.resources.createResource.completed.listen(this.onAssetChangedOrCreated.bind(this));
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
 
     this.startupStore();
   }

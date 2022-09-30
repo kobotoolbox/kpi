@@ -11,8 +11,8 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
-} from './libraryConstants';
-import type {AssetsTableColumn} from './libraryConstants';
+} from 'js/components/assetsTable/assetsTableConstants';
+import type {AssetsTableColumn} from 'js/components/assetsTable/assetsTableConstants';
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
@@ -23,7 +23,7 @@ import type {
   AssetsResponse,
   DeleteAssetResponse,
   MetadataResponse,
-  AssetSubscriptionResponse,
+  AssetSubscriptionsResponse,
 } from 'js/dataInterface';
 
 interface PublicCollectionsStoreData {
@@ -144,9 +144,6 @@ class PublicCollectionsStore extends Reflux.Store {
     actions.library.searchPublicCollectionsMetadata(this.getSearchParams());
   }
 
-  /**
-   * @param {boolean} needsMetadata
-   */
   fetchData(needsMetadata = false) {
     if (this.abortFetchData) {
       this.abortFetchData();
@@ -227,7 +224,7 @@ class PublicCollectionsStore extends Reflux.Store {
 
   // methods for handling actions that update assets
 
-  onSubscribeCompleted(subscriptionData: AssetSubscriptionResponse) {
+  onSubscribeCompleted(subscriptionData: AssetSubscriptionsResponse) {
     this.onAssetAccessTypeChanged(subscriptionData.asset, true);
   }
 

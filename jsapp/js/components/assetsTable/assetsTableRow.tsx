@@ -6,8 +6,8 @@ import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';
 import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
-import type {AssetsTableContextName} from 'js/components/library/libraryConstants';
-import {ASSETS_TABLE_CONTEXTS} from 'js/components/library/libraryConstants';
+import type {AssetsTableContextName} from './assetsTableConstants';
+import {ASSETS_TABLE_CONTEXTS} from './assetsTableConstants';
 
 interface AssetsTableRowProps {
   asset: AssetResponse;
