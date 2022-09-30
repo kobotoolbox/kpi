@@ -198,7 +198,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         deleted_submission_ids = AuditLog.objects.values_list(
             'pk', flat=True
         ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
-        assert len(deleted_submission_ids) != audit_log_count
+        assert len(expected_submission_ids) > 0
         assert sorted(expected_submission_ids), sorted(deleted_submission_ids)
 
     def test_delete_submissions_as_anonymous(self):
@@ -775,7 +775,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         deleted_submission_ids = AuditLog.objects.values_list(
             'pk', flat=True
         ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
-        assert len(deleted_submission_ids) != audit_log_count
+        assert len(deleted_submission_ids) > 0
         assert [submission['_id']], deleted_submission_ids
 
     def test_delete_not_existing_submission_as_owner(self):

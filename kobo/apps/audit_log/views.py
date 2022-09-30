@@ -51,7 +51,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     model = AuditLog
     serializer_class = AuditLogSerializer
-    permission_classes = (SuperUserPermission,)  # Allow any user with `is_staff=True`
+    permission_classes = (SuperUserPermission,)
     renderer_classes = (JSONRenderer,)
     queryset = (
         AuditLog.objects.select_related('user').all().order_by('-date_created')

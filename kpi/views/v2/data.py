@@ -340,11 +340,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         bulk_actions_validator.is_valid(raise_exception=True)
         audit_logs = []
         if request.method == 'DELETE':
-            # Prepare audit log
+            # Prepare audit logs
             data = copy.deepcopy(bulk_actions_validator.data)
             # Retrieve all submissions matching `submission_ids` or `query`.
-            # If user is not allowed to see some the submissions (i.e.: user with
-            # partial permissions), the request will be rejected
+            # If user is not allowed to see some of the submissions (i.e.: user
+            # with partial permissions), the request will be rejected
             # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
             submissions = deployment.get_submissions(
                 user=request.user,
