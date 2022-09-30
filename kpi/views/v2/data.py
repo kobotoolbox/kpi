@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 import json
 import re
 from xml.etree import ElementTree as ET
@@ -21,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
 from kpi.authentication import EnketoSessionAuthentication
@@ -336,7 +338,42 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         bulk_actions_validator = DataBulkActionsValidator(**kwargs)
         bulk_actions_validator.is_valid(raise_exception=True)
+        audit_logs = []
+        if request.method == 'DELETE':
+            # Prepare audit logs
+            data = copy.deepcopy(bulk_actions_validator.data)
+            # Retrieve all submissions matching `submission_ids` or `query`.
+            # If user is not allowed to see some of the submissions (i.e.: user
+            # with partial permissions), the request will be rejected
+            # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
+            submissions = deployment.get_submissions(
+                user=request.user,
+                submission_ids=data['submission_ids'],
+                query=data['query'],
+                fields=['_id', '_uuid']
+            )
+            (
+                app_label,
+                model_name,
+            ) = deployment.submission_model.get_app_label_and_model_name()
+            for submission in submissions:
+                audit_logs.append(AuditLog(
+                    app_label=app_label,
+                    model_name=model_name,
+                    object_id=submission['_id'],
+                    user=request.user,
+                    metadata={
+                        'asset_uid': self.asset.uid,
+                        'uuid': submission['_uuid'],
+                    }
+                ))
+
+        # Send request to KC
         json_response = action_(bulk_actions_validator.data, request.user)
+
+        # If requests has succeeded, let's log deletions (if any)
+        if json_response['status'] == status.HTTP_200_OK and audit_logs:
+            AuditLog.objects.bulk_create(audit_logs)
 
         return Response(**json_response)
 
@@ -344,9 +381,34 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
+
+        # Need to get `uuid` before the data is gone
+        submission = deployment.get_submission(
+            submission_id=submission_id,
+            user=request.user,
+            fields=['_id', '_uuid']
+        )
+
         json_response = deployment.delete_submission(
             submission_id, user=request.user
         )
+
+        if json_response['status'] == status.HTTP_204_NO_CONTENT:
+            (
+                app_label,
+                model_name,
+            ) = deployment.submission_model.get_app_label_and_model_name()
+            AuditLog.objects.create(
+                app_label=app_label,
+                model_name=model_name,
+                object_id=pk,
+                user=request.user,
+                metadata={
+                    'asset_uid': self.asset.uid,
+                    'uuid': submission['_uuid'],
+                }
+            )
+
         return Response(**json_response)
 
     @action(

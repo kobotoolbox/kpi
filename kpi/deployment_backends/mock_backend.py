@@ -151,7 +151,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return monthly_counter
 
-
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
@@ -225,7 +224,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return {
             'content_type': 'application/json',
-            'status': status.HTTP_204_NO_CONTENT,
+            'status': status.HTTP_200_OK,
         }
 
     def duplicate_submission(
@@ -602,6 +601,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name,
                        kwargs={'parent_lookup_asset': self.asset.uid})
+
+    @property
+    def submission_model(self):
+
+        class MockLoggerInstance:
+            @classmethod
+            def get_app_label_and_model_name(cls):
+                return 'mocklogger', 'instance'
+
+        return MockLoggerInstance
 
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         queryset = self._get_metadata_queryset(file_type=file_type)
