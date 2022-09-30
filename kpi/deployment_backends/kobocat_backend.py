@@ -61,6 +61,7 @@ from .kc_access.shadow_models import (
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
+    kc_transaction_atomic,
     last_submission_time
 )
 from ..exceptions import (
@@ -105,10 +106,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
-        for user, perms in users_with_perms.items():
-            if user.id == self.asset.owner_id:
-                continue
-            assign_applicable_kc_permissions(self.asset, user, perms)
+        with kc_transaction_atomic():
+            for user, perms in users_with_perms.items():
+                if user.id == self.asset.owner_id:
+                    continue
+                assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
         self, data: dict, user: 'auth.User'
