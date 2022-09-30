@@ -80,6 +80,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.microsoft',
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
@@ -330,6 +334,7 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'

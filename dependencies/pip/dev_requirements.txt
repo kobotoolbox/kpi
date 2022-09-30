@@ -90,6 +90,7 @@ cryptography==37.0.1
     #   azure-storage-blob
     #   jwcrypto
     #   paramiko
+    #   pyjwt
     #   pyopenssl
 cssselect==1.1.0
     # via pyquery
@@ -100,6 +101,7 @@ deepmerge==1.0.1
 defusedxml==0.7.1
     # via
     #   djangorestframework-xml
+    #   python3-openid
     #   pyxform
 deprecated==1.2.13
     # via
@@ -115,6 +117,7 @@ django==3.2.15
     # via
     #   -r dependencies/pip/requirements.in
     #   dj-stripe
+    #   django-allauth
     #   django-amazon-ses
     #   django-braces
     #   django-celery-beat
@@ -138,6 +141,8 @@ django==3.2.15
     #   jsonfield
     #   kobo-service-account
     #   model-bakery
+django-allauth==0.51.0
+    # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
 django-braces==1.15.0
@@ -326,8 +331,10 @@ pygments==2.12.0
     # via
     #   -r dependencies/pip/requirements.in
     #   ipython
-pyjwt==2.3.0
-    # via twilio
+pyjwt[crypto]==2.3.0
+    # via
+    #   django-allauth
+    #   twilio
 pymongo==3.12.3
     # via -r dependencies/pip/requirements.in
 pynacl==1.5.0
@@ -363,6 +370,8 @@ python-dateutil==2.8.2
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   python-crontab
+python3-openid==3.2.0
+    # via django-allauth
 pytz==2022.1
     # via
     #   celery
@@ -385,6 +394,7 @@ requests==2.27.1
     #   -r dependencies/pip/requirements.in
     #   azure-core
     #   coveralls
+    #   django-allauth
     #   django-oauth-toolkit
     #   msrest
     #   requests-oauthlib
@@ -394,7 +404,9 @@ requests==2.27.1
     #   twilio
     #   yubico-client
 requests-oauthlib==1.3.1
-    # via msrest
+    # via
+    #   django-allauth
+    #   msrest
 responses==0.20.0
     # via -r dependencies/pip/requirements.in
 s3transfer==0.5.2
@@ -411,8 +423,11 @@ six==1.16.0
     #   azure-core
     #   bcrypt
     #   click-repl
+<<<<<<< HEAD
     #   django-organizations
     #   isodate
+=======
+>>>>>>> 6f9766500 (Add django allauth package)
     #   mongomock
     #   paramiko
     #   pathlib2
