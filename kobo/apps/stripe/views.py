@@ -1,18 +1,10 @@
 from django.conf import settings
-from django.http import Http404
-from django.shortcuts import get_object_or_404
-from djstripe.models import Customer, Product, Subscription
+from djstripe.models import Product, Subscription
 from rest_framework import mixins, renderers, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from kobo.apps.organizations.models import (
-    Organization,
-    OrganizationOwner,
-    OrganizationUser,
-)
 from kobo.apps.stripe.serializers import (
-    # CustomerSerializer,
     ProductSerializer,
     SubscriptionSerializer
 )
