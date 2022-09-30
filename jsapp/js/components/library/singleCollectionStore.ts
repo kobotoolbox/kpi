@@ -90,7 +90,7 @@ class SingleCollectionStore extends Reflux.Store {
     actions.library.searchMyCollectionMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.startupStore);
+    actions.permissions.getConfig.completed.listen(this.startupStore.bind(this));
   }
 
   /**
