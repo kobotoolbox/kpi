@@ -14,6 +14,7 @@ import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'utils';
 import {redirectToLogin} from 'js/router/routerUtils';
+import { TITLE } from '../ona/config';
 import {
   ASSET_TYPES,
   COMMON_QUERIES,
@@ -211,7 +212,7 @@ class SearchCollectionList extends Reflux.Component {
       docTitle = t('Library');
     }
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | ${ TITLE }`}>
         <Dropzone
           onDrop={this.dropFiles}
           disableClick

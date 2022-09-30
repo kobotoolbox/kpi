@@ -15,6 +15,7 @@ import {
   addRequiredToLabel,
   stringToColor,
 } from 'utils';
+import { TITLE } from '../../ona/config';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
@@ -207,7 +208,7 @@ export default class AccountSettings extends React.Component {
     const metaFields = this.getDisplayMetaFields();
 
     return (
-      <DocumentTitle title={`${accountName} | KoboToolbox`}>
+      <DocumentTitle title={`${accountName} | ${ TITLE }`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <bem.KoboButton

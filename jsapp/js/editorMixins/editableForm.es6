@@ -11,7 +11,12 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {assign} from '../utils';
+import {
+  assign,
+  checkIfCookieExists,
+  redirectForOnaDataAuth,
+} from 'utils';
+import { TITLE } from '../ona/config';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -927,80 +932,84 @@ export default assign({
   },
 
   render() {
-    var docTitle = this.state.name || t('Untitled');
+    if (checkIfCookieExists("__kpi_formbuilder")) {
+      redirectForOnaDataAuth()
+    } else {
+      var docTitle = this.state.name || t('Untitled');
 
-    if (!this.state.isNewAsset && !this.state.asset) {
+      if (!this.state.isNewAsset && !this.state.asset) {
+        return (
+          <DocumentTitle title={`${docTitle} | ${ TITLE }`}>
+            <LoadingSpinner/>
+          </DocumentTitle>
+        );
+      }
+
       return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <LoadingSpinner/>
+        <DocumentTitle title={`${docTitle} | ${ TITLE }`}>
+          <bem.uiPanel m={['transparent', 'fixed']}>
+            <bem.uiPanel__body>
+              {this.renderAside()}
+
+              <bem.FormBuilder>
+              {this.renderFormBuilderHeader()}
+
+                <bem.FormBuilder__contents>
+                  {this.state.asset &&
+                    <FormLockedMessage asset={this.state.asset}/>
+                  }
+
+                  {this.hasBackgroundAudio() &&
+                    this.renderBackgroundAudioWarning()
+                  }
+
+                  <div ref='form-wrap' className='form-wrap'>
+                    {!this.state.surveyAppRendered &&
+                      this.renderNotLoadedMessage()
+                    }
+                  </div>
+                </bem.FormBuilder__contents>
+              </bem.FormBuilder>
+
+              {this.state.enketopreviewOverlay &&
+                <Modal
+                  open
+                  large
+                  onClose={this.hidePreview}
+                  title={t('Form Preview')}
+                >
+                  <Modal.Body>
+                    <div className='enketo-holder'>
+                      <iframe src={this.state.enketopreviewOverlay} />
+                    </div>
+                  </Modal.Body>
+                </Modal>
+              }
+
+              {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+                <Modal
+                  open
+                  error
+                  onClose={this.clearPreviewError}
+                  title={t('Error generating preview')}
+                >
+                  <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+                </Modal>
+              }
+
+              {this.state.showCascadePopup &&
+                <Modal
+                  open
+                  onClose={this.hideCascade}
+                  title={t('Import Cascading Select Questions')}
+                >
+                  <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+                </Modal>
+              }
+            </bem.uiPanel__body>
+          </bem.uiPanel>
         </DocumentTitle>
       );
     }
-
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.uiPanel m={['transparent', 'fixed']}>
-          <bem.uiPanel__body>
-            {this.renderAside()}
-
-            <bem.FormBuilder>
-            {this.renderFormBuilderHeader()}
-
-              <bem.FormBuilder__contents>
-                {this.state.asset &&
-                  <FormLockedMessage asset={this.state.asset}/>
-                }
-
-                {this.hasBackgroundAudio() &&
-                  this.renderBackgroundAudioWarning()
-                }
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
-                  }
-                </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
-
-            {this.state.enketopreviewOverlay &&
-              <Modal
-                open
-                large
-                onClose={this.hidePreview}
-                title={t('Form Preview')}
-              >
-                <Modal.Body>
-                  <div className='enketo-holder'>
-                    <iframe src={this.state.enketopreviewOverlay} />
-                  </div>
-                </Modal.Body>
-              </Modal>
-            }
-
-            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-              <Modal
-                open
-                error
-                onClose={this.clearPreviewError}
-                title={t('Error generating preview')}
-              >
-                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
-              </Modal>
-            }
-
-            {this.state.showCascadePopup &&
-              <Modal
-                open
-                onClose={this.hideCascade}
-                title={t('Import Cascading Select Questions')}
-              >
-                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
-              </Modal>
-            }
-          </bem.uiPanel__body>
-        </bem.uiPanel>
-      </DocumentTitle>
-    );
   },
 }, cascadeMixin);

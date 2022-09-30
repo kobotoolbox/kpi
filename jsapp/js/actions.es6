@@ -23,6 +23,8 @@ import dataShareActions from './actions/dataShareActions';
 import {
   notify,
   replaceSupportEmail,
+  checkIfCookieExists,
+  redirectForOnaDataAuth,
 } from 'utils';
 
 // Configure Reflux
@@ -201,20 +203,24 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
-  dataInterface.patchAsset(uid, values)
-    .done((asset) => {
-      actions.resources.updateAsset.completed(asset);
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(asset, uid, values);
-      }
-      notify(t('successfully updated'));
-    })
-    .fail(function(resp){
-      actions.resources.updateAsset.failed(resp);
-      if (params.onFailed) {
-        params.onFailed(resp);
-      }
-    });
+  if (checkIfCookieExists("__kpi_formbuilder")) {
+    redirectForOnaDataAuth()
+  } else {
+    dataInterface.patchAsset(uid, values)
+      .done((asset) => {
+        actions.resources.updateAsset.completed(asset);
+        if (typeof params.onComplete === 'function') {
+          params.onComplete(asset, uid, values);
+        }
+        notify(t('successfully updated'));
+      })
+      .fail(function(resp){
+        actions.resources.updateAsset.failed(resp);
+        if (params.onFailed) {
+          params.onFailed(resp);
+        }
+      });
+  }
 });
 
 actions.resources.deployAsset.listen(function(asset, redeployment, params={}){

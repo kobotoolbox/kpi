@@ -16,6 +16,7 @@ import {txtid} from '../../../xlform/src/model.utils';
 import alertify from 'alertifyjs';
 import {launchPrinting} from 'utils';
 import {REPORT_STYLES} from './reportsConstants';
+import { TITLE } from '../../ona/config';
 import CustomReportForm from './customReportForm';
 import QuestionGraphSettings from './questionGraphSettings';
 import ReportContents from './reportContents';
@@ -525,7 +526,7 @@ export default class Reports extends React.Component {
     const hasGroupBy = this.state.groupBy.length !== 0;
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | ${ TITLE }`}>
         <bem.FormView m={formViewModifiers}>
           <bem.ReportView>
             {this.renderReportButtons()}

@@ -13,6 +13,7 @@ import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
+import { ZEBRA_URL } from './ona/config';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -50,6 +51,15 @@ export function formatTimeDate(timeStr: string): string {
 export function formatTimeDateShort(timeStr: string): string {
   const myMoment = moment(timeStr);
   return myMoment.format('lll');
+}
+
+export function checkIfCookieExists(authCookieName: string): boolean {
+  return cookies.get(authCookieName) !== null
+}
+
+export function redirectForOnaDataAuth() {
+  var current_url = encodeURIComponent(window.location.href);
+  window.location.href = ZEBRA_URL + "?return_url=" + current_url;
 }
 
 /**
