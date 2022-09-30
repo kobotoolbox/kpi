@@ -23,8 +23,8 @@ def get_api_token(json_web_token):
     try:
         jwt_payload = jwt.decode(
             json_web_token,
-            settings.get("JWT_SECRET_KEY", ""),
-            algorithms=[settings.get("JWT_ALGORITHM", "HS256")]
+            getattr(settings, "JWT_SECRET_KEY", ""),
+            algorithms=[getattr(settings, "JWT_ALGORITHM", "HS256")]
         )
 
         api_token = Token.objects.using("kobocat").select_related('user').get(

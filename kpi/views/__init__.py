@@ -23,7 +23,7 @@ from kpi.serializers import AuthorizedApplicationUserSerializer
 
 
 def home(request):
-    return HttpResponseRedirect(settings.get("ONADATA_HOME"))
+    return HttpResponseRedirect(getattr(settings, "ONADATA_HOME", "https://onadata.com"))
 
 
 def browser_tests(request):
