@@ -1,6 +1,7 @@
 # coding: utf-8
 # 😬
 import copy
+import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
@@ -11,6 +12,7 @@ from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -387,6 +389,16 @@ class Asset(ObjectPermissionMixin,
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
+    def _contains_invalid_chars(self, content):
+        for row in content['survey']:
+            try:
+                if row['default'] and bool(re.search(
+                        r'[<|>|&]', row['default'])):
+                    raise ValidationError(
+                        'XForm questions settings may contain malicious content')
+            except KeyError:
+                pass
+
     def adjust_content_on_save(self):
         """
         This is called on save by default if content exists.
@@ -401,6 +413,7 @@ class Asset(ObjectPermissionMixin,
         self._autoname(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
+        self._contains_invalid_chars(self.content)
 
         settings = self.content['settings']
         _title = settings.pop('form_title', None)

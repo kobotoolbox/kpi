@@ -3,6 +3,7 @@ import json
 import re
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
@@ -175,7 +176,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'translations': str(err)
                 })
             validated_data['content'] = asset_content
-        return super().update(asset, validated_data)
+        try:
+            return super().update(asset, validated_data)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message)
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)

@@ -7,9 +7,11 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions
 from rest_framework.authentication import (
-    TokenAuthentication, get_authorization_header
+    BaseAuthentication
 )
 from rest_framework.authtoken.models import Token
+
+from kpi.utils.permissions import grant_default_model_level_perms
 
 
 
@@ -24,24 +26,34 @@ def get_api_token(json_web_token):
             settings.get("JWT_SECRET_KEY", ""),
             algorithms=[settings.get("JWT_ALGORITHM", "HS256")]
         )
-        api_token = get_object_or_404(Token, key=jwt_payload.get("api-token"))
 
+        api_token = Token.objects.using("kobocat").select_related('user').get(
+            key=jwt_payload.get('api-token'))
         return api_token
     except BadSignature as e:
-        raise exceptions.AuthenticationFailed(_(f"Bad Signature: {e}"))
+        raise exceptions.AuthenticationFailed(_(f'Bad Signature: {e}'))
     except jwt.DecodeError as e:
-        raise exceptions.AuthenticationFailed(_(f"JWT DecodeError: {e}"))
+        raise exceptions.AuthenticationFailed(_(f'JWT DecodeError: {e}'))
+    except Token.DoesNotExist:
+        raise exceptions.AuthenticationFailed(_(f'No Token retrieved.'))
 
 
-class JWTAuthentication(TokenAuthentication):
+class JWTAuthentication(BaseAuthentication):
     model = Token
 
     def authenticate(self, request):
         cookie_jwt = request.COOKIES.get(settings.KPI_COOKIE_NAME)
         if cookie_jwt:
             api_token = get_api_token(cookie_jwt)
-            if getattr(api_token, "user"):
-                return api_token.user, api_token
+            user, created = User.objects.using('default').get_or_create(
+                username=api_token.user.username)
 
-            raise exceptions.ParseError(_("Malformed cookie. Clear your cookies then try again"))
+            if created:
+                grant_default_model_level_perms(user)
+
+            if getattr(api_token, "user"):
+                return user, None
+        else:
+            return None
+
 
