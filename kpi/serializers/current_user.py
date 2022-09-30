@@ -122,6 +122,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             extra_details['require_auth'] = get_kc_profile_data(obj.pk).get(
                 'require_auth', False
             )
+            extra_details['can_publicize_collection'] = obj.has_perm(
+                'kpi.publicize_collection'
+            )
 
         return rep
 
