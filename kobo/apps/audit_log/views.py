@@ -14,6 +14,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     Lists the actions performed (delete, update, create) by users.
     Only available for superusers.
 
+    <span class='label label-warning'>For now, only `delete`s  are logged</span>
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/audit-logs/
     </pre>
