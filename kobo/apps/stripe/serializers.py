@@ -19,13 +19,6 @@ class PlanSerializer(serializers.ModelSerializer):
         # fields = ('id', 'nickname', 'amount', 'metadata', 'product')
 
 
-class ProductSerializer(BaseProductSerializer):
-    plans = PlanSerializer(many=True, source='plan_set')
-
-    class Meta(BaseProductSerializer.Meta):
-        fields = ('id', 'name', 'description', 'type', 'plans', 'metadata')
-
-
 class SubscriptionSerializer(serializers.ModelSerializer):
 
     plan = serializers.SerializerMethodField()
