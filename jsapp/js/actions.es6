@@ -240,7 +240,7 @@ actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
         }
       });
   } else {
-    notify(t(`Asset of type ${asset_type} deployment is disabled`));
+    notify(t('Asset of type ${asset_type} deployment is disabled'));
   }
 });
 
