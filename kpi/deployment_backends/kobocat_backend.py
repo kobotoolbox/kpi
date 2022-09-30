@@ -265,6 +265,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise Exception('The identifier is not properly formatted.')
 
         url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
+        if not self.asset.has_deployment:
+            project = self.asset.settings.get('project')
+            if project:
+                url = self.external_to_internal_url(
+                    f"{kc_server}/api/v1/projects/{project}/forms")
+
         xlsx_io = self.asset.to_xlsx_io(
             versioned=True, append={
                 'settings': {
@@ -281,6 +287,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         #   every record of `logger_xform`. It can be also used to filter
         #   queries as it is faster to query a boolean than string.
         payload = {
+            'published_by_formbuilder': True,
             'downloadable': active,
             'has_kpi_hook': self.asset.has_active_hooks,
             'kpi_asset_uid': self.asset.uid

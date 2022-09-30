@@ -26,6 +26,7 @@ from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
+from rest_framework.authtoken.models import Token
 from werkzeug.http import parse_options_header
 
 import formpack
@@ -304,6 +305,12 @@ class ImportTask(ImportExportTask):
             orm_obj.parent = parent_item
             orm_obj.save()
 
+    def _retrieve_form_information(self):
+        url = f"{settings.KOBOCAT_INTERNAL_URL}/api/v1/forms/{self.data['filename']}"
+        token = Token.objects.get(user=self.user)
+
+        return requests.get(url, headers={"Authorization": f"Token {token.key}"})
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -315,6 +322,9 @@ class ImportTask(ImportExportTask):
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
+
+        json_response = self._retrieve_form_information()
+        json_response['has_id_string_changed'] = False
 
         destination = kwargs.get('destination', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
@@ -377,6 +387,14 @@ class ImportTask(ImportExportTask):
                         base64_encoded_upload, survey_dict
                     )
                 asset.content = survey_dict
+                identifier = f"{settings.KOBOCAT_URL}/{asset.owner.username}/forms/{asset.name}"
+                asset._deployment_data.update({
+                    'backend': 'kobocat',
+                    'identifier': identifier,
+                    'active': json_response['downloadable'],
+                    'backend_response': json_response,
+                    'version': asset.version_id
+                })
                 asset.save()
                 msg_key = 'updated'
 

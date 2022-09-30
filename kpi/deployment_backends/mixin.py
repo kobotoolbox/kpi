@@ -57,7 +57,7 @@ class DeployableMixin:
 
     @property
     def has_deployment(self):
-        return 'backend' in self._deployment_data
+        return 'backend_response' in self._deployment_data
 
     def set_deployment(self, deployment: BaseDeploymentBackend):
         setattr(self, '__deployment_backend', deployment)
