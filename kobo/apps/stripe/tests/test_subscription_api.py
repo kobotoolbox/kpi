@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
+
 from djstripe.models import Customer, Plan, Subscription
 from model_bakery import baker
 from rest_framework import status
@@ -29,10 +30,7 @@ class SubscriptionAPITestCase(BaseTestCase):
             livemode=False,
         )
         self.url_detail = reverse(
-            'subscriptions-detail',
-            kwargs={
-                'id': self.subscription.id
-            }
+            'subscriptions-detail', kwargs={'id': self.subscription.id}
         )
 
     def test_no_subscriptions(self):
