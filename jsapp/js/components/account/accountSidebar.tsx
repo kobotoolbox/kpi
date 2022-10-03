@@ -18,6 +18,7 @@ export default class AccountSidebar extends React.Component<
   AccountSidebarProps,
   AccountSidebarState
 > {
+
   constructor(props: AccountSidebarProps) {
     super(props);
     this.state = {
@@ -66,21 +67,6 @@ export default class AccountSidebar extends React.Component<
               {t('Profile')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
-
-        {/* TEMP hide tab. */}
-          {false &&
-          <bem.FormSidebar__label
-            m={{selected: this.isDataStorageSelected()}}
-            href={'#' + ROUTES.DATA_STORAGE}
-            disabled
-          >
-            {/*TODO: get the data usage icon*/}
-            <Icon name='projects' size='xl'/>
-            <bem.FormSidebar__labelText>
-              {t('Data storage')}
-            </bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
-          }
 
           { /* hide "Security" entirely if nothing there is available */
             envStore.isReady && envStore.data.mfa_enabled &&

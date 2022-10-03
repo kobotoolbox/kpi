@@ -21,9 +21,20 @@
   display: flex;
 }
 
-.plan__description {
+.description {
   flex: 1;
   padding-left: 14px;
+}
+
+.description__header {
+  font-size: 20px;
+  color: $kobo-blue;
+  padding-bottom: 12px;
+}
+
+.description__blurb {
+  font-size: 16px;
+  line-height: 24px;
 }
 
 .plan__data {
@@ -41,6 +52,8 @@
 
 .kobo-range__unit {
   font-size: 12px !important;
+  color: $kobo-gray-40;
+  margin-left: 2px !important;
 }
 
 .kobo-dropdown {
@@ -50,24 +63,6 @@
   font-size: 14px !important;
 }
 
-.submissions-title-wrapper {
-  display: inline;
-  margin-right: 12px;
-  color: $kobo-gray-40;
-  font-weight: 700;
-}
-
-.submissions-hint-wrapper {
-  display: inline;
-  color: $kobo-gray-24;
-}
-
-i.k-icon {
-  position: relative;
-  top: 3px;
-}
-
-// TODO: replace icon with proper one from mockups
 i.k-icon-spinner {
   top: 2px;
   margin-right: 1px !important;
