@@ -36,6 +36,7 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import (
@@ -684,14 +685,42 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             instance_id=submission['_id']
         )
 
-    def get_daily_counts(self, timeframe: tuple[date, date]) -> dict:
-        daily_counts = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
-            'date', 'counter'
-        ).filter(
-            xform_id=self.xform_id,
-            date__range=timeframe,
-        )
-        data = {str(count['date']): count['counter'] for count in daily_counts}
+    def get_daily_counts(
+        self, user: 'auth.User', timeframe: tuple[date, date]
+    ) -> dict:
+
+        if not self.asset.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
+            daily_counts = (
+                ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+                    'date', 'counter'
+                ).filter(
+                    xform_id=self.xform_id,
+                    date__range=timeframe,
+                )
+            )
+            data = {
+                str(count['date']): count['counter'] for count in daily_counts
+            }
+        else:
+            # We cannot use cached values from daily counter when user has
+            # partial permissions.
+            # TODO try to group by date directly with MongoDB
+            submissions = self.get_submissions(
+                user,
+                query={
+                    '_xform_id_string': self.xform_id_string,
+                    '_submission_time': {
+                        '$gte': f'{timeframe[0]}',
+                        '$lte': f'{timeframe[1]}T23:59:59'
+                    }
+                },
+                fields=['_submission_time'],
+            )
+            data = defaultdict(int)
+            for submission in submissions:
+                date_str, _ = submission['_submission_time'].split('T')
+                data[date_str] += 1
+
         return data
 
     def get_data_download_links(self):
