@@ -44,8 +44,8 @@ def determine_export_cols_indiv(sub_ex_content):
     also used by runscript, called from determine_export_cols_with_values, below
     '''
     for qpath in sub_ex_content.keys():
-        for key in content[qpath].keys():
-            tvals = content[qpath][key]
+        for key in sub_ex_content[qpath].keys():
+            tvals = sub_ex_content[qpath][key]
             if not is_non_null_submext_data(key, tvals):
                 continue
             dtype = key
