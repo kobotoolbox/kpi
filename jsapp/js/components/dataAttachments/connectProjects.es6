@@ -10,9 +10,12 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import bem from 'js/bem';
-import {generateAutoname} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import envStore from 'js/envStore';
+import {
+  generateAutoname,
+  escapeHtml,
+} from 'js/utils';
 import {
   MODAL_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
@@ -257,7 +260,7 @@ class ConnectProjects extends React.Component {
       let dialog = alertify.dialog('confirm');
       let opts = {
         title: `${t('Privacy Notice')}`,
-        message: t('This will attach the full dataset from "##ASSET_NAME##" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if "##ASSET_NAME##" includes sensitive data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
+        message: t('This will attach the full dataset from "##ASSET_NAME##" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if "##ASSET_NAME##" includes sensitive data.').replaceAll('##ASSET_NAME##', escapeHtml(this.props.asset.name)),
         labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
         onok: () => {
           actions.dataShare.toggleDataSharing(this.props.asset.uid, data);

@@ -7,7 +7,8 @@ from django.core.management.base import BaseCommand
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.models import Asset, ObjectPermission
 from kpi.deployment_backends.kc_access.utils import (
-    assign_applicable_kc_permissions
+    assign_applicable_kc_permissions,
+    kc_transaction_atomic,
 )
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserObjectPermission
@@ -91,19 +92,20 @@ class Command(BaseCommand):
 
             if options['mirror_kpi']:
 
-                kc_user_obj_perm_qs = (
-                    KobocatUserObjectPermission.objects.filter(
-                        object_pk=asset.deployment.xform_id
-                    ).exclude(user_id=asset.owner_id)
-                )
-                if kc_user_obj_perm_qs.exists():
-                    if self._verbosity >= 1:
-                        self.stdout.write(
-                            f'\tDeleting all KoBoCAT permissions...'
-                        )
-                    kc_user_obj_perm_qs.delete()
+                with kc_transaction_atomic():
+                    kc_user_obj_perm_qs = (
+                        KobocatUserObjectPermission.objects.filter(
+                            object_pk=asset.deployment.xform_id
+                        ).exclude(user_id=asset.owner_id)
+                    )
+                    if kc_user_obj_perm_qs.exists():
+                        if self._verbosity >= 1:
+                            self.stdout.write(
+                                f'\tDeleting all KoBoCAT permissions...'
+                            )
+                        kc_user_obj_perm_qs.delete()
 
-                self._copy_perms_from_kpi_to_kc(asset)
+                    self._copy_perms_from_kpi_to_kc(asset)
             else:
 
                 if self._verbosity >= 1:
@@ -116,7 +118,8 @@ class Command(BaseCommand):
                         f'\t\tAffected users: {affected_users}'
                     )
 
-                self._copy_perms_from_kpi_to_kc(asset)
+                with kc_transaction_atomic():
+                    self._copy_perms_from_kpi_to_kc(asset)
 
         if self._verbosity >= 1:
             self.stdout.write('')

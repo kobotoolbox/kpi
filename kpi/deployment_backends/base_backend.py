@@ -32,12 +32,17 @@ class BaseDeploymentBackend(abc.ABC):
     def __init__(self, asset):
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = 0
+        self.current_submission_count = 0
         self.__stored_data_key = None
 
     @property
     def active(self):
         return self.get_data('active', False)
+
+    @property
+    @abc.abstractmethod
+    def attachment_storage_bytes(self):
+        pass
 
     @property
     def backend(self):
@@ -59,6 +64,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def current_month_submission_count(self):
         pass
 
     @abc.abstractmethod
@@ -309,6 +319,11 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     @abc.abstractmethod
     def submission_list_url(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def submission_model(self):
         pass
 
     @abc.abstractmethod

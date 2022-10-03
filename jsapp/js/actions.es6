@@ -519,7 +519,7 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
       actions.resources.loadAsset({id: uid});
     })
     .fail(() => {
-      alertify.error(t('failed to delete submission'));
+      notify.error(t('failed to delete submission'));
       actions.resources.deleteSubmission.failed();
     });
 });
@@ -532,7 +532,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
       actions.resources.loadAsset({id: uid});
     })
     .fail((response) => {
-      alertify.error(t('Failed to duplicate submission'));
+      notify.error(t('Failed to duplicate submission'));
       actions.resources.duplicateSubmission.failed(response);
     });
 });
@@ -596,7 +596,7 @@ actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
 actions.hooks.update.failed.listen(() => {
-  alertify.error(t('Failed saving REST Service'));
+  notify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {

@@ -7,7 +7,6 @@ from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -46,6 +45,7 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import (
+    AssetAdjustContentError,
     BadPermissionsException,
     DeploymentDataException,
 )
@@ -136,10 +136,10 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONBField(default=dict)
-    summary = JSONBField(default=dict)
-    report_styles = JSONBField(default=dict)
-    report_custom = JSONBField(default=dict)
+    content = models.JSONField(default=dict)
+    summary = models.JSONField(default=dict)
+    report_styles = models.JSONField(default=dict)
+    report_custom = models.JSONField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
@@ -150,12 +150,12 @@ class Asset(ObjectPermissionMixin,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings = JSONBField(default=dict)
+    settings = models.JSONField(default=dict)
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
     # ToDo Move the field to another table with one-to-one relationship
-    _deployment_data = JSONBField(default=dict)
+    _deployment_data = models.JSONField(default=dict)
 
     # JSON with subset of fields to share
     # {
@@ -698,7 +698,36 @@ class Asset(ObjectPermissionMixin,
             )
             return
 
-        if self.content is None:
+        update_content_field = update_fields and 'content' in update_fields
+
+        # Raise an exception if we want to adjust asset content
+        # (i.e. `adjust_content` is True) but we are trying to update only
+        # certain fields and `content` is not part of them, or if we
+        # specifically ask to not adjust asset content, but trying to
+        # update only certain fields and `content` is one of them.
+        if (
+            (adjust_content and update_fields and 'content' not in update_fields)
+            or
+            (not adjust_content and update_content_field)
+        ):
+            raise AssetAdjustContentError
+
+        # If `content` is part of the updated fields, `summary` and
+        # `report_styles` must be too.
+        if update_content_field:
+            update_fields += ['summary', 'report_styles']
+            # Avoid duplicates
+            update_fields = list(set(update_fields))
+
+        # `self.content` must be the second condition. We do not want to get
+        # the value of `self.content` if first condition is false.
+        # The main purpose of this is avoid to load `self.content` when it is
+        # deferred (see `AssetNestedObjectViewsetMixin.asset`) and does not need
+        # to be updated.
+        if (
+            (not update_fields or update_content_field)
+            and self.content is None
+        ):
             self.content = {}
 
         # in certain circumstances, we don't want content to
@@ -706,8 +735,9 @@ class Asset(ObjectPermissionMixin,
         if adjust_content:
             self.adjust_content_on_save()
 
-        # populate summary
-        self._populate_summary()
+        # populate summary (only when required)
+        if not update_fields or update_fields and 'summary' in update_fields:
+            self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -721,7 +751,12 @@ class Asset(ObjectPermissionMixin,
                 elif row_count > 1:
                     self.asset_type = ASSET_TYPE_BLOCK
 
-        self._populate_report_styles()
+        # populate report styles (only when required)
+        if (
+            not update_fields
+            or update_fields and 'report_styles' in update_fields
+        ):
+            self._populate_report_styles()
 
         # Ensure `_deployment_data` is not saved directly
         try:
@@ -961,6 +996,8 @@ class Asset(ObjectPermissionMixin,
                 snapshot = False
         except AssetSnapshot.MultipleObjectsReturned:
             # how did multiple snapshots get here?
+            # FIXME: because `transaction.atomic` does not prevent `INSERT`s
+            #   into the table between our `get()` and `create()` calls!
             snaps = AssetSnapshot.objects.filter(asset=self,
                                                  asset_version=asset_version)
             snaps.delete()

@@ -125,7 +125,7 @@ class PairedDataTestCase(TestCase):
         self.assertEqual(source, self.source_asset)
         self.source_asset.data_sharing['enabled'] = False
         self.source_asset.save()
-        source = self.paired_data.get_source()
+        source = self.paired_data.get_source(force=True)
         self.assertEqual(source, None)
 
     def test_cannot_retrieve_source_if_source_remove_perm(self):
@@ -134,5 +134,5 @@ class PairedDataTestCase(TestCase):
         self.source_asset.remove_perm(
             self.paired_data.asset.owner, PERM_VIEW_SUBMISSIONS
         )
-        source = self.paired_data.get_source()
+        source = self.paired_data.get_source(force=True)
         self.assertEqual(source, None)

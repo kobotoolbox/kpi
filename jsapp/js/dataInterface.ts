@@ -227,9 +227,10 @@ export interface SurveyRow {
 export interface SurveyChoice {
   $autovalue: string;
   $kuid: string;
-  label: string[];
+  label?: string[];
   list_name: string;
   name: string;
+  'media::image'?: string[];
 }
 
 interface AssetLockingProfileDefinition {

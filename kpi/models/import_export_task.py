@@ -17,7 +17,6 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.urls import reverse
@@ -98,8 +97,8 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    data = JSONBField()
-    messages = JSONBField(default=dict)
+    data = models.JSONField()
+    messages = models.JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -112,6 +111,7 @@ class ImportExportTask(models.Model):
         asynchronous task runner (Celery)
         """
         with transaction.atomic():
+            # FIXME: use `select_for_update`
             _refetched_self = self._meta.model.objects.get(pk=self.pk)
             self.status = _refetched_self.status
             del _refetched_self
@@ -785,6 +785,7 @@ class ExportTaskBase(ImportExportTask):
                     this_moment - stuck_export.date_created,
                 )
             )
+            # FIXME: use `select_for_update`
             stuck_export.status = cls.ERROR
             stuck_export.save()
 
@@ -801,6 +802,7 @@ class ExportTaskBase(ImportExportTask):
         user_source_exports = cls.objects.filter(
             user=user, data__source=source
         ).order_by('-date_created')
+        # FIXME: use `select_for_update`
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
         ]

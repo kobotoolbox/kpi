@@ -8,7 +8,8 @@
  */
 
 import moment from 'moment';
-import alertify from 'alertifyjs';
+import type {Toast, ToastOptions} from 'react-hot-toast';
+import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
@@ -17,14 +18,61 @@ export const LANGUAGE_COOKIE_NAME = 'django_language';
 
 export const assign = require('object-assign');
 
-alertify.defaults.notifier.delay = 10;
-alertify.defaults.notifier.position = 'bottom-left';
-alertify.defaults.notifier.closeButton = true;
-
 const cookies = new Cookies();
 
-export function notify(msg: string, atype = 'success') {
-  alertify.notify(msg, atype);
+
+/**
+ * Pop up a notification with react-hot-toast
+ * Some default options are set in the <Toaster/> component
+ */
+export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOptions): Toast['id'] {
+  // To avoid changing too much, the default remains 'success' if unspecified.
+  //   e.g. notify('yay!') // success
+
+  switch (atype) {
+
+    case 'success':
+      return toast.success(msg, opts);
+
+    case 'error':
+      return toast.error(msg, opts);
+
+    case 'warning':
+      return toast(msg, Object.assign({icon: '⚠️'}, opts));
+
+    case 'empty':
+      return toast(msg, opts); // No icon
+
+    // Defensively render empty if we're passed an unknown atype,
+    // in case we missed something.
+    //   e.g. notify('mystery!', '?') //
+    default:
+      return toast(msg, opts); // No icon
+  }
+}
+
+// Convenience functions for code readability, consolidated here
+notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'error', opts);
+notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'warning', opts);
+notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'success', opts);
+
+/**
+ * Returns a copy of arr with separator inserted in every other place.
+ * It's like Array.join('\n'), but more generic.
+ *
+ * Usage: join(['hi', 'hello', 'how are you'], <br/>)
+ *          => ['hi', <br/>, 'hello', <br/>, 'how are you']
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function join(arr: any[], separator: any): any[] {
+  // Allocate enough indices to place separators between every element.
+  const result = Array(arr.length * 2 - 1);
+  result[0] = arr[0]; // Start with first element from original array
+  for (let i = 1; i < arr.length; i++) {
+    result[i * 2 - 1] = separator; // Place separators ...
+    result[i * 2] = arr[i]; // ... and original elements from the array
+  }
+  return result;
 }
 
 /**

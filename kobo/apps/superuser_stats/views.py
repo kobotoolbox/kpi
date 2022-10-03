@@ -17,6 +17,8 @@ from .tasks import (
     generate_user_count_by_organization,
     generate_user_report,
     generate_user_statistics_report,
+    generate_user_details_report,
+    generate_user_report,
 )
 
 
@@ -317,6 +319,25 @@ def user_statistics_report(request):
         '</body></html>'
     ).format(base_filename)
 
+
+def user_details_report(request):
+    base_filename = 'user-details-report_{}_{}_{}.csv'.format(
+        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        date.today(),
+        datetime.now().microsecond,
+    )
+    filename = _base_filename_to_full_filename(
+        base_filename, request.user.username
+    )
+    generate_user_details_report.delay(filename)
+    template_ish = (
+        '<html><head><title>Hello, superuser.</title></head>'
+        '<body>Your report is being generated. Once finished, it will be '
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.'
+        '</body></html>'
+    )
     return HttpResponse(template_ish)
 
 
