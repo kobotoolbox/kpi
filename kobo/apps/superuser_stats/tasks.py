@@ -212,6 +212,13 @@ def generate_user_details_report(output_filename: str):
             if isinstance(v, dict) and 'value' in v:
                 metadata[k] = v['value']
 
+    def get_row_value(row, col):
+        val = row.get(col, '')
+        # remove any new lines from text
+        if isinstance(val, str):
+            val = val.replace('\n', '')
+        return val
+
     values = USER_COLS + METADATA_COL
     data = (
         User.objects.all()
@@ -235,5 +242,5 @@ def generate_user_details_report(output_filename: str):
             metadata = row.pop('metadata', {})
             flatten_metadata_inplace(metadata)
             row.update(metadata)
-            flat_row = [row.get(col, '') for col in columns]
+            flat_row = [get_row_value(row, col) for col in columns]
             writer.writerow(flat_row)
