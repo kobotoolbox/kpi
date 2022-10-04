@@ -2,7 +2,7 @@ import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
 import {stores} from 'js/stores';
-import {replaceBracketsWithLink} from 'utils';
+import {replaceBracketsWithLink} from 'js/utils';
 
 import envStore from 'js/envStore';
 import './accessDenied.scss';
@@ -12,15 +12,12 @@ bem.AccessDenied__body = makeBem(bem.AccessDenied, 'body', 'section');
 bem.AccessDenied__header = makeBem(bem.AccessDenied, 'header', 'header');
 bem.AccessDenied__text = makeBem(bem.AccessDenied, 'text', 'section');
 
-/**
- * @prop {string} [errorMessage]
- */
-export default class AccessDenied extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+export interface AccessDeniedProps {
+  errorMessage?: string;
+}
+export default class AccessDenied extends React.Component<AccessDeniedProps, {}> {
 
-  goToLogin(evt) {
+  goToLogin(evt: React.ChangeEvent<HTMLInputElement>) {
     evt.preventDefault();
     redirectToLogin();
   }

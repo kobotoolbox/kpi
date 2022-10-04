@@ -5,21 +5,20 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
 import './accountSidebar.scss';
 import envStore from 'js/envStore';
-
-interface AccountSidebarProps {
-  submissionsPerMonth: number;
-}
+import subscriptionStore from './subscriptionStore';
 
 interface AccountSidebarState {
 	isLoading: boolean;
 }
 
 export default class AccountSidebar extends React.Component<
-  AccountSidebarProps,
+  {},
   AccountSidebarState
 > {
 
-  constructor(props: AccountSidebarProps) {
+  private store = subscriptionStore;
+
+  constructor(props: {}) {
     super(props);
     this.state = {
       isLoading: true,
@@ -83,16 +82,18 @@ export default class AccountSidebar extends React.Component<
           }
 
           {
-            envStore.isReady && envStore.data.stripe_public_key &&
-            <bem.FormSidebar__label
-              m={{selected: this.isPlanSelected()}}
-              href={'#' + ROUTES.PLAN}
-            >
-              <Icon name='editor' size='xl'/>
-              <bem.FormSidebar__labelText>
-                {t('Your plan')}
-              </bem.FormSidebar__labelText>
-            </bem.FormSidebar__label>
+            envStore.isReady &&
+            envStore.data.stripe_public_key &&
+            this.store.subscribedProduct &&
+              <bem.FormSidebar__label
+                m={{selected: this.isPlanSelected()}}
+                href={'#' + ROUTES.PLAN}
+              >
+                <Icon name='editor' size='xl'/>
+                <bem.FormSidebar__labelText>
+                  {t('Your plan')}
+                </bem.FormSidebar__labelText>
+              </bem.FormSidebar__label>
           }
         </bem.FormSidebar>
 
