@@ -1,9 +1,9 @@
 # coding: utf-8
 import datetime
 import csv
-import unicodecsv
 from celery import shared_task
 from collections import Counter
+from typing import Union
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -20,11 +20,11 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatXForm,
     KobocatUser,
     KobocatUserProfile,
-    ReadOnlyKobocatDailyXFormSubmissionCounter,
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from kpi.models.asset import Asset
+
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
 # complain that the task is unregistered
@@ -33,13 +33,12 @@ from kpi.models.asset import Asset
 @shared_task
 def generate_country_report(
         output_filename: str, start_date: str, end_date: str):
-
     def get_row_for_country(code_: str, label_: str):
         row_ = []
 
         kpi_forms = Asset.objects.filter(
             asset_type=ASSET_TYPE_SURVEY,
-            settings__country__value=code,
+            settings__country__contains=[{'value': code_}],
         )
         instances_count = 0
         for kpi_form in kpi_forms:
@@ -47,19 +46,19 @@ def generate_country_report(
             if not kpi_form.has_deployment:
                 continue
 
-            xform_id_strings = list(
+            xform_id = list(
                 Asset.objects.values_list(
-                    '_deployment_data__backend_response__id_string', flat=True
+                    '_deployment_data__backend_response__formid', flat=True
                 ).filter(
                     _deployment_data__active=True,
                     asset_type=ASSET_TYPE_SURVEY,
-                    settings__country__value=code_,
+                    settings__country__contains=[{'value': code_}],
                 )
             )
             # Doing it this way because this report is focused on crises in
             # very specific time frames
             instances_count = ReadOnlyKobocatInstance.objects.filter(
-                xform__id_string__in=xform_id_strings,
+                xform_id__in=xform_id,
                 date_created__range=(start_date, end_date),
             ).count()
 
@@ -74,8 +73,8 @@ def generate_country_report(
     ]
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output_file:
-        writer = unicodecsv.writer(output_file)
+    with default_storage.open(output_filename, 'w') as output_file:
+        writer = csv.writer(output_file)
         writer.writerow(columns)
 
         for code, label in COUNTRIES:
@@ -88,13 +87,16 @@ def generate_country_report(
 
 
 @shared_task
-def generate_continued_usage_report(output_filename: str, end_date):
+def generate_continued_usage_report(
+        output_filename: str,
+        end_date: Union[str, datetime.datetime]
+):
     data = []
 
     if isinstance(end_date, str):
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S")
 
-    twelve_months_time = end_date - relativedelta(months=12)
+    twelve_months_time = end_date - relativedelta(years=1)
     six_months_time = end_date - relativedelta(months=6)
     three_months_time = end_date - relativedelta(months=3)
 
@@ -165,8 +167,8 @@ def generate_continued_usage_report(output_filename: str, end_date):
     ]
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output:
-        writer = unicodecsv.writer(output)
+    with default_storage.open(output_filename, 'w') as output:
+        writer = csv.writer(output)
         writer.writerow(headers)
         writer.writerows(data)
 
@@ -179,8 +181,8 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
     # get a list of the domains
     domains = [email.split('@')[1] if '@' in email else '!!invalid: ' + email
-               for email in emails
-               ]
+                for email in emails
+            ]
     domain_users = Counter(domains)
 
     # get a count of the assets
@@ -190,7 +192,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
                 owner__email__endswith='@' + domain,
                 date_created__range=(start_date, end_date),
             ).count()
-            for domain in domain_users.keys()
+        for domain in domain_users.keys()
     }
 
     # get a count of the submissions
@@ -214,8 +216,8 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     columns = ['Email Domain', 'Users', 'Projects', 'Submissions']
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output:
-        writer = unicodecsv.writer(output)
+    with default_storage.open(output_filename, 'w') as output:
+        writer = csv.writer(output)
         writer.writerow(columns)
 
         for domain, users in domain_users.most_common():
@@ -229,7 +231,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
 
 @shared_task
-def generate_forms_count_by_submission_range(output_filename):
+def generate_forms_count_by_submission_range(output_filename: str):
     # List of submissions count ranges
     ranges = [
         (0, 0),
@@ -244,27 +246,27 @@ def generate_forms_count_by_submission_range(output_filename):
     data = []
 
     today = datetime.datetime.today()
-    date = today - relativedelta(months=12)
+    date = today - relativedelta(years=1)
 
     for r in ranges:
         forms_count = KobocatXForm.objects.filter(
             date_created__gte=date,
             num_of_submissions__range=r,
-        ).values('pk').count()
+        ).count()
         data.append([f'{r[0]}-{r[1]}', forms_count])
 
     headers = ['Range', 'Count']
 
     # Crate a csv with output filename
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output:
-        writer = unicodecsv.writer(output)
+    with default_storage.open(output_filename, 'w') as output:
+        writer = csv.writer(output)
         writer.writerow(headers)
         writer.writerows(data)
 
 
 @shared_task
-def generate_media_storage_report(output_filename):
+def generate_media_storage_report(output_filename: str):
     attachments = KobocatUserProfile.objects.all().values(
         'user__username',
         'attachment_storage_bytes',
@@ -281,8 +283,8 @@ def generate_media_storage_report(output_filename):
     headers = ['Username', 'Storage Used (Bytes)']
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output:
-        writer = unicodecsv.writer(output)
+    with default_storage.open(output_filename, 'w') as output:
+        writer = csv.writer(output)
         writer.writerow(headers)
         writer.writerows(data)
 
@@ -292,33 +294,23 @@ def generate_user_count_by_organization(output_filename: str):
     # get users organizations
     organizations = User.objects.filter(
         extra_details__data__has_key='organization'
-    ).values_list(
-        'extra_details__data__organization', flat=True
-    ).distinct().order_by(
-        'extra_details__data__organization'
-    )
+    ).values('extra_details__data__organization').annotate(
+        total=Count('extra_details__data__organization'))
 
-    data = []
-
-    for organization in organizations:
-        count = User.objects.filter(
-            extra_details__data__organization=organization
-        ).count()
-        data.append([organization, count])
+    data = [[o['extra_details__data__organization'], o['total']] for o in organizations]
 
     # write data to a csv file
     columns = ['Organization', 'Count']
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output_file:
-        writer = unicodecsv.writer(output_file)
+    with default_storage.open(output_filename, 'w') as output_file:
+        writer = csv.writer(output_file)
         writer.writerow(columns)
         writer.writerows(data)
 
 
 @shared_task
 def generate_user_report(output_filename: str):
-
     def format_date(d):
         if hasattr(d, 'strftime'):
             return d.strftime('%F')
@@ -396,8 +388,8 @@ def generate_user_report(output_filename: str):
     ]
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output_file:
-        writer = unicodecsv.writer(output_file)
+    with default_storage.open(output_filename, 'w') as output_file:
+        writer = csv.writer(output_file)
         writer.writerow(columns)
         kc_users = KobocatUser.objects.exclude(
             pk=settings.ANONYMOUS_USER_ID
@@ -446,7 +438,7 @@ def generate_user_statistics_report(
                 Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
                 DateField(),
             )
-        ).filter().values(
+        ).filter(date__range=(start_date, end_date)).values(
             'user_id',
             'user__username',
             'user__date_joined',
@@ -455,7 +447,7 @@ def generate_user_statistics_report(
 
     for record in records:
         user_details = ExtraUserDetail.objects.get(
-            user__username=record['user__username']
+            user_id=record['user_id']
         ).data
         data.append([
             record['user__username'],
@@ -478,8 +470,8 @@ def generate_user_statistics_report(
     ]
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output:
-        writer = unicodecsv.writer(output)
+    with default_storage.open(output_filename, 'w') as output:
+        writer = csv.writer(output)
         writer.writerow(columns)
         writer.writerows(data)
 

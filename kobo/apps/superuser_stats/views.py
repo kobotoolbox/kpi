@@ -8,6 +8,7 @@ from django.http import HttpResponse, StreamingHttpResponse, Http404
 from django.urls import reverse
 from django.utils import timezone
 
+from kobo.settings.base import KOBOFORM_URL
 from .tasks import (
     generate_country_report,
     generate_continued_usage_report,
@@ -15,7 +16,6 @@ from .tasks import (
     generate_forms_count_by_submission_range,
     generate_media_storage_report,
     generate_user_count_by_organization,
-    generate_user_report,
     generate_user_statistics_report,
     generate_user_details_report,
     generate_user_report,
@@ -54,15 +54,16 @@ def country_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.<br><br>'
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.<br><br>'
         'To select a date range, add a ? at the end of the URL and set the '
         'start_date parameter to YYYY-MM-DD and/or the end_date parameter to '
         'YYYY-MM-DD. Example:<br>'
         'https://{{ kpi_base_url }}/superuser_stats/country_report/?start_date'
         '=2020-01-31&end_date=2021-02-28'
         '</body></html>'
-    ).format(base_filename)
+    )
 
     return HttpResponse(template_ish)
 
@@ -91,15 +92,16 @@ def continued_usage_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.<br><br>'
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.<br><br>'
         'To select a date range, add a ? at the end of the URL and set the '
         'the end_date parameter to YYYY-MM-DD. Example:<br>'
         'https://{{ kpi_base_url }}/superuser_stats/continued_usage_report/?'
         'end_date=2021-02-28<br>'
         ''
         '</body></html>'
-    ).format(base_filename)
+    )
 
     return HttpResponse(template_ish)
 
@@ -138,8 +140,9 @@ def domain_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.<br><br>'
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.<br><br>'
         'To select a date range, add a ? at the end of the URL and set the '
         'start_date parameter to YYYY-MM-DD and/or the end_date parameter to '
         'YYYY-MM-DD. Example:<br>'
@@ -148,7 +151,7 @@ def domain_report(request):
         'The default date range is for today, but submissions count will not be'
         ' 0 unless it includes the range includes first of the month'
         '</body></html>'
-    ).format(base_filename)
+    )
 
     return HttpResponse(template_ish)
 
@@ -170,8 +173,9 @@ def forms_count_by_submission_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.'
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.'
         '</body></html>'
     ).format(base_filename)
     return HttpResponse(template_ish)
@@ -194,8 +198,9 @@ def media_storage(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.'
+        f'available at <a href="{base_filename}">{base_filename}</a>. '
+        'If you receive a 404, please refresh your browser periodically until '
+        'your request succeeds.'
         '</body></html>'
     ).format(base_filename)
     return HttpResponse(template_ish)
@@ -252,10 +257,10 @@ def user_count_by_organization(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.'
-        '</body></html>'
-    ).format(base_filename)
+        f'available at <a href="{base_filename}">{base_filename}</a>. If you '
+        'receive a 404, please refresh your browser periodically until your '
+        'request succeeds.</body></html>'
+    )
 
     return HttpResponse(template_ish)
 
@@ -276,10 +281,10 @@ def user_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
+        f'available at <a href="{base_filename}">{base_filename}</a>. If you receive a 404, please '
         'refresh your browser periodically until your request succeeds.'
         '</body></html>'
-    ).format(base_filename)
+    )
     return HttpResponse(template_ish)
 
 
@@ -309,15 +314,16 @@ def user_statistics_report(request):
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
-        'available at <a href="{0}">{0}</a>. If you receive a 404, please '
-        'refresh your browser periodically until your request succeeds.<br><br>'
+        f'available at <a href="{base_filename}">{base_filename}</a>. If you '
+        'receive a 404, please refresh your browser periodically until your '
+        'request succeeds.<br><br>'
         'To select a date range, add a ? at the end of the URL and set the '
         'start_date parameter to YYYY-MM-DD and/or the end_date parameter to '
         'YYYY-MM-DD. Example:<br>'
         'https://{{ kpi_base_url }}/superuser_stats/user_statistics/?start_date'
         '=2020-01-31&end_date=2021-02-28'
         '</body></html>'
-    ).format(base_filename)
+    )
 
 
 def user_details_report(request):
@@ -356,6 +362,5 @@ def retrieve_reports(request, base_filename):
     # response
     f = default_storage.open(filename)
     response = StreamingHttpResponse(f, content_type='text/csv')
-    response['Content-Disposition'] = 'attachment;filename="{}"'.format(
-        base_filename)
+    response['Content-Disposition'] = f'attachment;filename="{base_filename}"'
     return response
