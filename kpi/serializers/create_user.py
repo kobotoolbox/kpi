@@ -2,7 +2,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kpi.forms.registration import (
+from kobo.apps.accounts.forms.signup import (
     USERNAME_INVALID_MESSAGE,
     USERNAME_MAX_LENGTH,
     USERNAME_REGEX,

@@ -1,0 +1,52 @@
+{% extends "registration.html" %}
+{% load static %}
+{% load i18n %}
+{% load account socialaccount %}
+{% block content %}
+
+
+
+  <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
+    <div class="registration--logo"><a href="/">
+    {% block logo %}{{ block.super }}{% endblock %}
+    </a></div>
+
+
+    {% get_providers as socialaccount_providers %}
+    {% if socialaccount_providers %}
+      <div class="socialaccount_ballot">
+        <ul class="socialaccount_providers">
+          {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+        </ul>
+      </div>
+      {% include "socialaccount/snippets/login_extra.html" %}
+    {% else %}
+      <p>{% blocktrans %}If you have not created an account yet, then please
+      <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
+    {% endif %}
+
+    
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+    <a href="{% url 'account_reset_password' %}" class="registration__forgot">
+      {% trans "Forgot?" %}
+    </a>
+
+    <button
+      type="submit"
+      name="Login"
+      class="kobo-button kobo-button--blue kobo-button--fullwidth"
+    >
+      {% trans "Login" %}
+    </button>
+
+    {% if config.REGISTRATION_OPEN %}
+      <div class="registration__footer">
+        {% trans "or" %} <a href="{{ signup_url }}">{% trans "create an account" %}</a>
+      </div>
+    {% endif %}
+  </form>
+{% endblock %}

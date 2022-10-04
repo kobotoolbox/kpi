@@ -185,8 +185,6 @@ django-redis==5.2.0
     # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.2
     # via -r dependencies/pip/requirements.in
-django-registration-redux==2.10
-    # via -r dependencies/pip/requirements.in
 django-request-cache==1.2
     # via -r dependencies/pip/requirements.in
 django-reversion==5.0.0

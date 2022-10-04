@@ -39,7 +39,6 @@ django-extensions
 django-oauth-toolkit
 django-organizations
 django-redis
-django-registration-redux
 django-storages[azure,boto3]
 django-amazon-ses
 django-webpack-loader

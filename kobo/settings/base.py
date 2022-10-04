@@ -76,22 +76,23 @@ INSTALLED_APPS = (
     # Always put `contenttypes` before `auth`; see
     # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'reversion',
+    'private_storage',
+    'kobo.apps.KpiConfig',
+    "kobo.apps.accounts",
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
-    'reversion',
-    'private_storage',
-    'kobo.apps.KpiConfig',
     'hub',
     'loginas',
     'webpack_loader',
     'registration',         # Order is important
-    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
     'django_filters',
     'taggit',
@@ -668,11 +669,15 @@ CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
 ''' Django Registration configuration '''
-# http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_FORMS = {
+    'login': 'kobo.apps.accounts.forms.LoginForm',
+    'signup': 'kobo.apps.accounts.forms.SignupForm',
+}
 REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
 

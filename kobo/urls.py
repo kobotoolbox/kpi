@@ -11,6 +11,8 @@ admin.autodiscover()
 urlpatterns = [
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),
+    # Disable admin login form
+    re_path(r'^admin/login/', RedirectView.as_view(url="/accounts/login/?next=/admin/")),
     re_path(r'^admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     re_path(r'^', include('kpi.urls')),

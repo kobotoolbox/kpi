@@ -1,11 +1,12 @@
 # coding: utf-8
 import json
 
-import constance
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as t
-from registration import forms as registration_forms
+
+import constance
+from allauth.account.forms import SignupForm as BaseSignupForm
 
 from kobo.static_lists import COUNTRIES
 
@@ -24,12 +25,13 @@ CONFIGURABLE_METADATA_FIELDS = (
     'country',
 )
 
-class RegistrationForm(registration_forms.RegistrationForm):
+
+class SignupForm(BaseSignupForm):
     username = forms.RegexField(
         regex=USERNAME_REGEX,
         max_length=USERNAME_MAX_LENGTH,
         label=t("Username"),
-        error_messages={'invalid': USERNAME_INVALID_MESSAGE}
+        error_messages={'invalid': USERNAME_INVALID_MESSAGE},
     )
     name = forms.CharField(
         label=t('Name'),
@@ -44,10 +46,10 @@ class RegistrationForm(registration_forms.RegistrationForm):
         required=False,
         widget=forms.RadioSelect,
         choices=(
-                 ('male', t('Male')),
-                 ('female', t('Female')),
-                 ('other', t('Other')),
-                )
+            ('male', t('Male')),
+            ('female', t('Female')),
+            ('other', t('Other')),
+        ),
     )
     sector = forms.ChoiceField(
         label=t('Sector'),
@@ -60,29 +62,28 @@ class RegistrationForm(registration_forms.RegistrationForm):
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
-
-    class Meta:
-        model = User
-        fields = [
-            'name',
-            'organization',
-            'username',
-            'email',
-            'sector',
-            'country',
-            'gender',
-            # The 'password' field appears without adding it here; adding it
-            # anyway results in a duplicate
-        ]
+    field_order = [
+        'name',
+        'organization',
+        'username',
+        'email',
+        'sector',
+        'country',
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["email"].widget.attrs["placeholder"] = ""
+        self.fields["password1"].widget.attrs["placeholder"] = ""
+        self.fields["password2"].widget.attrs["placeholder"] = ""
+        self.fields["password2"].label = t("Password confirmation")
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
         # Strip "\r" for legacy data created prior to django-constance 2.7.
         self.fields['sector'].choices = (('', ''),) + tuple(
-            (s.strip('\r'), t(s.strip('\r'))) for s in constance.config.SECTOR_CHOICES.split('\n')
+            (s.strip('\r'), t(s.strip('\r')))
+            for s in constance.config.SECTOR_CHOICES.split('\n')
         )
 
         # It's easier to _remove_ unwanted fields here in the constructor

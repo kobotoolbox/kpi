@@ -55,7 +55,7 @@
       </button>
 
       <div class="registration__orlogin">
-        {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "login" %}</a>
+        {% trans "or" %} <a href="{{ login_url }}">{% trans "login" %}</a>
       </div>
   </div>
 
