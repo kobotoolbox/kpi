@@ -38,6 +38,7 @@ from kpi.constants import (
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -703,23 +704,49 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
         else:
             # We cannot use cached values from daily counter when user has
-            # partial permissions.
-            # TODO try to group by date directly with MongoDB
-            submissions = self.get_submissions(
-                user,
-                query={
-                    '_xform_id_string': self.xform_id_string,
-                    '_submission_time': {
-                        '$gte': f'{timeframe[0]}',
-                        '$lte': f'{timeframe[1]}T23:59:59'
-                    }
-                },
-                fields=['_submission_time'],
+            # partial permissions. We need to use MongoDB aggregation engine
+            # to retrieve the correct value according to user's permissions.
+            permission_filters = self.asset.get_filters_for_partial_perm(
+                user.pk, perm=PERM_VIEW_SUBMISSIONS
             )
-            data = defaultdict(int)
-            for submission in submissions:
-                date_str, _ = submission['_submission_time'].split('T')
-                data[date_str] += 1
+
+            if not permission_filters:
+                return {}
+
+            query = {
+                '_userform_id': self.mongo_userform_id,
+                '_submission_time': {
+                    '$gte': f'{timeframe[0]}',
+                    '$lte': f'{timeframe[1]}T23:59:59'
+                }
+            }
+
+            query = MongoHelper.get_permission_filters_query(
+                query, permission_filters
+            )
+
+            documents = settings.MONGO_DB.instances.aggregate([
+                {
+                    '$match': query,
+                },
+                {
+                    '$group': {
+                        '_id': {
+                            '$dateToString': {
+                                'format': '%Y-%m-%d',
+                                'date': {
+                                    '$dateFromString': {
+                                        'format': "%Y-%m-%dT%H:%M:%S",
+                                        'dateString': "$_submission_time"
+                                    }
+                                }
+                            }
+                        },
+                        'count': {'$sum': 1}
+                    }
+                }
+            ])
+            data = {doc['_id']: doc['count'] for doc in documents}
 
         return data
 
