@@ -11,7 +11,6 @@ from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
 from django.db.models import Sum, CharField, Count, F, Value, DateField
 from django.db.models.functions import Cast, Concat
-from django.utils import timezone
 
 from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
@@ -32,35 +31,26 @@ from kpi.models.asset import Asset
 
 @shared_task
 def generate_country_report(
-        output_filename: str, start_date: str, end_date: str):
+        output_filename: str, start_date: str, end_date: str
+):
+
     def get_row_for_country(code_: str, label_: str):
         row_ = []
 
-        kpi_forms = Asset.objects.filter(
+        xform_ids = Asset.objects.values_list(
+            '_deployment_data__backend_response__formid', flat=True
+        ).filter(
+            _deployment_data__active=True,
+            _deployment_data__has_key='backend',
             asset_type=ASSET_TYPE_SURVEY,
             settings__country__contains=[{'value': code_}],
         )
-        instances_count = 0
-        for kpi_form in kpi_forms:
-            # Use deployments to get the xform the right id_string
-            if not kpi_form.has_deployment:
-                continue
-
-            xform_id = list(
-                Asset.objects.values_list(
-                    '_deployment_data__backend_response__formid', flat=True
-                ).filter(
-                    _deployment_data__active=True,
-                    asset_type=ASSET_TYPE_SURVEY,
-                    settings__country__contains=[{'value': code_}],
-                )
-            )
-            # Doing it this way because this report is focused on crises in
-            # very specific time frames
-            instances_count = ReadOnlyKobocatInstance.objects.filter(
-                xform_id__in=xform_id,
-                date_created__range=(start_date, end_date),
-            ).count()
+        # Doing it this way because this report is focused on crises in
+        # very specific time frames
+        instances_count = ReadOnlyKobocatInstance.objects.filter(
+            xform_id__in=list(xform_ids),
+            date_created__range=(start_date, end_date),
+        ).count()
 
         row_.append(label_)
         row_.append(instances_count)
@@ -180,9 +170,10 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     ).values_list('email', flat=True)
 
     # get a list of the domains
-    domains = [email.split('@')[1] if '@' in email else '!!invalid: ' + email
-                for email in emails
-            ]
+    domains = [
+        email.split('@')[1] if '@' in email else '!!invalid: ' + email
+        for email in emails
+    ]
     domain_users = Counter(domains)
 
     # get a count of the assets
@@ -292,12 +283,15 @@ def generate_media_storage_report(output_filename: str):
 @shared_task
 def generate_user_count_by_organization(output_filename: str):
     # get users organizations
-    organizations = User.objects.filter(
-        extra_details__data__has_key='organization'
-    ).values('extra_details__data__organization').annotate(
-        total=Count('extra_details__data__organization'))
-
-    data = [[o['extra_details__data__organization'], o['total']] for o in organizations]
+    organizations = (
+        User.objects.filter(extra_details__data__has_key='organization')
+        .values('extra_details__data__organization')
+        .annotate(total=Count('extra_details__data__organization'))
+    )
+    data = [
+        [o['extra_details__data__organization'], o['total']]
+        for o in organizations
+    ]
 
     # write data to a csv file
     columns = ['Organization', 'Count']
@@ -410,22 +404,19 @@ def generate_user_statistics_report(
 ):
     data = []
 
-    asset_queryset = Asset.objects.values('owner_id', 'owner__extra_details').filter(
-        asset_type=ASSET_TYPE_SURVEY,
-        date_created__range=(start_date, end_date)
+    asset_queryset = Asset.objects.values(
+        'owner_id', 'owner__extra_details'
+    ).filter(
+        asset_type=ASSET_TYPE_SURVEY, date_created__range=(start_date, end_date)
     )
-    records = asset_queryset.annotate(
-        form_count=Count('pk')
-    ).order_by()
+    records = asset_queryset.annotate(form_count=Count('pk')).order_by()
     forms_count = {
         record['owner_id']: record['form_count'] for record in records
     }
 
     # Filter the asset_queryset for active deployments
     asset_queryset = asset_queryset.filter(_deployment_data__active=True)
-    records = asset_queryset.annotate(
-        deployment_count=Count('pk')
-    ).order_by()
+    records = asset_queryset.annotate(deployment_count=Count('pk')).order_by()
     deployment_count = {
         record['owner_id']: record['deployment_count']
         for record in records
