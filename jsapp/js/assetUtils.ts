@@ -591,6 +591,44 @@ export function injectSupplementalRowsIntoListOfRows(
   output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
 
   const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+
+  const { analysis_form_json } = asset;
+  const additional_fields: any = analysis_form_json.additional_fields;
+
+  const extraColsBySource: Record<string, any[]> = {};
+  additional_fields.forEach((add_field: any) => {
+    let sourceName: string = add_field.source;
+    if (!extraColsBySource[sourceName]) {
+      extraColsBySource[sourceName] = [];
+    }
+    extraColsBySource[sourceName].push(add_field);
+  });
+
+  const outputWithCols: string[] = [];
+  output.forEach((col: string) => {
+    outputWithCols.push(col);
+
+    if (col in extraColsBySource) {
+      let colDataArr: any[] = extraColsBySource[col];
+      colDataArr.forEach((cur) => {
+        let name = cur.name;
+        let colstr = `_supplementalDetails/${name}`;
+
+        // Could this be prepared within known_cols utils?
+        if (cur.type === 'transcript') {
+          colstr += `_${cur.language}`;
+        } else if (cur.type === 'translation') {
+          colstr = colstr.replace(/translation$/, 'translated');
+          colstr += `_${cur.language}`;
+        }
+        outputWithCols.push(colstr);
+      });
+    }
+  });
+
+  /*
+  revisit this before merge: (does this work with longer paths / within groups?)
+
   Object.keys(supplementalDetailsPaths).forEach((rowName) => {
     // In supplementalDetailsPaths we get row names, in output we already have
     // row paths. We need to find a matching row and put all paths immediately
@@ -601,8 +639,8 @@ export function injectSupplementalRowsIntoListOfRows(
       output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
     }
   });
-
-  return output;
+  */
+  return outputWithCols;
 }
 
 export interface FlatQuestion {

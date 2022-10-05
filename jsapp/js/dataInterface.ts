@@ -448,6 +448,7 @@ export interface AssetResponse extends AssetRequestObject {
   version_count: number;
   has_deployment: boolean;
   deployed_version_id: string|null;
+  analysis_form_json: any;
   deployed_versions: {
     count: number;
     next: string | null;
