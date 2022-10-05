@@ -92,7 +92,6 @@ INSTALLED_APPS = (
     'hub',
     'loginas',
     'webpack_loader',
-    'registration',         # Order is important
     'django_extensions',
     'django_filters',
     'taggit',
@@ -668,19 +667,19 @@ CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
-''' Django Registration configuration '''
-ACCOUNT_ACTIVATION_DAYS = 3
+''' Django allauth configuration '''
+ACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.AccountAdapter"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_UNIQUE_EMAIL = False
-ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
 }
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_SESSION_REMEMBER = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_AUTO_SIGNUP = False
-REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
 
 SOCIALACCOUNT_PROVIDERS = {}

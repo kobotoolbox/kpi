@@ -5,7 +5,6 @@ from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import (
     user_report,
     user_details_report,
@@ -41,8 +40,6 @@ urlpatterns = [
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
     re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
-    # re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
-    #     form_class=RegistrationForm), name='registration_register'),
     re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
     re_path(r'^accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
