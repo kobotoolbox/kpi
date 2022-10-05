@@ -433,8 +433,6 @@ twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
     # via azure-core
-unicodecsv==0.14.1
-    # via -r dependencies/pip/requirements.in
 urllib3==1.26.9
     # via
     #   botocore
@@ -474,4 +472,5 @@ yubico-client==1.13.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
+backports-zoneinfo==0.2.1; python_version < '3.9'
 backports-zoneinfo==0.2.1; python_version < '3.9'

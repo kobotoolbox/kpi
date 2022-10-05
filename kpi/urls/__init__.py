@@ -6,19 +6,6 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-from kobo.apps.superuser_stats.views import (
-    continued_usage_report,
-    country_report,
-    domain_report,
-    forms_count_by_submission_report,
-    media_storage,
-    reports_list,
-    retrieve_reports,
-    user_count_by_organization,
-    user_details_report,
-    user_report,
-    user_statistics_report,
-)
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
@@ -73,36 +60,7 @@ urlpatterns = [
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    path('superuser_stats/', reports_list),
-    path('superuser_stats/continued_usage_report/', continued_usage_report),
-    re_path(r'^superuser_stats/continued_usage_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/country_report/', country_report),
-    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/domain_report/', domain_report),
-    re_path(r'^superuser_stats/domain_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/forms-by-submissions-count/', forms_count_by_submission_report),
-    re_path(r'^superuser_stats/forms-by-submissions-count/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/media_storage_report/', media_storage),
-    re_path(r'^superuser_stats/media_storage_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/user_count_by_org/', user_count_by_organization),
-    re_path(r'^superuser_stats/user_count_by_org/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/user_report/', user_report),
-    re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/user_statistics_report/', user_statistics_report),
-    re_path(r'^superuser_stats/user_statistics_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/user_details_report/', user_details_report),
-    re_path(r'^superuser_stats/user_details_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/country_report/', country_report),
-    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':

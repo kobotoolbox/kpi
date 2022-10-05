@@ -467,6 +467,7 @@ def generate_user_statistics_report(
         writer.writerows(data)
 
 
+@shared_task
 def generate_user_details_report(output_filename: str):
     USER_COLS = [
         'id',

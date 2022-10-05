@@ -52,6 +52,7 @@ def country_report(request):
         base_filename, request.user.username)
     generate_country_report.delay(filename, start_date, end_date)
 
+    url = f"{KOBOFORM_URL}{reverse('superuser_stats:countries_report')}"
     template_ish = (
         f'<html><head><title>Countries report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
@@ -62,8 +63,8 @@ def country_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{KOBOFORM_URL}/superuser_stats/country_report/?start_date=2020-01-31&end_date=2021-02-28">'
-        f'  {KOBOFORM_URL}/superuser_stats/country_report/?start_date=2020-01-31&end_date=2021-02-28'
+        f'<a href="{url}?start_date=2020-01-31&end_date=2021-02-28">'
+        f'  {url}?start_date=2020-01-31&end_date=2021-02-28'
         f'</a>'
         f'</body></html>'
     )
@@ -93,6 +94,7 @@ def continued_usage_report(request):
         base_filename, request.user.username)
     generate_continued_usage_report.delay(filename, end_date)
 
+    url = f"{KOBOFORM_URL}{reverse('superuser_stats:continued_usage_report')}"
     template_ish = (
         f'<html><head><title>Continued usage report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
@@ -102,8 +104,8 @@ def continued_usage_report(request):
         f'To select a date range, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{KOBOFORM_URL}/superuser_stats/continued_usage_report/?end_date=2021-02-28">'
-        f'  {KOBOFORM_URL}/superuser_stats/continued_usage_report/?end_date=2021-02-28'
+        f'<a href="{url}?end_date=2021-02-28">'
+        f'  {url}?end_date=2021-02-28'
         f'</a>'
         f'</body></html>'
     )
@@ -142,6 +144,7 @@ def domain_report(request):
     generate_domain_report.delay(filename, start_date, end_date)
 
     # Generate page text
+    url = f"{KOBOFORM_URL}{reverse('superuser_stats:domains_report')}"
     template_ish = (
         f'<html><head><title>Domains report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
@@ -152,8 +155,8 @@ def domain_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{KOBOFORM_URL}/superuser_stats/domain_report/?start_date=2020-01-31&end_date=2021-02-28">'
-        f'  {KOBOFORM_URL}/superuser_stats/domain_report/?start_date=2020-01-31&end_date=2021-02-28'
+        f'<a href="{url}?start_date=2020-01-31&end_date=2021-02-28">'
+        f'  {url}?start_date=2020-01-31&end_date=2021-02-28'
         f'</a>'
         f'<p>The default date range is for today, but submissions count will not be'
         f' 0 unless it includes the range includes first of the month.</p>'
@@ -205,43 +208,13 @@ def media_storage(request):
         base_filename, request.user.username)
     generate_media_storage_report.delay(filename)
     template_ish = (
-        '<html><head><title>Hello, superuser.</title></head>'
+        '<html><head><title>Media storage report</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
         f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
         'If you receive a 404, please refresh your browser periodically until '
         'your request succeeds.'
         '</body></html>'
     ).format(base_filename)
-    return HttpResponse(template_ish)
-
-
-@user_passes_test(lambda u: u.is_superuser)
-def reports_list(request):
-    """
-    Generates a list of reports available to superusers
-    """
-    template_ish = (
-        '<html><head><title>Super User Reports</title></head>'
-        'This is a list of the available superuser reports<br>'
-        '<a href="{0}">{0}</a><br>'
-        '<a href="{1}">{1}</a><br>'
-        '<a href="{2}">{2}</a><br>'
-        '<a href="{3}">{3}</a><br>'
-        '<a href="{4}">{4}</a><br>'
-        '<a href="{5}">{5}</a><br>'
-        '<a href="{6}">{6}</a><br>'
-        '<a href="{7}">{7}</a><br>'
-        '</html>'
-    ).format(
-        reverse(country_report),
-        reverse(continued_usage_report),
-        reverse(domain_report),
-        reverse(forms_count_by_submission_report),
-        reverse(media_storage),
-        reverse(user_count_by_organization),
-        reverse(user_report),
-        reverse(user_statistics_report),
-    )
     return HttpResponse(template_ish)
 
 
@@ -264,7 +237,7 @@ def user_count_by_organization(request):
 
     # Generate page text
     template_ish = (
-        f'<html><head><title>Hello, superuser.</title></head>'
+        f'<html><head><title>Users by organization report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
         f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
         f'If you receive a 404, please refresh your browser periodically until '
@@ -288,10 +261,11 @@ def user_report(request):
         base_filename, request.user.username)
     generate_user_report.delay(filename)
     template_ish = (
-        f'<html><head><title>Hello, superuser.</title></head>'
+        f'<html><head><title>Users report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
-        f'available at <a href="{base_filename}">{base_filename}</a>. If you receive a 404, please '
-        f'refresh your browser periodically until your request succeeds.'
+        f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
+        f'If you receive a 404, please refresh your browser periodically until '
+        f'your request succeeds.'
         f'</body></html>'
     )
     return HttpResponse(template_ish)
@@ -321,6 +295,7 @@ def user_statistics_report(request):
         base_filename, request.user.username)
     generate_user_statistics_report.delay(filename, start_date, end_date)
 
+    url = f"{KOBOFORM_URL}{reverse('superuser_stats:user_statistics_report')}"
     template_ish = (
         f'<html><head><title>User statistics report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
@@ -331,8 +306,8 @@ def user_statistics_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{KOBOFORM_URL}/superuser_stats/domain_report/?start_date=2020-01-31&end_date=2021-02-28">'
-        f'  {KOBOFORM_URL}/superuser_stats/domain_report/?start_date=2020-01-31&end_date=2021-02-28'
+        f'<a href="{url}?start_date=2020-01-31&end_date=2021-02-28">'
+        f'  {url}?start_date=2020-01-31&end_date=2021-02-28'
         f'</a>'
         f'</body></html>'
     )
