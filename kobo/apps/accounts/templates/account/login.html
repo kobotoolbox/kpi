@@ -1,9 +1,8 @@
-{% extends "registration.html" %}
+{% extends "account/base.html" %}
 {% load static %}
 {% load i18n %}
 {% load account socialaccount %}
 {% block content %}
-
 
 
   <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
