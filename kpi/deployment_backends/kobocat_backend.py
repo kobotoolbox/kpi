@@ -424,6 +424,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             format_type=SUBMISSION_FORMAT_TYPE_XML,
         )
 
+        # Get attachments for the duplicated submission if there are any
+        attachment_objects = ReadOnlyKobocatAttachment.objects.filter(
+            instance_id=submission_id
+        )
+        attachments = (
+            {a.media_file_basename: a.media_file for a in attachment_objects}
+            if attachment_objects
+            else None
+        )
+
         # parse XML string to ET object
         xml_parsed = ET.fromstring(submission)
 
@@ -444,6 +454,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
+
+        # Combine all files altogether
+        if attachments:
+            files.update(attachments)
+
         kc_request = requests.Request(
             method='POST', url=self.submission_url, files=files
         )
