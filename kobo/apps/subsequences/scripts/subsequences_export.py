@@ -5,8 +5,7 @@ from kobo.apps.subsequences.utils import stream_with_extras
 
 from kobo.apps.reports.report_data import build_formpack
 
-def run(asset_uid):
-    asset = Asset.objects.get(uid=asset_uid)
+def run_on_asset(asset):
     submission_stream = asset.deployment.get_submissions(
         user=asset.owner,
         # fields=fields,
@@ -31,3 +30,10 @@ def run(asset_uid):
     options = {}
     xlsx = 'foo.xlsx'
     pack.export(**options).to_xlsx(xlsx, submission_stream)
+
+def run(asset_uid):
+    if asset_uid is None:
+        asset = SubmissionExtras.ojects.last().asset
+    else:
+        asset = Asset.objects.get(uid=asset_uid)
+    run_on_asset(asset)
