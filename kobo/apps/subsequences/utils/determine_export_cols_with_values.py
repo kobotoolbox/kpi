@@ -27,6 +27,7 @@ KEY_TYPE_DICTS = {
 def is_non_null_submext_data(key, tvals):
     return True
 
+
 def get_lang_code(key, tvals):
     if 'languageCode' in tvals:
         yield tvals['languageCode']
@@ -34,7 +35,7 @@ def get_lang_code(key, tvals):
         for key in tvals.keys():
             yield key
     else:
-        import ipdb; ipdb.set_trace()
+        # why
         return None
 
 
@@ -54,6 +55,8 @@ def determine_export_cols_indiv(sub_ex_content):
             col_string = f'{qpath}:{dtype}'
             has_lang = None
             for lang_code in get_lang_code(key, tvals):
+                if lang_code is None:
+                    raise ValueError('Should not get here')
                 has_lang = True
                 yield f'{col_string}:{lang_code}'
             if not has_lang:

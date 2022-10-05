@@ -150,6 +150,12 @@ class SubmissionExtras(models.Model):
             self.asset.known_cols = asset_known_cols
             self.asset.save()
 
+        # <remove asap>
+        import json
+        if '"translated"' in json.dumps(self.content):
+            raise ValueError("fix this branch so that translated does not get saved")
+        # </remove asap>
+
         super().save(*args, **kwargs)
 
     @property
