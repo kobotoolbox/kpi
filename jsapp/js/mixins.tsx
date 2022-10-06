@@ -726,8 +726,10 @@ mixins.clickAssets = {
           msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}
             ${renderCheckbox('dt3', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
+
           onshow = () => {
             const ok_button = (dialog.elements.buttons.primary.firstChild as HTMLElement);
+            ok_button.setAttribute( 'data-cy', 'delete' );
             const $els = $('.alertify-toggle input');
 
             ok_button.setAttribute('disabled', 'true');

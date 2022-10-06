@@ -502,12 +502,21 @@ def generate_user_details_report(output_filename: str):
         'metadata',
     ]
 
-    def flatten_metadata_inplace(metadata):
+    def flatten_metadata_inplace(metadata: dict):
         for k, v in metadata.items():
             if isinstance(v, list) and v:
                 metadata[k] = ', '.join([item['value'] for item in v])
             if isinstance(v, dict) and 'value' in v:
                 metadata[k] = v['value']
+
+    def get_row_value(
+        row: dict, col: str
+    ) -> Union[str, int, float, bool, None]:
+        val = row.get(col, '')
+        # remove any new lines from text
+        if isinstance(val, str):
+            val = val.replace('\n', '')
+        return val
 
     values = USER_COLS + METADATA_COL
     data = (
@@ -532,5 +541,5 @@ def generate_user_details_report(output_filename: str):
             metadata = row.pop('metadata', {})
             flatten_metadata_inplace(metadata)
             row.update(metadata)
-            flat_row = [row.get(col, '') for col in columns]
+            flat_row = [get_row_value(row, col) for col in columns]
             writer.writerow(flat_row)
