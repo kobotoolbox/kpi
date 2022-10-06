@@ -43,6 +43,8 @@ root@kpi:/srv/src/kpi#  DJANGO_SETTINGS_MODULE=kobo.settings.testing  \
 Cypress will likely ask you to install [some OS dependencies](https://on.cypress.io/required-dependencies) (about .5 GB) when you try to run a test.
 </details>
 
+(Make sure `$KOBOFORM_URL` points to your test server.)
+
 ### Command line only tests
 
     kpi/cypress$ npx cypress run

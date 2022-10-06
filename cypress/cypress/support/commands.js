@@ -3,7 +3,7 @@ Cypress.Commands.add('setupDatabase', () => {
 })
 
 Cypress.Commands.add('login', (account, name) => {
-  cy.visit('http://kf.kobo.local/accounts/login/')
+  cy.visit('/accounts/login/')
   cy.get('input[name="username"]').type(name)
   cy.get('input[name="password"]').type(account.password)
   cy.contains('Login').click()
