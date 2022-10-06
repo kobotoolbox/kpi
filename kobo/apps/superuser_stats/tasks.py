@@ -1,6 +1,7 @@
 # coding: utf-8
 import csv
 import unicodecsv
+from typing import Union
 
 from celery import shared_task
 from django.conf import settings
@@ -174,7 +175,7 @@ def generate_user_report(output_filename: str):
 
 
 @shared_task
-def generate_user_details_report(output_filename: str):
+def generate_user_details_report(output_filename: str) -> None:
     USER_COLS = [
         'id',
         'username',
@@ -205,14 +206,16 @@ def generate_user_details_report(output_filename: str):
         'metadata',
     ]
 
-    def flatten_metadata_inplace(metadata):
+    def flatten_metadata_inplace(metadata: dict) -> None:
         for k, v in metadata.items():
             if isinstance(v, list) and v:
                 metadata[k] = ', '.join([item['value'] for item in v])
             if isinstance(v, dict) and 'value' in v:
                 metadata[k] = v['value']
 
-    def get_row_value(row, col):
+    def get_row_value(
+        row: dict, col: str
+    ) -> Union[str, int, float, bool, None]:
         val = row.get(col, '')
         # remove any new lines from text
         if isinstance(val, str):
