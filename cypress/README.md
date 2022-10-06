@@ -1,5 +1,10 @@
 # Running tests
 
+There are two parts to running tests:
+
+- **Test server.** Kpi server, but in a special cypress_testserver mode. This runs continuously. Restart it between Cypress test runs.
+- **Cypress test runner.** You can run this in command-line mode, or open an interactive browser window.
+
 ## How to start the test server
 
 If you normally run kpi with `./manage.py runserver 0.0.0.0:8000`, you can use:
