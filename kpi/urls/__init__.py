@@ -15,10 +15,6 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
-from kobo.apps.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
-)
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
@@ -38,10 +34,7 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
-    re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
     re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
-    re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
-    re_path(r'^accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',

@@ -14,7 +14,8 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/login/', RedirectView.as_view(url="/accounts/login/?next=/admin/")),
     re_path(r'^admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
+    path('', include('kobo.apps.mfa.urls')),
+    path('accounts/', include('allauth.urls')), # Must be after kpi.url, login
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
     re_path(r'^markitup/', include('markitup.urls')),

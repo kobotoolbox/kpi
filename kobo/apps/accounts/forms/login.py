@@ -1,5 +1,7 @@
 from django import forms
-from allauth.account.forms import LoginForm as BaseLoginForm, PasswordField
+
+from allauth.account.forms import LoginForm as BaseLoginForm
+from allauth.account.forms import PasswordField
 
 
 class LoginForm(BaseLoginForm):

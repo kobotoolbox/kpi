@@ -1,15 +1,14 @@
 # coding: utf-8
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
+
+from allauth.account.views import LoginView
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
 
-from .forms import (
-    MfaLoginForm,
-    MfaTokenForm,
-)
+from .forms import MfaLoginForm, MfaTokenForm
 from .serializers import UserMfaMethodSerializer
 
 
@@ -19,9 +18,9 @@ class MfaLoginView(LoginView):
 
     def form_valid(self, form):
         if form.get_ephemeral_token():
-            mfa_token_form = MfaTokenForm(initial={
-                'ephemeral_token': form.get_ephemeral_token()
-            })
+            mfa_token_form = MfaTokenForm(
+                initial={'ephemeral_token': form.get_ephemeral_token()}
+            )
             context = self.get_context_data(
                 view=MfaTokenView, form=mfa_token_form
             )
@@ -57,11 +56,11 @@ class MfaLoginView(LoginView):
         return redirect_to
 
 
-class MfaTokenView(LoginView):
-
+class MfaTokenView(DjangoLoginView):
     """
     Display the login form and handle the login action.
     """
+
     form_class = MfaTokenForm
     authentication_form = None
     template_name = 'mfa_token.html'
@@ -73,12 +72,11 @@ class MfaListUserMethodsView(ListAPIView):
     """
     Display user's methods with dates
     """
+
     serializer_class = UserMfaMethodSerializer
     permission_classes = (IsAuthenticated,)
     pagination_class = None
 
     def get_queryset(self) -> QuerySet:
         mfa_model = get_mfa_model()
-        return mfa_model.objects.filter(
-            user_id=self.request.user.id
-        )
+        return mfa_model.objects.filter(user_id=self.request.user.id)

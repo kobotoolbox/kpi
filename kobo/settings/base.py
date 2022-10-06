@@ -672,7 +672,7 @@ ACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.AccountAdapter"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_FORMS = {
-    'login': 'kobo.apps.accounts.forms.LoginForm',
+    'login': 'kobo.apps.mfa.forms.MfaLoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True

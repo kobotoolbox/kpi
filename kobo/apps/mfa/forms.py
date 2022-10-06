@@ -1,43 +1,44 @@
 # coding: utf-8
 from django import forms
 from django.conf import settings
-from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import gettext_lazy as t
+
 from trench.command.authenticate_second_factor import (
-    authenticate_second_step_command
+    authenticate_second_step_command,
 )
 from trench.exceptions import MFAValidationError
 from trench.serializers import CodeLoginSerializer
-from trench.utils import (
-    get_mfa_model,
-    user_token_generator,
-)
+from trench.utils import get_mfa_model, user_token_generator
+
+from kobo.apps.accounts.forms import LoginForm
 
 
-class MfaLoginForm(AuthenticationForm):
+class MfaLoginForm(LoginForm):
     """
     Authenticating users.
     If 2FA is activated, first step (of two) of the login process.
     """
 
-    def __init__(self, request=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.ephemeral_token_cache = None
         super().__init__(*args, **kwargs)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        # `super().clean()` initialize the object `self.user_cache` with
+    def clean(self, *args, **kwargs):
+        cleaned_data = super().clean(*args, **kwargs)
+        # `super().clean()` initialize the object `self.user` with
         # the user object retrieved from authentication (if any)
-        auth_method = get_mfa_model().objects.filter(
-            is_active=True, user=self.user_cache
-        ).first()
+        auth_method = (
+            get_mfa_model()
+            .objects.filter(is_active=True, user=self.user)
+            .first()
+        )
         # Because we only support one 2FA method, we do not filter on
         # `is_primary` too (as django_trench does).
         # ToDo Figure out why `is_primary` is False sometimes after reactivating
         #  2FA
         if auth_method:
-            self.ephemeral_token_cache = (
-                user_token_generator.make_token(self.user_cache)
+            self.ephemeral_token_cache = user_token_generator.make_token(
+                self.user
             )
 
         return cleaned_data
@@ -51,6 +52,7 @@ class MfaTokenForm(forms.Form):
     Validate 2FA token.
     Second (and last) step of login process when MFA is activated.
     """
+
     code = forms.CharField(
         label='',
         strip=True,
@@ -59,20 +61,18 @@ class MfaTokenForm(forms.Form):
             attrs={
                 'placeholder': t(
                     'Enter the ##token length##-character token'
-                ).replace('##token length##', str(settings.TRENCH_AUTH['CODE_LENGTH']))
+                ).replace(
+                    '##token length##', str(settings.TRENCH_AUTH['CODE_LENGTH'])
+                )
             }
-        )
+        ),
     )
     ephemeral_token = forms.CharField(
         required=True,
         widget=forms.HiddenInput(),
     )
 
-    error_messages = {
-        'invalid_code': t(
-            'Your token is invalid'
-        )
-    }
+    error_messages = {'invalid_code': t('Your token is invalid')}
 
     def __init__(self, request=None, *args, **kwargs):
         self.user_cache = None
@@ -86,7 +86,9 @@ class MfaTokenForm(forms.Form):
         try:
             self.user_cache = authenticate_second_step_command(
                 code=code_login_serializer.validated_data['code'],
-                ephemeral_token=code_login_serializer.validated_data['ephemeral_token'],
+                ephemeral_token=code_login_serializer.validated_data[
+                    'ephemeral_token'
+                ],
             )
         except MFAValidationError:
             raise self.get_invalid_mfa_error()
