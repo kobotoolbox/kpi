@@ -588,7 +588,6 @@ export const dataInterface: DataInterface = {
       twitter?: string;
       linkedin?: string;
       instagram?: string;
-      metadata?: string;
     };
     current_password?: string;
     new_password?: string;
