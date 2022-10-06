@@ -1353,6 +1353,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         assert submission['_id'] != duplicate_submission['_id']
         assert duplicate_submission['_id'] == expected_next_id
         assert submission['meta/instanceID'] != duplicate_submission['meta/instanceID']
+        assert submission['meta/instanceID'] == duplicate_submission['meta/deprecatedID']
         assert submission['start'] != duplicate_submission['start']
         assert submission['end'] != duplicate_submission['end']
 

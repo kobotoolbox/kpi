@@ -239,10 +239,20 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        duplicated_submission = copy.deepcopy(
-            self.get_submission(submission_id, user=user)
+        submission = self.get_submission(submission_id, user=user)
+        _attachments = submission.get('_attachments', [])
+        dup_att = []
+        if _attachments:
+            # not exactly emulating database id incrementing but probably good
+            # enough for the mock tests
+            max_attachment_id = max(a['id'] for a in _attachments)
+            for i, att in enumerate(_attachments, 1):
+                dup_att.append({**att, 'id': max_attachment_id + i})
+
+        duplicated_submission = copy.deepcopy(submission)
+        updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat(
+            'T', 'milliseconds'
         )
-        updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         next_id = max((
             sub['_id']
             for sub in self.get_submissions(self.asset.owner, fields=['_id'])
@@ -251,10 +261,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             '_id': next_id,
             'start': updated_time,
             'end': updated_time,
-            'meta/instanceID': f'uuid:{uuid.uuid4()}'
+            'meta/instanceID': f'uuid:{uuid.uuid4()}',
+            'meta/deprecatedID': submission['meta/instanceID'],
+            '_attachments': dup_att,
         })
 
-        settings.MONGO_DB.instances.insert_one(duplicated_submission)
+        self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
 
     def get_attachment(
