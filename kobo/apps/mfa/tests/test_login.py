@@ -2,6 +2,7 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils.http import urlencode
+
 from rest_framework import status
 from trench.utils import get_mfa_model
 
@@ -9,7 +10,6 @@ from kpi.tests.kpi_test_case import KpiTestCase
 
 
 class LoginTests(KpiTestCase):
-
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
@@ -32,15 +32,11 @@ class LoginTests(KpiTestCase):
         successful login
         """
         data = {
-            'username': 'someuser',
+            'login': 'someuser',
             'password': 'someuser',
         }
         response = self.client.post(reverse('kobo_login'), data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(
-            'Please enter your verification token'
-            in response.content.decode()
-        )
+        self.assertContains(response, "verification token")
 
     def test_login_with_mfa_disabled(self):
         """
@@ -48,21 +44,18 @@ class LoginTests(KpiTestCase):
         successful login
         """
         data = {
-            'username': 'anotheruser',
+            'login': 'anotheruser',
             'password': 'anotheruser',
         }
-        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertFalse(
-            'Please enter your verification token'
-            in response.content.decode()
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
         )
+        self.assertNotContains(response, "verification token")
 
         self.assertEqual(len(response.redirect_chain), 1)
         redirection, status_code = response.redirect_chain[0]
         self.assertEqual(status_code, status.HTTP_302_FOUND)
-        self.assertEqual(reverse('kpi-root'), redirection)
+        self.assertEqual('/accounts/confirm-email/', redirection)
 
     def test_admin_login(self):
         """
@@ -73,8 +66,5 @@ class LoginTests(KpiTestCase):
         self.assertEqual(len(response.redirect_chain), 1)
         redirection, status_code = response.redirect_chain[0]
         self.assertEqual(status_code, status.HTTP_302_FOUND)
-        expected = (
-            f"{reverse('kobo_login')}"
-            f"?{urlencode({'next': reverse('admin:index')})}"
-        )
+        expected = f"{reverse('kobo_login')}?next={reverse('admin:index')}"
         self.assertEqual(expected, redirection)
