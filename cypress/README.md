@@ -1,9 +1,9 @@
 # Running tests
 
-There are two parts to running tests:
+To run tests, you need to do 2 things:
 
-- **Test server.** Kpi server, but in a special cypress_testserver mode. This runs continuously. Restart it between Cypress test runs.
-- **Cypress test runner.** You can run this in command-line mode, or open an interactive browser window.
+1. Start the **test server.** This is like a kpi server, but in a special cypress_testserver mode. (You will also need to restart it between Cypress test runs.)
+2. Use the **Cypress test runner.** You can run this in command-line mode, or open an interactive browser window.
 
 ## How to start the test server
 
@@ -38,9 +38,9 @@ DJANGO_SETTINGS_MODULE=kobo.settings.testing (1) Use test server settings
                      --noinput               (4) Skip 'delete database' prompt
 ```
 
-1. `DJANGO_SETTINGS_MODULE=kobo.settings.testing` switches the server away from using your default kpi database. Source: [kpi/kobo/settings/testing.py](https://github.com/kobotoolbox/kpi/blob/ae07326dec1984feb783cca5e91741c71a93fa9c/kobo/settings/testing.py) 
+1. `DJANGO_SETTINGS_MODULE=kobo.settings.testing` switches the server away from using your default kpi database. Source: [kpi/kobo/settings/testing.py](../kobo/settings/testing.py) 
 2. `./manage.py cypress_testserver`  is a custom management command. Starts a test server with fixtures created in Python specifically for Cypress tests.
-    - [kpi/management/commands/cypress_testserver.py](https://github.com/kobotoolbox/kpi/commit/314314d82b4cc090944ffcc1379d4a566afbcf07) - Add or change fixtures here.
+    - [kpi/management/commands/cypress_testserver.py](../kpi/management/commands/cypress_testserver.py) - Add or change fixtures here.
     - [django-admin/#testserver](https://docs.djangoproject.com/en/4.0/ref/django-admin/#testserver) - Django's built-in `testserver`, which this is based on.
 3. `--addrport 0.0.0.0:8000` - Change this if necessary. Use port 80 if you're running on http://kf.kobo.local, port 8000 if you're using kobo-install.
 4. `--noinput` - Skips console prompts about clearing the existing test database.
@@ -86,7 +86,7 @@ If you're on a computer with limited resources, you may wish to use these:
   screenshotOnRunFailure=false    Disable screenshots of Cypress tests
 ```
 
-For example, to run the command-line only tests without the above options, use `npx cypress run --config video=false,screenshotOnRunFailure=false`. 
+For example, to run the command-line only tests with the above options, use `npx cypress run --config video=false,screenshotOnRunFailure=false`. 
 
 Alternatively, you could set the environment variables `CYPRESS_VIDEO` and `CYPRESS_SCREENSHOT_ON_RUN_FAILURE`.
 
