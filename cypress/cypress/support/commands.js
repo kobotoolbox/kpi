@@ -1,5 +1,5 @@
 Cypress.Commands.add('setupDatabase', () => {
-  cy.log("setupDatabase not functional")
+  cy.log('setupDatabase not functional')
 })
 
 Cypress.Commands.add('login', (account, name) => {
@@ -9,7 +9,7 @@ Cypress.Commands.add('login', (account, name) => {
   cy.contains('Login').click()
 })
 
-//Makes this case insensitive by default
+// Makes this case insensitive by default
 Cypress.Commands.overwrite('contains',
   (originalFn, subject, filter, text, options = {}) => {
     // determine if a filter argument was passed

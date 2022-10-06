@@ -1,13 +1,11 @@
-
-
 describe('Create Form', function () {
 
   before(() => {
-    cy.fixture('accounts').then((accounts) => {
-      return accounts.project_creator
-    }).then(($acct) => {
-      cy.login($acct, "project_creator")
-    })
+    cy.fixture('accounts')
+      .then((accounts) => accounts.project_creator)
+      .then(($acct) => {
+        cy.login($acct, 'project_creator')
+      })
   })
 
   it('Creates a Form', function () {
@@ -46,7 +44,7 @@ describe('Create Form', function () {
 
     // Assert -- should not see an error
     //        -- should now be on the edit page
-    cy.contains("Error:", {timeout: 2000}).should('not.exist')
+    cy.contains('Error:', {timeout: 2000}).should('not.exist')
     cy.url().should('include', '/edit')
   })
 })

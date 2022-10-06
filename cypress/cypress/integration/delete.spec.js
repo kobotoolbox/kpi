@@ -1,13 +1,11 @@
-
-
 describe('Delete Project.', function () {
 
   before(() => {
-    cy.fixture('accounts').then((accounts) => {
-      return accounts.project_deleter
-    }).then(($acct) => {
-      cy.login($acct, "project_deleter")
-    })
+    cy.fixture('accounts')
+      .then((accounts) => accounts.project_deleter)
+      .then(($acct) => {
+        cy.login($acct, 'project_deleter')
+      })
   })
 
   it('Cancels deleting a project', function () {
@@ -19,21 +17,21 @@ describe('Delete Project.', function () {
           .should('exist')
           .click()
       })
-    
+
     cy.get('a[data-action="delete"]')
       .should('exist')
       .click()
 
     cy.get('[data-cy="checkbox"]')
-    .each(($box, index) => {
+    .each(($box) => {
       cy.wrap($box)
         .click()
-    }).then(() => 
+    }).then(() =>
       cy.get('[data-cy="delete"]')
         .click()
     )
 
     // Assert -- should see a confirmation
-    cy.contains("project deleted permanently", {timeout: 2000}).should('exist')
+    cy.contains('project deleted permanently', {timeout: 2000}).should('exist')
   })
 })
