@@ -56,7 +56,7 @@ Between subsequent Cypress test runs, you'll need to restart the test server to 
 Cypress will likely ask you to install [some OS dependencies](https://on.cypress.io/required-dependencies) (about .5 GB) when you try to run a test.
 </details>
 
-(Make sure `$KOBOFORM_URL` points to your test server.)
+(Make sure `$KOBOFORM_URL` or `$CYPRESS_BASE_URL` points to your test server.)
 
 ### Command line only tests
 
@@ -84,6 +84,13 @@ If you're on a computer with limited resources, you may wish to use these:
 For example, to run the command-line only tests without the above options, use `npx cypress run --config video=false,screenshotOnRunFailure=false`. 
 
 Alternatively, you could set the environment variables `CYPRESS_VIDEO` and `CYPRESS_SCREENSHOT_ON_RUN_FAILURE`.
+
+#### How to override the baseUrl
+
+We have configured Cypress to read its baseUrl from `KOBOFORM_URL` because it's likely you'll already have that set from kpi or kobo-install.
+
+You can override this with `CYPRESS_BASE_URL`, or any other method of configuration.
+
 
 # Writing tests
 
