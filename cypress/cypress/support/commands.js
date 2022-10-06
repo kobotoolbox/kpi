@@ -1,13 +1,11 @@
-var exec = require('child_process').exec;
-
 Cypress.Commands.add('setupDatabase', () => {
   cy.log("setupDatabase not functional")
 })
 
 Cypress.Commands.add('login', (account, name) => {
-  cy.visit('http://kf.kobo.local/accounts/login/') // example:
-  cy.get('input[name="username"]').type(name) // username: form_creator
-  cy.get('input[name="password"]').type(account.password) // password: Avacad0
+  cy.visit('http://kf.kobo.local/accounts/login/')
+  cy.get('input[name="username"]').type(name)
+  cy.get('input[name="password"]').type(account.password)
   cy.contains('Login').click()
 })
 
@@ -21,7 +19,7 @@ Cypress.Commands.overwrite('contains',
       filter = undefined
     }
 
-    options.matchCase = false
+    options.matchCase ??= false
 
     return originalFn(subject, filter, text, options)
   }
