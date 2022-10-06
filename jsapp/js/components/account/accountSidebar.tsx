@@ -5,10 +5,14 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
 import './accountSidebar.scss';
 import envStore from 'js/envStore';
-import subscriptionStore from './subscriptionStore';
+import {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import {notify} from 'js/utils';
+import {ROOT_URL} from 'js/constants';
+import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 
 interface AccountSidebarState {
 	isLoading: boolean;
+  subscribedProduct: ProductInfo | null;
 }
 
 export default class AccountSidebar extends React.Component<
@@ -16,12 +20,11 @@ export default class AccountSidebar extends React.Component<
   AccountSidebarState
 > {
 
-  private store = subscriptionStore;
-
   constructor(props: {}) {
     super(props);
     this.state = {
       isLoading: true,
+      subscribedProduct: null,
     };
   }
 
@@ -29,6 +32,35 @@ export default class AccountSidebar extends React.Component<
     this.setState({
       isLoading: false,
     });
+
+    if (envStore.data.stripe_public_key) {
+      this.fetchSubscriptionInfo();
+    }
+  }
+
+  // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
+  // and injecting multiple stores clashes with how we do routes. When we finish
+  // these funcitons should be used from the store and removed here
+  fetchSubscriptionInfo() {
+    $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: `${ROOT_URL}/api/v2/stripe/subscriptions`,
+    })
+      .done(this.onFetchSubscriptionInfoDone.bind(this))
+      .fail(this.onFetchSubscriptionInfoFail.bind(this));
+  }
+
+  onFetchSubscriptionInfoDone(
+    response: PaginatedResponse<SubscriptionInfo>
+  ) {
+    this.setState({
+      subscribedProduct: response.results[0].plan.product ,
+    });
+  }
+
+  onFetchSubscriptionInfoFail(response: FailResponse) {
+    notify.error(response.responseText);
   }
 
   isAccountSelected(): boolean {
@@ -84,7 +116,7 @@ export default class AccountSidebar extends React.Component<
           {
             envStore.isReady &&
             envStore.data.stripe_public_key &&
-            this.store.subscribedProduct &&
+            this.state.subscribedProduct &&
               <bem.FormSidebar__label
                 m={{selected: this.isPlanSelected()}}
                 href={'#' + ROUTES.PLAN}
@@ -96,7 +128,6 @@ export default class AccountSidebar extends React.Component<
               </bem.FormSidebar__label>
           }
         </bem.FormSidebar>
-
       );
     }
   }

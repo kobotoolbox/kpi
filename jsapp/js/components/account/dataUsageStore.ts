@@ -1,6 +1,7 @@
 import {makeAutoObservable} from 'mobx';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import type {FailResponse} from 'js/dataInterface';
 
 export interface AssetUsage {
   asset: string;
@@ -8,6 +9,13 @@ export interface AssetUsage {
   submission_count_current_month: number;
   submission_count_all_time: number;
   storage_bytes: number;
+}
+
+export interface ServiceUsage {
+  per_asset_usage: AssetUsage[],
+  total_submission_count_current_month: number,
+  total_submission_count_all_time: number,
+  total_storage_bytes: number
 }
 
 class PlanRouteStore {
@@ -19,7 +27,6 @@ class PlanRouteStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchDataUsage();
   }
 
   public fetchDataUsage() {
@@ -32,15 +39,15 @@ class PlanRouteStore {
       .fail(this.onFetchDataUsageFail.bind(this));
   }
 
-  private onFetchDataUsageDone(response: any) {
+  private onFetchDataUsageDone(response: ServiceUsage) {
     this.usageSubmissionsTotal = response.total_submission_count_all_time;
     this.usageSubmissionsMonthly =
       response.total_submission_count_current_month;
     this.usageStorage = response.total_storage_bytes;
   }
 
-  private onFetchDataUsageFail(response: any) {
-    notify.error(response);
+  private onFetchDataUsageFail(response: FailResponse) {
+    notify.error(response.responseText);
   }
 }
 

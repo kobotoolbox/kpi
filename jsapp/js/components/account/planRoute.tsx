@@ -1,11 +1,14 @@
-import React from "react";
+import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
 import AccessDenied from 'jsapp/js/router/accessDenied';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
-import dataUsageStore from './dataUsageStore';
-import subscriptionStore from './subscriptionStore';
+import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import type {ServiceUsage} from './dataUsageStore';
+import {notify} from 'js/utils';
+import {ROOT_URL} from 'js/constants';
+import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 import './planRoute.scss';
 
 /*
@@ -41,36 +44,97 @@ const WARNING_PERCENT = 75;
 // MAX_MONTHLY_SUBMISSIONS is already done later
 const MAX_PERCENTAGE = 100;
 
+const PLACEHOLDER_TITLE = t('Community plan (free access)');
+const PLACEHOLDER_DESC = t('Free access to all services. 5GB of media attachments per account, 10,000 submissions per month, as well as 25 minutes of automatic speech recognition and 20,000 characters of machine translation per month.');
+
 interface PlanRouteState {
   isLoading: boolean;
+  subscribedProduct: ProductInfo;
+  dataUsageBytes: number;
+  dataUsageMonthly: number;
 }
 
 class PlanRoute extends React.Component<{}, PlanRouteState> {
-  private dataStore = dataUsageStore;
-  private subStore = subscriptionStore;
-
   constructor(props: {}) {
     super(props);
     this.state = {
       isLoading: true,
+      subscribedProduct: {
+        id: '',
+        name: PLACEHOLDER_TITLE,
+        description: PLACEHOLDER_DESC,
+        type: '',
+        metadata: {}
+      },
+      dataUsageBytes: 0,
+      dataUsageMonthly: 0,
     };
-
-    this.dataStore.fetchDataUsage();
   }
 
   componentDidMount() {
     this.setState({
       isLoading: false,
     });
+
+    if (envStore.data.stripe_public_key) {
+      this.fetchSubscriptionInfo();
+    }
+    this.fetchDataUsage();
+  }
+
+  // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
+  // and injecting multiple stores clashes with how we do routes. When we finish
+  // these funcitons should be used from the store and removed here
+  private fetchSubscriptionInfo() {
+    $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: `${ROOT_URL}/api/v2/stripe/subscriptions`,
+    })
+      .done(this.onFetchSubscriptionInfoDone.bind(this))
+      .fail(this.onFetchSubscriptionInfoFail.bind(this));
+  }
+
+  private onFetchSubscriptionInfoDone(
+    response: PaginatedResponse<SubscriptionInfo>
+  ) {
+    this.setState({
+      subscribedProduct: response.results[0].plan.product,
+    });
+  }
+
+  private onFetchSubscriptionInfoFail(response: FailResponse) {
+    notify.error(response.responseText);
   }
 
   private getOneDecimalDisplay(x: number): number {
     return parseFloat(x.toFixed(1));
   }
 
+  private fetchDataUsage() {
+    $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: `${ROOT_URL}/api/v2/service_usage`,
+    })
+      .done(this.onFetchDataUsageDone.bind(this))
+      .fail(this.onFetchDataUsageFail.bind(this));
+  }
+
+  private onFetchDataUsageDone(response: ServiceUsage) {
+    this.setState({
+      dataUsageBytes: response.total_storage_bytes,
+      dataUsageMonthly: response.total_submission_count_current_month,
+    });
+  }
+
+  private onFetchDataUsageFail(response: FailResponse) {
+    notify.error(response.responseText);
+  }
+
   private getUsageColor(): KoboRangeColors {
     if (
-      (this.dataStore.usageSubmissionsMonthly / MAX_MONTHLY_SUBMISSIONS) *
+      (this.state.dataUsageMonthly / MAX_MONTHLY_SUBMISSIONS) *
         100 >=
       WARNING_PERCENT
     ) {
@@ -81,27 +145,15 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   }
 
   private renderPlanText() {
-    // TODO: probably need rootStore mobx stuff here.
-    console.log('plan------------');
-    console.log(this.subStore.subscribedProduct);
-    console.log('plan+++++++++++++++++++++');
     return (
       <bem.Description>
         <bem.Description__header>
-          {t('Community plan (free access)')}
+          {this.state.subscribedProduct.name}
         </bem.Description__header>
         <bem.Description__blurb>
-          {t('Free access to all services. 5GB of media attachments per account, 10,000 submissions per month, as well as 25 minutes of automatic speech recognition and 20,000 characters of machine translation per month.')}
+          {this.state.subscribedProduct.description}
         </bem.Description__blurb>
       </bem.Description>
-      //<bem.Description>
-      //  <bem.Description__header>
-      //    {this.subStore.subscribedProduct?.product.name}
-      //  </bem.Description__header>
-      //  <bem.Description__blurb>
-      //    {this.subStore.subscribedProduct?.product.description}
-      //  </bem.Description__blurb>
-      //</bem.Description>
     );
   }
 
@@ -110,11 +162,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     const stripePricingTableID = envStore.data.stripe_pricing_table_id;
 
     const MONTHLY_USAGE_PERCENTAGE =
-      (this.dataStore.usageSubmissionsMonthly / MAX_MONTHLY_SUBMISSIONS) * 100;
+      (this.state.dataUsageMonthly / MAX_MONTHLY_SUBMISSIONS) * 100;
     const GIGABYTES_USAGE_PERCENTAGE =
-      (this.dataStore.usageStorage / 1000000 / MAX_GIGABYTES_STORAGE) * 100;
+      (this.state.dataUsageBytes / 1000000 / MAX_GIGABYTES_STORAGE) * 100;
 
-    if (this.subStore.subscribedProduct) {
       return (
         <bem.Plan>
           <bem.Plan__header>{t('Current Plan')}</bem.Plan__header>
@@ -166,9 +217,6 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
           </bem.Plan__stripe>
         </bem.Plan>
       );
-    }
-
-    return <AccessDenied />;
   }
 }
 

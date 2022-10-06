@@ -6,13 +6,11 @@ import envStore from 'js/envStore';
 
 // For plan displaying purposes we only care about this part of the response
 export interface ProductInfo {
-  product: {
-    id: string;
-    name: string;
-    description: string;
-    type: string;
-    metadata: {};
-  };
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  metadata: any;
 }
 
 export interface PlanInfo {
@@ -86,9 +84,6 @@ class SubscriptionStore {
 
   constructor() {
     makeAutoObservable(this);
-    if (envStore.data.stripe_public_key) {
-      this.fetchSubscriptionInfo();
-    }
   }
 
   public fetchSubscriptionInfo() {
