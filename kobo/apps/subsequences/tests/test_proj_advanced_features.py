@@ -61,6 +61,7 @@ def test_details_for_transcript_export():
             'values': ['q1'],
         },
     })
+    asset.known_cols = ['q1:transcript:en']
     _afj = asset.analysis_form_json()
     engines = _afj['engines']
     addl_fields = _afj['additional_fields']
@@ -74,6 +75,7 @@ def test_details_for_translation_export():
             'languages': ['en', 'fr']
         },
     })
+    asset.known_cols = ['q1:translated:en', 'q1:translated:fr']
     _afj = asset.analysis_form_json()
     engines = _afj['engines']
     addl_fields = _afj['additional_fields']
