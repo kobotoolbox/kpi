@@ -34,7 +34,8 @@ class PlanRouteStore {
 
   private onFetchDataUsageDone(response: any) {
     this.usageSubmissionsTotal = response.total_submission_count_all_time;
-    this.usageSubmissionsMonthly = response.total_submission_count_current_month;
+    this.usageSubmissionsMonthly =
+      response.total_submission_count_current_month;
     this.usageStorage = response.total_storage_bytes;
   }
 

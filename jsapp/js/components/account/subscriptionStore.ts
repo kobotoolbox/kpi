@@ -1,20 +1,18 @@
 import {makeAutoObservable} from 'mobx';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-import type {
-  PaginatedResponse,
-  FailResponse,
-} from 'js/dataInterface';
+import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
+import envStore from 'js/envStore';
 
 // For plan displaying purposes we only care about this part of the response
 export interface ProductInfo {
   product: {
-      id: string;
-      name: string;
-      description: string;
-      type: string;
-      metadata: {}
-  },
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    metadata: {};
+  };
 }
 
 export interface PlanInfo {
@@ -79,7 +77,7 @@ export interface SubscriptionInfo {
   latest_invoice: string;
   pending_setup_intent: any;
   schedule: any;
-  default_tax_rates: []
+  default_tax_rates: [];
 }
 
 class SubscriptionStore {
@@ -88,7 +86,9 @@ class SubscriptionStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchSubscriptionInfo();
+    if (envStore.data.stripe_public_key) {
+      this.fetchSubscriptionInfo();
+    }
   }
 
   public fetchSubscriptionInfo() {
@@ -105,7 +105,7 @@ class SubscriptionStore {
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     this.subscriptionResponse = response.results;
-    this.subscribedProduct = response.results[0].plan.product;
+    this.subscribedProduct = response.results[0]?.plan.product;
   }
 
   private onFetchSubscriptionInfoFail(response: FailResponse) {

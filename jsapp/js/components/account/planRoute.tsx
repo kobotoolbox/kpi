@@ -2,7 +2,6 @@ import React from "react";
 import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
 import AccessDenied from 'jsapp/js/router/accessDenied';
-import Icon from 'js/components/common/icon';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
 import dataUsageStore from './dataUsageStore';
@@ -66,11 +65,15 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   }
 
   private getOneDecimalDisplay(x: number): number {
-    return(parseFloat(x.toFixed(1)));
+    return parseFloat(x.toFixed(1));
   }
 
   private getUsageColor(): KoboRangeColors {
-    if ((this.dataStore.usageSubmissionsMonthly / MAX_MONTHLY_SUBMISSIONS) * 100 >= WARNING_PERCENT) {
+    if (
+      (this.dataStore.usageSubmissionsMonthly / MAX_MONTHLY_SUBMISSIONS) *
+        100 >=
+      WARNING_PERCENT
+    ) {
       return KoboRangeColors.warning;
     } else {
       return KoboRangeColors.teal;
@@ -106,8 +109,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     const stripePublicKey = envStore.data.stripe_public_key;
     const stripePricingTableID = envStore.data.stripe_pricing_table_id;
 
-    const MONTHLY_USAGE_PERCENTAGE = (this.dataStore.usageSubmissionsMonthly / MAX_MONTHLY_SUBMISSIONS) * 100;
-    const GIGABYTES_USAGE_PERCENTAGE = (this.dataStore.usageStorage / 1000000) / MAX_GIGABYTES_STORAGE * 100;
+    const MONTHLY_USAGE_PERCENTAGE =
+      (this.dataStore.usageSubmissionsMonthly / MAX_MONTHLY_SUBMISSIONS) * 100;
+    const GIGABYTES_USAGE_PERCENTAGE =
+      (this.dataStore.usageStorage / 1000000 / MAX_GIGABYTES_STORAGE) * 100;
 
     if (this.subStore.subscribedProduct) {
       return (
@@ -132,7 +137,9 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 <bem.DataRow__data>
                   <KoboRange
                     max={MAX_PERCENTAGE}
-                    value={this.getOneDecimalDisplay(GIGABYTES_USAGE_PERCENTAGE)}
+                    value={this.getOneDecimalDisplay(
+                      GIGABYTES_USAGE_PERCENTAGE
+                    )}
                     currentLabel={'Data storage'}
                     totalLabel={'%'}
                     color={this.getUsageColor()}
@@ -146,20 +153,22 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
           </bem.Plan__info>
 
           <bem.Plan__header>{t('Upgrade')}</bem.Plan__header>
-          <bem.Plan__blurb>{t('Add ons and upgrades to your plan')}</bem.Plan__blurb>
+          <bem.Plan__blurb>
+            {t('Add ons and upgrades to your plan')}
+          </bem.Plan__blurb>
           <bem.Plan__stripe>
-            {envStore.isReady && stripePublicKey && stripePricingTableID &&
+            {envStore.isReady && stripePublicKey && stripePricingTableID && (
               <stripe-pricing-table
                 pricing-table-id={stripePricingTableID}
                 publishable-key={stripePublicKey}
               />
-            }
+            )}
           </bem.Plan__stripe>
         </bem.Plan>
       );
     }
 
-    return <AccessDenied/>;
+    return <AccessDenied />;
   }
 }
 
