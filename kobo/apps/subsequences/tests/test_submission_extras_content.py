@@ -6,7 +6,7 @@ from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from jsonschema import Draft7Validator
 
-TRANSLATED = 'translated'
+TRANSLATED = 'translation'
 
 
 def sample_asset(advanced_features=None):
