@@ -23,7 +23,7 @@ def migrate_subex_content(sub_ex):
         content_string = content_string.replace('"translated"', '"translation"')
         sub_ex.content = json.loads(content_string)
         print('submission_extra has old content')
-        # sub_ex.save()
+        sub_ex.save()
 
 
 def repop_asset_knowncols(asset):
@@ -32,7 +32,10 @@ def repop_asset_knowncols(asset):
     print('   - ' + '\n   - '.join(sorted(asset.known_cols)))
     known_cols = determine_export_cols_with_values(asset.submission_extras.all())
     asset.known_cols = known_cols
-    asset.save()
+    if 'translated' in asset.advanced_features:
+        asset.advanced_features['translation'] = asset.advanced_features['translated']
+        del asset.advanced_features['translated']
+    asset.save(create_version=False)
     print('  after:')
     print('   - ' + '\n   - '.join(sorted(known_cols)))
 

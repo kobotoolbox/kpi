@@ -145,10 +145,10 @@ class SubmissionExtras(models.Model):
             if kc not in asset_known_cols:
                 asset_changes = True
                 asset_known_cols.append(kc)
+
         if asset_changes:
-            # is this next line necessary?
             self.asset.known_cols = asset_known_cols
-            self.asset.save()
+            self.asset.save(create_version=False)
 
         super().save(*args, **kwargs)
 

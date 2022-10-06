@@ -27,15 +27,19 @@ KEY_TYPE_DICTS = {
 def is_non_null_submext_data(key, tvals):
     return True
 
+
 def get_lang_code(key, tvals):
     if 'languageCode' in tvals:
         yield tvals['languageCode']
     elif key == 'translated':
         for key in tvals.keys():
             yield key
-    else:
-        import ipdb; ipdb.set_trace()
-        return None
+    elif key == 'translation':
+        for key in tvals.keys():
+            yield key
+    elif key == 'translated':
+        raise ValueError('key "translated" should not be in the asset. Run management command:'
+                         ' python manage.py runscript repop_known_cols" to fix')
 
 
 def determine_export_cols_indiv(sub_ex_content):
