@@ -588,8 +588,8 @@ export function getRowSupplementalResponses(
       });
     }
 
-    if (advancedFeatures.translated?.languages !== undefined) {
-      advancedFeatures.translated.languages.forEach((languageCode: LanguageCode) => {
+    if (advancedFeatures.translation?.languages !== undefined) {
+      advancedFeatures.translation.languages.forEach((languageCode: LanguageCode) => {
         const path = getSupplementalTranslationPath(rowName, languageCode);
         output.push(
           new DisplayResponse(

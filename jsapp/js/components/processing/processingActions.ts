@@ -35,7 +35,7 @@ interface GoogleTxResponse {
 
 interface TransxQuestion {
   transcript: TransxObject;
-  translated: {
+  translation: {
     [languageCode: LanguageCode]: TransxObject;
   };
   googlets?: GoogleTsResponse;
@@ -83,7 +83,7 @@ interface TranslationRequest {
   submission?: string;
 }
 interface TranslationRequestQuestion {
-  translated: TranslationsRequestObject;
+  translation: TranslationsRequestObject;
 }
 interface TranslationsRequestObject {
   [languageCode: LanguageCode]: TransxRequestObject;
@@ -143,7 +143,7 @@ processingActions.activateAsset.listen((
     features.transcript = {};
   }
   if (Array.isArray(enableTranslations)) {
-    features.translated = {
+    features.translation = {
       languages: enableTranslations,
     };
   }
@@ -387,7 +387,7 @@ function pickTranslationsFromProcessingDataResponse(
   qpath: string
 ): TransxObject[] {
   const translations: TransxObject[] = [];
-  Object.values(response[qpath]?.translated).forEach((translation) => {
+  Object.values(response[qpath]?.translation).forEach((translation) => {
     translations.push(translation);
   });
   return translations;
@@ -411,7 +411,7 @@ function getTranslationDataObject(
     submission: submissionEditId,
   };
   data[qpath] = {
-    translated: translationsObj,
+    translation: translationsObj,
   };
   return data;
 }
@@ -467,7 +467,7 @@ processingActions.setTranslation.listen((
 ) => {
   // This first block of code is about getting currently enabled languages.
   const currentFeatures = getAssetAdvancedFeatures(assetUid);
-  if (currentFeatures?.translated === undefined) {
+  if (currentFeatures?.translation === undefined) {
     processingActions.setTranslation.failed(NO_FEATURE_ERROR);
     return;
   }
@@ -475,8 +475,8 @@ processingActions.setTranslation.listen((
   // Case 1: the language is already enabled in advanced_features, so we can
   // just send the translation.
   if (
-    Array.isArray(currentFeatures.translated.languages) &&
-    currentFeatures.translated.languages.includes(languageCode)
+    Array.isArray(currentFeatures.translation.languages) &&
+    currentFeatures.translation.languages.includes(languageCode)
   ) {
     setTranslationInnerMethod(
       assetUid,
@@ -493,13 +493,13 @@ processingActions.setTranslation.listen((
 
   // We build the updated advanced_features object.
   const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
-  if (!newFeatures.translated) {
-    newFeatures.translated = {};
+  if (!newFeatures.translation) {
+    newFeatures.translation = {};
   }
-  if (Array.isArray(newFeatures.translated.languages)) {
-    newFeatures.translated.languages.push(languageCode);
+  if (Array.isArray(newFeatures.translation.languages)) {
+    newFeatures.translation.languages.push(languageCode);
   } else {
-    newFeatures.translated.languages = [languageCode];
+    newFeatures.translation.languages = [languageCode];
   }
 
   // We update the asset and go with the next call on success.

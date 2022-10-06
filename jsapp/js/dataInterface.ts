@@ -346,7 +346,7 @@ export interface AssetAdvancedFeatures {
     /** List of transcript enabled languages. */
     languages?: string[]
   }
-  translated?: {
+  translation?: {
     /** List of question names */
     values?: string[]
     /** List of translations enabled languages. */

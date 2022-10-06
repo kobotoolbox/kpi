@@ -556,11 +556,11 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     });
   });
 
-  advancedFeatures.translated?.values?.forEach((questionName: string) => {
+  advancedFeatures.translation?.values?.forEach((questionName: string) => {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = [];
     }
-    advancedFeatures.translated?.languages?.forEach((languageCode: LanguageCode) => {
+    advancedFeatures.translation?.languages?.forEach((languageCode: LanguageCode) => {
       paths[questionName].push(
         getSupplementalTranslationPath(questionName, languageCode)
       );

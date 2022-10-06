@@ -68,8 +68,14 @@ def populate_paths(_content):
 def advanced_submission_jsonschema(content, actions, url=None):
     action_instances = []
     content = populate_paths(content)
+    # devhack: this keeps serializer from breaking when old params
+    # are still in the database
     if 'translated' in actions:
-        assert 'languages' in actions['translated']
+        actions['translation'] = actions['translated']
+        assert 'languages' in actions['translation']
+        del actions['translated']
+    # /devhack
+
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         if action_params == True:

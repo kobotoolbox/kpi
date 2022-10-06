@@ -451,7 +451,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.transcript = transcriptResponse;
     }
 
-    const translationsResponse = response[this.currentQuestionQpath]?.translated;
+    const translationsResponse = response[this.currentQuestionQpath]?.translation;
     const translationsArray: Transx[] = [];
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: LanguageCode) => {
@@ -745,8 +745,8 @@ class SingleProcessingStore extends Reflux.Store {
    */
   getAssetTranslatableLanguages() {
     const advancedFeatures = getAssetAdvancedFeatures(this.currentAssetUid);
-    if (advancedFeatures?.translated?.languages) {
-      return advancedFeatures.translated.languages;
+    if (advancedFeatures?.translation?.languages) {
+      return advancedFeatures.translation.languages;
     }
     return [];
   }

@@ -3,7 +3,7 @@ from django.utils import timezone
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 from kobo.apps.subsequences.constants import GOOGLETX
 
-TRANSLATED = 'translated'
+TRANSLATED = 'translation'
 
 
 class TranslationAction(BaseAction):

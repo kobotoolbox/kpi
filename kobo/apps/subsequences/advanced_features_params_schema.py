@@ -27,7 +27,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
                 },
             }
         },
-        'translated': {
+        'translation': {
             'type': 'object',
             'properties': {
                 'languages': {
