@@ -440,14 +440,14 @@ def generate_user_statistics_report(
     )
 
     for record in records:
-        user_details = ExtraUserDetail.objects.get(
+        user_details, created = ExtraUserDetail.objects.get_or_create(
             user_id=record['user_id']
-        ).data
+        )
         data.append([
             record['user__username'],
             record['user__date_joined'],
-            user_details.get('organization', ''),
-            user_details.get('country', ''),
+            user_details.data.get('organization', ''),
+            user_details.data.get('country', ''),
             record['count_sum'],
             forms_count.get(record['user_id'], 0),
             deployment_count.get(record['user_id'], 0)
