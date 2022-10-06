@@ -243,6 +243,10 @@ export class LibraryAssetForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
+
+            <label htmlFor='sector'>
+              {t('Primary Sector')}
+            </label>
             <WrappedSelect
               label={t('Primary Sector')}
               value={this.state.fields.sector}

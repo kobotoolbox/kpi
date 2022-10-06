@@ -1,0 +1,8 @@
+{
+  "baseUrl": "http://google.com",
+  "testFiles": [
+    "project.spec.js",
+    "question.spec.js",
+    "delete.spec.js"
+  ]
+}

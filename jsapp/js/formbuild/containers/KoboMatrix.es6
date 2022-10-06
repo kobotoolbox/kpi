@@ -563,7 +563,7 @@ class KoboMatrix extends React.Component {
                     })
                   }
                   <div className='matrix-cols__options--row-foot'>
-                    <i className='k-icon k-icon-plus' onClick={this.newChoiceOption} data-list-name={this.getCol(expandedCol, 'select_from_list_name')}/>
+                    <i className='k-icon k-icon-plusz' onClick={this.newChoiceOption} data-list-name={this.getCol(expandedCol, 'select_from_list_name')}/>
                   </div>
 
                 </div>
