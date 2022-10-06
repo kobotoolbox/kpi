@@ -1,6 +1,8 @@
+# Running tests
+
 ## How to start the test server
 
-If you normally run kpi with `./manage.py runserver 0.0.0.0:8000`, you'll use:
+If you normally run kpi with `./manage.py runserver 0.0.0.0:8000`, you can use:
 
 ```
 kpi$ DJANGO_SETTINGS_MODULE=kobo.settings.testing  \
@@ -15,22 +17,33 @@ If you're using kobo-docker / kobo-install, the process will look like this:
 kobo-install$  ./run.py -cf exec kpi bash
 root@kpi:/srv/src/kpi#  sv stop uwsgi
 ok: down: uwsgi: 0s, normally up
-root@kpi:/srv/src/kpi#  DJANGO_SETTINGS_MODULE=kobo.settings.testing  \
-                        ./manage.py cypress_testserver                \
-                        --addrport 0.0.0.0:8000                       \
-                        --noinput                                     
+root@kpi:/srv/src/kpi# DJANGO_SETTINGS_MODULE=kobo.settings.testing ./manage.py cypress_testserver --addrport 0.0.0.0:8000 --noinput                                     
 ```
 
-#### About `cypress_testserver`
+<details><summary>About cypress_testserver</summary>
 
-- The Cypress tests are written to expect certain fixtures (specific data: users and projects) in kpi's database.
-- The command `./manage.py cypress_testserver` is like [the Django-Admin `testserver`](https://docs.djangoproject.com/en/4.0/ref/django-admin/#testserver), but [we customize it](https://github.com/kobotoolbox/kpi/commit/314314d82b4cc090944ffcc1379d4a566afbcf07) to load fixtures specifically for these Cypress tests.
-- The environment variable `DJANGO_SETTINGS_MODULE=kobo.settings.testing` switches the server away from using your default kpi database. For more info about what else this does, see [kpi/kobo/settings/testing.py](https://github.com/kobotoolbox/kpi/blob/ae07326dec1984feb783cca5e91741c71a93fa9c/kobo/settings/testing.py).
-- The flag `--noinput` surpresses console warnings about clearing the existing test database.
-- During each test run, the Cypress tests modify the database fixtures. When you're running Cypress repeatedly, you need to restart the test server to reset the fixture states. `^C` to interrupt, then run the above command again.
+#### About cypress_testserver
 
+The **cypress_testserver** provides fixtures for the Cypress tests.
 
-## How to run a test
+```
+DJANGO_SETTINGS_MODULE=kobo.settings.testing (1) Use test server settings
+              ./manage.py cypress_testserver (2) Run the test server
+                     --addrport 0.0.0.0:8000 (3) Bind :8000 (check this)
+                     --noinput               (4) Skip 'delete database' prompt
+```
+
+1. `DJANGO_SETTINGS_MODULE=kobo.settings.testing` switches the server away from using your default kpi database. Source: [kpi/kobo/settings/testing.py](https://github.com/kobotoolbox/kpi/blob/ae07326dec1984feb783cca5e91741c71a93fa9c/kobo/settings/testing.py) 
+2. `./manage.py cypress_testserver`  is a custom management command. Starts a test server with fixtures created in Python specifically for Cypress tests.
+    - [kpi/management/commands/cypress_testserver.py](https://github.com/kobotoolbox/kpi/commit/314314d82b4cc090944ffcc1379d4a566afbcf07) - Add or change fixtures here.
+    - [django-admin/#testserver](https://docs.djangoproject.com/en/4.0/ref/django-admin/#testserver) - Django's built-in `testserver`, which this is based on.
+3. `--addrport 0.0.0.0:8000` - Change this if necessary. Use port 80 if you're running on http://kf.kobo.local, port 8000 if you're using kobo-install.
+4. `--noinput` - Skips console prompts about clearing the existing test database.
+</details>
+
+Between subsequent Cypress test runs, you'll need to restart the test server to reset the fixture states. Interrupt it with `^C`, then re-run the above command to start the server again.
+
+## How to run Cypress tests
 
 <details>
 <summary>Prerequisite: Install Cypress</summary>
@@ -53,14 +66,35 @@ Cypress will likely ask you to install [some OS dependencies](https://on.cypress
 
     kpi/cypress$ npx cypress open
 
-## Structure/Folders:
+### Useful configuration options
 
-- fixtures: basic parameters can be changed from the cypress/fixtures folder.  
-- integration: tests will go here.  
-- support: custom commands and code that is run before all tests. This is where cypress is told to keep the session open for all tests by remembering cookies.  
+> 🚧  *We are on an older version of cypress (8.7.0), so our configuration guide is located at [Legacy Configuration](https://docs.cypress.io/guides/references/legacy-configuration).*
+
+Both commands (cypress run, cypress open) accept a comma-separated list of config values with the `--config` flag.
+
+#### How to disable video/screenshot recording
+
+If you're on a computer with limited resources, you may wish to use these:
+
+```
+  video=false                     Disable video recording of Cypress tests
+  screenshotOnRunFailure=false    Disable screenshots of Cypress tests
+```
+
+For example, to run the command-line only tests without the above options, use `npx cypress run --config video=false,screenshotOnRunFailure=false`. 
+
+Alternatively, you could set the environment variables `CYPRESS_VIDEO` and `CYPRESS_SCREENSHOT_ON_RUN_FAILURE`.
+
+# Writing tests
+
+## Structure/Folders
+
+- fixtures: basic parameters can be changed from the cypress/fixtures folder.
+- integration: tests will go here.
+- support: custom commands and code that is run before all tests. This is where cypress is told to keep the session open for all tests by remembering cookies.
 - cypress.json: order in which tests are carried out
 
-## Cypress Philosophy:
+## Cypress Philosophy
 
 - All tests should be independent.
 - Elements should be selected with an attribute that is not expected to change.
