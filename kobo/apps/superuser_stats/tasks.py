@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import get_storage_class
-from django.db.models import Sum, CharField, Count, F, Value, DateField
+from django.db.models import Sum, CharField, Count, F, Value, DateField, Q
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
@@ -40,10 +40,11 @@ def generate_country_report(
         xform_ids = Asset.objects.values_list(
             '_deployment_data__backend_response__formid', flat=True
         ).filter(
+            Q(settings__country__contains=[{'value': code_}])
+            | Q(settings__country__value=code_),
             _deployment_data__active=True,
             _deployment_data__has_key='backend',
             asset_type=ASSET_TYPE_SURVEY,
-            settings__country__contains=[{'value': code_}],
         )
         # Doing it this way because this report is focused on crises in
         # very specific time frames
@@ -136,6 +137,7 @@ def generate_continued_usage_report(
         )
         data.append([
             user.username,
+            user.date_joined,
             user.last_login,
             three_asset_count['asset_count'],
             six_asset_count['asset_count'],
@@ -148,6 +150,7 @@ def generate_continued_usage_report(
     headers = [
         'Username',
         'Date Joined',
+        'Last Login',
         'Assets 3m',
         'Assets 6m',
         'Assets 12m',
@@ -508,7 +511,7 @@ def generate_user_details_report(output_filename: str):
 
     values = USER_COLS + METADATA_COL
     data = (
-        User.objects.all()
+        User.objects.exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
             mfa_is_active=F('mfa_methods__is_active'),
             metadata=F('extra_details__data'),

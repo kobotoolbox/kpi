@@ -372,4 +372,3 @@ xlwt==1.3.0
 yubico-client==1.13.0
     # via django-trench
 backports-zoneinfo==0.2.1; python_version < '3.9'
-backports-zoneinfo==0.2.1; python_version < '3.9'

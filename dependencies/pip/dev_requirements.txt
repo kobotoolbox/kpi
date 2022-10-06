@@ -473,4 +473,3 @@ yubico-client==1.13.0
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
 backports-zoneinfo==0.2.1; python_version < '3.9'
-backports-zoneinfo==0.2.1; python_version < '3.9'
