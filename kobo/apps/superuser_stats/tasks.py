@@ -290,11 +290,25 @@ def generate_user_count_by_organization(output_filename: str):
         User.objects.filter(extra_details__data__has_key='organization')
         .values('extra_details__data__organization')
         .annotate(total=Count('extra_details__data__organization'))
-    )
-    data = [
-        [o['extra_details__data__organization'], o['total']]
-        for o in organizations
-    ]
+    ).order_by('extra_details__data__organization')
+
+    no_organizations_count = User.objects.exclude(
+        Q(pk=settings.ANONYMOUS_USER_ID)
+        | Q(extra_details__data__has_key='organization')
+    ).count()
+
+    has_no_organizations = False
+    data = []
+    for o in organizations:
+        if not o['extra_details__data__organization']:
+            has_no_organizations = True
+            o['extra_details__data__organization'] = 'Unspecified'
+            o['total'] += no_organizations_count
+
+        data.append([o['extra_details__data__organization'], o['total']])
+
+    if not has_no_organizations:
+        data.insert(0, ['Unspecified', no_organizations_count])
 
     # write data to a csv file
     columns = ['Organization', 'Count']
