@@ -5,6 +5,7 @@ import string
 import time
 import uuid
 from datetime import datetime
+from xml.etree import ElementTree as ET
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -921,7 +922,9 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
             'version_uid': self.asset.latest_deployed_version.uid,
         }
-        assert response.data == expected_response
+        actual_response = response.data
+        actual_response.pop('submission_xml')
+        assert actual_response == expected_response
 
     @responses.activate
     def test_get_edit_link_submission_as_owner(self):
@@ -945,7 +948,9 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
             'version_uid': self.asset.latest_deployed_version.uid,
         }
-        self.assertEqual(response.data, expected_response)
+        actual_response = response.data
+        actual_response.pop('submission_xml')
+        assert actual_response == expected_response
 
     def test_get_edit_link_submission_as_anonymous(self):
         """
@@ -1058,12 +1063,14 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         )
 
         response = self.client.get(url, {'format': 'json'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code ==  status.HTTP_200_OK
         expected_response = {
             'url': f"{settings.ENKETO_URL}/edit/{submission['_uuid']}",
             'version_uid': self.asset.latest_deployed_version.uid,
         }
-        self.assertEqual(response.data, expected_response)
+        actual_response = response.data
+        actual_response.pop('submission_xml')
+        assert actual_response == expected_response
 
     @responses.activate
     def test_get_edit_link_response_includes_csrf_cookie(self):
@@ -1221,7 +1228,13 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
             'version_uid': original_deployed_version_uid,
         }
-        assert response.data == expected_response
+        actual_response = response.data
+        submission_xml = actual_response.pop('submission_xml')
+        assert actual_response == expected_response
+
+        parsed_submission_xml = ET.fromstring(submission_xml)
+        submission_version = parsed_submission_xml.find('__version__').text
+        assert submission_version == original_deployed_version_uid
 
         # redeploy the asset to create a new deployment version
         self.asset.deploy(active=True)
@@ -1233,13 +1246,20 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         )
 
         # ensure that the newly deployed version is used for editing
+        latest_deployed_version_uid = self.asset.latest_deployed_version.uid
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
         expected_response = {
             'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
-            'version_uid': self.asset.latest_deployed_version.uid,
+            'version_uid': latest_deployed_version_uid,
         }
-        assert response.data == expected_response
+        actual_response = response.data
+        submission_xml = actual_response.pop('submission_xml')
+        assert actual_response == expected_response
+
+        parsed_submission_xml = ET.fromstring(submission_xml)
+        submission_version = parsed_submission_xml.find('__version__').text
+        assert submission_version == latest_deployed_version_uid
 
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
@@ -1279,7 +1299,9 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}",
             'version_uid': self.asset.latest_deployed_version.uid,
         }
-        assert response.data == expected_response
+        actual_response = response.data
+        actual_response.pop('submission_xml')
+        assert actual_response == expected_response
 
     def test_get_view_link_submission_as_anonymous(self):
         """
@@ -1356,7 +1378,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         )
 
         response = self.client.get(url, {'format': 'json'})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Try second submission submitted by anotheruser
         submission = self.submissions_submitted_by_anotheruser[0]
@@ -1379,12 +1401,14 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         )
 
         response = self.client.get(url, {'format': 'json'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         expected_response = {
             'url': f"{settings.ENKETO_URL}/view/{submission['_uuid']}",
             'version_uid': self.asset.latest_deployed_version.uid,
         }
-        self.assertEqual(response.data, expected_response)
+        actual_response = response.data
+        actual_response.pop('submission_xml')
+        assert actual_response == expected_response
 
 
 class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
@@ -1569,9 +1593,17 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         }
 
     def _check_bulk_update(self, response):
+        latest_deployed_version_uid = self.asset.latest_deployed_version.uid
         submission_ids = self.updated_submission_data['submission_ids']
         # Check that the number of ids given matches the number of successful
         assert len(submission_ids) == response.data['successes']
+        # Check that the submission __version__ matches the latest deployed
+        # form version
+        for submission_data in response.data['results']:
+            submission_xml = submission_data['updated_submission']
+            parsed_submission_xml = ET.fromstring(submission_xml)
+            submission_version = parsed_submission_xml.find('__version__').text
+            assert submission_version == latest_deployed_version_uid
 
     def test_bulk_update_submissions_allowed_as_owner(self):
         """
@@ -1669,6 +1701,35 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.updated_submission_data['submission_ids'] = [
             rs['_id'] for rs in random_submissions
         ]
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
+    def test_bulk_update_submissions_with_latest_asset_deployment(self):
+        """
+        Check that the submission edit is using the asset version associated
+        with the latest **deployed** version and updates the submission's
+        __version__ to match.
+        """
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
+        # redeploy the asset to create a new deployment version
+        self.asset.content['survey'].append(
+            {
+                'type': 'note',
+                'name': 'n',
+                'label': 'A new note',
+            }
+        )
+        self.asset.deploy(active=True)
+        self.asset.save()
+
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )

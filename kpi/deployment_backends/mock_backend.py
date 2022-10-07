@@ -69,6 +69,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def bulk_update_submissions(
         self, data: dict, user: 'auth.User'
     ) -> dict:
+        version_uid = self.asset.latest_deployed_version.uid
+
         submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -111,6 +113,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
+
+            # Update the `__version__` value in the submission to match the
+            # version of the form used for editing
+            xml_parsed.find('__version__').text = version_uid
 
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)

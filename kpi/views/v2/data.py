@@ -755,9 +755,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = response.json()
         enketo_url = json_response.get(f'{action_}_url')
 
-        return Response(
-            {
-                'url': enketo_url,
-                'version_uid': version_uid,
-            }
-        )
+        response = {
+            'url': enketo_url,
+            'version_uid': version_uid,
+        }
+        if settings.TESTING:
+            response['submission_xml'] = submission_xml
+
+        return Response(response)
