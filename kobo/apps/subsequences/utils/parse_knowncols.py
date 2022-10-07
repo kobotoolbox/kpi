@@ -35,7 +35,7 @@ def parse_field_cols(qpath, fieldcols):
         for lang in langs['tsc']:
             out.append({
                 'type': 'transcript',
-                'name': f'{name}/transcript',
+                'name': f'{name}/transcript_{lang}',
                 'label': f'{name} - transcript',
                 'language': lang,
                 'qpath': f'{name}-transcript-{lang}',
@@ -47,7 +47,7 @@ def parse_field_cols(qpath, fieldcols):
         for lang in langs['tsl']:
             out.append({
                 'type': 'translation',
-                'name': f'{name}/translation',
+                'name': f'{name}/translation_{lang}',
                 'label': f'{name} - translation',
                 'language': lang,
                 'qpath': f'{name}-translation-{lang}',
