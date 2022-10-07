@@ -89,7 +89,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/stripe/subscriptions`,
+      url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
     })
       .done(this.onFetchSubscriptionInfoDone.bind(this))
       .fail(this.onFetchSubscriptionInfoFail.bind(this));
@@ -115,7 +115,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/service_usage`,
+      url: `${ROOT_URL}/api/v2/service_usage/`,
     })
       .done(this.onFetchDataUsageDone.bind(this))
       .fail(this.onFetchDataUsageFail.bind(this));

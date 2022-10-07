@@ -45,7 +45,7 @@ export default class AccountSidebar extends React.Component<
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/stripe/subscriptions`,
+      url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
     })
       .done(this.onFetchSubscriptionInfoDone.bind(this))
       .fail(this.onFetchSubscriptionInfoFail.bind(this));

@@ -33,7 +33,7 @@ class PlanRouteStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/service_usage`,
+      url: `${ROOT_URL}/api/v2/service_usage/`,
     })
       .done(this.onFetchDataUsageDone.bind(this))
       .fail(this.onFetchDataUsageFail.bind(this));
