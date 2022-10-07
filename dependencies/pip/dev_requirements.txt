@@ -421,11 +421,8 @@ six==1.16.0
     #   azure-core
     #   bcrypt
     #   click-repl
-<<<<<<< HEAD
     #   django-organizations
     #   isodate
-=======
->>>>>>> 6f9766500 (Add django allauth package)
     #   mongomock
     #   paramiko
     #   pathlib2
