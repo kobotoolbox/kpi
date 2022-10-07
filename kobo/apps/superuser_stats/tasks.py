@@ -174,7 +174,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 
     # get a list of the domains
     domains = [
-        email.split('@')[1] if '@' in email else '!!invalid: ' + email
+        email.split('@')[1] if '@' in email else 'Invalid domain ' + email
         for email in emails
     ]
     domain_users = Counter(domains)
