@@ -453,6 +453,14 @@ def generate_user_statistics_report(
         ).order_by('user__date_joined').annotate(count_sum=Sum('counter'))
     )
 
+    def _get_country_value(value: Union[dict, list]) -> str:
+        if isinstance(value, dict):
+            return value['value']
+        elif isinstance(value, list):
+            return ', '.join([item['value'] for item in value])
+
+        return value
+
     for record in records:
         user_details, created = ExtraUserDetail.objects.get_or_create(
             user_id=record['user_id']
@@ -461,7 +469,7 @@ def generate_user_statistics_report(
             record['user__username'],
             record['user__date_joined'],
             user_details.data.get('organization', ''),
-            user_details.data.get('country', ''),
+            _get_country_value(user_details.data.get('country', '')),
             record['count_sum'],
             forms_count.get(record['user_id'], 0),
             deployment_count.get(record['user_id'], 0)
