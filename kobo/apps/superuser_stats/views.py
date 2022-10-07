@@ -63,9 +63,10 @@ def country_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date=2020-01-31&end_date=2021-02-28">'
-        f'  {url}?start_date=2020-01-31&end_date=2021-02-28'
+        f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
+        f'  {url}?start_date={today}&end_date={tomorrow}'
         f'</a>'
+        f'<p>The default date range is for today.</p>'
         f'</body></html>'
     )
 
@@ -104,9 +105,10 @@ def continued_usage_report(request):
         f'To select a date range, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?end_date=2021-02-28">'
-        f'  {url}?end_date=2021-02-28'
+        f'<a href="{url}?end_date={tomorrow}">'
+        f'  {url}?end_date={tomorrow}'
         f'</a>'
+        f'<p>The default end date is {tomorrow}.</p>'
         f'</body></html>'
     )
 
@@ -128,15 +130,9 @@ def domain_report(request):
     )
 
     # Get the date filters from the query and set defaults
-    start_date = request.GET.get(
-        'start_date',
-        f'{today.year}-{today.month}-{today.day}'
-    )
-    tomorrow = timezone.now() + timedelta(days=1)
-    end_date = request.GET.get(
-        'end_date',
-        f'{tomorrow.year}-{tomorrow.month}-{tomorrow.day}'
-    )
+    start_date = request.GET.get('start_date', today)
+    tomorrow = today + timedelta(days=1)
+    end_date = request.GET.get('end_date', tomorrow)
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
@@ -155,8 +151,8 @@ def domain_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date=2020-01-31&end_date=2021-02-28">'
-        f'  {url}?start_date=2020-01-31&end_date=2021-02-28'
+        f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
+        f'  {url}?start_date={today}&end_date={tomorrow}'
         f'</a>'
         f'<p>The default date range is for today, but submissions count will not be'
         f' 0 unless it includes the range includes first of the month.</p>'
@@ -274,7 +270,7 @@ def user_report(request):
 @user_passes_test(lambda u: u.is_superuser)
 def user_statistics_report(request):
     """
-    View for the User Statisctics Report
+    View for the User Statistics Report
     Generates a detailed report of a user's activity
     over a period of time
     """
@@ -306,9 +302,10 @@ def user_statistics_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date=2020-01-31&end_date=2021-02-28">'
-        f'  {url}?start_date=2020-01-31&end_date=2021-02-28'
+        f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
+        f'  {url}?start_date={today}&end_date={tomorrow}'
         f'</a>'
+        f'<p>The default date range is for today.</p>'
         f'</body></html>'
     )
     return HttpResponse(template_ish)
