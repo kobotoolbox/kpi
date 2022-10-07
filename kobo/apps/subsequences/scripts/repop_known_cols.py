@@ -6,7 +6,7 @@ Usage:
 '''
 import re
 import json
-from pprint import pprint
+# from pprint import pprint
 
 from kpi.models.asset import Asset
 from kobo.apps.subsequences.models import SubmissionExtras
@@ -26,6 +26,11 @@ def migrate_subex_content(sub_ex):
         sub_ex.save()
 
 
+def migrate_subex_content_for_asset(asset):
+    for sub_ex in asset.submission_extras.all():
+        migrate_subex_content(sub_ex)
+
+
 def repop_asset_knowncols(asset):
     print(f'for_asset: {asset.uid}')
     print('  before:')
@@ -41,9 +46,6 @@ def repop_asset_knowncols(asset):
 
 
 def run(asset_uid=None):
-    for sub_ex in SubmissionExtras.objects.all():
-        migrate_subex_content(sub_ex)
-
     if asset_uid is None:
         id_key = 'asset_id'
         asset_ids = list(
@@ -53,7 +55,9 @@ def run(asset_uid=None):
         )
         for asset_id in asset_ids:
             asset = Asset.objects.get(id=asset_id)
+            migrate_subex_content_for_asset(asset)
             repop_asset_knowncols(asset)
     else:
-        asset = Asset.objects.get(asset_uid=asset_uid)
+        asset = Asset.objects.get(uid=asset_uid)
+        migrate_subex_content_for_asset(asset)
         repop_asset_knowncols(asset)
