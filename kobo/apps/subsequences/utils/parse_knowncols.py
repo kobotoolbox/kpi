@@ -39,7 +39,7 @@ def parse_field_cols(qpath, fieldcols):
                 'label': f'{name} - transcript',
                 'language': lang,
                 'qpath': f'{name}-transcript-{lang}',
-                'source': name,
+                'source': qpath,
                 'path': [*qpath.split('-'), 'transcript'],
                 'settings': {'mode': 'manual', 'engine':'engines/transcript_manual'},
             })
@@ -51,7 +51,7 @@ def parse_field_cols(qpath, fieldcols):
                 'label': f'{name} - translation',
                 'language': lang,
                 'qpath': f'{name}-translation-{lang}',
-                'source': name,
+                'source': qpath,
                 'path': [*qpath.split('-'), 'translation'],
                 'settings': {'mode': 'manual', 'engine':'engines/translation_manual'},
             })
