@@ -43,8 +43,10 @@ class EnvStoreData {
   public mfa_localized_help_text: {[name: string]: string} = {};
   public mfa_enabled = false;
   public mfa_code_length = 6;
+  public stripe_public_key: string | null = null;
+  public stripe_pricing_table_id: string | null = null;
 
-  public getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
+  getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
       if (f.name === fieldName) {
         return f;
@@ -100,6 +102,8 @@ class EnvStore {
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
     this.data.mfa_code_length = response.mfa_code_length;
+    this.data.stripe_public_key = response.stripe_public_key;
+    this.data.stripe_pricing_table_id = response.stripe_pricing_table_id;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);

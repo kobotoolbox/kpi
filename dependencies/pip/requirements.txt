@@ -8,6 +8,8 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
     # via -r dependencies/pip/requirements.in
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
+    # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
@@ -86,9 +88,12 @@ dict2xml==1.7.1
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
+dj-stripe==2.6.2
+    # via -r dependencies/pip/requirements.in
 django==3.2.15
     # via
     #   -r dependencies/pip/requirements.in
+    #   dj-stripe
     #   django-amazon-ses
     #   django-braces
     #   django-celery-beat
@@ -100,6 +105,7 @@ django==3.2.15
     #   django-js-asset
     #   django-markdownx
     #   django-oauth-toolkit
+    #   django-organizations
     #   django-picklefield
     #   django-redis
     #   django-request-cache
@@ -109,6 +115,7 @@ django==3.2.15
     #   django-timezone-field
     #   djangorestframework
     #   jsonfield
+    #   kobo-service-account
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
 django-braces==1.15.0
@@ -141,6 +148,8 @@ django-mptt==0.13.4
     # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==2.0.0
     # via -r dependencies/pip/requirements.in
+django-organizations==2.0.2
+    # via -r dependencies/pip/requirements.in
 django-picklefield==3.0.1
     # via django-constance
 django-private-storage==3.0
@@ -171,6 +180,7 @@ djangorestframework==3.13.1
     # via
     #   -r dependencies/pip/requirements.in
     #   drf-extensions
+    #   kobo-service-account
 djangorestframework-xml==2.0.0
     # via -r dependencies/pip/requirements.in
 docutils==0.18.1
@@ -194,7 +204,9 @@ jmespath==1.0.0
     #   boto3
     #   botocore
 jsonfield==3.1.0
-    # via -r dependencies/pip/requirements.in
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   dj-stripe
 jsonschema==4.4.0
     # via formpack
 jwcrypto==1.2
@@ -284,6 +296,7 @@ redis==4.2.2
     #   celery
     #   django-redis
     #   django-redis-sessions
+    #   kobo-service-account
 requests==2.27.1
     # via
     #   -r dependencies/pip/requirements.in
@@ -293,6 +306,7 @@ requests==2.27.1
     #   requests-oauthlib
     #   responses
     #   smsapi-client
+    #   stripe
     #   twilio
     #   yubico-client
 requests-oauthlib==1.3.1
@@ -309,6 +323,7 @@ six==1.16.0
     # via
     #   azure-core
     #   click-repl
+    #   django-organizations
     #   isodate
     #   python-dateutil
 smsapi-client==2.6.0
@@ -324,6 +339,8 @@ static3==0.7.0
     #   dj-static
 statistics==1.0.3.5
     # via formpack
+stripe==4.1.0
+    # via dj-stripe
 tabulate==0.8.9
     # via -r dependencies/pip/requirements.in
 twilio==7.8.2
