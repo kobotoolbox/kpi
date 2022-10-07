@@ -691,7 +691,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # root node name specified in the form XML (i.e. the first child of
         # `<instance>`) must match the root node name of the submission XML,
         # otherwise Enketo will refuse to open the submission.
-        xml_root_node_name = ET.fromstring(submission_xml).tag
+        parsed_submission_xml = ET.fromstring(submission_xml)
+        xml_root_node_name = parsed_submission_xml.tag
+
+        # Update the `__version__` value in the submission to match the
+        # version of the form used for editing
+        parsed_submission_xml.find('__version__').text = version_uid
+        submission_xml = ET.tostring(parsed_submission_xml)
 
         # This will raise `AssetVersion.DoesNotExist` if the inferred version
         # of the submission disappears between the call to `build_formpack()`
