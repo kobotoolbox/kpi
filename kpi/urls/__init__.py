@@ -76,6 +76,13 @@ urlpatterns = [
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
 ]
 
+
+if settings.STRIPE_ENABLED:
+    urlpatterns = [
+        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls'))
+    ] + urlpatterns
+
+
 if settings.DEBUG and settings.ENV == 'dev':
     import debug_toolbar
     urlpatterns = [
