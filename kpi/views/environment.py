@@ -16,7 +16,7 @@ from kobo.static_lists import (
     TRANSLATION_LANGUAGES
 )
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.apps.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kpi.utils.object_permission import get_database_user
 
 

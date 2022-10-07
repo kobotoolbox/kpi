@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from trench.utils import get_mfa_model
 
-from kobo.apps.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kpi.tests.kpi_test_case import BaseTestCase
 
 

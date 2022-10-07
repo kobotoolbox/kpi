@@ -13,7 +13,7 @@ from markdown import markdown
 from rest_framework import status
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.apps.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kpi.tests.base_test_case import BaseTestCase
 
 

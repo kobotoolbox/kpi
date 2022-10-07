@@ -113,7 +113,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.apps.MfaAppConfig',
+    'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
 )
 
@@ -672,7 +672,7 @@ ACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.AccountAdapter"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_FORMS = {
-    'login': 'kobo.apps.mfa.forms.MfaLoginForm',
+    'login': 'kobo.apps.accounts.mfa.forms.MfaLoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
@@ -990,7 +990,7 @@ TRENCH_AUTH = {
                 'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
             ),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.mfa.backends.application.ApplicationBackend',
+            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
         },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
