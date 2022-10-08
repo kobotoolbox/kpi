@@ -139,12 +139,12 @@ def generate_continued_usage_report(
             user.username,
             user.date_joined,
             user.last_login,
-            three_asset_count['asset_count'],
-            six_asset_count['asset_count'],
-            twelve_asset_count['asset_count'],
-            three_submissions_count['submissions_count'],
-            six_submissions_count['submissions_count'],
-            twelve_submission_count['submissions_count'],
+            three_asset_count['asset_count'] or 0,
+            six_asset_count['asset_count'] or 0,
+            twelve_asset_count['asset_count'] or 0,
+            three_submissions_count['submissions_count'] or 0,
+            six_submissions_count['submissions_count'] or 0,
+            twelve_submission_count['submissions_count'] or 0,
         ])
 
     headers = [
@@ -228,12 +228,30 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
 def generate_forms_count_by_submission_range(output_filename: str):
     # List of submissions count ranges
     ranges = [
-        (0, 0),
-        (1, 500),
-        (501, 1000),
-        (1001, 10000),
-        (10001, 50000),
-        (50001, None)
+        {
+            'label': '0',
+            'orm_criteria': {'num_of_submissions': 0}
+        },
+        {
+            'label': '1 - 500',
+            'orm_criteria': {'num_of_submissions__range': (1, 500)}
+        },
+        {
+            'label': '501 - 1000',
+            'orm_criteria': {'num_of_submissions__range': (501, 1000)}
+        },
+        {
+            'label': '1001 - 10000',
+            'orm_criteria': {'num_of_submissions__range': (1001, 10000)}
+        },
+        {
+            'label': '10001 - 50000',
+            'orm_criteria': {'num_of_submissions__range': (10001, 50000)}
+        },
+        {
+            'label': '50001 and more',
+            'orm_criteria': {'num_of_submissions__gte': 50001}
+        },
     ]
 
     # store data for csv
@@ -241,13 +259,11 @@ def generate_forms_count_by_submission_range(output_filename: str):
 
     today = datetime.datetime.today()
     date = today - relativedelta(years=1)
+    queryset = KobocatXForm.objects.filter(date_created__gte=date)
 
     for r in ranges:
-        forms_count = KobocatXForm.objects.filter(
-            date_created__gte=date,
-            num_of_submissions__range=r,
-        ).count()
-        data.append([f'{r[0]}-{r[1]}', forms_count])
+        forms_count = queryset.filter(**r['orm_criteria']).count()
+        data.append([r['label'], forms_count])
 
     headers = ['Range', 'Count']
 
