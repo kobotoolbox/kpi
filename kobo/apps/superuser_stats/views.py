@@ -66,7 +66,7 @@ def country_report(request):
         f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
         f'  {url}?start_date={today}&end_date={tomorrow}'
         f'</a>'
-        f'<p>The default date range is for today.</p>'
+        f'<p>The default start_date and end_date is today\'s date.</p>'
         f'</body></html>'
     )
 
@@ -154,8 +154,8 @@ def domain_report(request):
         f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
         f'  {url}?start_date={today}&end_date={tomorrow}'
         f'</a>'
-        f'<p>The default date range is for today, but submissions count will not be'
-        f' 0 unless it includes the range includes first of the month.</p>'
+        f'<p>The default start_date and end_date is today\'s date, but submissions '
+        f'count will be 0 unless the range includes first of the month.</p>'
         f'</body></html>'
     )
 
@@ -204,12 +204,12 @@ def media_storage(request):
         base_filename, request.user.username)
     generate_media_storage_report.delay(filename)
     template_ish = (
-        '<html><head><title>Media storage report</title></head>'
-        '<body>Your report is being generated. Once finished, it will be '
+        f'<html><head><title>Media storage report</title></head>'
+        f'<body>Your report is being generated. Once finished, it will be '
         f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
-        'If you receive a 404, please refresh your browser periodically until '
-        'your request succeeds.'
-        '</body></html>'
+        f'If you receive a 404, please refresh your browser periodically until '
+        f'your request succeeds.'
+        f'</body></html>'
     ).format(base_filename)
     return HttpResponse(template_ish)
 
@@ -305,7 +305,7 @@ def user_statistics_report(request):
         f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
         f'  {url}?start_date={today}&end_date={tomorrow}'
         f'</a>'
-        f'<p>The default date range is for today.</p>'
+        f'<p>The default start_date and end_date is today\'s date.</p>'
         f'</body></html>'
     )
     return HttpResponse(template_ish)
