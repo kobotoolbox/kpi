@@ -543,7 +543,7 @@ export function getSupplementalDetailsContent(
   // The last element is `translated_<language code>`, but we don't want
   // the underscore to be there.
   pathArray.pop();
-  pathArray.push('translated');
+  pathArray.push('translation');
   pathArray.push(pathParts.languageCode);
 
   // Then we add one more nested level

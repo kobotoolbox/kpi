@@ -40,7 +40,7 @@ export function getSupplementalPathParts(path: string): {
   return {
     sourceRowName: pathArr[1],
     isTranscript: path2Arr[0] === 'transcript',
-    isTranslation: path2Arr[0] === 'translated',
+    isTranslation: path2Arr[0] === 'translation',
     languageCode: path2Arr[1],
   };
 }

@@ -583,7 +583,6 @@ export function injectSupplementalRowsIntoListOfRows(
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content');
   }
-  const flatPathsWithGroups = getSurveyFlatPaths(asset.content.survey, true);
 
   let output = Array.from(rows);
 
@@ -606,24 +605,11 @@ export function injectSupplementalRowsIntoListOfRows(
 
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
+    let qpath = col.replace(/\//g, '-')
     outputWithCols.push(col);
-
-    if (col in extraColsBySource) {
-      let colDataArr: any[] = extraColsBySource[col];
-      colDataArr.forEach((cur) => {
-        let name = cur.name;
-        let colstr = `_supplementalDetails/${name}`;
-
-        // Could this be prepared within known_cols utils?
-        if (cur.type === 'transcript') {
-          colstr += `_${cur.language}`;
-        } else if (cur.type === 'translation') {
-          colstr = colstr.replace(/translation$/, 'translated');
-          colstr += `_${cur.language}`;
-        }
-        outputWithCols.push(colstr);
-      });
-    }
+    (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
+      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
+    });
   });
 
   /*

@@ -30,12 +30,14 @@ def parse_field_cols(qpath, fieldcols):
             if tx not in langs[categ]:
                 langs[categ].append(tx)
     out = []
+    # name does not address questions in groups
     name = qpath.split('-')[-1]
     if len(langs['tsc']) > 0:
         for lang in langs['tsc']:
             out.append({
                 'type': 'transcript',
                 'name': f'{name}/transcript_{lang}',
+                'dtpath': f'{qpath}/transcript_{lang}',
                 'label': f'{name} - transcript',
                 'language': lang,
                 'qpath': f'{name}-transcript-{lang}',
@@ -48,6 +50,7 @@ def parse_field_cols(qpath, fieldcols):
             out.append({
                 'type': 'translation',
                 'name': f'{name}/translation_{lang}',
+                'dtpath': f'{qpath}/translation_{lang}',
                 'label': f'{name} - translation',
                 'language': lang,
                 'qpath': f'{name}-translation-{lang}',
