@@ -12,6 +12,23 @@ input is an array of strings that look like this:
 output is a more descriptive structure. (See test_parse_knowncols)
 '''
 from collections import defaultdict
+from copy import deepcopy
+import json
+
+
+def extend_col_deets(lang, coltype, label, q_path):
+    name = q_path.split('-')[-1]
+    out = {'label': name, 'name': name}
+    out['dtpath'] = f'{q_path}/{coltype}_{lang}'
+    out['type'] = coltype
+    out['language'] = lang
+    out['label'] = f'{label} - {coltype}'
+    out['name'] = f'{name}/{coltype}_{lang}'
+    out['source'] = q_path
+    out['qpath'] = f'{name}-{coltype}-{lang}'
+    out['settings'] = {'mode': 'manual', 'engine': f'engines/{coltype}_manual'}
+    out['path'] = [q_path, coltype]
+    return out
 
 
 def parse_field_cols(qpath, fieldcols):
@@ -30,34 +47,17 @@ def parse_field_cols(qpath, fieldcols):
             if tx not in langs[categ]:
                 langs[categ].append(tx)
     out = []
-    # name does not address questions in groups
-    name = qpath.split('-')[-1]
+
     if len(langs['tsc']) > 0:
         for lang in langs['tsc']:
-            out.append({
-                'type': 'transcript',
-                'name': f'{name}/transcript_{lang}',
-                'dtpath': f'{qpath}/transcript_{lang}',
-                'label': f'{name} - transcript',
-                'language': lang,
-                'qpath': f'{name}-transcript-{lang}',
-                'source': qpath,
-                'path': [*qpath.split('-'), 'transcript'],
-                'settings': {'mode': 'manual', 'engine':'engines/transcript_manual'},
-            })
+            out.append(extend_col_deets(lang=lang, label=qpath.split('-')[-1], q_path=qpath,
+                coltype='transcript',
+            ))
     if len(langs['tsl']) > 0:
         for lang in langs['tsl']:
-            out.append({
-                'type': 'translation',
-                'name': f'{name}/translation_{lang}',
-                'dtpath': f'{qpath}/translation_{lang}',
-                'label': f'{name} - translation',
-                'language': lang,
-                'qpath': f'{name}-translation-{lang}',
-                'source': qpath,
-                'path': [*qpath.split('-'), 'translation'],
-                'settings': {'mode': 'manual', 'engine':'engines/translation_manual'},
-            })
+            out.append(extend_col_deets(lang=lang, label=qpath.split('-')[-1], q_path=qpath,
+                coltype='translation',
+            ))
     return out
 
 
