@@ -12,8 +12,6 @@ input is an array of strings that look like this:
 output is a more descriptive structure. (See test_parse_knowncols)
 '''
 from collections import defaultdict
-from copy import deepcopy
-import json
 
 
 def extend_col_deets(lang, coltype, label, q_path):
