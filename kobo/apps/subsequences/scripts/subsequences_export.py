@@ -27,7 +27,17 @@ def run_on_asset(asset):
     if asset.has_advanced_features:
         pack.extend_survey(asset.analysis_form_json())
 
-    options = {}
+    options = {
+        'group_sep': '/',
+        'multiple_select': 'both',
+        'lang': None,
+        'hierarchy_in_labels': False,
+        'force_index': True,
+        'tag_cols_for_header': ['hxl'],
+        'filter_fields': [],
+        'xls_types_as_text': False,
+        'include_media_url': True,
+    }
     xlsx = 'foo.xlsx'
     pack.export(**options).to_xlsx(xlsx, submission_stream)
 
