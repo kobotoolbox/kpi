@@ -22,7 +22,7 @@ export function getSupplementalTranslationPath(
   questionName: string,
   languageCode: LanguageCode
 ) {
-  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated_${languageCode}`;
+  return `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translation_${languageCode}`;
 }
 
 /**

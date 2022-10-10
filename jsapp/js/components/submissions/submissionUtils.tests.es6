@@ -176,7 +176,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return translation value properly', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl'
+      '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl'
     );
     expect(test).to.equal('This is polish translation text.');
   });
