@@ -469,10 +469,10 @@ class KobocatUserProfile(ShadowModel):
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
-    # We need to cast `is_active` to an (positive small) integer because KoBoCAT
-    # is using `LazyBooleanField` which is an integer behind the scene.
-    # We do not want to port this class to KPI only for one line of code.
-    is_mfa_active = models.PositiveSmallIntegerField(default=False)
+
+    @property
+    def is_mfa_active(self):
+        return False
 
     @classmethod
     def set_mfa_status(cls, user_id: int, is_active: bool):
