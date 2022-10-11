@@ -1,13 +1,13 @@
 import pytest
 
 
-from kobo.apps.subsequences.utils.parse_knowncols import (
-    parse_knowncols,
+from kobo.apps.subsequences.utils.parse_known_cols import (
+    parse_known_cols,
 )
 
 
-def test_knowncols_transc_duplicates():
-    results = parse_knowncols([
+def test_known_cols_transc_duplicates():
+    results = parse_known_cols([
         'col-qpath:transc_a:en',
         'col-qpath:transc_a:en',
     ])
@@ -15,16 +15,16 @@ def test_knowncols_transc_duplicates():
     assert results[0]['language'] == 'en'
 
 
-def test_knowncols_transl_duplicates():
-    results = parse_knowncols([
+def test_known_cols_transl_duplicates():
+    results = parse_known_cols([
         'col-qpath:transl_a:fr',
         'col-qpath:transl_a:fr',
     ])
     assert len(results) == 1
 
 
-def test_knowncols_transc_uniqs():
-    results = parse_knowncols([
+def test_known_cols_transc_uniqs():
+    results = parse_known_cols([
         'col-qpath1:transc_a:en',
         'col-qpath1:transc_b:fr',
         'col-qpath2:transc_a:en',
@@ -49,8 +49,8 @@ def test_knowncols_transc_uniqs():
     ]
 
 
-def test_knowncols_transl_uniqs():
-    results = parse_knowncols([
+def test_known_cols_transl_uniqs():
+    results = parse_known_cols([
         'col-qpath1:transl_a:en',
         'col-qpath1:transl_b:fr',
         'col-qpath2:transl_a:en',
@@ -68,8 +68,8 @@ def test_knowncols_transl_uniqs():
     ]
 
 
-def test_knowncols_combos():
-    results = parse_knowncols([
+def test_known_cols_combos():
+    results = parse_known_cols([
         'col-qpath1:transl_a:en',
         'col-qpath1:transl_b:fr',
         'col-qpath2:transl_a:en',

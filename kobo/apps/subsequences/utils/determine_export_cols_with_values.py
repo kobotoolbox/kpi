@@ -12,7 +12,7 @@ input is an array of strings that look like this:
   - q1:translt:fr
   - q1:translt:de
 
-output is a more descriptive structure. (See test_parse_knowncols)
+output is a more descriptive structure. (See test_parse_known_cols)
 '''
 
 

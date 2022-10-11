@@ -11,7 +11,6 @@ from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationEngine,
 )
 from kobo.apps.subsequences.tasks import handle_google_translation_operation
-from kobo.apps.subsequences.utils.parse_knowncols import parse_knowncols
 from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
     determine_export_cols_indiv,
 )

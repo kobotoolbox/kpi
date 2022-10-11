@@ -31,7 +31,7 @@ from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
-from kobo.apps.subsequences.utils.parse_knowncols import parse_knowncols
+from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 
 from kpi.constants import (
     ASSET_TYPES,
@@ -412,7 +412,7 @@ class Asset(ObjectPermissionMixin,
         return len(self.advanced_features) > 0
 
     def _get_additional_fields(self):
-        return parse_knowncols(self.known_cols)
+        return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
         for instance in self.get_advanced_feature_instances():

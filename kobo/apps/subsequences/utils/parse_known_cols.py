@@ -9,7 +9,7 @@ input is an array of strings that look like this:
   - q1:translt:fr
   - q1:translt:de
 
-output is a more descriptive structure. (See test_parse_knowncols)
+output is a more descriptive structure. (See test_parse_known_cols)
 '''
 from collections import defaultdict
 
@@ -61,7 +61,7 @@ def parse_field_cols(qpath, fieldcols):
     return out
 
 
-def parse_knowncols(knownc):
+def parse_known_cols(knownc):
     by_qpath = defaultdict(list)
     out = []
     if isinstance(knownc, dict):
