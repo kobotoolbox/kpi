@@ -1,9 +1,47 @@
 # coding: utf-8
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django_request_cache import cache_for_request
 
 from kpi.fields.kpi_uid import KpiUidField
 from kpi.utils.cache import void_cache_for_request
+
+
+@cache_for_request
+def get_anonymous_user():
+    """ Return a real User in the database to represent AnonymousUser. """
+    try:
+        user = User.objects.get(pk=settings.ANONYMOUS_USER_ID)
+    except User.DoesNotExist:
+        username = getattr(
+            settings,
+            'ANONYMOUS_DEFAULT_USERNAME_VALUE',
+            'AnonymousUser'
+        )
+        user = User.objects.create(
+            pk=settings.ANONYMOUS_USER_ID,
+            username=username
+        )
+    return user
+
+
+def perm_parse(perm, obj=None):
+    if obj is not None:
+        obj_app_label = ContentType.objects.get_for_model(obj).app_label
+    else:
+        obj_app_label = None
+    try:
+        app_label, codename = perm.split('.', 1)
+        if obj_app_label is not None and app_label != obj_app_label:
+            raise ValidationError('The given object does not belong to the app '
+                                  'specified in the permission string.')
+    except ValueError:
+        app_label = obj_app_label
+        codename = perm
+    return app_label, codename
 
 
 class ObjectPermission(models.Model):
