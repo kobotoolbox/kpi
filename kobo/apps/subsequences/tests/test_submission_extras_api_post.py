@@ -19,8 +19,6 @@ from ..constants import GOOGLETS, make_async_cache_key
 from ..models import SubmissionExtras
 from .test_submission_extras_content import sample_asset
 
-TRANSLATED = 'translated'
-
 
 class ValidateSubmissionTest(APITestCase):
     def setUp(self):
@@ -62,7 +60,7 @@ class ValidateSubmissionTest(APITestCase):
 
     def test_translation_revisions_stored_properly(self):
         self.set_asset_advanced_features({
-            'translated': {
+            'translation': {
                 'values': ['q1'],
                 'languages': ['tx1', 'tx2'],
             }
@@ -70,7 +68,7 @@ class ValidateSubmissionTest(APITestCase):
         tx_instance = next(self.asset.get_advanced_feature_instances())
         first_post = {
             'q1': {
-                'translated': {
+                'translation': {
                     'tx1': {
                         'value': 'VAL1'
                     }
@@ -78,12 +76,12 @@ class ValidateSubmissionTest(APITestCase):
             }
         }
         summ = tx_instance.compile_revised_record({}, edits=first_post)
-        assert summ['q1']['translated']['tx1']['value'] == 'VAL1'
-        assert len(summ['q1']['translated']['tx1']['revisions']) == 0
+        assert summ['q1']['translation']['tx1']['value'] == 'VAL1'
+        assert len(summ['q1']['translation']['tx1']['revisions']) == 0
         summ1 = deepcopy(summ)
         second_post = {
             'q1': {
-                'translated': {
+                'translation': {
                     'tx1': {
                         'value': 'VAL2',
                     }
@@ -129,7 +127,7 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
     def setUp(self):
         ValidateSubmissionTest.setUp(self)
         self.set_asset_advanced_features({
-            'translated': {
+            'translation': {
                 'values': ['q1'],
                 'languages': ['tx1', 'tx2'],
             }
@@ -243,7 +241,7 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
             }
         })
         self.set_asset_advanced_features({
-            'translated': {
+            'translation': {
                 'languages': [
                     'tx1', 'tx3'
                 ]
@@ -304,7 +302,7 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(21):
+        with self.assertNumQueries(42):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
         with self.assertNumQueries(17):

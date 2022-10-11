@@ -208,13 +208,13 @@ describe('getRowSupplementalResponses', () => {
         data: 'This is polish translation text.',
         type: null,
         label: 'translation (pl) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
       },
       {
         data: 'This is german translation text.',
         type: null,
         label: 'translation (de) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_de',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_de',
       },
     ]);
   });

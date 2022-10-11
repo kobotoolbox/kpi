@@ -3,8 +3,6 @@ from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 from jsonschema import Draft7Validator
 
-TRANSLATED = 'translated'
-
 
 def sample_asset(advanced_features=None):
     asset = Asset()
@@ -21,7 +19,7 @@ def sample_asset(advanced_features=None):
 
 def test_schema_has_definitions():
     asset = sample_asset(advanced_features={
-        'translated': {
+        'translation': {
             'values': ['q1'],
             'languages': ['tx1', 'tx2'],
         },
@@ -46,7 +44,7 @@ def test_schema_does_not_have_extra_definitions():
     assert 'translation' not in schema['definitions']
 
     asset = sample_asset(advanced_features={
-        'translated': {
+        'translation': {
             'languages': ['t1'],
         }
     })
@@ -70,12 +68,12 @@ def test_details_for_transcript_export():
 
 def test_details_for_translation_export():
     asset = sample_asset(advanced_features={
-        'translated': {
+        'translation': {
             'values': ['q1'],
             'languages': ['en', 'fr']
         },
     })
-    asset.known_cols = ['q1:translated:en', 'q1:translated:fr']
+    asset.known_cols = ['q1:translation:en', 'q1:translation:fr']
     _afj = asset.analysis_form_json()
     engines = _afj['engines']
     addl_fields = _afj['additional_fields']
