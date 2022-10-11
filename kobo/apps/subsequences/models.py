@@ -84,7 +84,7 @@ class SubmissionExtras(models.Model):
                 except (KeyError, TypeError) as err:
                     continue
 
-        if 'translated' in features:
+        if 'translation' in features:
             for key, vals in self.content.items():
                 try:
                     autoparams = vals[GOOGLETX]

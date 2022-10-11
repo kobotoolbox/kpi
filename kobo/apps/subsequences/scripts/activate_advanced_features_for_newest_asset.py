@@ -17,7 +17,7 @@ def run(langs=""):
 
     asset.advanced_features = {
         'transcript': {},
-        'translated': {
+        'translation': {
             'languages': languages
         }
     }

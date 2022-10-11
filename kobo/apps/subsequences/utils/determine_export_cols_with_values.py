@@ -17,51 +17,42 @@ output is a more descriptive structure. (See test_parse_known_cols)
 
 
 KEY_TYPE_DICTS = {
-    'googlets': 'autotranscript_google',
-    'googletx': 'autotranslate_google',
-    'transcript': 'manual_transcript',
-    'translated': 'manual_translation',
+    'googlets': 'transcript_auto_google',
+    'googletx': 'translation_auto_google',
 }
-
-
-def is_non_null_submext_data(key, tvals):
-    return True
 
 
 def get_lang_code(key, tvals):
     if 'languageCode' in tvals:
         yield tvals['languageCode']
-    elif key == 'translated':
-        for key in tvals.keys():
-            yield key
     elif key == 'translation':
         for key in tvals.keys():
             yield key
-    elif key == 'translated':
+    elif key == 'translated': # migration
         raise ValueError('key "translated" should not be in the asset. Run management command:'
                          ' python manage.py runscript repop_known_cols" to fix')
 
 
 def determine_export_cols_indiv(sub_ex_content):
     '''
-    used primarily in subsequences.models,
-    also used by runscript, called from determine_export_cols_with_values, below
+    used primarily when a SubmissionExtras object is saved.
+
+    iterates through content to see which questions have
+    transcripts/translations that need to end up in the export
+
+    yields strings in this format-
+     "<question qpath>:transcript:<lang>"
+     "<question qpath>:translation:<lang>"
     '''
     for qpath in sub_ex_content.keys():
         for key in sub_ex_content[qpath].keys():
             tvals = sub_ex_content[qpath][key]
-            if not is_non_null_submext_data(key, tvals):
-                continue
-            dtype = key
-            if key in KEY_TYPE_DICTS:
-                dtype = KEY_TYPE_DICTS[key]
+            # if not is_non_null_submext_data(key, tvals):
+            #     continue
+            dtype = KEY_TYPE_DICTS.get(key, key)
             col_string = f'{qpath}:{dtype}'
-            has_lang = None
             for lang_code in get_lang_code(key, tvals):
-                has_lang = True
                 yield f'{col_string}:{lang_code}'
-            if not has_lang:
-                yield col_string
 
 
 def determine_export_cols_with_values(asset_submission_extras_all):
@@ -69,9 +60,9 @@ def determine_export_cols_with_values(asset_submission_extras_all):
     used in management command <repop_known_cols>
     to rebuild asset.known_cols
     '''
-    col_strings = []
+    col_strings = tuple()
     for sub_ex in asset_submission_extras_all:
         for col_string in determine_export_cols_indiv(sub_ex.content):
             if col_string not in col_strings:
-                col_strings.append(col_string)
+                col_strings = (*col_strings, col_string)
     return col_strings
