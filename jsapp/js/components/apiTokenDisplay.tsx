@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useRef,
 } from 'react';
 import bem from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
@@ -18,33 +17,25 @@ export default function ApiTokenDisplay() {
   const [token, setToken] = useState(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const isMounted = useRef(false);
 
   const toggleTokenVisibility = () => {
     setIsVisible(!isVisible);
   };
 
   useEffect(() => {
-    // We don't want this to run on mount.
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return;
-    }
+    if (isVisible && token === null) {
+      const fetchToken = async () => {
+        setIsFetching(true);
+        try {
+          const result = await dataInterface.apiToken();
+          setToken(result.token);
+        } catch (error) {
+          setToken(null);
+        } finally {
+          setIsFetching(false);
+        }
+      };
 
-    const fetchToken = async () => {
-      setIsFetching(true);
-      try {
-        const result = await dataInterface.apiToken();
-        setToken(result.token);
-      } catch (error) {
-        setToken(null);
-      } finally {
-        setIsFetching(false);
-      }
-    };
-
-    // No need to fetch token, if we already did.
-    if (token === null) {
       fetchToken();
     }
   }, [isVisible]);
