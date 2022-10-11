@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
 from kpi.models.asset_file import AssetFile
@@ -53,7 +55,10 @@ class DeployableMixin:
         if not self.has_deployment:
             raise DeploymentNotFound
 
-        return self.__get_deployment_backend(self._deployment_data['backend'])
+        deployment_data = self._deployment_data
+        if isinstance(deployment_data, str):
+            deployment_data = json.loads(self._deployment_data)
+        return self.__get_deployment_backend(deployment_data['backend'])
 
     @property
     def has_deployment(self):
