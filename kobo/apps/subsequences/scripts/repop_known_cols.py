@@ -19,8 +19,8 @@ from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
 
 def migrate_subex_content(sub_ex):
     content_string = json.dumps(sub_ex.content)
-    if '"translated"' in content_string:
-        content_string = content_string.replace('"translated"', '"translation"')
+    if '"translated"' in content_string: # migration
+        content_string = content_string.replace('"translated"', '"translation"') # migration
         sub_ex.content = json.loads(content_string)
         print('submission_extra has old content')
         sub_ex.save()
@@ -37,24 +37,24 @@ def repop_asset_known_cols(asset):
     print('   - ' + '\n   - '.join(sorted(asset.known_cols)))
     known_cols = determine_export_cols_with_values(asset.submission_extras.all())
     asset.known_cols = known_cols
-    if 'translated' in asset.advanced_features:
-        asset.advanced_features['translation'] = asset.advanced_features['translated']
-        del asset.advanced_features['translated']
+    if 'translated' in asset.advanced_features: # migration
+        asset.advanced_features['translation'] = asset.advanced_features['translated'] # migration
+        del asset.advanced_features['translated'] # migration
     asset.save(create_version=False)
     print('  after:')
     print('   - ' + '\n   - '.join(sorted(known_cols)))
 
 
+def migrate_advanced_features(asset):
+    if 'translated' in asset.advanced_features: # migration
+        asset.advanced_features['translation'] = asset.advanced_features['translated'] # migration
+        asset.save(create_version=False)
+
+
 def run(asset_uid=None):
     if asset_uid is None:
-        id_key = 'asset_id'
-        asset_ids = list(
-            set(
-                [a['asset_id'] for a in SubmissionExtras.objects.all().values('asset_id')]
-            )
-        )
-        for asset_id in asset_ids:
-            asset = Asset.objects.get(id=asset_id)
+        for asset in Asset.objects.exclude(advanced_features__exact={}).all():
+            migrate_advanced_features(asset)
             migrate_subex_content_for_asset(asset)
             repop_asset_known_cols(asset)
     else:
