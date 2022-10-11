@@ -32,6 +32,8 @@ def extend_col_deets(lang, coltype, label, q_path):
 def parse_field_cols(qpath, fieldcols):
     fcx = {'tsc': [], 'tsl': []}
     for fc in fieldcols:
+        if 'tx' not in fc:
+            continue
         if 'transl' in fc['field']:
             fcx['tsl'].append(fc)
         elif 'transc' in fc['field']:
