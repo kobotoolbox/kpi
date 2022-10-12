@@ -57,9 +57,9 @@ def run(asset_uid=None):
         for asset in Asset.objects.exclude(advanced_features__exact={}).all():
             asset.advanced_features = {}
             asset.save(create_version=False)
-        asset_uid = None
-
-    if asset_uid is None:
+            repop_asset_known_cols(asset)
+        print('Note:\nRemoved all transcript+translation related data from all assets')
+    elif asset_uid is None:
         for asset in Asset.objects.exclude(advanced_features__exact={}).all():
             migrate_advanced_features(asset)
             migrate_subex_content_for_asset(asset)
