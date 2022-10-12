@@ -87,6 +87,7 @@ PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 # CALCULATED_PERMISSIONS
 PERM_DELETE_ASSET = 'delete_asset'
 PERM_DELETE_SUBMISSIONS = 'delete_submissions'
+PERM_VIEW_PERMISSIONS = 'view_permissions'
 
 # KC INTERNAL
 PERM_FROM_KC_ONLY = 'from_kc_only'

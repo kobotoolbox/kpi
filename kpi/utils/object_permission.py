@@ -11,7 +11,11 @@ from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
-from kpi.constants import PERM_MANAGE_ASSET, PERM_FROM_KC_ONLY
+from kpi.constants import (
+    PERM_MANAGE_ASSET,
+    PERM_FROM_KC_ONLY,
+    PERM_VIEW_PERMISSIONS,
+)
 from kpi.utils.permissions import is_user_anonymous
 
 
@@ -208,7 +212,7 @@ def get_user_permission_assignments(
 
     if not user or is_user_anonymous(user):
         filtered_user_ids = [affected_object.owner_id]
-    elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
+    elif not affected_object.has_perm(user, PERM_VIEW_PERMISSIONS):
         # Display only users' permissions if they are not allowed to modify
         # others' permissions
         filtered_user_ids = [affected_object.owner_id,
@@ -254,7 +258,7 @@ def get_user_permission_assignments_queryset(affected_object, user):
                 settings.ANONYMOUS_USER_ID,
             ]
         )
-    elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
+    elif not affected_object.has_perm(user, PERM_VIEW_PERMISSIONS):
         # Display only users' permissions if they are not allowed to modify
         # others' permissions
         queryset = queryset.filter(user_id__in=[user.pk,

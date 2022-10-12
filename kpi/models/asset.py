@@ -40,6 +40,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
+    PERM_VIEW_PERMISSIONS,
     PERM_VIEW_SUBMISSIONS,
     SUFFIX_SUBMISSIONS_PERMS,
 )
@@ -213,6 +214,7 @@ class Asset(ObjectPermissionMixin,
             (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
             (PERM_VALIDATE_SUBMISSIONS, t("Can validate submitted data asset")),
+            (PERM_VIEW_PERMISSIONS, t('Can view permissions assigned to asset')),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -253,6 +255,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET: t('Edit ##asset_type_label##'),
         PERM_DISCOVER_ASSET: t('Discover ##asset_type_label##'),
         PERM_MANAGE_ASSET: t('Manage ##asset_type_label##'),
+        PERM_VIEW_PERMISSIONS: t('View permissions'),
         PERM_ADD_SUBMISSIONS: t('Add submissions'),
         PERM_VIEW_SUBMISSIONS: t('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: {
@@ -325,7 +328,8 @@ class Asset(ObjectPermissionMixin,
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
-        PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
+        PERM_VIEW_PERMISSIONS: (PERM_VIEW_ASSET,),
+        PERM_CHANGE_ASSET: (PERM_VIEW_ASSET, PERM_VIEW_PERMISSIONS,),
         PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
         PERM_MANAGE_ASSET: tuple(
             (
