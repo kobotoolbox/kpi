@@ -52,6 +52,13 @@ def migrate_advanced_features(asset):
 
 
 def run(asset_uid=None):
+    if asset_uid == "!":
+        SubmissionExtras.objects.all().delete()
+        for asset in Asset.objects.exclude(advanced_features__exact={}).all():
+            asset.advanced_features = {}
+            asset.save(create_version=False)
+        asset_uid = None
+
     if asset_uid is None:
         for asset in Asset.objects.exclude(advanced_features__exact={}).all():
             migrate_advanced_features(asset)
