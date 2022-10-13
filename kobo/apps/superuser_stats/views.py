@@ -90,7 +90,7 @@ def continued_usage_report(request):
     tomorrow = today + timedelta(days=1)
     end_date = request.GET.get('end_date', tomorrow)
 
-    # Generate the CSV file
+    # Generate the CSV file{tomorrow}
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
     generate_continued_usage_report.delay(filename, end_date)
@@ -108,7 +108,8 @@ def continued_usage_report(request):
         f'<a href="{url}?end_date={tomorrow}">'
         f'  {url}?end_date={tomorrow}'
         f'</a>'
-        f'<p>The default end date is {tomorrow}.</p>'
+        f'<p>The default end date and time is '
+        f'{tomorrow}.</p>'
         f'</body></html>'
     )
 

@@ -85,7 +85,7 @@ def generate_continued_usage_report(
     data = []
 
     if isinstance(end_date, str):
-        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
 
     twelve_months_time = end_date - relativedelta(years=1)
     six_months_time = end_date - relativedelta(months=6)
