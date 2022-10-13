@@ -29,7 +29,7 @@ from kpi.fields import (
     RelativePrefixHyperlinkedRelatedField,
     WritableJSONField,
 )
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import Asset, AssetVersion, AssetExportSettings, AssetMetadata
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.object_permission import (
     get_database_user,
@@ -39,6 +39,7 @@ from kpi.utils.object_permission import (
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+from .asset_metadata import AssetMetadataSerializer
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
@@ -73,6 +74,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
     export_settings = serializers.SerializerMethodField()
+    asset_settings = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -143,7 +145,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'permissions',
                   'exports',
                   'export_settings',
-                  'settings',
                   'data',
                   'children',
                   'subscribers_count',
@@ -151,6 +152,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'access_types',
                   'data_sharing',
                   'paired_data',
+                  'asset_settings',
                   )
         extra_kwargs = {
             'parent': {
@@ -399,6 +401,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context,
         ).data
 
+    def get_asset_settings(self, obj):
+        metadata = AssetMetadata.objects.filter(asset=obj)
+        if metadata:
+            return metadata.first().settings
+        return {}
+
     def get_access_types(self, obj):
         """
         Handles the detail endpoint but also takes advantage of the
@@ -634,7 +642,8 @@ class AssetListSerializer(AssetSerializer):
                   'status',
                   'access_types',
                   'children',
-                  'data_sharing'
+                  'data_sharing',
+                  'asset_settings',
                   )
 
     def get_permissions(self, asset):

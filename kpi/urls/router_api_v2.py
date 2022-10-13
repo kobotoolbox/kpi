@@ -9,6 +9,7 @@ from kobo.apps.organizations.views import OrganizationViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
+from kpi.views.v2.asset_metadata import AssetMetadataViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
@@ -89,6 +90,12 @@ asset_routes.register(r'export-settings',
 asset_routes.register(r'exports',
                       ExportTaskViewSet,
                       basename='asset-export',
+                      parents_query_lookups=['asset'],
+                      )
+
+asset_routes.register(r'metadata',
+                      AssetMetadataViewSet,
+                      basename='asset-metadata',
                       parents_query_lookups=['asset'],
                       )
 
