@@ -9,8 +9,9 @@ from kpi.fields import KpiUidField
 
 class AssetMetadata(models.Model):
     uid = KpiUidField(uid_prefix='am')
-    asset = models.ForeignKey('Asset', related_name='asset_metadata',
-                              on_delete=models.CASCADE)
+    asset = models.ForeignKey(
+        'Asset', related_name='asset_metadata', on_delete=models.CASCADE
+    )
     date_modified = models.DateTimeField()
     settings = JSONBField(default=dict)
 
@@ -23,5 +24,3 @@ class AssetMetadata(models.Model):
 
     def __str__(self):
         return f'{self.asset} metadata'
-
-
