@@ -115,6 +115,8 @@ class BaseDeploymentBackend(abc.ABC):
         value = None
         nested_path = dotted_path.split('.')
         nested_dict = self.asset._deployment_data  # noqa
+        if isinstance(nested_dict, str):
+            nested_dict = json.loads(nested_dict)
         for key in nested_path:
             try:
                 value = nested_dict[key]
