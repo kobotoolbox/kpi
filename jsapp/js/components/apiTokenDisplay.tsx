@@ -6,6 +6,7 @@ import bem from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
+import {notify} from 'js/utils';
 
 const HIDDEN_TOKEN_VALUE = '*'.repeat(40);
 
@@ -29,6 +30,8 @@ export default function ApiTokenDisplay() {
         try {
           const result = await dataInterface.apiToken();
           setToken(result.token);
+        } catch (error) {
+          notify.error(t('Failed to get API token'));
         } finally {
           setIsFetching(false);
         }
