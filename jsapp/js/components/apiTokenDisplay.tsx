@@ -30,7 +30,7 @@ export default function ApiTokenDisplay() {
         try {
           const result = await dataInterface.apiToken();
           setToken(result.token);
-        } catch (error) {
+        } catch {
           notify.error(t('Failed to get API token'));
         } finally {
           setIsFetching(false);
