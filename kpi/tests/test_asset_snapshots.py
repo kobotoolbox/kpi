@@ -110,4 +110,4 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         assert not AssetSnapshot.objects.filter(pk=older_snapshot.id).exists()
         # Older snapshot should still exist
         assert AssetSnapshot.objects.filter(pk=old_snapshot.id).exists()
-        assert expected_snapshot_uids == snapshot_uids
+        assert sorted(expected_snapshot_uids) == sorted(snapshot_uids)
