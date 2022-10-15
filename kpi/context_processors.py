@@ -39,6 +39,12 @@ def mfa(request):
     }
 
 
+def django_settings(request):
+    return {
+        "stripe_enabled": settings.STRIPE_ENABLED
+    }
+
+
 def sitewide_messages(request):
     """
     required in the context for any pages that need to display

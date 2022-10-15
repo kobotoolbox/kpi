@@ -92,7 +92,6 @@ export default class AccountSettings extends React.Component {
         twitter: currentAccount.extra_details.twitter,
         linkedin: currentAccount.extra_details.linkedin,
         instagram: currentAccount.extra_details.instagram,
-        metadata: currentAccount.extra_details.metadata,
       },
       fieldsWithErrors: {},
       countryChoices: environment.country_choices,
@@ -139,7 +138,6 @@ export default class AccountSettings extends React.Component {
           twitter: this.state.fields.twitter,
           linkedin: this.state.fields.linkedin,
           instagram: this.state.fields.instagram,
-          metadata: this.state.fields.metadata,
         }),
       },
       {
@@ -411,16 +409,6 @@ export default class AccountSettings extends React.Component {
                   }
                 </bem.AccountSettings__item>
               }
-
-              <bem.AccountSettings__item>
-                <TextBox
-                  customModifiers='on-white'
-                  label={t('Metadata')}
-                  errors={this.state.fieldsWithErrors.metadata}
-                  value={this.state.fields.metadata}
-                  onChange={this.onAnyFieldChange.bind(this, 'metadata')}
-                />
-              </bem.AccountSettings__item>
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         </bem.AccountSettings>

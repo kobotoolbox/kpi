@@ -1,5 +1,7 @@
 # coding: utf-8
-from datetime import date, datetime
+from __future__ import annotations
+
+from datetime import datetime
 from secrets import token_urlsafe
 from typing import Optional
 
@@ -74,8 +76,8 @@ class ShadowModel(models.Model):
         # It's just used for `DefaultDatabaseRouter` conditions.
         app_label = SHADOW_MODEL_APP_LABEL
 
-    @staticmethod
-    def get_content_type_for_model(model):
+    @classmethod
+    def get_app_label_and_model_name(cls) -> tuple[str, str]:
         model_name_mapping = {
             'kobocatxform': ('logger', 'xform'),
             'readonlykobocatinstance': ('logger', 'instance'),
@@ -83,9 +85,13 @@ class ShadowModel(models.Model):
             'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
         }
         try:
-            app_label, model_name = model_name_mapping[model._meta.model_name]
+            return model_name_mapping[cls._meta.model_name]
         except KeyError:
             raise NotImplementedError
+
+    @classmethod
+    def get_content_type(cls) -> KobocatContentType:
+        app_label, model_name = cls.get_app_label_and_model_name()
         return KobocatContentType.objects.get(
             app_label=app_label, model=model_name)
 
