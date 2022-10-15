@@ -840,9 +840,10 @@ export class DataTable extends React.Component {
     let frozenColumn = tableStore.getFrozenColumn();
 
     columnsToRender.forEach(function (col) {
-      // TODO: see if this can work for select_multiple too
-      // See: https://github.com/kobotoolbox/kpi/issues/3922
-      if (col.question && col.question.type === QUESTION_TYPES.select_one.id) {
+      if (
+        col.question && col.question.type === QUESTION_TYPES.select_one.id ||
+        col.question && col.question.type === QUESTION_TYPES.select_multiple.id
+      ) {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>
           <select

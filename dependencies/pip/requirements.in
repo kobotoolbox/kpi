@@ -5,6 +5,9 @@
 -e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports--modified-json#egg=formpack
 -e git+https://github.com/kobotoolbox/a1d05eba1.git@4816baeb76e4e01368addbf3ee5837569a163c5c#egg=a1d05eba1-dorey
 
+# service-account
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
+
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
@@ -23,6 +26,7 @@ celery
 celery[redis]
 dict2xml
 dj-static
+dj-stripe
 django-braces
 django-celery-beat
 django-constance[database]
@@ -33,6 +37,7 @@ django-environ
 django-filter
 django-extensions
 django-oauth-toolkit
+django-organizations
 django-redis
 django-registration-redux
 django-storages[azure,boto3]

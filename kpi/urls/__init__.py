@@ -12,6 +12,7 @@ from kobo.apps.mfa.views import (
 )
 from kobo.apps.superuser_stats.views import (
     user_report,
+    user_details_report,
     country_report,
     retrieve_reports,
 )
@@ -41,6 +42,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
+    re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
@@ -68,9 +70,19 @@ urlpatterns = [
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
             retrieve_reports),
+    path('superuser_stats/user_details_report/', user_details_report),
+    re_path(r'^superuser_stats/user_details_report/(?P<base_filename>[^/]+)$',
+            retrieve_reports),
     path('superuser_stats/country_report/', country_report),
     re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
 ]
+
+
+if settings.STRIPE_ENABLED:
+    urlpatterns = [
+        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls'))
+    ] + urlpatterns
+
 
 if settings.DEBUG and settings.ENV == 'dev':
     import debug_toolbar

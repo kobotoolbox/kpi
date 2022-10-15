@@ -18,6 +18,7 @@ import AssetRoute from 'js/components/library/assetRoute';
 import AccountSettings from 'js/components/account/accountSettingsRoute';
 import DataStorage from 'js/components/account/dataStorageRoute';
 import SecurityRoute from 'js/components/account/securityRoute';
+import PlanRoute from 'js/components/account/planRoute';
 import FormsSearchableList from 'js/lists/forms';
 import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import {ROUTES} from 'js/router/routerConstants';
@@ -133,6 +134,7 @@ export default class AllRoutes extends React.Component {
 
           {/* MISC */}
           <Route path={ROUTES.SECURITY} component={SecurityRoute} />
+          <Route path={ROUTES.PLAN} component={PlanRoute} />
           <Route path={ROUTES.DATA_STORAGE} component={DataStorage} />
           <Route
             path={ROUTES.ACCOUNT_SETTINGS}
@@ -146,7 +148,6 @@ export default class AllRoutes extends React.Component {
               protectedComponent={ChangePassword}
             />
           </Suspense>
-
           {/* LIBRARY */}
           <Route path={ROUTES.LIBRARY}>
             <IndexRedirect to={ROUTES.MY_LIBRARY} />

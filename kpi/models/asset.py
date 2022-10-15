@@ -907,10 +907,6 @@ class Asset(ObjectPermissionMixin,
             self.create_version()
 
     @property
-    def snapshot(self):
-        return self._snapshot(regenerate=False)
-
-    @property
     def tag_string(self):
         try:
             tag_list = self.prefetched_tags
@@ -1032,21 +1028,6 @@ class Asset(ObjectPermissionMixin,
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
-    # TODO: take leading underscore off of `_snapshot()` and call it directly?
-    # we would also have to remove or rename the `snapshot` property
-    def versioned_snapshot(self,
-        version_uid: str,
-        root_node_name: Optional[str] = None,
-        submission_uuid: Optional[str] = None,
-    ) -> AssetSnapshot:
-        # Always regenerate a new snapshot when editing.
-        return self._snapshot(
-            regenerate=True,
-            version_uid=version_uid,
-            submission_uuid=submission_uuid,
-            root_node_name=root_node_name,
-        )
-
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
@@ -1076,9 +1057,9 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     @transaction.atomic
-    def _snapshot(
+    def snapshot(
         self,
-        regenerate: bool = True,
+        regenerate: bool = False,
         version_uid: Optional[str] = None,
         submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,

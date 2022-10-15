@@ -12,6 +12,7 @@ export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account/settings',
   DATA_STORAGE: '/account/data-storage',
   SECURITY: '/account/security',
+  PLAN: '/account/plan',
   CHANGE_PASSWORD: '/account/change-password',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',

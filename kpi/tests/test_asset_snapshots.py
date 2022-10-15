@@ -56,7 +56,7 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
         content = {'settings': [{'id_string': 'no_title_asset'}],
                    'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
         asset = Asset.objects.create(asset_type='survey', content=content)
-        _snapshot = asset.snapshot
+        _snapshot = asset.snapshot()
         self.assertEqual(_snapshot.source.get('settings')['form_title'], 'no_title_asset')
 
     def test_snapshots_allow_choice_duplicates(self):
@@ -94,7 +94,8 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         old_snapshot.date_created = yesterday
         old_snapshot.save(update_fields=['date_created'])
         # versioned snapshots are always regenerated
-        versioned_snapshot = self.asset.versioned_snapshot(
+        versioned_snapshot = self.asset.snapshot(
+            regenerate=True,
             version_uid=self.asset.latest_deployed_version_uid
         )
         snapshot_uids = list(AssetSnapshot.objects.filter(
@@ -109,4 +110,4 @@ class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
         assert not AssetSnapshot.objects.filter(pk=older_snapshot.id).exists()
         # Older snapshot should still exist
         assert AssetSnapshot.objects.filter(pk=old_snapshot.id).exists()
-        assert expected_snapshot_uids == snapshot_uids
+        assert sorted(expected_snapshot_uids) == sorted(snapshot_uids)

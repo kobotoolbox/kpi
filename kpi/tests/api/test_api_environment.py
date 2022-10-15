@@ -78,6 +78,8 @@ class EnvironmentTests(BaseTestCase):
                 ).items()
             },
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
+            'stripe_public_key': settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None,
+            'stripe_pricing_table_id': settings.STRIPE_PRICING_TABLE_ID,
         }
 
     def _check_response_dict(self, response_dict):

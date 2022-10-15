@@ -106,7 +106,6 @@ export default class App extends React.Component {
                 background: '#1e2129', // $kobo-gray-14
                 color: '#fff', // $kobo-white
               },
-              duration: 10000,
               success: {
                 iconTheme: {
                   primary: '#96eb9e', // $kobo-green
@@ -125,6 +124,7 @@ export default class App extends React.Component {
                   secondary: '#1e2129', // $kobo-gray-14
                 },
               },
+              duration: 5000, // 5 seconds
             }}
           />
         </React.Fragment>

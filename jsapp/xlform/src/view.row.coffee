@@ -191,9 +191,9 @@ module.exports = do ->
 
       @model.getSurvey().insert_row.call parent._parent, model, parent.models.indexOf(@model) + 1
 
-    add_row_to_question_library: (evt) =>
+    addItemToLibrary: (evt) =>
       evt.stopPropagation()
-      @ngScope?.add_row_to_question_library @model, @model.getSurvey()._initialParams
+      @ngScope?.addItemToLibrary @model, @model.getSurvey()._initialParams
 
   class GroupView extends BaseRowView
     className: "survey__row survey__row--group  xlf-row-view xlf-row-view--depr"
@@ -204,6 +204,7 @@ module.exports = do ->
       @_shrunk = !!opts.shrunk
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
+      @ngScope = opts.ngScope
 
       # reapply locking after changes, so e.g. added option gets all locking
       @model.getSurvey()?.on("change", () => @applyLocking() )
@@ -395,6 +396,14 @@ module.exports = do ->
       @applyLocking()
 
       return @
+
+    add_group_to_library: (evt) =>
+      evt.stopPropagation()
+      @ngScope?.addItemToLibrary(
+        @model,
+        @model.getSurvey()._initialParams
+      )
+      return
 
   class RowView extends BaseRowView
     initialize: (opts) ->

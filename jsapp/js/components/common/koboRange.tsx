@@ -33,6 +33,8 @@ interface KoboRangeProps {
   /** optional string to append to value */
   currentLabel?: string;
   'data-cy'?: string;
+  /** optional format to display only one statistic (max value is hidden) */
+  singleStat?: boolean;
 }
 
 /**
@@ -70,7 +72,7 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
 
     return (
       <bem.KoboRange data-cy={this.props['data-cy']}>
-        {isDataLoaded &&
+        {isDataLoaded && !this.props.singleStat &&
           <bem.KoboRange__values>
             <bem.KoboRange__currentValue>
               <bem.KoboRange__number>
@@ -87,6 +89,27 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
               <bem.KoboRange__number>
                 {!this.props.isTime && this.props.max}
                 {this.props.isTime && this.convertToClock(this.props.max)}
+              </bem.KoboRange__number>
+
+              <bem.KoboRange__unit>
+                {this.props.totalLabel}
+              </bem.KoboRange__unit>
+            </bem.KoboRange__maxValue>
+          </bem.KoboRange__values>
+        }
+
+        {isDataLoaded && this.props.singleStat &&
+          <bem.KoboRange__values>
+            <bem.KoboRange__currentValue>
+              <bem.KoboRange__unit>
+                {this.props.currentLabel}
+              </bem.KoboRange__unit>
+            </bem.KoboRange__currentValue>
+
+            <bem.KoboRange__maxValue>
+              <bem.KoboRange__number>
+                {!this.props.isTime && this.props.value}
+                {this.props.isTime && this.convertToClock(this.props.value)}
               </bem.KoboRange__number>
 
               <bem.KoboRange__unit>

@@ -151,7 +151,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return monthly_counter
 
-
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
@@ -225,7 +224,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return {
             'content_type': 'application/json',
-            'status': status.HTTP_204_NO_CONTENT,
+            'status': status.HTTP_200_OK,
         }
 
     def duplicate_submission(
@@ -240,10 +239,20 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        duplicated_submission = copy.deepcopy(
-            self.get_submission(submission_id, user=user)
+        submission = self.get_submission(submission_id, user=user)
+        _attachments = submission.get('_attachments', [])
+        dup_att = []
+        if _attachments:
+            # not exactly emulating database id incrementing but probably good
+            # enough for the mock tests
+            max_attachment_id = max(a['id'] for a in _attachments)
+            for i, att in enumerate(_attachments, 1):
+                dup_att.append({**att, 'id': max_attachment_id + i})
+
+        duplicated_submission = copy.deepcopy(submission)
+        updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat(
+            'T', 'milliseconds'
         )
-        updated_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
         next_id = max((
             sub['_id']
             for sub in self.get_submissions(self.asset.owner, fields=['_id'])
@@ -252,10 +261,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             '_id': next_id,
             'start': updated_time,
             'end': updated_time,
-            'meta/instanceID': f'uuid:{uuid.uuid4()}'
+            'meta/instanceID': f'uuid:{uuid.uuid4()}',
+            'meta/deprecatedID': submission['meta/instanceID'],
+            '_attachments': dup_att,
         })
 
-        settings.MONGO_DB.instances.insert_one(duplicated_submission)
+        self.asset.deployment.mock_submissions([duplicated_submission])
         return duplicated_submission
 
     def get_attachment(
@@ -602,6 +613,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name,
                        kwargs={'parent_lookup_asset': self.asset.uid})
+
+    @property
+    def submission_model(self):
+
+        class MockLoggerInstance:
+            @classmethod
+            def get_app_label_and_model_name(cls):
+                return 'mocklogger', 'instance'
+
+        return MockLoggerInstance
 
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         queryset = self._get_metadata_queryset(file_type=file_type)

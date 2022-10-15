@@ -28,7 +28,7 @@ class AssetContentAnalyzer:
          - "bad" => force a fix before deploying
          - "ok"  => encourage a fix before deploying
         '''
-        if 'name' in row and re.match('^[_\d]+$', row['name']):
+        if 'name' in row and re.match(r'^[_\d]+$', row['name']):
             return 'bad'
         elif 'name' in row:
             return 'good'
