@@ -1,4 +1,3 @@
-@use 'scss/mixins';
 @use 'scss/_colors';
 @use 'scss/sizes';
 
@@ -7,67 +6,51 @@
 // There will be repeated styles in elements such as the header, title, and the containing div for the component.
 // Every component except for `profile` should share this frame.
 
- @import "scss/_colors";
- 
-.plan {
-  padding: 30px 40px;
+.account-plan {
+  padding: sizes.$x30 sizes.$x40;
 }
 
-.plan__info {
+.account-plan__info {
   display: flex;
 }
 
-.plan .data-row__data {
+.account-plan__description {
+  flex: 1;
+  padding-left: sizes.$x14;
+}
+
+.account-plan__description-header {
+  font-size: sizes.$x20;
+  color: colors.$kobo-blue;
+  padding-bottom: sizes.$x12;
+}
+
+.account-plan__description-blurb {
+  font-size: sizes.$x16;
+  line-height: sizes.$x24;
+}
+
+.account-plan__data {
+  flex: 1;
+  padding-right: sizes.$x14;
+}
+
+.plan-usage-row {
+  .kobo-range {
+    flex: 85;
+  }
+
+  .kobo-range__number {
+    font-size: sizes.$x14 !important;
+  }
+
+  .kobo-range__unit {
+    font-size: sizes.$x12 !important;
+    color: colors.$kobo-gray-40;
+    margin-left: sizes.$x2 !important;
+  }
+}
+
+.plan-usage-row__data {
   display: flex;
-}
-
-.plan .description {
-  flex: 1;
-  padding-left: 14px;
-}
-
-.plan .description__header {
-  font-size: 20px;
-  color: $kobo-blue;
-  padding-bottom: 12px;
-}
-
-.plan .description__blurb {
-  font-size: 16px;
-  line-height: 24px;
-}
-
-.plan__data {
-  flex: 1;
-  padding-right: 14px;
-}
-
-.plan .kobo-range {
-  flex: 85;
-}
-
-.plan .kobo-range__number {
-  font-size: 14px !important;
-}
-
-.plan .kobo-range__unit {
-  font-size: 12px !important;
-  color: $kobo-gray-40;
-  margin-left: 2px !important;
-}
-
-.plan .kobo-dropdown {
-  flex: 15;
-  margin-left: 12px;
-  top: 10px;
-  font-size: 14px !important;
-}
-
-.plan i.k-icon-spinner {
-  top: 2px;
-  margin-right: 1px !important;
-}
-
-.plan label.count {
-  font-size: 12px !important;
 }
