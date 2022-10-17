@@ -1,10 +1,12 @@
 @use 'scss/_colors';
 @use 'scss/sizes';
 
-// TODO: Create a basic unified frame for account settings. These styles are identical to securityRoute.scss and are wrong.
-// See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options?node-id=0%3A1
-// There will be repeated styles in elements such as the header, title, and the containing div for the component.
-// Every component except for `profile` should share this frame.
+/**
+ * TODO: Most probably all different Account routes will use very similar design,
+ * so it would only make sense to define a very generic and reusable BEMs.
+ *
+ * See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options
+ */
 
 .account-plan {
   padding: sizes.$x30 sizes.$x40;
@@ -33,22 +35,6 @@
 .account-plan__data {
   flex: 1;
   padding-right: sizes.$x14;
-}
-
-.plan-usage-row {
-  .kobo-range {
-    flex: 85;
-  }
-
-  .kobo-range__number {
-    font-size: sizes.$x14 !important;
-  }
-
-  .kobo-range__unit {
-    font-size: sizes.$x12 !important;
-    color: colors.$kobo-gray-40;
-    margin-left: sizes.$x2 !important;
-  }
 }
 
 .plan-usage-row__data {

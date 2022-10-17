@@ -10,11 +10,11 @@ import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 import './planRoute.scss';
 
-/*
- * TODO: Create a basic unified frame for account settings. Find somewhere to put the BEM declaration.
- * See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options?node-id=0%3A1
- * There will be repeated styles in elements such as the header, title, and the containing div for the component.
- * Every component except for `profile` should share this frame.
+/**
+ * TODO: Most probably all different Account routes will use very similar design,
+ * so it would only make sense to define a very generic and reusable BEMs.
+ *
+ * See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options
  */
 bem.AccountPlan = makeBem(null, 'account-plan');
 
@@ -146,12 +146,12 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   private renderPlanText() {
     return (
       <bem.AccountPlan__description>
-        <bem.AccountPlan__description__header>
+        <bem.AccountPlan__descriptionHeader>
           {this.state.subscribedProduct.name}
-        </bem.AccountPlan__description__header>
-        <bem.AccountPlan__description__blurb>
+        </bem.AccountPlan__descriptionHeader>
+        <bem.AccountPlan__descriptionBlurb>
           {this.state.subscribedProduct.description}
-        </bem.AccountPlan__description__blurb>
+        </bem.AccountPlan__descriptionBlurb>
       </bem.AccountPlan__description>
     );
   }
@@ -172,6 +172,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
             <bem.AccountPlan__data>
               <bem.PlanUsageRow>
                 <bem.PlanUsageRow__data>
+                  {/* TODO: we temporarily use KoboRange here, but finally we
+                      should build a tailored solution here - one that will
+                      not require misusing an interactive component :)
+                  */}
                   <KoboRange
                     max={MAX_PERCENTAGE}
                     value={this.getOneDecimalDisplay(MONTHLY_USAGE_PERCENTAGE)}
@@ -185,6 +189,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
               <bem.PlanUsageRow>
                 <bem.PlanUsageRow__data>
+                  {/* TODO: we temporarily use KoboRange here, but finally we
+                      should build a tailored solution here - one that will
+                      not require misusing an interactive component :)
+                  */}
                   <KoboRange
                     max={MAX_PERCENTAGE}
                     value={this.getOneDecimalDisplay(
