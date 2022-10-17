@@ -66,7 +66,7 @@ submissionsActions.getProcessingSubmissions.listen((assetUid, questionsPaths) =>
   $.ajax({
     dataType: 'json',
     method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid" ${fields}]`,
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid", "meta/rootUuid" ${fields}]`,
   })
     .done(submissionsActions.getProcessingSubmissions.completed)
     .fail(submissionsActions.getProcessingSubmissions.failed);
@@ -84,13 +84,29 @@ submissionsActions.getSubmission.listen((assetUid, submissionId) => {
 // There is no shortcut endpoint to get submission using uuid, so we have to
 // make a queried call over all submissions.
 submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
+  // `_uuid` is the legacy identifier that changes (per OpenRosa spec) after every edit;
+  // `meta/rootUuid` remains consistent across edits.
+  let query = {
+    "$or":[{"meta/rootUuid":submissionUuid}, {"_uuid":submissionUuid}]
+  };
+  query = JSON.stringify(query);
   $.ajax({
     dataType: 'json',
     method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?query={"_uuid":"${submissionUuid}"}`,
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?query=${query}`,
   })
     .done((response) => {
-      submissionsActions.getSubmissionByUuid.completed(response.results[0]);
+      // preferentially return a result matching the persistent UUID
+      let result;
+      let preferred = response.results.filter(
+        (e) => e['meta/rootUuid'] === submissionUuid
+      );
+      if (preferred.length > 0) {
+        result = preferred[0];
+      } else {
+        result = response.results[0];
+      }
+      submissionsActions.getSubmissionByUuid.completed(result);
     })
     .fail(submissionsActions.getSubmissionByUuid.failed);
 });
