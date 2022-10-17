@@ -87,7 +87,10 @@ submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
   // `_uuid` is the legacy identifier that changes (per OpenRosa spec) after every edit;
   // `meta/rootUuid` remains consistent across edits.
   let query = {
-    "$or":[{"meta/rootUuid":submissionUuid}, {"_uuid":submissionUuid}]
+    '$or': [
+      {'meta/rootUuid': submissionUuid},
+      {'_uuid': submissionUuid},
+    ],
   };
   query = JSON.stringify(query);
   $.ajax({
@@ -98,7 +101,7 @@ submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
     .done((response) => {
       // preferentially return a result matching the persistent UUID
       let result;
-      let preferred = response.results.filter(
+      const preferred = response.results.filter(
         (e) => e['meta/rootUuid'] === submissionUuid
       );
       if (preferred.length > 0) {
