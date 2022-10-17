@@ -1,5 +1,4 @@
 import React from 'react';
-import type {ReactElement} from 'react';
 import type {IconNames} from 'jsapp/fonts/k-icons';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'jsapp/js/components/common/icon';
@@ -14,7 +13,7 @@ interface KoboModalHeaderProps {
   icon?: IconNames;
   /** Color of the optional icon. Defaults to "blue". */
   iconColor?: KoboModalHeaderIconColors;
-  children: ReactElement | ReactElement[] | string;
+  children: React.ReactNode;
 }
 
 export default function KoboModalHeader(props: KoboModalHeaderProps) {

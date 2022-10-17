@@ -1,5 +1,4 @@
 import React from 'react';
-import type {ReactElement} from 'react';
 import type {IconNames} from 'jsapp/fonts/k-icons';
 import type {
   ButtonType,
@@ -35,7 +34,7 @@ interface KoboPromptProps {
   /** Color of the optional icon. */
   titleIconColor?: 'blue' | 'red';
   /** The content of the propmt; pass a string or a more complex JSX. */
-  content: ReactElement | string;
+  children?: React.ReactNode;
   /** A list of buttons to be displayed on the bottom right of the prompt. */
   buttons: KoboPromptButton[];
 }
@@ -54,12 +53,13 @@ export default function KoboPrompt(props: KoboPromptProps) {
       </KoboModalHeader>
 
       <KoboModalContent>
-        {props.content}
+        {props.children}
       </KoboModalContent>
 
       <KoboModalFooter>
-        {props.buttons.map((promptButton) =>
+        {props.buttons.map((promptButton, index) =>
           <Button
+            key={index}
             type={promptButton.type || defaultButtonType}
             color={promptButton.color || defaultButtonColor}
             size='m'

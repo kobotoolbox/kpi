@@ -87,22 +87,21 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                     <KoboPrompt
                       isOpen={this.state.demoIsPromptOpen}
                       onRequestClose={this.togglePrompt.bind(this)}
+                      title='Are you sure?'
+                      buttons={[
+                        {
+                          color: 'storm',
+                          label: 'cancel',
+                          onClick: this.togglePrompt.bind(this),
+                        },
+                        {
+                          color: 'red',
+                          label: 'confirm some action!',
+                          onClick: this.confirmSomeAction.bind(this),
+                        },
+                      ]}
                     >
-                      <Button
-                        type='full'
-                        color='storm'
-                        size='s'
-                        onClick={this.togglePrompt.bind(this)}
-                        label={'cancel'}
-                      />
-
-                      <Button
-                        type='full'
-                        color='red'
-                        size='s'
-                        onClick={this.confirmSomeAction.bind(this)}
-                        label={'confirm some action!'}
-                      />
+                      {'This is some dangerous stuff here. Please make sure before you proceed.'}
                     </KoboPrompt>
                   </KoboModal>
                 </div>
