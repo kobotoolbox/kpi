@@ -2,6 +2,7 @@
 import json
 import re
 
+import constance
 from django.conf import settings
 from django.utils.translation import gettext as t
 from rest_framework import serializers
@@ -706,3 +707,59 @@ class AssetUrlListSerializer(AssetSerializer):
 
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
+
+
+class AssetMetadataListSerializer(AssetSerializer):
+
+    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+
+    class Meta(AssetSerializer.Meta):
+        fields = ('url',
+                  'date_modified',
+                  'date_created',
+                  'owner',
+                  'owner__username',
+                  'uid',
+                  'settings',
+                  'kind',
+                  'name',
+                  'asset_type',
+                  'version_id',
+                  'has_deployment',
+                  'deployed_version_id',
+                  'deployment__identifier',
+                  'deployment__active',
+                  'deployment__submission_count',
+                  'permissions',
+                  'subscribers_count',
+                  'status',
+                  'access_types',
+                  'children',
+                  'data_sharing',
+                  'data',
+                  )
+
+    def get_permissions(self, *args, **kwargs):
+        request = self.context.get('request')
+        view = request.GET.get('view')
+        if view is not None:
+            view = int(view)
+            perms_for_view = [v['permissions'] for v in self.regional_views if v['id'] == view]
+            perms_for_view = perms_for_view[0] if perms_for_view else []
+            if 'view_permissions' in perms_for_view:
+                return super().get_permissions(*args, **kwargs)
+        return []
+
+    def get_data(self, *args, **kwargs):
+        request = self.context.get('request')
+        view = request.GET.get('view')
+        if view is not None:
+            view = int(view)
+            perms_for_view = [v['permissions'] for v in self.regional_views if v['id'] == view]
+            perms_for_view = perms_for_view[0] if perms_for_view else []
+            if 'view_submissions' in perms_for_view:
+                return super().get_data(*args, **kwargs)
+        return []
+
+

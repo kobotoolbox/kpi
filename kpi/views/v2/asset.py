@@ -4,6 +4,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
+import constance
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -11,6 +12,7 @@ from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     ASSET_TYPES,
@@ -51,7 +53,7 @@ from kpi.renderers import (
     XlsRenderer,
 )
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer, AssetMetadataListSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -333,6 +335,9 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'tags__name__icontains',
         'uid__icontains',
     ]
+
+    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -647,17 +652,35 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
-        self.__filtered_queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(self.__filtered_queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            metadata = None
-            if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(self.__filtered_queryset)
-            return self.get_paginated_response(serializer.data, metadata)
+        view = request.GET.get('view')
+        if view is not None:
+            view = int(view)
+            region_users = [v['username'] for v in self.regional_assignments if v['view'] == view]
+            if request.user.username not in region_users:
+                raise Http404()
+            regions = [r['countries'] for r in self.regional_views if r['id'] == view]
+            region = regions[0] if regions else []
+            q = Q(settings__country__in=region)
+            for country in region:
+                q |= Q(settings__country__contains=[{'value': country}])
+            self.__filtered_queryset = self.get_queryset().filter(q)
+        else:
+            self.__filtered_queryset = self.filter_queryset(self.get_queryset())
 
-        serializer = self.get_serializer(self.__filtered_queryset, many=True)
+        if view is None:
+            page = self.paginate_queryset(self.__filtered_queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                metadata = None
+                if request.GET.get('metadata') == 'on':
+                    metadata = self.get_metadata(self.__filtered_queryset)
+                return self.get_paginated_response(serializer.data, metadata)
+
+        if view is not None:
+            serializer = AssetMetadataListSerializer(self.__filtered_queryset, many=True, read_only=True, context=self.get_serializer_context())
+        else:
+            serializer = self.get_serializer(self.__filtered_queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
@@ -703,6 +726,21 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def views(self, request):
+        user = request.user
+        available_views = [v['view'] for v in self.regional_assignments if v['username'] == user.username]
+        regional_views = [v for v in self.regional_views if v['id'] in available_views]
+        for item in regional_views:
+            url = reverse('asset-list', request=request)
+            item['url'] = f'{url}?view={item["id"]}'
+
+        return Response(regional_views)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
