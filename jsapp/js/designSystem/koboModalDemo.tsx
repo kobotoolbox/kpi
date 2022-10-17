@@ -1,7 +1,7 @@
 import React from 'react';
 import bem from 'js/bem';
-import KoboModal from 'js/components/common/koboModal';
-import KoboPrompt from 'js/components/common/koboPrompt';
+import KoboModal from 'js/components/modals/koboModal';
+import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
 import Button from 'js/components/common/button';
 
