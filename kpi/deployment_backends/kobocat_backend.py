@@ -609,7 +609,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     break
             else:
                 # no submissions with matching `meta/rootUuid` were found;
-                # get the "first" result, despite their being no order
+                # get the "first" result, despite there being no order
                 # specified, just for consistency with previous code
                 submission_id = candidates[0]['_id']
 
