@@ -71,11 +71,13 @@ interface AutoTranscriptRequest {
   [qpath: string]: AutoTranscriptRequestQuestion | string | undefined;
   submission?: string;
 }
+interface AutoTranscriptRequestEngineParams {
+  status: 'requested';
+  languageCode?: string;
+  regionCode?: string;
+}
 interface AutoTranscriptRequestQuestion {
-  googlets: {
-    status: 'requested';
-    languageCode: string;
-  };
+  googlets: AutoTranscriptRequestEngineParams;
 }
 
 interface TranslationRequest {
@@ -334,7 +336,8 @@ processingActions.requestAutoTranscription.listen((
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string
+  languageCode?: string,
+  regionCode?: string,
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
@@ -343,11 +346,15 @@ processingActions.requestAutoTranscription.listen((
     const data: AutoTranscriptRequest = {
       submission: submissionEditId,
     };
+    let autoparams: AutoTranscriptRequestEngineParams = {status: 'requested'};
+    if (languageCode) {
+      autoparams.languageCode = languageCode;
+    }
+    if (regionCode) {
+      autoparams.regionCode = regionCode;
+    }
     data[qpath] = {
-      googlets: {
-        status: 'requested',
-        languageCode: languageCode,
-      },
+      googlets: autoparams,
     };
 
     $.ajax({
@@ -371,7 +378,8 @@ processingActions.requestAutoTranscription.listen((
               assetUid,
               qpath,
               submissionEditId,
-              languageCode
+              languageCode,
+              regionCode,
             )
           , 5000);
         } else {

@@ -82,12 +82,13 @@ export default class TranscriptTabContent extends React.Component<{}> {
   }
 
   requestAutoTranscription() {
-    const toLanguageCode = (
-      singleProcessingStore.getTranscriptDraft()?.regionCode ||
-      singleProcessingStore.getTranscriptDraft()?.languageCode
-    );
-    if (toLanguageCode) {
-      singleProcessingStore.requestAutoTranscription(toLanguageCode);
+    let draft = singleProcessingStore.getTranscriptDraft();
+    let languageCode = draft?.languageCode;
+    let regionCode = draft?.regionCode;
+    if (languageCode && regionCode) {
+      singleProcessingStore.requestAutoTranscription(languageCode, regionCode);
+    } else if (languageCode) {
+      singleProcessingStore.requestAutoTranscription(languageCode);
     }
   }
 

@@ -3,7 +3,6 @@ from django.db import models
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
-from kobo.apps.subsequences.constants import GOOGLETX, GOOGLETS
 from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscribeEngine,
 )
@@ -48,23 +47,24 @@ class SubmissionExtras(models.Model):
                         username = self.asset.owner.username
                         engine = GoogleTranscribeEngine()
                         service = TranscriptionService.objects.get(code='goog')
-                        language_code = service.get_language_code(
-                            autoparams['languageCode']
-                        )
+                        language_code = autoparams.get('languageCode')
+                        region_code = autoparams.get('regionCode')
                         vals[GOOGLETS] = {
                             'status': 'in_progress',
                             'languageCode': language_code,
+                            'regionCode': region_code,
                         }
                         for row in self.asset.content['survey']:
                             if '$qpath' in row and '$xpath' in row:
                                 if row['$qpath'] == qpath:
                                     xpath = row['$xpath']
                                     break
+                        region_or_language_code = region_code or language_code
                         try:
                             results = engine.transcribe_file(
                                 asset=self.asset,
                                 xpath=xpath,
-                                source=language_code,
+                                source=region_or_language_code,
                                 submission_id=self.submission_uuid,
                                 user=self.asset.owner,
                             )
@@ -77,7 +77,8 @@ class SubmissionExtras(models.Model):
                             'status': 'complete',
                             'value': result_string,
                             'fullResponse': results,
-                            'languageCode': autoparams['languageCode'],
+                            'languageCode': language_code,
+                            'regionCode': region_code,
                         }
                     else:
                         continue
