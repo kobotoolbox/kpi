@@ -135,7 +135,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
       draft?.value !== undefined
     ) {
       singleProcessingStore.setTranscript(
-        draft.regionCode || draft.languageCode,
+        draft.languageCode,
         draft.value
       );
     }
@@ -164,9 +164,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript();
     const draft = singleProcessingStore.getTranscriptDraft();
-    const valueLanguageCode = (
-      draft?.regionCode || draft?.languageCode || storeTranscript?.languageCode
-    );
+    const valueLanguageCode = draft?.languageCode || storeTranscript?.languageCode;
     if (valueLanguageCode === undefined) {
       return null;
     }
