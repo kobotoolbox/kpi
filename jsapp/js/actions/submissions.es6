@@ -100,16 +100,10 @@ submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
   })
     .done((response) => {
       // preferentially return a result matching the persistent UUID
-      let result;
-      const preferred = response.results.filter(
-        (e) => e['meta/rootUuid'] === submissionUuid
+      submissionsActions.getSubmissionByUuid.completed(
+        response.results.find((e) => e['meta/rootUuid'] === submissionUuid) ||
+        response.results[0]
       );
-      if (preferred.length > 0) {
-        result = preferred[0];
-      } else {
-        result = response.results[0];
-      }
-      submissionsActions.getSubmissionByUuid.completed(result);
     })
     .fail(submissionsActions.getSubmissionByUuid.failed);
 });
