@@ -1,5 +1,7 @@
 [tool.black]
-verbose = true
+# Do not enable `verbose = true` unless Black changes their behavior to respect
+# `--quiet` on the command line properly
+# verbose = true
 line-length = 80
 skip-string-normalization = true
 [tool.isort]
