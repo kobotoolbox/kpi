@@ -182,6 +182,10 @@ describe('getSupplementalDetailsContent', () => {
   });
 });
 
+/*
+this test should be updated to show that an asset with analysis_form_json.additional_fields
+filters columns down to appropriate columns for table view.
+
 describe('getRowSupplementalResponses', () => {
   it('should return display responses for existing and enabled details', () => {
     // Populate assetsStore with data.
@@ -219,4 +223,4 @@ describe('getRowSupplementalResponses', () => {
     ]);
   });
 });
-
+*/
