@@ -396,8 +396,14 @@ class SingleProcessingStore extends Reflux.Store {
               const rowName = getRowNameByQpath(asset.content, qpath);
 
               if (rowName) {
+                // `meta/rootUuid` is persistent across edits while `_uuid` is not;
+                // use the persistent identifier if present.
+                let uuid = result['meta/rootUuid'];
+                if (uuid === undefined) {
+                  uuid = result['_uuid'];
+                }
                 submissionsEditIds[qpath].push({
-                  editId: result._uuid,
+                  editId: uuid,
                   hasResponse: Object.keys(result).includes(flatPaths[rowName]),
                 });
               }
