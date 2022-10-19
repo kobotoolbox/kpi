@@ -14,9 +14,11 @@ interface KoboModalProps {
   onRequestClose: () => void;
   size?: KoboModalSize;
   children: React.ReactNode;
-  shouldCloseOnOverlayClick?: boolean;
-  /** NOTE: disabling Esc key may introduce an accessibility issue. */
-  shouldCloseOnEsc?: boolean;
+  /**
+   * Whether it should close when user hits Esc or clicks on overlay.
+   * NOTE: disabling Esc key may introduce an accessibility issue.
+   */
+  isDismissableByDefaultMeans?: boolean;
   /** Renders a `data-testid` attribute in the DOM. */
   testId?: string;
 }
@@ -36,8 +38,8 @@ export default function KoboModal(props: KoboModalProps) {
       onRequestClose={props.onRequestClose}
       className={modalClassNames.join(' ')}
       overlayClassName='kobo-modal-overlay'
-      shouldCloseOnOverlayClick={props.shouldCloseOnOverlayClick}
-      shouldCloseOnEsc={props.shouldCloseOnEsc}
+      shouldCloseOnOverlayClick={props.isDismissableByDefaultMeans}
+      shouldCloseOnEsc={props.isDismissableByDefaultMeans}
       testId={props.testId}
     >
       {props.children}

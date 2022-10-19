@@ -11,8 +11,7 @@ import Checkbox from 'js/components/common/checkbox';
 interface KoboModalDemoState {
   demoIsModalOpen: boolean;
   demoIsPromptOpen: boolean;
-  demoShouldCloseOnOverlayClick: boolean;
-  demoShouldCloseOnEsc: boolean;
+  demoIsDismissableByDefaultMeans: boolean;
   demoShouldHaveX: boolean;
 }
 
@@ -22,18 +21,13 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
     this.state = {
       demoIsModalOpen: false,
       demoIsPromptOpen: false,
-      demoShouldCloseOnOverlayClick: true,
-      demoShouldCloseOnEsc: true,
+      demoIsDismissableByDefaultMeans: true,
       demoShouldHaveX: true,
     };
   }
 
-  onShouldCloseOnOverlayClickChange(isChecked: boolean) {
-    this.setState({demoShouldCloseOnOverlayClick: isChecked})
-  }
-
-  onShouldCloseOnEscChange(isChecked: boolean) {
-    this.setState({demoShouldCloseOnEsc: isChecked})
+  onIsDismissableByDefaultMeansChange(isChecked: boolean) {
+    this.setState({demoIsDismissableByDefaultMeans: isChecked});
   }
 
   onShouldHaveXChange(isChecked: boolean) {
@@ -73,19 +67,9 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
                       <Checkbox
-                        label='should close on overlay click'
-                        onChange={this.onShouldCloseOnOverlayClickChange.bind(this)}
-                        checked={this.state.demoShouldCloseOnOverlayClick}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='demo__form-row'>
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='should close on Esc'
-                        onChange={this.onShouldCloseOnEscChange.bind(this)}
-                        checked={this.state.demoShouldCloseOnEsc}
+                        label='should close on overlay click or Esc'
+                        onChange={this.onIsDismissableByDefaultMeansChange.bind(this)}
+                        checked={this.state.demoIsDismissableByDefaultMeans}
                       />
                     </div>
                   </div>
@@ -115,8 +99,7 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                     isOpen={this.state.demoIsModalOpen}
                     onRequestClose={this.toggleModal.bind(this)}
                     size='large'
-                    shouldCloseOnOverlayClick={this.state.demoShouldCloseOnOverlayClick}
-                    shouldCloseOnEsc={this.state.demoShouldCloseOnEsc}
+                    isDismissableByDefaultMeans={this.state.demoIsDismissableByDefaultMeans}
                   >
                     <KoboModalHeader
                       onRequestCloseByX={this.state.demoShouldHaveX ? this.toggleModal.bind(this) : undefined}

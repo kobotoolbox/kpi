@@ -28,9 +28,11 @@ interface KoboPromptProps {
    * doesn't have "x" close button, so make sure there is a way to close it :)
    */
   onRequestClose: () => void;
-  shouldCloseOnOverlayClick?: boolean;
-  /** NOTE: disabling Esc key may introduce an accessibility issue. */
-  shouldCloseOnEsc?: boolean;
+  /**
+   * Whether it should close when user hits Esc or clicks on overlay.
+   * NOTE: disabling Esc key may introduce an accessibility issue.
+   */
+  isDismissableByDefaultMeans?: boolean;
   title: string;
   /** Optional icon displayed on the left of the title. */
   titleIcon?: IconName;
@@ -49,8 +51,7 @@ export default function KoboPrompt(props: KoboPromptProps) {
     <KoboModal
       isOpen={props.isOpen}
       onRequestClose={props.onRequestClose}
-      shouldCloseOnOverlayClick={props.shouldCloseOnOverlayClick}
-      shouldCloseOnEsc={props.shouldCloseOnEsc}
+      isDismissableByDefaultMeans={props.isDismissableByDefaultMeans}
       testId={props.testId}
     >
       <KoboModalHeader
