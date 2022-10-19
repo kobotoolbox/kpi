@@ -640,13 +640,14 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  requestAutoTranscription(languageCode: string) {
+  requestAutoTranscription(languageCode: string, regionCode?: string) {
     this.isFetchingData = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
       this.currentSubmissionEditId,
-      languageCode
+      languageCode,
+      regionCode,
     );
     this.trigger(this.data);
   }

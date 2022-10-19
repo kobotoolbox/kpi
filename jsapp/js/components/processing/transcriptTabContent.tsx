@@ -82,12 +82,13 @@ export default class TranscriptTabContent extends React.Component<{}> {
   }
 
   requestAutoTranscription() {
-    const toLanguageCode = (
-      singleProcessingStore.getTranscriptDraft()?.regionCode ||
-      singleProcessingStore.getTranscriptDraft()?.languageCode
-    );
-    if (toLanguageCode) {
-      singleProcessingStore.requestAutoTranscription(toLanguageCode);
+    let draft = singleProcessingStore.getTranscriptDraft();
+    let languageCode = draft?.languageCode;
+    let regionCode = draft?.regionCode;
+    if (languageCode && regionCode) {
+      singleProcessingStore.requestAutoTranscription(languageCode, regionCode);
+    } else if (languageCode) {
+      singleProcessingStore.requestAutoTranscription(languageCode);
     }
   }
 
@@ -135,7 +136,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
       draft?.value !== undefined
     ) {
       singleProcessingStore.setTranscript(
-        draft.regionCode || draft.languageCode,
+        draft.languageCode,
         draft.value
       );
     }
@@ -164,9 +165,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript();
     const draft = singleProcessingStore.getTranscriptDraft();
-    const valueLanguageCode = (
-      draft?.regionCode || draft?.languageCode || storeTranscript?.languageCode
-    );
+    const valueLanguageCode = draft?.languageCode || storeTranscript?.languageCode;
     if (valueLanguageCode === undefined) {
       return null;
     }

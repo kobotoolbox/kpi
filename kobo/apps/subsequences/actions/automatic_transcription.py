@@ -47,6 +47,7 @@ class AutomaticTranscriptionAction(BaseAction):
                 self.DATE_MODIFIED_FIELD: {'type': 'string',
                                            'format': 'date-time'},
                 'languageCode': {'type': 'string'},
+                'regionCode': {'type': 'string'},
                 'revisions': {'type': 'array', 'items': {
                     '$ref': '#/definitions/transcriptRevision'
                 }}
