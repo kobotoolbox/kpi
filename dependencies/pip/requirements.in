@@ -80,7 +80,6 @@ shortuuid
 sqlparse
 static3
 tabulate
-unicodecsv
 uWSGI
 Werkzeug<=2.0.3
 xlrd
