@@ -48,7 +48,7 @@ interface ButtonProps {
   startIcon?: IconName;
   endIcon?: IconName;
   /** Label is optional, as sometimes we want an icon-only button. */
-  label?: ReactElement<any, any> | string;
+  label?: React.ReactNode;
   /**
    * Setting this will make a tooltip appear when hovering over button. Useful
    * for icon-only buttons.

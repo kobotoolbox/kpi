@@ -1,5 +1,5 @@
 import React from 'react';
-import type {IconNames} from 'jsapp/fonts/k-icons';
+import type {IconName} from 'jsapp/fonts/k-icons';
 import type {
   ButtonType,
   ButtonColor,
@@ -28,15 +28,20 @@ interface KoboPromptProps {
    * doesn't have "x" close button, so make sure there is a way to close it :)
    */
   onRequestClose: () => void;
+  shouldCloseOnOverlayClick?: boolean;
+  /** NOTE: disabling Esc key may introduce an accessibility issue. */
+  shouldCloseOnEsc?: boolean;
   title: string;
   /** Optional icon displayed on the left of the title. */
-  titleIcon?: IconNames;
+  titleIcon?: IconName;
   /** Color of the optional icon. */
   titleIconColor?: 'blue' | 'red';
   /** The content of the propmt; pass a string or a more complex JSX. */
   children?: React.ReactNode;
   /** A list of buttons to be displayed on the bottom right of the prompt. */
   buttons: KoboPromptButton[];
+  /** Renders a `data-testid` attribute in the DOM. */
+  testId?: string;
 }
 
 export default function KoboPrompt(props: KoboPromptProps) {
@@ -44,6 +49,9 @@ export default function KoboPrompt(props: KoboPromptProps) {
     <KoboModal
       isOpen={props.isOpen}
       onRequestClose={props.onRequestClose}
+      shouldCloseOnOverlayClick={props.shouldCloseOnOverlayClick}
+      shouldCloseOnEsc={props.shouldCloseOnEsc}
+      testId={props.testId}
     >
       <KoboModalHeader
         icon={props.titleIcon}

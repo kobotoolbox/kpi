@@ -1,13 +1,19 @@
 import React from 'react';
 import bem from 'js/bem';
 import KoboModal from 'js/components/modals/koboModal';
+import KoboModalHeader from 'js/components/modals/koboModalHeader';
+import KoboModalContent from 'js/components/modals/koboModalContent';
+import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import KoboPrompt from 'js/components/modals/koboPrompt';
-import Checkbox from 'js/components/common/checkbox';
 import Button from 'js/components/common/button';
+import Checkbox from 'js/components/common/checkbox';
 
 interface KoboModalDemoState {
   demoIsModalOpen: boolean;
   demoIsPromptOpen: boolean;
+  demoShouldCloseOnOverlayClick: boolean;
+  demoShouldCloseOnEsc: boolean;
+  demoShouldHaveX: boolean;
 }
 
 export default class KoboModalDemo extends React.Component<{}, KoboModalDemoState> {
@@ -16,7 +22,22 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
     this.state = {
       demoIsModalOpen: false,
       demoIsPromptOpen: false,
+      demoShouldCloseOnOverlayClick: true,
+      demoShouldCloseOnEsc: true,
+      demoShouldHaveX: true,
     };
+  }
+
+  onShouldCloseOnOverlayClickChange(isChecked: boolean) {
+    this.setState({demoShouldCloseOnOverlayClick: isChecked})
+  }
+
+  onShouldCloseOnEscChange(isChecked: boolean) {
+    this.setState({demoShouldCloseOnEsc: isChecked})
+  }
+
+  onShouldHaveXChange(isChecked: boolean) {
+    this.setState({demoShouldHaveX: isChecked})
   }
 
   confirmSomeAction() {
@@ -49,7 +70,35 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
             <bem.SimpleTable__row>
               <bem.SimpleTable__cell>
                 <form>
-                  …
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='should close on overlay click'
+                        onChange={this.onShouldCloseOnOverlayClickChange.bind(this)}
+                        checked={this.state.demoShouldCloseOnOverlayClick}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='should close on Esc'
+                        onChange={this.onShouldCloseOnEscChange.bind(this)}
+                        checked={this.state.demoShouldCloseOnEsc}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='should have "x" close button'
+                        onChange={this.onShouldHaveXChange.bind(this)}
+                        checked={this.state.demoShouldHaveX}
+                      />
+                    </div>
+                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
@@ -65,29 +114,51 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                   <KoboModal
                     isOpen={this.state.demoIsModalOpen}
                     onRequestClose={this.toggleModal.bind(this)}
+                    size='large'
+                    shouldCloseOnOverlayClick={this.state.demoShouldCloseOnOverlayClick}
+                    shouldCloseOnEsc={this.state.demoShouldCloseOnEsc}
                   >
-                    {'This is a test modal. It has some custom content and can open a (nested) prompt.'}
+                    <KoboModalHeader
+                      onRequestCloseByX={this.state.demoShouldHaveX ? this.toggleModal.bind(this) : undefined}
+                    >
+                      {'KoboModal test'}
+                    </KoboModalHeader>
+                    <KoboModalContent>
+                      <p>{'This is a test modal. It has some custom content and can open a (nested) prompt.'}</p>
+                      <p>{'It uses three different components to render the content:'}</p>
+                      <ul>
+                        <li>{'KoboModalHeader,'}</li>
+                        <li>{'KoboModalContent,'}</li>
+                        <li>{'KoboModalFooter.'}</li>
+                      </ul>
+                      <p>{'All these components are optional (but built in inside KoboPrompt).'}</p>
+                      <p>{'You can display anything you like inside KoboModal - it does not assume anything.'}</p>
+                    </KoboModalContent>
 
-                    <Button
-                      type='full'
-                      color='blue'
-                      size='m'
-                      onClick={this.toggleModal.bind(this)}
-                      label={'close modal from inside'}
-                    />
+                    <KoboModalFooter>
+                      <Button
+                        type='full'
+                        color='blue'
+                        size='m'
+                        onClick={this.toggleModal.bind(this)}
+                        label={'click to close modal from inside'}
+                      />
 
-                    <Button
-                      type='full'
-                      color='red'
-                      size='m'
-                      onClick={this.togglePrompt.bind(this)}
-                      label={'button that needs confirmation'}
-                    />
+                      <Button
+                        type='full'
+                        color='red'
+                        size='m'
+                        onClick={this.togglePrompt.bind(this)}
+                        label={'some action that needs confirmation'}
+                      />
+                    </KoboModalFooter>
 
                     <KoboPrompt
                       isOpen={this.state.demoIsPromptOpen}
                       onRequestClose={this.togglePrompt.bind(this)}
                       title='Are you sure?'
+                      titleIcon='alert'
+                      titleIconColor='red'
                       buttons={[
                         {
                           color: 'storm',
@@ -96,12 +167,12 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                         },
                         {
                           color: 'red',
-                          label: 'confirm some action!',
+                          label: 'confirm',
                           onClick: this.confirmSomeAction.bind(this),
                         },
                       ]}
                     >
-                      {'This is some dangerous stuff here. Please make sure before you proceed.'}
+                      {'This is some dangerous stuff here. Please confirm you want to do this.'}
                     </KoboPrompt>
                   </KoboModal>
                 </div>
