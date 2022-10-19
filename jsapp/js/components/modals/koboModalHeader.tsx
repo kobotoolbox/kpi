@@ -21,7 +21,9 @@ interface KoboModalHeaderProps {
 
 export default function KoboModalHeader(props: KoboModalHeaderProps) {
   return (
-    <bem.KoboModal__header>
+    <bem.KoboModal__header m={{
+      'has-icon': Boolean(props.icon),
+    }}>
       <h1>
         {props.icon &&
           <bem.KoboModal__headerIcon m={props.iconColor || 'blue'}>

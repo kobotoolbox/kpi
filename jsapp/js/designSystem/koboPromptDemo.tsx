@@ -7,6 +7,7 @@ import Checkbox from 'js/components/common/checkbox';
 interface KoboModalDemoState {
   demoIsPromptOpen: boolean;
   demoIsDismissableByDefaultMeans: boolean;
+  demoHasIcon: boolean;
 }
 
 export default class KoboModalDemo extends React.Component<{}, KoboModalDemoState> {
@@ -15,11 +16,16 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
     this.state = {
       demoIsPromptOpen: false,
       demoIsDismissableByDefaultMeans: true,
+      demoHasIcon: true,
     };
   }
 
   onIsDismissableByDefaultMeansChange(isChecked: boolean) {
     this.setState({demoIsDismissableByDefaultMeans: isChecked});
+  }
+
+  onHasIconChange(isChecked: boolean) {
+    this.setState({demoHasIcon: isChecked});
   }
 
   togglePrompt() {
@@ -53,6 +59,15 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                       />
                     </div>
                   </div>
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='should have an icon'
+                        onChange={this.onHasIconChange.bind(this)}
+                        checked={this.state.demoHasIcon}
+                      />
+                    </div>
+                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
@@ -69,8 +84,8 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                     isOpen={this.state.demoIsPromptOpen}
                     onRequestClose={this.togglePrompt.bind(this)}
                     title='Have a nice day!'
-                    titleIcon='information'
-                    titleIconColor='blue'
+                    titleIcon={this.state.demoHasIcon ? 'information' : undefined}
+                    titleIconColor={this.state.demoHasIcon ? 'blue' : undefined}
                     buttons={[
                       {
                         color: 'blue',

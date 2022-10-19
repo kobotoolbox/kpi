@@ -2,9 +2,13 @@
 @use 'scss/_colors';
 @use 'scss/sizes';
 @use 'sass:color';
+@use "js/components/common/icon";
 
 $kobo-modal-width-large: 940px;
 $kobo-modal-width-medium: 570px;
+
+$kobo-modal-padding: sizes.$x30;
+$kobo-modal-header-icon-margin: sizes.$x10;
 
 .kobo-modal {
   position: fixed;
@@ -33,7 +37,7 @@ $kobo-modal-width-medium: 570px;
   @include mixins.centerRowFlex;
 
   justify-content: space-between;
-  padding: sizes.$x30;
+  padding: $kobo-modal-padding;
   background-color: colors.$kobo-gray-98;
 
   h1 {
@@ -49,7 +53,7 @@ $kobo-modal-width-medium: 570px;
 
 .kobo-modal__header-icon {
   display: block;
-  margin-right: sizes.$x10;
+  margin-right: $kobo-modal-header-icon-margin;
 
   &.kobo-modal__header-icon--blue {
     color: colors.$kobo-blue;
@@ -62,7 +66,7 @@ $kobo-modal-width-medium: 570px;
 
 .kobo-modal__content {
   overflow-x: auto;
-  padding: sizes.$x30;
+  padding: $kobo-modal-padding;
 
   > ul,
   > ol,
@@ -79,9 +83,18 @@ $kobo-modal-width-medium: 570px;
 
   justify-content: flex-end;
   gap: sizes.$x8;
-  padding: sizes.$x30;
+  padding: $kobo-modal-padding;
 }
 
+// If the KoboModalHeader component is used together with the KoboModalContent
+// component, and the Header has icon, we want the content of Content to be
+// aligned with the Header title.
+.kobo-modal__header.kobo-modal__header--has-icon + .kobo-modal__content {
+  padding-left: $kobo-modal-padding + icon.$s-icon-s + $kobo-modal-header-icon-margin;
+}
+
+// If the KoboModalContent component is used together with the KoboModalFooter
+// component, we want the paddings not to multiply.
 .kobo-modal__content + .kobo-modal__footer {
   padding-top: 0;
 }
