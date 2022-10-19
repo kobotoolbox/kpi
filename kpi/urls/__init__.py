@@ -67,14 +67,7 @@ urlpatterns = [
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    path('superuser_stats/user_report/', user_report),
-    re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/user_details_report/', user_details_report),
-    re_path(r'^superuser_stats/user_details_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/country_report/', country_report),
-    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
 ]
 
 
