@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link, hashHistory } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import {stores} from '../stores';
 import bem from 'js/bem';
 import {searches} from '../searches';
@@ -48,7 +48,7 @@ class FormSidebar extends Reflux.Component {
   }
   componentDidMount() {
     this.unlisteners.push(
-      hashHistory.listen(this.onRouteChange.bind(this))
+      // hashHistory.listen(this.onRouteChange.bind(this))
     );
   }
   componentWillUnmount() {
@@ -106,12 +106,11 @@ class DrawerLink extends React.Component {
     var link;
     if (this.props.linkto) {
       link = (
-        <Link to={this.props.linkto}
+        <NavLink to={this.props.linkto}
             className={classNames.join(' ')}
-            activeClassName='active'
             data-tip={this.props.label}>
           {icon}
-        </Link>
+        </NavLink>
       );
     } else {
       link = (

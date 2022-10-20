@@ -16,7 +16,7 @@ import React from 'react';
 import _ from 'lodash';
 import alertify from 'alertifyjs';
 import toast from 'react-hot-toast';
-import {hashHistory} from 'react-router';
+// // import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
@@ -48,6 +48,7 @@ import type {
   Permission,
   SubmissionResponse,
 } from 'js/dataInterface';
+import { routerGetAssetId, routerIsActive } from './router/legacy';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -126,12 +127,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  // hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  hashHistory.push(ROUTES.LIBRARY);
+                  // hashHistory.push(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -177,7 +178,8 @@ mixins.dmix = {
         }, {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
-            hashHistory.push(`/forms/${asset.uid}`);
+            console.log(asset);
+            // hashHistory.push(`/forms/${asset.uid}`);
           },
         });
 
@@ -209,7 +211,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        hashHistory.push(`/forms/${asset.uid}`);
+        // hashHistory.push(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -514,13 +516,13 @@ mixins.droppable = {
               // TODO: use a more specific error message here
               notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
-                hashHistory.push(`/forms/${params.assetUid}`);
+                // hashHistory.push(`/forms/${params.assetUid}`);
               }
             } else {
               if (isProjectReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (!isLibrary) {
-                hashHistory.push(`/forms/${assetUid}`);
+                // hashHistory.push(`/forms/${assetUid}`);
               }
               notify(t('XLS Import completed'));
             }
@@ -645,7 +647,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              hashHistory.push(goToUrl);
+              // hashHistory.push(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -677,10 +679,11 @@ mixins.clickAssets = {
         });
       },
       edit: function (uid: string) {
-        if (this.context.router.isActive('library')) {
-          hashHistory.push(`/library/asset/${uid}/edit`);
+        console.log(uid);
+        if (routerIsActive('library')) {
+          // hashHistory.push(`/library/asset/${uid}/edit`);
         } else {
-          hashHistory.push(`/forms/${uid}/edit`);
+          // hashHistory.push(`/forms/${uid}/edit`);
         }
       },
       delete: function (
@@ -1003,55 +1006,55 @@ mixins.permissions = {
 
 mixins.contextRouter = {
   isFormList() {
-    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
+    return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
   isLibrary() {
-    return this.context.router.isActive(ROUTES.LIBRARY);
+    return routerIsActive(ROUTES.LIBRARY);
   },
   isMyLibrary() {
-    return this.context.router.isActive(ROUTES.MY_LIBRARY);
+    return routerIsActive(ROUTES.MY_LIBRARY);
   },
   isPublicCollections() {
-    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
+    return routerIsActive(ROUTES.PUBLIC_COLLECTIONS);
   },
   isLibraryList() {
-    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
+    return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
   },
   isLibrarySingle() {
-    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
+    return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
   },
   isFormSingle() {
-    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
+    return routerIsActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
   },
   currentAssetID() {
-    return this.context.router.params.assetid || this.context.router.params.uid;
+    return routerGetAssetId();
   },
   currentAsset() {
     return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path: string, indexOnly = false) {
-    return this.context.router.isActive(path, indexOnly);
+    return routerIsActive(path, indexOnly);
   },
   isFormBuilder() {
-    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
+    if (routerIsActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
     }
 
     const uid = this.currentAssetID();
     return (
       uid !== undefined &&
-      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
+      routerIsActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      routerIsActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
   isAccount() {
     return (
-      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
-      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
-      this.context.router.isActive(ROUTES.SECURITY) ||
-      this.context.router.isActive(ROUTES.PLAN) ||
-      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+      routerIsActive(ROUTES.ACCOUNT_SETTINGS) ||
+      routerIsActive(ROUTES.DATA_STORAGE) ||
+      routerIsActive(ROUTES.SECURITY) ||
+      routerIsActive(ROUTES.PLAN) ||
+      routerIsActive(ROUTES.CHANGE_PASSWORD)
     );
   },
 };

@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -42,7 +42,7 @@ const singleCollectionStore = Reflux.createStore({
   init() {
     this.setDefaultColumns();
 
-    hashHistory.listen(this.onRouteChange.bind(this));
+    // hashHistory.listen(this.onRouteChange.bind(this));
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));

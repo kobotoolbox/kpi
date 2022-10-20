@@ -1,4 +1,5 @@
 import React from 'react';
+import {Link} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -11,7 +12,7 @@ import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 
 interface AccountSidebarState {
-	isLoading: boolean;
+  isLoading: boolean;
   subscribedProduct: ProductInfo | null;
 }
 
@@ -19,7 +20,6 @@ export default class AccountSidebar extends React.Component<
   {},
   AccountSidebarState
 > {
-
   constructor(props: {}) {
     super(props);
     this.state = {
@@ -51,11 +51,9 @@ export default class AccountSidebar extends React.Component<
       .fail(this.onFetchSubscriptionInfoFail.bind(this));
   }
 
-  onFetchSubscriptionInfoDone(
-    response: PaginatedResponse<SubscriptionInfo>
-  ) {
+  onFetchSubscriptionInfoDone(response: PaginatedResponse<SubscriptionInfo>) {
     this.setState({
-      subscribedProduct: response.results[0].plan.product ,
+      subscribedProduct: response.results[0].plan.product,
     });
   }
 
@@ -64,9 +62,7 @@ export default class AccountSidebar extends React.Component<
   }
 
   isAccountSelected(): boolean {
-    return (
-      location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS
-    );
+    return location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS;
   }
 
   isDataStorageSelected(): boolean {
@@ -89,44 +85,44 @@ export default class AccountSidebar extends React.Component<
     } else {
       return (
         <bem.FormSidebar m={sidebarModifier}>
-          <bem.FormSidebar__label
-            m={{selected: this.isAccountSelected()}}
-            href={'#' + ROUTES.ACCOUNT_SETTINGS}
-          >
-            <Icon name='user' size='xl'/>
-            <bem.FormSidebar__labelText>
-              {t('Profile')}
-            </bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
-
-          { /* hide "Security" entirely if nothing there is available */
-            envStore.isReady && envStore.data.mfa_enabled &&
-            <bem.FormSidebar__label
-              m={{selected: this.isSecuritySelected()}}
-              href={'#' + ROUTES.SECURITY}
-              disabled={ !(envStore.isReady && envStore.data.mfa_enabled) }
-            >
-              <Icon name='lock-alt' size='xl'/>
+          <Link to={ROUTES.ACCOUNT_SETTINGS}>
+            <bem.FormSidebar__label m={{selected: this.isAccountSelected()}}>
+              <Icon name='user' size='xl' />
               <bem.FormSidebar__labelText>
-                {t('Security')}
+                {t('Profile')}
               </bem.FormSidebar__labelText>
             </bem.FormSidebar__label>
-          }
+          </Link>
 
           {
-            envStore.isReady &&
-            envStore.data.stripe_public_key &&
-            this.state.subscribedProduct &&
-              <bem.FormSidebar__label
-                m={{selected: this.isPlanSelected()}}
-                href={'#' + ROUTES.PLAN}
-              >
-                <Icon name='editor' size='xl'/>
-                <bem.FormSidebar__labelText>
-                  {t('Your plan')}
-                </bem.FormSidebar__labelText>
-              </bem.FormSidebar__label>
+            /* hide "Security" entirely if nothing there is available */
+            envStore.isReady && envStore.data.mfa_enabled && (
+              <Link to={ROUTES.SECURITY}>
+                <bem.FormSidebar__label
+                  m={{selected: this.isSecuritySelected()}}
+                  disabled={!(envStore.isReady && envStore.data.mfa_enabled)}
+                >
+                  <Icon name='lock-alt' size='xl' />
+                  <bem.FormSidebar__labelText>
+                    {t('Security')}
+                  </bem.FormSidebar__labelText>
+                </bem.FormSidebar__label>
+              </Link>
+            )
           }
+
+          {envStore.isReady &&
+            envStore.data.stripe_public_key &&
+            this.state.subscribedProduct && (
+              <Link to={ROUTES.PLAN}>
+                <bem.FormSidebar__label m={{selected: this.isPlanSelected()}}>
+                  <Icon name='editor' size='xl' />
+                  <bem.FormSidebar__labelText>
+                    {t('Your plan')}
+                  </bem.FormSidebar__labelText>
+                </bem.FormSidebar__label>
+              </Link>
+            )}
         </bem.FormSidebar>
       );
     }

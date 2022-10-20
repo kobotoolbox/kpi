@@ -18,15 +18,13 @@ import {
   MODAL_TYPES,
   COLLECTION_METHODS,
 } from '../constants';
-import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
   notify
 } from 'utils';
 import {
   Link,
-  hashHistory,
-} from 'react-router';
+} from 'react-router-dom';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -407,7 +405,7 @@ export class FormLanding extends React.Component {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   goToProjectsList() {
-    hashHistory.push(ROUTES.FORMS);
+    // hashHistory.push(ROUTES.FORMS);
   }
   nonOwnerSelfRemoval(evt) {
     evt.preventDefault();

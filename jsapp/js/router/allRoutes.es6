@@ -1,12 +1,6 @@
 import React, {Suspense} from 'react';
 import autoBind from 'react-autobind';
-import {
-  IndexRoute,
-  IndexRedirect,
-  Route,
-  hashHistory,
-  Router,
-} from 'react-router';
+import {Form, Navigate, Routes} from 'react-router-dom';
 import App from 'js/app';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import {actions} from 'js/actions';
@@ -24,9 +18,15 @@ import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {isRootRoute, redirectToLogin} from 'js/router/routerUtils';
-import AuthProtectedRoute from 'js/router/authProtectedRoute';
+import RequireAuth from 'js/router/requireAuth';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {Tracking} from './useTracking';
+
+// Workaround https://github.com/remix-run/react-router/issues/8139
+import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
+import {createHashHistory} from 'history';
+const history = createHashHistory({window});
 
 const Reports = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/reports/reports')
@@ -118,242 +118,6 @@ export default class AllRoutes extends React.Component {
     }
   }
 
-  /**
-   * NOTE: For a new route, follow this guideline:
-   * - if route should be accessible to anyone, use `Route`
-   * - if route should be accessible only to logged in users, use `AuthProtectedRoute`
-   * - if route should be accessible only with given permission, use `PermProtectedRoute`
-   * @returns {Node} nested routes
-   */
-  getRoutes() {
-    return (
-      <Suspense fallback={null}>
-        <Route name='home' path={ROUTES.ROOT} component={App}>
-          <IndexRedirect to={ROUTES.FORMS} />
-
-          {/* MISC */}
-          <Route path={ROUTES.SECURITY} component={SecurityRoute} />
-          <Route path={ROUTES.PLAN} component={PlanRoute} />
-          <Route path={ROUTES.DATA_STORAGE} component={DataStorage} />
-          <Route
-            path={ROUTES.ACCOUNT_SETTINGS}
-            component={AuthProtectedRoute}
-            protectedComponent={AccountSettings}
-          />
-          <Suspense fallback={null}>
-            <Route
-              path={ROUTES.CHANGE_PASSWORD}
-              component={AuthProtectedRoute}
-              protectedComponent={ChangePassword}
-            />
-          </Suspense>
-          {/* LIBRARY */}
-          <Route path={ROUTES.LIBRARY}>
-            <IndexRedirect to={ROUTES.MY_LIBRARY} />
-            <Route
-              path={ROUTES.MY_LIBRARY}
-              component={AuthProtectedRoute}
-              protectedComponent={MyLibraryRoute}
-            />
-            <Route
-              path={ROUTES.PUBLIC_COLLECTIONS}
-              component={AuthProtectedRoute}
-              protectedComponent={PublicCollectionsRoute}
-            />
-            <Route
-              path={ROUTES.NEW_LIBRARY_ITEM}
-              component={AuthProtectedRoute}
-              protectedComponent={LibraryAssetEditor}
-            />
-            <Route
-              path={ROUTES.LIBRARY_ITEM}
-              component={PermProtectedRoute}
-              protectedComponent={AssetRoute}
-              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-            />
-            <Route
-              path={ROUTES.EDIT_LIBRARY_ITEM}
-              component={PermProtectedRoute}
-              protectedComponent={LibraryAssetEditor}
-              requiredPermission={PERMISSIONS_CODENAMES.change_asset}
-            />
-            <Route
-              path={ROUTES.NEW_LIBRARY_CHILD}
-              component={PermProtectedRoute}
-              protectedComponent={LibraryAssetEditor}
-              requiredPermission={PERMISSIONS_CODENAMES.change_asset}
-            />
-            <Route
-              path={ROUTES.LIBRARY_ITEM_JSON}
-              component={PermProtectedRoute}
-              protectedComponent={FormJson}
-              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-            />
-            <Route
-              path={ROUTES.LIBRARY_ITEM_XFORM}
-              component={PermProtectedRoute}
-              protectedComponent={FormXform}
-              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-            />
-          </Route>
-
-          {/* FORMS */}
-          <Route path={ROUTES.FORMS}>
-            <IndexRoute
-              component={AuthProtectedRoute}
-              protectedComponent={FormsSearchableList}
-            />
-
-            <Route path={ROUTES.FORM}>
-              <IndexRedirect to={ROUTES.FORM_LANDING} />
-
-              <Route
-                path={ROUTES.FORM_SUMMARY}
-                component={PermProtectedRoute}
-                protectedComponent={FormSummary}
-                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-              />
-
-              <Route
-                path={ROUTES.FORM_LANDING}
-                component={PermProtectedRoute}
-                protectedComponent={FormLanding}
-                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-              />
-
-              <Route path={ROUTES.FORM_DATA}>
-                <IndexRedirect to={ROUTES.FORM_TABLE} />
-                <Route
-                  path={ROUTES.FORM_REPORT}
-                  component={PermProtectedRoute}
-                  protectedComponent={Reports}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-                <Route
-                  path={ROUTES.FORM_REPORT_OLD}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-                <Route
-                  path={ROUTES.FORM_TABLE}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-                <Route
-                  path={ROUTES.FORM_DOWNLOADS}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-                <Route
-                  path={ROUTES.FORM_GALLERY}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-                <Route
-                  path={ROUTES.FORM_MAP}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-                <Route
-                  path={ROUTES.FORM_MAP_BY}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-                />
-              </Route>
-
-              <Route path={ROUTES.FORM_SETTINGS}>
-                <IndexRoute
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-                <Route
-                  path={ROUTES.FORM_MEDIA}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-                <Route
-                  path={ROUTES.FORM_SHARING}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-                <Route
-                  path={ROUTES.FORM_RECORDS}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-                <Route
-                  path={ROUTES.FORM_REST}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-                <Route
-                  path={ROUTES.FORM_REST_HOOK}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-                <Route
-                  path={ROUTES.FORM_KOBOCAT}
-                  component={PermProtectedRoute}
-                  protectedComponent={FormSubScreens}
-                  requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
-                />
-              </Route>
-
-              <Route
-                path={ROUTES.FORM_JSON}
-                component={PermProtectedRoute}
-                protectedComponent={FormJson}
-                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-              />
-              <Route
-                path={ROUTES.FORM_XFORM}
-                component={PermProtectedRoute}
-                protectedComponent={FormXform}
-                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-              />
-              <Route
-                path={ROUTES.FORM_EDIT}
-                component={PermProtectedRoute}
-                protectedComponent={FormPage}
-                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-              />
-
-              {/**
-               * TODO change this HACKFIX to a better solution
-               *
-               * Used to force refresh form sub routes. It's some kine of a weird
-               * way of introducing a loading screen during sub route refresh.
-               * See: https://github.com/kobotoolbox/kpi/issues/3925
-               **/}
-              <Route
-                path={ROUTES.FORM_RESET}
-                component={PermProtectedRoute}
-                protectedComponent={FormSubScreens}
-                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-              />
-            </Route>
-
-            <Route path='*' component={FormNotFound} />
-          </Route>
-
-          <Route path='*' component={SectionNotFound} />
-        </Route>
-      </Suspense>
-    );
-  }
-
   render() {
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
@@ -361,12 +125,261 @@ export default class AllRoutes extends React.Component {
       return <LoadingSpinner />;
     }
 
+    const isLoggedIn = stores.session.isLoggedIn;
+
     return (
-      <Router
-        history={hashHistory}
-        ref={(ref) => this.router = ref}
-        routes={this.getRoutes()}
-      />
+      <HistoryRouter history={history}>
+        <Tracking />
+        <Routes>
+          <Route path={ROUTES.ROOT} element={<App />}>
+            <Route path='' element={<Navigate to={ROUTES.FORMS} replace />} />
+            <Route path={ROUTES.SECURITY} element={<SecurityRoute />} />
+            <Route path={ROUTES.PLAN} element={<PlanRoute />} />
+            <Route path={ROUTES.DATA_STORAGE} element={<DataStorage />} />
+            <Route
+              path={ROUTES.ACCOUNT_SETTINGS}
+              element={
+                <RequireAuth>
+                  <AccountSettings />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path={ROUTES.CHANGE_PASSWORD}
+              element={
+                <RequireAuth>
+                  <ChangePassword />
+                </RequireAuth>
+              }
+            />
+            <Route path={ROUTES.LIBRARY}>
+              <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} />} />
+              <Route
+                path={ROUTES.MY_LIBRARY}
+                element={
+                  <RequireAuth>
+                    <MyLibraryRoute />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={ROUTES.PUBLIC_COLLECTIONS}
+                element={
+                  <RequireAuth>
+                    <PublicCollectionsRoute />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={ROUTES.NEW_LIBRARY_ITEM}
+                element={
+                  <RequireAuth>
+                    <LibraryAssetEditor />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path={ROUTES.LIBRARY_ITEM}
+                component={PermProtectedRoute}
+                element={AssetRoute}
+                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+              />
+              <Route
+                path={ROUTES.EDIT_LIBRARY_ITEM}
+                component={PermProtectedRoute}
+                element={LibraryAssetEditor}
+                requiredPermission={PERMISSIONS_CODENAMES.change_asset}
+              />
+              <Route
+                path={ROUTES.NEW_LIBRARY_CHILD}
+                component={PermProtectedRoute}
+                element={LibraryAssetEditor}
+                requiredPermission={PERMISSIONS_CODENAMES.change_asset}
+              />
+              <Route
+                path={ROUTES.LIBRARY_ITEM_JSON}
+                component={PermProtectedRoute}
+                element={FormJson}
+                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+              />
+              <Route
+                path={ROUTES.LIBRARY_ITEM_XFORM}
+                component={PermProtectedRoute}
+                element={FormXform}
+                requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+              />
+            </Route>
+            <Route path={ROUTES.FORMS}>
+              <Route
+                index
+                element={
+                  <RequireAuth>
+                    <FormsSearchableList />
+                  </RequireAuth>
+                }
+              />
+              <Route path={ROUTES.FORM}>
+                <Route
+                  path=''
+                  element={<Navigate to={'./landing'} replace />}
+                />
+
+                <Route
+                  path={ROUTES.FORM_SUMMARY}
+                  component={PermProtectedRoute}
+                  protectedComponent={FormSummary}
+                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                />
+
+                <Route
+                  path={ROUTES.FORM_LANDING}
+                  element={
+                    <PermProtectedRoute
+                      requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                      protectedComponent={FormLanding}
+                    />
+                  }
+                />
+
+                <Route path={ROUTES.FORM_DATA}>
+                  <Route
+                    path=''
+                    element={<Navigate to={ROUTES.FORM_TABLE} />}
+                  />
+                  <Route
+                    path={ROUTES.FORM_REPORT}
+                    component={PermProtectedRoute}
+                    protectedComponent={Reports}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                  <Route
+                    path={ROUTES.FORM_REPORT_OLD}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                  <Route
+                    path={ROUTES.FORM_TABLE}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                  <Route
+                    path={ROUTES.FORM_DOWNLOADS}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                  <Route
+                    path={ROUTES.FORM_GALLERY}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                  <Route
+                    path={ROUTES.FORM_MAP}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                  <Route
+                    path={ROUTES.FORM_MAP_BY}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                  />
+                </Route>
+
+                <Route path={ROUTES.FORM_SETTINGS}>
+                  <Route
+                    index
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                  <Route
+                    path={ROUTES.FORM_MEDIA}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                  <Route
+                    path={ROUTES.FORM_SHARING}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                  <Route
+                    path={ROUTES.FORM_RECORDS}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                  <Route
+                    path={ROUTES.FORM_REST}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                  <Route
+                    path={ROUTES.FORM_REST_HOOK}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                  <Route
+                    path={ROUTES.FORM_KOBOCAT}
+                    component={PermProtectedRoute}
+                    protectedComponent={FormSubScreens}
+                    requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                  />
+                </Route>
+
+                <Route
+                  path={ROUTES.FORM_JSON}
+                  component={PermProtectedRoute}
+                  protectedComponent={FormJson}
+                  requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                />
+                <Route
+                  path={ROUTES.FORM_XFORM}
+                  component={PermProtectedRoute}
+                  protectedComponent={FormXform}
+                  requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                />
+                <Route
+                  path={ROUTES.FORM_EDIT}
+                  component={PermProtectedRoute}
+                  protectedComponent={FormPage}
+                  requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                />
+                {/**
+                 * TODO change this HACKFIX to a better solution
+                 *
+                 * Used to force refresh form sub routes. It's some kine of a weird
+                 * way of introducing a loading screen during sub route refresh.
+                 * See: https://github.com/kobotoolbox/kpi/issues/3925
+                 **/}
+                <Route
+                  path={ROUTES.FORM_RESET}
+                  component={PermProtectedRoute}
+                  protectedComponent={FormSubScreens}
+                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                />
+              </Route>
+              <Route path='*' component={FormNotFound} />
+            </Route>
+            <Route
+              path='*'
+              element={
+                <Suspense fallback={null}>
+                  <SectionNotFound />
+                </Suspense>
+              }
+            />
+          </Route>
+        </Routes>
+      </HistoryRouter>
     );
   }
 }

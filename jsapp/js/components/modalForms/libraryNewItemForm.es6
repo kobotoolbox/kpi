@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
-import {hashHistory} from 'react-router';
+// // import {hashHistory} from 'react-router';
 import {
   MODAL_TYPES,
   ASSET_TYPES,

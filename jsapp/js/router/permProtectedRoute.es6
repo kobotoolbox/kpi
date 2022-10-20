@@ -5,6 +5,7 @@ import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';
+import {withRouter} from './legacy';
 
 /**
  * A gateway component for rendering the route only for a user who has
@@ -15,7 +16,7 @@ import AccessDenied from 'js/router/accessDenied';
  * @prop {object} route.protectedComponent - the target route commponent that should be displayed for authenticateed user
  * @prop {object} route.requiredPermission - the permission needed to be able to see the route
  */
-export default class PermProtectedRoute extends React.Component {
+class PermProtectedRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = this.getInitialState();
@@ -42,21 +43,23 @@ export default class PermProtectedRoute extends React.Component {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.params.uid !== nextProps.params.uid) {
+    if (this.props.params.uid !== nextProps.props.params.uid) {
       this.setState(this.getInitialState());
       actions.resources.loadAsset({id: nextProps.params.uid});
     } else if (
-      this.props.route.requiredPermission !== nextProps.route.requiredPermission ||
-      this.props.route.protectedComponent !== nextProps.route.protectedComponent
+      this.props.requiredPermission !== nextProps.requiredPermission ||
+      this.props.protectedComponent !== nextProps.protectedComponent
     ) {
       this.setState({
         userHasRequiredPermission: this.getUserHasRequiredPermission(
           this.state.asset,
-          nextProps.route.requiredPermission
+          nextProps.requiredPermission
         ),
       });
     }
@@ -72,7 +75,7 @@ export default class PermProtectedRoute extends React.Component {
       isLoadAssetFinished: true,
       userHasRequiredPermission: this.getUserHasRequiredPermission(
         asset,
-        this.props.route.requiredPermission
+        this.props.requiredPermission
       ),
     });
   }
@@ -82,7 +85,9 @@ export default class PermProtectedRoute extends React.Component {
       this.setState({
         isLoadAssetFinished: true,
         userHasRequiredPermission: false,
-        errorMessage: `${response.status.toString()}: ${response.responseJSON?.detail || response.statusText}`,
+        errorMessage: `${response.status.toString()}: ${
+          response.responseJSON?.detail || response.statusText
+        }`,
       });
     }
   }
@@ -97,18 +102,20 @@ export default class PermProtectedRoute extends React.Component {
 
   render() {
     if (!this.state.isLoadAssetFinished) {
-      return <LoadingSpinner/>;
+      return <LoadingSpinner />;
     } else if (this.state.userHasRequiredPermission) {
       return (
-        <Suspense fallback={<LoadingSpinner/>}>
-          <this.props.route.protectedComponent
+        <Suspense fallback={<LoadingSpinner />}>
+          <this.props.protectedComponent
             {...this.props}
             initialAssetLoadNotNeeded
           />
         </Suspense>
       );
     } else {
-      return <AccessDenied errorMessage={this.state.errorMessage}/>;
+      return <AccessDenied errorMessage={this.state.errorMessage} />;
     }
   }
 }
+
+export default withRouter(PermProtectedRoute);

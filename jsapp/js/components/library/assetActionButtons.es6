@@ -9,7 +9,7 @@
 import React from 'react';
 import Reflux from 'reflux';
 import autoBind from 'react-autobind';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';

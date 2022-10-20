@@ -5,9 +5,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
+import { Outlet } from "react-router-dom";
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
+// // import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
@@ -18,11 +19,14 @@ import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
 import IntercomHandler from 'js/components/support/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
+import { withRouter } from "js/router/legacy";
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
+import { routerGetAssetId } from './router/legacy';
 
-export default class App extends React.Component {
+
+class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = assign({
@@ -31,7 +35,7 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    hashHistory.listen(this.onRouteChange.bind(this));
+    // hashHistory.listen(this.onRouteChange.bind(this));
   }
 
   onRouteChange() {
@@ -47,7 +51,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    var assetid = this.props.params.assetid || this.props.params.uid || null;
+    const assetid = routerGetAssetId();
 
     const pageWrapperContentModifiers = [];
     if (this.isFormSingle()) {
@@ -92,7 +96,7 @@ export default class App extends React.Component {
                   <FormViewTabs type={'side'} show={this.isFormSingle()} />
                 </React.Fragment>
               }
-              {this.props.children}
+              <Outlet />
             </bem.PageWrapper__content>
           </bem.PageWrapper>
 
@@ -118,3 +122,5 @@ App.contextTypes = {router: PropTypes.object};
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
+
+export default withRouter(App);

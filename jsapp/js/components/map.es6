@@ -3,7 +3,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';

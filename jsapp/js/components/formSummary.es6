@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
+import { Link, NavLink } from 'react-router-dom';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';
@@ -259,10 +259,9 @@ class FormSummary extends React.Component {
     return (
       <bem.FormView__cell m='data-tabs'>
         { sideTabs.map((item, ind) =>
-          <Link
+          <NavLink
             to={item.path}
             key={ind}
-            activeClassName='active'
             onlyActiveOnIndex
             data-path={item.path}
             onClick={this.triggerRefresh}
@@ -270,7 +269,7 @@ class FormSummary extends React.Component {
             <i className={`k-icon ${item.icon}`} />
             {item.label}
             <Icon name='angle-right' size='s'/>
-          </Link>
+          </NavLink>
         )}
       </bem.FormView__cell>
     );

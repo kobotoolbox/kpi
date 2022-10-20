@@ -16,10 +16,10 @@ import {
   stringToColor,
 } from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
+import { Prompt } from "js/router/legacy"
 import envStore from 'js/envStore';
 import './accountSettings.scss';
 
-const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -57,7 +57,6 @@ export default class AccountSettings extends React.Component {
   }
 
   componentDidMount() {
-    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
     this.listenTo(stores.session, this.rebuildState);
     this.rebuildState();
   }
@@ -68,7 +67,7 @@ export default class AccountSettings extends React.Component {
 
   routerWillLeave() {
     if (!this.state.isPristine) {
-      return UNSAVED_CHANGES_WARNING;
+      return true
     }
   }
 
@@ -208,6 +207,7 @@ export default class AccountSettings extends React.Component {
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
+            {this.routerWillLeave() && <Prompt/>}
             <bem.KoboButton
               className='account-settings-save'
               onClick={this.updateProfile}

@@ -7,7 +7,7 @@ import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';

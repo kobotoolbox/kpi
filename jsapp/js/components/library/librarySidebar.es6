@@ -7,6 +7,7 @@ import {stores} from 'js/stores';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import myLibraryStore from './myLibraryStore';
+import { routerIsActive } from '../../router/legacy';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -41,11 +42,11 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   isMyLibrarySelected() {
-    return this.context.router.isActive('library/my-library');
+    return routerIsActive('library/my-library');
   }
 
   isPublicCollectionsSelected() {
-    return this.context.router.isActive('library/public-collections');
+    return routerIsActive('library/public-collections');
   }
 
   render() {

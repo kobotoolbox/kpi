@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import { hashHistory } from 'react-router';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import assetStore from 'js/assetStore';
+import { withRouter } from "js/router/legacy";
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {actions} from '../actions';
@@ -77,7 +77,7 @@ class MainHeader extends Reflux.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
+    if (prevProps.assetid !== this.props.assetid && this.props && this.props.assetid) {
       actions.resources.loadAsset({id: this.props.assetid});
     }
   }
@@ -111,7 +111,7 @@ class MainHeader extends Reflux.Component {
   accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
-      hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
+      this.props.router.navigate(ROUTES.ACCOUNT_SETTINGS);
     });
   }
 
@@ -345,4 +345,4 @@ reactMixin(MainHeader.prototype, mixins.permissions);
 
 MainHeader.contextTypes = {router: PropTypes.object};
 
-export default MainHeader;
+export default withRouter(MainHeader);

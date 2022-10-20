@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import assetStore from 'js/assetStore';
-import {Link, hashHistory} from 'react-router';
+import {Link, NavLink} from 'react-router-dom';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
@@ -62,7 +62,7 @@ class FormViewTabs extends Reflux.Component {
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
-      hashHistory.push(`/forms/${this.state.asset.uid}/reset`);
+      // hashHistory.push(`/forms/${this.state.asset.uid}/reset`);
 
       var path = evt.target.getAttribute('data-path');
       window.setTimeout(function () {
@@ -110,37 +110,33 @@ class FormViewTabs extends Reflux.Component {
 
     return (
       <bem.FormView__toptabs>
-        <Link
+        <NavLink
           to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.asset.uid)}
           className={summaryTabClassNames}
-          activeClassName='active'
         >
           {t('Summary')}
-        </Link>
+        </NavLink>
 
-        <Link
+        <NavLink
           to={ROUTES.FORM_LANDING.replace(':uid', this.state.asset.uid)}
           className='form-view__tab'
-          activeClassName='active'
         >
           {t('Form')}
-        </Link>
+        </NavLink>
 
-        <Link
+        <NavLink
           to={ROUTES.FORM_DATA.replace(':uid', this.state.asset.uid)}
           className={dataTabClassNames}
-          activeClassName='active'
         >
           {t('Data')}
-        </Link>
+        </NavLink>
 
-        <Link
+        <NavLink
           to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid)}
           className={settingsTabClassNames}
-          activeClassName='active'
         >
           {t('Settings')}
-        </Link>
+        </NavLink>
 
         {stores.session.isLoggedIn && (
           <Link
@@ -234,10 +230,9 @@ class FormViewTabs extends Reflux.Component {
               className += ' form-view__tab--disabled';
             }
             return (
-              <Link
+              <NavLink
                 to={item.path}
                 key={ind}
-                activeClassName='active'
                 onlyActiveOnIndex
                 className={className}
                 data-path={item.path}
@@ -247,7 +242,7 @@ class FormViewTabs extends Reflux.Component {
                 <span className='form-view__tab-name'>
                   {item.label}
                 </span>
-              </Link>
+              </NavLink>
             );
           })}
         </bem.FormView__sidetabs>
