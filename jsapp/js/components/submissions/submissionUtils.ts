@@ -112,11 +112,10 @@ export class DisplayResponse {
 /**
  * Returns a sorted object of transcript/translation keys
  */
-export function sortAnalysisFormJsonKeys (analysis_form_json: any) {
-  let additionalFields: {source: string, dtpath: string}[] = analysis_form_json.additional_fields;
+export function sortAnalysisFormJsonKeys(additionalFields: {source: string, dtpath: string}[]) {
   let sortedBySource: {[key: string]: string[]} = {};
 
-  additionalFields.forEach((afParams) => {
+  additionalFields?.forEach((afParams) => {
     let expandedPath = `_supplementalDetails/${afParams.dtpath}`;
     if (!sortedBySource[afParams.source]) {
       sortedBySource[afParams.source] = [];
@@ -143,7 +142,9 @@ export function getSubmissionDisplayData(
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
-  let supplementalDetailKeys = sortAnalysisFormJsonKeys(asset.analysis_form_json);
+  let supplementalDetailKeys = sortAnalysisFormJsonKeys(
+    asset.analysis_form_json?.additional_fields
+  );
   /**
    * Recursively generates a nested architecture of survey with data.
    */
