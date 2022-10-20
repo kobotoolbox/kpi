@@ -110,6 +110,23 @@ export class DisplayResponse {
 }
 
 /**
+ * Returns a sorted object of transcript/translation keys
+ */
+export function sortAnalysisFormJsonKeys (analysis_form_json: any) {
+  let additionalFields: {source: string, dtpath: string}[] = analysis_form_json.additional_fields;
+  let sortedBySource: {[key: string]: string[]} = {};
+
+  additionalFields.forEach((afParams) => {
+    let expandedPath = `_supplementalDetails/${afParams.dtpath}`;
+    if (!sortedBySource[afParams.source]) {
+      sortedBySource[afParams.source] = [];
+    }
+    sortedBySource[afParams.source].push(expandedPath);
+  });
+  return sortedBySource;
+}
+
+/**
  * Returns a root group with everything inside
  */
 export function getSubmissionDisplayData(
@@ -126,6 +143,7 @@ export function getSubmissionDisplayData(
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
+  let supplementalDetailKeys = sortAnalysisFormJsonKeys(asset.analysis_form_json);
   /**
    * Recursively generates a nested architecture of survey with data.
    */
@@ -271,12 +289,24 @@ export function getSubmissionDisplayData(
         );
         parentGroup.addChild(rowObj);
 
-        const rowSupplementalResponses = getRowSupplementalResponses(
+        /*
+        getRowSupplementalResponses(
           asset,
           submissionData,
           rowName,
-        );
-        rowSupplementalResponses.forEach((resp) => {parentGroup.addChild(resp)})
+        ).forEach((resp) => {parentGroup.addChild(resp)})
+        */
+        let rowqpath = flatPaths[rowName].replace(/\//g, '-');
+        supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
+          parentGroup.addChild(
+            new DisplayResponse(null,
+              getColumnLabel(asset, sdKey, false),
+              sdKey,
+              undefined,
+              getSupplementalDetailsContent(submissionData, sdKey),
+            )
+          );
+        })
       }
     }
   }
