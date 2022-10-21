@@ -551,9 +551,9 @@ export class FormMap extends React.Component {
 
     let name = evt.target.getAttribute('data-name') || undefined;
     if (name != undefined) {
-      hashHistory.push(`/forms/${this.props.asset.uid}/data/map/${name}`);
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`);
     } else {
-      hashHistory.push(`/forms/${this.props.asset.uid}/data/map`);
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map`);
     }
   }
   filterLanguage (evt) {

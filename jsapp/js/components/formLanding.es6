@@ -405,7 +405,7 @@ export class FormLanding extends React.Component {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   goToProjectsList() {
-    // hashHistory.push(ROUTES.FORMS);
+    // this.props.router.navigate(ROUTES.FORMS);
   }
   nonOwnerSelfRemoval(evt) {
     evt.preventDefault();

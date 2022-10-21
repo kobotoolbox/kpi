@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
-// // import {hashHistory} from 'react-router';
 import {
   MODAL_TYPES,
   ASSET_TYPES,
@@ -14,6 +13,7 @@ import {
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import {withRouter} from 'js/router/legacy';
 
 class LibraryNewItemForm extends React.Component {
   constructor(props) {
@@ -44,7 +44,7 @@ class LibraryNewItemForm extends React.Component {
       }
     }
 
-    hashHistory.push(targetPath);
+    this.props.router.navigate(targetPath);
   }
 
   goToCollection() {
@@ -108,4 +108,4 @@ LibraryNewItemForm.contextTypes = {
   router: PropTypes.object
 };
 
-export default LibraryNewItemForm;
+export default withRouter(LibraryNewItemForm);

@@ -7,7 +7,6 @@ import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-// import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
@@ -47,6 +46,7 @@ import {
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
+import {withRouter} from 'js/router/legacy';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -68,7 +68,8 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html';
 
 export default assign({
   componentDidMount() {
-    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
+    // TODO router6 might be a Prompt?
+    // this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
 
     this.loadAsideSettings();
 
@@ -322,7 +323,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push(this.state.backRoute);
+          this.props.router.navigate(this.state.backRoute);
         });
     } else {
       // update existing asset
@@ -512,7 +513,7 @@ export default assign({
 
   safeNavigateToRoute(route) {
     if (!this.needsSave()) {
-      hashHistory.push(route);
+      this.props.router.navigate(route);
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
@@ -520,7 +521,7 @@ export default assign({
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
-          hashHistory.push(route);
+          this.props.router.navigate(route);
         },
         oncancel: dialog.destroy
       };

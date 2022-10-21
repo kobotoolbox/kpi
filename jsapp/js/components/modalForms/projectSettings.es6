@@ -348,7 +348,7 @@ class ProjectSettings extends React.Component {
 
   goToFormBuilder(assetUid) {
     stores.pageState.hideModal();
-    // hashHistory.push(`/forms/${assetUid}/edit`);
+    // this.props.router.navigate(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
@@ -367,12 +367,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    // hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
+    // this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    // hashHistory.push(ROUTES.FORMS);
+    // this.props.router.navigate(ROUTES.FORMS);
   }
 
   /*

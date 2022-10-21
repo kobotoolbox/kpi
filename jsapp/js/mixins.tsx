@@ -127,12 +127,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  // hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  // this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  // hashHistory.push(ROUTES.LIBRARY);
+                  // this.props.router.navigate(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -179,7 +179,7 @@ mixins.dmix = {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
             console.log(asset);
-            // hashHistory.push(`/forms/${asset.uid}`);
+            // this.props.router.navigate(`/forms/${asset.uid}`);
           },
         });
 
@@ -211,7 +211,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        // hashHistory.push(`/forms/${asset.uid}`);
+        // this.props.router.navigate(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -516,13 +516,13 @@ mixins.droppable = {
               // TODO: use a more specific error message here
               notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
-                // hashHistory.push(`/forms/${params.assetUid}`);
+                // this.props.router.navigate(`/forms/${params.assetUid}`);
               }
             } else {
               if (isProjectReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (!isLibrary) {
-                // hashHistory.push(`/forms/${assetUid}`);
+                // this.props.router.navigate(`/forms/${assetUid}`);
               }
               notify(t('XLS Import completed'));
             }
@@ -647,7 +647,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              // hashHistory.push(goToUrl);
+              // this.props.router.navigate(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -681,9 +681,9 @@ mixins.clickAssets = {
       edit: function (uid: string) {
         console.log(uid);
         if (routerIsActive('library')) {
-          // hashHistory.push(`/library/asset/${uid}/edit`);
+          // this.props.router.navigate(`/library/asset/${uid}/edit`);
         } else {
-          // hashHistory.push(`/forms/${uid}/edit`);
+          // this.props.router.navigate(`/forms/${uid}/edit`);
         }
       },
       delete: function (
