@@ -1,5 +1,9 @@
 # coding: utf-8
+import json
+
+import constance
 from django.contrib.auth.models import User
+from django.db.models import Q
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -26,6 +30,8 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     search_default_field_lookups = [
         'username__icontains',
     ]
+    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,11 +43,55 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         else:
             return UserSerializer
 
-    def list(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise exceptions.PermissionDenied()
+    @action(
+        detail=False,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def views(self, request):
+        user = request.user
+        available_views = [
+            v['view']
+            for v in self.regional_assignments
+            if v['username'] == user.username
+        ]
+        regional_views = [
+            v for v in self.regional_views if v['id'] in available_views
+        ]
+        for item in regional_views:
+            url = reverse('user-list', request=request)
+            item['url'] = f'{url}?view={item["id"]}'
 
-        filtered_queryset = self.filter_queryset(self.queryset).order_by('id')
+        return Response(regional_views)
+
+    def list(self, request, *args, **kwargs):
+        user = requset.user
+        view = request.GET.get('view')
+        if view is not None:
+            view = int(view)
+            region_users = [
+                v['username']
+                for v in self.regional_assignments
+                if v['view'] == view
+            ]
+            if request.user.username not in region_users:
+                raise exceptions.PermissionDenied()
+            regions = [
+                r['countries'] for r in self.regional_views if r['id'] == view
+            ]
+            region = regions[0] if regions else []
+            if isinstance(region, str) and '*' == region or user.is_superuser:
+                filtered_queryset = self.queryset
+            elif isinstance(region, list):
+                q = Q()
+                for country in region:
+                    q |= Q(
+                        extra_details__data__country__contains=[
+                            {'value': country}
+                        ]
+                    )
+                filtered_queryset = self.queryset.filter(q)
+
         page = self.paginate_queryset(filtered_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
