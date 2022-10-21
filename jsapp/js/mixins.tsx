@@ -1017,9 +1017,6 @@ mixins.contextRouter = {
   isPublicCollections() {
     return routerIsActive(ROUTES.PUBLIC_COLLECTIONS);
   },
-  isLibraryList() {
-    return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
-  },
   isLibrarySingle() {
     return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
   },

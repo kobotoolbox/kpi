@@ -34,8 +34,8 @@ export function redirectToLogin() {
 }
 
 export function getCurrentPath(): string {
-  return '';
-  // return hashHistory.getCurrentLocation().pathname;
+  const route = location.hash.split('#');
+  return route ? route[1] : '';
 }
 
 /*

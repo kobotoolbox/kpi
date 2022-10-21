@@ -19,6 +19,7 @@ import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import envStore from 'js/envStore';
+import {withRouter} from 'js/router/legacy';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -30,7 +31,7 @@ import envStore from 'js/envStore';
  *
  * @prop {Object} asset - Modal asset.
  */
-export class LibraryAssetForm extends React.Component {
+export class LibraryAssetFormComponent extends React.Component {
   constructor(props) {
     super(props);
     this.unlisteners = [];
@@ -295,7 +296,8 @@ export class LibraryAssetForm extends React.Component {
   }
 }
 
-reactMixin(LibraryAssetForm.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryAssetForm.prototype, mixins.contextRouter);
+reactMixin(LibraryAssetFormComponent.prototype, Reflux.ListenerMixin);
+reactMixin(LibraryAssetFormComponent.prototype, mixins.contextRouter);
 
-LibraryAssetForm.contextTypes = {router: PropTypes.object};
+LibraryAssetFormComponent.contextTypes = {router: PropTypes.object};
+export const LibraryAssetForm = withRouter(LibraryAssetFormComponent);

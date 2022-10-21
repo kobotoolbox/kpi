@@ -8,7 +8,6 @@ import DocumentTitle from 'react-document-title';
 import { Outlet } from "react-router-dom";
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-// // import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
@@ -19,11 +18,11 @@ import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
 import IntercomHandler from 'js/components/support/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
-import { withRouter } from "js/router/legacy";
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
-import { routerGetAssetId } from './router/legacy';
+import { withRouter, routerGetAssetId } from './router/legacy';
+import { history } from "./router/historyRouter";
 
 
 class App extends React.Component {
@@ -35,7 +34,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    // hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
   }
 
   onRouteChange() {

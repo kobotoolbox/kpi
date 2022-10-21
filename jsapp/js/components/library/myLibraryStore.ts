@@ -1,6 +1,5 @@
 import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
-// // import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
@@ -14,6 +13,7 @@ import {
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
 import {ROUTES} from 'js/router/routerConstants';
+import { history } from "js/router/historyRouter";
 import {
   AssetResponse,
   AssetsResponse,
@@ -75,7 +75,7 @@ class MyLibraryStore extends Reflux.Store {
 
     this.setDefaultColumns();
 
-    // hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged, this);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
@@ -159,7 +159,7 @@ class MyLibraryStore extends Reflux.Store {
     actions.library.searchMyLibraryAssets(params);
   }
 
-  onRouteChange(data: Location) {
+  onRouteChange(data: any) {
     if (!this.isInitialised && isAnyLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
@@ -176,7 +176,7 @@ class MyLibraryStore extends Reflux.Store {
       this.setDefaultColumns();
       this.fetchData(true);
     }
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
   }
 
   searchBoxStoreChanged() {

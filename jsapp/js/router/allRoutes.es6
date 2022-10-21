@@ -22,11 +22,10 @@ import RequireAuth from 'js/router/requireAuth';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {Tracking} from './useTracking';
+import { history } from './historyRouter';
 
 // Workaround https://github.com/remix-run/react-router/issues/8139
 import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
-import {createHashHistory} from 'history';
-const history = createHashHistory({window});
 
 const Reports = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/reports/reports')
