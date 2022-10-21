@@ -53,7 +53,11 @@ from kpi.renderers import (
     XlsRenderer,
 )
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer, AssetMetadataListSerializer
+from kpi.serializers.v2.asset import (
+    AssetListSerializer,
+    AssetMetadataListSerializer,
+    AssetSerializer,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -656,15 +660,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         view = request.GET.get('view')
         if view is not None:
             view = int(view)
-            region_users = [v['username'] for v in self.regional_assignments if v['view'] == view]
+            region_users = [
+                v['username']
+                for v in self.regional_assignments
+                if v['view'] == view
+            ]
             if request.user.username not in region_users:
                 raise Http404()
-            regions = [r['countries'] for r in self.regional_views if r['id'] == view]
+            regions = [
+                r['countries'] for r in self.regional_views if r['id'] == view
+            ]
             region = regions[0] if regions else []
-            q = Q(settings__country__in=region)
-            for country in region:
-                q |= Q(settings__country__contains=[{'value': country}])
-            self.__filtered_queryset = self.get_queryset().filter(q)
+            if isinstance(region, str) and '*' == region:
+                self.__filtered_queryset = self.get_queryset()
+            elif isinstance(region, list):
+                q = Q(settings__country__in=region)
+                for country in region:
+                    q |= Q(settings__country__contains=[{'value': country}])
+                self.__filtered_queryset = self.get_queryset().filter(q)
         else:
             self.__filtered_queryset = self.filter_queryset(self.get_queryset())
 
@@ -678,9 +691,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 return self.get_paginated_response(serializer.data, metadata)
 
         if view is not None:
-            serializer = AssetMetadataListSerializer(self.__filtered_queryset, many=True, read_only=True, context=self.get_serializer_context())
+            serializer = AssetMetadataListSerializer(
+                self.__filtered_queryset,
+                many=True,
+                read_only=True,
+                context=self.get_serializer_context(),
+            )
         else:
-            serializer = self.get_serializer(self.__filtered_queryset, many=True)
+            serializer = self.get_serializer(
+                self.__filtered_queryset, many=True
+            )
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
@@ -734,8 +754,14 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
     def views(self, request):
         user = request.user
-        available_views = [v['view'] for v in self.regional_assignments if v['username'] == user.username]
-        regional_views = [v for v in self.regional_views if v['id'] in available_views]
+        available_views = [
+            v['view']
+            for v in self.regional_assignments
+            if v['username'] == user.username
+        ]
+        regional_views = [
+            v for v in self.regional_views if v['id'] in available_views
+        ]
         for item in regional_views:
             url = reverse('asset-list', request=request)
             item['url'] = f'{url}?view={item["id"]}'

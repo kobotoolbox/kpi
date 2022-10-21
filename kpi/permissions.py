@@ -305,7 +305,8 @@ class SubmissionPermission(AssetNestedObjectPermission):
         views_for_asset = [
             view
             for view in regional_views
-            if set(asset_countries) & set(view['countries'])
+            if (set(asset_countries) & set(view['countries']))
+            or ('*' == view['countries'])
         ]
         if not views_for_asset:
             return []
