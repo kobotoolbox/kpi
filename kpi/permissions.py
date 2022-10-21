@@ -1,4 +1,7 @@
 # coding: utf-8
+import json
+
+import constance
 from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
@@ -284,11 +287,61 @@ class SubmissionPermission(AssetNestedObjectPermission):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
+    def _get_regional_user_permissions(
+        self, asset: Asset, user: 'auth.User'
+    ) -> list:
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+
+        def _get_asset_countries(asset: Asset) -> list:
+            countries = asset.settings['country']
+            if isinstance(countries, list):
+                return [c['value'] for c in countries]
+            return [countries]
+
+        asset_countries = _get_asset_countries(asset)
+
+        # views that asset is in
+        views_for_asset = [
+            view
+            for view in regional_views
+            if set(asset_countries) & set(view['countries'])
+        ]
+        if not views_for_asset:
+            return []
+
+        # view ids that user is in
+        view_ids_for_user = [
+            v['view']
+            for v in regional_assignments
+            if v['username'] == user.username
+        ]
+        if not view_ids_for_user:
+            return []
+
+        # views that both the user and asset are in
+        views_for_user_and_asset = [
+            v for v in views_for_asset if v['id'] in view_ids_for_user
+        ]
+        if not views_for_user_and_asset:
+            return []
+
+        # permissions for asset
+        return [
+            perm for v in views_for_user_and_asset for perm in v['permissions']
+        ]
+
+    def _user_has_regional_asset_perm(
+        self, asset: Asset, user: 'auth.User', perm: str
+    ) -> bool:
+        return perm in self._get_regional_user_permissions(asset, user)
+
     def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
         """
         Overrides parent method to include partial permissions (which are
         specific to submissions)
         """
+
         user_permissions = super()._get_user_permissions(
             asset, user)
 
@@ -302,7 +355,12 @@ class SubmissionPermission(AssetNestedObjectPermission):
                     user_permissions + partial_perms
                 ))
 
-        return user_permissions
+        return list(
+            set(
+                user_permissions
+                + self._get_regional_user_permissions(asset, user)
+            )
+        )
 
 
 class AssetExportSettingsPermission(SubmissionPermission):

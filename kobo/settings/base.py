@@ -292,6 +292,29 @@ CONSTANCE_CONFIG = {
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
     ),
+    'REGIONAL_VIEWS': (
+        json.dumps(
+            [
+                {
+                    'id': 1,
+                    'label': 'Test view 1',
+                    'countries': ['ZAF', 'ALB', 'USA'],
+                    'permissions': ['view_asset'],
+                },
+                {
+                    'id': 2,
+                    'label': 'Test view 2',
+                    'countries': ['ALB'],
+                    'permissions': ['view_asset', 'view_permissions'],
+                },
+            ]
+        ),
+        'Filter regional views.'
+    ),
+    'REGIONAL_ASSIGNMENTS': (
+        json.dumps([{'username': 'josh', 'view': 1}]),
+        'Regional assignments',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {

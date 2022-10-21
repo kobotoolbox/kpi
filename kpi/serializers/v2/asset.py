@@ -728,7 +728,6 @@ class AssetMetadataListSerializer(AssetSerializer):
                   'version_id',
                   'has_deployment',
                   'deployed_version_id',
-                  'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
                   'permissions',
@@ -741,25 +740,25 @@ class AssetMetadataListSerializer(AssetSerializer):
                   )
 
     def get_permissions(self, *args, **kwargs):
-        request = self.context.get('request')
-        view = request.GET.get('view')
-        if view is not None:
-            view = int(view)
-            perms_for_view = [v['permissions'] for v in self.regional_views if v['id'] == view]
-            perms_for_view = perms_for_view[0] if perms_for_view else []
-            if 'view_permissions' in perms_for_view:
-                return super().get_permissions(*args, **kwargs)
+        if self._view_has_perm('view_permissions'):
+            return super().get_permissions(*args, **kwargs)
         return []
 
     def get_data(self, *args, **kwargs):
+        if self._view_has_perm(PERM_VIEW_SUBMISSIONS):
+            return super().get_data(*args, **kwargs)
+        return ''
+
+    def _view_has_perm(self, perm):
         request = self.context.get('request')
         view = request.GET.get('view')
         if view is not None:
-            view = int(view)
-            perms_for_view = [v['permissions'] for v in self.regional_views if v['id'] == view]
-            perms_for_view = perms_for_view[0] if perms_for_view else []
-            if 'view_submissions' in perms_for_view:
-                return super().get_data(*args, **kwargs)
-        return []
-
-
+            perms_for_view = [
+                perm
+                for v in self.regional_views
+                for perm in v['permissions']
+                if v['id'] == int(view)
+            ]
+            if perm in perms_for_view:
+                return True
+        return False
