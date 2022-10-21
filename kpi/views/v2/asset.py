@@ -65,6 +65,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
+    user_has_regional_asset_perm,
 )
 
 
@@ -342,6 +343,20 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     regional_views = json.loads(constance.config.REGIONAL_VIEWS)
     regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+
+    def get_object(self):
+        if self.request.method == 'PATCH':
+            try:
+                asset = Asset.objects.get(uid=self.kwargs['uid'])
+            except Asset.DoesNotExist:
+                raise Http404
+
+            if user_has_regional_asset_perm(
+                asset, self.request.user, 'change_metadata'
+            ):
+                return asset
+
+        return super().get_object()
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):

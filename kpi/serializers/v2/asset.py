@@ -36,6 +36,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
+    user_has_regional_asset_perm,
 )
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -163,8 +164,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def update(self, asset, validated_data):
+        request = self.context['request']
+        user = request.user
+        if not asset.has_perm(
+            user, 'change_asset'
+        ) and user_has_regional_asset_perm(asset, user, 'change_metadata'):
+            _validated_data = {
+                'settings': validated_data['settings'],
+                'name': validated_data['name'],
+            }
+            return super().update(asset, _validated_data)
+
         asset_content = asset.content
-        _req_data = self.context['request'].data
+        _req_data = request.data
         _has_translations = 'translations' in _req_data
         _has_content = 'content' in _req_data
         if _has_translations and not _has_content:
@@ -480,6 +492,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
+    def validate_settings(self, settings):
+        return {**self.instance.settings, **settings}
+
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
         Validates `data_sharing`. It is really basic.
@@ -731,10 +746,7 @@ class AssetMetadataListSerializer(AssetSerializer):
                   'deployment__active',
                   'deployment__submission_count',
                   'permissions',
-                  'subscribers_count',
                   'status',
-                  'access_types',
-                  'children',
                   'data_sharing',
                   'data',
                   )
