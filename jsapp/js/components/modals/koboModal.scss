@@ -1,12 +1,14 @@
 @use 'scss/mixins';
 @use 'scss/_colors';
 @use 'scss/sizes';
+@use 'scss/breakpoints';
 @use 'sass:color';
-@use "js/components/common/icon";
+@use 'js/components/common/icon';
 
+$kobo-modal-elements-height-min: sizes.$x60;
+$kobo-modal-width-min: 280px;
 $kobo-modal-width-large: 940px;
 $kobo-modal-width-medium: 570px;
-
 $kobo-modal-padding: sizes.$x30;
 $kobo-modal-header-icon-margin: sizes.$x10;
 
@@ -16,13 +18,21 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   overflow: hidden;
   max-width: 90vw;
   max-height: 90vh;
+  min-width: $kobo-modal-width-min;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -55%);
   background-color: colors.$kobo-white;
-  box-shadow: 0 0 12px 0 color.change(colors.$kobo-gray-24, $alpha: 0.25);
+  box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-24, $alpha: 0.25);
   display: flex;
   flex-direction: column;
+
+  @media all and (max-height: breakpoints.$b480) {
+    transform: translate(-50%, -50%);
+  }
+
+  @media all and (min-height: breakpoints.$b480 + 1px) {
+    transform: translate(-50%, -55%);
+  }
 }
 
 .kobo-modal--size-large {
@@ -31,6 +41,13 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
 .kobo-modal--size-medium {
   width: $kobo-modal-width-medium;
+}
+
+// This ensures that modal layout is better adapting to very short screens.
+.kobo-modal__header,
+.kobo-modal__content,
+.kobo-modal__footer {
+  min-height: $kobo-modal-elements-height-min;
 }
 
 .kobo-modal__header {
