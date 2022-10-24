@@ -7,12 +7,12 @@ import {actions} from '../actions';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import TextBox from 'js/components/common/textBox';
-// import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
+import {withRouter} from 'js/router/legacy';
 
-export default class ChangePassword extends React.Component {
+class ChangePassword extends React.Component {
   constructor(props) {
     super(props);
     this.errors = {};
@@ -37,7 +37,7 @@ export default class ChangePassword extends React.Component {
   }
 
   close() {
-    hashHistory.goBack();
+    this.props.router.navigate(-1)
   }
 
   changePassword() {
@@ -178,3 +178,5 @@ export default class ChangePassword extends React.Component {
 
 reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
 reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);
+
+export default withRouter(ChangePassword);

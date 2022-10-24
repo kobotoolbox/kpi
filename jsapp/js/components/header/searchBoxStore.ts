@@ -1,5 +1,4 @@
 import Reflux from 'reflux';
-// // import {hashHistory} from 'react-router';
 import {
   getCurrentPath,
   isMyLibraryRoute,

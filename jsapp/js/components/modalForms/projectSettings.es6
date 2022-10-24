@@ -14,7 +14,6 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import assetUtils from 'js/assetUtils';
 import {stores} from 'js/stores';
-// // import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
@@ -35,6 +34,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
+import {history} from 'js/router/historyRouter';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -117,7 +117,7 @@ class ProjectSettings extends React.Component {
       actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      // hashHistory.listen(this.onRouteChange.bind(this))
+      history.listen(this.onRouteChange.bind(this))
     );
   }
 

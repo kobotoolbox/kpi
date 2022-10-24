@@ -531,8 +531,7 @@ export default assign({
   safeNavigateToList() {
     if (this.state.backRoute) {
       this.safeNavigateToRoute(this.state.backRoute);
-      // TODO router6
-    } else if (this.props.location.pathname.startsWith(ROUTES.LIBRARY)) {
+    } else if (this.props.router.location.pathname.startsWith(ROUTES.LIBRARY)) {
       this.safeNavigateToRoute(ROUTES.LIBRARY);
     } else {
       this.safeNavigateToRoute(ROUTES.FORMS);

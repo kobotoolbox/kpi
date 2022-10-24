@@ -19,6 +19,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
+import {history} from 'js/router/historyRouter';
 
 const INITIAL_STATE = {
   headerFilters: 'forms',
@@ -48,7 +49,7 @@ class FormSidebar extends Reflux.Component {
   }
   componentDidMount() {
     this.unlisteners.push(
-      // hashHistory.listen(this.onRouteChange.bind(this))
+      history.listen(this.onRouteChange.bind(this))
     );
   }
   componentWillUnmount() {

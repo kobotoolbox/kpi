@@ -1027,8 +1027,8 @@ mixins.contextRouter = {
   currentAsset() {
     return assetStore.data[this.currentAssetID()];
   },
-  isActiveRoute(path: string, indexOnly = false) {
-    return routerIsActive(path, indexOnly);
+  isActiveRoute(path: string) {
+    return routerIsActive(path);
   },
   isFormBuilder() {
     if (routerIsActive(ROUTES.NEW_LIBRARY_ITEM)) {

@@ -263,7 +263,7 @@ export default class AllRoutes extends React.Component {
                 <Route path={ROUTES.FORM_DATA}>
                   <Route
                     path=''
-                    element={<Navigate to={ROUTES.FORM_TABLE} />}
+                    element={<Navigate to={'./table'} replace />}
                   />
                   <Route
                     path={ROUTES.FORM_REPORT}

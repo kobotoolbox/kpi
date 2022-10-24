@@ -66,8 +66,7 @@ function getCurrentRoute() {
 /**
  * Reimplementation of router v3 isActive
  */
-export function routerIsActive(route: string, indexOnly = false) {
-  indexOnly; // TODO router6
+export function routerIsActive(route: string) {
   return getCurrentRoute().startsWith(route);
 }
 

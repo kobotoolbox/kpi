@@ -11,7 +11,6 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-// // import {hashHistory} from 'react-router';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
 import {renderBackButton} from './modalHelpers';
