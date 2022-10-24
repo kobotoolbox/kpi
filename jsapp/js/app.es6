@@ -105,7 +105,7 @@ export default class App extends React.Component {
                 background: '#1e2129', //$kobo-gray-14
                 color: '#fff',
               },
-              duration: 10000,
+              duration: 5000, // 5 seconds
             }}
           />
         </React.Fragment>

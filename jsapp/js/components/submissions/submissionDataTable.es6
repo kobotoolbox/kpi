@@ -135,7 +135,7 @@ class SubmissionDataTable extends React.Component {
         } else {
           return (
             <bem.SubmissionDataTable__value>
-              {choice.label[this.props.translationIndex] || choice.name}
+              {choice.label?.[this.props.translationIndex] || choice.name}
             </bem.SubmissionDataTable__value>
           );
         }
@@ -152,7 +152,7 @@ class SubmissionDataTable extends React.Component {
                 return (
                   <li key={answerIndex}>
                     <bem.SubmissionDataTable__value>
-                      {choice.label[this.props.translationIndex] || choice.name}
+                      {choice.label?.[this.props.translationIndex] || choice.name}
                     </bem.SubmissionDataTable__value>
                   </li>
                 );

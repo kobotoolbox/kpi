@@ -321,6 +321,11 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_list_url(self):
         pass
 
+    @property
+    @abc.abstractmethod
+    def submission_model(self):
+        pass
+
     @abc.abstractmethod
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
         pass

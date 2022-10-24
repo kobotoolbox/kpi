@@ -1,0 +1,11 @@
+[tool.black]
+# Do not enable `verbose = true` unless Black changes their behavior to respect
+# `--quiet` on the command line properly
+# verbose = true
+line-length = 80
+skip-string-normalization = true
+[tool.isort]
+default_section = "THIRDPARTY"
+known_first_party = "kobo"
+known_django = "django"
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
