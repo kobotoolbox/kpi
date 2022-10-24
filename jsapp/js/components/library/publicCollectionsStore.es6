@@ -1,5 +1,4 @@
 import Reflux from 'reflux';
-// import {hashHistory} from 'react-router';
 import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
@@ -16,6 +15,7 @@ import {
   ACCESS_TYPES,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
+import {history} from 'js/router/historyRouter';
 
 const publicCollectionsStore = Reflux.createStore({
   /**
@@ -42,7 +42,7 @@ const publicCollectionsStore = Reflux.createStore({
   init() {
     this.setDefaultColumns();
 
-    // hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
@@ -139,7 +139,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.setDefaultColumns();
       this.fetchData(true);
     }
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
   },
 
   searchBoxStoreChanged() {

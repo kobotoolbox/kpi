@@ -1,5 +1,4 @@
 import Reflux from 'reflux';
-// import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -12,6 +11,7 @@ import {
   ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
 import {ROUTES} from 'js/router/routerConstants';
+import {history} from 'js/router/historyRouter';
 
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:
@@ -42,7 +42,7 @@ const singleCollectionStore = Reflux.createStore({
   init() {
     this.setDefaultColumns();
 
-    // hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
@@ -151,7 +151,7 @@ const singleCollectionStore = Reflux.createStore({
       this.setDefaultColumns();
       this.fetchData(true);
     }
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
   },
 
   onSearchStarted(abort) {

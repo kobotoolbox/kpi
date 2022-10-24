@@ -4,6 +4,7 @@ import {
   isMyLibraryRoute,
   isPublicCollectionsRoute,
 } from 'js/router/routerUtils';
+import {history} from 'js/router/historyRouter';
 
 const DEFAULT_SEARCH_PHRASE = '';
 
@@ -29,16 +30,16 @@ class SearchBoxStore extends Reflux.Store {
   };
 
   init() {
-    // hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
     this.resetContext();
   }
 
   // manages clearing search when switching main routes
-  onRouteChange(data: Location) {
-    if (this.previousPath.split('/')[1] !== data.pathname.split('/')[1]) {
+  onRouteChange(data: any) {
+    if (this.previousPath.split('/')[1] !== data.location.pathname.split('/')[1]) {
       this.clear();
     }
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
 
     this.resetContext();
   }

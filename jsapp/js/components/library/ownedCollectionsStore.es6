@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
-// // import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {isAnyLibraryRoute} from 'js/router/routerUtils';
@@ -15,6 +14,7 @@ const ownedCollectionsStore = Reflux.createStore({
   },
 
   init() {
+    // router6 upgrade, unsure why this line would be necessary
     // hashHistory.listen(this.startupStore);
     stores.session.listen(this.startupStore);
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted);
