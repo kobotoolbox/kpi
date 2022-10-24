@@ -45,15 +45,16 @@ class LibraryAssetEditorComponent extends React.Component {
     };
     autoBind(this);
 
-    if (this.props.router.location.pathname === ROUTES.EDIT_LIBRARY_ITEM) {
+
+    if (this.props.router.path === ROUTES.EDIT_LIBRARY_ITEM) {
       this.state.isNewAsset = false;
     }
 
-    if (this.props.router.location.pathname === ROUTES.NEW_LIBRARY_ITEM) {
+    if (this.props.router.path === ROUTES.NEW_LIBRARY_ITEM) {
       this.state.asset = false;
     }
 
-    if (this.props.router.location.pathname === ROUTES.NEW_LIBRARY_CHILD) {
+    if (this.props.router.path === ROUTES.NEW_LIBRARY_CHILD) {
       this.state.asset = false;
       this.state.parentAsset = this.props.params.uid;
       this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(
