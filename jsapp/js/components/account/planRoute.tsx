@@ -3,7 +3,7 @@ import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
 import AccessDenied from 'jsapp/js/router/accessDenied';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
-import {observer} from 'mobx-react';
+import {inject, observer} from 'mobx-react';
 import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
 import type {ServiceUsage} from './dataUsageStore';
 import {notify} from 'js/utils';
@@ -57,6 +57,7 @@ interface PlanRouteState {
 class PlanRoute extends React.Component<{}, PlanRouteState> {
   constructor(props: {}) {
     super(props);
+    
     this.state = {
       isLoading: true,
       subscribedProduct: {

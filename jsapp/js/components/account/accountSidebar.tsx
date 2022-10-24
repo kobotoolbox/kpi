@@ -5,17 +5,21 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
 import './accountSidebar.scss';
 import envStore from 'js/envStore';
-import {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import DataUsageStore from './dataUsageStore';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
+import dataUsageStore from './dataUsageStore';
+import {observer} from 'mobx-react';
+import {hashHistory} from 'react-router';
 
 interface AccountSidebarState {
 	isLoading: boolean;
   subscribedProduct: ProductInfo | null;
 }
 
-export default class AccountSidebar extends React.Component<
+class AccountSidebar extends React.Component<
   {},
   AccountSidebarState
 > {
@@ -33,9 +37,10 @@ export default class AccountSidebar extends React.Component<
       isLoading: false,
     });
 
-    if (envStore.data.stripe_public_key) {
-      this.fetchSubscriptionInfo();
-    }
+    //if (envStore.data.stripe_public_key) {
+    //  this.fetchSubscriptionInfo();
+    //}
+    DataUsageStore.fetchDataUsage();
   }
 
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
@@ -115,8 +120,8 @@ export default class AccountSidebar extends React.Component<
 
           {
             envStore.isReady &&
-            envStore.data.stripe_public_key &&
-            this.state.subscribedProduct &&
+            //envStore.data.stripe_public_key &&
+            //this.state.subscribedProduct &&
               <bem.FormSidebar__label
                 m={{selected: this.isPlanSelected()}}
                 href={'#' + ROUTES.PLAN}
@@ -132,3 +137,5 @@ export default class AccountSidebar extends React.Component<
     }
   }
 }
+
+export default observer(AccountSidebar);

@@ -7,6 +7,8 @@ import {
   hashHistory,
   Router,
 } from 'react-router';
+import SubscriptionStore from 'js/components/account/subscriptionStore';
+import PlanRouteStore from 'js/components/account/dataUsageStore';
 import App from 'js/app';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import {actions} from 'js/actions';
@@ -55,6 +57,15 @@ const SectionNotFound = React.lazy(() =>
 const FormNotFound = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/formNotFound')
 );
+
+
+class RootStore {
+    constructor() {
+      this.subscriptionStore = SubscriptionStore;
+      this.dataStore = PlanRouteStore;
+    }
+}
+const rootStore = new RootStore()
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -125,9 +136,10 @@ export default class AllRoutes extends React.Component {
    * - if route should be accessible only with given permission, use `PermProtectedRoute`
    * @returns {Node} nested routes
    */
+
   getRoutes() {
     return (
-      <Suspense fallback={null}>
+      <Suspense fallback={null} rootStore={rootStore} dataStore={rootStore.dataStore} subscriptionStore={rootStore.subscriptionStore}>
         <Route name='home' path={ROUTES.ROOT} component={App}>
           <IndexRedirect to={ROUTES.FORMS} />
 
