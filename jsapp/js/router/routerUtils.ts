@@ -8,7 +8,6 @@
  * of defined ROUTES.
  */
 
-// // import {hashHistory} from 'react-router';
 import {
   ROUTES,
   PATHS,
@@ -20,12 +19,12 @@ import {
  */
 export function getLoginUrl() {
   let url = PATHS.LOGIN;
-  // const currentLoc = hashHistory.getCurrentLocation();
-  // if (currentLoc?.pathname) {
-  //   const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
-  //   // add redirection after logging in to current page
-  //   url += `?next=${nextUrl}`;
-  // }
+  const currentLoc = getCurrentPath();
+  if (currentLoc) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc}`);
+    // add redirection after logging in to current page
+    url += `?next=${nextUrl}`;
+  }
   return url;
 }
 
@@ -35,7 +34,7 @@ export function redirectToLogin() {
 
 export function getCurrentPath(): string {
   const route = location.hash.split('#');
-  return route ? route[1] : '';
+  return route.length > 1 ? route[1] : '';
 }
 
 /*

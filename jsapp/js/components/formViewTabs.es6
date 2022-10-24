@@ -10,6 +10,7 @@ import {Link, NavLink} from 'react-router-dom';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
+import {withRouter} from 'js/router/legacy';
 import {assign} from 'utils';
 
 export function getFormDataTabs(assetUid) {
@@ -62,7 +63,7 @@ class FormViewTabs extends Reflux.Component {
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
-      // this.props.router.navigate(`/forms/${this.state.asset.uid}/reset`);
+      this.props.router.navigate(`/forms/${this.state.asset.uid}/reset`);
 
       var path = evt.target.getAttribute('data-path');
       window.setTimeout(function () {
@@ -277,4 +278,4 @@ FormViewTabs.contextTypes = {
   router: PropTypes.object,
 };
 
-export default FormViewTabs;
+export default withRouter(FormViewTabs);

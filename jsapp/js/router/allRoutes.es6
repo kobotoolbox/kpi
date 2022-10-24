@@ -190,7 +190,7 @@ export default class AllRoutes extends React.Component {
                 path={ROUTES.EDIT_LIBRARY_ITEM}
                 element={
                   <PermProtectedRoute
-                    requriedPermission={PERMISSIONS_CODENAMES.change_asset}
+                    requiredPermission={PERMISSIONS_CODENAMES.change_asset}
                     protectedComponent={LibraryAssetEditor}
                   />
                 }

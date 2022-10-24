@@ -49,7 +49,7 @@ class PermProtectedRoute extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.params.uid !== nextProps.props.params.uid) {
+    if (this.props.params.uid !== nextProps.params.uid) {
       this.setState(this.getInitialState());
       actions.resources.loadAsset({id: nextProps.params.uid});
     } else if (

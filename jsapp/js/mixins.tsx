@@ -16,7 +16,6 @@ import React from 'react';
 import _ from 'lodash';
 import alertify from 'alertifyjs';
 import toast from 'react-hot-toast';
-// // import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
@@ -49,6 +48,7 @@ import type {
   SubmissionResponse,
 } from 'js/dataInterface';
 import { routerGetAssetId, routerIsActive } from './router/legacy';
+import { history } from "./router/historyRouter";
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -127,12 +127,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  // this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  history.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  // this.props.router.navigate(ROUTES.LIBRARY);
+                  history.push(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -178,8 +178,7 @@ mixins.dmix = {
         }, {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
-            console.log(asset);
-            // this.props.router.navigate(`/forms/${asset.uid}`);
+            history.push(`/forms/${asset.uid}`);
           },
         });
 
@@ -211,7 +210,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        // this.props.router.navigate(`/forms/${asset.uid}`);
+        history.push(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -516,13 +515,13 @@ mixins.droppable = {
               // TODO: use a more specific error message here
               notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
-                // this.props.router.navigate(`/forms/${params.assetUid}`);
+                history.push(`/forms/${params.assetUid}`);
               }
             } else {
               if (isProjectReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (!isLibrary) {
-                // this.props.router.navigate(`/forms/${assetUid}`);
+                history.push(`/forms/${assetUid}`);
               }
               notify(t('XLS Import completed'));
             }
@@ -647,7 +646,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              // this.props.router.navigate(goToUrl);
+              history.push(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -679,11 +678,10 @@ mixins.clickAssets = {
         });
       },
       edit: function (uid: string) {
-        console.log(uid);
         if (routerIsActive('library')) {
-          // this.props.router.navigate(`/library/asset/${uid}/edit`);
+          history.push(`/library/asset/${uid}/edit`);
         } else {
-          // this.props.router.navigate(`/forms/${uid}/edit`);
+          history.push(`/forms/${uid}/edit`);
         }
       },
       delete: function (
