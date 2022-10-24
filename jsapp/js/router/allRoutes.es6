@@ -1,6 +1,6 @@
 import React, {Suspense} from 'react';
 import autoBind from 'react-autobind';
-import {Form, Navigate, Routes} from 'react-router-dom';
+import {Navigate, Routes} from 'react-router-dom';
 import App from 'js/app';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import {actions} from 'js/actions';

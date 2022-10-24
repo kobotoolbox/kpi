@@ -1,6 +1,11 @@
 /** Don't use anything here for new components */
 import React from 'react';
-import {useLocation, useNavigate, useParams} from 'react-router-dom';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import {usePrompt} from './promptBlocker';
 
 /**
@@ -13,12 +18,13 @@ export function withRouter(Component: any) {
   function ComponentWithRouterProp(props: any) {
     let location = useLocation();
     let navigate = useNavigate();
-    let params = useParams(); // Defined as props twice for compat!
+    let [searchParams, setSearch] = useSearchParams();
+    let params = useParams();
     return (
       <Component
         {...props}
-        params={params}
-        router={{location, navigate, params}}
+        params={params} // Defined as props twice for compat!
+        router={{location, navigate, params, searchParams}}
       />
     );
   }
@@ -51,6 +57,8 @@ export function routerGetAssetId() {
     const routeParts = current.split('/');
     if (routeParts[1] === 'forms') {
       return routeParts[2];
+    } else if (routeParts[1] === 'library') {
+      return routeParts[3];
     }
   }
   return null;

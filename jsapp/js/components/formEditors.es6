@@ -56,13 +56,15 @@ class LibraryAssetEditorComponent extends React.Component {
     if (this.props.router.location.pathname === ROUTES.NEW_LIBRARY_CHILD) {
       this.state.asset = false;
       this.state.parentAsset = this.props.params.uid;
-      this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.props.params.uid);
+      this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(
+        ':uid',
+        this.props.params.uid
+      );
     }
 
-    // TODO router6
-    // if (this.props.router.location.query.back) {
-    //   this.state.backRoute = this.props.location.query.back;
-    // }
+    if (this.props.router.searchParams.get('back')) {
+      this.state.backRoute = this.props.router.searchParams.get('back');
+    }
   }
 }
 reactMixin(LibraryAssetEditorComponent.prototype, Reflux.ListenerMixin);
