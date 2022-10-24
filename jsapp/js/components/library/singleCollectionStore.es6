@@ -31,6 +31,7 @@ const singleCollectionStore = Reflux.createStore({
 
   data: {
     isFetchingData: false,
+    isTranscriptInProgress: false,
     currentPage: 0,
     totalPages: null,
     totalUserAssets: null,

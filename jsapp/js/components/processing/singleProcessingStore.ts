@@ -20,7 +20,10 @@ import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
-import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
+import type {
+  ProcessingDataResponse,
+  AutoTranscriptionEvent,
+} from 'js/components/processing/processingActions';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -81,7 +84,6 @@ interface SubmissionsEditIds {
 interface SingleProcessingStoreData {
   transcript?: Transx;
   transcriptDraft?: TransxDraft;
-  transcriptIsSlow?: boolean;
   translations: Transx[];
   translationDraft?: TransxDraft;
   /** Being displayed on the left side of the screen during translation editing. */
@@ -112,21 +114,18 @@ class SingleProcessingStore extends Reflux.Store {
   };
   /** Marks some backend calls being in progress. */
   public isFetchingData = false;
+  public isPollingForTranscript = false;
 
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
+    this.isPollingForTranscript = false;
 
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
-    this.data.transcriptIsSlow = false;
     this.data.translations = [];
     this.data.translationDraft = undefined;
     this.data.source = undefined;
     this.data.activeTab = SingleProcessingTabs.Transcript;
-  }
-
-  public get transcriptIsSlow() {
-    return this.data.transcriptIsSlow;
   }
 
   public get currentAssetUid(): string {
@@ -516,30 +515,51 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptionCompleted(response: ProcessingDataResponse) {
+  private isAutoTranscriptionEventApplicable(event: AutoTranscriptionEvent) {
+    // previously initiated automatic transcriptions may no longer be
+    // applicable to the current route
     if (!this.currentQuestionQpath) {
-      return;
+      return false;
     }
-
-    const googleTsResponse = response[this.currentQuestionQpath]?.googlets;
-
-    this.isFetchingData = false;
-    if (
+    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
+    return (
+      event.submissionEditId === this.currentSubmissionEditId &&
       googleTsResponse &&
       this.data.transcriptDraft &&
       (
         googleTsResponse.languageCode === this.data.transcriptDraft.languageCode ||
         googleTsResponse.languageCode === this.data.transcriptDraft.regionCode
       )
+    );
+  }
+
+  private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
+    if (
+      !this.currentQuestionQpath ||
+      !this.isPollingForTranscript ||
+      !this.data.transcriptDraft
     ) {
+      return;
+    }
+    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
+    if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
+      this.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
     }
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptionInProgress() {
-    this.data.transcriptIsSlow = true;
-    this.trigger(this.data);
+  private onRequestAutoTranscriptionInProgress(event: AutoTranscriptionEvent) {
+    setTimeout(() => {
+      // make sure to check for applicability *after* the timeout fires, not
+      // before. someone can do a lot of navigating in 5 seconds
+      if (this.isAutoTranscriptionEventApplicable(event)) {
+        this.isPollingForTranscript = true;
+        this.requestAutoTranscription();
+      } else {
+        this.isPollingForTranscript = false;
+      }
+    }, 5000);
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
@@ -640,14 +660,14 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  requestAutoTranscription(languageCode: string, regionCode?: string) {
-    this.isFetchingData = true;
+  requestAutoTranscription() {
+    this.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
       this.currentQuestionQpath,
       this.currentSubmissionEditId,
-      languageCode,
-      regionCode,
+      this.data.transcriptDraft?.languageCode,
+      this.data.transcriptDraft?.regionCode,
     );
     this.trigger(this.data);
   }

@@ -16,7 +16,7 @@ const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabl
 const DELETE_CHAR = '⌫';
 
 interface GoogleTsResponse {
-  status: 'complete' | 'in_progress';
+  status: 'requested' | 'in_progress' | 'complete';
   /** Full transcript text. */
   value: string;
   /** Transcript text split into chunks - scored by transcription quality. */
@@ -104,6 +104,10 @@ interface AutoTranslationRequestQuestion {
 
 export interface ProcessingDataResponse {
   [key: string]: TransxQuestion;
+}
+export interface AutoTranscriptionEvent {
+  response: ProcessingDataResponse;
+  submissionEditId: string;
 }
 
 const processingActions = Reflux.createActions({
@@ -365,25 +369,10 @@ processingActions.requestAutoTranscription.listen((
       data: JSON.stringify(data),
     })
       .done((response: ProcessingDataResponse) => {
-        // Get question for request and check if in_progress
-        const statuses = Object.entries(response)
-          .filter(response => response[0] === qpath)
-          .map(entry => entry[1])
-          .filter(question => question.googlets?.status)
-          .map(question => question.googlets?.status);
-        if (statuses.includes('in_progress')) {
-          processingActions.requestAutoTranscription.in_progress(response);
-          setTimeout(() =>
-            processingActions.requestAutoTranscription(
-              assetUid,
-              qpath,
-              submissionEditId,
-              languageCode,
-              regionCode,
-            )
-          , 5000);
+        if (['requested', 'in_progress'].includes(response[qpath]?.googlets?.status ?? '')) {
+          processingActions.requestAutoTranscription.in_progress({response, submissionEditId});
         } else {
-          processingActions.requestAutoTranscription.completed(response);
+          processingActions.requestAutoTranscription.completed({response, submissionEditId});
         }
       })
       .fail(processingActions.requestAutoTranscription.failed);

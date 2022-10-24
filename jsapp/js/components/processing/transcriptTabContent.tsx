@@ -82,14 +82,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
   }
 
   requestAutoTranscription() {
-    let draft = singleProcessingStore.getTranscriptDraft();
-    let languageCode = draft?.languageCode;
-    let regionCode = draft?.regionCode;
-    if (languageCode && regionCode) {
-      singleProcessingStore.requestAutoTranscription(languageCode, regionCode);
-    } else if (languageCode) {
-      singleProcessingStore.requestAutoTranscription(languageCode);
-    }
+    singleProcessingStore.requestAutoTranscription();
   }
 
   /** Goes back from the automatic service configuration step. */
@@ -294,16 +287,16 @@ export default class TranscriptTabContent extends React.Component<{}> {
               size='m'
               label={t('cancel')}
               onClick={this.cancelAuto.bind(this)}
-              isDisabled={singleProcessingStore.isFetchingData}
+              isDisabled={singleProcessingStore.isFetchingData || singleProcessingStore.isPollingForTranscript}
             />
 
             <Button
               type='full'
               color='blue'
               size='m'
-              label={singleProcessingStore.transcriptIsSlow ? t('in progress') : t('create transcript')}
+              label={singleProcessingStore.isPollingForTranscript ? t('in progress') : t('create transcript')}
               onClick={this.requestAutoTranscription.bind(this)}
-              isDisabled={singleProcessingStore.isFetchingData}
+              isDisabled={singleProcessingStore.isFetchingData || singleProcessingStore.isPollingForTranscript}
             />
           </bem.ProcessingBody__footerCenterButtons>
         </bem.ProcessingBody__footer>
