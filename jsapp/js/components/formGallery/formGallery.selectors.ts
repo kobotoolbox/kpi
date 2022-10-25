@@ -106,7 +106,7 @@ export const selectFilterQuery = (
       andQuery.push({_submission_time: {$gt: startDate}});
     }
     if (endDate) {
-      if (!endDate.includes('T') {
+      if (!endDate.includes('T')) {
         endDate = endDate + 'T23:59:59.999Z';
       }
       andQuery.push({_submission_time: {$lt: endDate}});
