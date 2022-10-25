@@ -1,9 +1,6 @@
 import React from 'react';
 import type {IconName} from 'jsapp/fonts/k-icons';
-import type {
-  ButtonType,
-  ButtonColor,
-} from 'jsapp/js/components/common/button';
+import type {ButtonType, ButtonColor} from 'jsapp/js/components/common/button';
 import Button from 'jsapp/js/components/common/button';
 import KoboModal from './koboModal';
 import KoboModalHeader from './koboModalHeader';
@@ -54,19 +51,14 @@ export default function KoboPrompt(props: KoboPromptProps) {
       isDismissableByDefaultMeans={props.isDismissableByDefaultMeans}
       testId={props.testId}
     >
-      <KoboModalHeader
-        icon={props.titleIcon}
-        iconColor={props.titleIconColor}
-      >
+      <KoboModalHeader icon={props.titleIcon} iconColor={props.titleIconColor}>
         {props.title}
       </KoboModalHeader>
 
-      <KoboModalContent>
-        {props.children}
-      </KoboModalContent>
+      <KoboModalContent>{props.children}</KoboModalContent>
 
       <KoboModalFooter>
-        {props.buttons.map((promptButton, index) =>
+        {props.buttons.map((promptButton, index) => (
           <Button
             key={index}
             type={promptButton.type || defaultButtonType}
@@ -75,7 +67,7 @@ export default function KoboPrompt(props: KoboPromptProps) {
             label={promptButton.label}
             onClick={promptButton.onClick}
           />
-        )}
+        ))}
       </KoboModalFooter>
     </KoboModal>
   );

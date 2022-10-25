@@ -26,10 +26,7 @@ interface KoboModalProps {
 export default function KoboModal(props: KoboModalProps) {
   const modalSize: KoboModalSize = props.size || 'medium';
 
-  const modalClassNames = [
-    'kobo-modal',
-    `kobo-modal--size-${modalSize}`,
-  ];
+  const modalClassNames = ['kobo-modal', `kobo-modal--size-${modalSize}`];
 
   return (
     <Modal

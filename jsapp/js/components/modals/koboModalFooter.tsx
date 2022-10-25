@@ -8,9 +8,5 @@ interface KoboModalFooterProps {
 }
 
 export default function KoboModalFooter(props: KoboModalFooterProps) {
-  return (
-    <bem.KoboModal__footer>
-      {props.children}
-    </bem.KoboModal__footer>
-  );
+  return <bem.KoboModal__footer>{props.children}</bem.KoboModal__footer>;
 }

@@ -21,20 +21,18 @@ interface KoboModalHeaderProps {
 
 export default function KoboModalHeader(props: KoboModalHeaderProps) {
   return (
-    <bem.KoboModal__header m={{
-      'has-icon': Boolean(props.icon),
-    }}>
+    <bem.KoboModal__header m={{'has-icon': Boolean(props.icon)}}>
       <h1>
-        {props.icon &&
+        {props.icon && (
           <bem.KoboModal__headerIcon m={props.iconColor || 'blue'}>
-            <Icon name={props.icon} size='s'/>
+            <Icon name={props.icon} size='s' />
           </bem.KoboModal__headerIcon>
-        }
+        )}
 
         {props.children}
       </h1>
 
-      {props.onRequestCloseByX &&
+      {props.onRequestCloseByX && (
         <Button
           type='bare'
           color='storm'
@@ -42,7 +40,7 @@ export default function KoboModalHeader(props: KoboModalHeaderProps) {
           startIcon='close'
           onClick={props.onRequestCloseByX}
         />
-      }
+      )}
     </bem.KoboModal__header>
   );
 }

@@ -89,6 +89,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   > ol,
   > p {
     margin: 0;
+
     &:not(:first-child) {
       margin-top: 1em;
     }
@@ -107,7 +108,10 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 // component, and the Header has icon, we want the content of Content to be
 // aligned with the Header title.
 .kobo-modal__header.kobo-modal__header--has-icon + .kobo-modal__content {
-  padding-left: $kobo-modal-padding + icon.$s-icon-s + $kobo-modal-header-icon-margin;
+  padding-left:
+    $kobo-modal-padding
+    + icon.$s-icon-s
+    + $kobo-modal-header-icon-margin;
 }
 
 // If the KoboModalContent component is used together with the KoboModalFooter

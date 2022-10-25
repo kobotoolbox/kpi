@@ -8,9 +8,5 @@ interface KoboModalContentProps {
 }
 
 export default function KoboModalContent(props: KoboModalContentProps) {
-  return (
-    <bem.KoboModal__content>
-      {props.children}
-    </bem.KoboModal__content>
-  );
+  return <bem.KoboModal__content>{props.children}</bem.KoboModal__content>;
 }
