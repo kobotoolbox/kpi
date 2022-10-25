@@ -54,7 +54,7 @@ export function formatTimeDateShort(timeStr: string): string {
 }
 
 export function checkIfCookieExists(authCookieName: string): boolean {
-  return cookies.get(authCookieName) !== null
+  return document.cookie.indexOf(authCookieName) < 0;
 }
 
 export function redirectForOnaDataAuth() {
