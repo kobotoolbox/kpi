@@ -30,7 +30,7 @@ export default function KoboModal(props: KoboModalProps) {
 
   return (
     <Modal
-      ariaHideApp={false}
+      ariaHideApp
       isOpen={props.isOpen}
       onRequestClose={props.onRequestClose}
       className={modalClassNames.join(' ')}
