@@ -1,12 +1,11 @@
 # coding: utf-8
 import json
 
+import constance
+from allauth.account.forms import SignupForm as BaseSignupForm
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as t
-
-import constance
-from allauth.account.forms import SignupForm as BaseSignupForm
 
 from kobo.static_lists import COUNTRIES
 
@@ -73,6 +72,7 @@ class SignupForm(BaseSignupForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Remove upstream placeholders
         self.fields["email"].widget.attrs["placeholder"] = ""
         self.fields["password1"].widget.attrs["placeholder"] = ""
         self.fields["password2"].widget.attrs["placeholder"] = ""

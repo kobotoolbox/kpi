@@ -17,6 +17,7 @@ jobs:
       DJANGO_SETTINGS_MODULE: kobo.settings.testing
       REDIS_SESSION_URL: redis://localhost:6379
       SERVICE_ACCOUNT_BACKEND_URL: redis://localhost:6379/4
+      CACHE_URL: redis://localhost:6379/3
     strategy:
       matrix:
         python-version: ['3.8', '3.10']

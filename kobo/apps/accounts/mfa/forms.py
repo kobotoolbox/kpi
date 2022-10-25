@@ -2,7 +2,6 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
-
 from trench.command.authenticate_second_factor import (
     authenticate_second_step_command,
 )
