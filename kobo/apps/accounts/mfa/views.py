@@ -1,9 +1,8 @@
 # coding: utf-8
+from allauth.account.views import LoginView
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
-
-from allauth.account.views import LoginView
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model

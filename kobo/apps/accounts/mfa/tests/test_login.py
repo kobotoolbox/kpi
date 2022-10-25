@@ -2,7 +2,6 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils.http import urlencode
-
 from rest_framework import status
 from trench.utils import get_mfa_model
 
