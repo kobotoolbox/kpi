@@ -35,6 +35,7 @@ import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
+import {withRouter} from 'js/router/legacy';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -348,7 +349,7 @@ class ProjectSettings extends React.Component {
 
   goToFormBuilder(assetUid) {
     stores.pageState.hideModal();
-    // this.props.router.navigate(`/forms/${assetUid}/edit`);
+    this.props.router.navigate(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
@@ -367,12 +368,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    // this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid));
+    this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    // this.props.router.navigate(ROUTES.FORMS);
+    this.props.router.navigate(ROUTES.FORMS);
   }
 
   /*
@@ -1114,4 +1115,4 @@ reactMixin(ProjectSettings.prototype, mixins.dmix);
 
 ProjectSettings.contextTypes = {router: PropTypes.object};
 
-export default ProjectSettings;
+export default withRouter(ProjectSettings);

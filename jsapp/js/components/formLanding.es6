@@ -25,10 +25,11 @@ import {
 import {
   Link,
 } from 'react-router-dom';
+import {withRouter} from 'js/router/legacy';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
-export class FormLanding extends React.Component {
+class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -627,4 +628,4 @@ FormLanding.contextTypes = {
   router: PropTypes.object
 };
 
-export default FormLanding;
+export default withRouter(FormLanding);

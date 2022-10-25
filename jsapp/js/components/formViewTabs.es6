@@ -238,6 +238,7 @@ class FormViewTabs extends Reflux.Component {
                 className={className}
                 data-path={item.path}
                 onClick={this.triggerRefresh}
+                end
               >
                 <i className={`k-icon ${item.icon}`} />
                 <span className='form-view__tab-name'>
