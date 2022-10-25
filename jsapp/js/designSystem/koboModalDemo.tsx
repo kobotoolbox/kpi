@@ -100,6 +100,7 @@ export default class KoboModalDemo extends React.Component<{}, KoboModalDemoStat
                     onRequestClose={this.toggleModal.bind(this)}
                     size='large'
                     isDismissableByDefaultMeans={this.state.demoIsDismissableByDefaultMeans}
+                    data-cy='KoboModal-demo-test'
                   >
                     <KoboModalHeader
                       onRequestCloseByX={this.state.demoShouldHaveX ? this.toggleModal.bind(this) : undefined}

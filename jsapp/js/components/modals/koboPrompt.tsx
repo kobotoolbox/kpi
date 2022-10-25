@@ -39,8 +39,7 @@ interface KoboPromptProps {
   children?: React.ReactNode;
   /** A list of buttons to be displayed on the bottom right of the prompt. */
   buttons: KoboPromptButton[];
-  /** Renders a `data-testid` attribute in the DOM. */
-  testId?: string;
+  'data-cy'?: string;
 }
 
 export default function KoboPrompt(props: KoboPromptProps) {
@@ -49,7 +48,7 @@ export default function KoboPrompt(props: KoboPromptProps) {
       isOpen={props.isOpen}
       onRequestClose={props.onRequestClose}
       isDismissableByDefaultMeans={props.isDismissableByDefaultMeans}
-      testId={props.testId}
+      data-cy={props['data-cy']}
     >
       <KoboModalHeader icon={props.titleIcon} iconColor={props.titleIconColor}>
         {props.title}

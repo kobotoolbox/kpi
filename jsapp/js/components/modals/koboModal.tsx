@@ -19,8 +19,7 @@ interface KoboModalProps {
    * NOTE: disabling Esc key may introduce an accessibility issue.
    */
   isDismissableByDefaultMeans?: boolean;
-  /** Renders a `data-testid` attribute in the DOM. */
-  testId?: string;
+  'data-cy'?: string;
 }
 
 export default function KoboModal(props: KoboModalProps) {
@@ -37,7 +36,7 @@ export default function KoboModal(props: KoboModalProps) {
       overlayClassName='kobo-modal-overlay'
       shouldCloseOnOverlayClick={props.isDismissableByDefaultMeans}
       shouldCloseOnEsc={props.isDismissableByDefaultMeans}
-      testId={props.testId}
+      data={{'cy': props['data-cy']}}
     >
       {props.children}
     </Modal>
