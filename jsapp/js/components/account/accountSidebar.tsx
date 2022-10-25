@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import {NavLink} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -85,19 +85,21 @@ export default class AccountSidebar extends React.Component<
     } else {
       return (
         <bem.FormSidebar m={sidebarModifier}>
-          <Link to={ROUTES.ACCOUNT_SETTINGS}>
+          {/* this class provides compatibility with older styling */}
+          <NavLink to={ROUTES.ACCOUNT_SETTINGS} className="form-sidebar__navlink">
+            {/* There shouldn't be a nested <a> tag here, NavLink already generates one */}
             <bem.FormSidebar__label m={{selected: this.isAccountSelected()}}>
               <Icon name='user' size='xl' />
               <bem.FormSidebar__labelText>
                 {t('Profile')}
               </bem.FormSidebar__labelText>
             </bem.FormSidebar__label>
-          </Link>
+          </NavLink>
 
           {
             /* hide "Security" entirely if nothing there is available */
             envStore.isReady && envStore.data.mfa_enabled && (
-              <Link to={ROUTES.SECURITY}>
+              <NavLink to={ROUTES.SECURITY} className="form-sidebar__navlink">
                 <bem.FormSidebar__label
                   m={{selected: this.isSecuritySelected()}}
                   disabled={!(envStore.isReady && envStore.data.mfa_enabled)}
@@ -107,21 +109,21 @@ export default class AccountSidebar extends React.Component<
                     {t('Security')}
                   </bem.FormSidebar__labelText>
                 </bem.FormSidebar__label>
-              </Link>
+              </NavLink>
             )
           }
 
           {envStore.isReady &&
             envStore.data.stripe_public_key &&
             this.state.subscribedProduct && (
-              <Link to={ROUTES.PLAN}>
+              <NavLink to={ROUTES.PLAN} className="form-sidebar__navlink">
                 <bem.FormSidebar__label m={{selected: this.isPlanSelected()}}>
                   <Icon name='editor' size='xl' />
                   <bem.FormSidebar__labelText>
                     {t('Your plan')}
                   </bem.FormSidebar__labelText>
                 </bem.FormSidebar__label>
-              </Link>
+              </NavLink>
             )}
         </bem.FormSidebar>
       );
