@@ -18,13 +18,16 @@ regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
 
 ASSET_FIELDS = (
     'id',
+    'uid',
+    'name',
+    'asset_type',
     'date_modified',
     'date_created',
     'owner',
     'owner__username',
-    'uid',
-    'name',
-    'asset_type',
+    'owner__email',
+    'owner__name',
+    'owner__organization',
     'deployment__active',
     'deployment__submission_count',
 )
@@ -104,6 +107,10 @@ def get_data(filtered_queryset, export_type):
         vals = ASSET_FIELDS + (SETTINGS,)
         data = (
             filtered_queryset.annotate(
+                owner__name=F('owner__extra_details__data__name'),
+                owner__organization=F(
+                    'owner__extra_details__data__organization'
+                ),
                 deployment__active=F('_deployment_data__active'),
                 deployment__submission_count=F(
                     '_deployment_data__num_of_submissions'
@@ -113,7 +120,7 @@ def get_data(filtered_queryset, export_type):
             .order_by('id')
         )
     else:
-        values = USER_FIELDS + (METADATA,)
+        vals = USER_FIELDS + (METADATA,)
         data = (
             filtered_queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
             .annotate(
@@ -123,7 +130,7 @@ def get_data(filtered_queryset, export_type):
                 last_login_str=Cast('last_login', CharField()),
                 asset_count=Count('assets'),
             )
-            .values(*values)
+            .values(*vals)
             .order_by('id')
         )
 
@@ -136,13 +143,10 @@ def get_all_countries_for_user(views_for_user):
     """
     return list(
         set(
-            [
-                cc
-                for c in regional_views
-                for cc in c['countries']
-                if c['id'] in views_for_user
-                and 'view_asset' in c['permissions']
-            ]
+            cc
+            for c in regional_views
+            for cc in c['countries']
+            if c['id'] in views_for_user and 'view_asset' in c['permissions']
         )
     )
 
@@ -177,6 +181,7 @@ def get_queryset(export_type):
 
 def get_filename(export_type):
     return f'/tmp/{"projects" if export_type == "p" else "users"}.csv'
+
 
 def print_and_exit(val):
     print(val)
