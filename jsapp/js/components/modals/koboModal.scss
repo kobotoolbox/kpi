@@ -1,0 +1,127 @@
+@use 'scss/mixins';
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/breakpoints';
+@use 'sass:color';
+@use 'js/components/common/icon';
+
+$kobo-modal-elements-height-min: sizes.$x60;
+$kobo-modal-width-min: 280px;
+$kobo-modal-width-large: 940px;
+$kobo-modal-width-medium: 570px;
+$kobo-modal-padding: sizes.$x30;
+$kobo-modal-header-icon-margin: sizes.$x10;
+
+.kobo-modal {
+  position: fixed;
+  border-radius: sizes.$x6;
+  overflow: hidden;
+  max-width: 90vw;
+  max-height: 90vh;
+  min-width: $kobo-modal-width-min;
+  left: 50%;
+  top: 50%;
+  background-color: colors.$kobo-white;
+  box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-24, $alpha: 0.25);
+  display: flex;
+  flex-direction: column;
+
+  @media all and (max-height: breakpoints.$b480) {
+    transform: translate(-50%, -50%);
+  }
+
+  @media all and (min-height: breakpoints.$b480 + 1px) {
+    transform: translate(-50%, -55%);
+  }
+}
+
+.kobo-modal--size-large {
+  width: $kobo-modal-width-large;
+}
+
+.kobo-modal--size-medium {
+  width: $kobo-modal-width-medium;
+}
+
+// This ensures that modal layout is better adapting to very short screens.
+.kobo-modal__header,
+.kobo-modal__content,
+.kobo-modal__footer {
+  min-height: $kobo-modal-elements-height-min;
+}
+
+.kobo-modal__header {
+  @include mixins.centerRowFlex;
+
+  justify-content: space-between;
+  padding: $kobo-modal-padding;
+  background-color: colors.$kobo-gray-98;
+
+  h1 {
+    @include mixins.centerRowFlex;
+
+    color: colors.$kobo-gray-24;
+    font-size: sizes.$x18;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+  }
+}
+
+.kobo-modal__header-icon {
+  display: block;
+  margin-right: $kobo-modal-header-icon-margin;
+
+  &.kobo-modal__header-icon--blue {
+    color: colors.$kobo-blue;
+  }
+
+  &.kobo-modal__header-icon--red {
+    color: colors.$kobo-red;
+  }
+}
+
+.kobo-modal__content {
+  overflow-x: auto;
+  padding: $kobo-modal-padding;
+
+  > ul,
+  > ol,
+  > p {
+    margin: 0;
+
+    &:not(:first-child) {
+      margin-top: 1em;
+    }
+  }
+}
+
+.kobo-modal__footer {
+  @include mixins.centerRowFlex;
+
+  justify-content: flex-end;
+  gap: sizes.$x8;
+  padding: $kobo-modal-padding;
+}
+
+// If the KoboModalHeader component is used together with the KoboModalContent
+// component, and the Header has icon, we want the content of Content to be
+// aligned with the Header title.
+.kobo-modal__header.kobo-modal__header--has-icon + .kobo-modal__content {
+  padding-left:
+    $kobo-modal-padding
+    + icon.$s-icon-s
+    + $kobo-modal-header-icon-margin;
+}
+
+// If the KoboModalContent component is used together with the KoboModalFooter
+// component, we want the paddings not to multiply.
+.kobo-modal__content + .kobo-modal__footer {
+  padding-top: 0;
+}
+
+.kobo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: color.change(colors.$kobo-storm, $alpha: 0.6);
+}
