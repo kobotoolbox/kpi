@@ -64,6 +64,7 @@ from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
 )
 from kpi.utils.strings import to_str
+from kpi.utils.regional_exports import run_regional_export
 from kpi.zip_importer import HttpContentParse
 
 
@@ -400,6 +401,40 @@ def export_upload_to(self, filename):
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
     return posixpath.join(self.user.username, 'exports', filename)
+
+
+class RegionalExportTask(ImportExportTask):
+    uid = KpiUidField(uid_prefix='re')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    def _build_export_filename(self, export_type):
+        return f'{"projects" if export_type == "p" else "users"}.csv'
+
+    def _run_task(self, messages):
+        export_type = self.data.get('type', '').lower()
+        view = self.data.get('view')
+
+        filename = self._build_export_filename(export_type)
+        self.result.save(filename, ContentFile(b''))
+        # FileField files are opened read-only by default and must be
+        # closed and reopened to allow writing
+        # https://code.djangoproject.com/ticket/13809
+        self.result.close()
+        self.result.file.close()
+
+        data = run_regional_export(export_type, self.user.username, view)
+
+        with self.result.storage.open(self.result.name, 'wb') as output_file:
+            output_file.write(data.read().encode())
+
+        # Restore the FileField to its typical state
+        self.result.open('rb')
+        self.save()
+
+    def delete(self, *args, **kwargs):
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 class ExportTaskBase(ImportExportTask):
