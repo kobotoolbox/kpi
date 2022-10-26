@@ -65,7 +65,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(regional_views)
 
     def list(self, request, *args, **kwargs):
-        user = requset.user
+        user = request.user
         view = request.GET.get('view')
         if view is not None:
             view = int(view)
