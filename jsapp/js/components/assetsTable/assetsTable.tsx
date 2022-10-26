@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {
   hasVerticalScrollbar,
   getScrollbarWidth,
@@ -23,6 +23,21 @@ import type {
   MetadataResponse,
 } from 'js/dataInterface';
 import './assetsTable.scss';
+
+bem.AssetsTable = makeBem(null, 'assets-table');
+bem.AssetsTable__header = makeBem(bem.AssetsTable, 'header');
+bem.AssetsTable__body = makeBem(bem.AssetsTable, 'body');
+bem.AssetsTable__footer = makeBem(bem.AssetsTable, 'footer');
+bem.AssetsTableRow = makeBem(null, 'assets-table-row');
+bem.AssetsTableRow__link = makeBem(bem.AssetsTableRow, 'link', 'a');
+bem.AssetsTableRow__buttons = makeBem(bem.AssetsTableRow, 'buttons');
+bem.AssetsTableRow__column = makeBem(bem.AssetsTableRow, 'column');
+bem.AssetsTableRow__headerLabel = makeBem(bem.AssetsTableRow, 'header-label', 'span');
+bem.AssetsTableRow__tags = makeBem(bem.AssetsTableRow, 'tags', 'div');
+bem.AssetsTableRow__tag = makeBem(bem.AssetsTableRow, 'tag', 'span');
+bem.AssetsTablePagination = makeBem(null, 'assets-table-pagination');
+bem.AssetsTablePagination__button = makeBem(bem.AssetsTablePagination, 'button', 'button');
+bem.AssetsTablePagination__index = makeBem(bem.AssetsTablePagination, 'index');
 
 type OrderChangeCallback = (columnId: string, columnValue: OrderDirection) => void;
 type FilterChangeCallback = (columnId: string | null, columnValue: string | null) => void;
