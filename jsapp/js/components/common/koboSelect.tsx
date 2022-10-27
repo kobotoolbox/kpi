@@ -69,6 +69,7 @@ interface KoboSelectProps {
    */
   onChange: (newSelectedOption: string | null) => void;
   'data-cy'?: string;
+  placeholder?: string;
 }
 
 interface KoboSelectState {
@@ -100,6 +101,10 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  get placeholderLabel() {
+    return this.props.placeholder || t('Select…');
   }
 
   onMenuVisibilityChange(name: string, isVisible: boolean) {
@@ -220,7 +225,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     return (
       <bem.KoboSelect__trigger>
         <bem.KoboSelect__triggerSelectedOption m='empty'>
-          <label>{t('Select…')}</label>
+          <label>{this.placeholderLabel}</label>
         </bem.KoboSelect__triggerSelectedOption>
 
         {this.isSearchboxVisible() && this.renderSearchBox()}
@@ -260,7 +265,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           value={this.state.filterPhrase}
           onChange={this.onSearchBoxChange.bind(this)}
           onClick={this.onSearchBoxClick.bind(this)}
-          placeholder={foundSelectedOption ? foundSelectedOption.label : t('Select…')}
+          placeholder={foundSelectedOption ? foundSelectedOption.label : this.placeholderLabel}
         />
       </React.Fragment>
     );
