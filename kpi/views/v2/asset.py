@@ -8,7 +8,7 @@ import constance
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, renderers, status, viewsets, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -38,6 +38,7 @@ from kpi.models import (
     Asset,
     ObjectPermission,
     UserAssetSubscription,
+    RegionalExportTask,
 )
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
@@ -58,9 +59,11 @@ from kpi.serializers.v2.asset import (
     AssetMetadataListSerializer,
     AssetSerializer,
 )
-from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
+from kpi.tasks import regional_export_in_background
+from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.regional_exports import get_views_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
     get_database_user,
@@ -761,6 +764,57 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
+
+    @action(
+        detail=False,
+        methods=['GET', 'POST'],
+    )
+    def export(self, request):
+        user = request.user
+        views_for_user = get_views_for_user(user)
+        if request.method == 'GET':
+            view = request.GET.get('view')
+            if view is not None:
+                view = int(view)
+
+            if view not in views_for_user:
+                raise Http404
+
+            export = RegionalExportTask.objects.filter(
+                user=user, data__view=view, data__type='p'
+            ).last()
+            if not export:
+                raise Http404
+
+            file_location = serializers.FileField().to_representation(
+                export.result
+            )
+            return Response(
+                {
+                    'status': export.status,
+                    'result': request.build_absolute_uri(file_location),
+                }
+            )
+        elif request.method == 'POST':
+            data = request.data
+            if not 'view' in data:
+                raise serializers.ValidationError('`view` must be specifed')
+
+            if view not in views_for_user:
+                raise Http404
+
+            # we are only interested in project exports here
+            data.update({'type': 'p'})
+            regional_export_task = RegionalExportTask.objects.create(
+                user=user, data=data
+            )
+
+            # Have Celery run the export in the background
+            regional_export_in_background.delay(
+                regional_export_task_uid=regional_export_task.uid
+            )
+
+            return Response({'status': regional_export_task.status})
 
     @action(
         detail=False,

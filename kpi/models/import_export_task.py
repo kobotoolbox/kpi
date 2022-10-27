@@ -407,14 +407,18 @@ class RegionalExportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='re')
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
-    def _build_export_filename(self, export_type):
-        return f'{"projects" if export_type == "p" else "users"}.csv'
+    def _build_export_filename(self, export_type, username, view):
+        _type = 'projects' if export_type == 'p' else 'users'
+        time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        return f'{_type}-{username}-view_{view}-{time}.csv'
 
     def _run_task(self, messages):
         export_type = self.data.get('type', '').lower()
         view = self.data.get('view')
 
-        filename = self._build_export_filename(export_type)
+        filename = self._build_export_filename(
+            export_type, self.user.username, view
+        )
         self.result.save(filename, ContentFile(b''))
         # FileField files are opened read-only by default and must be
         # closed and reopened to allow writing
