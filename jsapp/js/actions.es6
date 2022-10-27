@@ -206,20 +206,43 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
   if (checkIfCookieExists("__kpi_formbuilder")) {
     redirectForOnaDataAuth()
   } else {
-    dataInterface.patchAsset(uid, values)
-      .done((asset) => {
-        actions.resources.updateAsset.completed(asset);
-        if (typeof params.onComplete === 'function') {
-          params.onComplete(asset, uid, values);
-        }
-        notify(t('successfully updated'));
-      })
-      .fail(function(resp){
-        actions.resources.updateAsset.failed(resp);
-        if (params.onFailed) {
-          params.onFailed(resp);
-        }
-      });
+    return new Promise((resolve, reject) => {
+      dataInterface.patchAsset(uid, values)
+        .done((asset) => {
+          actions.resources.updateAsset.completed(asset);
+          resolve(asset);
+        })
+        .fail((resp) => {
+          if (resp.status === 500) {
+            reject(resp);
+          } else {
+            alertify.error(resp.responseJSON[0]);
+            reject(resp);
+          }
+        });
+    }).then((asset) => {
+      if (asset.asset_type === "survey") {
+        dataInterface.deployAsset(asset, asset.has_deployment)
+          .done((data) => {
+            if (asset.has_deployment) {
+              notify(t('Successfully updated published form.'));
+            } else {
+              notify(t('Successfully published form.'));
+            }
+          })
+          .fail((resp) => {
+            if (resp.status === 500) {
+              alertify.error(t('Internal Server Error: Kindly ensure the form has atleast one question'));
+            } else {
+              alertify.error(resp.responseText);
+            }
+          });
+      } else {
+        notify(t('Successfully updated asset.'));
+      }
+
+      return asset
+    })
   }
 });
 
