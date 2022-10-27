@@ -800,7 +800,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             if not 'view' in data:
                 raise serializers.ValidationError('`view` must be specifed')
 
-            if view not in views_for_user:
+            if data['view'] not in views_for_user:
                 raise Http404
 
             # we are only interested in project exports here
