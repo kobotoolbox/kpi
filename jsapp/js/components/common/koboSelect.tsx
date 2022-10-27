@@ -67,7 +67,7 @@ interface KoboSelectProps {
    * Callback function telling which option is selected now. Passes either
    * option id or `null` when cleared.
    */
-  onChange: Function;
+  onChange: (newSelectedOption: string | null) => void;
   'data-cy'?: string;
 }
 
