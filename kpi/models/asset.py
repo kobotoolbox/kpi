@@ -432,17 +432,28 @@ class Asset(ObjectPermissionMixin,
 
     def update_submission_extra(self, content, user=None):
         submission_uuid = content.get('submission')
-        try:
-            sub = self.submission_extras.get(submission_uuid=submission_uuid)
-        except ObjectDoesNotExist:
-            sub = self.submission_extras.model(asset=self, submission_uuid=submission_uuid)
-        instances = self.get_advanced_feature_instances()
-        compiled_content = {**sub.content}
-        for instance in instances:
-            compiled_content = instance.compile_revised_record(compiled_content,
-                                                               edits=content)
-        sub.content = compiled_content
-        sub.save()
+        # the view had better have handled this
+        assert submission_uuid is not None
+
+        # `select_for_update()` can only lock things that exist; make sure
+        # a `SubmissionExtras` exists for this submission before proceeding
+        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
+
+        with transaction.atomic():
+            sub = (
+                self.submission_extras.filter(submission_uuid=submission_uuid)
+                .select_for_update()
+                .first()
+            )
+            instances = self.get_advanced_feature_instances()
+            compiled_content = {**sub.content}
+            for instance in instances:
+                compiled_content = instance.compile_revised_record(
+                    compiled_content, edits=content
+                )
+            sub.content = compiled_content
+            sub.save()
+
         return sub
 
     def get_advanced_submission_schema(self, url=None,

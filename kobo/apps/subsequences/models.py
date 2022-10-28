@@ -27,14 +27,18 @@ class SubmissionExtras(models.Model):
 
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    submission_uuid = models.CharField(max_length=40, null=True)
+    submission_uuid = models.CharField(max_length=40)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
         Asset,
         related_name='submission_extras',
         on_delete=models.CASCADE,
-        null=True,
     )
+
+    class Meta:
+        # ideally `submission_uuid` is universally unique, but its uniqueness
+        # per-asset is most important
+        unique_together = (('asset', 'submission_uuid'),)
 
     def save(self, *args, **kwargs):
         features = self.asset.advanced_features
