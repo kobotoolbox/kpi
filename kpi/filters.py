@@ -85,8 +85,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 class KpiObjectPermissionsFilter:
 
-    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
     _return_queryset = False
 
     STATUS_PARAMETER = 'status'
@@ -148,6 +146,8 @@ class KpiObjectPermissionsFilter:
         return queryset.filter(pk__in=asset_ids)
 
     def _get_regional_queryset(self, request, queryset):
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
         try:
             view = int(request.GET.get('view'))
         except:
@@ -155,13 +155,13 @@ class KpiObjectPermissionsFilter:
         # TODO: move this to a better place for permissions
         region_users = [
             v['username']
-            for v in self.regional_assignments
+            for v in regional_assignments
             if v['view'] == view
         ]
         if request.user.username not in region_users:
             raise Http404()
         regions = [
-            r['countries'] for r in self.regional_views if r['id'] == view
+            r['countries'] for r in regional_views if r['id'] == view
         ]
         region = regions[0] if regions else []
 

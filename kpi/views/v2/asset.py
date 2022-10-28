@@ -341,8 +341,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'uid__icontains',
     ]
 
-    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
 
     def get_object(self):
         if self.request.method == 'PATCH':
@@ -744,14 +742,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         renderer_classes=[renderers.JSONRenderer],
     )
     def views(self, request):
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
         user = request.user
         available_views = [
             v['view']
-            for v in self.regional_assignments
+            for v in regional_assignments
             if v['username'] == user.username
         ]
         regional_views = [
-            v for v in self.regional_views if v['id'] in available_views
+            v for v in regional_views if v['id'] in available_views
         ]
         for item in regional_views:
             url = reverse('asset-list', request=request)
