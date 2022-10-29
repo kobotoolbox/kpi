@@ -66,6 +66,7 @@ def populate_paths(_content):
     return content
 
 def advanced_submission_jsonschema(content, actions, url=None):
+    actions = deepcopy(actions)
     action_instances = []
     content = populate_paths(content)
     # devhack: this keeps serializer from breaking when old params

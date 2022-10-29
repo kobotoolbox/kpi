@@ -31,7 +31,7 @@ class AutomaticTranscriptionAction(BaseAction):
         return possible_transcribed_fields
 
     def load_params(self, params):
-        self.possible_transcribed_fields = params['values']
+        self.possible_transcribed_fields = params.get('values', [])
         self.available_services = params.get('services', [])
         self.languages = params.get('languages', [])
 
