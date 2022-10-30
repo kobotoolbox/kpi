@@ -493,8 +493,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return access_types
 
     def validate_settings(self, settings):
-        if not self.instance:
-            return {}
+        if not self.instance or not settings:
+            return settings
         return {**self.instance.settings, **settings}
 
     def validate_data_sharing(self, data_sharing: dict) -> dict:
