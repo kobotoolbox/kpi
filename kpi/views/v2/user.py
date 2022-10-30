@@ -2,6 +2,7 @@
 import json
 
 import constance
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework import exceptions, mixins, renderers, status, viewsets
@@ -30,8 +31,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     search_default_field_lookups = [
         'username__icontains',
     ]
-    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,14 +48,16 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         renderer_classes=[renderers.JSONRenderer],
     )
     def views(self, request):
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
         user = request.user
         available_views = [
             v['view']
-            for v in self.regional_assignments
+            for v in regional_assignments
             if v['username'] == user.username
         ]
         regional_views = [
-            v for v in self.regional_views if v['id'] in available_views
+            v for v in regional_views if v['id'] in available_views
         ]
         for item in regional_views:
             url = reverse('user-list', request=request)
@@ -65,23 +66,26 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(regional_views)
 
     def list(self, request, *args, **kwargs):
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
         user = request.user
         view = request.GET.get('view')
+        _queryset = self.queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
         if view is not None:
             view = int(view)
             region_users = [
                 v['username']
-                for v in self.regional_assignments
+                for v in regional_assignments
                 if v['view'] == view
             ]
             if request.user.username not in region_users:
                 raise exceptions.PermissionDenied()
             regions = [
-                r['countries'] for r in self.regional_views if r['id'] == view
+                r['countries'] for r in regional_views if r['id'] == view
             ]
             region = regions[0] if regions else []
-            if isinstance(region, str) and '*' == region or user.is_superuser:
-                filtered_queryset = self.queryset
+            if isinstance(region, str) and '*' == region:
+                queryset = _queryset
             elif isinstance(region, list):
                 q = Q()
                 for country in region:
@@ -90,8 +94,14 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                             {'value': country}
                         ]
                     )
-                filtered_queryset = self.queryset.filter(q)
+                queryset = _queryset.filter(q)
+        elif not user.is_superuser:
+            raise exceptions.PermissionDenied()
+        else:
+            # superusers can see all users
+            queryset = _queryset
 
+        filtered_queryset = self.filter_queryset(queryset).order_by('id')
         page = self.paginate_queryset(filtered_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
