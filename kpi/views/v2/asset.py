@@ -4,7 +4,6 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
-import constance
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -65,6 +64,10 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
+)
+from kpi.utils.regional_views import (
+    get_regional_views_for_user,
+    get_view_from_request,
     user_has_regional_asset_perm,
 )
 
@@ -668,7 +671,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         # regional view
-        view = request.GET.get('view')
+        view = get_view_from_request(request)
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
         self.__filtered_queryset = self.filter_queryset(self.get_queryset())
@@ -742,22 +745,15 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         renderer_classes=[renderers.JSONRenderer],
     )
     def views(self, request):
-        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
-        user = request.user
-        available_views = [
-            v['view']
-            for v in regional_assignments
-            if v['username'] == user.username
-        ]
-        regional_views = [
-            v for v in regional_views if v['id'] in available_views
-        ]
-        for item in regional_views:
+        view = get_view_from_request(request)
+        regional_views_for_user = get_regional_views_for_user(
+            request.user, view
+        )
+        for item in regional_views_for_user:
             url = reverse('asset-list', request=request)
             item['url'] = f'{url}?view={item["id"]}'
 
-        return Response(regional_views)
+        return Response(regional_views_for_user)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
