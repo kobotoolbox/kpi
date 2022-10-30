@@ -312,7 +312,7 @@ CONSTANCE_CONFIG = {
         'Filter regional views.'
     ),
     'REGIONAL_ASSIGNMENTS': (
-        json.dumps([{'username': 'josh', 'view': 1}]),
+        json.dumps([{'username': 'someuser', 'view': 1}]),
         'Regional assignments',
     ),
 }

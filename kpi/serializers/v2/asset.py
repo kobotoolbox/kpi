@@ -493,8 +493,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return access_types
 
     def validate_settings(self, settings):
-        if not self.instance:
-            return {}
+        if not self.instance or not settings:
+            return settings
         return {**self.instance.settings, **settings}
 
     def validate_data_sharing(self, data_sharing: dict) -> dict:
@@ -728,8 +728,6 @@ class AssetUrlListSerializer(AssetSerializer):
 
 class AssetMetadataListSerializer(AssetSerializer):
 
-    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
 
     class Meta(AssetSerializer.Meta):
         fields = ('url',
@@ -764,12 +762,13 @@ class AssetMetadataListSerializer(AssetSerializer):
         return ''
 
     def _view_has_perm(self, perm):
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
         request = self.context.get('request')
         view = request.GET.get('view')
         if view is not None:
             perms_for_view = [
                 perm
-                for v in self.regional_views
+                for v in regional_views
                 for perm in v['permissions']
                 if v['id'] == int(view)
             ]

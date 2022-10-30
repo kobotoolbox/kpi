@@ -1,4 +1,7 @@
 # coding: utf-8
+import json
+
+import constance
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
@@ -6,6 +9,7 @@ from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
 from rest_framework import filters
 from rest_framework.request import Request
+from django.http import Http404
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
@@ -81,6 +85,8 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 class KpiObjectPermissionsFilter:
 
+    _return_queryset = False
+
     STATUS_PARAMETER = 'status'
     PARENT_UID_PARAMETER = 'parent__uid'
     DATA_SHARING_PARAMETER = 'data_sharing__enabled'
@@ -91,6 +97,10 @@ class KpiObjectPermissionsFilter:
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
             return queryset
+
+        queryset = self._get_regional_queryset(request, queryset)
+        if self._return_queryset:
+            return queryset.distinct()
 
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
         if self._return_queryset:
@@ -134,6 +144,35 @@ class KpiObjectPermissionsFilter:
             ).values_list('id', flat=True)
         )
         return queryset.filter(pk__in=asset_ids)
+
+    def _get_regional_queryset(self, request, queryset):
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+        try:
+            view = int(request.GET.get('view'))
+        except:
+            return queryset
+        # TODO: move this to a better place for permissions
+        region_users = [
+            v['username']
+            for v in regional_assignments
+            if v['view'] == view
+        ]
+        if request.user.username not in region_users:
+            raise Http404()
+        regions = [
+            r['countries'] for r in regional_views if r['id'] == view
+        ]
+        region = regions[0] if regions else []
+
+        self._return_queryset = True
+        if isinstance(region, str) and '*' == region:
+            return queryset
+        elif isinstance(region, list):
+            q = Q(settings__country__in=region)
+            for country in region:
+                q |= Q(settings__country__contains=[{'value': country}])
+            return queryset.filter(q)
 
     def _get_queryset_for_data_sharing_enabled(
         self, request: Request, queryset: QuerySet

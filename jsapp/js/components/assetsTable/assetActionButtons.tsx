@@ -11,7 +11,7 @@ import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
@@ -29,6 +29,10 @@ import {
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
+
+bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
+bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
+bem.AssetActionButtons__iconButton = makeBem(bem.AssetActionButtons, 'icon-button', 'a');
 
 const assetActions = mixins.clickAssets.click.asset;
 

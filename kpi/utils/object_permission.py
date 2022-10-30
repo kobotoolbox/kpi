@@ -293,7 +293,7 @@ def get_regional_user_permissions(asset: 'models.Asset', user: 'auth.User') -> l
         countries = asset.settings.get('country')
         if countries is not None and isinstance(countries, list):
             return [c['value'] for c in countries]
-        return [countries]
+        return [countries['value']] if countries else []
 
     asset_countries = _get_asset_countries(asset)
 
