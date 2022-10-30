@@ -489,6 +489,7 @@ class SingleProcessingStore extends Reflux.Store {
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
+    this.isPollingForTranscript = false;
     this.trigger(this.data);
   }
 
