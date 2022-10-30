@@ -29,6 +29,18 @@ export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOpt
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
+  // avoid displaying a (specific) JSON structure in the notification
+  if (typeof msg === 'string' && msg[0] === '{') {
+    try {
+      let parsed = JSON.parse(msg);
+      if (Object.keys(parsed).length === 1 && 'detail' in parsed) {
+        msg = `${parsed.detail}`;
+      }
+    } catch (err) {
+      console.error('notification starts with { but is not parseable JSON.')
+    }
+  }
+
   switch (atype) {
 
     case 'success':
