@@ -4,6 +4,8 @@ import CheckboxDemo from 'js/designSystem/checkboxDemo';
 import IconDemo from 'js/designSystem/iconDemo';
 import InlineMessageDemo from 'js/designSystem/inlineMessageDemo';
 import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo';
+import KoboModalDemo from 'js/designSystem/koboModalDemo';
+import KoboPromptDemo from 'js/designSystem/koboPromptDemo';
 import KoboRangeDemo from 'js/designSystem/koboRangeDemo';
 import KoboSelectDemo from 'js/designSystem/koboSelectDemo';
 import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
@@ -19,6 +21,8 @@ const designSystemComponents = [
   ['Icon', <IconDemo/>],
   ['InlineMessage', <InlineMessageDemo/>],
   ['KoboDropdown', <KoboDropdownDemo/>],
+  ['KoboModal', <KoboModalDemo/>],
+  ['KoboPrompt', <KoboPromptDemo/>],
   ['KoboRange', <KoboRangeDemo/>],
   ['KoboSelect', <KoboSelectDemo/>],
   ['LanguageSelector', <LanguageSelectorDemo/>],
