@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
-from rest_framework import filters
+from rest_framework import filters, exceptions
 from rest_framework.request import Request
 from django.http import Http404
 
@@ -81,6 +81,46 @@ class AssetOrderingFilter(filters.OrderingFilter):
             return queryset.order_by(*ordering)
 
         return queryset
+
+
+class UserObjectPermissionsFilter:
+
+    def filter_queryset(self, request, queryset, view):
+        queryset = queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+        user = request.user
+        view = request.GET.get('view')
+        if view is not None:
+            view = int(view)
+            region_users = [
+                v['username']
+                for v in regional_assignments
+                if v['view'] == view
+            ]
+            if request.user.username not in region_users:
+                raise exceptions.PermissionDenied()
+            regions = [
+                r['countries'] for r in regional_views if r['id'] == view
+            ]
+            region = regions[0] if regions else []
+            if isinstance(region, str) and '*' == region:
+                _queryset = queryset
+            elif isinstance(region, list):
+                q = Q()
+                for country in region:
+                    q |= Q(
+                        extra_details__data__country__contains=[
+                            {'value': country}
+                        ]
+                    )
+                _queryset = queryset.filter(q)
+        elif not user.is_superuser:
+            raise exceptions.PermissionDenied()
+        else:
+            # superusers can see all users
+            _queryset = queryset
+        return _queryset.distinct().order_by('id')
 
 
 class KpiObjectPermissionsFilter:
