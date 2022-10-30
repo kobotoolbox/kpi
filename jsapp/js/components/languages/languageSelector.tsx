@@ -40,6 +40,8 @@ const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-l
 
 const LANGUAGE_SELECTOR_RESET_EVENT = 'LanguageSelector:resetall';
 
+const MINIMUM_SEARCH_LENGTH = 2;
+
 /** Use this function to reset all LanguageSelectors :) */
 export function resetAllLanguageSelectors() {
   const event = new CustomEvent(LANGUAGE_SELECTOR_RESET_EVENT);
@@ -208,7 +210,9 @@ class LanguageSelector extends React.Component<
 
   setSearchPhrase(searchPhrase: string) {
     this.setState({searchPhrase: searchPhrase});
-    this.fetchLanguagesDebounced();
+    if (searchPhrase.length >= MINIMUM_SEARCH_LENGTH) {
+      this.fetchLanguagesDebounced();
+    }
   }
 
   selectLanguage(language: DetailedLanguage | ListLanguage) {
