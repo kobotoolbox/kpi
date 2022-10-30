@@ -267,7 +267,10 @@ export default class TranscriptTabContent extends React.Component<{}> {
         </bem.ProcessingBody__header>
 
         <RegionSelector
-          isDisabled={singleProcessingStore.isFetchingData}
+          isDisabled={
+            singleProcessingStore.isFetchingData ||
+            singleProcessingStore.isPollingForTranscript
+          }
           serviceCode='goog'
           serviceType='transcription'
           rootLanguage={draft.languageCode}

@@ -160,7 +160,10 @@ export default class SingleProcessingRoute extends React.Component<
       <DocumentTitle title={pageTitle}>
         <bem.SingleProcessing>
           <WorkProtector
-            shouldProtect={singleProcessingStore.hasAnyUnsavedWork()}
+            shouldProtect={
+              singleProcessingStore.hasAnyUnsavedWork() ||
+              singleProcessingStore.isPollingForTranscript
+            }
             currentRoute={this.props.route}
             router={this.props.router}
           />
