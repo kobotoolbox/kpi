@@ -11,10 +11,10 @@ from django.db.models import CharField, Count, F, Q
 from django.db.models.functions import Cast
 
 from kpi.models.asset import Asset
-
-
-regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+from kpi.utils.regional_views import (
+    get_regional_assignments,
+    get_regional_views,
+)
 
 
 ASSET_FIELDS = (
@@ -145,24 +145,24 @@ def get_all_countries_for_user(views_for_user):
     return list(
         set(
             cc
-            for c in regional_views
-            for cc in c['countries']
-            if c['id'] in views_for_user and 'view_asset' in c['permissions']
+            for c in get_regional_views()
+            for cc in c.countries
+            if c.id in views_for_user and 'view_asset' in c.permissions
         )
     )
 
 
 def get_countries_for_user_and_view(views_for_user, view):
     return [
-        cc for c in regional_views for cc in c['countries'] if c['id'] == view
+        cc for c in get_regional_views() for cc in c.countries if c.id == view
     ]
 
 
 def get_views_for_user(user):
     return [
-        v['view']
-        for v in regional_assignments
-        if v['username'] == user.username
+        v.view
+        for v in get_regional_assignments()
+        if v.username == user.username
     ]
 
 
@@ -182,11 +182,15 @@ def get_queryset(export_type):
 
 def run_regional_export(*args):
     if len(args) < 2:
-        raise Exception('Export type and username must be included in --script-args')
+        raise Exception(
+            'Export type and username must be included in --script-args'
+        )
 
     export_type = args[0]
     if export_type not in ['p', 'u']:
-        raise Exception('Specify projects (p) or users (u) export in first argument of --script-args')
+        raise Exception(
+            'Specify projects (p) or users (u) export in first argument of --script-args'
+        )
 
     username = args[1]
     try:
