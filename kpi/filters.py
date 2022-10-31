@@ -151,7 +151,7 @@ class KpiObjectPermissionsFilter:
         )
         return queryset.filter(pk__in=asset_ids)
 
-    def _get_regional_queryset(self, queryset, view):
+    def _get_regional_queryset(self, queryset: QuerySet, view: int) -> QuerySet:
         region = get_region_for_view(view)
 
         self._return_queryset = True

@@ -751,9 +751,9 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         )
         for item in regional_views_for_user:
             url = reverse('asset-list', request=request)
-            item['url'] = f'{url}?view={item["id"]}'
+            item.url = f'{url}?view={item.id}'
 
-        return Response(regional_views_for_user)
+        return Response([view.to_dict() for view in regional_views_for_user])
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()

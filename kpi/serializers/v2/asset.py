@@ -496,11 +496,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
-    def validate_settings(self, settings):
-        if not self.instance or not settings:
-            return settings
-        return {**self.instance.settings, **settings}
-
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
         Validates `data_sharing`. It is really basic.
@@ -579,6 +574,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 t('User cannot update target parent collection'))
 
         return parent
+
+    def validate_settings(self, settings: dict) -> dict:
+        if not self.instance or not settings:
+            return settings
+        return {**self.instance.settings, **settings}
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -764,6 +764,6 @@ class AssetMetadataListSerializer(AssetSerializer):
             return super().get_data(*args, **kwargs)
         return ''
 
-    def _get_view(self):
+    def _get_view(self) -> int:
         request = self.context.get('request')
         return get_view_from_request(request)
