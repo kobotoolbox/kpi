@@ -86,31 +86,22 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 
 class UserObjectPermissionsFilter:
-
     def filter_queryset(self, request, queryset, view):
-        queryset = queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
-        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
+        if view.action != 'list':
+            return queryset
+
         user = request.user
-        view = request.GET.get('view')
-        if view is not None:
-            view = int(view)
-            region_users = [
-                v['username']
-                for v in regional_assignments
-                if v['view'] == view
-            ]
-            if request.user.username not in region_users:
+        regional_view = get_view_as_int(request.GET.get('view'))
+        if regional_view is not None:
+            if not user_has_view_perms(user, regional_view):
                 raise exceptions.PermissionDenied()
-            regions = [
-                r['countries'] for r in regional_views if r['id'] == view
-            ]
-            region = regions[0] if regions else []
-            if isinstance(region, str) and '*' == region:
+
+            region_for_view = get_region_for_view(regional_view)
+            if isinstance(region_for_view, str) and '*' == region_for_view:
                 _queryset = queryset
-            elif isinstance(region, list):
+            elif isinstance(region_for_view, list):
                 q = Q()
-                for country in region:
+                for country in region_for_view:
                     q |= Q(
                         extra_details__data__country__contains=[
                             {'value': country}
@@ -122,7 +113,11 @@ class UserObjectPermissionsFilter:
         else:
             # superusers can see all users
             _queryset = queryset
-        return _queryset.distinct().order_by('id')
+        return (
+            _queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+            .distinct()
+            .order_by('id')
+        )
 
 
 class KpiObjectPermissionsFilter:
