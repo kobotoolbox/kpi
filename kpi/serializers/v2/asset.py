@@ -36,7 +36,11 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
+)
+from kpi.utils.regional_views import (
+    get_view_as_int,
     user_has_regional_asset_perm,
+    view_has_perm,
 )
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -492,11 +496,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
-    def validate_settings(self, settings):
-        if not self.instance or not settings:
-            return settings
-        return {**self.instance.settings, **settings}
-
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
         Validates `data_sharing`. It is really basic.
@@ -575,6 +574,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 t('User cannot update target parent collection'))
 
         return parent
+
+    def validate_settings(self, settings: dict) -> dict:
+        if not self.instance or not settings:
+            return settings
+        return {**self.instance.settings, **settings}
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -727,51 +731,39 @@ class AssetUrlListSerializer(AssetSerializer):
 
 
 class AssetMetadataListSerializer(AssetSerializer):
-
-
     class Meta(AssetSerializer.Meta):
-        fields = ('url',
-                  'date_modified',
-                  'date_created',
-                  'owner',
-                  'owner__username',
-                  'uid',
-                  'settings',
-                  'kind',
-                  'name',
-                  'asset_type',
-                  'version_id',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployment__active',
-                  'deployment__submission_count',
-                  'permissions',
-                  'status',
-                  'data_sharing',
-                  'data',
-                  )
+        fields = (
+            'url',
+            'date_modified',
+            'date_created',
+            'owner',
+            'owner__username',
+            'uid',
+            'settings',
+            'kind',
+            'name',
+            'asset_type',
+            'version_id',
+            'has_deployment',
+            'deployed_version_id',
+            'deployment__active',
+            'deployment__submission_count',
+            'permissions',
+            'status',
+            'data_sharing',
+            'data',
+        )
 
     def get_permissions(self, *args, **kwargs):
-        if self._view_has_perm('view_permissions'):
+        if view_has_perm(self._get_view(), 'view_permissions'):
             return super().get_permissions(*args, **kwargs)
         return []
 
     def get_data(self, *args, **kwargs):
-        if self._view_has_perm(PERM_VIEW_SUBMISSIONS):
+        if view_has_perm(self._get_view(), PERM_VIEW_SUBMISSIONS):
             return super().get_data(*args, **kwargs)
         return ''
 
-    def _view_has_perm(self, perm):
-        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
+    def _get_view(self) -> int:
         request = self.context.get('request')
-        view = request.GET.get('view')
-        if view is not None:
-            perms_for_view = [
-                perm
-                for v in regional_views
-                for perm in v['permissions']
-                if v['id'] == int(view)
-            ]
-            if perm in perms_for_view:
-                return True
-        return False
+        return get_view_as_int(request.GET.get('view'))

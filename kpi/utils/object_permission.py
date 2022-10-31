@@ -1,9 +1,7 @@
 # coding: utf-8
-import json
 from collections import defaultdict
 from typing import Union
 
-import constance
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User, Permission, AnonymousUser
@@ -283,51 +281,3 @@ def perm_parse(perm, obj=None):
         app_label = obj_app_label
         codename = perm
     return app_label, codename
-
-
-def get_regional_user_permissions(asset: 'models.Asset', user: 'auth.User') -> list:
-    regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-    regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
-
-    def _get_asset_countries(asset: 'models.Asset') -> list:
-        countries = asset.settings.get('country')
-        if countries is not None and isinstance(countries, list):
-            return [c['value'] for c in countries]
-        return [countries['value']] if countries else []
-
-    asset_countries = _get_asset_countries(asset)
-
-    # views that asset is in
-    views_for_asset = [
-        view
-        for view in regional_views
-        if (set(asset_countries) & set(view['countries']))
-        or ('*' == view['countries'])
-    ]
-    if not views_for_asset:
-        return []
-
-    # view ids that user is in
-    view_ids_for_user = [
-        v['view']
-        for v in regional_assignments
-        if v['username'] == user.username
-    ]
-    if not view_ids_for_user:
-        return []
-
-    # views that both the user and asset are in
-    views_for_user_and_asset = [
-        v for v in views_for_asset if v['id'] in view_ids_for_user
-    ]
-    if not views_for_user_and_asset:
-        return []
-
-    # permissions for asset
-    return [perm for v in views_for_user_and_asset for perm in v['permissions']]
-
-
-def user_has_regional_asset_perm(
-    asset: 'models.Asset', user: 'auth.User', perm: str
-) -> bool:
-    return perm in get_regional_user_permissions(asset, user)
