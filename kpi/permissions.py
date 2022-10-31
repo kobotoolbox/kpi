@@ -13,10 +13,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
-from kpi.utils.object_permission import (
-    get_database_user,
-    get_regional_user_permissions,
-)
+from kpi.utils.object_permission import get_database_user
+from kpi.utils.regional_views import get_regional_user_permissions_for_asset
 
 
 # FIXME: Move to `object_permissions` module.
@@ -312,7 +310,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         return list(
             set(
                 user_permissions
-                + get_regional_user_permissions(asset, user)
+                + get_regional_user_permissions_for_asset(asset, user)
             )
         )
 

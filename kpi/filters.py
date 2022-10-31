@@ -1,15 +1,12 @@
 # coding: utf-8
-import json
-
-import constance
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
+from django.http import Http404
 from rest_framework import filters
 from rest_framework.request import Request
-from django.http import Http404
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
@@ -31,6 +28,11 @@ from kpi.utils.object_permission import (
     get_perm_ids_from_code_names,
 )
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.regional_views import (
+    get_region_for_view,
+    get_view_as_int,
+    user_has_view_perms,
+)
 from .models import Asset, ObjectPermission
 
 
@@ -98,9 +100,13 @@ class KpiObjectPermissionsFilter:
             # stuff. This isn't a list, though, so return it all
             return queryset
 
-        queryset = self._get_regional_queryset(request, queryset)
-        if self._return_queryset:
-            return queryset.distinct()
+        regional_view = get_view_as_int(request.GET.get('view'))
+        if regional_view is not None:
+            if not user_has_view_perms(request.user, regional_view):
+                raise Http404
+            queryset = self._get_regional_queryset(queryset, regional_view)
+            if self._return_queryset:
+                return queryset.distinct()
 
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
         if self._return_queryset:
@@ -145,25 +151,8 @@ class KpiObjectPermissionsFilter:
         )
         return queryset.filter(pk__in=asset_ids)
 
-    def _get_regional_queryset(self, request, queryset):
-        regional_views = json.loads(constance.config.REGIONAL_VIEWS)
-        regional_assignments = json.loads(constance.config.REGIONAL_ASSIGNMENTS)
-        try:
-            view = int(request.GET.get('view'))
-        except:
-            return queryset
-        # TODO: move this to a better place for permissions
-        region_users = [
-            v['username']
-            for v in regional_assignments
-            if v['view'] == view
-        ]
-        if request.user.username not in region_users:
-            raise Http404()
-        regions = [
-            r['countries'] for r in regional_views if r['id'] == view
-        ]
-        region = regions[0] if regions else []
+    def _get_regional_queryset(self, queryset: QuerySet, view: int) -> QuerySet:
+        region = get_region_for_view(view)
 
         self._return_queryset = True
         if isinstance(region, str) and '*' == region:
