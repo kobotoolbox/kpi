@@ -30,7 +30,7 @@ from kpi.utils.object_permission import (
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.regional_views import (
     get_region_for_view,
-    get_view_from_request,
+    get_view_as_int,
     user_has_view_perms,
 )
 from .models import Asset, ObjectPermission
@@ -100,7 +100,7 @@ class KpiObjectPermissionsFilter:
             # stuff. This isn't a list, though, so return it all
             return queryset
 
-        regional_view = get_view_from_request(request)
+        regional_view = get_view_as_int(request.GET.get('view'))
         if regional_view is not None:
             if not user_has_view_perms(request.user, regional_view):
                 raise Http404

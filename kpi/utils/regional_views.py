@@ -1,7 +1,7 @@
 # coding: utf-8
 import json
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Optional
 
 import constance
 from rest_framework.request import Request
@@ -28,7 +28,7 @@ class RegionalAssignment(DataDict):
 
 def get_regional_assignments() -> List[RegionalAssignment]:
     """
-    Returns a list of regional assignments defined constance.config
+    Returns a list of RegionalAssignment objects as defined in constance.config
     """
     return [
         RegionalAssignment(**ra)
@@ -38,7 +38,7 @@ def get_regional_assignments() -> List[RegionalAssignment]:
 
 def get_regional_views() -> List[RegionalView]:
     """
-    Returns a list of regional views defined constance.config
+    Returns a list of RegionalView objects as defined in constance.config
     """
     return [
         RegionalView(**rv) for rv in json.loads(constance.config.REGIONAL_VIEWS)
@@ -60,7 +60,7 @@ def get_asset_countries(asset: 'models.Asset') -> List[str]:
     return [countries['value']] if countries else []
 
 
-def get_regional_user_permissions(
+def get_regional_user_permissions_for_asset(
     asset: 'models.Asset', user: 'auth.User'
 ) -> List[str]:
     """
@@ -110,7 +110,7 @@ def user_has_regional_asset_perm(
     Returns True if user has specified permission for asset within region if
     not explicitly granted through Asset.assign_perm()
     """
-    return perm in get_regional_user_permissions(asset, user)
+    return perm in get_regional_user_permissions_for_asset(asset, user)
 
 
 def user_has_view_perms(user: 'auth.User', view: int) -> bool:
@@ -147,9 +147,7 @@ def get_region_for_view(view: int) -> List[str]:
     return regions[0] if regions else []
 
 
-def get_regional_views_for_user(
-    user: 'auth.User', view: int
-) -> List[RegionalView]:
+def get_regional_views_for_user(user: 'auth.User') -> List[RegionalView]:
     """
     Returns a list of all available regional views for a user
     """
@@ -161,12 +159,11 @@ def get_regional_views_for_user(
     return [v for v in get_regional_views() if v.id in views_for_user]
 
 
-def get_view_from_request(request: Request) -> int:
+def get_view_as_int(view: Optional[str]) -> int:
     """
     Returns an int value for the view specified in the query params of the
     request
     """
-    view = request.GET.get('view')
     if view is not None:
         try:
             view = int(view)
