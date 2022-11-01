@@ -198,7 +198,7 @@ class AssetActionButtons extends React.Component<
   }
 
   viewContainingCollection() {
-    if (!this.props.asset?.parent) {
+    if (this.props.asset.parent === null) {
       return;
     }
     const parentArr = this.props.asset.parent.split('/');
