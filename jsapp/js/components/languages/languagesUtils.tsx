@@ -55,7 +55,7 @@ export class AsyncLanguageDisplayLabel extends React.Component<
         isLoading: false,
       });
     } catch (error) {
-      console.error(`Language ${this.props.code} not found`);
+      console.error(`Language ${this.props.code} not found 5`);
       this.setState({isLoading: false});
     }
   }

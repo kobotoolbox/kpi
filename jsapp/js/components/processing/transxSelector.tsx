@@ -54,7 +54,7 @@ export default class TransxSelector extends React.Component<
         try {
           languageName = await languagesStore.getLanguageName(languageCode);
         } catch (error) {
-          console.error(`Language ${languageCode} not found`);
+          console.error(`Language ${languageCode} not found 4`);
         } finally {
           // Just a safe check if language codes list didn't change while we waited
           // for the response.

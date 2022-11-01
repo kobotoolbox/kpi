@@ -171,7 +171,7 @@ class LanguageSelector extends React.Component<
           this.setState({sourceLanguage: language});
         }
       } catch (error) {
-        console.error(`Language ${this.props.sourceLanguage} not found`);
+        console.error(`Language ${this.props.sourceLanguage} not found 1`);
       }
     }
   }
@@ -194,7 +194,7 @@ class LanguageSelector extends React.Component<
             this.setState({suggestedLanguages: newLanguages});
           }
         } catch (error) {
-          console.error(`Language ${languageCode} not found`);
+          console.error(`Language ${languageCode} not found 2`);
         }
       });
     }
