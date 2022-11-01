@@ -289,12 +289,29 @@ class AssetVersionApiTests(BaseTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         resp = self.client.get(self.version_list_url, format='json')
-        self.assertEqual(resp.data['count'], 0)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         _version_detail_url = reverse(self._get_endpoint('asset-version-detail'),
                                       args=(self.asset.uid, self.version.uid))
         resp2 = self.client.get(_version_detail_url)
         self.assertEqual(resp2.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(resp2.data['detail'], 'Not found.')
+
+    def test_view_access_to_version(self):
+        """
+        Test user with submissions permissions can view versions list
+        """
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        user = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(user, PERM_VIEW_SUBMISSIONS)
+        resp = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['count'], 1)
+        _version_detail_url = reverse(self._get_endpoint('asset-version-detail'),
+                                      args=(self.asset.uid, self.version.uid))
+        resp2 = self.client.get(_version_detail_url)
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp2.data.get('uid'), self.version.uid)
 
 
 class AssetDetailApiTests(BaseAssetDetailTestCase):
