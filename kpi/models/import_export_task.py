@@ -650,16 +650,10 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        #self.result.save(filename, ContentFile(b''))
-        # FileField files are opened read-only by default and must be
-        # closed and reopened to allow writing
-        # https://code.djangoproject.com/ticket/13809
-        #self.result.close()
-        #self.result.file.close()
-
         storage_class = get_storage_class()()
-        absolute_filename = export_upload_to(self, filename)
-
+        absolute_filename = storage_class.generate_filename(
+            export_upload_to(self, filename)
+        )
         with storage_class.open(absolute_filename, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
@@ -695,9 +689,12 @@ class ExportTaskBase(ImportExportTask):
 
         self.result = absolute_filename
 
-        # Restore the FileField to its typical state
-        # self.result.open('rb')
-        self.save(update_fields=['result', 'last_submission_time'])
+        if not self.pk:
+            # In tests, exports are not saved into the DB before calling this
+            # method, thus we cannot update only specific fields.
+            self.save()
+        else:
+            self.save(update_fields=['result', 'last_submission_time'])
 
     def delete(self, *args, **kwargs):
         # removing exported file from storage
