@@ -347,6 +347,11 @@ interface AssetRequestObject {
   paired_data: string;
 }
 
+export type AssetDownloads = Array<{
+  format: string;
+  url: string;
+}>;
+
 /**
  * This is the complete asset object we use throught the Frontend code. It is
  * built upon the object we get from Backend responses (i.e. we extend a few
@@ -398,10 +403,7 @@ export interface AssetResponse extends AssetRequestObject {
     csv?: string;
   };
   deployment__submission_count: number;
-  downloads: Array<{
-    format: string;
-    url: string;
-  }>;
+  downloads: AssetDownloads;
   embeds: Array<{
     format: string;
     url: string;

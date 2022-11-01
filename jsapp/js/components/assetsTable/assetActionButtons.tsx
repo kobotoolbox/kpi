@@ -11,7 +11,7 @@ import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
@@ -20,7 +20,7 @@ import {
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
-import type {AssetResponse} from 'js/dataInterface';
+import type {AssetResponse, AssetDownloads} from 'js/dataInterface';
 import {
   isAnyLibraryItemRoute,
   getRouteAssetUid,
@@ -29,6 +29,10 @@ import {
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
+
+bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
+bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
+bem.AssetActionButtons__iconButton = makeBem(bem.AssetActionButtons, 'icon-button', 'a');
 
 const assetActions = mixins.clickAssets.click.asset;
 
@@ -194,7 +198,7 @@ class AssetActionButtons extends React.Component<
   }
 
   viewContainingCollection() {
-    if (!this.props.asset?.parent) {
+    if (this.props.asset.parent === null) {
       return;
     }
     const parentArr = this.props.asset.parent.split('/');
@@ -235,7 +239,7 @@ class AssetActionButtons extends React.Component<
 
   renderMoreActions() {
     const assetType = this.props.asset.asset_type;
-    let downloads: Array<{format: string; url: string;}> = [];
+    let downloads: AssetDownloads = [];
     if (assetType !== ASSET_TYPES.collection.id) {
       downloads = this.props.asset.downloads;
     }
