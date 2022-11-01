@@ -14,7 +14,7 @@ from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
 from .utils import google_credentials_from_constance_config
 
 GS_BUCKET_PREFIX = 'speech_tmp'
-REQUEST_TIMEOUT = 30 # seconds
+REQUEST_TIMEOUT = 5 # seconds
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
 SYNC_MAX_LENGTH = timedelta(seconds=59)
