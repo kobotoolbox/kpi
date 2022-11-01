@@ -20,7 +20,7 @@ import {
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
-import type {AssetResponse} from 'js/dataInterface';
+import type {AssetResponse, AssetDownloads} from 'js/dataInterface';
 import {
   isAnyLibraryItemRoute,
   getRouteAssetUid,
@@ -239,7 +239,7 @@ class AssetActionButtons extends React.Component<
 
   renderMoreActions() {
     const assetType = this.props.asset.asset_type;
-    let downloads: Array<{format: string; url: string;}> = [];
+    let downloads: AssetDownloads = [];
     if (assetType !== ASSET_TYPES.collection.id) {
       downloads = this.props.asset.downloads;
     }
