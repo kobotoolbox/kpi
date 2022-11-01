@@ -19,6 +19,7 @@ import requests
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
+from django.core.files.storage import get_storage_class
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -133,7 +134,7 @@ class ImportExportTask(models.Model):
             self.status = self.COMPLETE
         except ExportTaskBase.InaccessibleData as e:
             msgs['error_type'] = t('Cannot access data')
-            msg['error'] = str(e)
+            msgs['error'] = str(e)
             self.status = self.ERROR
         # TODO: continue to make more specific exceptions as above until this
         # catch-all can be removed entirely
@@ -212,16 +213,16 @@ class ImportTask(ImportExportTask):
                 filename_from_header = parse_options_header(
                     response.headers['Content-Disposition']
                 )
-            
+
                 try:
                     filename = filename_from_header[1]['filename']
                 except (TypeError, IndexError, KeyError):
                     pass
-            
+
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
-            # When a file is uploaded as base64, 
+            # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
 
@@ -649,14 +650,17 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        self.result.save(filename, ContentFile(b''))
+        #self.result.save(filename, ContentFile(b''))
         # FileField files are opened read-only by default and must be
         # closed and reopened to allow writing
         # https://code.djangoproject.com/ticket/13809
-        self.result.close()
-        self.result.file.close()
+        #self.result.close()
+        #self.result.file.close()
 
-        with self.result.storage.open(self.result.name, 'wb') as output_file:
+        storage_class = get_storage_class()()
+        absolute_filename = export_upload_to(self, filename)
+
+        with storage_class.open(absolute_filename, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
@@ -689,9 +693,11 @@ class ExportTaskBase(ImportExportTask):
             elif export_type == 'spss_labels':
                 export.to_spss_labels(output_file)
 
+        self.result = absolute_filename
+
         # Restore the FileField to its typical state
-        self.result.open('rb')
-        self.save(update_fields=['last_submission_time'])
+        # self.result.open('rb')
+        self.save(update_fields=['result', 'last_submission_time'])
 
     def delete(self, *args, **kwargs):
         # removing exported file from storage
