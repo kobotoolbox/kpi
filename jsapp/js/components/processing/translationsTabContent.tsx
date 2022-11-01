@@ -396,7 +396,13 @@ export default class TranslationsTabContent extends React.Component<
 
         <h2>{t('Translation provider')}</h2>
 
-        <p>{t('Please note that the audio will be sent outside of the KoBoToolbox platform and shared with Google. This is the only API provider available at the moment. If you do not want to share data with Google, please cancel this operation.')}</p>
+        <p>{t(
+          'Automated translation is provided by Google Cloud Platform. By using '
+          + 'this service you agree that your transcript text will be sent to '
+          + "Google's servers for the purpose of translation. However, it will not "
+          + "be stored on Google's servers beyond the very short period needed for "
+          + 'completing the translation.'
+        )}</p>
 
         <bem.ProcessingBody__footer>
           <bem.ProcessingBody__footerCenterButtons>
