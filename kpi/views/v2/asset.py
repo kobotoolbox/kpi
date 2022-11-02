@@ -62,7 +62,6 @@ from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.tasks import regional_export_in_background
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
-from kpi.utils.regional_exports import get_views_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
     get_database_user,
@@ -72,6 +71,7 @@ from kpi.utils.regional_views import (
     get_regional_views_for_user,
     get_view_as_int,
     user_has_regional_asset_perm,
+    user_has_view_perms,
 )
 
 
@@ -748,13 +748,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
     def export(self, request):
         user = request.user
-        views_for_user = get_views_for_user(user)
         if request.method == 'GET':
-            view = request.GET.get('view')
-            if view is not None:
-                view = int(view)
+            view = get_view_as_int(request.GET.get('view'))
 
-            if view not in views_for_user:
+            if not user_has_view_perms(user, view):
                 raise Http404
 
             export = RegionalExportTask.objects.filter(
@@ -773,17 +770,25 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 }
             )
         elif request.method == 'POST':
+            # TODO: move to serializer
             data = request.data
             if not 'view' in data:
                 raise serializers.ValidationError('`view` must be specifed')
 
-            if data['view'] not in views_for_user:
-                raise Http404
+            view = get_view_as_int(data['view'])
 
-            # we are only interested in project exports here
-            data.update({'type': 'p'})
+            if not user_has_view_perms(user, view):
+                raise exceptions.PermissionDenied(
+                    'User does not have permission to export this project view'
+                )
+
+            # we are only interested in asset exports here
             regional_export_task = RegionalExportTask.objects.create(
-                user=user, data=data
+                user=user,
+                data={
+                    'view': view,
+                    'type': 'p',
+                },
             )
 
             # Have Celery run the export in the background

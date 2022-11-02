@@ -1,19 +1,19 @@
 import csv
-import json
-import sys
 from io import StringIO
-from typing import Union
+from typing import Union, List, Tuple
 
-import constance
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import CharField, Count, F, Q
 from django.db.models.functions import Cast
+from django.db.models.query import QuerySet
 
 from kpi.models.asset import Asset
 from kpi.utils.regional_views import (
     get_regional_assignments,
     get_regional_views,
+    get_region_for_view,
+    user_has_view_perms,
 )
 
 
@@ -86,87 +86,50 @@ def get_row_value(row: dict, col: str) -> Union[str, int, float, bool, None]:
     return val
 
 
-def get_q(countries_for_user, export_type):
+def get_q(countries: List[str], export_type: str) -> QuerySet:
     q = Q()
 
-    if '*' in countries_for_user:
+    if '*' in countries:
         return q
 
     if export_type == 'p':
-        q = Q(settings__country__in=countries_for_user)
-        for country in countries_for_user:
+        q = Q(settings__country__in=countries)
+        for country in countries:
             q |= Q(settings__country__contains=[{'value': country}])
     else:
-        for country in countries_for_user:
+        for country in countries:
             q |= Q(extra_details__data__country__contains=[{'value': country}])
 
     return q
 
 
-def get_data(filtered_queryset, export_type):
+def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
     if export_type == 'p':
         vals = ASSET_FIELDS + (SETTINGS,)
-        data = (
-            filtered_queryset.annotate(
-                owner__name=F('owner__extra_details__data__name'),
-                owner__organization=F(
-                    'owner__extra_details__data__organization'
-                ),
-                deployment__active=F('_deployment_data__active'),
-                deployment__submission_count=F(
-                    '_deployment_data__num_of_submissions'
-                ),
-            )
-            .values(*vals)
-            .order_by('id')
+        data = filtered_queryset.annotate(
+            owner__name=F('owner__extra_details__data__name'),
+            owner__organization=F('owner__extra_details__data__organization'),
+            deployment__active=F('_deployment_data__active'),
+            deployment__submission_count=F(
+                '_deployment_data__num_of_submissions'
+            ),
         )
     else:
         vals = USER_FIELDS + (METADATA,)
-        data = (
-            filtered_queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
-            .annotate(
-                mfa_is_active=F('mfa_methods__is_active'),
-                metadata=F('extra_details__data'),
-                date_joined_str=Cast('date_joined', CharField()),
-                last_login_str=Cast('last_login', CharField()),
-                asset_count=Count('assets'),
-            )
-            .values(*vals)
-            .order_by('id')
+        data = filtered_queryset.exclude(
+            pk=settings.ANONYMOUS_USER_ID
+        ).annotate(
+            mfa_is_active=F('mfa_methods__is_active'),
+            metadata=F('extra_details__data'),
+            date_joined_str=Cast('date_joined', CharField()),
+            last_login_str=Cast('last_login', CharField()),
+            asset_count=Count('assets'),
         )
 
-    return data
+    return data.values(*vals).order_by('id')
 
 
-def get_all_countries_for_user(views_for_user):
-    """
-    Get all countries from all views assigned to user
-    """
-    return list(
-        set(
-            cc
-            for c in get_regional_views()
-            for cc in c.countries
-            if c.id in views_for_user and 'view_asset' in c.permissions
-        )
-    )
-
-
-def get_countries_for_user_and_view(views_for_user, view):
-    return [
-        cc for c in get_regional_views() for cc in c.countries if c.id == view
-    ]
-
-
-def get_views_for_user(user):
-    return [
-        v.view
-        for v in get_regional_assignments()
-        if v.username == user.username
-    ]
-
-
-def get_columns(export_type):
+def get_columns(export_type: str) -> Tuple[str, Tuple[str]]:
     if export_type == 'p':
         key = SETTINGS
         columns = ASSET_FIELDS + SETTINGS_FIELDS
@@ -176,48 +139,25 @@ def get_columns(export_type):
     return key, columns
 
 
-def get_queryset(export_type):
+def get_queryset(export_type: str) -> QuerySet:
     return Asset.objects.all() if export_type == 'p' else User.objects.all()
 
 
-def run_regional_export(*args):
-    if len(args) < 2:
-        raise Exception(
-            'Export type and username must be included in --script-args'
-        )
-
-    export_type = args[0]
+def create_regional_export(
+    export_type: str, username: str, view: int
+) -> StringIO:
     if export_type not in ['p', 'u']:
-        raise Exception(
-            'Specify projects (p) or users (u) export in first argument of --script-args'
-        )
+        raise Exception('Specify projects (p) or users (u) export')
 
-    username = args[1]
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         raise Exception('User does not exist')
 
-    view = None
-    if len(args) == 3:
-        view = int(args[2])
-
     queryset = get_queryset(export_type)
+    region_for_view = get_region_for_view(view)
 
-    views_for_user = get_views_for_user(user)
-    if not views_for_user:
-        raise Exception('User does not have a view assigned to them')
-
-    if view is None:
-        countries_for_user = get_all_countries_for_user(views_for_user)
-    elif view in views_for_user:
-        countries_for_user = get_countries_for_user_and_view(
-            views_for_user, view
-        )
-    else:
-        raise Exception(f'User does not have view {view} assigned to them')
-
-    q = get_q(countries_for_user, export_type)
+    q = get_q(region_for_view, export_type)
     filtered_queryset = queryset.filter(q)
     data = get_data(filtered_queryset, export_type)
     key, columns = get_columns(export_type)

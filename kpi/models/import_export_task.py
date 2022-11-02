@@ -64,7 +64,8 @@ from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
 )
 from kpi.utils.strings import to_str
-from kpi.utils.regional_exports import run_regional_export
+from kpi.utils.regional_exports import create_regional_export
+from kpi.utils.regional_views import get_view_as_int
 from kpi.zip_importer import HttpContentParse
 
 
@@ -414,7 +415,11 @@ class RegionalExportTask(ImportExportTask):
 
     def _run_task(self, messages):
         export_type = self.data.get('type', '').lower()
-        view = self.data.get('view')
+        if export_type not in ['p', 'u']:
+            raise Exception('`type` must be either "p" or "u"')
+        view = get_view_as_int(self.data.get('view'))
+        if view is None:
+            raise Exception('`view` must be an integer value')
 
         filename = self._build_export_filename(
             export_type, self.user.username, view
@@ -426,10 +431,10 @@ class RegionalExportTask(ImportExportTask):
         self.result.close()
         self.result.file.close()
 
-        data = run_regional_export(export_type, self.user.username, view)
+        buff = create_regional_export(export_type, self.user.username, view)
 
         with self.result.storage.open(self.result.name, 'wb') as output_file:
-            output_file.write(data.read().encode())
+            output_file.write(buff.read().encode())
 
         # Restore the FileField to its typical state
         self.result.open('rb')

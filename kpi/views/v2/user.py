@@ -12,7 +12,7 @@ from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.models import RegionalExportTask
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 from kpi.tasks import sync_kobocat_xforms, regional_export_in_background
-from kpi.utils.regional_exports import get_views_for_user
+from kpi.utils.regional_views import user_has_view_perms, get_view_as_int
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -119,13 +119,10 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def export(self, request):
         user = request.user
-        views_for_user = get_views_for_user(user)
         if request.method == 'GET':
-            view = request.GET.get('view')
-            if view is not None:
-                view = int(view)
+            view = get_view_as_int(request.GET.get('view'))
 
-            if view not in views_for_user:
+            if not user_has_view_perms(user, view):
                 raise Http404
 
             export = RegionalExportTask.objects.filter(
@@ -144,17 +141,25 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 }
             )
         elif request.method == 'POST':
+            # TODO: move to serializer
             data = request.data
             if not 'view' in data:
                 raise serializers.ValidationError('`view` must be specifed')
 
-            if data['view'] not in views_for_user:
-                raise Http404
+            view = get_view_as_int(data['view'])
 
-            # we are only interested in project exports here
-            data.update({'type': 'u'})
+            if not user_has_view_perms(user, view):
+                raise exceptions.PermissionDenied(
+                    'User does not have permission to export this user view'
+                )
+
+            # we are only interested in user exports here
             regional_export_task = RegionalExportTask.objects.create(
-                user=user, data=data
+                user=user,
+                data={
+                    'view': view,
+                    'type': 'u',
+                },
             )
 
             # Have Celery run the export in the background
