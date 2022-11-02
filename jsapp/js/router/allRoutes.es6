@@ -9,10 +9,10 @@ import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import AccountSettings from 'js/components/account/accountSettingsRoute';
-import DataStorage from 'js/components/account/dataStorageRoute';
-import SecurityRoute from 'js/components/account/securityRoute';
-import PlanRoute from 'js/components/account/planRoute';
+import AccountSettings from 'js/account/accountSettingsRoute';
+import DataStorage from 'js/account/dataStorageRoute';
+import SecurityRoute from 'js/account/securityRoute';
+import PlanRoute from 'js/account/planRoute';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';

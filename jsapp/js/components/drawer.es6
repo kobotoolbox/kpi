@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {lazy, Suspense} from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -9,7 +9,6 @@ import bem from 'js/bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
-import AccountSidebar from 'js/components/account/accountSidebar';
 import HelpBubble from 'js/components/support/helpBubble';
 import {
   COMMON_QUERIES,
@@ -20,6 +19,8 @@ import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
+
+const AccountSidebar = lazy(() => import("js/account/accountSidebar"));
 
 const INITIAL_STATE = {
   headerFilters: 'forms',
@@ -157,7 +158,9 @@ class Drawer extends Reflux.Component {
           }
 
           { this.isAccount() &&
-            <AccountSidebar/>
+            <Suspense fallback={null}>
+              <AccountSidebar/>
+            </Suspense>
           }
 
           { !this.isLibrary() && !this.isAccount() &&
