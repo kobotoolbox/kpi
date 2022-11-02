@@ -4,6 +4,7 @@ import copy
 import json
 from io import StringIO
 
+from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -26,6 +27,12 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
+from kpi.tests.test_regional_views_utils import config as regional_config
+from kpi.utils.regional_views import (
+    RegionalView,
+    get_region_for_view,
+    get_regional_views,
+)
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -248,6 +255,69 @@ class AssetListApiTests(BaseAssetTestCase):
             'ordering': 'name',
         })
         assert expected_order_by_name_collections_first == uids
+
+class AssetRegionalListApiTests(BaseAssetTestCase):
+    fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
+        self.asset_views_url = reverse(self._get_endpoint('asset-views'))
+        asset_country_settings = [
+            [
+                {'value': 'ZAF', 'label': 'South Africa'},
+                {'value': 'USA', 'label': 'United States'},
+            ],
+            [
+                {'value': 'CAN', 'label': 'Canada'},
+            ],
+        ]
+        for i, asset in enumerate(Asset.objects.all()[:2]):
+            asset.settings.update({'country': asset_country_settings[i]})
+            asset.save()
+
+    @override_config(**regional_config)
+    def test_regional_views_list(self):
+        res = self.client.get(self.asset_views_url)
+        data = res.json()
+        # someuser should only see view 0 and 1
+        assert len(data) == 2
+        assert data[0]['id'] == 0
+        assert data[1]['id'] == 1
+
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        res = self.client.get(self.asset_views_url)
+        data = res.json()
+        # another should only see view 1 and 2
+        assert len(data) == 2
+        assert data[0]['id'] == 1
+        assert data[1]['id'] == 2
+
+    @override_config(**regional_config)
+    def test_regional_asset_views_for_someuser(self):
+        res = self.client.get(self.asset_views_url)
+        data = res.json()
+        view_0_url = data[0]['url']
+        regional_res = self.client.get(
+            view_0_url, HTTP_ACCEPT='application/json'
+        )
+        assert regional_res.json()['count'] == 2
+
+        view_1_url = data[1]['url']
+        regional_res = self.client.get(
+            view_1_url, HTTP_ACCEPT='application/json'
+        )
+        regional_data = regional_res.json()
+        assert regional_data['count'] == 1
+        asset_countries = set(
+            c['value']
+            for c in regional_data['results'][0]['settings']['country']
+        )
+        region_for_view = set(get_region_for_view(1))
+        assert asset_countries & region_for_view
 
 
 class AssetVersionApiTests(BaseTestCase):

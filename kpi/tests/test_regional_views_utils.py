@@ -1,10 +1,8 @@
 # coding: utf-8
 import json
 
-import constance
 from constance.test import override_config
 from django.contrib.auth.models import User
-from rest_framework.request import Request
 
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
@@ -35,12 +33,18 @@ config = {
             {
                 'id': 1,
                 'label': 'Test view 1',
-                'countries': ['ZAF', 'ALB', 'USA'],
+                'countries': ['ZAF', 'NAM', 'ZWE', 'MOZ', 'BWA', 'LSO'],
                 'permissions': [
                     'view_asset',
                     'view_submissions',
                     'change_metadata',
                 ],
+            },
+            {
+                'id': 2,
+                'label': 'Test view 2',
+                'countries': ['USA', 'CAN'],
+                'permissions': ['view_asset'],
             },
         ]
     ),
@@ -48,6 +52,8 @@ config = {
         [
             {'username': 'someuser', 'view': 0},
             {'username': 'someuser', 'view': 1},
+            {'username': 'anotheruser', 'view': 1},
+            {'username': 'anotheruser', 'view': 2},
         ]
     ),
 }
@@ -136,7 +142,9 @@ class RegionalViewsUtilsTestCase(BaseTestCase):
     @override_config(**config)
     def test_get_region_for_view(self):
         assert '*' == get_region_for_view(0)
-        assert sorted(['ZAF', 'ALB', 'USA']) == sorted(get_region_for_view(1))
+        assert sorted(['BWA', 'LSO', 'MOZ', 'NAM', 'ZAF', 'ZWE']) == sorted(
+            get_region_for_view(1)
+        )
 
     @override_config(**config)
     def test_get_regional_views_for_user(self):
