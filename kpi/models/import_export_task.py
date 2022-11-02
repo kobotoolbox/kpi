@@ -2,6 +2,7 @@
 import base64
 import datetime
 import dateutil.parser
+import os
 import posixpath
 import re
 import tempfile
@@ -18,8 +19,7 @@ import constance
 import requests
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
-from django.core.files.base import ContentFile
-from django.core.files.storage import get_storage_class
+from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -650,11 +650,9 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        storage_class = get_storage_class()()
-        absolute_filename = storage_class.generate_filename(
-            export_upload_to(self, filename)
-        )
-        with storage_class.open(absolute_filename, 'wb') as output_file:
+        absolute_filename = self.get_absolute_filename(filename)
+
+        with self.result.storage.open(absolute_filename, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
@@ -700,6 +698,65 @@ class ExportTaskBase(ImportExportTask):
         # removing exported file from storage
         self.result.delete(save=False)
         super().delete(*args, **kwargs)
+
+    def get_absolute_filename(self, filename: str) -> str:
+        """
+        Get absolute filename related to storage root.
+        """
+
+        storage_class = self.result.storage
+        filename = self.result.field.generate_filename(self, filename)
+
+        # We used to call `self.result.save(filename, ContentFile(b''))` before
+        # reopening the file in write mode.
+        # ```
+        #    self.result.save(filename, ContentFile(b''))
+        #    # FileField files are opened read-only by default and must be
+        #    # closed and reopened to allow writing
+        #    # https://code.djangoproject.com/ticket/13809
+        #    self.result.close()
+        #    self.result.file.close()
+        # ```
+        # But it does not work with AzureStorage.
+        # AzureStorage raises an error if we try to write into an existing file
+        # when setting `AZURE_OVERWRITES_FILES` is False.
+        # Unfortunately, `self.result.save()` does few things that we need to
+        # reimplement here:
+        # - Create parent folders (if they do not exist) for local storage
+        # - Get a unique filename if filename already exists on storage
+
+        # Copied from `FileSystemStorage._save()`
+        if isinstance(storage_class, FileSystemStorage):
+            full_path = storage_class.path(filename)
+
+            # Create any intermediate directories that do not exist.
+            directory = os.path.dirname(full_path)
+            if not os.path.exists(directory):
+                try:
+                    if storage_class.directory_permissions_mode is not None:
+                        # os.makedirs applies the global umask, so we reset it,
+                        # for consistency with file_permissions_mode behavior.
+                        old_umask = os.umask(0)
+                        try:
+                            os.makedirs(
+                                directory, storage_class.directory_permissions_mode
+                            )
+                        finally:
+                            os.umask(old_umask)
+                    else:
+                        os.makedirs(directory)
+                except FileExistsError:
+                    # There's a race between os.path.exists() and os.makedirs().
+                    # If os.makedirs() fails with FileExistsError, the directory
+                    # was created concurrently.
+                    pass
+            if not os.path.isdir(directory):
+                raise IOError("%s exists and is not a directory." % directory)
+
+            # Store filenames with forward slashes, even on Windows.
+            filename = filename.replace('\\', '/')
+
+        return storage_class.get_available_name(filename)
 
     def get_export_object(
         self, source: Optional[Asset] = None
