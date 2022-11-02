@@ -16,6 +16,9 @@ import {FILTER_CONDITIONS, FILTER_FIELDS} from './projectsViewConstants';
 import './projectsFilterEditor.scss';
 
 bem.ProjectsFilterEditor = makeBem(null, 'projects-filter-editor', 'form');
+bem.ProjectsFilterEditor__column = makeBem(bem.ProjectsFilterEditor, 'column');
+bem.ProjectsFilterEditor__label = makeBem(bem.ProjectsFilterEditor, 'label', 'label');
+bem.ProjectsFiltereditor__noValue = makeBem(bem.ProjectsFilterEditor, 'no-value');
 
 interface ProjectsFilterEditorProps {
   filter: ProjectsFilterDefinition;
@@ -85,8 +88,12 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   return (
     <bem.ProjectsFilterEditor>
       {/* Filter field selector */}
-      <div>
-        <label>{t('Filter by')}</label>
+      <bem.ProjectsFilterEditor__column>
+        {!props.hideLabels &&
+          <bem.ProjectsFilterEditor__label>
+            {t('Filter by')}
+          </bem.ProjectsFilterEditor__label>
+        }
         <KoboSelect
           name={generateUid()}
           type='outline'
@@ -98,11 +105,15 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           onChange={onFieldSelectorChange}
           placeholder={t('Select field')}
         />
-      </div>
+      </bem.ProjectsFilterEditor__column>
 
       {/* Filter condition selector */}
-      <div>
-        <label>{t('Condition')}</label>
+      <bem.ProjectsFilterEditor__column>
+        {!props.hideLabels &&
+          <bem.ProjectsFilterEditor__label>
+            {t('Condition')}
+          </bem.ProjectsFilterEditor__label>
+        }
         <KoboSelect
           name={generateUid()}
           type='outline'
@@ -114,26 +125,37 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           onChange={onConditionSelectorChange}
           placeholder={t('Select condition')}
         />
-      </div>
+      </bem.ProjectsFilterEditor__column>
 
       {/* Filter value */}
-      {isValueRequired() &&
-        <TextBox
-          customModifiers='on-white'
-          value={props.filter.value || ''}
-          onChange={onFilterValueChange}
-          label={props.hideLabels ? undefined : t('Value')}
-          placeholder={t('Enter value')}
-        />
-      }
+      <bem.ProjectsFilterEditor__column>
+        {!props.hideLabels &&
+          <bem.ProjectsFilterEditor__label>
+            {t('Value')}
+          </bem.ProjectsFilterEditor__label>
+        }
+        {!isValueRequired() &&
+          <bem.ProjectsFiltereditor__noValue/>
+        }
+        {isValueRequired() &&
+          <TextBox
+            customModifiers='on-white'
+            value={props.filter.value || ''}
+            onChange={onFilterValueChange}
+            placeholder={t('Enter value')}
+          />
+        }
+      </bem.ProjectsFilterEditor__column>
 
-      <Button
-        type='bare'
-        color='red'
-        size='m'
-        onClick={props.onDelete}
-        startIcon='trash'
-      />
+      <bem.ProjectsFilterEditor__column>
+        <Button
+          type='bare'
+          color='red'
+          size='m'
+          onClick={props.onDelete}
+          startIcon='trash'
+        />
+      </bem.ProjectsFilterEditor__column>
     </bem.ProjectsFilterEditor>
   );
 }

@@ -7,16 +7,13 @@ import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import KoboModalContent from 'js/components/modals/koboModalContent';
-import KoboModalFooter from 'js/components/modals/koboModalFooter';
-import type {
-  FilterConditionName,
-  ProjectsFilterDefinition,
-} from './projectsViewConstants';
+import type {ProjectsFilterDefinition} from './projectsViewConstants';
 import ProjectsFilterEditor from './projectsFilterEditor';
 import './projectsFilter.scss';
 
 bem.ProjectsFilter = makeBem(null, 'projects-filter');
+bem.ProjectsFilter__modalContent = makeBem(bem.ProjectsFilter, 'modal-content');
+bem.ProjectsFilter__modalFooter = makeBem(bem.ProjectsFilter, 'modal-footer', 'footer');
 
 interface ProjectsFilterProps {
   /** A list of existing filters (if any are defined). */
@@ -112,14 +109,14 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           {'Table filter'}
         </KoboModalHeader>
 
-        <KoboModalContent>
+        <bem.ProjectsFilter__modalContent>
           {filters.map((filter, filterIndex) => (
             <ProjectsFilterEditor
               key={filterIndex}
               filter={filter}
               // We want the labels only for first editor.
               hideLabels={filterIndex !== 0}
-              onFilterChange={(filter) => {onFilterEditorChange(filterIndex, filter);}}
+              onFilterChange={(newFilter) => {onFilterEditorChange(filterIndex, newFilter);}}
               onDelete={() => {onFilterEditorDelete(filterIndex);}}
             />
           ))}
@@ -127,9 +124,9 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           {filters.length === 0 &&
             <p>{t('There are no filters, you can add one below')}</p>
           }
-        </KoboModalContent>
+        </bem.ProjectsFilter__modalContent>
 
-        <KoboModalFooter>
+        <bem.ProjectsFilter__modalFooter>
           <Button
             type='bare'
             color='blue'
@@ -154,7 +151,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
             onClick={applyFilters}
             label={t('Apply')}
           />
-        </KoboModalFooter>
+        </bem.ProjectsFilter__modalFooter>
       </KoboModal>
     </bem.ProjectsFilter>
   );

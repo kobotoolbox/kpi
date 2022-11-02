@@ -1,1 +1,21 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'js/components/modals/koboModal.scss';
+
 .projects-filter {}
+
+.projects-filter__modal-content {
+  padding: koboModal.$kobo-modal-padding koboModal.$kobo-modal-padding 0;
+}
+
+.projects-filter__modal-footer {
+  @include mixins.centerRowFlex;
+
+  justify-content: space-between;
+  gap: sizes.$x8;
+  padding: koboModal.$kobo-modal-padding;
+
+  > *:first-child {
+    margin-right: auto
+  }
+}
