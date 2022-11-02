@@ -707,25 +707,17 @@ class ExportTaskBase(ImportExportTask):
         storage_class = self.result.storage
         filename = self.result.field.generate_filename(self, filename)
 
-        # We used to call `self.result.save(filename, ContentFile(b''))` before
-        # reopening the file in write mode.
-        # ```
-        #    self.result.save(filename, ContentFile(b''))
-        #    # FileField files are opened read-only by default and must be
-        #    # closed and reopened to allow writing
-        #    # https://code.djangoproject.com/ticket/13809
-        #    self.result.close()
-        #    self.result.file.close()
-        # ```
-        # But it does not work with AzureStorage.
-        # AzureStorage raises an error if we try to write into an existing file
-        # when setting `AZURE_OVERWRITES_FILES` is False.
+        # We cannot call `self.result.save()` before reopening the file
+        # in write mode (i.e. open(filename, 'wb')). because it does not work
+        # with AzureStorage.
         # Unfortunately, `self.result.save()` does few things that we need to
         # reimplement here:
         # - Create parent folders (if they do not exist) for local storage
         # - Get a unique filename if filename already exists on storage
 
-        # Copied from `FileSystemStorage._save()`
+        # Copied from `FileSystemStorage._save()` 😢
+        # TODO avoid duplicating Django FileSystemStorage class code and find
+        #   a way to use `self.result.save()`
         if isinstance(storage_class, FileSystemStorage):
             full_path = storage_class.path(filename)
 
