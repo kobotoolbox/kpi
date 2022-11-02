@@ -20,6 +20,7 @@ export namespace stores {
   }
   const snapshots: any
   const session: {
+    listen: (clb: Function) => void;
     currentAccount: AccountResponse
     isAuthStateKnown: boolean
     isLoggedIn: boolean

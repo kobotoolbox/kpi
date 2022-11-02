@@ -1,20 +1,41 @@
+/**
+ * NOTE: this is depracated, please try not to use it
+ */
+
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
 
-/**
- * NOTE: this is depracated, please try not to use it
- *
- * @prop {function} popoverSetVisible
- * @prop {boolean} clearPopover
- * @prop {boolean} blurEventDisabled
- * @prop {string} type
- * @prop {string[]} additionalModifiers
- * @prop {node} triggerLabel - the element that will be opening the menu, menu will be placed in relation to it
- * @prop {node} children - content od the menu, can be anything really
- */
-export default class PopoverMenu extends React.Component {
-  constructor(props) {
+interface PopoverMenuProps {
+  popoverSetVisible: () => void;
+  clearPopover: boolean;
+  blurEventDisabled?: boolean;
+  type?: string;
+  additionalModifiers?: string[];
+  /** the element that will be opening the menu, menu will be placed in relation to it */
+  triggerLabel: JSX.Element;
+  /** content of the menu, can be anything really */
+  children: JSX.Element[];
+}
+
+interface PopoverMenuState {
+  popoverVisible: boolean;
+  popoverHiding: boolean;
+  placement: string;
+}
+
+type HTMLElementEvent<T extends HTMLElement> = Event & {
+  target: T;
+  relatedTarget: T;
+};
+
+export default class PopoverMenu extends React.Component<
+  PopoverMenuProps,
+  PopoverMenuState
+> {
+  _mounted: boolean;
+
+  constructor(props: PopoverMenuProps) {
     super(props);
     this.state = {
       popoverVisible: false,
@@ -42,7 +63,7 @@ export default class PopoverMenu extends React.Component {
   //   }
   //   return null;
   // }
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: PopoverMenuProps) {
     if (this.state.popoverVisible && nextProps.clearPopover) {
       this.setState({
         popoverVisible: false,
@@ -50,8 +71,8 @@ export default class PopoverMenu extends React.Component {
     }
   }
 
-  toggle(evt) {
-    var isBlur = evt.type === 'blur';
+  toggle(evt: HTMLElementEvent<HTMLButtonElement>): boolean | void {
+    const isBlur = evt.type === 'blur';
 
     if (isBlur && this.props.blurEventDisabled) {
       return false;
@@ -83,6 +104,7 @@ export default class PopoverMenu extends React.Component {
             popoverVisible: false,
             popoverHiding: false,
           });
+          return true;
         }, 200);
     } else {
       this.setState({
@@ -95,7 +117,15 @@ export default class PopoverMenu extends React.Component {
       // 20px is a nice safety margin
       const $assetRow = $(evt.target).parents('.asset-row');
       const $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
-      if ($assetRow.offset().top > $popoverMenu.outerHeight() + $assetRow.outerHeight() + 20) {
+      const rowOffsetTop = $assetRow?.offset()?.top;
+      const rowHeight = $assetRow?.outerHeight();
+      const menuHeight = $popoverMenu?.outerHeight();
+      if (
+        rowOffsetTop &&
+        rowHeight &&
+        menuHeight &&
+        rowOffsetTop > menuHeight + rowHeight + 20
+      ) {
         this.setState({placement: 'above'});
       } else {
         this.setState({placement: 'below'});

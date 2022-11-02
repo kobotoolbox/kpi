@@ -7,14 +7,11 @@
  */
 
 import React from 'react';
-import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
-import PropTypes from 'prop-types';
-import reactMixin from 'react-mixin';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
@@ -23,37 +20,62 @@ import {
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
-import ownedCollectionsStore from './ownedCollectionsStore';
+import type {AssetResponse, AssetDownloads} from 'js/dataInterface';
+import {
+  isAnyLibraryItemRoute,
+  getRouteAssetUid,
+  isAnyFormRoute,
+} from 'js/router/routerUtils';
+import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
+
+bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
+bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
+bem.AssetActionButtons__iconButton = makeBem(bem.AssetActionButtons, 'icon-button', 'a');
 
 const assetActions = mixins.clickAssets.click.asset;
 
-/**
- * @prop {object} asset
- */
-class AssetActionButtons extends React.Component {
-  constructor(props){
+interface AssetActionButtonsProps {
+  asset: AssetResponse;
+  has_deployment?: boolean;
+  deployment__active?: boolean;
+}
+
+interface AssetActionButtonsState {
+  ownedCollections: AssetResponse[];
+  shouldHidePopover: boolean;
+  isPopoverVisible: boolean;
+  isSubscribePending: boolean;
+}
+
+class AssetActionButtons extends React.Component<
+  AssetActionButtonsProps,
+  AssetActionButtonsState
+> {
+  private unlisteners: Function[] = [];
+  hidePopoverDebounced = _.debounce(() => {
+    if (this.state.isPopoverVisible) {
+      this.setState({shouldHidePopover: true});
+    }
+  }, 500);
+
+  constructor(props: AssetActionButtonsProps) {
     super(props);
     this.state = {
       ownedCollections: ownedCollectionsStore.data.collections,
       shouldHidePopover: false,
       isPopoverVisible: false,
-      isSubscribePending: false
+      isSubscribePending: false,
     };
-    this.unlisteners = [];
-    this.hidePopoverDebounced = _.debounce(() => {
-      if (this.state.isPopoverVisible) {
-        this.setState({shouldHidePopover: true});
-      }
-    }, 500);
     autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(ownedCollectionsStore, this.onOwnedCollectionsStoreChanged);
+    ownedCollectionsStore.listen(this.onOwnedCollectionsStoreChanged.bind(this), this);
     this.unlisteners.push(
-      actions.library.subscribeToCollection.completed.listen(this.onSubscribingCompleted),
-      actions.library.unsubscribeFromCollection.completed.listen(this.onSubscribingCompleted),
+      actions.library.subscribeToCollection.completed.listen(this.onSubscribingCompleted.bind(this)),
+      actions.library.unsubscribeFromCollection.completed.listen(this.onSubscribingCompleted.bind(this)),
     );
   }
 
@@ -62,13 +84,11 @@ class AssetActionButtons extends React.Component {
   }
 
   onSubscribingCompleted() {
-    this.setState({ isSubscribePending: false });
+    this.setState({isSubscribePending: false});
   }
 
-  onOwnedCollectionsStoreChanged(storeData) {
-    this.setState({
-      ownedCollections: storeData.collections
-    });
+  onOwnedCollectionsStoreChanged(storeData: OwnedCollectionsStoreData) {
+    this.setState({ownedCollections: storeData.collections});
   }
 
   // methods for inner workings of component
@@ -123,11 +143,11 @@ class AssetActionButtons extends React.Component {
   /**
    * Navigates out of nonexistent paths after asset was successfuly deleted
    */
-  onDeleteComplete(assetUid) {
-    if (this.isLibrarySingle() && this.currentAssetID() === assetUid) {
+  onDeleteComplete(assetUid: string) {
+    if (isAnyLibraryItemRoute() && getRouteAssetUid() === assetUid) {
       hashHistory.push(ROUTES.LIBRARY);
     }
-    if (this.isFormSingle() && this.currentAssetID() === assetUid) {
+    if (isAnyFormRoute() && getRouteAssetUid() === assetUid) {
       hashHistory.push(ROUTES.FORMS);
     }
   }
@@ -162,21 +182,25 @@ class AssetActionButtons extends React.Component {
     );
   }
 
-  moveToCollection(collectionUrl) {
+  /** Pass `null` to remove from collection. */
+  moveToCollection(collectionUrl: string | null) {
     actions.library.moveToCollection(this.props.asset.uid, collectionUrl);
   }
 
   subscribeToCollection() {
-    this.setState({ isSubscribePending: true });
+    this.setState({isSubscribePending: true});
     actions.library.subscribeToCollection(this.props.asset.url);
   }
 
   unsubscribeFromCollection() {
-    this.setState({ isSubscribePending: true });
+    this.setState({isSubscribePending: true});
     actions.library.unsubscribeFromCollection(this.props.asset.uid);
   }
 
   viewContainingCollection() {
+    if (this.props.asset.parent === null) {
+      return;
+    }
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
     hashHistory.push(`/library/asset/${parentAssetUid}`);
@@ -188,10 +212,11 @@ class AssetActionButtons extends React.Component {
 
     // when editing a child from within a collection page
     // make sure the "Return to list" button goes back to collection
-    const currentAssetUid = this.currentAssetID();
+    const currentAssetUid = getRouteAssetUid();
     if (
       this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
       this.props.asset.parent !== null &&
+      currentAssetUid !== null &&
       this.props.asset.parent.includes(currentAssetUid)
     ) {
       const backPath = ROUTES.LIBRARY_ITEM.replace(':uid', currentAssetUid);
@@ -214,11 +239,11 @@ class AssetActionButtons extends React.Component {
 
   renderMoreActions() {
     const assetType = this.props.asset.asset_type;
-    let downloads = [];
+    let downloads: AssetDownloads = [];
     if (assetType !== ASSET_TYPES.collection.id) {
       downloads = this.props.asset.downloads;
     }
-    const userCanEdit = this.userCan('change_asset', this.props.asset);
+    const userCanEdit = mixins.permissions.userCan('change_asset', this.props.asset);
     const isDeployable = (
       assetType === ASSET_TYPES.survey.id &&
       this.props.asset.deployed_version_id === null
@@ -263,17 +288,15 @@ class AssetActionButtons extends React.Component {
           </bem.PopoverMenu__link>
         }
 
-        {downloads.map((dl) => {
-          return (
-            <bem.PopoverMenu__link
-              href={dl.url}
-              key={`dl-${dl.format}`}
-            >
-              <i className={`k-icon k-icon-file-${dl.format}`}/>
-              {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
-            </bem.PopoverMenu__link>
-          );
-        })}
+        {downloads.map((dl) =>
+          <bem.PopoverMenu__link
+            href={dl.url}
+            key={`dl-${dl.format}`}
+          >
+            <i className={`k-icon k-icon-file-${dl.format}`}/>
+            {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
+          </bem.PopoverMenu__link>
+        )}
 
         {userCanEdit &&
           assetType !== ASSET_TYPES.survey.id &&
@@ -401,11 +424,13 @@ class AssetActionButtons extends React.Component {
     }
 
     const assetType = this.props.asset.asset_type;
-    const userCanEdit = this.userCan('change_asset', this.props.asset);
+    const userCanEdit = mixins.permissions.userCan('change_asset', this.props.asset);
     const hasDetailsEditable = (
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id
     );
+
+    const routeAssetUid = getRouteAssetUid()
 
     return (
       <bem.AssetActionButtons
@@ -474,8 +499,9 @@ class AssetActionButtons extends React.Component {
           </bem.AssetActionButtons__iconButton>
         }
 
-        {this.props.asset.parent !== null &&
-          !this.props.asset.parent.includes(this.currentAssetID()) &&
+        { routeAssetUid &&
+          this.props.asset.parent !== null &&
+          !this.props.asset.parent.includes(routeAssetUid) &&
           <bem.AssetActionButtons__iconButton
             onClick={this.viewContainingCollection}
             data-tip={t('View containing Collection')}
@@ -490,12 +516,5 @@ class AssetActionButtons extends React.Component {
     );
   }
 }
-
-reactMixin(AssetActionButtons.prototype, mixins.contextRouter);
-reactMixin(AssetActionButtons.prototype, mixins.permissions);
-reactMixin(AssetActionButtons.prototype, Reflux.ListenerMixin);
-AssetActionButtons.contextTypes = {
-  router: PropTypes.object
-};
 
 export default AssetActionButtons;
