@@ -1,7 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-} from 'react';
+import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
@@ -13,6 +10,7 @@ import type {
   ProjectsFilterDefinition,
 } from './projectsViewConstants';
 import {FILTER_CONDITIONS, FILTER_FIELDS} from './projectsViewConstants';
+import {isFilterConditionValueRequired} from './projectsViewUtils';
 import './projectsFilterEditor.scss';
 
 bem.ProjectsFilterEditor = makeBem(null, 'projects-filter-editor', 'form');
@@ -29,8 +27,6 @@ interface ProjectsFilterEditorProps {
 }
 
 export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
-  const [filter, setFilter] = useState(props.filter);
-
   const onFilterValueChange = (newValue: string) => {
     props.onFilterChange({
       fieldName: props.filter.fieldName,
@@ -61,16 +57,6 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       condition: conditionValue,
       value: props.filter.value,
     });
-  };
-
-  const isValueRequired = () => {
-    if (props.filter.condition) {
-      const conditionDefinition = FILTER_CONDITIONS[props.filter.condition];
-      if (conditionDefinition) {
-        return conditionDefinition.requiresValue;
-      }
-    }
-    return true;
   };
 
   const getFieldSelectorOptions = () => (
@@ -134,10 +120,10 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             {t('Value')}
           </bem.ProjectsFilterEditor__label>
         }
-        {!isValueRequired() &&
+        {!isFilterConditionValueRequired(props.filter.condition) &&
           <bem.ProjectsFiltereditor__noValue/>
         }
-        {isValueRequired() &&
+        {isFilterConditionValueRequired(props.filter.condition) &&
           <TextBox
             customModifiers='on-white'
             value={props.filter.value || ''}

@@ -9,7 +9,12 @@ import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import type {ProjectsFilterDefinition} from './projectsViewConstants';
 import ProjectsFilterEditor from './projectsFilterEditor';
+import {removeIncorrectFilters} from './projectsViewUtils';
 import './projectsFilter.scss';
+
+// If there are "many" filters being displayed, we want the modal content to be
+// styled a bit differently, so we define how much is "many" here:
+const MANY_FILTERS_AMOUNT = 5;
 
 bem.ProjectsFilter = makeBem(null, 'projects-filter');
 bem.ProjectsFilter__modalContent = makeBem(bem.ProjectsFilter, 'modal-content');
@@ -34,8 +39,6 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
     }
   };
 
-  console.log('ProjectsFilter', props);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters());
 
@@ -48,20 +51,20 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
   };
 
   const addFilter = () => {
-    console.log('add filter!');
     const newFilters = clonedeep(filters);
     newFilters.push({});
     setFilters(newFilters);
   };
 
   const applyFilters = () => {
-    console.log('apply filters');
-    // props.onFiltersChange(filters);
+    props.onFiltersChange(removeIncorrectFilters(filters));
+    toggleModal();
   };
 
   const resetFilters = () => {
-    console.log('reset filters');
-    // props.onFiltersChange(filters);
+    // Sending empty filters
+    props.onFiltersChange([]);
+    toggleModal();
   };
 
   const onFilterEditorChange = (filterIndex: number, filter: ProjectsFilterDefinition) => {
@@ -79,7 +82,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
   const getTriggerLabel = () => {
     let outcome = t('filter');
     if (props.filters.length >= 1) {
-      outcome += `&nbsp;(${props.filters.length})`;
+      outcome += ` (${props.filters.length})`;
     }
     return outcome;
   };
@@ -109,7 +112,9 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           {'Table filter'}
         </KoboModalHeader>
 
-        <bem.ProjectsFilter__modalContent>
+        <bem.ProjectsFilter__modalContent m={{
+          'has-many-filters': filters.length >= MANY_FILTERS_AMOUNT,
+        }}>
           {filters.map((filter, filterIndex) => (
             <ProjectsFilterEditor
               key={filterIndex}

@@ -22,3 +22,4 @@ require('../jsapp/js/components/formBuilder/formBuilderUtils.tests');
 require('../jsapp/js/assetUtils.tests');
 require('../jsapp/js/components/locking/lockingUtils.tests');
 require('../jsapp/js/components/submissions/submissionUtils.tests');
+require('../jsapp/js/components/projectsView/projectsViewUtils.tests');
