@@ -28,7 +28,10 @@ config = {
                 'id': 0,
                 'label': 'Overview',
                 'countries': '*',
-                'permissions': ['view_asset', 'view_permissions'],
+                'permissions': [
+                    'view_asset',
+                    'view_permissions',
+                ],
             },
             {
                 'id': 1,
@@ -44,7 +47,10 @@ config = {
                 'id': 2,
                 'label': 'Test view 2',
                 'countries': ['USA', 'CAN'],
-                'permissions': ['view_asset'],
+                'permissions': [
+                    'view_asset',
+                    'view_permissions',
+                ],
             },
         ]
     ),

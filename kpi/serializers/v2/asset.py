@@ -173,10 +173,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if not asset.has_perm(
             user, 'change_asset'
         ) and user_has_regional_asset_perm(asset, user, 'change_metadata'):
-            _validated_data = {
-                'settings': validated_data['settings'],
-                'name': validated_data['name'],
-            }
+            _validated_data = {}
+            settings = validated_data.get('settings')
+            if settings:
+                _validated_data['settings'] = settings
+            name = validated_data.get('name')
+            if name:
+                _validated_data['name'] = name
             return super().update(asset, _validated_data)
 
         asset_content = asset.content
