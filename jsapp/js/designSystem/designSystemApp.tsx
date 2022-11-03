@@ -13,7 +13,7 @@ import RadioDemo from 'js/designSystem/radioDemo'
 import TextBoxDemo from 'js/designSystem/textboxDemo'
 import './demo.scss'
 
-import ProjectsFilter from 'js/components/projectsView/projectsFilter'; // TODO TEMP TEST DELETE ME
+import ProjectsViewTempDemo from 'js/designSystem/projectsViewTempDemo';
 
 /**
  * This is an app for displaying our design system. It is meant as both
@@ -27,14 +27,8 @@ export default class DesignSystemApp extends React.Component {
   render() {
     return (
       <section className='design-system'>
-        {/*TODO TEMP TEST DELETE ME*/}
-        <ProjectsFilter
-          onFiltersChange={(filters) => {console.log(filters);}}
-          filters={[]}
-        />
-        {/*END TODO TEMP TEST DELETE ME*/}
-
         <div className='design-system__demo-wrapper'>
+          <ProjectsViewTempDemo/>
           <ButtonDemo/>
           <CheckboxDemo/>
           <IconDemo/>
