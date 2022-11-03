@@ -268,7 +268,6 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
         asset_country_settings = [
             [
                 {'value': 'ZAF', 'label': 'South Africa'},
-                {'value': 'USA', 'label': 'United States'},
             ],
             [
                 {'value': 'CAN', 'label': 'Canada'},
@@ -304,7 +303,7 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
         self._login_as_anotheruser()
         res = self.client.get(self.asset_views_url)
         data = res.json()
-        # another should only see view 1 and 2
+        # anotheruser should only see view 1 and 2
         assert len(data) == 2
         assert data[0]['id'] == 1
         assert data[1]['id'] == 2
@@ -339,7 +338,7 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
         data = res.json()
         expected_vals = [
             {'view': 1, 'count': 1},
-            {'view': 2, 'count': 2},
+            {'view': 2, 'count': 1},
         ]
         for i, item in enumerate(expected_vals):
             regional_res = self.client.get(
@@ -411,14 +410,17 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
         change_metadata_res = self.client.patch(
             asset_data['url'], data={'name': 'A new name'}
         )
-        assert change_metadata_res.status_code == 201
+        assert change_metadata_res.status_code == status.HTTP_200_OK
 
-        # anotheruser can see permissions for view 2
+        # anotheruser cannot change metadata for view 2
         regional_res = self.client.get(
             data[1]['url'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
-        assert asset_data['permissions']
+        change_metadata_res = self.client.patch(
+            asset_data['url'], data={'name': 'A new name'}
+        )
+        assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
 
 
 class AssetVersionApiTests(BaseTestCase):
