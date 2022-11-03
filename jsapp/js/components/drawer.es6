@@ -19,6 +19,7 @@ import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
+import { routerIsActive } from '../router/legacy';
 
 const AccountSidebar = lazy(() => import("js/account/accountSidebar"));
 
@@ -137,6 +138,11 @@ class Drawer extends Reflux.Component {
       stores.pageState,
     ];
   }
+
+  isAccount() {
+    return routerIsActive(ROUTES.ACCOUNT_ROOT);
+  }
+
   render() {
     // no sidebar for not logged in users
     if (!stores.session.isLoggedIn) {

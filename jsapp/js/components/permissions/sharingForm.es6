@@ -19,7 +19,7 @@ import {
   ANON_USERNAME,
 } from 'js/constants';
 import './sharingForm.scss';
-import {ROUTES} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
@@ -132,7 +132,7 @@ class SharingForm extends React.Component {
                       'Anyone can see this blank form and add submissions to it ' +
                       'because you have not set [your account] to require authentication.'
                     ),
-                    `/#${ROUTES.ACCOUNT_SETTINGS}`
+                    `/#${ACCOUNT_ROUTES.ACCOUNT_SETTINGS}`
                   )
                 )}} />
               }

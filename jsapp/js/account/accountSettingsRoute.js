@@ -1,6 +1,7 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import { Link } from 'react-router-dom';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import clonedeep from 'lodash.clonedeep';
@@ -15,7 +16,7 @@ import {
   addRequiredToLabel,
   stringToColor,
 } from 'utils';
-import {ROUTES} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from './routes';
 import { Prompt } from "js/router/legacy"
 import envStore from 'js/envStore';
 import './accountSettings.scss';
@@ -261,12 +262,12 @@ export default class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='password'>
-                <a
-                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
+                <Link
+                  to={ACCOUNT_ROUTES.CHANGE_PASSWORD}
                   className='kobo-button kobo-button--blue'
                 >
                   {t('Modify Password')}
-                </a>
+                </Link>
               </bem.AccountSettings__item>
 
               <ApiTokenDisplay/>

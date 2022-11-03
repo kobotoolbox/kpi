@@ -45,14 +45,6 @@ export function isRootRoute(): boolean {
   return getCurrentPath() === ROUTES.ROOT;
 }
 
-export function isAccountSettingsRoute(): boolean {
-  return getCurrentPath() === ROUTES.ACCOUNT_SETTINGS;
-}
-
-export function isChangePasswordRoute(): boolean {
-  return getCurrentPath() === ROUTES.CHANGE_PASSWORD;
-}
-
 export function isLibraryRoute(): boolean {
   return getCurrentPath() === ROUTES.LIBRARY;
 }

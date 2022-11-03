@@ -4,7 +4,7 @@ import {observer} from 'mobx-react-lite';
 import bem from 'js/bem';
 import Icon from 'js/components/common/icon';
 import envStore from 'js/envStore';
-import {ROUTES} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from './routes';
 import {IconName} from 'jsapp/fonts/k-icons';
 import './accountSidebar.scss';
 import subscriptionStore from './subscriptionStore';
@@ -45,12 +45,12 @@ function AccountSidebar() {
       <AccountNavLink
         iconName='user'
         name={t('Profile')}
-        to={ROUTES.ACCOUNT_SETTINGS}
+        to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
       />
       <AccountNavLink
         iconName='lock-alt'
         name={t('Security')}
-        to={ROUTES.SECURITY}
+        to={ACCOUNT_ROUTES.SECURITY}
       />
       {env.isReady &&
         env.data.stripe_public_key &&
@@ -58,7 +58,7 @@ function AccountSidebar() {
           <AccountNavLink
             iconName='editor'
             name={t('Your Plan')}
-            to={ROUTES.PLAN}
+            to={ACCOUNT_ROUTES.PLAN}
           />
         )}
     </bem.FormSidebar>

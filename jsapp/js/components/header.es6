@@ -19,7 +19,7 @@ import {
 import {getLoginUrl} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
 import {COMMON_QUERIES} from 'js/constants';
-import {ROUTES} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
@@ -111,7 +111,7 @@ class MainHeader extends Reflux.Component {
   accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
-      this.props.router.navigate(ROUTES.ACCOUNT_SETTINGS);
+      this.props.router.navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     });
   }
 

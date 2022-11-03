@@ -9,10 +9,6 @@ import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import AccountSettings from 'js/account/accountSettingsRoute';
-import DataStorage from 'js/account/dataStorageRoute';
-import SecurityRoute from 'js/account/securityRoute';
-import PlanRoute from 'js/account/planRoute';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
@@ -23,6 +19,7 @@ import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {Tracking} from './useTracking';
 import { history } from './historyRouter';
+import accountRoutes from 'js/account/routes';
 
 // Workaround https://github.com/remix-run/react-router/issues/8139
 import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
@@ -38,9 +35,6 @@ const FormSummary = React.lazy(() =>
 );
 const FormSubScreens = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/formSubScreens')
-);
-const ChangePassword = React.lazy(() =>
-  import(/* webpackPrefetch: true */ 'js/components/changePassword')
 );
 const FormXform = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/formXform')
@@ -124,33 +118,15 @@ export default class AllRoutes extends React.Component {
       return <LoadingSpinner />;
     }
 
-    const isLoggedIn = stores.session.isLoggedIn;
-
     return (
       <HistoryRouter history={history}>
         <Tracking />
         <Routes>
           <Route path={ROUTES.ROOT} element={<App />}>
             <Route path='' element={<Navigate to={ROUTES.FORMS} replace />} />
-            <Route path={ROUTES.SECURITY} element={<SecurityRoute />} />
-            <Route path={ROUTES.PLAN} element={<PlanRoute />} />
-            <Route path={ROUTES.DATA_STORAGE} element={<DataStorage />} />
-            <Route
-              path={ROUTES.ACCOUNT_SETTINGS}
-              element={
-                <RequireAuth>
-                  <AccountSettings />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path={ROUTES.CHANGE_PASSWORD}
-              element={
-                <RequireAuth>
-                  <ChangePassword />
-                </RequireAuth>
-              }
-            />
+            <Route path={ROUTES.ACCOUNT_ROOT}>
+              {accountRoutes()}
+            </Route>
             <Route path={ROUTES.LIBRARY}>
               <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} />} />
               <Route

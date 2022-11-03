@@ -1043,15 +1043,6 @@ mixins.contextRouter = {
       routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
-  isAccount() {
-    return (
-      routerIsActive(ROUTES.ACCOUNT_SETTINGS) ||
-      routerIsActive(ROUTES.DATA_STORAGE) ||
-      routerIsActive(ROUTES.SECURITY) ||
-      routerIsActive(ROUTES.PLAN) ||
-      routerIsActive(ROUTES.CHANGE_PASSWORD)
-    );
-  },
 };
 
 export default mixins;
