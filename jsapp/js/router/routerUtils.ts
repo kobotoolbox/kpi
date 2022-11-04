@@ -42,7 +42,7 @@ export function getCurrentPath(): string {
  */
 
 export function isRootRoute(): boolean {
-  return getCurrentPath() === ROUTES.ROOT;
+  return getCurrentPath() === ROUTES.ROOT || window.location.pathname === ROUTES.ROOT;
 }
 
 export function isLibraryRoute(): boolean {

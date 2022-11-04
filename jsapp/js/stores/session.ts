@@ -20,17 +20,17 @@ class SessionStore {
   verifyLogin() {
     this.isPending = true;
     dataInterface.getProfile().then(
-      action('verifyLoginSuccess', (account: AccountResponse) => {
+      action('verifyLoginSuccess', (account: AccountResponse | {message: string}) => {
         this.isPending = false;
         this.isInitialLoadComplete = true;
         this.isAuthStateKnown = true;
-        this.isLoggedIn = true;
-        this.currentAccount = account;
+        if ("email" in account) {
+          this.currentAccount = account;
+          this.isLoggedIn = true;
+        }
       }),
       action('verifyLoginFailure', (xhr: any) => {
         this.isPending = false;
-        console.log(xhr);
-        ``;
         log('login not verified', xhr.status, xhr.statusText);
       })
     );

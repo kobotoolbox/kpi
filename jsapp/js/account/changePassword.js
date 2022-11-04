@@ -1,18 +1,17 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
+import { observer } from 'mobx-react';
+import sessionStore from "js/stores/session";
 import {actions} from '../actions';
 import bem from 'js/bem';
-import {stores} from '../stores';
 import TextBox from 'js/components/common/textBox';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
 
-class ChangePassword extends React.Component {
+const ChangePassword = class ChangePassword extends React.Component {
   constructor(props) {
     super(props);
     this.errors = {};
@@ -176,7 +175,4 @@ class ChangePassword extends React.Component {
   }
 }
 
-reactMixin(ChangePassword.prototype, Reflux.connect(sessionStore, 'session'));
-reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);
-
-export default withRouter(ChangePassword);
+export default observer(withRouter(ChangePassword));

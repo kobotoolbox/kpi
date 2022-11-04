@@ -1,4 +1,5 @@
 import React, {Suspense} from 'react';
+import {observe} from 'mobx';
 import {observer} from 'mobx-react';
 import autoBind from 'react-autobind';
 import {Navigate, Routes} from 'react-router-dom';
@@ -19,12 +20,11 @@ import RequireAuth from 'js/router/requireAuth';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import sessionStore from 'js/stores/session';
 import {Tracking} from './useTracking';
-import { history } from './historyRouter';
+import {history} from './historyRouter';
 import accountRoutes from 'js/account/routes';
 
 // Workaround https://github.com/remix-run/react-router/issues/8139
 import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
-import { observe } from 'mobx';
 
 const Reports = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/reports/reports')
@@ -98,6 +98,8 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
       newStateObj.isSessionReady = data.isSessionReady;
     }
 
+    console.log(sessionStore.isLoggedIn, isRootRoute())
+
     if (
       newStateObj.isPermsConfigReady &&
       newStateObj.isSessionReady &&
@@ -107,6 +109,7 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
       // If all necessary data is obtained, and user is not logged in, and on
       // the root route, redirect immediately to the login page outside
       // the React app, and skip setting the state (so no content blink).
+      console.log("REDIRECT!!!!!!!!!!!")
       redirectToLogin();
     } else {
       this.setState(newStateObj);

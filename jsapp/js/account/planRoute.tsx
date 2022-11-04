@@ -1,7 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
-import AccessDenied from 'jsapp/js/router/accessDenied';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
 import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
