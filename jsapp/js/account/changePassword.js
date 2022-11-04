@@ -81,11 +81,11 @@ class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session.isLoggedIn) {
+    if(!sessionStore.isLoggedIn) {
       return null;
     }
 
-    var accountName = stores.session.currentAccount.username;
+    var accountName = sessionStore.currentAccount.username;
     var initialsStyle = {
       background: `#${stringToColor(accountName)}`
     };
@@ -176,7 +176,7 @@ class ChangePassword extends React.Component {
   }
 }
 
-reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
+reactMixin(ChangePassword.prototype, Reflux.connect(sessionStore, 'session'));
 reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);
 
 export default withRouter(ChangePassword);

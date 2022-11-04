@@ -17,7 +17,7 @@ export class AssetTagsForm extends React.Component {
     super(props);
 
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       tags: this.props.asset?.tag_string || '',
       isPending: false,
     };
@@ -28,7 +28,7 @@ export class AssetTagsForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    this.listenTo(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(

@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
+import { observer } from 'mobx-react';
 import autoBind from 'react-autobind';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
+import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
 import { withRouter } from "js/router/legacy";
 import Reflux from 'reflux';
@@ -27,7 +29,7 @@ import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import envStore from 'js/envStore';
 
-class MainHeader extends Reflux.Component {
+const MainHeader = class MainHeader extends Reflux.Component {
   constructor(props){
     super(props);
     this.state = assign({
@@ -41,7 +43,6 @@ class MainHeader extends Reflux.Component {
       }),
     }, stores.pageState.state);
     this.stores = [
-      stores.session,
       stores.pageState,
     ];
     this.unlisteners = [];
@@ -180,9 +181,9 @@ class MainHeader extends Reflux.Component {
     if (envStore.isReady && envStore.data.interface_languages) {
       langs = envStore.data.interface_languages;
     }
-    if (stores.session.isLoggedIn) {
-      var accountName = stores.session.currentAccount.username;
-      var accountEmail = stores.session.currentAccount.email;
+    if (sessionStore.isLoggedIn) {
+      var accountName = sessionStore.currentAccount.username;
+      var accountEmail = sessionStore.currentAccount.email;
 
       var initialsStyle = {background: `#${stringToColor(accountName)}`};
       var accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;
@@ -249,8 +250,8 @@ class MainHeader extends Reflux.Component {
   }
 
   renderGitRevInfo() {
-    if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
-      var gitRev = stores.session.currentAccount.git_rev;
+    if (sessionStore.currentAccount && sessionStore.currentAccount.git_rev) {
+      var gitRev = sessionStore.currentAccount.git_rev;
       return (
         <bem.GitRev>
           <bem.GitRev__item>
@@ -271,7 +272,7 @@ class MainHeader extends Reflux.Component {
   }
 
   render() {
-    const isLoggedIn = stores.session.isLoggedIn;
+    const isLoggedIn = sessionStore.isLoggedIn;
 
     let userCanEditAsset = false;
     if (this.state.asset) {
@@ -291,7 +292,7 @@ class MainHeader extends Reflux.Component {
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            {stores.session.isLoggedIn &&
+            {sessionStore.isLoggedIn &&
               <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
                 <i className='k-icon k-icon-menu' />
               </bem.Button>
@@ -345,4 +346,4 @@ reactMixin(MainHeader.prototype, mixins.permissions);
 
 MainHeader.contextTypes = {router: PropTypes.object};
 
-export default withRouter(MainHeader);
+export default observer(withRouter(MainHeader));

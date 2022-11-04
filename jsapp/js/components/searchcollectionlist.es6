@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import {searches} from 'js/searches';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import {dataInterface} from 'js/dataInterface';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -81,7 +82,7 @@ class SearchCollectionList extends Reflux.Component {
   }
 
   renderAssetRow(resource) {
-    var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
+    var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username;
     var isSelected = stores.selectedAsset.uid === resource.uid;
     var ownedCollections = this.state.ownedCollections;
 
@@ -195,7 +196,7 @@ class SearchCollectionList extends Reflux.Component {
   }
 
   render() {
-    if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
+    if (!sessionStore.isLoggedIn && sessionStore.isAuthStateKnown) {
       redirectToLogin();
       return null;
     }

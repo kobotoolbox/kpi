@@ -52,13 +52,6 @@ export function withRouter(Component: FC) {
   return ComponentWithRouterProp;
 }
 
-/** Use usePrompt directly instead for functional components */
-export const Prompt = () => {
-  // Hard coded message to discourage usage
-  usePrompt(t('You have unsaved changes. Leave settings without saving?'));
-  return <></>;
-};
-
 function getCurrentRoute() {
   return location.hash.split('#')[1] || '';
 }

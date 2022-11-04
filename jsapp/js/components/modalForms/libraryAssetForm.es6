@@ -1,5 +1,6 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
+import { observer } from 'mobx-react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
@@ -10,6 +11,7 @@ import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
@@ -35,7 +37,7 @@ export class LibraryAssetFormComponent extends React.Component {
     super(props);
     this.unlisteners = [];
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       fields: {
         name: '',
         organization: '',
@@ -53,7 +55,7 @@ export class LibraryAssetFormComponent extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    observer(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(

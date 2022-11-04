@@ -1,7 +1,6 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import { Link } from 'react-router-dom';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import clonedeep from 'lodash.clonedeep';
@@ -16,8 +15,8 @@ import {
   addRequiredToLabel,
   stringToColor,
 } from 'utils';
-import {ACCOUNT_ROUTES} from './routes';
-import { Prompt } from "js/router/legacy"
+import {ROUTES} from 'js/router/routerConstants';
+import {usePrompt} from 'js/router/promptBlocker';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
 
@@ -27,6 +26,14 @@ bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
+
+
+/** Use usePrompt directly instead for functional components */
+const Prompt = () => {
+  // Hard coded message to discourage usage
+  usePrompt(t('You have unsaved changes. Leave settings without saving?'));
+  return <></>;
+};
 
 /**
  * NOTE: We have multiple components with similar form:
@@ -262,12 +269,12 @@ export default class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='password'>
-                <Link
-                  to={ACCOUNT_ROUTES.CHANGE_PASSWORD}
+                <a
+                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
                   className='kobo-button kobo-button--blue'
                 >
                   {t('Modify Password')}
-                </Link>
+                </a>
               </bem.AccountSettings__item>
 
               <ApiTokenDisplay/>

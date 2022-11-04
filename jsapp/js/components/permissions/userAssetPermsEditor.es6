@@ -169,7 +169,7 @@ class UserAssetPermsEditor extends React.Component {
   applySubmissionsAddRules(stateObj) {
     if (
       this.isAssignable(PERMISSIONS_CODENAMES.add_submissions) &&
-      stores.session.currentAccount.extra_details?.require_auth !== true
+      sessionStore.currentAccount.extra_details?.require_auth !== true
     ) {
       stateObj[CHECKBOX_NAMES.submissionsAdd] = true;
       stateObj[CHECKBOX_NAMES.submissionsAdd + SUFFIX_DISABLED] = true;

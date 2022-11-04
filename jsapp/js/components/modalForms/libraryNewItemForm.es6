@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import {
   MODAL_TYPES,
   ASSET_TYPES,
@@ -14,19 +15,20 @@ import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import {withRouter} from 'js/router/legacy';
+import { observer } from 'mobx-react';
 
 class LibraryNewItemForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
     };
 
     autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    observer(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
   }

@@ -7,6 +7,7 @@ import assetUtils from 'js/assetUtils';
 import bem from 'js/bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
+import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
@@ -18,6 +19,7 @@ import {
   MODAL_TYPES,
   COLLECTION_METHODS,
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
   notify
@@ -187,7 +189,7 @@ class FormLanding extends React.Component {
     const versionsToDisplay = this.state.deployed_versions.results.concat(
       this.state.nextPagesVersions
     );
-    const isLoggedIn = stores.session.isLoggedIn;
+    const isLoggedIn = sessionStore.isLoggedIn;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
@@ -406,7 +408,7 @@ class FormLanding extends React.Component {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   goToProjectsList() {
-    // this.props.router.navigate(ROUTES.FORMS);
+    this.props.router.navigate(ROUTES.FORMS);
   }
   nonOwnerSelfRemoval(evt) {
     evt.preventDefault();
@@ -431,7 +433,7 @@ class FormLanding extends React.Component {
       downloads = this.state.downloads;
     }
 
-    const isLoggedIn = stores.session.isLoggedIn;
+    const isLoggedIn = sessionStore.isLoggedIn;
 
     return (
       <React.Fragment>
@@ -573,7 +575,7 @@ class FormLanding extends React.Component {
   render () {
     var docTitle = this.state.name || t('Untitled');
     const userCanEdit = this.userCan('change_asset', this.state);
-    const isLoggedIn = stores.session.isLoggedIn;
+    const isLoggedIn = sessionStore.isLoggedIn;
 
     if (this.state.uid === undefined) {
       return (<LoadingSpinner/>);

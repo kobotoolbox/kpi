@@ -1,10 +1,10 @@
 import React, {Suspense} from 'react';
+import {observer} from 'mobx-react';
 import autoBind from 'react-autobind';
 import {Navigate, Routes} from 'react-router-dom';
 import App from 'js/app';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
 import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
@@ -13,16 +13,18 @@ import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {isRootRoute, redirectToLogin} from 'js/router/routerUtils';
 import RequireAuth from 'js/router/requireAuth';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import sessionStore from 'js/stores/session';
 import {Tracking} from './useTracking';
 import { history } from './historyRouter';
 import accountRoutes from 'js/account/routes';
 
 // Workaround https://github.com/remix-run/react-router/issues/8139
 import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
+import { observe } from 'mobx';
 
 const Reports = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/reports/reports')
@@ -49,19 +51,19 @@ const FormNotFound = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/formNotFound')
 );
 
-export default class AllRoutes extends React.Component {
+const AllRoutes = observer(class AllRoutes extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       isPermsConfigReady: permConfig.isReady(),
-      isSessionReady: stores.session.isAuthStateKnown,
+      isSessionReady: sessionStore.isAuthStateKnown,
     };
     autoBind(this);
   }
 
   componentDidMount() {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
-    stores.session.listen(this.onSessionChange);
+    observe(sessionStore, this.onSessionChange);
     actions.permissions.getConfig();
   }
 
@@ -71,7 +73,7 @@ export default class AllRoutes extends React.Component {
   }
 
   onSessionChange() {
-    this.setReady({isSessionReady: stores.session.isAuthStateKnown});
+    this.setReady({isSessionReady: sessionStore.isAuthStateKnown});
   }
 
   /**
@@ -99,7 +101,7 @@ export default class AllRoutes extends React.Component {
     if (
       newStateObj.isPermsConfigReady &&
       newStateObj.isSessionReady &&
-      !stores.session.isLoggedIn &&
+      !sessionStore.isLoggedIn &&
       isRootRoute()
     ) {
       // If all necessary data is obtained, and user is not logged in, and on
@@ -447,4 +449,6 @@ export default class AllRoutes extends React.Component {
       </HistoryRouter>
     );
   }
-}
+});
+
+export default AllRoutes;

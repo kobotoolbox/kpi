@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import { observer } from 'mobx-react';
 import Reflux from 'reflux';
-import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import Button from 'js/components/common/button';
 import clonedeep from 'lodash.clonedeep';
@@ -14,6 +14,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import assetUtils from 'js/assetUtils';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
@@ -71,7 +72,7 @@ class ProjectSettings extends React.Component {
     this.unlisteners = [];
 
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       isSubmitPending: false,
       formAsset: this.props.formAsset,
       // project details
@@ -105,7 +106,7 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    this.listenTo(stores.session, () => {
+    observer(sessionStore, () => {
       this.setState({
         isSessionLoaded: true,
       });

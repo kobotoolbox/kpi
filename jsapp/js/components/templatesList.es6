@@ -24,7 +24,7 @@ class TemplatesList extends React.Component {
       templates: [],
       templatesCount: 0,
       selectedTemplateUid: null,
-      currentAccountUsername: stores.session.currentAccount ? stores.session.currentAccount.username : null
+      currentAccountUsername: sessionStore.currentAccount ? sessionStore.currentAccount.username : null
     };
     autoBind(this);
   }

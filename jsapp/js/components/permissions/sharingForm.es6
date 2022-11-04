@@ -120,7 +120,7 @@ class SharingForm extends React.Component {
           {this.state.asset.name}
         </bem.Modal__subheader>
 
-        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
+        {sessionStore.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
           <bem.FormModal__item>
             <InlineMessage
               type='warning'

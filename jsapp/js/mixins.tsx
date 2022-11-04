@@ -28,6 +28,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
+import sessionStore from 'js/stores/session';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -856,7 +857,7 @@ mixins.clickAssets = {
           // Get permissions url related to current user
           const permUserUrl = perm.user.split('/');
           return (
-            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            permUserUrl[permUserUrl.length - 2] === sessionStore.currentAccount.username &&
             perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)?.url
           );
         });
@@ -935,7 +936,7 @@ mixins.permissions = {
     }
 
     // Case 3: User has only partial permission, and things are complicated
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
     const partialPerms = asset.permissions.find((perm) => (
         perm.user === buildUserUrl(currentUsername) &&
         this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
@@ -963,7 +964,7 @@ mixins.permissions = {
     if (!asset.permissions) {
       return false;
     }
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
 
     if (asset.owner__username === currentUsername) {
       return true;
@@ -990,7 +991,7 @@ mixins.permissions = {
    */
   userCanPartially(permName: string, asset: AssetResponse) {
 
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
 
     // Owners cannot have partial permissions because they have full permissions.
     // Both are contradictory.
