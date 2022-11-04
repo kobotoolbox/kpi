@@ -1,5 +1,7 @@
 # coding: utf-8
 # 😬
+from __future__ import annotations
+
 import copy
 from collections import OrderedDict
 
@@ -47,6 +49,9 @@ FLATTEN_OPTS = {
 
 
 class FormpackXLSFormUtilsMixin:
+
+    WORKING_SHEET = 'survey'
+
     def _standardize(self, content):
         if needs_standardization(content):
             standardize_content_in_place(content)
@@ -79,12 +84,31 @@ class FormpackXLSFormUtilsMixin:
 
     def _append(self, content, **sheet_data):
         settings = sheet_data.pop('settings', None)
+        is_content_versioned = self._contains_version(
+            content.get(self.WORKING_SHEET, [])
+        )
         if settings:
             self._ensure_settings(content)
             content['settings'].update(settings)
-        for (sht, rows) in sheet_data.items():
+        for sht, rows in sheet_data.items():
+            if (
+                sht == self.WORKING_SHEET
+                and is_content_versioned
+                and self._contains_version(rows)
+            ):
+                self._remove_version(content)
             if sht in content:
                 content[sht] += rows
+
+    def _contains_version(self, fields: list[str]) -> bool:
+        for field in fields:
+            try:
+                if field['name'] == '__version__':
+                    return True
+            except KeyError:
+                pass
+
+        return False
 
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
         opts = copy.deepcopy(FLATTEN_OPTS)
@@ -133,6 +157,14 @@ class FormpackXLSFormUtilsMixin:
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
+
+    def _remove_version(self, content):
+        for idx, field in enumerate(content[self.WORKING_SHEET]):
+            try:
+                if field['name'] == '__version__':
+                    del content[self.WORKING_SHEET][idx]
+            except KeyError:
+                pass
 
     def _make_default_translation_first(self, content):
         # The form builder only shows the first language, so make sure the

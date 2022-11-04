@@ -124,6 +124,7 @@ class AssetImportTaskTest(BaseTestCase):
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
+
     def test_import_asset_base64_xls(self):
         encoded_xls = base64.b64encode(self.asset.to_xlsx_io().read())
         task_data = {
