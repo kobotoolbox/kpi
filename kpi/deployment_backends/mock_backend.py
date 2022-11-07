@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 import copy
 import os
 import re
@@ -357,7 +358,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_daily_counts(self, timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
         submissions = self.get_submissions(user=self.asset.owner)
         daily_counts = defaultdict(int)
         for submission in submissions:

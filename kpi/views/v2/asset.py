@@ -366,21 +366,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'data': asset.to_ss_structure(),
         })
 
-    @action(
-        detail=True,
-        methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
-    )
-    def counts(self, request, *args, **kwargs):
-        asset = self.get_object()
-        if not asset.has_deployment:
-            raise Http404
-        context = self.get_serializer_context()
-        if 'days' in request.query_params:
-            context['days'] = request.query_params['days']
-        serializer = AssetCountsSerializer(asset, context=context)
-        return Response(serializer.data)
-
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
             serializer = self._get_clone_serializer()

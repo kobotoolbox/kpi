@@ -1,5 +1,5 @@
 # coding: utf-8
-import unicodecsv
+import csv
 
 from celery import shared_task
 from django.conf import settings
@@ -62,8 +62,8 @@ def generate_country_report(
     ]
 
     default_storage = get_storage_class()()
-    with default_storage.open(output_filename, 'wb') as output_file:
-        writer = unicodecsv.writer(output_file)
+    with default_storage.open(output_filename, 'b') as output_file:
+        writer = csv.writer(output_file)
         writer.writerow(columns)
 
         for code, label in COUNTRIES:
@@ -156,7 +156,7 @@ def generate_user_report(output_filename: str):
 
     default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'wb') as output_file:
-        writer = unicodecsv.writer(output_file)
+        writer = csv.writer(output_file)
         writer.writerow(columns)
         kc_users = KobocatUser.objects.exclude(
             pk=settings.ANONYMOUS_USER_ID

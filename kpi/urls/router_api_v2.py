@@ -6,6 +6,7 @@ from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
@@ -60,6 +61,12 @@ URL_NAMESPACE = 'api_v2'
 
 router_api_v2 = ExtendedDefaultRouterWithPathAliases()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
+
+asset_routes.register(r'counts',
+                      AssetCountsViewSet,
+                      basename='asset-counts',
+                      parents_query_lookups=['asset'],
+                      )
 
 asset_routes.register(r'files',
                       AssetFileViewSet,

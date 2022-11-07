@@ -1,4 +1,5 @@
-from dateutil.relativedelta import relativedelta
+import datetime
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -14,12 +15,13 @@ class AssetCountsSerializer(serializers.Serializer):
         fields = ('daily_submission_counts', 'total_submission_count')
 
     def get_daily_submission_counts(self, asset):
-        today = timezone.now().date()
+        today = timezone.now().date() + datetime.timedelta(days=1)
         request = self.context['request']
-        if 'days' in self.context:
-            start_date = today - relativedelta(days=int(self.context['days']))
-        else:
-            start_date = today - relativedelta(days=31)
+        try:
+            days = int(self.context['days'])
+        except ValueError:
+            raise serializers.ValidationError('`days` parameter must be an integer')
+        start_date = today - datetime.timedelta(days=days)
         daily_counts = asset.deployment.get_daily_counts(
             user=request.user, timeframe=(start_date, today)
         )

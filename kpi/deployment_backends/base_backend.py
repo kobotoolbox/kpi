@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 import abc
 import copy
 import json
@@ -107,7 +108,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_daily_counts(self, timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(

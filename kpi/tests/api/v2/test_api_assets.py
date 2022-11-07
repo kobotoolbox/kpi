@@ -496,54 +496,6 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.assertEqual(response.data['version__content_hash'],
                          self.asset.latest_version.content_hash)
 
-    def test_count_endpoint(self):
-        self.asset.content = {
-            'survey': [
-                {
-                    'type': 'select_one',
-                    'label': 'q1',
-                    'select_from_list_name': 'iu0sl99'
-                },
-            ],
-            'choices': [
-                {'name': 'a1', 'label': ['a1'], 'list_name': 'iu0sl99'},
-                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
-            ]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock', active=True)
-        submissions = [
-            {
-                '__version__': self.asset.latest_deployed_version.uid,
-                'q1': 'a1',
-                '_submitted_by': 'anotheruser',
-                '_submission_time': '2022-09-07T13:21:33',
-            },
-            {
-                '__version__': self.asset.latest_deployed_version.uid,
-                'q1': 'a3',
-                '_submitted_by': '',
-                '_submission_time': '2022-09-12T16:31:33',
-            },
-            {
-                '__version__': self.asset.latest_deployed_version.uid,
-                'q1': 'a1',
-                '_submitted_by': '',
-                '_submission_time': '2022-09-12T17:31:33',
-            },
-        ]
-
-        self.asset.deployment.mock_submissions(submissions)
-        count_url = reverse(
-            self._get_endpoint('asset-counts'), kwargs={'uid': self.asset_uid}
-        )
-
-        response = self.client.get(count_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['total_submission_count'], 3)
-        self.assertEqual(len(response.data['daily_submission_counts']), 2)
-        self.assertEqual(response.data['daily_submission_counts']['2022-09-12'], 2)
-
     def test_submission_count(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.asset.deploy(backend='mock', active=True)
