@@ -24,6 +24,7 @@ import type {AssetTypeName} from 'js/constants';
 
 interface SingleCollectionStoreData {
   isFetchingData: boolean;
+  isTranscriptInProgress: boolean;
   currentPage?: number;
   totalPages?: number;
   totalUserAssets: number | null;
@@ -56,7 +57,7 @@ class SingleCollectionStore extends Reflux.Store {
     isFetchingData: false,
     isTranscriptInProgress: false,
     currentPage: 0,
-    totalPages: null,
+    totalPages: undefined,
     totalUserAssets: null,
     totalSearchAssets: 0,
     assets: [],
