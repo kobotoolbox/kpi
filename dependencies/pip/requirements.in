@@ -2,7 +2,8 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports--modified-json#egg=formpack
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@4816baeb76e4e01368addbf3ee5837569a163c5c#egg=a1d05eba1-dorey
 
 # service-account
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
@@ -58,7 +59,12 @@ django-request-cache
 drf-extensions
 future
 geojson-rewind
+google-api-python-client
+google-cloud-speech
+google-cloud-storage
+google-cloud-translate
 jsonfield
+jsonschema
 kombu
 lxml
 oauthlib
@@ -74,7 +80,6 @@ shortuuid
 sqlparse
 static3
 tabulate
-unicodecsv
 uWSGI
 Werkzeug<=2.0.3
 xlrd

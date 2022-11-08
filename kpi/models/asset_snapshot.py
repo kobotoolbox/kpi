@@ -67,10 +67,11 @@ class AssetSnapshot(
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
+    submission_uuid = models.CharField(null=True, max_length=41)
     _reversion_version_id = models.IntegerField(null=True)
-    asset_version = models.OneToOneField('AssetVersion',
-                                         on_delete=models.CASCADE,
-                                         null=True)
+    asset_version = models.ForeignKey(
+        'AssetVersion', on_delete=models.CASCADE, null=True
+    )
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
@@ -158,6 +159,22 @@ class AssetSnapshot(
             form_title=form_title,
             id_string=id_string,
         )
+        if self.submission_uuid:
+            _xml = self.xml
+            rootUuid = self.submission_uuid.replace('uuid:', '')
+            # this code would fit best within "generate_xml_from_source" method, where
+            # additional XForm attributes are passed to formpack / pyxform at generation,
+            # but the equivalent change can be done with string replacement
+            instance_id_path = f'/{id_string}/meta/instanceID'
+            after_instanceid = '<rootUuid/>'
+            before_modelclose = '<bind calculate="\'' + rootUuid + '\'" ' + \
+                f'nodeset="/{id_string}/meta/rootUuid" ' + \
+                'required="true()" type="string"/>'
+
+            _xml = _xml.replace('<instanceID/>', f'<instanceID/>\n{after_instanceid}')
+            _xml = _xml.replace('</model>', f'{before_modelclose}\n</model>')
+            self.xml = _xml
+
         self.source = _source
         return super().save(*args, **kwargs)
 

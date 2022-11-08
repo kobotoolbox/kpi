@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
-import {Location} from 'history';
+import type {Location} from 'history';
 import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
@@ -10,31 +10,31 @@ import {
 } from 'js/router/routerUtils';
 import {actions} from 'js/actions';
 import {
-  OrderDirection,
   ORDER_DIRECTIONS,
-  ASSETS_TABLE_COLUMNS
-} from './libraryConstants';
+  ASSETS_TABLE_COLUMNS,
+} from 'js/components/assetsTable/assetsTableConstants';
+import type {OrderDirection} from 'js/components/assetsTable/assetsTableConstants';
 import {ROUTES} from 'js/router/routerConstants';
-import {
+import type {
   AssetResponse,
   AssetsResponse,
   MetadataResponse,
-  SearchAssetsPredefinedParams
-} from 'js/dataInterface'
-import {AssetTypeName} from 'js/constants'
+  SearchAssetsPredefinedParams,
+} from 'js/dataInterface';
+import type {AssetTypeName} from 'js/constants';
 
 interface MyLibraryStoreData {
-  isFetchingData: boolean
-  currentPage: number
-  totalPages: number | null
-  totalUserAssets: number | null
-  totalSearchAssets: number | null
-  assets: AssetResponse[]
-  metadata: MetadataResponse
-  orderColumnId: string
-  orderValue: OrderDirection | null | undefined
-  filterColumnId: string | null
-  filterValue: string | null
+  isFetchingData: boolean;
+  currentPage: number;
+  totalPages: number | null;
+  totalUserAssets: number | null;
+  totalSearchAssets: number | null;
+  assets: AssetResponse[];
+  metadata: MetadataResponse;
+  orderColumnId: string;
+  orderValue: OrderDirection | null | undefined;
+  filterColumnId: string | null;
+  filterValue: string | null;
 }
 
 class MyLibraryStore extends Reflux.Store {
@@ -42,13 +42,13 @@ class MyLibraryStore extends Reflux.Store {
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
-  abortFetchData?: Function
-  previousPath = getCurrentPath()
-  previousSearchPhrase = searchBoxStore.getSearchPhrase()
-  PAGE_SIZE = 100
-  DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified']
+  abortFetchData?: Function;
+  previousPath = getCurrentPath();
+  previousSearchPhrase = searchBoxStore.getSearchPhrase();
+  PAGE_SIZE = 100;
+  DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
 
-  isInitialised = false
+  isInitialised = false;
 
   data: MyLibraryStoreData = {
     isFetchingData: false,
@@ -66,10 +66,10 @@ class MyLibraryStore extends Reflux.Store {
     orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
     orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue,
     filterColumnId: null,
-    filterValue: null
-  }
+    filterValue: null,
+  };
 
-  fetchDataDebounced?: Function
+  fetchDataDebounced?: () => void;
 
   init() {
     this.fetchDataDebounced = debounce(this.fetchData.bind(this), 2500);
@@ -122,7 +122,7 @@ class MyLibraryStore extends Reflux.Store {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      collectionsFirst: true
+      collectionsFirst: true,
     };
 
     if (this.data.filterColumnId !== null) {
@@ -284,7 +284,7 @@ class MyLibraryStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted(response: {uid: string, assetType: AssetTypeName}) {
+  onDeleteAssetCompleted(response: {uid: string; assetType: AssetTypeName}) {
     if (assetUtils.isLibraryAsset(response.assetType)) {
       const found = this.findAsset(response.uid);
       if (found) {
@@ -351,15 +351,15 @@ class MyLibraryStore extends Reflux.Store {
   }
 
   findAsset(uid: string) {
-    return this.data.assets.find((asset) => {return asset.uid === uid;});
+    return this.data.assets.find((asset) => asset.uid === uid);
   }
 
   findAssetByUrl(url: string) {
-    return this.data.assets.find((asset) => {return asset.url === url;});
+    return this.data.assets.find((asset) => asset.url === url);
   }
 }
 
-const myLibraryStore = new MyLibraryStore()
-myLibraryStore.init()
+const myLibraryStore = new MyLibraryStore();
+myLibraryStore.init();
 
-export default myLibraryStore
+export default myLibraryStore;

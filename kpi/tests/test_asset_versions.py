@@ -23,11 +23,15 @@ class AssetVersionTestCase(TestCase):
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
         _vc = deepcopy(new_asset.latest_version.version_content)
+        pop_atts = ['$kuid',
+            '$autoname',
+            '$prev',
+            '$qpath',
+            '$xpath',
+            ]
         for row in _vc['survey']:
-            row.pop('$kuid')
-            row.pop('$autoname')
-            row.pop('$prev', None)
-
+            for att in pop_atts:
+                row.pop(att, None)
         self.assertEqual(_vc, {
                 'survey': [
                     {'type': 'note',

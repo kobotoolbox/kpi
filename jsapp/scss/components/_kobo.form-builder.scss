@@ -61,7 +61,7 @@ $s-form-builder-content-width: 1024px;
 
     p {
       font-family: $font_mono;
-      white-space: pre;
+      white-space: pre-wrap;
     }
 
     &__strong {
