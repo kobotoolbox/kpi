@@ -23,7 +23,6 @@ export type ButtonColor = 'blue' | 'red' | 'storm';
  * Check out `button.scss` file for exact pixel values.
  */
 export type ButtonSize = 'l' | 'm' | 's';
-const DefaultSize = 'm';
 
 /** To be used for buttons with both icon and text. */
 export const ButtonToIconMap: Map<ButtonSize, IconSize> = new Map();
@@ -49,7 +48,7 @@ interface ButtonProps {
   startIcon?: IconName;
   endIcon?: IconName;
   /** Label is optional, as sometimes we want an icon-only button. */
-  label?: ReactElement<any, any> | string;
+  label?: React.ReactNode;
   /**
    * Setting this will make a tooltip appear when hovering over button. Useful
    * for icon-only buttons.
@@ -121,8 +120,7 @@ class Button extends React.Component<ButtonProps, {}> {
       classNames.push('k-button--full-width');
     }
 
-    // Optional size, with fallback to DefaultSize.
-    const size = this.props.size || DefaultSize;
+    const size = this.props.size;
     classNames.push(`k-button--size-${size}`);
 
     // Size depends on label being there or not

@@ -227,9 +227,10 @@ export interface SurveyRow {
 export interface SurveyChoice {
   $autovalue: string;
   $kuid: string;
-  label: string[];
+  label?: string[];
   list_name: string;
   name: string;
+  'media::image'?: string[];
 }
 
 interface AssetLockingProfileDefinition {
@@ -509,6 +510,8 @@ export interface EnvironmentResponse {
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;
+  stripe_public_key: string | null;
+  stripe_pricing_table_id: string | null;
 }
 
 const DEFAULT_PAGE_SIZE = 100;
@@ -587,7 +590,6 @@ export const dataInterface: DataInterface = {
       twitter?: string;
       linkedin?: string;
       instagram?: string;
-      metadata?: string;
     };
     current_password?: string;
     new_password?: string;

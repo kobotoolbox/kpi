@@ -307,7 +307,7 @@ export function renderCheckbox(id: string, label: string, isImportant = false) {
   if (isImportant) {
     additionalClass += 'alertify-toggle-important';
   }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}" data-cy="checkbox"><span class="checkbox__label">${label}</span></label></div>`;
 }
 
 export function hasLongWords(text: string, limit = 25): boolean {

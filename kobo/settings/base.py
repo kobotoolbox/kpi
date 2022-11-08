@@ -96,6 +96,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
+    'kobo.apps.organizations',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'constance',
@@ -110,6 +111,7 @@ INSTALLED_APPS = (
     'trench',
     'kobo.apps.mfa.apps.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',
+    'kobo.apps.audit_log.AuditLogAppConfig',
 )
 
 MIDDLEWARE = [
@@ -140,6 +142,16 @@ CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
         'Allow new users to register accounts for themselves',
+    ),
+    'REGISTRATION_ALLOWED_EMAIL_DOMAINS': (
+        '',
+        'Email domains allowed to register new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE': (
+        'This email domain is not allowed to create an account',
+        'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
+        'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
@@ -486,6 +498,7 @@ TEMPLATES = [
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
                 'kpi.context_processors.mfa',
+                'kpi.context_processors.django_settings',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
@@ -510,6 +523,27 @@ if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
+
+
+''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
+STRIPE_ENABLED = False
+if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
+    STRIPE_ENABLED = True
+
+DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
+DJSTRIPE_USE_NATIVE_JSONFIELD = True
+STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
+STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
+STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
+STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
+if STRIPE_ENABLED:
+    INSTALLED_APPS += ('djstripe', "kobo.apps.stripe")
+    STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
+    STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
+    DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)
+    DJSTRIPE_WEBHOOK_VALIDATION = env.str('DJSTRIPE_WEBHOOK_VALIDATION', 'verify_signature')
+STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
 
 
 ''' Enketo configuration '''
@@ -553,6 +587,7 @@ CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'https://*.opentopomap.org',
     'https://*.arcgisonline.com'
 ]
+CSP_FRAME_SRC = CSP_DEFAULT_SRC
 
 if GOOGLE_ANALYTICS_TOKEN:
     google_domain = '*.google-analytics.com'
@@ -564,6 +599,10 @@ if RAVEN_JS_DSN_URL and RAVEN_JS_DSN_URL.scheme:
     CSP_SCRIPT_SRC.append('https://cdn.ravenjs.com')
     CSP_SCRIPT_SRC.append(raven_js_url)
     CSP_CONNECT_SRC.append(raven_js_url)
+if STRIPE_ENABLED:
+    stripe_domain = "https://js.stripe.com"
+    CSP_SCRIPT_SRC.append(stripe_domain)
+    CSP_FRAME_SRC.append(stripe_domain)
 
 csp_report_uri = env.url('CSP_REPORT_URI', None)
 if csp_report_uri:  # Let environ validate uri, but set as string
@@ -702,7 +741,6 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
         AZURE_CONTAINER = env.str('AZURE_CONTAINER')
         AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
-        AZURE_OVERWRITE_FILES = True
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
@@ -949,3 +987,10 @@ MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+SERVICE_ACCOUNT = {
+    'BACKEND': env.cache_url(
+        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://redis_cache:6380/6'
+    ),
+    'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
+}

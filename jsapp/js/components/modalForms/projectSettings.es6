@@ -893,6 +893,9 @@ class ProjectSettings extends React.Component {
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
                 label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
+                value={this.state.name}
+                onChange={this.onNameChange}
+                data-cy='title'
               />
             </bem.FormModal__item>
           }
@@ -905,6 +908,7 @@ class ProjectSettings extends React.Component {
               onChange={this.onDescriptionChange.bind(this)}
               label={t('Description')}
               placeholder={t('Enter short description here')}
+              data-cy='description'
             />
           </bem.FormModal__item>
 
@@ -918,6 +922,7 @@ class ProjectSettings extends React.Component {
                 isLimitedHeight
                 isClearable
                 error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
+                data-cy='sector'
               />
             </bem.FormModal__item>
           }
@@ -933,6 +938,7 @@ class ProjectSettings extends React.Component {
                 isLimitedHeight
                 isClearable
                 error={this.hasFieldError('country') ? t('Please select at least one country') : false}
+                data-cy='country'
               />
             </bem.FormModal__item>
           }

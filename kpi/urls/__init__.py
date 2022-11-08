@@ -10,11 +10,6 @@ from kobo.apps.mfa.views import (
     MfaLoginView,
     MfaTokenView,
 )
-from kobo.apps.superuser_stats.views import (
-    user_report,
-    country_report,
-    retrieve_reports,
-)
 from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
@@ -41,6 +36,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
+    re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
@@ -65,12 +61,15 @@ urlpatterns = [
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    path('superuser_stats/user_report/', user_report),
-    re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/country_report/', country_report),
-    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
 ]
+
+
+if settings.STRIPE_ENABLED:
+    urlpatterns = [
+        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls'))
+    ] + urlpatterns
+
 
 if settings.DEBUG and settings.ENV == 'dev':
     import debug_toolbar

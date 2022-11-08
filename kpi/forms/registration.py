@@ -103,3 +103,20 @@ class RegistrationForm(registration_forms.RegistrationForm):
                 self.fields[field_name].required = desired_metadata_fields[
                     field_name
                 ].get('required', False)
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        domain = email.split('@')[1].lower()
+        allowed_domains = (
+            constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
+        )
+        allowed_domain_list = [
+            domain.lower() for domain in allowed_domains.split('\n')
+        ]
+        # An empty domain list means all domains are allowed
+        if domain in allowed_domain_list or not allowed_domains:
+            return email
+        else:
+            raise forms.ValidationError(
+                constance.config.REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE
+            )
