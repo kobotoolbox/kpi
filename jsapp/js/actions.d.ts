@@ -149,13 +149,7 @@ export namespace actions {
       setMessageAcknowledged: GenericDefinition;
       setMessageReadTime: GenericDefinition;
     };
-    const library: {
-      moveToCollection: GenericDefinition;
-      subscribeToCollection: GenericDefinition;
-      unsubscribeFromCollection: GenericDefinition;
-      searchMyLibraryMetadata: GenericDefinition;
-      searchMyLibraryAssets: GenericDefinition;
-    };
+    const library: any;
     const submissions: {
       getSubmission: GetSubmissionDefinition;
       getSubmissionByUuid: GetSubmissionDefinition;
