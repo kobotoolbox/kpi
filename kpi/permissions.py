@@ -267,7 +267,7 @@ class ReportPermission(IsOwnerOrReadOnly):
             perm in permissions for perm in required_permissions
         )
 
-    
+
 class SubmissionPermission(AssetNestedObjectPermission):
     """
     Permissions for submissions.

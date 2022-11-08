@@ -54,8 +54,9 @@ class SingleCollectionStore extends Reflux.Store {
 
   data: SingleCollectionStoreData = {
     isFetchingData: false,
-    currentPage: undefined,
-    totalPages: undefined,
+    isTranscriptInProgress: false,
+    currentPage: 0,
+    totalPages: null,
     totalUserAssets: null,
     totalSearchAssets: 0,
     assets: [],

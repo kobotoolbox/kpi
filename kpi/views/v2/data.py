@@ -447,20 +447,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # `retrieve()` don't need Django Queryset, we only need return `None`.
         return None
 
-    def get_submission(self):
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-
-        assert lookup_url_kwarg in self.kwargs, (
-                'Expected view %s to be called with a URL keyword argument '
-                'named "%s". Fix your URL conf, or set the `.lookup_field` '
-                'attribute on the view correctly.' %
-                (self.__class__.__name__, lookup_url_kwarg)
-        )
-
-        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        print('FILTER KWARGS', filter_kwargs)
-
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
@@ -671,7 +657,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
-
+        if 'meta/rootUuid' in submission_json:
+            # this submission has been edited at least one time
+            submission_uuid = submission_json['meta/rootUuid']
+        else:
+            # never been edited
+            submission_uuid = submission_json['meta/instanceID']
         # Do not use version_uid from the submission until UI gives users the
         # possibility to choose which version they want to use
 
@@ -697,8 +688,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # of the submission disappears between the call to `build_formpack()`
         # and here, but allow a 500 error in that case because there's nothing
         # the client can do about it
-        snapshot = self.asset.versioned_snapshot(
-            version_uid=version_uid, root_node_name=xml_root_node_name
+        snapshot = self.asset.snapshot(
+            regenerate=True,
+            root_node_name=xml_root_node_name,
+            version_uid=version_uid,
+            submission_uuid=submission_uuid,
         )
 
         data = {

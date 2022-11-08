@@ -5,8 +5,11 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import Button from 'js/components/common/button';
 import 'js/components/common/audioPlayer.scss';
+import Icon from './icon';
 
 bem.AudioPlayer = makeBem(null, 'audio-player');
+bem.AudioPlayer__name = makeBem(bem.AudioPlayer, 'name', 'header');
+bem.AudioPlayer__nameIcon = makeBem(bem.AudioPlayer, 'name-icon');
 bem.AudioPlayer__controls = makeBem(bem.AudioPlayer, 'controls', 'div');
 bem.AudioPlayer__progress = makeBem(bem.AudioPlayer, 'progress', 'div');
 bem.AudioPlayer__time = makeBem(bem.AudioPlayer, 'time', 'div');
@@ -15,6 +18,8 @@ bem.AudioPlayer__timeTotal = makeBem(bem.AudioPlayer, 'time-total', 'span');
 bem.AudioPlayer__seek = makeBem(bem.AudioPlayer, 'seek', 'div');
 
 interface AudioPlayerProps {
+  /** Pass it to show a filename above the player. */
+  filename?: string;
   mediaURL: string;
   'data-cy'?: string;
 }
@@ -30,7 +35,6 @@ interface AudioPlayerState {
 /** Custom audio player for viewing audio submissions in data table */
 class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   audioInterface: HTMLAudioElement = new Audio();
-
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);
   private onAudioTimeUpdatedBound = this.onAudioTimeUpdated.bind(this);
@@ -63,6 +67,11 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
     this.audioInterface.removeEventListener('loadedmetadata', this.onAudioLoadedBound);
     this.audioInterface.removeEventListener('error', this.onAudioErrorBound);
     this.audioInterface.removeEventListener('timeupdate', this.onAudioTimeUpdatedBound);
+  }
+
+  /** Cleans up the file name to include just the name withouth path. */
+  get name() {
+    return this.props.filename?.split('/').pop();
   }
 
   onAudioError() {
@@ -114,6 +123,14 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   renderPlayer() {
     return (
       <React.Fragment>
+        {this.name !== undefined &&
+          <bem.AudioPlayer__name>
+            <bem.AudioPlayer__nameIcon>
+              <Icon name='file-audio' size='m'/>
+            </bem.AudioPlayer__nameIcon>
+            <label>{this.name}</label>
+          </bem.AudioPlayer__name>
+        }
         <bem.AudioPlayer__controls>
           <Button
             type='bare'
