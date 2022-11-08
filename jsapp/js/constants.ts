@@ -1,3 +1,5 @@
+import {IconName} from 'jsapp/fonts/k-icons'
+
 /**
  * A list of all shareable constants for the application.
  */
@@ -88,7 +90,7 @@ export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0,
-};
+}
 
 export const KEY_CODES = Object.freeze({
   TAB: 9,
@@ -97,6 +99,11 @@ export const KEY_CODES = Object.freeze({
   SPACE: 32,
   NBSP: 160, // non-breakable space
 });
+
+export enum KeyNames {
+  Enter = 'Enter',
+  Escape = 'Escape',
+};
 
 export const MODAL_TYPES = {
   SHARING: 'sharing',
@@ -264,7 +271,7 @@ export enum QuestionTypeName {
 
 interface QuestionTypeDefinition {
   label: string
-  icon: string
+  icon: IconName
   id: QuestionTypeName
 }
 
@@ -361,6 +368,8 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_tags',
   '_index',
 ]);
+
+export const SUPPLEMENTAL_DETAILS_PROP = '_supplementalDetails'
 
 export const NAME_MAX_LENGTH = 255;
 
