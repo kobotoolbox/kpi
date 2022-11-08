@@ -675,8 +675,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # )
         # version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
 
-        # Let's use the latest deployed version uid temporarily
-        version_uid = self.asset.latest_deployed_version_uid
+        # Let's use the latest **deployed** version uid temporarily
+        version_uid = self.asset.latest_deployed_version.uid
 
         # Retrieve the XML root node name from the submission. The instance's
         # root node name specified in the form XML (i.e. the first child of
@@ -743,4 +743,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = response.json()
         enketo_url = json_response.get(f'{action_}_url')
 
-        return Response({'url': enketo_url})
+        return Response(
+            {
+                'url': enketo_url,
+                'version_uid': version_uid,
+            }
+        )

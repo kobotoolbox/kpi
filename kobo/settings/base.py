@@ -110,8 +110,8 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.languages.LanguageAppConfig',
     'kobo.apps.mfa.apps.MfaAppConfig',
+    'kobo.apps.languages.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
 )
 
@@ -758,7 +758,6 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         AZURE_ACCOUNT_KEY = env.str('AZURE_ACCOUNT_KEY')
         AZURE_CONTAINER = env.str('AZURE_CONTAINER')
         AZURE_URL_EXPIRATION_SECS = env.int('AZURE_URL_EXPIRATION_SECS', None)
-        AZURE_OVERWRITE_FILES = True
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
