@@ -9,6 +9,7 @@ import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
+import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import type {ProjectFieldName} from './projectsViewConstants';
 import {PROJECT_FIELDS} from './projectsViewConstants';
@@ -106,12 +107,12 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
           {'Table filter'}
         </KoboModalHeader>
 
-        <bem.ProjectsFieldsSelector__modalContent>
+        <KoboModalContent>
           <MultiCheckbox
             items={getCheckboxes()}
             onChange={onCheckboxChange}
           />
-        </bem.ProjectsFieldsSelector__modalContent>
+        </KoboModalContent>
 
         <KoboModalFooter>
           <Button
