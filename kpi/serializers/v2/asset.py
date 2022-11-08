@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 
 from django.conf import settings
 from django.utils.translation import gettext as t
@@ -8,6 +9,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
@@ -53,6 +55,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     report_custom = WritableJSONField(required=False)
     map_styles = WritableJSONField(required=False)
     map_custom = WritableJSONField(required=False)
+    advanced_features = WritableJSONField(required=False)
+    advanced_submission_schema = serializers.SerializerMethodField()
+    analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
@@ -124,6 +129,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__submission_count',
                   'report_styles',
                   'report_custom',
+                  'advanced_features',
+                  'advanced_submission_schema',
+                  'analysis_form_json',
                   'map_styles',
                   'map_custom',
                   'content',
@@ -186,6 +194,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if exclude in fields:
                 fields.pop(exclude)
         return fields
+
+    def get_advanced_submission_schema(self, obj):
+        req = self.context.get('request')
+        url = req.build_absolute_uri(f'/advanced_submission_post/{obj.uid}')
+        return obj.get_advanced_submission_schema(url=url)
+
+    def get_analysis_form_json(self, obj):
+        return obj.analysis_form_json()
 
     def get_version_count(self, obj):
         return obj.asset_versions.count()
@@ -498,11 +514,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             else:
                 asset = self.instance
                 fields = data_sharing['fields']
-                form_pack, _unused = build_formpack(asset, submission_stream=[])
+                # We used to get all fields for every version for valid fields,
+                # but the UI shows the latest version only, so only its fields
+                # can be picked up. It is easier then to compare valid fields with
+                # user's choice.
+                form_pack, _unused = build_formpack(
+                    asset, submission_stream=[], use_all_form_versions=False
+                )
+                # We do not want to include the version field.
+                # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
+                # for field name alternatives.
                 valid_fields = [
                     f.path for f in form_pack.get_fields_for_versions(
                         form_pack.versions.keys()
-                    )
+                    ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:
@@ -510,6 +535,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                         'Some fields are invalid, '
                         'choices are: `{valid_fields}`'
                     ).format(valid_fields='`,`'.join(valid_fields))
+
+                # Force `fields` to be an empty list to avoid useless parsing when
+                # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<paired_data_uid>/external.xml)
+                if sorted(valid_fields) == sorted(fields):
+                    data_sharing['fields'] = []
         else:
             data_sharing['fields'] = []
 

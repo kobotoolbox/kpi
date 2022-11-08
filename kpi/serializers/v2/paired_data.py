@@ -6,6 +6,7 @@ from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -124,11 +125,20 @@ class PairedDataSerializer(serializers.Serializer):
             return
 
         source = attrs['source']
-        form_pack, _unused = build_formpack(source, submission_stream=[])
+        # We used to get all fields for every version for valid fields,
+        # but the UI shows the latest version only, so only its fields
+        # can be picked up. It is easier then to compare valid fields with
+        # user's choice.
+        form_pack, _unused = build_formpack(
+            source, submission_stream=[], use_all_form_versions=False
+        )
+        # We do not want to include the version field.
+        # See `_infer_version_id()` in `kobo.apps.reports.report_data.build_formpack`
+        # for field name alternatives.
         valid_fields = [
             f.path for f in form_pack.get_fields_for_versions(
                 form_pack.versions.keys()
-            )
+            ) if not re.match(FUZZY_VERSION_PATTERN, f.path)
         ]
 
         source_fields = source.data_sharing.get('fields') or valid_fields
@@ -144,6 +154,11 @@ class PairedDataSerializer(serializers.Serializer):
                     ).format(source_fields='`,`'.join(source_fields))
                 }
             )
+
+        # Force `posted_fields` to be an empty list to avoid useless parsing when
+        # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<paired_data_uid>/external.xml)
+        if sorted(valid_fields) == sorted(posted_fields):
+            posted_fields = []
 
         attrs['fields'] = posted_fields
 

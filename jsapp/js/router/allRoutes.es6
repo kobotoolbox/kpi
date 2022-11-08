@@ -18,7 +18,9 @@ import AssetRoute from 'js/components/library/assetRoute';
 import AccountSettings from 'js/components/account/accountSettingsRoute';
 import DataStorage from 'js/components/account/dataStorageRoute';
 import SecurityRoute from 'js/components/account/securityRoute';
+import PlanRoute from 'js/components/account/planRoute';
 import FormsSearchableList from 'js/lists/forms';
+import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -66,7 +68,7 @@ export default class AllRoutes extends React.Component {
   }
 
   componentDidMount() {
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
     stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
   }
@@ -132,6 +134,7 @@ export default class AllRoutes extends React.Component {
 
           {/* MISC */}
           <Route path={ROUTES.SECURITY} component={SecurityRoute} />
+          <Route path={ROUTES.PLAN} component={PlanRoute} />
           <Route path={ROUTES.DATA_STORAGE} component={DataStorage} />
           <Route
             path={ROUTES.ACCOUNT_SETTINGS}
@@ -145,7 +148,6 @@ export default class AllRoutes extends React.Component {
               protectedComponent={ChangePassword}
             />
           </Suspense>
-
           {/* LIBRARY */}
           <Route path={ROUTES.LIBRARY}>
             <IndexRedirect to={ROUTES.MY_LIBRARY} />
@@ -262,6 +264,12 @@ export default class AllRoutes extends React.Component {
                   path={ROUTES.FORM_MAP_BY}
                   component={PermProtectedRoute}
                   protectedComponent={FormSubScreens}
+                  requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                />
+                <Route
+                  path={ROUTES.FORM_PROCESSING}
+                  component={PermProtectedRoute}
+                  protectedComponent={SingleProcessingRoute}
                   requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
                 />
               </Route>

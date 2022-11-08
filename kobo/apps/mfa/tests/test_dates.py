@@ -6,7 +6,7 @@ from trench.utils import get_mfa_model
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
-class MFADatesTestCase(BaseTestCase):
+class MfaDatesTestCase(BaseTestCase):
 
     fixtures = ['test_data']
 

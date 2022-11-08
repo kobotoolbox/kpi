@@ -2,7 +2,11 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@277-additional-fields-exports--modified-json#egg=formpack
+-e git+https://github.com/kobotoolbox/a1d05eba1.git@4816baeb76e4e01368addbf3ee5837569a163c5c#egg=a1d05eba1-dorey
+
+# service-account
+-e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -13,7 +17,7 @@
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
 # Regular PyPI packages
-Django>=2.2,<2.3
+Django>=3.2,<3.3
 Markdown
 Pygments
 amqp
@@ -22,6 +26,7 @@ celery
 celery[redis]
 dict2xml
 dj-static
+dj-stripe
 django-braces
 django-celery-beat
 django-constance[database]
@@ -32,6 +37,7 @@ django-environ
 django-filter
 django-extensions
 django-oauth-toolkit
+django-organizations
 django-redis
 django-registration-redux
 django-storages[azure,boto3]
@@ -43,7 +49,7 @@ django-markdownx
 django-markitup
 django-mptt
 
-django-reversion<3.0.2 # Migration issue with 3.0.2
+django-reversion
 django-taggit
 django-private-storage
 djangorestframework
@@ -53,13 +59,18 @@ django-request-cache
 drf-extensions
 future
 geojson-rewind
+google-api-python-client
+google-cloud-speech
+google-cloud-storage
+google-cloud-translate
 jsonfield
+jsonschema
 kombu
 lxml
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
-psycopg2>=2.8,<2.9
+psycopg2
 pymongo==3.12.3
 python-dateutil
 pyxform==1.9.0
@@ -69,7 +80,6 @@ shortuuid
 sqlparse
 static3
 tabulate
-unicodecsv
 uWSGI
 Werkzeug<=2.0.3
 xlrd
@@ -86,7 +96,10 @@ pyasn1
 deepmerge
 
 # MFA
-django-trench==0.2.3
+django-trench
+
+# Sentry
+sentry-sdk
 
 # Python 3.8 support
 backports.zoneinfo; python_version < '3.9'

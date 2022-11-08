@@ -35,3 +35,5 @@ ENKETO_INTERNAL_URL = 'http://enketo.mock'
 # Do not use cache with Constance in tests to avoid overwriting production
 # cached values
 CONSTANCE_DATABASE_CACHE_BACKEND = None
+INSTALLED_APPS += ('djstripe', "kobo.apps.stripe")
+STRIPE_ENABLED = True

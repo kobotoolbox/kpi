@@ -128,6 +128,7 @@ class AssetRow extends React.Component {
               data-asset-type={this.props.kind}
               draggable={false}
               className='asset-row__link-overlay'
+              data-cy='question'
             />
 
             {/* "title" column */}
@@ -143,7 +144,7 @@ class AssetRow extends React.Component {
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
               <bem.AssetRow__cell m='name'>
-                <AssetName asset={this.props} />
+                <AssetName asset={this.props} data-cy='assetName'/>
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>
@@ -225,7 +226,7 @@ class AssetRow extends React.Component {
             </bem.AssetRow__cell>
           }
 
-          <bem.AssetRow__buttons onClick={this.clickAssetButton}>
+          <bem.AssetRow__buttons onClick={this.clickAssetButton} data-cy='buttons'>
             {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='edit'

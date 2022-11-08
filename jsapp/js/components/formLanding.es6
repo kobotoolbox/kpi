@@ -441,7 +441,7 @@ export class FormLanding extends React.Component {
           <Link to={`/forms/${this.state.uid}/edit`}
                 className='form-view__link form-view__link--edit'
                 data-tip={t('Edit in Form Builder')}>
-            <Icon name='edit'  size='l'/>
+            <Icon name='edit'  size='l' data-cy='edit'/>
           </Link>
         :
           <bem.FormView__link m={['edit', 'disabled']}

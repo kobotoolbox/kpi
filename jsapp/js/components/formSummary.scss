@@ -24,6 +24,11 @@
   .form-view__cell--description:not(:first-child) {
     border-top: 1px solid colors.$kobo-gray-92;
   }
+
+  .form-view__cell--description p {
+    white-space: pre-wrap;
+    margin: 0;
+  }
 }
 
 .form-view__group.form-view__group--summary-details-cols {

@@ -1,15 +1,41 @@
 # coding: utf-8
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 from django.utils.timezone import now
-from trench.admin import MFAMethod, MFAMethodAdmin
+from trench.admin import (
+    MFAMethod as TrenchMFAMethod,
+    MFAMethodAdmin as TrenchMFAMethodAdmin,
+)
 
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserProfile,
 )
 
 
-class KoboMFAMethod(MFAMethod):
+class MfaAvailableToUser(models.Model):
+
+    class Meta:
+        verbose_name = 'per-user availability'
+        verbose_name_plural = 'per-user availabilities'
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+
+    def __str__(self):
+        # Used to display the user-friendly representation of MfaAvailableToUser
+        # objects, especially in Django Admin interface.
+        return f'MFA available to user {self.user.username}'
+
+
+class MfaAvailableToUserAdmin(admin.ModelAdmin):
+
+    search_fields = ('user__username',)
+    autocomplete_fields = ['user']
+    # To customize list columns, uncomment line below to use instead of string
+    # representation of `MfaAvailableToUser` objects
+    # list_display = ('user',)
+
+
+class MfaMethod(TrenchMFAMethod):
     """
     Extend DjangoTrench model to add created, modified and last disabled date
     """
@@ -65,6 +91,6 @@ class KoboMFAMethod(MFAMethod):
             )
 
 
-class KoboMFAMethodAdmin(MFAMethodAdmin):
+class MfaMethodAdmin(TrenchMFAMethodAdmin):
 
     search_fields = ['user__username']

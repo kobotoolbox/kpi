@@ -16,6 +16,7 @@ jobs:
       DJANGO_SECRET_KEY: notSecretJustForTestingYep
       DJANGO_SETTINGS_MODULE: kobo.settings.testing
       REDIS_SESSION_URL: redis://localhost:6379
+      SERVICE_ACCOUNT_BACKEND_URL: redis://localhost:6379/4
     strategy:
       matrix:
         python-version: ['3.8', '3.10']
@@ -56,6 +57,7 @@ jobs:
       run: >-
         sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
         gdal-bin gettext libproj-dev postgresql-client ffmpeg
+        gcc libc-dev
     - name: Install Python dependencies
       run: pip-sync dependencies/pip/dev_requirements.txt
     - name: Install JavaScript dependencies

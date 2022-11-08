@@ -34,7 +34,7 @@ class EmailTestCase(HookTestCase):
     def test_notifications(self):
         self._create_periodic_task()
         first_log_response = self._send_and_fail()
-        failures_reports.delay()
+        failures_reports.apply_async(queue='kpi_low_priority_queue')
         self.assertEqual(len(mail.outbox), 1)
 
         expected_record = {
