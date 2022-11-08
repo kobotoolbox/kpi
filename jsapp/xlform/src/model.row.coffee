@@ -13,6 +13,7 @@ $choices = require './model.choices'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 readParameters = require('../../js/components/formBuilder/formBuilderUtils').readParameters
 writeParameters = require('../../js/components/formBuilder/formBuilderUtils').writeParameters
+notify = require('js/utils').notify
 
 module.exports = do ->
   row = {}
@@ -416,7 +417,6 @@ module.exports = do ->
       $skipLogicHelpers.question_types[@getTypeId()] || $skipLogicHelpers.question_types['default']
 
     _isSelectQuestion: ->
-      # TODO [ald]: pull this from $aliases
       @get('type').get('typeId') in ['select_one', 'select_multiple']
 
     getAcceptedFiles: -> return @attributes['body::accept']?.attributes?.value
@@ -457,7 +457,7 @@ module.exports = do ->
       @_error = options.error
       unless window.xlfHideWarnings
         console?.error("Error creating row: [#{options.error}]", obj)
-        alertify.error("Error creating row: [#{options.error}]");
+        notify.error("Error creating row: [#{options.error}]")
       super(obj, options)
     isError: -> true
     getValue: (what)->

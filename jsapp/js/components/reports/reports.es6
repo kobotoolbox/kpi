@@ -4,19 +4,23 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
+import InlineMessage from 'js/components/common/inlineMessage';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
 import {txtid} from '../../../xlform/src/model.utils';
 import alertify from 'alertifyjs';
-import {launchPrinting} from 'utils';
+import {notify, launchPrinting} from 'utils';
 import {REPORT_STYLES} from './reportsConstants';
 import CustomReportForm from './customReportForm';
 import QuestionGraphSettings from './questionGraphSettings';
 import ReportContents from './reportContents';
 import ReportStyleSettings from './reportStyleSettings';
+import './reports.scss';
 
 export default class Reports extends React.Component {
   constructor(props) {
@@ -74,7 +78,6 @@ export default class Reports extends React.Component {
         groupBy = reportStyles.default.groupDataBy;
       }
 
-      // TODO: improve the defaults below
       if (reportStyles.default.report_type === undefined) {
         reportStyles.default.report_type = REPORT_STYLES.vertical.value;
       }
@@ -135,7 +138,7 @@ export default class Reports extends React.Component {
               // reset default report groupBy if it fails and notify user
               reportStyles.default.groupDataBy = '';
               this.setState({reportStyles: reportStyles});
-              alertify.error(
+              notify.error(
                 t(
                   'Could not load grouped results via "##". Will attempt to load the ungrouped report.'
                 ).replace('##', groupBy)
@@ -201,7 +204,7 @@ export default class Reports extends React.Component {
         });
       })
       .fail((err) => {
-        alertify.error(t('Could not refresh report.'));
+        notify.error(t('Could not refresh report.'));
         this.setState({error: err});
       });
   }
@@ -334,7 +337,7 @@ export default class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <ui.PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
+        <PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
           <bem.PopoverMenu__link
             key='default'
             data-name=''
@@ -370,7 +373,7 @@ export default class Reports extends React.Component {
               {t('Create New Report')}
             </bem.PopoverMenu__link>
           )}
-        </ui.PopoverMenu>
+        </PopoverMenu>
 
         {this.state.currentCustomReport && (
           <bem.Button
@@ -418,13 +421,13 @@ export default class Reports extends React.Component {
   renderCustomReportModal() {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body>
+        <Modal.Body>
           <CustomReportForm
             reportData={this.state.reportData}
             customReport={this.state.currentCustomReport}
             asset={this.state.asset}
           />
-        </ui.Modal.Body>
+        </Modal.Body>
       </bem.GraphSettings>
     );
   }
@@ -445,7 +448,7 @@ export default class Reports extends React.Component {
   renderQuestionSettings() {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body />
+        <Modal.Body />
       </bem.GraphSettings>
     );
   }
@@ -470,7 +473,7 @@ export default class Reports extends React.Component {
     } else {
       return (
         <bem.Loading>
-          <ui.LoadingSpinner />
+          <LoadingSpinner />
         </bem.Loading>
       );
     }
@@ -563,14 +566,11 @@ export default class Reports extends React.Component {
                     </bem.FormView__cell>
                   )}
 
-                <bem.FormView__cell m='warning'>
-                  <i className='k-icon k-icon-alert' />
-                  <p>
-                    {t(
-                      'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. '
-                    )}
-                  </p>
-                </bem.FormView__cell>
+                <InlineMessage
+                  type='warning'
+                  icon='alert'
+                  message={t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page.')}
+                />
 
                 <ReportContents
                   parentState={this.state}
@@ -581,27 +581,27 @@ export default class Reports extends React.Component {
             )}
 
             {this.state.showReportGraphSettings && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.toggleReportGraphSettings}
                 title={t('Edit Report Style')}
               >
                 <ReportStyleSettings parentState={this.state} />
-              </ui.Modal>
+              </Modal>
             )}
 
             {this.state.showCustomReportModal && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.toggleCustomReportModal}
                 title={t('Custom Report')}
               >
                 {this.renderCustomReportModal()}
-              </ui.Modal>
+              </Modal>
             )}
 
             {this.state.currentQuestionGraph && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.closeQuestionSettings}
                 title={t('Question Style')}
@@ -610,7 +610,7 @@ export default class Reports extends React.Component {
                   question={this.state.currentQuestionGraph}
                   parentState={this.state}
                 />
-              </ui.Modal>
+              </Modal>
             )}
           </bem.ReportView>
         </bem.FormView>

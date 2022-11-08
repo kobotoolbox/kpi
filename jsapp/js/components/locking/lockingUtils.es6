@@ -1,5 +1,5 @@
-import {getRowName} from 'js/assetUtils.es6';
-import {ASSET_TYPES} from 'js/constants.es6';
+import {getRowName} from 'js/assetUtils';
+import {ASSET_TYPES} from 'js/constants';
 import {
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,
@@ -92,7 +92,9 @@ export function getLockingProfile(assetContent, profileName) {
  * @returns {object|null} null for no found
  */
 export function getRowLockingProfile(assetContent, rowName) {
-  let found = null;
+  if (!assetContent?.survey) {
+    return null;
+  }
 
   const foundRow = assetContent.survey.find((row) => {
     return getRowName(row) === rowName;
@@ -105,7 +107,7 @@ export function getRowLockingProfile(assetContent, rowName) {
     return getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME]);
   }
 
-  return found;
+  return null;
 }
 
 /**

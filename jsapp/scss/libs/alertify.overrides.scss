@@ -142,7 +142,7 @@
 
   .ajs-message.ajs-error {box-shadow: 0 2px 0 0 $kobo-red inset;}
   .ajs-message.ajs-success {box-shadow: 0 2px 0 0 $kobo-green inset;}
-  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $kobo-orange inset;}
+  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $kobo-amber inset;}
 
   .ajs-message .ajs-close {
     background: transparent;
@@ -177,5 +177,23 @@
     padding-bottom: 20px;
     border-top: 1px solid $kobo-gray-92;
     font-weight: bold;
+  }
+}
+
+.ajs-dialog.custom-alertify-dialog--dangerous-destroy {
+  .ajs-buttons {
+    .ajs-button.ajs-ok,
+    .ajs-button.ajs-cancel {
+      @extend .kobo-button;
+      margin: 4px !important;
+    }
+
+    .ajs-button.ajs-ok {
+      @extend .kobo-button--red;
+    }
+
+    .ajs-button.ajs-cancel {
+      @extend .kobo-button--whitegray;
+    }
   }
 }

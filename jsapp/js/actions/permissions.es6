@@ -6,10 +6,13 @@ import Reflux from 'reflux';
 import RefluxPromise from 'js/libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
-import {buildUserUrl} from 'utils';
+import {
+  notify,
+  buildUserUrl,
+} from 'utils';
 import {
   ANON_USERNAME,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import permConfig from 'js/components/permissions/permConfig';
 
@@ -20,7 +23,7 @@ export const permissionsActions = Reflux.createActions({
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
   setAssetPublic: {children: ['completed', 'failed']},
-  copyPermissionsFrom: {children: ['completed', 'failed']}
+  copyPermissionsFrom: {children: ['completed', 'failed']},
 });
 
 /**
@@ -31,6 +34,10 @@ permissionsActions.getConfig.listen(() => {
   dataInterface.getPermissionsConfig()
     .done(permissionsActions.getConfig.completed)
     .fail(permissionsActions.getConfig.failed);
+});
+
+permissionsActions.getConfig.failed.listen(() => {
+  notify('Failed to get permissions config!', 'error');
 });
 
 permissionsActions.getAssetPermissions.listen((assetUid) => {

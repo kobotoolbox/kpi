@@ -8,9 +8,10 @@ from rest_framework.reverse import reverse
 
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, ExportTask, AssetExportSettings
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -48,6 +49,22 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         asset.save()
 
         return asset
+
+    def _create_export_settings(self):
+        settings_name = 'Simple CSV export'
+        export_settings = {
+            'fields_from_all_versions': 'true',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'true',
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'csv',
+        }
+        return AssetExportSettings.objects.create(
+            asset=self.asset,
+            name=settings_name,
+            export_settings=export_settings,
+        )
 
     def test_export_task_list(self):
         new_asset = self._create_cloned_asset()
@@ -220,6 +237,26 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(list_url, data=data)
         assert response.status_code == status.HTTP_201_CREATED
 
+    def test_create_export_task_extended(self):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'xls',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'false',
+            'fields_from_all_versions': 'false',
+            'multiple_select': 'both',
+            'xls_types_as_text': False,
+            'submission_ids': [1, 2, 3],
+            'query': {'_submission_time': {'$gt': '2021-10-13'}},
+        }
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
     def test_export_task_create_with_name(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
@@ -274,3 +311,145 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.delete(detail_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    def test_synchronous_csv_export_matches_async_export(self):
+        es = self._create_export_settings()
+
+        self.client.login(username='someuser', password='someuser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        synchronous_export_response = self.client.get(
+            synchronous_exports_url, follow=True
+        )
+        assert synchronous_export_response.status_code == status.HTTP_200_OK
+        synchronous_export_content = b''.join(
+            synchronous_export_response.streaming_content
+        )
+
+        exports_list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        exports_list_response = self.client.post(
+            exports_list_url, data=es.export_settings
+        )
+        assert exports_list_response.status_code == status.HTTP_201_CREATED
+
+        exports_detail_response = self.client.get(
+            exports_list_response.data['url'], HTTP_ACCEPT='application/json'
+        )
+        assert exports_detail_response.status_code == status.HTTP_200_OK
+
+        export_content_response = self.client.get(
+            exports_detail_response.json()['result']
+        )
+        assert export_content_response.status_code == status.HTTP_200_OK
+        export_content = ''.join(
+            line.decode() for line in export_content_response.streaming_content
+        )
+        assert synchronous_export_content.decode() == export_content
+
+    def test_synchronous_csv_export_anonymous_without_permission(self):
+        es = self._create_export_settings()
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        response = self.client.get(synchronous_exports_url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_synchronous_csv_export_anonymous_with_permission(self):
+        self.asset.assign_perm(get_anonymous_user(), PERM_VIEW_SUBMISSIONS)
+
+        es = self._create_export_settings()
+
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_synchronous_csv_export_anotheruser_without_permission(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        es = self._create_export_settings()
+
+        self.client.login(username='anotheruser', password='anotheruser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_synchronous_csv_export_anotheruser_with_partial_permission(self):
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+        }
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(
+            anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
+        )
+
+        es = self._create_export_settings()
+
+        self.client.login(username='anotheruser', password='anotheruser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+        # Submissions start after header and hxl rows
+        content = b''.join(response.streaming_content)
+        exported_submissions = (
+            content.decode().strip().split('\r\n')[2:]
+        )
+        actual_submissions = self.asset.deployment.get_submissions(
+            user=anotheruser
+        )
+        assert len(exported_submissions) == len(actual_submissions)
+
+    def test_synchronous_csv_export_bad_user_agent_does_not_redirect(self):
+        es = self._create_export_settings()
+
+        self.client.login(username='someuser', password='someuser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        synchronous_export_response = self.client.get(
+            synchronous_exports_url,
+            HTTP_USER_AGENT='Microsoft.Data.Mashup (https://go.microsoft.com/fwlink/?LinkID=304225)'
+        )
+        assert synchronous_export_response.status_code == status.HTTP_200_OK
+        first_line = next(synchronous_export_response.streaming_content)
+        assert b'Do_you_descend_from_unicellular_organism' in first_line

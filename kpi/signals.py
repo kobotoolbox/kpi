@@ -1,4 +1,5 @@
 # coding: utf-8
+from constance.signals import config_updated
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
@@ -86,7 +87,7 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
 @receiver(post_save, sender=Hook)
 def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     """
-    Updates `kc.XForm` instance as soon as Asset.Hook list is updated.
+    Updates KoBoCAT XForm instance as soon as Asset.Hook list is updated.
     """
     asset = instance.asset
     if asset.has_deployment:

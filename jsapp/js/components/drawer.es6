@@ -5,21 +5,20 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, hashHistory } from 'react-router';
 import {stores} from '../stores';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
-import {
-  IntercomHelpBubble,
-  SupportHelpBubble
-} from '../components/helpBubbles';
+import AccountSidebar from 'js/components/account/accountSidebar';
+import HelpBubble from 'js/components/support/helpBubble';
 import {
   COMMON_QUERIES,
   MODAL_TYPES,
-  ROUTES,
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
+import envStore from 'js/envStore';
 
 const INITIAL_STATE = {
   headerFilters: 'forms',
@@ -135,7 +134,6 @@ class Drawer extends Reflux.Component {
     this.stores = [
       stores.session,
       stores.pageState,
-      stores.serverEnvironment,
     ];
   }
   render() {
@@ -152,18 +150,26 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
-          { this.isLibrary()
-            ? <LibrarySidebar />
-            : <FormSidebar />
+          { this.isLibrary() &&
+            <bem.FormSidebarWrapper>
+              <LibrarySidebar/>
+            </bem.FormSidebarWrapper>
+          }
+
+          { this.isAccount() &&
+            <AccountSidebar/>
+          }
+
+          { !this.isLibrary() && !this.isAccount() &&
+            <bem.FormSidebarWrapper>
+              <FormSidebar/>
+            </bem.FormSidebarWrapper>
           }
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
           { stores.session.isLoggedIn &&
-            <IntercomHelpBubble/>
-          }
-          { stores.session.isLoggedIn &&
-            <SupportHelpBubble/>
+            <HelpBubble/>
           }
           { stores.session.isLoggedIn &&
             stores.session.currentAccount.projects_url &&
@@ -175,9 +181,9 @@ class Drawer extends Reflux.Component {
               <i className='k-icon k-icon-globe' />
             </a>
           }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.source_code_url &&
-            <a href={stores.serverEnvironment.state.source_code_url}
+          { envStore.isReady &&
+            envStore.data.source_code_url &&
+            <a href={envStore.data.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
               <i className='k-icon k-icon-logo-github' />
             </a>

@@ -3,10 +3,11 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
+import InlineMessage from 'js/components/common/inlineMessage';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
-import {stores} from 'js/stores';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import envStore from 'js/envStore';
 import {
   ASSET_FILE_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
@@ -15,7 +16,9 @@ import {
 import {
   truncateString,
   truncateUrl,
+  notify,
 } from 'js/utils';
+import './formMedia.scss';
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';
@@ -94,7 +97,8 @@ class FormMedia extends React.Component {
    * @namespace formMediaJSON
    * @param {string} description - can be anything, when in doubt use 'default'
    * @param {string} filetype - should be `ASSET_FILE_TYPES.form_media.id`
-   * @param {string} metadata - JSON stringified filename
+   * @param {string} metadata - Won't break if not included, but should contain
+   *                            the JSON stringified filename for downloading
    * @param {string} base64Encoded
    *
    * @param {formMediaJSON} formMediaJSON
@@ -137,7 +141,7 @@ class FormMedia extends React.Component {
     var url = this.state.inputURL;
 
     if (url === '') {
-      alertify.warning(t('URL is empty!'));
+      notify.warning(t('URL is empty!'));
     } else {
       this.setState({
         isUploadURLPending: true,
@@ -194,7 +198,12 @@ class FormMedia extends React.Component {
     }
 
     return (
-      <a href={item?.content} target='_blank'>
+      <a
+        href={item?.content}
+        target='_blank'
+        // Added manually by frontend, not backend. See uploadMedia()
+        download={item?.metadata?.filename}
+      >
         {fileName}
       </a>
     );
@@ -217,10 +226,11 @@ class FormMedia extends React.Component {
       <bem.FormView m='form-media'>
         <bem.FormMedia>
           {this.props.asset.deployment__active &&
-            <bem.FormView__cell m='warning'>
-              <i className='k-icon k-icon-alert' />
-              <p>{t('You must redeploy this form to see media changes.')}</p>
-            </bem.FormView__cell>
+            <InlineMessage
+              icon='alert'
+              type='warning'
+              message={t('You must redeploy this form to see media changes.')}
+            />
           }
 
           <bem.FormMedia__title>
@@ -228,13 +238,13 @@ class FormMedia extends React.Component {
               {t('Attach files')}
             </bem.FormMedia__label>
 
-            {stores.serverEnvironment &&
-              stores.serverEnvironment.state.support_url && (
+            {envStore.isReady &&
+              envStore.data.support_url && (
                 <a
                   className='title-help'
                   target='_blank'
                   href={
-                    stores.serverEnvironment.state.support_url +
+                    envStore.data.support_url +
                     MEDIA_SUPPORT_URL
                   }
                   data-tip={t('Learn more about form media')}
@@ -251,10 +261,11 @@ class FormMedia extends React.Component {
                 className='kobo-dropzone kobo-dropzone--form-media'
               >
                 {this.state.fieldsErrors?.base64Encoded && (
-                  <bem.FormView__cell m='error'>
-                    <i className='k-icon k-icon-alert' />
-                    <p>{this.state.fieldsErrors?.base64Encoded}</p>
-                  </bem.FormView__cell>
+                  <InlineMessage
+                    type='error'
+                    icon='alert'
+                    message={this.state.fieldsErrors?.base64Encoded}
+                  />
                 )}
                 <i className='k-icon k-icon-upload' />
                 {t('Drag and drop files here')}

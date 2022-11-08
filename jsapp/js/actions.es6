@@ -5,8 +5,6 @@
  * You can observe action result through Reflux callbacks in your component, or
  * more preferably (where applicable) use the update eveont of one of the stores
  * from `jsapp/js/stores.es6`
- *
- * TODO: Group and split actions to separate files. For a working example see `./actions/help`.
  */
 
 import alertify from 'alertifyjs';
@@ -14,7 +12,6 @@ import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
 import {permissionsActions} from './actions/permissions';
-import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
@@ -30,7 +27,6 @@ Reflux.use(RefluxPromise(window.Promise));
 
 export const actions = {
   permissions: permissionsActions,
-  help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
   media: formMediaActions,
@@ -70,7 +66,6 @@ actions.resources = Reflux.createActions({
   cloneAsset: {children: ['completed', 'failed']},
   deleteAsset: {children: ['completed', 'failed']},
   listTags: {children: ['completed', 'failed']},
-  loadAssetSubResource: {children: ['completed', 'failed']},
   createResource: {asyncResult: true},
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
@@ -79,7 +74,6 @@ actions.resources = Reflux.createActions({
   duplicateSubmission: {children: ['completed', 'failed',]},
   refreshTableSubmissions: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
-  notFound: {}
 });
 
 actions.hooks = Reflux.createActions({
@@ -96,11 +90,8 @@ actions.misc = Reflux.createActions({
   getUser: {children: ['completed', 'failed']},
   checkUsername: {asyncResult: true, children: ['completed', 'failed']},
   updateProfile: {children: ['completed', 'failed']},
-  getServerEnvironment: {children: ['completed', 'failed']},
 });
 
-// TODO move these callbacks to `actions/permissions.es6` after moving
-// `actions.resources` to separate file (circular dependency issue)
 permissionsActions.assignAssetPermission.failed.listen(() => {
   notify(t('Failed to update permissions'), 'error');
 });
@@ -167,16 +158,10 @@ actions.misc.updateProfile.failed.listen(function(data) {
   }
 
   if (hadFieldsErrors) {
-    notify(t('Some fields contain errors'), 'error');
+    notify(t('Some fields contain errors!'), 'error');
   } else {
-    notify(t('failed to update profile'), 'error');
+    notify(t('Failed to update profile!'), 'error');
   }
-});
-
-actions.misc.getServerEnvironment.listen(function(){
-  dataInterface.serverEnvironment()
-    .done(actions.misc.getServerEnvironment.completed)
-    .fail(actions.misc.getServerEnvironment.failed);
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
@@ -265,6 +250,7 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
   } else if(!!data.responseJSON.xform_id_string){
     // TODO: now that the id_string is automatically generated, this failure
     // mode probably doesn't need special handling
+    // see: https://github.com/kobotoolbox/kpi/issues/3902
     failure_message = `
       <p>${t('your form id was not valid:')}</p>
       <p><pre>${data.responseJSON.xform_id_string}</pre></p>
@@ -318,7 +304,7 @@ actions.reports = Reflux.createActions({
 });
 
 actions.reports.setStyle.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {report_styles: JSON.stringify(details)})
+  dataInterface.patchAsset(assetId, {report_styles: details})
     .done((asset) => {
       actions.reports.setStyle.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -327,7 +313,7 @@ actions.reports.setStyle.listen(function(assetId, details){
 });
 
 actions.reports.setCustom.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {report_custom: JSON.stringify(details)})
+  dataInterface.patchAsset(assetId, {report_custom: details})
     .done((asset) => {
       actions.reports.setCustom.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -336,16 +322,23 @@ actions.reports.setCustom.listen(function(assetId, details){
 });
 
 actions.table = Reflux.createActions({
-  updateSettings: {
-    children: [
-      'completed',
-      'failed',
-    ]
-  }
+  updateSettings: {children: ['completed', 'failed']},
 });
 
-actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+/**
+ * @param {string} assetUid
+ * @param {object} settings
+ * @param {string[]} [settings.selected-columns]
+ * @param {string} [settings.frozen-column]
+ * @param {boolean} [settings.show-group-name]
+ * @param {number} [settings.translation-index]
+ * @param {boolean} [settings.show-hxl-tags]
+ * @param {object} [settings.sort-by]
+ * @param {string} [settings.sort-by.fieldId]
+ * @param {string} [settings.sort-by.sortValue]
+ */
+actions.table.updateSettings.listen((assetUid, settings) => {
+  dataInterface.patchAsset(assetUid, {settings: settings})
     .done((asset) => {
       actions.table.updateSettings.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -366,7 +359,7 @@ actions.map = Reflux.createActions({
  * @param {object} mapStyles
  */
 actions.map.setMapStyles.listen(function(assetUid, mapStyles) {
-  dataInterface.patchAsset(assetUid, {map_styles: JSON.stringify(mapStyles)})
+  dataInterface.patchAsset(assetUid, {map_styles: mapStyles})
     .done((asset) => {
       actions.map.setMapStyles.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -526,7 +519,7 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
       actions.resources.loadAsset({id: uid});
     })
     .fail(() => {
-      alertify.error(t('failed to delete submission'));
+      notify.error(t('failed to delete submission'));
       actions.resources.deleteSubmission.failed();
     });
 });
@@ -539,7 +532,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
       actions.resources.loadAsset({id: uid});
     })
     .fail((response) => {
-      alertify.error(t('Failed to duplicate submission'));
+      notify.error(t('Failed to duplicate submission'));
       actions.resources.duplicateSubmission.failed(response);
     });
 });
@@ -603,7 +596,7 @@ actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
 actions.hooks.update.failed.listen(() => {
-  alertify.error(t('Failed saving REST Service'));
+  notify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {

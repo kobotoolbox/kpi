@@ -4,10 +4,13 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import mixins from 'js/mixins';
-import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
-import {stringToColor} from 'utils';
+import bem from 'js/bem';
+import {
+  stringToColor,
+  escapeHtml,
+} from 'utils';
 import {
   ASSET_TYPES,
   PERMISSIONS_CODENAMES
@@ -27,7 +30,7 @@ class UserPermissionRow extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
   }
 
   onAssetChange() {
@@ -39,7 +42,7 @@ class UserPermissionRow extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.user.name}</strong>`),
+      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${escapeHtml(this.props.user.name)}</strong>`),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
       onok: this.removeAllPermissions,
       oncancel: dialog.destroy
@@ -69,9 +72,10 @@ class UserPermissionRow extends React.Component {
     this.setState({isEditFormVisible: !this.state.isEditFormVisible});
   }
 
-  // TODO this doesn't display partial_permissions in a nice way,
-  // as it assumes that there can be only "view" in them,
-  // but this is partially a fault of Backend giving a non universal label to "partial_permissions"
+  // TODO: This doesn't display `partial_permissions` in a nice way, as it
+  // assumes that there can be only "view" in them, but this is partially
+  // backend's fault for giving a non universal label to "partial_permissions".
+  // See: https://github.com/kobotoolbox/kpi/issues/3920
   renderPermissions(permissions) {
     const maxParentheticalUsernames = 3;
     return (

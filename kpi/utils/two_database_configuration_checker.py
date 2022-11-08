@@ -2,7 +2,8 @@
 from django.conf import settings
 from django.core.checks import Error
 from django.db import connections
-from django.utils.translation import ugettext as _
+from django.db.utils import OperationalError
+from django.utils.translation import gettext as t
 
 from kpi.management.commands.is_database_empty import (
     test_table_exists_and_has_any_row,
@@ -32,13 +33,13 @@ class TwoDatabaseConfigurationChecker:
 
     @property
     def guidance_message(self):
-        return ' ' + _(self.GUIDANCE_TEMPLATE).format(HELP_PAGE=self.HELP_PAGE)
+        return ' ' + t(self.GUIDANCE_TEMPLATE).format(HELP_PAGE=self.HELP_PAGE)
 
     def check_for_two_databases(self):
         if sorted(list(settings.DATABASES.keys())) != ['default', 'kobocat']:
             self.errors.append(Error(
-                _('Exactly two databases must be configured'),
-                hint=_('KPI and KoBoCAT must each have their own databases. '
+                t('Exactly two databases must be configured'),
+                hint=t('KPI and KoBoCAT must each have their own databases. '
                        "Configure the KPI database as 'default' and the "
                        "KoBoCAT database as 'kobocat'.")
                       + self.guidance_message,
@@ -59,8 +60,8 @@ class TwoDatabaseConfigurationChecker:
                 break
         if not databases_distinct:
             self.errors.append(Error(
-                _('KPI may not share a database with KoBoCAT'),
-                hint=_('KPI and KoBoCAT must each have their own databases.')
+                t('KPI may not share a database with KoBoCAT'),
+                hint=t('KPI and KoBoCAT must each have their own databases.')
                        + self.guidance_message,
                 obj=self,
                 id='KPI.E022',
@@ -74,8 +75,14 @@ class TwoDatabaseConfigurationChecker:
         `check_for_migration_from_shared_database()`
         """
         connection = connections['kobocat']
-        with connection.cursor() as cursor:
-            return test_table_exists_and_has_any_row(cursor, 'kpi_asset')
+        try:
+            with connection.cursor() as cursor:
+                return test_table_exists_and_has_any_row(cursor, 'kpi_asset')
+        except OperationalError as e:
+            # It's possible (and okay) that this runs before the kobocat
+            # database even exists
+            if str(e).strip().endswith('does not exist'):
+                return False
 
     def check_for_migration_from_shared_database(self):
         def db_contains_app_migrations(db_connection, app):
@@ -123,8 +130,8 @@ class TwoDatabaseConfigurationChecker:
                 # Since we _do not_ see any KoBoCAT migrations, stop now and
                 # get the human to fix their installation.
                 self.errors.append(Error(
-                    _('Incomplete migration from shared-database installation'),
-                    hint=_('The KoBoCAT database was originally shared by '
+                    t('Incomplete migration from shared-database installation'),
+                    hint=t('The KoBoCAT database was originally shared by '
                            'KPI, but the KPI tables were not copied from that '
                            'shared database to the new, KPI-only database.')
                          + self.guidance_message,
@@ -135,6 +142,10 @@ class TwoDatabaseConfigurationChecker:
         return True
 
     def do_checks(self, app_configs, **kwargs):
+        # Bypass these checks when testing (cypress)
+        if settings.TESTING == True:
+            return self.errors
+        
         checks = [
             self.check_for_two_databases,
             self.check_for_distinct_databases,

@@ -14,7 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from formpack.utils.xls_to_ss_structure import xls_to_dicts
+from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
@@ -40,7 +40,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = ShadowModel.get_content_type_for_model(KobocatXForm)
+XFORM_CT = KobocatXForm.get_content_type()
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
@@ -113,7 +113,7 @@ def _xlsform_to_kpi_content_schema(xlsform):
     parses xlsform structure into json representation
     of spreadsheet structure.
     """
-    content = xls_to_dicts(xlsform)
+    content = xlsx_to_dicts(xlsform)
     # Remove the __version__ calculate question
     content['survey'] = [
         row for row in content['survey'] if not (
@@ -539,7 +539,7 @@ class Command(BaseCommand):
                                 'WARN',
                                 user.username,
                                 xform.id_string,
-                                e.message
+                                str(e)
                             ]
                             self._print_tabular(*error_information)
                             continue

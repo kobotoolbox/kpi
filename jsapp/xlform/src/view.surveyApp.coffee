@@ -3,7 +3,6 @@ Backbone = require 'backbone'
 $survey = require './model.survey'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
-$surveyDetailView = require './view.surveyDetails'
 $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
@@ -55,6 +54,7 @@ module.exports = do ->
       "click .js-delete-row": "clickRemoveRow"
       "click .js-delete-group": "clickDeleteGroup"
       "click .js-add-to-question-library": "clickAddRowToQuestionLibrary"
+      "click .js-add-group-to-library": "clickAddGroupToLibrary"
       "click .js-clone-question": "clickCloneQuestion"
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
@@ -64,8 +64,9 @@ module.exports = do ->
       "click .js-toggle-row-multioptions": "toggleRowMultioptions"
       "click .js-close-warning": "closeWarningBox"
       "click .js-expand-row-selector": "expandRowSelector"
-      "mouseenter .card__buttons__button": "buttonHoverIn"
-      "mouseleave .card__buttons__button": "buttonHoverOut"
+      # it is important to distinct these buttons from the group buttons
+      "mouseenter .card__header .card__buttons__button": "buttonHoverIn"
+      "mouseleave .card__header .card__buttons__button": "buttonHoverOut"
       "click .card__settings__tabs li": "switchTab"
 
     @create: (params = {}) ->
@@ -219,7 +220,7 @@ module.exports = do ->
       if $et.hasClass('js-blur-on-select-row') || $et.hasClass('editable-wrapper')
         return
       $ect = $(evt.currentTarget)
-      if $et.closest('.card__settings, .card__buttons, .group__header__buttons, .js-cancel-select-row').length > 0
+      if $et.closest('.card__settings, .card__buttons, .js-cancel-select-row').length > 0
         return
       # a way to ensure the event is not run twice when in nested .js-select-row elements
       _isIntendedTarget = $ect.closest('.survey__row').get(0) is $et.closest('.survey__row').get(0)
@@ -311,7 +312,6 @@ module.exports = do ->
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
       @formEditorEl = @$(".-form-editor")
-      @settingsBox = @$(".form__settings-meta__questions")
       return
 
     _render_attachEvents: ->
@@ -343,19 +343,15 @@ module.exports = do ->
       return
 
     _render_addSubViews: ->
-      meta_view = new $viewUtils.ViewComposer()
-
-      for detail in @survey.surveyDetails.models
-        if detail.get('name') in ["start", "end", "today", "deviceid"]
-          meta_view.add new $surveyDetailView.SurveyDetailView(model: detail, selector: '.settings__first-meta')
-        else
-          meta_view.add new $surveyDetailView.SurveyDetailView(model: detail, selector: '.settings__second-meta')
-
-      meta_view.render()
-      meta_view.attach_to @settingsBox
-
       # in which cases is the null_top_row_view_selector viewed
-      @null_top_row_view_selector = new $viewRowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), survey: @survey, ngScope: @ngScope, surveyView: @, reversible:true)
+      @null_top_row_view_selector = new $viewRowSelector.RowSelector({
+        el: @$el.find(".survey__row__spacer").get(0),
+        survey: @survey,
+        ngScope: @ngScope,
+        surveyView: @,
+        reversible: true
+      })
+      return
 
     _render_hideConditionallyDisplayedContent: ->
       if !@features.multipleQuestions
@@ -653,7 +649,10 @@ module.exports = do ->
       @_getViewForTarget(evt).deleteGroup(evt)
 
     clickAddRowToQuestionLibrary: (evt)->
-      @_getViewForTarget(evt).add_row_to_question_library(evt)
+      @_getViewForTarget(evt).addItemToLibrary(evt)
+
+    clickAddGroupToLibrary: (evt)->
+      @_getViewForTarget(evt).add_group_to_library(evt)
 
     clickCloneQuestion: (evt)->
       @_getViewForTarget(evt).clone()

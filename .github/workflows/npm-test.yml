@@ -1,0 +1,24 @@
+name: npm-test
+
+on:
+  push:
+    branches: [ master, beta ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          # We need this particular version, as npm 8.5.5 is the last version
+          # that works with our package.json :sadface:.
+          node-version: '16.15.0'
+          cache: 'npm'
+      - uses: browser-actions/setup-chrome@latest
+      - run: chrome --version
+      - run: npm install
+      - run: npm run copy-fonts
+      - run: npm run build
+      - run: npm run test

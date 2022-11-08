@@ -1,12 +1,16 @@
 # coding: utf-8
 import json
 import logging
+from contextlib import ContextDecorator
+from typing import Union
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError, ProgrammingError, transaction
+from django.db.models import Model
+from django.db.transaction import Atomic
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
@@ -63,7 +67,7 @@ def last_submission_time(xform_id_string, user_id):
 @safe_kc_read
 def get_kc_profile_data(user_id):
     """
-    Retrieve all fields from the user's KC profile and  return them in a
+    Retrieve all fields from the user's KC profile and return them in a
     dictionary
     """
     try:
@@ -124,17 +128,15 @@ def set_kc_require_auth(user_id, require_auth):
     """
     user = User.objects.get(pk=user_id)
     _trigger_kc_profile_creation(user)
-    token, _ = Token.objects.get_or_create(user=user)
     with transaction.atomic():
+        token, _ = Token.objects.get_or_create(user=user)
         try:
-            profile = KobocatUserProfile.objects.get(user_id=user_id)
+            KobocatUserProfile.objects.filter(user_id=user_id).update(
+                require_auth=require_auth
+            )
         except ProgrammingError as e:
             raise ProgrammingError('set_kc_require_auth error accessing '
                                    'kobocat tables: {}'.format(repr(e)))
-        else:
-            if profile.require_auth != require_auth:
-                profile.require_auth = require_auth
-                profile.save()
 
 
 def _get_content_type_kwargs_for_related(obj):
@@ -295,16 +297,16 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
     KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 
-@transaction.atomic()
-def assign_applicable_kc_permissions(obj, user, kpi_codenames):
-    r"""
-        Assign the `user` the applicable KC permissions to `obj`, if any
-        exists, given one KPI permission codename as a single string or many
-        codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
-        not have a deployment, take no action.
-        :param obj: Any Django model instance
-        :type user: :py:class:`User` or :py:class:`AnonymousUser`
-        :type kpi_codenames: str or list(str)
+def assign_applicable_kc_permissions(
+    obj: Model,
+    user: Union[AnonymousUser, User, int],
+    kpi_codenames: Union[str, list]
+):
+    """
+    Assign the `user` the applicable KC permissions to `obj`, if any
+    exists, given one KPI permission codename as a single string or many
+    codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
+    not have a deployment, take no action.
     """
     if not obj._meta.model_name == 'asset':
         return
@@ -314,36 +316,50 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if is_user_anonymous(user):
+
+    # Retrieve primary key from user object and use it on subsequent queryset.
+    # It avoids loading the object when `user` is passed as an integer.
+    if not isinstance(user, int):
+        if is_user_anonymous(user):
+            user_id = settings.ANONYMOUS_USER_ID
+        else:
+            user_id = user.pk
+    else:
+        user_id = user
+
+    if user_id == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
+
     xform_content_type = KobocatContentType.objects.get(
         **obj.KC_CONTENT_TYPE_KWARGS)
+
     kc_permissions_already_assigned = KobocatUserObjectPermission.objects.filter(
-        user=user, permission__in=permissions, object_pk=xform_id,
+        user_id=user.pk, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(KobocatUserObjectPermission(
-            user=user, permission=permission, object_pk=xform_id,
+            user_id=user.pk, permission=permission, object_pk=xform_id,
             content_type=xform_content_type
         ))
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)
 
 
-@transaction.atomic()
-def remove_applicable_kc_permissions(obj, user, kpi_codenames):
-    r"""
-        Remove the `user` the applicable KC permissions from `obj`, if any
-        exists, given one KPI permission codename as a single string or many
-        codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
-        not have a deployment, take no action.
-        :param obj: Any Django model instance
-        :type user: :py:class:`User` or :py:class:`AnonymousUser`
-        :type kpi_codenames: str or list(str)
+def remove_applicable_kc_permissions(
+    obj: Model,
+    user: Union[AnonymousUser, User, int],
+    kpi_codenames: Union[str, list]
+):
     """
+    Remove the `user` the applicable KC permissions from `obj`, if any
+    exists, given one KPI permission codename as a single string or many
+    codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
+    not have a deployment, take no action.
+    """
+
     if not obj._meta.model_name == 'asset':
         return
     permissions = _get_applicable_kc_permissions(obj, kpi_codenames)
@@ -352,12 +368,24 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if is_user_anonymous(user):
+
+    # Retrieve primary key from user object and use it on subsequent queryset.
+    # It avoids loading the object when `user` is passed as an integer.
+    if not isinstance(user, int):
+        if is_user_anonymous(user):
+            user_id = settings.ANONYMOUS_USER_ID
+        else:
+            user_id = user.pk
+    else:
+        user_id = user
+
+    if user_id == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
+
     content_type_kwargs = _get_content_type_kwargs_for_related(obj)
     KobocatUserObjectPermission.objects.filter(
-        user=user, permission__in=permissions, object_pk=xform_id,
+        user_id=user_id, permission__in=permissions, object_pk=xform_id,
         # `permission` has a FK to `ContentType`, but I'm paranoid
         **content_type_kwargs
     ).delete()
@@ -396,3 +424,41 @@ def delete_kc_users(deleted_pks: list) -> bool:
         return False
 
     return True
+
+
+def kc_transaction_atomic(using='kobocat', *args, **kwargs):
+    """
+    KoBoCAT database does not exist in testing environment.
+    `transaction.atomic(using='kobocat') cannot be called without raising errors.
+
+    This utility returns an a context manager which does nothing if environment
+    is set to `TESTING`. Otherwise, it returns a real context manager which
+    provides transactions support.
+    """
+    class DummyAtomic(ContextDecorator):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            pass
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            pass
+
+    assert (
+        callable(using) or using == 'kobocat'
+    ), "`kc_transaction_atomic` may only be used with the 'kobocat' database"
+
+    if settings.TESTING:
+        # Bare decorator: @atomic -- although the first argument is called
+        # `using`, it's actually the function being decorated.
+        if callable(using):
+            return DummyAtomic()(using)
+        else:
+            return DummyAtomic()
+
+    # Not in a testing environment; use the real `atomic`
+    if callable(using):
+        return transaction.atomic('kobocat', *args, **kwargs)(using)
+    else:
+        return transaction.atomic('kobocat', *args, **kwargs)

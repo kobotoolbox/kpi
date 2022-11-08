@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { Link } from 'react-router';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import assetUtils from 'js/assetUtils';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import {
@@ -13,6 +13,7 @@ import {
   ASSET_TYPES
 } from 'js/constants';
 import TagInput from 'js/components/tagInput';
+import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {
@@ -126,6 +127,7 @@ class AssetRow extends React.Component {
               data-asset-type={this.props.kind}
               draggable={false}
               className='asset-row__link-overlay'
+              data-cy='question'
             />
 
             {/* "title" column */}
@@ -141,7 +143,7 @@ class AssetRow extends React.Component {
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
               <bem.AssetRow__cell m='name'>
-                <ui.AssetName {...this.props} />
+                <AssetName asset={this.props} data-cy='assetName'/>
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>
@@ -223,7 +225,7 @@ class AssetRow extends React.Component {
             </bem.AssetRow__cell>
           }
 
-          <bem.AssetRow__buttons onClick={this.clickAssetButton}>
+          <bem.AssetRow__buttons onClick={this.clickAssetButton} data-cy='buttons'>
             {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='edit'
@@ -269,7 +271,7 @@ class AssetRow extends React.Component {
                 data-asset-name={assetName}
                 data-disabled={false}
                 >
-              <i className='k-icon k-icon-clone' />
+              <i className='k-icon k-icon-duplicate' />
             </bem.AssetRow__actionIcon>
 
             { this.props.asset_type &&
@@ -303,10 +305,13 @@ class AssetRow extends React.Component {
                     );
               })
             }
-            <ui.PopoverMenu
+            <PopoverMenu
               type='assetrow-menu'
-              triggerLabel={<i className='k-icon k-icon-more' />}
-              triggerTip={t('More actions')}
+              triggerLabel={
+                <div data-tip={t('More actions')}>
+                  <i className='k-icon k-icon-more'/>
+                </div>
+              }
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
@@ -361,7 +366,7 @@ class AssetRow extends React.Component {
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                         key={`dl-${dl.format}`}>
-                      <i className={`k-icon k-icon-${dl.format}-file`}/>
+                      <i className={`k-icon k-icon-file-${dl.format}`}/>
                       {t('Download')}&nbsp;
                       {dl.format.toString().toUpperCase()}
                     </bem.PopoverMenu__link>
@@ -431,7 +436,7 @@ class AssetRow extends React.Component {
                   {t('Remove shared form')}
                 </bem.PopoverMenu__link>
               }
-            </ui.PopoverMenu>
+            </PopoverMenu>
           </bem.AssetRow__buttons>
         </bem.AssetRow>
       );

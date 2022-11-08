@@ -6,6 +6,7 @@ from kpi.filters import KpiAssignedObjectPermissionsFilter
 from kpi.models import ObjectPermission
 from kpi.serializers import ObjectPermissionSerializer
 from kpi.views.no_update_model import NoUpdateModelViewSet
+from kpi.constants import PERM_MANAGE_ASSET
 
 
 class ObjectPermissionViewSet(NoUpdateModelViewSet):
@@ -18,6 +19,10 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
         # Make sure the requesting user has the manage_ permission on
         # the affected object
         with transaction.atomic():
+            # FIXME: `transaction.atomic()` does not have the desired effect
+            # of ensuring that the user's permission to share this object has
+            # not been revoked between the `user_can_share()` check and the
+            # assignment of new permissions
             affected_object = serializer.validated_data['content_object']
             codename = serializer.validated_data['permission'].codename
             if not affected_object.has_perm(
@@ -37,6 +42,10 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
         # Make sure the requesting user has the manage_ permission on
         # the affected object
         with transaction.atomic():
+            # FIXME: `transaction.atomic()` does not have the desired effect
+            # of ensuring that the user's permission to share this object has
+            # not been revoked between the `user_can_share()` check and the
+            # deleting of permissions
             affected_object = instance.content_object
             codename = instance.permission.codename
             if not affected_object.has_perm(

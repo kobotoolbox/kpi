@@ -2,8 +2,8 @@
 import json
 
 from django.contrib.auth.models import User
-from django.urls import reverse
 from rest_framework import status
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -100,6 +100,41 @@ class AssetExportSettingsApiTest(BaseTestCase):
         assert (
             data['export_settings'] == self.valid_export_settings
         )
+
+        def export_url_for_format(format_):
+            return reverse(
+                self._get_endpoint('asset-export-settings-synchronous-data'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': data['uid'],
+                },
+                format=format_,
+            )
+        assert data['data_url_csv'].endswith(export_url_for_format('csv'))
+        assert data['data_url_xlsx'].endswith(export_url_for_format('xlsx'))
+
+    def test_api_create_extended_asset_export_settings_for_owner(self):
+        export_settings = {
+            **self.valid_export_settings,
+            'type': 'xls',
+            'xls_types_as_text': True,
+            'submission_ids': [1, 2, 3],
+            'query': {'_submission_time': {'$gt': '2021-10-13'}},
+        }
+        response = self.client.post(
+            self.export_settings_list_url,
+            data={
+                'name': self.name,
+                'export_settings': export_settings,
+            },
+            format='json',
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert self.asset_export_settings.count() == 1
+
+        data = response.json()
+        assert data['name'] == self.name
+        assert data['export_settings'] == export_settings
 
     def test_api_create_invalid_asset_export_settings_for_owner(self):
         invalid_export_settings = {**self.valid_export_settings, 'type': 'pdf'}

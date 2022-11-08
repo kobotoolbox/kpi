@@ -11,18 +11,19 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {assign} from '../utils';
+import {assign, escapeHtml} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   NAME_MAX_LENGTH,
-  ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import ui from '../ui';
-import {bem} from '../bem';
+import {ROUTES} from 'js/router/routerConstants';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Modal from 'js/components/common/modal';
+import bem, {makeBem} from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
@@ -45,9 +46,10 @@ import {
   getFormBuilderAssetType,
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
+import envStore from 'js/envStore';
 
-const ErrorMessage = bem.create('error-message');
-const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
+const ErrorMessage = makeBem(null, 'error-message');
+const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
 
 const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
@@ -292,6 +294,12 @@ export default assign({
       if (this.state.settingsNew.country) {
         settings.country = this.state.settingsNew.country;
       }
+      if (this.state.settingsNew.operational_purpose) {
+        settings.operational_purpose = this.state.settingsNew.operational_purpose;
+      }
+      if (this.state.settingsNew.collects_pii) {
+        settings.collects_pii = this.state.settingsNew.collects_pii;
+      }
       if (this.state.settingsNew['share-metadata']) {
         settings['share-metadata'] = this.state.settingsNew['share-metadata'];
       }
@@ -331,7 +339,7 @@ export default assign({
         .catch((resp) => {
           var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;${t('Keep this window open and try saving again while using a better connection.')}`;
           if (resp.statusText !== 'error') {
-            errorMsg = resp.statusText;
+            errorMsg = escapeHtml(resp.statusText);
           }
 
           alertify.defaults.theme.ok = 'ajs-cancel';
@@ -388,7 +396,7 @@ export default assign({
           }
         });
         return hasSelect;
-      })(); // todo: only true if survey has select questions
+      })();
       ooo.name = this.state.name;
       ooo.hasSettings = this.state.backRoute === ROUTES.FORMS;
       ooo.styleValue = this.state.settings__style;
@@ -625,6 +633,7 @@ export default assign({
               }]}
               onClick={this.saveForm}
               disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
+              data-cy='save'
             >
               <i />
               {saveButtonText}
@@ -726,7 +735,7 @@ export default assign({
     return (
       <bem.FormBuilderMessageBox m='warning'>
         <span data-tip={t('background recording')}>
-          <i className='k-icon k-icon-form-overview'/>
+          <i className='k-icon k-icon-project-overview'/>
         </span>
 
         <p>
@@ -739,14 +748,10 @@ export default assign({
           {'.'}
         </p>
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
+        { envStore.isReady &&
+          envStore.data.support_url &&
           <bem.TextBox__labelLink
-            // TODO update support article to include background-audio
-            href={
-              stores.serverEnvironment.state.support_url +
-              RECORDING_SUPPORT_URL
-            }
+            href={envStore.data.support_url + RECORDING_SUPPORT_URL}
             target='_blank'
             data-tip={t('help')}
           >
@@ -776,10 +781,10 @@ export default assign({
               <bem.FormBuilderAside__header>
                 {t('Form style')}
 
-                { stores.serverEnvironment &&
-                  stores.serverEnvironment.state.support_url &&
+                { envStore.isReady &&
+                  envStore.data.support_url &&
                   <a
-                    href={stores.serverEnvironment.state.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
                     target='_blank'
                     data-tip={t('Read more about form styles')}
                   >
@@ -789,7 +794,7 @@ export default assign({
               </bem.FormBuilderAside__header>
 
               <label
-                className='kobo-select-label'
+                className='kobo-select__label'
                 htmlFor='webform-style'
               >
                 { hasSettings ?
@@ -879,7 +884,7 @@ export default assign({
       );
     }
 
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   },
 
   renderAssetLabel() {
@@ -903,10 +908,10 @@ export default assign({
 
           {lockedLabel}
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <a
-              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
               target='_blank'
               data-tip={t('Read more about Locking')}
             >
@@ -924,24 +929,17 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <ui.LoadingSpinner/>
+          <LoadingSpinner/>
         </DocumentTitle>
       );
     }
 
-    // Only allow user to edit form if they have "Edit Form" permission
-    var userCanEditForm = (
-      this.state.isNewAsset ||
-      assetUtils.isSelfOwned(this.state.asset) ||
-      this.userCan('change_asset', this.state.asset)
-    );
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ui.Panel m={['transparent', 'fixed']}>
-          {this.renderAside()}
+        <bem.uiPanel m={['transparent', 'fixed']}>
+          <bem.uiPanel__body>
+            {this.renderAside()}
 
-          {userCanEditForm &&
             <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
@@ -961,48 +959,44 @@ export default assign({
                 </div>
               </bem.FormBuilder__contents>
             </bem.FormBuilder>
-          }
 
-          {(!userCanEditForm) &&
-            <ui.AccessDeniedMessage/>
-          }
+            {this.state.enketopreviewOverlay &&
+              <Modal
+                open
+                large
+                onClose={this.hidePreview}
+                title={t('Form Preview')}
+              >
+                <Modal.Body>
+                  <div className='enketo-holder'>
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
+                </Modal.Body>
+              </Modal>
+            }
 
-          {this.state.enketopreviewOverlay &&
-            <ui.Modal
-              open
-              large
-              onClose={this.hidePreview}
-              title={t('Form Preview')}
-            >
-              <ui.Modal.Body>
-                <div className='enketo-holder'>
-                  <iframe src={this.state.enketopreviewOverlay} />
-                </div>
-              </ui.Modal.Body>
-            </ui.Modal>
-          }
+            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+              <Modal
+                open
+                error
+                onClose={this.clearPreviewError}
+                title={t('Error generating preview')}
+              >
+                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+              </Modal>
+            }
 
-          {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-            <ui.Modal
-              open
-              error
-              onClose={this.clearPreviewError}
-              title={t('Error generating preview')}
-            >
-              <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
-            </ui.Modal>
-          }
-
-          {this.state.showCascadePopup &&
-            <ui.Modal
-              open
-              onClose={this.hideCascade}
-              title={t('Import Cascading Select Questions')}
-            >
-              <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
-            </ui.Modal>
-          }
-        </ui.Panel>
+            {this.state.showCascadePopup &&
+              <Modal
+                open
+                onClose={this.hideCascade}
+                title={t('Import Cascading Select Questions')}
+              >
+                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+              </Modal>
+            }
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       </DocumentTitle>
     );
   },

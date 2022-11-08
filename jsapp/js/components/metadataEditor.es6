@@ -10,8 +10,8 @@ import {
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
 } from 'js/constants';
-import {bem} from 'js/bem';
-import {stores} from 'js/stores';
+import bem from 'js/bem';
+import envStore from 'js/envStore';
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';
 const RECORDING_SUPPORT_URL = 'recording-interviews.html';
@@ -141,11 +141,11 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Audit settings')}
 
-        {stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url && (
+        {envStore.isReady &&
+          envStore.data.support_url && (
             <bem.TextBox__labelLink
               href={
-                stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL
+                envStore.data.support_url + AUDIT_SUPPORT_URL
               }
               target='_blank'
             >
@@ -161,14 +161,10 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Background audio')}
 
-        {stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url && (
+        {envStore.isReady &&
+          envStore.data.support_url && (
             <bem.TextBox__labelLink
-              // TODO update support article to include background-audio
-              href={
-                stores.serverEnvironment.state.support_url +
-                RECORDING_SUPPORT_URL
-              }
+              href={envStore.data.support_url + RECORDING_SUPPORT_URL}
               target='_blank'
             >
               <i className='k-icon k-icon-help' />
@@ -187,14 +183,12 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES.start,
       META_QUESTION_TYPES.end,
       META_QUESTION_TYPES.today,
-      META_QUESTION_TYPES.deviceid,
       META_QUESTION_TYPES.audit,
     ];
     const rightColumn = [
       META_QUESTION_TYPES.username,
-      META_QUESTION_TYPES.simserial,
-      META_QUESTION_TYPES.subscriberid,
       META_QUESTION_TYPES.phonenumber,
+      META_QUESTION_TYPES.deviceid,
     ];
 
     let backgroundAudioProp = this.getMetaProperty(
@@ -235,6 +229,19 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
+        {this.isAuditEnabled() && (
+          <bem.FormBuilderMeta__row>
+            <TextBox
+              customModifiers='on-white'
+              label={this.renderAuditInputLabel()}
+              value={this.getAuditParameters()}
+              disabled={this.props.isDisabled}
+              onChange={this.onAuditParametersChange}
+              placeholder={t('Enter audit settings here')}
+            />
+          </bem.FormBuilderMeta__row>
+        )}
+
         <bem.FormBuilderMeta__row m='background-audio'>
           <bem.FormBuilderAside__header>
             {this.renderBackgroundAudioLabel()}
@@ -263,18 +270,7 @@ export default class MetadataEditor extends React.Component {
               }
             />
           </bem.FormModal__item>
-        </bem.FormBuilderMeta__row>
-
-        {this.isAuditEnabled() && (
-          <bem.FormBuilderMeta__row>
-            <TextBox
-              label={this.renderAuditInputLabel()}
-              value={this.getAuditParameters()}
-              disabled={this.props.isDisabled}
-              onChange={this.onAuditParametersChange}
-            />
-          </bem.FormBuilderMeta__row>
-        )}
+         </bem.FormBuilderMeta__row>
 
         {this.isBackgroundAudioEnabled() && (
           <bem.FormBuilderMeta__row>

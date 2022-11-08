@@ -2,9 +2,9 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`
@@ -45,6 +45,7 @@ class DataAttachmentColumnsForm extends React.Component {
 
     // TODO: See if we can simplify this to only call this if props does not
     // have any connected questions
+    // See: https://github.com/kobotoolbox/kpi/issues/3912
     actions.resources.loadAsset({id: this.props.source.uid});
 
     this.unlisteners.push(
@@ -178,6 +179,7 @@ class DataAttachmentColumnsForm extends React.Component {
   render() {
     return (
       // TODO: Use BEM elements
+      // See: https://github.com/kobotoolbox/kpi/issues/3912
       <bem.FormModal__form m='data-attachment-columns'>
         <div className='header'>
           <span className='modal-description'>

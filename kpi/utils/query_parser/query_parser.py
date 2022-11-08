@@ -4,6 +4,7 @@ from collections import defaultdict
 from distutils import util
 from functools import reduce
 
+from django.conf import settings
 from django.db.models import Q
 from django_request_cache import cache_for_request
 
@@ -32,17 +33,15 @@ Special notes:
 """
 
 
-MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
-
-
 class QueryParseActions:
     """
     Actions for the parser to take when it encounters certain identifiers
     (see the file grammar.peg)
     """
 
-    def __init__(self, default_field_lookups):
+    def __init__(self, default_field_lookups: list, min_search_characters: int):
         self.default_field_lookups = default_field_lookups
+        self.min_search_characters = min_search_characters
 
     @staticmethod
     def process_value(field, value):
@@ -134,8 +133,8 @@ class QueryParseActions:
             # As discussed here: https://github.com/kobotoolbox/kpi/pull/2830
             # there strain on the server for small search queries without a
             # specified field. The user will receive an empty list in response
-            # until using 3 or more characters
-            if len(value) < MINIMUM_DEFAULT_SEARCH_CHARACTERS:
+            # until using `self.min_search_characters` or more characters
+            if len(value) < self.min_search_characters:
                 raise SearchQueryTooShortException()
 
             # A list of `Q` objects where every value is the same
@@ -196,7 +195,9 @@ def get_parsed_parameters(parsed_query: Q) -> dict:
 
 
 @cache_for_request
-def parse(query: str, default_field_lookups: list) -> Q:
+def parse(
+    query: str, default_field_lookups: list, min_search_characters: int = None
+) -> Q:
     """
     Parse a Boolean query string into a Django Q object.
     If no field is specified in the query, `default_field_lookups` is assumed.
@@ -205,4 +206,9 @@ def parse(query: str, default_field_lookups: list) -> Q:
     any object whose `summary` or `name` field contains `term` (case
     insensitive)
     """
-    return grammar_parse(query, QueryParseActions(default_field_lookups))
+    if not min_search_characters:
+        min_search_characters = settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS
+
+    return grammar_parse(
+        query, QueryParseActions(default_field_lookups, min_search_characters)
+    )

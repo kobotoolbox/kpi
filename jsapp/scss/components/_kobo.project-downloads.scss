@@ -46,14 +46,13 @@
 
   .kobo-select {
     .kobo-select__control {
-      border-width: 1px;
+      border: 1px solid $kobo-gray-92;
     }
   }
 
   .text-box {
     .text-box__input {
-      padding-top: 8px;
-      padding-bottom: 8px;
+      padding: 8px 16px;
     }
 
     &.text-box--group-separator {
@@ -95,7 +94,7 @@
     font-weight: 700;
 
     &:hover {
-      color: $kobo-blue-dark;
+      color: $kobo-dark-blue;
     }
 
     &:active {
@@ -182,7 +181,7 @@
     align-content: flex-end;
     margin-top: 20px;
 
-    .project-downloads__defined-exports-selector {
+    .project-downloads__exports-selector {
       width: 33%;
       position: relative;
     }
@@ -206,7 +205,7 @@
       line-height: 38px;
 
       &:hover {
-        color: $kobo-red-dark;
+        color: $kobo-dark-red;
       }
 
       &:active {
@@ -215,8 +214,15 @@
     }
   }
 
-  .form-view__cell.form-view__cell--warning {
-    margin-bottom: 20px;
+  .project-downloads__anonymous-row {
+    display: flex;
+    align-items: flex-end;
+    align-content: flex-end;
+
+    .project-downloads__exports-selector {
+      width: 33%;
+      margin-right: 20px;
+    }
   }
 
   .project-downloads__legacy-iframe-wrapper {
@@ -236,7 +242,8 @@
   }
 
   .simple-table.simple-table--project-exports {
-    .simple-table__cell {
+    // __row selector to not include __message-row
+    .simple-table__row .simple-table__cell {
       &:last-child() {
         text-align: right;
       }

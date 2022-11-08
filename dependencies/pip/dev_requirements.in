@@ -1,9 +1,13 @@
 -r requirements.in
 
 Fabric
+coverage
+coveralls
 ipython
+mock
+model-bakery
+mongomock
+pytest
+pytest-cov
 pytest-django
 pytest-env
-pytest
-mock
-mongomock

@@ -1,6 +1,34 @@
+@use "scss/colors";
+
 // global and shared variables
 
 $s-breadcrumbs-height: 70px;
 
 $s-fb-row-locking-icons-width: 25px;
 $s-fb-row-buttons-width: 25px;
+
+$drawer-background: colors.$kobo-gray-96;
+$drawer-icons-width: 58px;
+$s-drawer-width: 270px;
+
+$mdl-layout-width: 1440px;
+
+$base-font-size: 14px;
+
+// Form Builder variables
+
+$cardBorderColor: colors.$kobo-gray-65;
+$cardInSortBorderColor: colors.$kobo-blue;
+$linkColor: colors.$kobo-blue;
+$cardBorderStyle: 1px solid $cardBorderColor;
+$cardInSortBorderStyle: 1px solid $cardInSortBorderColor;
+$cardInSortThinBorderStyle: 1px solid $cardInSortBorderColor;
+$thinBorderStyle: 1px solid $cardBorderColor;
+
+// base64 images
+
+// 1px black transparent png with 10% opacity (png-pixel.com)
+$png-black-10: url("data:image/png;base64,  iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkkAQAAB8AG7jymN8AAAAASUVORK5CYII= ");
+
+// 1px black transparent png with 6% opacity (png-pixel.com)
+$png-black-6: url("data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk4AcAABUAET9MVpIAAAAASUVORK5CYII=");

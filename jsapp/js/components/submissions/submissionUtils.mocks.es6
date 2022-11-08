@@ -465,16 +465,6 @@ export const matrixSurvey = [{
   '$kuid': '3RscqJRor',
   '$autoname': 'username',
 }, {
-  'name': 'simserial',
-  'type': 'simserial',
-  '$kuid': 'ozNn7JwMd',
-  '$autoname': 'simserial',
-}, {
-  'name': 'subscriberid',
-  'type': 'subscriberid',
-  '$kuid': 'tStWXbDyQ',
-  '$autoname': 'subscriberid',
-}, {
   'name': 'deviceid',
   'type': 'deviceid',
   '$kuid': 'll7GCh9oi',
@@ -528,7 +518,6 @@ export const matrixSurveyChoices = [{
 export const matrixSurveySubmission = {
   '_id': 22,
   'username': 'username not found',
-  'simserial': 'simserial not found',
   '_validation_status': {},
   '_uuid': 'a0039b58-1b2d-4445-912e-01e4ad56dbb4',
   '_bamboo_dataset_id': '',
@@ -549,7 +538,6 @@ export const matrixSurveySubmission = {
   'phonenumber': 'phonenumber not found',
   '_status': 'submitted_via_web',
   '__version__': 'vPNH6GBsRjMKLfXrisReYA',
-  'subscriberid': 'subscriberid not found',
   'today': '2020-04-20',
 };
 
@@ -1679,3 +1667,826 @@ export const matrixRepeatSurveyDisplayData = [
     ],
   },
 ];
+
+export const submissionWithAttachmentsWithUnicode = {
+  '_id': 18,
+  'A_picture': 'Un été au Québec (Canada)-19_41_32.jpg',
+  'meta/instanceID': 'uuid:4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
+  'meta/deprecatedID': 'uuid:f79e88d3-2329-40c7-ab7a-66dde871480c',
+  'formhub/uuid': '45748fd461814880bd9545c8c8827d78',
+  '__version__': 'vUdsH7ovQn4eCdBtPJyBag',
+  '_xform_id_string': 'azCy24QgjprZGrdvbHQXr3',
+  '_uuid': '4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
+  '_attachments': [
+    {
+      download_url: 'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpg',
+      download_large_url: 'http://kc.kobo.local/media/large?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpg',
+      download_medium_url: 'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpg',
+      download_small_url: 'http://kc.kobo.local/media/small?media_file=kobo%2Fattachments%2F45748fd461814880bd9545c8c8827d78%2F4cfa16e8-f29b-41a9-984c-2bf7fe05064b%2FUn_ete_au_Quebec_Canada-19_41_32.jpgg',
+      mimetype: 'image/jpeg',
+      filename: 'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
+      instance: 18,
+      xform: 4,
+      id: 13,
+    },
+  ],
+  _geolocation: [
+    null,
+    null,
+  ],
+  _notes: [],
+  _tags: [],
+  _status: 'submitted_via_web',
+  _submission_time: '2022-01-26T19:40:11',
+  _submitted_by: null,
+  _validation_status: {},
+};
+
+export const assetWithSupplementalDetails = {
+  'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/',
+  'owner': 'http://kf.kobo.local/api/v2/users/kobo/',
+  'owner__username': 'kobo',
+  'parent': null,
+  'settings': {},
+  'asset_type': 'survey',
+  'date_created': '2022-05-12T10:40:02.952931Z',
+  'summary': {
+    'geo': false,
+    'labels': [
+      'Your name here',
+      'Your selfie goes here',
+      'A video? WTF',
+      'Secret password as an audio file',
+    ],
+    'columns': [
+      'name',
+      'type',
+      'label',
+      'required',
+      'calculation',
+    ],
+    'lock_all': false,
+    'lock_any': false,
+    'languages': [
+      null,
+    ],
+    'row_count': 6,
+    'name_quality': {
+      'ok': 0,
+      'bad': 0,
+      'good': 6,
+      'total': 6,
+      'firsts': {},
+    },
+    'naming_conflicts': [
+      '__version__',
+    ],
+    'default_translation': null,
+  },
+  'date_modified': '2022-05-12T20:46:11.778140Z',
+  'version_id': 'vMQQP3qgzfmC9XFUkaogSu',
+  'version__content_hash': '85c5bee02e5c2061afb598870e0308e3e0f818b5',
+  'version_count': 6,
+  'has_deployment': true,
+  'deployed_version_id': 'vFFTm5vKJURadwXxntZda6',
+  'deployed_versions': {
+    'count': 1,
+    'next': null,
+    'previous': null,
+    'results': [
+      {
+        'uid': 'vFFTm5vKJURadwXxntZda6',
+        'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/versions/vFFTm5vKJURadwXxntZda6/',
+        'content_hash': '85c5bee02e5c2061afb598870e0308e3e0f818b5',
+        'date_deployed': '2022-05-12T10:40:05.215293Z',
+        'date_modified': '2022-05-12 10:40:05.215293+00:00',
+      },
+    ],
+  },
+  'deployment__identifier': 'http://kc.kobo.local/kobo/forms/aDDywpeYGnvuDLTeiveyxZ',
+  'deployment__links': {
+    'url': 'http://ee.kobo.local/6PTli7y9',
+    'single_url': 'http://ee.kobo.local/single/6PTli7y9',
+    'single_once_url': 'http://ee.kobo.local/single/fc64e066ac2314795f6f6afe049420dd',
+    'offline_url': 'http://ee.kobo.local/x/6PTli7y9',
+    'preview_url': 'http://ee.kobo.local/preview/6PTli7y9',
+    'iframe_url': 'http://ee.kobo.local/i/6PTli7y9',
+    'single_iframe_url': 'http://ee.kobo.local/single/i/6PTli7y9',
+    'single_once_iframe_url': 'http://ee.kobo.local/single/i/fc64e066ac2314795f6f6afe049420dd',
+  },
+  'deployment__active': true,
+  'deployment__data_download_links': {
+    'xls_legacy': 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/xls/',
+    'csv_legacy': 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/csv/',
+    'zip_legacy': 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/zip/',
+    'kml_legacy': 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/kml/',
+    'xls': 'http://kc.kobo.local/kobo/reports/aDDywpeYGnvuDLTeiveyxZ/export.xlsx',
+    'csv': 'http://kc.kobo.local/kobo/reports/aDDywpeYGnvuDLTeiveyxZ/export.csv',
+  },
+  'deployment__submission_count': 3,
+  'report_styles': {
+    'default': {},
+    'specified': {
+      'end': {},
+      'audit': {},
+      'start': {},
+      'today': {},
+      'deviceid': {},
+      'username': {},
+      '_version_': {},
+      'simserial': {},
+      'A_video_WTF': {},
+      '__version__': {},
+      'phonenumber': {},
+      'subscriberid': {},
+      'Your_name_here': {},
+      'Your_selfie_goes_here': {},
+      'Secret_password_as_an_audio_file': {},
+    },
+    'kuid_names': {
+      'end': 'VpPsXe5aq',
+      'audit': '4Fbwq3mxP',
+      'start': '8sHgNqqM9',
+      'today': 'HuEzX4mel',
+      'deviceid': 'q8Rvs1sqk',
+      'username': '4dINVeRnR',
+      '_version_': 'kU3D6JQPQ',
+      'simserial': 'WrxreUkAJ',
+      'A_video_WTF': 'bMGj1HZfu',
+      '__version__': 'Hd5Iz0aWv',
+      'phonenumber': 'Oqbll19yc',
+      'subscriberid': '8ojkWhAXU',
+      'Your_name_here': 'RAeXenoDr',
+      'Your_selfie_goes_here': 'MWflesBzX',
+      'Secret_password_as_an_audio_file': '3VHKj8Kt4',
+    },
+  },
+  'report_custom': {},
+  'advanced_features': {
+    'transcript': {
+      'values': [
+        'A_video_WTF',
+        'Secret_password_as_an_audio_file',
+      ],
+      'languages': [
+        'fr',
+        'pl',
+      ],
+    },
+    'translated': {
+      'values': [
+        'Your_name_here',
+        'A_video_WTF',
+        'Secret_password_as_an_audio_file',
+      ],
+      'languages': [
+        'pl',
+        'de',
+      ],
+    },
+  },
+  'advanced_submission_schema': {
+    'type': 'object',
+    '$description': 'PATCH or POST a matching JSON structure to a submission and it will be stored and processed accordingly.',
+    'url': 'http://kf.kobo.local/advanced_submission_post/aDDywpeYGnvuDLTeiveyxZ',
+    'properties': {
+      'submission': {
+        'type': 'string',
+        'description': 'the uuid of the submission',
+      },
+      'A_video_WTF': {
+        'type': 'object',
+        'properties': {
+          'transcript': {
+            '$ref': '#/definitions/transcript',
+          },
+          'translated': {
+            '$ref': '#/definitions/translation',
+          },
+        },
+        'additionalProperties': false,
+      },
+      'Secret_password_as_an_audio_file': {
+        'type': 'object',
+        'properties': {
+          'transcript': {
+            '$ref': '#/definitions/transcript',
+          },
+          'translated': {
+            '$ref': '#/definitions/translation',
+          },
+        },
+        'additionalProperties': false,
+      },
+      'Your_name_here': {
+        'type': 'object',
+        'properties': {
+          'translated': {
+            '$ref': '#/definitions/translation',
+          },
+        },
+        'additionalProperties': false,
+      },
+    },
+    'additionalProperties': false,
+    'required': [
+      'submission',
+    ],
+    'definitions': {
+      'transcript': {
+        'type': 'object',
+        'properties': {
+          'value': {
+            'type': 'string',
+          },
+          'engine': {
+            'type': 'string',
+          },
+          'dateCreated': {
+            'type': 'string',
+            'format': 'date-time',
+          },
+          'dateModified': {
+            'type': 'string',
+            'format': 'date-time',
+          },
+          'languageCode': {
+            'type': 'string',
+          },
+          'revisions': {
+            'type': 'array',
+            'items': {
+              '$ref': '#/definitions/transcriptRevision',
+            },
+          },
+        },
+        'additionalProperties': false,
+        'required': [
+          'value',
+        ],
+      },
+      'transcriptRevision': {
+        'type': 'object',
+        'properties': {
+          'value': {
+            'type': 'string',
+          },
+          'engine': {
+            'type': 'string',
+          },
+          'dateModified': {
+            'type': 'string',
+            'format': 'date-time',
+          },
+          'languageCode': {
+            'type': 'string',
+          },
+        },
+        'additionalProperties': false,
+        'required': [
+          'value',
+        ],
+      },
+      'xtranslation': {
+        'type': 'object',
+        'additionalProperties': false,
+        'required': [
+          'value',
+          'languageCode',
+        ],
+        'properties': {
+          'value': {
+            'type': 'string',
+          },
+          'engine': {
+            'type': 'string',
+          },
+          'dateCreated': {
+            'type': 'string',
+            'format': 'date-time',
+          },
+          'dateModified': {
+            'type': 'string',
+            'format': 'date-time',
+          },
+          'languageCode': {
+            'type': 'string',
+          },
+          'revisions': {
+            'type': 'array',
+            'items': {
+              '$ref': '#/definitions/translationRevision',
+            },
+          },
+        },
+      },
+      'translation': {
+        'type': 'object',
+        'properties': {
+          'pl': {
+            '$ref': '#/definitions/xtranslation',
+          },
+          'de': {
+            '$ref': '#/definitions/xtranslation',
+          },
+        },
+        'additionalProperties': false,
+      },
+      'translationRevision': {
+        'type': 'object',
+        'properties': {
+          'value': {
+            'type': 'string',
+          },
+          'engine': {
+            'type': 'string',
+          },
+          'dateModified': {
+            'type': 'string',
+            'format': 'date-time',
+          },
+          'languageCode': {
+            'type': 'string',
+          },
+        },
+        'additionalProperties': false,
+        'required': [
+          'value',
+        ],
+      },
+    },
+  },
+  'analysis_form_json': {
+    'engines': {
+      'engines/transcript_manual': {
+        'details': 'A human provided transcription',
+      },
+      'engines/translated': {
+        'details': 'A human provided translation',
+      },
+    },
+    'additional_fields': [
+      {
+        'type': 'transcript',
+        'name': 'A_video_WTF/transcript',
+        'label': 'A_video_WTF - transcript',
+        'languages': [
+          'fr',
+          'pl',
+        ],
+        'path': [
+          'A_video_WTF',
+          'transcript',
+        ],
+        'source': 'A_video_WTF',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/transcript_manual',
+        },
+      },
+      {
+        'type': 'transcript',
+        'name': 'Secret_password_as_an_audio_file/transcript',
+        'label': 'Secret_password_as_an_audio_file - transcript',
+        'languages': [
+          'fr',
+          'pl',
+        ],
+        'path': [
+          'Secret_password_as_an_audio_file',
+          'transcript',
+        ],
+        'source': 'Secret_password_as_an_audio_file',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/transcript_manual',
+        },
+      },
+      {
+        'type': 'translation',
+        'name': 'Your_name_here/translation_pl',
+        'label': 'Your_name_here - translation (pl)',
+        'language': 'pl',
+        'path': [
+          'Your_name_here',
+          'translation_pl',
+        ],
+        'source': 'Your_name_here',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/translated',
+        },
+      },
+      {
+        'type': 'translation',
+        'name': 'Your_name_here/translation_de',
+        'label': 'Your_name_here - translation (de)',
+        'language': 'de',
+        'path': [
+          'Your_name_here',
+          'translation_de',
+        ],
+        'source': 'Your_name_here',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/translated',
+        },
+      },
+      {
+        'type': 'translation',
+        'name': 'A_video_WTF/translation_pl',
+        'label': 'A_video_WTF - translation (pl)',
+        'language': 'pl',
+        'path': [
+          'A_video_WTF',
+          'translation_pl',
+        ],
+        'source': 'A_video_WTF',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/translated',
+        },
+      },
+      {
+        'type': 'translation',
+        'name': 'A_video_WTF/translation_de',
+        'label': 'A_video_WTF - translation (de)',
+        'language': 'de',
+        'path': [
+          'A_video_WTF',
+          'translation_de',
+        ],
+        'source': 'A_video_WTF',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/translated',
+        },
+      },
+      {
+        'type': 'translation',
+        'name': 'Secret_password_as_an_audio_file/translation_pl',
+        'label': 'Secret_password_as_an_audio_file - translation (pl)',
+        'language': 'pl',
+        'path': [
+          'Secret_password_as_an_audio_file',
+          'translation_pl',
+        ],
+        'source': 'Secret_password_as_an_audio_file',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/translated',
+        },
+      },
+      {
+        'type': 'translation',
+        'name': 'Secret_password_as_an_audio_file/translation_de',
+        'label': 'Secret_password_as_an_audio_file - translation (de)',
+        'language': 'de',
+        'path': [
+          'Secret_password_as_an_audio_file',
+          'translation_de',
+        ],
+        'source': 'Secret_password_as_an_audio_file',
+        'settings': {
+          'mode': 'auto',
+          'engine': 'engines/translated',
+        },
+      },
+    ],
+  },
+  'map_styles': {},
+  'map_custom': {},
+  'content': {
+    'schema': '1',
+    'survey': [
+      {
+        'name': 'start',
+        'type': 'start',
+        '$kuid': '8sHgNqqM9',
+        '$autoname': 'start',
+      },
+      {
+        'name': 'end',
+        'type': 'end',
+        '$kuid': 'VpPsXe5aq',
+        '$autoname': 'end',
+      },
+      {
+        'name': 'today',
+        'type': 'today',
+        '$kuid': 'HuEzX4mel',
+        '$autoname': 'today',
+      },
+      {
+        'name': 'username',
+        'type': 'username',
+        '$kuid': '4dINVeRnR',
+        '$autoname': 'username',
+      },
+      {
+        'name': 'simserial',
+        'type': 'simserial',
+        '$kuid': 'WrxreUkAJ',
+        '$autoname': 'simserial',
+      },
+      {
+        'name': 'subscriberid',
+        'type': 'subscriberid',
+        '$kuid': '8ojkWhAXU',
+        '$autoname': 'subscriberid',
+      },
+      {
+        'name': 'deviceid',
+        'type': 'deviceid',
+        '$kuid': 'q8Rvs1sqk',
+        '$autoname': 'deviceid',
+      },
+      {
+        'name': 'phonenumber',
+        'type': 'phonenumber',
+        '$kuid': 'Oqbll19yc',
+        '$autoname': 'phonenumber',
+      },
+      {
+        'name': 'audit',
+        'type': 'audit',
+        '$kuid': '4Fbwq3mxP',
+        '$autoname': 'audit',
+      },
+      {
+        'name': 'Your_name_here',
+        'type': 'text',
+        '$kuid': 'RAeXenoDr',
+        'label': [
+          'Your name here',
+        ],
+        'required': false,
+        '$autoname': 'Your_name_here',
+      },
+      {
+        'name': 'Your_selfie_goes_here',
+        'type': 'image',
+        '$kuid': 'MWflesBzX',
+        'label': [
+          'Your selfie goes here',
+        ],
+        'required': false,
+        '$autoname': 'Your_selfie_goes_here',
+      },
+      {
+        'name': 'A_video_WTF',
+        'type': 'video',
+        '$kuid': 'bMGj1HZfu',
+        'label': [
+          'A video? WTF',
+        ],
+        'required': false,
+        '$autoname': 'A_video_WTF',
+      },
+      {
+        'name': 'Secret_password_as_an_audio_file',
+        'type': 'audio',
+        '$kuid': '3VHKj8Kt4',
+        'label': [
+          'Secret password as an audio file',
+        ],
+        'required': false,
+        '$autoname': 'Secret_password_as_an_audio_file',
+      },
+      {
+        'name': '__version__',
+        'type': 'calculate',
+        '$kuid': 'Hd5Iz0aWv',
+        'required': false,
+        '$autoname': '__version__',
+        'calculation': "'vhazs7e47xB9GYwY3tbYtS'",
+      },
+      {
+        'name': '_version_',
+        'type': 'calculate',
+        '$kuid': 'kU3D6JQPQ',
+        '$autoname': '_version_',
+        '$given_name': '__version__',
+        'calculation': "'vjtVxWH3Xmcoz6VFtqfbVr'",
+      },
+    ],
+    'settings': {
+      'version': '3 (2021-12-28 13:33:41)',
+      'id_string': 'text_and_media_project',
+    },
+    'translated': [
+      'label',
+    ],
+    'translations': [
+      null,
+    ],
+  },
+  'downloads': [
+    {
+      'format': 'xls',
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ.xls',
+    },
+    {
+      'format': 'xml',
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ.xml',
+    },
+  ],
+  'embeds': [
+    {
+      'format': 'xls',
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xls/',
+    },
+    {
+      'format': 'xform',
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
+    },
+  ],
+  'koboform_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/koboform/',
+  'xform_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
+  'hooks_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/hooks/',
+  'tag_string': '',
+  'uid': 'aDDywpeYGnvuDLTeiveyxZ',
+  'kind': 'asset',
+  'xls_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xls/',
+  'name': 'text and media projekt',
+  'assignable_permissions': [
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/view_asset/',
+      'label': 'View form',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/change_asset/',
+      'label': 'Edit form',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
+      'label': 'Manage project',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
+      'label': 'Add submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
+      'label': 'View submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/partial_submissions/',
+      'label': {
+        'default': 'Act on submissions only from specific users',
+        'view_submissions': 'View submissions only from specific users',
+        'change_submissions': 'Edit submissions only from specific users',
+        'delete_submissions': 'Delete submissions only from specific users',
+        'validate_submissions': 'Validate submissions only from specific users',
+      },
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
+      'label': 'Edit submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
+      'label': 'Delete submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
+      'label': 'Validate submissions',
+    },
+  ],
+  'permissions': [
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pDbXju7qDP7f4TiPnhvN2V/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
+      'label': 'Add submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pRbazEkwqBFAT4K775yWK5/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/change_asset/',
+      'label': 'Edit form',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pAVAdfoKu2zHjgw2ZaPvKk/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
+      'label': 'Edit submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pETWb6s6ezB9gs7vpMpHhZ/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
+      'label': 'Delete submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pQoaazdrQ2pBRjqiMpcyc2/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
+      'label': 'Manage project',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pEqtSwGsEJzot98Ms3JJpL/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
+      'label': 'Validate submissions',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/p62cADJonW8XuVPkaMSQcj/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/view_asset/',
+      'label': 'View form',
+    },
+    {
+      'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/p6FKWfL4SuxUqXhsJWdkkB/',
+      'user': 'http://kf.kobo.local/api/v2/users/kobo/',
+      'permission': 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
+      'label': 'View submissions',
+    },
+  ],
+  'exports': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/exports/',
+  'export_settings': [],
+  'data': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/',
+  'children': {
+    'count': 0,
+  },
+  'subscribers_count': 0,
+  'status': 'private',
+  'access_types': null,
+  'data_sharing': {},
+  'paired_data': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
+};
+
+export const submissionWithSupplementalDetails = {
+  '_id': 3,
+  'formhub/uuid': 'c71e63f6afa64b31ba70b2fbbb710cf4',
+  'start': '2022-05-12T12:42:07.034+02:00',
+  'end': '2022-05-12T12:42:21.160+02:00',
+  'today': '2022-05-12',
+  'username': 'username not found',
+  'simserial': 'simserial not found',
+  'subscriberid': 'subscriberid not found',
+  'deviceid': 'ee.kobo.local:SnU3c4G76jpfMlEg',
+  'phonenumber': 'phonenumber not found',
+  'Your_name_here': 'David',
+  'Secret_password_as_an_audio_file': '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+  '__version__': 'vhazs7e47xB9GYwY3tbYtS',
+  '_version_': 'vjtVxWH3Xmcoz6VFtqfbVr',
+  '_version__001': 'vFFTm5vKJURadwXxntZda6',
+  'meta/instanceID': 'uuid:58c71236-f713-471b-bd4c-2a5f2e6b9a05',
+  '_xform_id_string': 'aDDywpeYGnvuDLTeiveyxZ',
+  '_uuid': '58c71236-f713-471b-bd4c-2a5f2e6b9a05',
+  '_attachments': [
+    {
+      'download_url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      'download_large_url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      'download_medium_url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      'download_small_url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      'mimetype': 'audio/mpeg',
+      'filename': 'kobo/attachments/c71e63f6afa64b31ba70b2fbbb710cf4/58c71236-f713-471b-bd4c-2a5f2e6b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+      'instance': 3,
+      'xform': 1,
+      'id': 3,
+    },
+  ],
+  '_status': 'submitted_via_web',
+  '_geolocation': [
+    null,
+    null,
+  ],
+  '_submission_time': '2022-05-12T10:42:37',
+  '_tags': [],
+  '_notes': [],
+  '_validation_status': {},
+  '_submitted_by': null,
+  '_supplementalDetails': {
+    'Secret_password_as_an_audio_file': {
+      'transcript': {
+        'value': 'This is french transcript text.',
+        'revisions': [],
+        'dateCreated': '2022-05-12 10:47:51',
+        'dateModified': '2022-05-12 10:47:51',
+        'languageCode': 'fr',
+      },
+      'translation': {
+        'de': {
+          'value': 'This is german translation text.',
+          'revisions': [
+            {
+              'dateModified': '2022-05-12T20:46:21Z',
+            },
+          ],
+          'dateCreated': '2022-05-12T20:46:21Z',
+          'dateModified': '2022-05-12T20:46:21Z',
+          'languageCode': 'de',
+        },
+        'pl': {
+          'value': 'This is polish translation text.',
+          'revisions': [],
+          'dateCreated': '2022-05-12T20:45:46Z',
+          'dateModified': '2022-05-12T20:45:46Z',
+          'languageCode': 'pl',
+        },
+      },
+    },
+  },
+};

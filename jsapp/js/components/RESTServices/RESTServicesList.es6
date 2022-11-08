@@ -5,9 +5,14 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
-import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {MODAL_TYPES} from '../../constants';
+import envStore from 'js/envStore';
+import {
+  notify,
+  escapeHtml,
+} from 'js/utils';
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
 
@@ -41,7 +46,7 @@ export default class RESTServicesList extends React.Component {
           this.setState({
             isLoadingHooks: false
           });
-          alertify.error(t('Could not load REST Services'));
+          notify.error(t('Could not load REST Services'));
         }
       }
     );
@@ -68,9 +73,9 @@ export default class RESTServicesList extends React.Component {
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
       const title = t('Are you sure you want to delete ##target?')
-        .replace('##target', hookName);
+        .replace('##target', escapeHtml(hookName));
       const message = t('You are about to delete ##target. This action cannot be undone.')
-        .replace('##target', `<strong>${hookName}</strong>`);
+        .replace('##target', `<strong>${escapeHtml(hookName)}</strong>`);
       let dialogOptions = {
         title: title,
         message: message,
@@ -95,8 +100,8 @@ export default class RESTServicesList extends React.Component {
   }
 
   getSupportUrl() {
-    if (stores.serverEnvironment && stores.serverEnvironment.state.support_url) {
-      return stores.serverEnvironment.state.support_url + REST_SERVICES_SUPPORT_URL;
+    if (envStore.isReady && envStore.data.support_url) {
+      return envStore.data.support_url + REST_SERVICES_SUPPORT_URL;
     }
   }
 

@@ -7,21 +7,15 @@ import {
   getFlatQuestionsList,
   renderQuestionTypeIcon,
 } from 'js/assetUtils';
-import {QUESTION_TYPES} from 'js/constants';
-import {bem} from 'js/bem';
+import {
+  QUESTION_TYPES,
+  FUSE_OPTIONS,
+} from 'js/constants';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
-import {stores} from 'js/stores';
-
-const FUSE_OPTIONS = {
-  isCaseSensitive: false,
-  includeScore: true,
-  minMatchCharLength: 1,
-  shouldSort: false,
-  ignoreFieldNorm: true,
-  threshold: 0.2,
-  ignoreLocation: true,
-};
+import envStore from 'js/envStore';
+import './bulkEditSubmissionsForm.scss';
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d');
@@ -204,10 +198,10 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   renderSupportUrlLink() {
-    if (stores.serverEnvironment?.state?.support_url) {
+    if (envStore.isReady && envStore.data.support_url) {
       return (
         <a
-          href={stores.serverEnvironment.state.support_url + HELP_ARTICLE_URL}
+          href={envStore.data.support_url + HELP_ARTICLE_URL}
           target='_blank'
         >
           {t('in the help article')}
@@ -227,7 +221,7 @@ class BulkEditSubmissionsForm extends React.Component {
     let modifiers = [];
     // we don't support bulk editing questions from repeat groups yet
     // we display them but disabled
-    if (question.hasRepatParent) {
+    if (question.hasRepeatParent) {
       modifiers.push('bulk-edit-row-disabled');
     }
 
@@ -249,10 +243,10 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          {question.hasRepatParent &&
+          {question.hasRepeatParent &&
             <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
           }
-          {!question.hasRepatParent &&
+          {!question.hasRepeatParent &&
             this.renderRowDataValues(question.name, question.selectedData)
           }
         </bem.SimpleTable__cell>

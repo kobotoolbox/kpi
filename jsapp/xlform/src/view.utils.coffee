@@ -84,7 +84,6 @@ module.exports = do ->
 
     launch = (previewUrl, options={})->
       _loadConfigs(options)
-      console.log options
       $(".enketo-holder").append $("<iframe>", src: buildUrl(previewUrl))
       $(".enketo-holder iframe").load ()->
         # alert "iframe loaded yo!"
@@ -152,20 +151,5 @@ module.exports = do ->
             onError "SurveyPreview response JSON is not recognized"
 
     launch
-
-  class viewUtils.ViewComposer
-    add: (view, id) ->
-      @views.push view
-    remove: (id) -> throw 'not implemented'
-    get: (id) -> throw 'not implemented'
-    render: () ->
-      for view in @views
-        view.render()
-    attach_to: (destination) ->
-      for view in @views
-        view.attach_to destination
-    bind_event: (event_name, callback) -> throw 'not implemented'
-    constructor: () ->
-      @views = []
 
   viewUtils

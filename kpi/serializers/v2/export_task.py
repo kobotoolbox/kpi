@@ -1,7 +1,7 @@
 # coding: utf-8
 from typing import Optional
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.request import Request
 from rest_framework.reverse import reverse
@@ -11,11 +11,15 @@ from formpack.constants import (
     EXPORT_SETTING_FLATTEN,
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
+    EXPORT_SETTING_INCLUDE_MEDIA_URL,
     EXPORT_SETTING_LANG,
-    EXPORT_SETTING_NAME,
     EXPORT_SETTING_MULTIPLE_SELECT,
+    EXPORT_SETTING_NAME,
+    EXPORT_SETTING_QUERY,
     EXPORT_SETTING_SOURCE,
+    EXPORT_SETTING_SUBMISSION_IDS,
     EXPORT_SETTING_TYPE,
+    EXPORT_SETTING_XLS_TYPES_AS_TEXT,
     REQUIRED_EXPORT_SETTINGS,
     VALID_DEFAULT_LANGUAGES,
     VALID_EXPORT_SETTINGS,
@@ -88,6 +92,24 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         if EXPORT_SETTING_FLATTEN in data_:
             attrs[EXPORT_SETTING_FLATTEN] = data_[EXPORT_SETTING_FLATTEN]
 
+        if EXPORT_SETTING_QUERY in data_:
+            attrs[EXPORT_SETTING_QUERY] = self.validate_query(data_)
+
+        if EXPORT_SETTING_SUBMISSION_IDS in data_:
+            attrs[EXPORT_SETTING_SUBMISSION_IDS] = self.validate_submission_ids(
+                data_
+            )
+
+        if EXPORT_SETTING_XLS_TYPES_AS_TEXT in data_:
+            attrs[EXPORT_SETTING_XLS_TYPES_AS_TEXT] = data_[
+                EXPORT_SETTING_XLS_TYPES_AS_TEXT
+            ]
+
+        if EXPORT_SETTING_INCLUDE_MEDIA_URL in data_:
+            attrs[EXPORT_SETTING_INCLUDE_MEDIA_URL] = data_[
+                EXPORT_SETTING_INCLUDE_MEDIA_URL
+            ]
+
         return attrs
 
     def validate_data(self, data: dict) -> dict:
@@ -97,7 +119,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             if required not in data:
                 raise serializers.ValidationError(
                     {
-                        'data': _(
+                        'data': t(
                             'Must contain all the following required keys: {}'
                         ).format(
                             format_exception_values(
@@ -111,7 +133,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             if key not in valid_export_settings:
                 raise serializers.ValidationError(
                     {
-                        'data': _(
+                        'data': t(
                             'Can contain only the following valid keys: {}'
                         ).format(
                             format_exception_values(
@@ -127,13 +149,13 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         fields = data[EXPORT_SETTING_FIELDS]
         if not isinstance(fields, list):
             raise serializers.ValidationError(
-                {EXPORT_SETTING_FIELDS: _('Must be an array')}
+                {EXPORT_SETTING_FIELDS: t('Must be an array')}
             )
 
         if not all((isinstance(field, str) for field in fields)):
             raise serializers.ValidationError(
                 {
-                    EXPORT_SETTING_FIELDS: _(
+                    EXPORT_SETTING_FIELDS: t(
                         'All values in the array must be strings'
                     )
                 }
@@ -144,7 +166,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         group_sep = data[EXPORT_SETTING_GROUP_SEP]
         if data[EXPORT_SETTING_HIERARCHY_IN_LABELS] and not group_sep:
             raise serializers.ValidationError(
-                {EXPORT_SETTING_GROUP_SEP: _('Must be a non-empty value')}
+                {EXPORT_SETTING_GROUP_SEP: t('Must be a non-empty value')}
             )
         return group_sep
 
@@ -156,7 +178,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         if data[EXPORT_SETTING_LANG] not in all_valid_languages:
             raise serializers.ValidationError(
                 {
-                    EXPORT_SETTING_LANG: _(
+                    EXPORT_SETTING_LANG: t(
                         'For this asset must be either {}'
                     ).format(format_exception_values(all_valid_languages))
                 }
@@ -168,7 +190,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         if multiple_select not in VALID_MULTIPLE_SELECTS:
             raise serializers.ValidationError(
                 {
-                    EXPORT_SETTING_MULTIPLE_SELECT: _(
+                    EXPORT_SETTING_MULTIPLE_SELECT: t(
                         'Must be either {}'
                     ).format(format_exception_values(VALID_MULTIPLE_SELECTS))
                 }
@@ -179,7 +201,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         # Complain if it's not deployed
         if not self._get_asset.has_deployment:
             raise serializers.ValidationError(
-                {EXPORT_SETTING_SOURCE: _('The asset must be deployed.')}
+                {EXPORT_SETTING_SOURCE: t('The asset must be deployed.')}
             )
         return reverse(
             'asset-detail',
@@ -196,16 +218,44 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
         if not isinstance(name, str):
             raise serializers.ValidationError(
-                {EXPORT_SETTING_NAME: _('The export name must be a string.')}
+                {EXPORT_SETTING_NAME: t('The export name must be a string.')}
             )
         return name
+
+    def validate_query(self, data: dict) -> dict:
+        query = data[EXPORT_SETTING_QUERY]
+        if not isinstance(query, dict):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_QUERY: t('Must be a JSON object')}
+            )
+        return query
+
+    def validate_submission_ids(self, data: dict) -> list:
+        submission_ids = data[EXPORT_SETTING_SUBMISSION_IDS]
+        if not isinstance(submission_ids, list):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_SUBMISSION_IDS: t('Must be an array')}
+            )
+
+        if (
+            submission_ids
+            and not all(isinstance(_id, int) for _id in submission_ids)
+        ):
+            raise serializers.ValidationError(
+                {
+                    EXPORT_SETTING_SUBMISSION_IDS: t(
+                        'All values in the array must be integers'
+                    )
+                }
+            )
+        return submission_ids
 
     def validate_type(self, data: dict) -> str:
         export_type = data[EXPORT_SETTING_TYPE]
         if export_type not in VALID_EXPORT_TYPES:
             raise serializers.ValidationError(
                 {
-                    EXPORT_SETTING_TYPE: _('Must be either {}').format(
+                    EXPORT_SETTING_TYPE: t('Must be either {}').format(
                         format_exception_values(VALID_EXPORT_TYPES)
                     )
                 }

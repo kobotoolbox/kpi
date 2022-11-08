@@ -1,22 +1,21 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
-import AssetActionButtons from './assetActionButtons';
+import AssetActionButtons from 'js/components/assetsTable/assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
 import AssetPublicButton from './assetPublicButton';
 import AssetBreadcrumbs from './assetBreadcrumbs';
 import AssetContentSummary from './assetContentSummary';
-import CollectionAssetsTable from './collectionAssetsTable';
-import {LoadingSpinner} from 'js/ui';
+import CollectionAssetsTable from 'js/components/library/collectionAssetsTable';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 class AssetRoute extends React.Component {
   constructor(props) {

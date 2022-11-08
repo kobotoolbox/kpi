@@ -4,13 +4,11 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import publicCollectionsStore from './publicCollectionsStore';
-import AssetsTable from './assetsTable';
-import {
-  ROOT_BREADCRUMBS,
-  ASSETS_TABLE_CONTEXTS,
-} from 'js/components/library/libraryConstants';
+import AssetsTable from 'js/components/assetsTable/assetsTable';
+import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
+import {ASSETS_TABLE_CONTEXTS} from 'js/components/assetsTable/assetsTableConstants';
 
 class PublicCollectionsRoute extends React.Component {
   constructor(props) {

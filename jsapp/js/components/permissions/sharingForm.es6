@@ -5,15 +5,21 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
-import {buildUserUrl} from 'utils';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import InlineMessage from 'js/components/common/inlineMessage';
+import {
+  buildUserUrl,
+  replaceBracketsWithLink
+} from 'utils';
 import {
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
-
+import {ROUTES} from 'js/router/routerConstants';
+import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
@@ -32,7 +38,7 @@ class SharingForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
     this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);
@@ -113,6 +119,26 @@ class SharingForm extends React.Component {
         <bem.Modal__subheader>
           {this.state.asset.name}
         </bem.Modal__subheader>
+
+        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
+          <bem.FormModal__item>
+            <InlineMessage
+              type='warning'
+              icon='alert'
+              message={
+                <span dangerouslySetInnerHTML={{__html: (
+                  replaceBracketsWithLink(
+                    t(
+                      'Anyone can see this blank form and add submissions to it ' +
+                      'because you have not set [your account] to require authentication.'
+                    ),
+                    `/#${ROUTES.ACCOUNT_SETTINGS}`
+                  )
+                )}} />
+              }
+            />
+          </bem.FormModal__item>
+        }
 
         {/* list of users and their permissions */}
         <bem.FormModal__item>

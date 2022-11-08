@@ -1,0 +1,45 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+
+.audio-player {
+  @include mixins.centerRowFlex;
+
+  flex-wrap: wrap;
+
+  .audio-player__controls {
+    margin-top: sizes.$x8;
+    // this % calculates to around 8px for regular modal size, will be a bit
+    // smaller on mobile
+    margin-right: 2.3%;
+  }
+
+  .loading {
+    margin: sizes.$x24;
+  }
+}
+
+.audio-player__name {
+  @include mixins.centerRowFlex;
+
+  width: 100%;
+  margin-bottom: sizes.$x20;
+
+  label {
+    color: colors.$kobo-storm;
+    font-size: sizes.$x16;
+    font-weight: 600;
+  }
+}
+
+.audio-player__name-icon {
+  @include mixins.centerRowFlex;
+
+  justify-content: center;
+  margin-right: sizes.$x18;
+  width: sizes.$x28;
+  min-width: sizes.$x28;
+  height: sizes.$x28;
+  border-radius: sizes.$x6;
+  background-color: colors.$kobo-cloud;
+}

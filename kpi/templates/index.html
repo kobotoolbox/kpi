@@ -4,11 +4,13 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>{{title}}</title>
-    <meta name="description" content="KoBoToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+    <meta name="description" content="KoboToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {# From the Django documentation: the `url` tag "Returns an absolute path reference (a URL without the domain name)" #}
     <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
+
+    {% include "./snippets/modern_browsers_redirect.html" %}
 
     {% if raven_js_dsn %}
       <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
@@ -21,17 +23,13 @@
     {% load static %}
 
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}" />
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}" />
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}" />
     <link rel="manifest" href="{% static 'site.webmanifest' %}" />
-    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg" color="#2095f3' %}" />
-    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#2095f3" />
+    <link rel="icon" href="{% static 'favicon.png' %}" />
+
+    {% if stripe_enabled %}<script async src="https://js.stripe.com/v3/pricing-table.js"></script>{% endif %}
 
     {% render_bundle 'app' 'css' %}
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-      <script>window.html5 || document.write('<script src="{% static 'js/vendor/html5shiv.js' %}"><\/script>')</script>
-    <![endif]-->
 
     {% if config.logo %}
       <style>
@@ -69,7 +67,6 @@
       {% include "global_t.html" %}
 
       {% render_bundle 'app' 'js' %}
-      {% render_bundle 'vendors' 'js' %}
 
     {% endblock footer %}
 

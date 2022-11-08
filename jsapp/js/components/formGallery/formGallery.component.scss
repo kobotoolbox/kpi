@@ -1,0 +1,61 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/breakpoints';
+
+.gallery {
+  background-color: colors.$kobo-white;
+}
+
+.gallery__wrapper {
+  margin: sizes.$x20 sizes.$x50;
+
+  @media screen and (max-width: breakpoints.$b768) {
+    margin-top: sizes.$x8;
+    margin-left: sizes.$x14;
+    margin-right: sizes.$x14;
+  }
+
+  .gallery__footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: sizes.$x4;
+  }
+}
+
+.gallery__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+}
+
+.gallery__header-icons {
+  display: flex;
+}
+
+.gallery__filters {
+  margin-top: sizes.$x20;
+  margin-bottom: sizes.$x20;
+  display: flex;
+  align-items: center;
+  gap: sizes.$x6;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.gallery__filters-select {
+  flex: 1;
+  margin-right: sizes.$x8;
+}
+
+.gallery__filters-dates input {
+  margin-left: sizes.$x5;
+  margin-right: sizes.$x5;
+}
+
+.gallery-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: sizes.$x3;
+}

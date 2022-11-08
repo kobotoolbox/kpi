@@ -4,14 +4,21 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import LanguageForm from 'js/components/modalForms/languageForm';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import InlineMessage from 'js/components/common/inlineMessage';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
-import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
+import envStore from 'js/envStore';
+import {
+  getLangString,
+  notify,
+  escapeHtml,
+} from 'utils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -39,7 +46,7 @@ export class TranslationSettings extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetsChange);
+    this.listenTo(assetStore, this.onAssetsChange);
 
     if (this.state.asset && !this.state.asset.content) {
       stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
@@ -47,8 +54,8 @@ export class TranslationSettings extends React.Component {
     }
 
     if (!this.state.asset && this.state.assetUid) {
-      if (stores.asset.data[this.state.assetUid]) {
-        this.onAssetChange(stores.asset.data[this.state.assetUid]);
+      if (assetStore.data[this.state.assetUid]) {
+        this.onAssetChange(assetStore.data[this.state.assetUid]);
       } else {
         stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
       }
@@ -226,7 +233,7 @@ export class TranslationSettings extends React.Component {
       title: t('Change default language?'),
       message: t(
         'Are you sure you would like to set ##lang## as the default language for this form?'
-      ).replace('##lang##', langString),
+      ).replace('##lang##', escapeHtml(langString)),
       labels: {ok: t('Confirm'), cancel: t('Cancel')},
       onok: () => {
         this.setState({isUpdatingDefaultLanguage: true});
@@ -247,7 +254,7 @@ export class TranslationSettings extends React.Component {
       {
         onFailed: () => {
           actions.resources.loadAsset({id: this.state.asset.uid});
-          alertify.error('failed to update translations');
+          notify.error('failed to update translations');
         },
       }
     );
@@ -292,12 +299,12 @@ export class TranslationSettings extends React.Component {
               </a>
               {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
 
-              {stores.serverEnvironment &&
-                stores.serverEnvironment.state.support_url && (
+              {envStore.isReady &&
+                envStore.data.support_url && (
                   <a
                     target='_blank'
                     href={
-                      stores.serverEnvironment.state.support_url +
+                      envStore.data.support_url +
                       LANGUAGE_SUPPORT_URL
                     }
                   >
@@ -334,14 +341,11 @@ export class TranslationSettings extends React.Component {
             {t('Current languages')}
           </bem.FormView__cell>
           {translations[0] === null && (
-            <bem.FormView__cell m={['warning', 'translation-modal-warning']}>
-              <i className='k-icon k-icon-alert' />
-              <p>
-                {t(
-                  'You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.'
-                )}
-              </p>
-            </bem.FormView__cell>
+            <InlineMessage
+              type='warning'
+              icon='alert'
+              message={t('You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.')}
+            />
           )}
           {translations.map((l, i) => {
             return (

@@ -1,5 +1,6 @@
 # coding: utf-8
 import constance
+import markdown
 from django.conf import settings
 
 from hub.models import ConfigurationFile, PerUserSetting
@@ -28,6 +29,22 @@ def email(request):
     return out
 
 
+def mfa(request):
+    return {
+        # Use (the strings) 'true' or 'false' to generate a true boolean if
+        # used in Javascript
+        'mfa_enabled': 'true' if constance.config.MFA_ENABLED else 'false',
+        # Allow markdown to emphasize part of the text and/or activate hyperlink
+        'mfa_help_text': markdown.markdown(I18nUtils.get_mfa_help_text()),
+    }
+
+
+def django_settings(request):
+    return {
+        "stripe_enabled": settings.STRIPE_ENABLED
+    }
+
+
 def sitewide_messages(request):
     """
     required in the context for any pages that need to display
@@ -43,15 +60,15 @@ def sitewide_messages(request):
 
 
 class CombinedConfig:
-    '''
+    """
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object
-    '''
+    """
     def __init__(self, constance_config, extra_config):
-        '''
+        """
         constance_config: LazyConfig object
         extra_config: dictionary
-        '''
+        """
         self.constance_config = constance_config
         self.extra_config = extra_config
 
@@ -63,13 +80,13 @@ class CombinedConfig:
 
 
 def config(request):
-    '''
+    """
     Merges django-constance configuration field names and values with
     slugs and URLs for each hub.ConfigurationFile. Example use in a template:
 
         Please visit our <a href="{{ config.SUPPORT_URL }}">help page</a>.
         <img src="{{ config.logo }}">
 
-    '''
+    """
     conf_files = {f.slug: f.url for f in ConfigurationFile.objects.all()}
     return {'config': CombinedConfig(constance.config, conf_files)}

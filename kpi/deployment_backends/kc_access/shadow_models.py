@@ -1,30 +1,38 @@
 # coding: utf-8
+from __future__ import annotations
+
 from datetime import datetime
 from secrets import token_urlsafe
 from typing import Optional
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.postgres.fields import JSONField as JSONBField
-from django.core.signing import Signer
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
+from django.core.files.base import ContentFile
+from django.core.signing import Signer
 from django.db import (
     ProgrammingError,
     connections,
     models,
-    IntegrityError,
     router,
+    transaction,
 )
 from django.utils import timezone
+from django.utils.http import urlquote
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
-from kpi.exceptions import BadContentTypeException
+from kpi.exceptions import (
+    BadContentTypeException,
+)
+from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
-
+from .storage import (
+    get_kobocat_storage,
+    KobocatFileSystemStorage,
+)
 
 def update_autofield_sequence(model):
     """
@@ -68,8 +76,8 @@ class ShadowModel(models.Model):
         # It's just used for `DefaultDatabaseRouter` conditions.
         app_label = SHADOW_MODEL_APP_LABEL
 
-    @staticmethod
-    def get_content_type_for_model(model):
+    @classmethod
+    def get_app_label_and_model_name(cls) -> tuple[str, str]:
         model_name_mapping = {
             'kobocatxform': ('logger', 'xform'),
             'readonlykobocatinstance': ('logger', 'instance'),
@@ -77,9 +85,13 @@ class ShadowModel(models.Model):
             'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
         }
         try:
-            app_label, model_name = model_name_mapping[model._meta.model_name]
+            return model_name_mapping[cls._meta.model_name]
         except KeyError:
             raise NotImplementedError
+
+    @classmethod
+    def get_content_type(cls) -> KobocatContentType:
+        app_label, model_name = cls.get_app_label_and_model_name()
         return KobocatContentType.objects.get(
             app_label=app_label, model=model_name)
 
@@ -120,15 +132,20 @@ class KobocatDigestPartial(ShadowModel):
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
+        # Because of circular imports, we cannot decorate the method with
+        # `@kc_transaction_atomic`
+        from .utils import kc_transaction_atomic
+
+        with kc_transaction_atomic():
+            cls.objects.filter(user=user).delete()
+            # Query for `user_id` since user PKs are synchronized
+            for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+                cls.objects.create(
+                    user=user,
+                    login=partial_digest.login,
+                    confirmed=partial_digest.confirmed,
+                    partial_digest=partial_digest.partial_digest,
+                )
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -196,76 +213,6 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 return []
 
 
-class KobocatOneTimeAuthToken(ShadowModel):
-    """
-    One time authenticated token
-    """
-    HEADER = 'X-KOBOCAT-OTA-TOKEN'
-
-    user = models.ForeignKey(
-        'KobocatUser',
-        related_name='authenticated_requests',
-        on_delete=models.CASCADE,
-    )
-    token = models.CharField(max_length=50, default=token_urlsafe)
-    expiration_time = models.DateTimeField()
-    method = models.CharField(max_length=6)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'api_onetimeauthtoken'
-        unique_together = ('user', 'token', 'method')
-
-    @classmethod
-    def create_token(
-            cls,
-            user: 'auth.User',
-            method: str = 'POST',
-            expiration_time: Optional[datetime] = None,
-            url: Optional[str] = None,
-    ) -> 'KobocatOneTimeAuthToken':
-        """
-        Create and return an instance of KobocatOneTimeAuthToken.
-
-        If `url` is specified, it generates the token based on the URL instead
-        of auto-generating it.
-        It's useful for Enketo Express to be granted when POSTing data to
-        KoBoCAT from one specific url (e.g.: edit a submission).
-        """
-        kc_user = KobocatUser.objects.get(id=user.pk)
-        token_attrs = dict(
-            user=kc_user, method=method,
-            defaults={'expiration_time': expiration_time},
-        )
-
-        if url is not None:
-            # `Signer()` returns 'url:encoded-string'.
-            # E.g: https://ee.kt.org/edit:a123bc'
-            # We only want the last part
-            parts = Signer().sign(url).split(':')
-            # TODO: consider removing Signer() as it's only value here is to
-            # assure that the token will always be a consistent length (and,
-            # for example, not overrun the size of the database column for long
-            # URLs)
-            token_attrs['token'] = parts[-1]
-
-        auth_token, created = cls.objects.get_or_create(**token_attrs)
-        if not created:
-            # Make sure to reset the validity period of an existing token
-            auth_token.expiration_time = expiration_time
-            auth_token.save()
-
-        return auth_token
-
-    def get_header(self) -> dict:
-        return {self.HEADER: self.token}
-
-    def save(self, *args, **kwargs):
-        if not self.expiration_time:
-            self.expiration_time = one_minute_from_now()
-
-        super().save(*args, **kwargs)
-
-
 class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
@@ -287,25 +234,6 @@ class KobocatPermission(ShadowModel):
             str(self.name))
 
 
-class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    class Meta(ShadowModel.Meta):
-        app_label = 'superuser_stats'
-        db_table = 'logger_submissioncounter'
-        verbose_name_plural = 'User Statistics'
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Creates rows when the user is created so that the Admin UI doesn't freak
-        out because it's looking for a row that doesn't exist
-        """
-        cls.objects.create(user_id=user.pk)
-
-
 class KobocatUser(ShadowModel):
 
     username = models.CharField('username', max_length=30, unique=True)
@@ -323,6 +251,7 @@ class KobocatUser(ShadowModel):
         db_table = 'auth_user'
 
     @classmethod
+    @transaction.atomic
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT
@@ -352,10 +281,6 @@ class KobocatUser(ShadowModel):
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
 
-        # Add the user to the table to prevent the errors in the admin page
-        # and to ensure the user has a counter started for reporting
-        KobocatSubmissionCounter.sync(kc_auth_user)
-
 
 class KobocatUserObjectPermission(ShadowModel):
     """
@@ -375,10 +300,7 @@ class KobocatUserObjectPermission(ShadowModel):
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
     object_pk = models.CharField('object ID', max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
-    # It's okay not to use `KobocatUser` as long as PKs are synchronized
-    user = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
-        on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
 
     class Meta(ShadowModel.Meta):
         db_table = 'guardian_userobjectpermission'
@@ -450,10 +372,26 @@ class KobocatUserProfile(ShadowModel):
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(User, null=True, blank=True,
+    created_by = models.ForeignKey(KobocatUser, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
-    metadata = JSONBField(default=dict, blank=True)
+    attachment_storage_bytes = models.BigIntegerField(default=0)
+    metadata = models.JSONField(default=dict, blank=True)
+    # We need to cast `is_active` to an (positive small) integer because KoBoCAT
+    # is using `LazyBooleanField` which is an integer behind the scene.
+    # We do not want to port this class to KPI only for one line of code.
+    is_mfa_active = models.PositiveSmallIntegerField(default=False)
+
+    @classmethod
+    def set_mfa_status(cls, user_id: int, is_active: bool):
+
+        try:
+            user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        except cls.DoesNotExist:
+            pass
+        else:
+            user_profile.is_mfa_active = int(is_active)
+            user_profile.save(update_fields=['is_mfa_active'])
 
 
 class KobocatToken(ShadowModel):
@@ -471,7 +409,7 @@ class KobocatToken(ShadowModel):
     def sync(cls, auth_token):
         try:
             # Token use a One-to-One relationship on User.
-            # Thus, we can retrieve tokens from users' id. 
+            # Thus, we can retrieve tokens from users' id.
             kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KobocatToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
@@ -501,6 +439,8 @@ class KobocatXForm(ShadowModel):
     uuid = models.CharField(max_length=32, default='')
     last_submission_time = models.DateTimeField(blank=True, null=True)
     num_of_submissions = models.IntegerField(default=0)
+    attachment_storage_bytes = models.BigIntegerField(default=0)
+    kpi_asset_uid = models.CharField(max_length=32, null=True)
 
     @property
     def md5_hash(self):
@@ -523,6 +463,111 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
+class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_attachment'
+
+    instance = models.ForeignKey(
+        'superuser_stats.ReadOnlyKobocatInstance',
+        related_name='attachments',
+        on_delete=models.CASCADE,
+    )
+    media_file = models.FileField(storage=get_kobocat_storage(), max_length=380,
+                                  db_index=True)
+    media_file_basename = models.CharField(
+        max_length=260, null=True, blank=True, db_index=True)
+    # `PositiveIntegerField` will only accommodate 2 GiB, so we should consider
+    # `PositiveBigIntegerField` after upgrading to Django 3.1+
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(
+        max_length=100, null=False, blank=True, default=''
+    )
+    # TODO: hide attachments that were deleted or replaced; see
+    # kobotoolbox/kobocat#792
+    # replaced_at = models.DateTimeField(blank=True, null=True)
+
+    @property
+    def absolute_mp3_path(self):
+        """
+        Return the absolute path on local file system of the converted version of
+        attachment. Otherwise, return the AWS url (e.g. https://...)
+        """
+
+        kobocat_storage = get_kobocat_storage()
+
+        if not kobocat_storage.exists(self.mp3_storage_path):
+            content = self.get_transcoded_audio('mp3')
+            kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
+
+        if isinstance(kobocat_storage, KobocatFileSystemStorage):
+            return f'{self.media_file.path}.mp3'
+
+        return kobocat_storage.url(self.mp3_storage_path)
+
+    @property
+    def absolute_path(self):
+        """
+        Return the absolute path on local file system of the attachment.
+        Otherwise, return the AWS url (e.g. https://...)
+        """
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            return self.media_file.path
+
+        return self.media_file.url
+
+    @property
+    def mp3_storage_path(self):
+        """
+        Return the path of file after conversion. It is the exact same name, plus
+        the conversion audio format extension concatenated.
+        E.g: file.mp4 and file.mp4.mp3
+        """
+        return f'{self.storage_path}.mp3'
+
+    def protected_path(self, format_: Optional[str] = None):
+        """
+        Return path to be served as protected file served by NGINX
+        """
+
+        if format_ == 'mp3':
+            attachment_file_path = self.absolute_mp3_path
+        else:
+            attachment_file_path = self.absolute_path
+
+        if isinstance(get_kobocat_storage(), KobocatFileSystemStorage):
+            # Django normally sanitizes accented characters in file names during
+            # save on disk but some languages have extra letters
+            # (out of ASCII character set) and must be encoded to let NGINX serve
+            # them
+            protected_url = urlquote(attachment_file_path.replace(
+                settings.KOBOCAT_MEDIA_PATH, '/protected')
+            )
+        else:
+            # Double-encode the S3 URL to take advantage of NGINX's
+            # otherwise troublesome automatic decoding
+            protected_url = f'/protected-s3/{urlquote(attachment_file_path)}'
+
+        return protected_url
+
+    @property
+    def storage_path(self):
+        return str(self.media_file)
+
+
+class ReadOnlyKobocatDailyXFormSubmissionCounter(ReadOnlyModel):
+
+    date = models.DateField()
+    xform = models.ForeignKey(
+        KobocatXForm, related_name='daily_counts', on_delete=models.CASCADE
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_dailyxformsubmissioncounter'
+        unique_together = ('date', 'xform')
+
+
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
@@ -532,7 +577,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
         verbose_name_plural = 'Submissions by Country'
 
     xml = models.TextField()
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(KobocatUser, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
@@ -543,11 +588,33 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     uuid = models.CharField(max_length=249, default='')
 
 
+class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    user = models.ForeignKey(
+        'shadow_model.KobocatUser',
+        on_delete=models.DO_NOTHING,
+    )
+    xform = models.ForeignKey(
+        'shadow_model.KobocatXForm',
+        related_name='monthly_counts',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    counter = models.IntegerField(default=0)
+
+    class Meta:
+        app_label = 'superuser_stats'
+        db_table = 'logger_monthlyxformsubmissioncounter'
+        verbose_name_plural = 'User Statistics'
+
+
 def safe_kc_read(func):
     def _wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except ProgrammingError as e:
-            raise ProgrammingError('kc_access error accessing kobocat '
-                                   'tables: {}'.format(e.message))
+            raise ProgrammingError(
+                'kc_access error accessing kobocat tables: {}'.format(str(e))
+            )
     return _wrapper

@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 /* ==========================================================================
  * Base
  * ========================================================================== */
@@ -22,7 +24,7 @@ body {
 
 html, body, input, textarea, select, button {
   font-family: $font;
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   font-weight: 400;
   line-height: 20px;
 }
@@ -63,6 +65,11 @@ video {
   vertical-align: middle;
 }
 
+img {
+  max-width: 100%;
+  object-fit: contain;
+}
+
 fieldset {
   border: 0;
   margin: 0;
@@ -80,4 +87,10 @@ textarea {
 i {
   // we use <i> for icons and we want to avoid any focus styles
   outline: none !important;
+}
+
+small {
+  // To avoid text layout misalignment.
+  display: inline-block;
+  vertical-align: bottom;
 }

@@ -1,13 +1,14 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {bem} from '../bem';
-import ui from '../ui';
+import bem from 'js/bem';
+import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
 import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
+import {notify} from 'js/utils';
 import {
   QUERY_LIMIT_DEFAULT,
   ASSET_FILE_TYPES,
@@ -198,7 +199,7 @@ class MapSettings extends React.Component {
       description = this.state.layerName;
 
     if (!description) {
-      alertify.error(t('Please add a name for your layer file.'));
+      notify.error(t('Please add a name for your layer file.'));
       return false;
     }
 
@@ -218,13 +219,13 @@ class MapSettings extends React.Component {
         actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
       }).fail((jqxhr) => {
         var errMsg = t('Upload error: ##error_message##.').replace('##error_message##', jqxhr.statusText);
-        alertify.error(errMsg);
+        notify.error(errMsg);
       });
     });
 
     rejectedFiles.map(() => {
       var errMsg = t('Upload error: not a valid map overlay format.');
-      alertify.error(errMsg);
+      notify.error(errMsg);
     });
   }
 
@@ -237,6 +238,7 @@ class MapSettings extends React.Component {
 
     let opts = {
       title: t('Delete File'),
+      // TODO: Split this into two independent translation strings without HTML
       message: t(
         'Are you sure you want to delete this file? ' +
           '<br/><br/><strong>This action cannot be undone.</strong>'
@@ -283,8 +285,8 @@ class MapSettings extends React.Component {
     }, this);
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
-        <ui.Modal.Body>
+        <Modal.Tabs>{modalTabs}</Modal.Tabs>
+        <Modal.Body>
           <div className='tabs-content map-settings'>
             {activeTab === TABS.get('geoquestion').id && (
               <div className='map-settings__GeoQuestions'>
@@ -398,12 +400,12 @@ class MapSettings extends React.Component {
               </bem.FormModal__item>
             )}
           </div>
-        </ui.Modal.Body>
+        </Modal.Body>
 
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.KoboButton m='whitegray' onClick={this.resetMapSettings}>
+              <bem.KoboButton m='storm' onClick={this.resetMapSettings}>
                 {t('Reset')}
               </bem.KoboButton>
             }

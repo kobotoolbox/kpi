@@ -186,16 +186,6 @@ export const surveyWithAllPossibleGroups = [{
   '$kuid': 'plYTFwZ63',
   '$autoname': 'username'
 }, {
-  'name': 'simserial',
-  'type': 'simserial',
-  '$kuid': 'cDTRJ5D78',
-  '$autoname': 'simserial'
-}, {
-  'name': 'subscriberid',
-  'type': 'subscriberid',
-  '$kuid': 'Nt06yZ7th',
-  '$autoname': 'subscriberid'
-}, {
   'name': 'deviceid',
   'type': 'deviceid',
   '$kuid': '1W3n5pkGF',

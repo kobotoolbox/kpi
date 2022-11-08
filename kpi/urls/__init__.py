@@ -1,20 +1,18 @@
 # coding: utf-8
 import private_storage.urls
 from django.conf import settings
-from django.contrib.auth import logout
 from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-from kobo.apps.superuser_stats.views import (
-    user_report,
-    country_report,
-    retrieve_reports,
+from kobo.apps.mfa.views import (
+    MfaLoginView,
+    MfaTokenView,
 )
-from kpi.forms import RegistrationForm
+from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests
+from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
@@ -36,11 +34,13 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
-    re_path(r'^api-auth/', include('rest_framework.urls',
-                                   namespace='rest_framework')),
+    re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
+    re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
+    re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
-    re_path(r'^accounts/logout/', logout, {'next_page': '/'}),
+    re_path(r'^accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
+    re_path(r'^accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
@@ -48,6 +48,8 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
+    path('modern_browsers/', modern_browsers),
+    path('design-system/', design_system),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
@@ -59,16 +61,18 @@ urlpatterns = [
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    path('superuser_stats/user_report/', user_report),
-    re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-    path('superuser_stats/country_report/', country_report),
-    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
+    re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
 ]
+
+
+if settings.STRIPE_ENABLED:
+    urlpatterns = [
+        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls'))
+    ] + urlpatterns
+
 
 if settings.DEBUG and settings.ENV == 'dev':
     import debug_toolbar
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
-
