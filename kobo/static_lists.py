@@ -317,15 +317,3 @@ EXTRA_LANG_INFO = {
         'name_local': 'كوردی',
     },
 }
-
-# You might generate such a list of languages with code like this:
-#
-#     import requests
-#     url = 'http://loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'
-#     response = requests.get(url)
-#     for line in response.iter_lines():
-#         # Wow, the LOC does not specify an encoding in the response!
-#         line = line.decode(response.apparent_encoding)
-#         fields = line.strip().split('|')
-#         if fields[2]:
-#             print '({}, t({})),'.format(repr(fields[2]), repr(fields[3]))

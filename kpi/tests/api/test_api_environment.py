@@ -66,6 +66,7 @@ class EnvironmentTests(BaseTestCase):
             #        'fa-IR', x
             #    ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
+            'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
             'mfa_localized_help_text': lambda i18n_texts: {
                 lang: markdown(text)
@@ -88,7 +89,10 @@ class EnvironmentTests(BaseTestCase):
             try:
                 callable_or_value(response_value)
             except TypeError:
-                self.assertEqual(response_value, callable_or_value)
+                pass
+            else:
+                continue
+            self.assertEqual(response_value, callable_or_value)
 
     def test_anonymous_succeeds(self):
         response = self.client.get(self.url, format='json')

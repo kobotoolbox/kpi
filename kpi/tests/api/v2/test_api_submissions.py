@@ -28,13 +28,16 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
+    enketo_edit_instance_response_with_root_name_validation,
     enketo_view_instance_response,
 )
 
@@ -1085,7 +1088,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
     def test_edit_submission_with_digest_credentials(self):
         url = reverse(
             self._get_endpoint('assetsnapshot-submission-alias'),
-            args=(self.asset.snapshot.uid,),
+            args=(self.asset.snapshot().uid,),
         )
         self.client.logout()
         client = DigestClient()
@@ -1120,7 +1123,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
     def test_edit_submission_with_authenticated_session_but_no_digest(self):
         url = reverse(
             self._get_endpoint('assetsnapshot-submission-alias'),
-            args=(self.asset.snapshot.uid,),
+            args=(self.asset.snapshot().uid,),
         )
         self.login_as_other_user('anotheruser', 'anotheruser')
         # Try to edit someuser's submission by anotheruser who has no
@@ -1168,14 +1171,78 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             self.client.get(edit_url, {'format': 'json'})
             url = reverse(
                 self._get_endpoint('assetsnapshot-submission'),
-                args=(self.asset.snapshot.uid,),
+                args=(self.asset.snapshot().uid,),
             )
             submission_urls.append(url)
+
         # Post all edits to their submission URLs. There is no valid XML being
-        # sent, so we expect a KeyError exeption if all is good
+        # sent, so we expect a KeyError exception if all is good
         for url in submission_urls:
             with pytest.raises(KeyError) as e:
                 res = self.client.post(url)
+
+    @responses.activate
+    def test_edit_submission_with_different_root_name(self):
+
+        # Mock Enketo response
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response_with_root_name_validation,
+            content_type='application/json',
+        )
+
+        # Force random name to create a different root name for already submitted
+        # data
+        self.asset.content['settings']['name'] = 'different_root_name'
+        self.asset.content['settings']['id_string'] = 'different_root_name'
+        self.asset.save()  # Create a new version
+        self.asset.deploy(backend='mock', active=True)
+
+        xml_submission = self.asset.deployment.get_submission(
+            self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+        )
+
+        # Create a snapshot without specifying the root name. The default root
+        # name will be the name saved in the settings of the asset version.
+        snapshot = self.asset.snapshot(
+            version_uid=self.asset.latest_deployed_version_uid,
+            submission_uuid=f"uuid:{self.submission['_uuid']}"
+        )
+
+        (
+            form_root_name,
+            submission_root_name,
+        ) = get_form_and_submission_tag_names(snapshot.xml, xml_submission)
+
+        # Asset uid should be different from the name stored in settings
+        assert self.asset.uid != self.asset.content['settings']['name']
+        # submission tag name should equal the asset uid
+        assert submission_root_name == self.asset.uid
+        # form tag name should equal 'different_root_name'
+        # (i.e.: `self.asset.content['settings']['name']`), thus different from
+        # submission tag name
+        assert form_root_name == self.asset.content['settings']['name']
+        assert form_root_name != submission_root_name
+
+        # Enketo will raise the error
+        # > "Error trying to parse XML record. Different root nodes"
+        # if submission and form root nodes do not match.
+        # To avoid this error, the XML of the form is always regenerated with
+        # a submission root name on edit.
+        # The mock response of Enketo simulates Enketo response and validates
+        # that both root nodes match.
+        # See `enketo_edit_instance_response_with_root_name_validation()`
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        # Validate a new snapshot has been generated for the same criteria
+        new_snapshot = self.asset.snapshot(
+            version_uid=self.asset.latest_deployed_version_uid,
+            submission_uuid=f"uuid:{self.submission['_uuid']}"
+        )
+        assert new_snapshot.pk != snapshot.pk
 
     @responses.activate
     def test_get_edit_link_submission_with_latest_asset_deployment(self):

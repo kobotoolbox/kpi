@@ -839,3 +839,20 @@ def test_kuid_persists():
     assert content['survey'][0].get('$kuid') == initial_kuid_1
     assert '$kuid' in content['survey'][1]
     assert content['survey'][1].get('$kuid') == initial_kuid_2
+
+
+def test_populates_qpath_xpath_correctly():
+    asset = Asset(content={
+        'survey': [
+            {'type': 'begin_group', 'name': 'g1'},
+            {'type': 'text', 'name': 'r1', '$kuid': 'k1'},
+            {'type': 'begin_group', 'name': 'g2'},
+            {'type': 'text', 'name': 'r2', '$kuid': 'k2'},
+            {'type': 'end_group'},
+            {'type': 'end_group'},
+        ],
+    })
+    asset.adjust_content_on_save()
+    rs = asset.content['survey'][0:4]
+    assert [rr['$qpath'] for rr in rs] == ['g1', 'g1-r1', 'g1-g2', 'g1-g2-r2']
+    assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
