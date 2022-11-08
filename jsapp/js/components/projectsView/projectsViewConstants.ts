@@ -1,5 +1,5 @@
 export interface ProjectsFilterDefinition {
-  fieldName?: FilterFieldName;
+  fieldName?: ProjectFieldName;
   condition?: FilterConditionName;
   value?: string;
 }
@@ -35,15 +35,15 @@ export const FILTER_CONDITIONS: FilterConditions = {
   },
 };
 
-export type FilterFieldName = 'countries' | 'dateDeployed' | 'dateModified' |
+export type ProjectFieldName = 'countries' | 'dateDeployed' | 'dateModified' |
 'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
 'ownerOrg' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
 interface FilterFieldDefinition {
-  name: FilterFieldName;
+  name: ProjectFieldName;
   label: string;
 }
-type FilterFields = {[P in FilterFieldName]: FilterFieldDefinition};
-export const FILTER_FIELDS: FilterFields = {
+type ProjectFields = {[P in ProjectFieldName]: FilterFieldDefinition};
+export const PROJECT_FIELDS: ProjectFields = {
   name: {name: 'name', label: t('Project name')},
   description: {name: 'description', label: t('Description')},
   ownerUsername: {name: 'ownerUsername', label: t('Owner username')},

@@ -1,9 +1,14 @@
 import React from 'react';
-import type {ProjectsFilterDefinition} from 'js/components/projectsView/projectsViewConstants';
+import type {
+  ProjectsFilterDefinition,
+  ProjectFieldName,
+} from 'js/components/projectsView/projectsViewConstants';
 import ProjectsFilter from 'js/components/projectsView/projectsFilter';
+import ProjectsFieldsSelector from 'js/components/projectsView/projectsFieldsSelector';
 
 interface ProjectsViewTempDemoState {
   filters: ProjectsFilterDefinition[];
+  fields: ProjectFieldName[];
 }
 
 export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsViewTempDemoState> {
@@ -11,11 +16,16 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
     super(props);
     this.state = {
       filters: [],
+      fields: [],
     };
   }
 
   onFiltersChange(filters: ProjectsFilterDefinition[]) {
     this.setState({filters: filters});
+  }
+
+  onFieldsChange(fields: ProjectFieldName[]) {
+    this.setState({fields: fields});
   }
 
   render() {
@@ -28,6 +38,11 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
           filters={this.state.filters}
         />
 
+
+        <ProjectsFieldsSelector
+          onFieldsChange={this.onFieldsChange.bind(this)}
+          fields={this.state.fields}
+        />
         <hr/>
       </section>
     );

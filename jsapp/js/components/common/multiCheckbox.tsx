@@ -3,11 +3,11 @@ import bem from 'js/bem';
 import Checkbox from 'js/components/common/checkbox';
 import './multiCheckbox.scss';
 
-interface MultiCheckboxItem {
+export interface MultiCheckboxItem {
   /** any other properties will be passed back with onChange */
   [propName: string]: any;
   checked: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   label: string;
 }
 
