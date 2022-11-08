@@ -37,7 +37,7 @@ ButtonToCloseIconMap.set('l', 's');
  */
 export type KoboSelectType = 'blue' | 'gray' | 'outline';
 
-interface KoboSelectOption {
+export interface KoboSelectOption {
   icon?: IconName;
   label: string;
   /** Needs to be unique! */
@@ -280,6 +280,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           <bem.KoboSelect__option
             key={option.id}
             onClick={this.onOptionClick.bind(this, option.id)}
+            title={option.label}
             m={{
               'selected': (
                 this.props.selectedOption !== null &&
