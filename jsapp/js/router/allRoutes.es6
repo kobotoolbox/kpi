@@ -9,6 +9,7 @@ import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
 import FormsSearchableList from 'js/lists/forms';
+import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -59,7 +60,8 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
   }
 
   componentDidMount() {
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
+    stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
   }
 

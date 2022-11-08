@@ -1,7 +1,6 @@
 import React, {Suspense} from 'react';
 import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';

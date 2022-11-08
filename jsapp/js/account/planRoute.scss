@@ -17,22 +17,22 @@
   display: flex;
 }
 
-.data-row__data {
+.plan .data-row__data {
   display: flex;
 }
 
-.description {
+.plan .description {
   flex: 1;
   padding-left: 14px;
 }
 
-.description__header {
+.plan .description__header {
   font-size: 20px;
   color: $kobo-blue;
   padding-bottom: 12px;
 }
 
-.description__blurb {
+.plan .description__blurb {
   font-size: 16px;
   line-height: 24px;
 }
@@ -42,32 +42,32 @@
   padding-right: 14px;
 }
 
-.kobo-range {
+.plan .kobo-range {
   flex: 85;
 }
 
-.kobo-range__number {
+.plan .kobo-range__number {
   font-size: 14px !important;
 }
 
-.kobo-range__unit {
+.plan .kobo-range__unit {
   font-size: 12px !important;
   color: $kobo-gray-40;
   margin-left: 2px !important;
 }
 
-.kobo-dropdown {
+.plan .kobo-dropdown {
   flex: 15;
   margin-left: 12px;
   top: 10px;
   font-size: 14px !important;
 }
 
-i.k-icon-spinner {
+.plan i.k-icon-spinner {
   top: 2px;
   margin-right: 1px !important;
 }
 
-label.count {
+.plan label.count {
   font-size: 12px !important;
 }

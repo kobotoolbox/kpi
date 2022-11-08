@@ -101,7 +101,6 @@ export default class AccountSettings extends React.Component {
         instagram: currentAccount.extra_details.instagram,
       },
       fieldsWithErrors: {},
-      languageChoices: environment.all_languages,
       countryChoices: environment.country_choices,
       sectorChoices: environment.sector_choices,
       genderChoices: [

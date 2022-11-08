@@ -1,0 +1,11 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "./singleProcessingVariables";
+
+.single-processing-preview {
+  margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6;
+  min-height: sizes.$x150;
+  flex: 1;
+}

@@ -1,0 +1,72 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use './singleProcessingVariables';
+@use 'scss/mixins';
+
+.single-processing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+}
+
+.single-processing-content__tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  width: 100%;
+  height: singleProcessingVariables.$s-single-processing-tabs;
+}
+
+.single-processing-content__tab {
+  cursor: pointer;
+  color: colors.$kobo-gray-55;
+  position: relative;
+  font-weight: 900;
+  font-size: sizes.$x14;
+  line-height: sizes.$x48;
+  text-transform: uppercase;
+  padding: 0 sizes.$x24;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
+
+  &:hover {
+    color: colors.$kobo-gray-40;
+  }
+
+  &:active:not(.single-processing-content__tab--active) {
+    transform: translateY(#{sizes.$x1});
+  }
+
+  // We need this for covering the border radius of the white box underneath
+  // the tabbed menu - for the first element.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0%;
+    top: 100%;
+    width: 100%;
+    height: sizes.$x6;
+  }
+
+  &.single-processing-content__tab--active {
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-white;
+
+    &::after {
+      background-color: inherit;
+    }
+  }
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+.single-processing-content__body {
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6;
+  flex: 1;
+  overflow-y: auto;
+}

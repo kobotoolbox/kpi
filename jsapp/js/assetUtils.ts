@@ -9,6 +9,7 @@ import type {
   AnyRowTypeName,
   QuestionTypeName,
 } from 'js/constants';
+import assetStore from 'js/assetStore';
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -22,6 +23,7 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
+  SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
 import type {
   AssetContent,
@@ -30,6 +32,11 @@ import type {
   SurveyChoice,
   Permission,
 } from 'js/dataInterface';
+import {
+  getSupplementalTranscriptPath,
+  getSupplementalTranslationPath,
+} from 'js/components/processing/processingUtils';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -86,7 +93,7 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
 
 export function getLanguagesDisplayString(asset: AssetResponse) {
   if (asset?.summary?.languages && asset.summary.languages.length >= 1) {
-    return asset?.summary.languages.join(', ');
+    return asset?.summary?.languages?.join(', ');
   } else {
     return '-';
   }
@@ -465,10 +472,23 @@ export function getTranslatedRowLabel(
   return null;
 }
 
+export function findRow(assetContent: AssetContent, rowName: string) {
+  return assetContent?.survey?.find((row) => getRowName(row) === rowName);
+}
+
+export function findRowByQpath(assetContent: AssetContent, qpath: string) {
+  return assetContent?.survey?.find((row) => row.$qpath === qpath);
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
-  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName);
+  const foundRow = findRow(assetContent, rowName);
+  return foundRow?.type;
+}
+
+export function getRowNameByQpath(assetContent: AssetContent, qpath: string) {
+  const foundRow = findRowByQpath(assetContent, qpath);
   if (foundRow) {
-    return foundRow.type;
+    return getRowName(foundRow);
   }
   return undefined;
 }
@@ -514,6 +534,102 @@ export function renderQuestionTypeIcon(
   }
 }
 
+/**
+ * This returns a list of paths for all applicable question names - we do it
+ * this way to make it easier to connect the paths to the source question.
+ */
+export function getSupplementalDetailsPaths(asset: AssetResponse): {
+  [questionName: string]: string[];
+} {
+  const paths: {[questionName: string]: string[]} = {};
+  const advancedFeatures = asset.advanced_features;
+
+  advancedFeatures.transcript?.values?.forEach((questionName: string) => {
+    if (!Array.isArray(paths[questionName])) {
+      paths[questionName] = [];
+    }
+    // NOTE: the values for transcripts are not nested in submission, but we
+    // need the path to contain language for other parts of code to work.
+    advancedFeatures.transcript?.languages?.forEach((languageCode: LanguageCode) => {
+      paths[questionName].push(
+        getSupplementalTranscriptPath(questionName, languageCode)
+      );
+    });
+  });
+
+  advancedFeatures.translation?.values?.forEach((questionName: string) => {
+    if (!Array.isArray(paths[questionName])) {
+      paths[questionName] = [];
+    }
+    advancedFeatures.translation?.languages?.forEach((languageCode: LanguageCode) => {
+      paths[questionName].push(
+        getSupplementalTranslationPath(questionName, languageCode)
+      );
+    });
+  });
+
+  return paths;
+}
+
+/**
+ * Injects supplemental details columns next to (immediately after) their
+ * matching rows in a given list of rows.
+ *
+ * NOTE: it returns a new updated `rows` list.
+ */
+export function injectSupplementalRowsIntoListOfRows(
+  asset: AssetResponse,
+  rows: string[],
+) {
+  if (asset.content?.survey === undefined) {
+    throw new Error('Asset has no content');
+  }
+
+  let output = Array.from(rows);
+
+  // First filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
+  output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
+
+  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+
+  const { analysis_form_json } = asset;
+  const additional_fields: any = analysis_form_json.additional_fields;
+
+  const extraColsBySource: Record<string, any[]> = {};
+  additional_fields.forEach((add_field: any) => {
+    let sourceName: string = add_field.source;
+    if (!extraColsBySource[sourceName]) {
+      extraColsBySource[sourceName] = [];
+    }
+    extraColsBySource[sourceName].push(add_field);
+  });
+
+  const outputWithCols: string[] = [];
+  output.forEach((col: string) => {
+    let qpath = col.replace(/\//g, '-')
+    outputWithCols.push(col);
+    (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
+      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
+    });
+  });
+
+  /*
+  revisit this before merge: (does this work with longer paths / within groups?)
+
+  Object.keys(supplementalDetailsPaths).forEach((rowName) => {
+    // In supplementalDetailsPaths we get row names, in output we already have
+    // row paths. We need to find a matching row and put all paths immediately
+    // after it.
+    const rowPath = flatPathsWithGroups[rowName];
+    const sourceRowIndex = output.indexOf(rowPath);
+    if (sourceRowIndex !== -1) {
+      output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
+    }
+  });
+  */
+  return outputWithCols;
+}
+
 export interface FlatQuestion {
   type: AnyRowTypeName;
   name: string;
@@ -528,15 +644,12 @@ export interface FlatQuestion {
 /**
  * Use this to get a nice parsed list of survey questions (optionally with meta
  * questions included). Useful when you need to render form questions to users.
- *
- * @param {Object} survey
- * @param {number} [translationIndex] - defaults to first (default) language
- * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
- * @returns {Array<object>} a list of parsed questions
  */
 export function getFlatQuestionsList(
   survey: SurveyRow[],
+  /** Defaults to first (default) language. */
   translationIndex = 0,
+  /** Whether to include meta question types (not included by default). */
   includeMeta = false
 ): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);
@@ -628,6 +741,52 @@ export function removeInvalidChars(str: string) {
   return str = String(str || '').replace(regex, '');
 }
 
+export function getAssetAdvancedFeatures(assetUid: string) {
+  const foundAsset = assetStore.getAsset(assetUid);
+  if (foundAsset) {
+    return foundAsset.advanced_features;
+  }
+  return undefined;
+}
+
+export function getAssetProcessingUrl(assetUid: string): string | undefined {
+  const foundAsset = assetStore.getAsset(assetUid);
+  if (foundAsset) {
+    return foundAsset.advanced_submission_schema.url;
+  }
+  return undefined;
+}
+
+/** Returns a list of all rows (their `qpath`s) activated for advanced features. */
+export function getAssetProcessingRows(assetUid: string) {
+  const foundAsset = assetStore.getAsset(assetUid);
+  if (foundAsset?.advanced_submission_schema.properties) {
+    const rows: string[] = [];
+    Object.keys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
+      if (foundAsset.advanced_submission_schema.properties !== undefined) {
+        const propertyObj = foundAsset.advanced_submission_schema.properties[propertyName];
+        // NOTE: we assume that the properties will hold only a special string
+        // "submission" property and one object property for each
+        // processing-enabled row.
+        if (propertyObj.type === 'object') {
+          rows.push(propertyName);
+        }
+      }
+    });
+    return rows;
+  }
+  return undefined;
+}
+
+export function isRowProcessingEnabled(assetUid: string, qpath: string) {
+  const processingRows = getAssetProcessingRows(assetUid);
+  return Array.isArray(processingRows) && processingRows.includes(qpath);
+}
+
+export function isAssetProcessingActivated(assetUid: string) {
+  return getAssetProcessingUrl(assetUid) !== undefined;
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -656,4 +815,9 @@ export default {
   replaceForm,
   share,
   removeInvalidChars,
+  getAssetAdvancedFeatures,
+  getAssetProcessingUrl,
+  getAssetProcessingRows,
+  isRowProcessingEnabled,
+  isAssetProcessingActivated,
 };

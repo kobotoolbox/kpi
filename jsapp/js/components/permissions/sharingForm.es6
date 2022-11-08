@@ -20,6 +20,7 @@ import {
 } from 'js/constants';
 import './sharingForm.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
+import './sharingForm.scss';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';

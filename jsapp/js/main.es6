@@ -15,6 +15,7 @@ import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
 import {csrfSafeMethod, currentLang} from 'utils';
 require('../scss/main.scss');
+import Modal from 'react-modal';
 
 // Tell moment library what is the app language
 moment.locale(currentLang());
@@ -41,8 +42,9 @@ $.ajaxSetup({
 if (document.head.querySelector('meta[name=kpi-root-path]')) {
   // Create the element for rendering the app into
   const el = (() => {
-    const $d = $('<div>', {class: 'kpiapp'});
+    const $d = $('<div>', {id: 'kpiapp'});
     $('body').prepend($d);
+    Modal.setAppElement('#kpiapp');
     return $d.get(0);
   })();
 
@@ -82,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   const designSystemAppEl = document.getElementById('design-system-app');
   if (designSystemAppEl) {
+    Modal.setAppElement('#design-system-app');
     render(
       <AppContainer>
         <DesignSystemApp />
