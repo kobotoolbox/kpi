@@ -115,7 +115,7 @@ module.exports = do ->
       """
       if surveyView.features.multipleQuestions
         template += """<span class="card__buttons__button card__buttons__button--copy card__buttons__button--blue js-clone-question" data-button-name="duplicate"><i class="k-icon k-icon-duplicate"></i></span>
-                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--green js-add-to-question-library" data-button-name="add-to-library"><i class="k-icon k-icon-folder-plus"></i></i></span>"""
+                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--teal js-add-to-question-library" data-button-name="add-to-library"><i class="k-icon k-icon-folder-plus"></i></i></span>"""
 
       return template + """
           </div>

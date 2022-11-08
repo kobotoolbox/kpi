@@ -2,6 +2,7 @@
 import base64
 import datetime
 import dateutil.parser
+import os
 import posixpath
 import re
 import tempfile
@@ -17,18 +18,14 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
-from django.core.files.base import ContentFile
+from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-
 import formpack
-from formpack.constants import KOBO_LOCK_SHEET
+from formpack.constants import (
+    KOBO_LOCK_SHEET,
+)
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -38,7 +35,15 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from private_storage.fields import PrivateFileField
+from pyxform import xls2json_backends
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+from openpyxl.utils.exceptions import InvalidFileException
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -133,7 +138,7 @@ class ImportExportTask(models.Model):
             self.status = self.COMPLETE
         except ExportTaskBase.InaccessibleData as e:
             msgs['error_type'] = t('Cannot access data')
-            msg['error'] = str(e)
+            msgs['error'] = str(e)
             self.status = self.ERROR
         # TODO: continue to make more specific exceptions as above until this
         # catch-all can be removed entirely
@@ -212,16 +217,16 @@ class ImportTask(ImportExportTask):
                 filename_from_header = parse_options_header(
                     response.headers['Content-Disposition']
                 )
-            
+
                 try:
                     filename = filename_from_header[1]['filename']
                 except (TypeError, IndexError, KeyError):
                     pass
-            
+
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
-            # When a file is uploaded as base64, 
+            # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
 
@@ -580,7 +585,7 @@ class ExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments']
+        additional_fields = ['_attachments', '_supplementalDetails']
 
         field_groups = set()
         for field in fields:
@@ -649,14 +654,9 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        self.result.save(filename, ContentFile(b''))
-        # FileField files are opened read-only by default and must be
-        # closed and reopened to allow writing
-        # https://code.djangoproject.com/ticket/13809
-        self.result.close()
-        self.result.file.close()
+        absolute_filename = self.get_absolute_filename(filename)
 
-        with self.result.storage.open(self.result.name, 'wb') as output_file:
+        with self.result.storage.open(absolute_filename, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
@@ -689,14 +689,70 @@ class ExportTaskBase(ImportExportTask):
             elif export_type == 'spss_labels':
                 export.to_spss_labels(output_file)
 
-        # Restore the FileField to its typical state
-        self.result.open('rb')
-        self.save(update_fields=['last_submission_time'])
+        self.result = absolute_filename
+
+        if not self.pk:
+            # In tests, exports are not saved into the DB before calling this
+            # method, thus we cannot update only specific fields.
+            self.save()
+        else:
+            self.save(update_fields=['result', 'last_submission_time'])
 
     def delete(self, *args, **kwargs):
         # removing exported file from storage
         self.result.delete(save=False)
         super().delete(*args, **kwargs)
+
+    def get_absolute_filename(self, filename: str) -> str:
+        """
+        Get absolute filename related to storage root.
+        """
+
+        storage_class = self.result.storage
+        filename = self.result.field.generate_filename(self, filename)
+
+        # We cannot call `self.result.save()` before reopening the file
+        # in write mode (i.e. open(filename, 'wb')). because it does not work
+        # with AzureStorage.
+        # Unfortunately, `self.result.save()` does few things that we need to
+        # reimplement here:
+        # - Create parent folders (if they do not exist) for local storage
+        # - Get a unique filename if filename already exists on storage
+
+        # Copied from `FileSystemStorage._save()` 😢
+        # TODO avoid duplicating Django FileSystemStorage class code and find
+        #   a way to use `self.result.save()`
+        if isinstance(storage_class, FileSystemStorage):
+            full_path = storage_class.path(filename)
+
+            # Create any intermediate directories that do not exist.
+            directory = os.path.dirname(full_path)
+            if not os.path.exists(directory):
+                try:
+                    if storage_class.directory_permissions_mode is not None:
+                        # os.makedirs applies the global umask, so we reset it,
+                        # for consistency with file_permissions_mode behavior.
+                        old_umask = os.umask(0)
+                        try:
+                            os.makedirs(
+                                directory, storage_class.directory_permissions_mode
+                            )
+                        finally:
+                            os.umask(old_umask)
+                    else:
+                        os.makedirs(directory)
+                except FileExistsError:
+                    # There's a race between os.path.exists() and os.makedirs().
+                    # If os.makedirs() fails with FileExistsError, the directory
+                    # was created concurrently.
+                    pass
+            if not os.path.isdir(directory):
+                raise IOError("%s exists and is not a directory." % directory)
+
+            # Store filenames with forward slashes, even on Windows.
+            filename = filename.replace('\\', '/')
+
+        return storage_class.get_available_name(filename)
 
     def get_export_object(
         self, source: Optional[Asset] = None
@@ -738,9 +794,20 @@ class ExportTaskBase(ImportExportTask):
             query=query,
         )
 
+        if source.has_advanced_features:
+            extr = dict(
+                source.submission_extras.values_list(
+                    'submission_uuid', 'content'
+                )
+            )
+            submission_stream = stream_with_extras(submission_stream, extr)
+
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
+
+        if source.has_advanced_features:
+            pack.extend_survey(source.analysis_form_json())
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp
