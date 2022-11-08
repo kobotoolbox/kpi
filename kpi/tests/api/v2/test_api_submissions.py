@@ -918,7 +918,8 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
         }
         assert response.data == expected_response
 
@@ -941,7 +942,8 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
         expected_response = {
-            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}"
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
         }
         self.assertEqual(response.data, expected_response)
 
@@ -1057,8 +1059,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
 
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"{settings.ENKETO_URL}/edit/{submission['_uuid']}"
-        expected_response = {'url': url}
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
         self.assertEqual(response.data, expected_response)
 
     @responses.activate
@@ -1173,6 +1177,70 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             with pytest.raises(KeyError) as e:
                 res = self.client.post(url)
 
+    @responses.activate
+    def test_get_edit_link_submission_with_latest_asset_deployment(self):
+        """
+        Check that the submission edit is using the asset version associated
+        with the latest **deployed** version.
+        """
+        original_versions_count = self.asset.asset_versions.count()
+        original_deployed_versions_count = self.asset.deployed_versions.count()
+        original_deployed_version_uid = self.asset.latest_deployed_version.uid
+
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST,
+            ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        # make a change to the asset content but don't redeploy yet
+        self.asset.content['survey'].append(
+            {
+                'type': 'note',
+                'name': 'n',
+                'label': 'A new note',
+            }
+        )
+        self.asset.save()
+        assert self.asset.asset_versions.count() == original_versions_count + 1
+        assert (
+            self.asset.deployed_versions.count()
+            == original_deployed_versions_count
+        )
+
+        # ensure that the latest deployed version is used for the edit, even if
+        # there's a new asset version
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
+            'version_uid': original_deployed_version_uid,
+        }
+        assert response.data == expected_response
+
+        # redeploy the asset to create a new deployment version
+        self.asset.deploy(active=True)
+        self.asset.save()
+        assert self.asset.asset_versions.count() == original_versions_count + 2
+        assert (
+            self.asset.deployed_versions.count()
+            == original_deployed_versions_count + 1
+        )
+
+        # ensure that the newly deployed version is used for editing
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
+        assert response.data == expected_response
+
 
 class SubmissionViewApiTests(BaseSubmissionTestCase):
 
@@ -1208,7 +1276,8 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}"
+            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
         }
         assert response.data == expected_response
 
@@ -1311,8 +1380,10 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
 
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"{settings.ENKETO_URL}/view/{submission['_uuid']}"
-        expected_response = {'url': url}
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/view/{submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
         self.assertEqual(response.data, expected_response)
 
 
