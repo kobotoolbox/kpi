@@ -176,11 +176,15 @@ describe('getSupplementalDetailsContent', () => {
   it('should return translation value properly', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
-      '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl'
+      '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl'
     );
     expect(test).to.equal('This is polish translation text.');
   });
 });
+
+/*
+this test should be updated to show that an asset with analysis_form_json.additional_fields
+filters columns down to appropriate columns for table view.
 
 describe('getRowSupplementalResponses', () => {
   it('should return display responses for existing and enabled details', () => {
@@ -208,15 +212,15 @@ describe('getRowSupplementalResponses', () => {
         data: 'This is polish translation text.',
         type: null,
         label: 'translation (pl) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_pl',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
       },
       {
         data: 'This is german translation text.',
         type: null,
         label: 'translation (de) | Secret password as an audio file',
-        name: '_supplementalDetails/Secret_password_as_an_audio_file/translated_de',
+        name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_de',
       },
     ]);
   });
 });
-
+*/

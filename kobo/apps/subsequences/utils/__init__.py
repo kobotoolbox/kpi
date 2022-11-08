@@ -1,8 +1,8 @@
 from copy import deepcopy
-from .actions.automatic_transcription import AutomaticTranscriptionAction
-from .actions.translation import TranslationAction
+from ..actions.automatic_transcription import AutomaticTranscriptionAction
+from ..actions.translation import TranslationAction
 
-from .actions.unknown_action import UnknownAction
+from ..actions.unknown_action import UnknownAction
 
 
 AVAILABLE_ACTIONS = (
@@ -21,24 +21,23 @@ FEATURE_JSONSCHEMA_DESCRIPTION = (
 
 SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 
-def build_action_instances(proj_content):
-    instances = []
-    for action in proj_content.get('actions', []):
-        action_id = action['id']
-        action_instance = None
-        for action_kls in AVAILABLE_ACTIONS:
-            if action_kls.ID == action_id:
-                action_instance = action_kls(action)
-        if action_instance is None:
-            action_instance = UnknownAction(params={'action_id': action_id})
-        instances.append(action_instance)
-    return tuple(instances)
+# def build_action_instances(proj_content):
+#     instances = []
+#     for action in proj_content.get('actions', []):
+#         action_id = action['id']
+#         action_instance = None
+#         for action_kls in AVAILABLE_ACTIONS:
+#             if action_kls.ID == action_id:
+#                 action_instance = action_kls(action)
+#         if action_instance is None:
+#             action_instance = UnknownAction(params={'action_id': action_id})
+#         instances.append(action_instance)
+#     return tuple(instances)
 
-
-def discern_next_stage(action_instances, submission):
-    for action in action_instances:
-        if not action.test_submission_passes_action(submission):
-            return action
+# def discern_next_stage(action_instances, submission):
+#     for action in action_instances:
+#         if not action.test_submission_passes_action(submission):
+#             return action
 
 def advanced_feature_instances(content, actions):
     action_instances = []
@@ -67,10 +66,17 @@ def populate_paths(_content):
     return content
 
 def advanced_submission_jsonschema(content, actions, url=None):
+    actions = deepcopy(actions)
     action_instances = []
     content = populate_paths(content)
-    if 'translated' in actions:
-        assert 'languages' in actions['translated']
+    # devhack: this keeps serializer from breaking when old params
+    # are still in the database
+    if 'translated' in actions: # migration
+        actions['translation'] = actions['translated']  # migration
+        assert 'languages' in actions['translation']
+        del actions['translated'] # migration
+    # /devhack
+
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         if action_params == True:
@@ -80,8 +86,8 @@ def advanced_submission_jsonschema(content, actions, url=None):
         action_instances.append(action_kls(action_params))
     return get_jsonschema(action_instances, url=url)
 
-def _empty_obj():
-    return {'type': 'object', 'properties': {}, 'additionalProperties': False}
+# def _empty_obj():
+#     return {'type': 'object', 'properties': {}, 'additionalProperties': False}
 
 def get_jsonschema(action_instances=(), url=None):
     sub_props = {}

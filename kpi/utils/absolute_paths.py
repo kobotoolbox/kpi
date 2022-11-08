@@ -1,7 +1,10 @@
 DELIMITER = '-'
-pairers = ['score', 'group', 'repeat']
-BEGINNERS = map(lambda ss: f'begin_{ss}', pairers)
-ENDERS = map(lambda ss: f'end_{ss}', pairers)
+
+BEGINNERS = ()
+ENDERS = ()
+for hierarchy_keyword in ['score', 'group', 'repeat']:
+    BEGINNERS = BEGINNERS + (f'begin_{hierarchy_keyword}',)
+    ENDERS = ENDERS + (f'end_{hierarchy_keyword}',)
 
 
 def concat_paths(name, parent_names):

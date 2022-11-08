@@ -15,7 +15,7 @@ describe('getSupplementalTranscriptPath', () => {
 describe('getSupplementalTranslationPath', () => {
   it('should return proper path', () => {
     const test = getSupplementalTranslationPath('your_name', 'pl');
-    chai.expect(test).to.equal('_supplementalDetails/your_name/translated_pl');
+    chai.expect(test).to.equal('_supplementalDetails/your_name/translation_pl');
   });
 });
 

@@ -3,6 +3,17 @@ from django.db import models
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
+from kobo.apps.subsequences.integrations.google.google_transcribe import (
+    GoogleTranscribeEngine,
+)
+from kobo.apps.subsequences.integrations.google.google_translate import (
+    GoogleTranslationEngine,
+)
+from kobo.apps.subsequences.tasks import handle_google_translation_operation
+from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
+    determine_export_cols_indiv,
+)
+
 from kpi.models import Asset
 
 from .constants import GOOGLETS, GOOGLETX
@@ -16,14 +27,18 @@ class SubmissionExtras(models.Model):
 
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    submission_uuid = models.CharField(max_length=40, null=True)
+    submission_uuid = models.CharField(max_length=40)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
         Asset,
         related_name='submission_extras',
         on_delete=models.CASCADE,
-        null=True,
     )
+
+    class Meta:
+        # ideally `submission_uuid` is universally unique, but its uniqueness
+        # per-asset is most important
+        unique_together = (('asset', 'submission_uuid'),)
 
     def save(self, *args, **kwargs):
         features = self.asset.advanced_features
@@ -36,23 +51,24 @@ class SubmissionExtras(models.Model):
                         username = self.asset.owner.username
                         engine = GoogleTranscribeEngine()
                         service = TranscriptionService.objects.get(code='goog')
-                        language_code = service.get_language_code(
-                            autoparams['languageCode']
-                        )
+                        language_code = autoparams.get('languageCode')
+                        region_code = autoparams.get('regionCode')
                         vals[GOOGLETS] = {
                             'status': 'in_progress',
                             'languageCode': language_code,
+                            'regionCode': region_code,
                         }
                         for row in self.asset.content['survey']:
                             if '$qpath' in row and '$xpath' in row:
                                 if row['$qpath'] == qpath:
                                     xpath = row['$xpath']
                                     break
+                        region_or_language_code = region_code or language_code
                         try:
                             results = engine.transcribe_file(
                                 asset=self.asset,
                                 xpath=xpath,
-                                source=language_code,
+                                source=region_or_language_code,
                                 submission_id=self.submission_uuid,
                                 user=self.asset.owner,
                             )
@@ -65,14 +81,15 @@ class SubmissionExtras(models.Model):
                             'status': 'complete',
                             'value': result_string,
                             'fullResponse': results,
-                            'languageCode': autoparams['languageCode'],
+                            'languageCode': language_code,
+                            'regionCode': region_code,
                         }
                     else:
                         continue
                 except (KeyError, TypeError) as err:
                     continue
 
-        if 'translated' in features:
+        if 'translation' in features:
             for key, vals in self.content.items():
                 try:
                     autoparams = vals[GOOGLETX]
@@ -125,6 +142,18 @@ class SubmissionExtras(models.Model):
                         'languageCode': target_lang,
                         'value': results,
                     }
+
+        asset_changes = False
+        asset_known_cols = self.asset.known_cols
+        for kc in determine_export_cols_indiv(self.content):
+            if kc not in asset_known_cols:
+                asset_changes = True
+                asset_known_cols.append(kc)
+
+        if asset_changes:
+            self.asset.known_cols = asset_known_cols
+            self.asset.save(create_version=False)
+
         super().save(*args, **kwargs)
 
     @property

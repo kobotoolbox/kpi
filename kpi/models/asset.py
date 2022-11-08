@@ -31,6 +31,8 @@ from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
+from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
+
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
@@ -155,6 +157,7 @@ class Asset(ObjectPermissionMixin,
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     advanced_features = LazyDefaultJSONBField(default=dict)
+    known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey('Asset', related_name='children',
@@ -409,9 +412,7 @@ class Asset(ObjectPermissionMixin,
         return len(self.advanced_features) > 0
 
     def _get_additional_fields(self):
-        for instance in self.get_advanced_feature_instances():
-            for field in instance.addl_fields():
-                yield field
+        return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
         for instance in self.get_advanced_feature_instances():
@@ -431,17 +432,28 @@ class Asset(ObjectPermissionMixin,
 
     def update_submission_extra(self, content, user=None):
         submission_uuid = content.get('submission')
-        try:
-            sub = self.submission_extras.get(submission_uuid=submission_uuid)
-        except ObjectDoesNotExist:
-            sub = self.submission_extras.model(asset=self, submission_uuid=submission_uuid)
-        instances = self.get_advanced_feature_instances()
-        compiled_content = {**sub.content}
-        for instance in instances:
-            compiled_content = instance.compile_revised_record(compiled_content,
-                                                               edits=content)
-        sub.content = compiled_content
-        sub.save()
+        # the view had better have handled this
+        assert submission_uuid is not None
+
+        # `select_for_update()` can only lock things that exist; make sure
+        # a `SubmissionExtras` exists for this submission before proceeding
+        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
+
+        with transaction.atomic():
+            sub = (
+                self.submission_extras.filter(submission_uuid=submission_uuid)
+                .select_for_update()
+                .first()
+            )
+            instances = self.get_advanced_feature_instances()
+            compiled_content = {**sub.content}
+            for instance in instances:
+                compiled_content = instance.compile_revised_record(
+                    compiled_content, edits=content
+                )
+            sub.content = compiled_content
+            sub.save()
+
         return sub
 
     def get_advanced_submission_schema(self, url=None,

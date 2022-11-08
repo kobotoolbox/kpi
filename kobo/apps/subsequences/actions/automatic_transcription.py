@@ -31,7 +31,7 @@ class AutomaticTranscriptionAction(BaseAction):
         return possible_transcribed_fields
 
     def load_params(self, params):
-        self.possible_transcribed_fields = params['values']
+        self.possible_transcribed_fields = params.get('values', [])
         self.available_services = params.get('services', [])
         self.languages = params.get('languages', [])
 
@@ -47,6 +47,7 @@ class AutomaticTranscriptionAction(BaseAction):
                 self.DATE_MODIFIED_FIELD: {'type': 'string',
                                            'format': 'date-time'},
                 'languageCode': {'type': 'string'},
+                'regionCode': {'type': 'string'},
                 'revisions': {'type': 'array', 'items': {
                     '$ref': '#/definitions/transcriptRevision'
                 }}

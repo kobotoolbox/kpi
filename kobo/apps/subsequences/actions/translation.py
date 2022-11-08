@@ -3,7 +3,7 @@ from django.utils import timezone
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 from kobo.apps.subsequences.constants import GOOGLETX
 
-TRANSLATED = 'translated'
+TRANSLATED = 'translation'
 
 
 class TranslationAction(BaseAction):
@@ -169,12 +169,12 @@ class TranslationAction(BaseAction):
                     'source': field,
                     'settings': {
                         'mode': 'auto',
-                        'engine': f'engines/translated',
+                        'engine': f'engines/translation',
                     }
                 }
 
     def engines(self):
-        manual_name = f'engines/translated'
+        manual_name = f'engines/translation'
         manual_engine = {
             'details': 'A human provided translation'
         }

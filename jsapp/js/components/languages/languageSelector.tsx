@@ -40,6 +40,8 @@ const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-l
 
 const LANGUAGE_SELECTOR_RESET_EVENT = 'LanguageSelector:resetall';
 
+const MINIMUM_SEARCH_LENGTH = 2;
+
 /** Use this function to reset all LanguageSelectors :) */
 export function resetAllLanguageSelectors() {
   const event = new CustomEvent(LANGUAGE_SELECTOR_RESET_EVENT);
@@ -169,7 +171,7 @@ class LanguageSelector extends React.Component<
           this.setState({sourceLanguage: language});
         }
       } catch (error) {
-        console.error(`Language ${this.props.sourceLanguage} not found`);
+        console.error(`Language ${this.props.sourceLanguage} not found 1`);
       }
     }
   }
@@ -192,7 +194,7 @@ class LanguageSelector extends React.Component<
             this.setState({suggestedLanguages: newLanguages});
           }
         } catch (error) {
-          console.error(`Language ${languageCode} not found`);
+          console.error(`Language ${languageCode} not found 2`);
         }
       });
     }
@@ -208,7 +210,9 @@ class LanguageSelector extends React.Component<
 
   setSearchPhrase(searchPhrase: string) {
     this.setState({searchPhrase: searchPhrase});
-    this.fetchLanguagesDebounced();
+    if (searchPhrase.length >= MINIMUM_SEARCH_LENGTH) {
+      this.fetchLanguagesDebounced();
+    }
   }
 
   selectLanguage(language: DetailedLanguage | ListLanguage) {
@@ -259,28 +263,18 @@ class LanguageSelector extends React.Component<
     );
   }
 
-  renderLanguageItem(language: DetailedLanguage | ListLanguage, index: number) {
-    let shouldDisplayLine = false;
-    // We want to display line after last featured language, so we need to get
-    // previous one to check it out :)
-    if (!language.featured && index !== 0) {
-      const previousLanguage = this.languages[index - 1];
-      shouldDisplayLine = previousLanguage.featured;
-    }
+  renderLanguageItem(language: DetailedLanguage | ListLanguage) {
     return (
-      <React.Fragment>
-        {shouldDisplayLine && <bem.LanguageSelector__line/>}
-        <li key={language.code}>
-          <Button
-            type='bare'
-            color='storm'
-            size='m'
-            label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
-            onClick={this.selectLanguage.bind(this, language)}
-            isDisabled={this.props.isDisabled}
-          />
-        </li>
-      </React.Fragment>
+      <li key={language.code}>
+        <Button
+          type='bare'
+          color='storm'
+          size='m'
+          label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
+          onClick={this.selectLanguage.bind(this, language)}
+          isDisabled={this.props.isDisabled}
+        />
+      </li>
     );
   }
 
@@ -377,6 +371,7 @@ class LanguageSelector extends React.Component<
     return (
       <React.Fragment>
         {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
+        <bem.LanguageSelector__line/>
       </React.Fragment>
     );
   }

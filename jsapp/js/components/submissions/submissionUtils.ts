@@ -110,6 +110,22 @@ export class DisplayResponse {
 }
 
 /**
+ * Returns a sorted object of transcript/translation keys
+ */
+export function sortAnalysisFormJsonKeys(additionalFields: {source: string, dtpath: string}[]) {
+  let sortedBySource: {[key: string]: string[]} = {};
+
+  additionalFields?.forEach((afParams) => {
+    let expandedPath = `_supplementalDetails/${afParams.dtpath}`;
+    if (!sortedBySource[afParams.source]) {
+      sortedBySource[afParams.source] = [];
+    }
+    sortedBySource[afParams.source].push(expandedPath);
+  });
+  return sortedBySource;
+}
+
+/**
  * Returns a root group with everything inside
  */
 export function getSubmissionDisplayData(
@@ -126,6 +142,9 @@ export function getSubmissionDisplayData(
 
   const flatPaths = getSurveyFlatPaths(survey, true);
 
+  let supplementalDetailKeys = sortAnalysisFormJsonKeys(
+    asset.analysis_form_json?.additional_fields
+  );
   /**
    * Recursively generates a nested architecture of survey with data.
    */
@@ -271,12 +290,24 @@ export function getSubmissionDisplayData(
         );
         parentGroup.addChild(rowObj);
 
-        const rowSupplementalResponses = getRowSupplementalResponses(
+        /*
+        getRowSupplementalResponses(
           asset,
           submissionData,
           rowName,
-        );
-        rowSupplementalResponses.forEach((resp) => {parentGroup.addChild(resp)})
+        ).forEach((resp) => {parentGroup.addChild(resp)})
+        */
+        let rowqpath = flatPaths[rowName].replace(/\//g, '-');
+        supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
+          parentGroup.addChild(
+            new DisplayResponse(null,
+              getColumnLabel(asset, sdKey, false),
+              sdKey,
+              undefined,
+              getSupplementalDetailsContent(submissionData, sdKey),
+            )
+          );
+        })
       }
     }
   }
@@ -543,7 +574,7 @@ export function getSupplementalDetailsContent(
   // The last element is `translated_<language code>`, but we don't want
   // the underscore to be there.
   pathArray.pop();
-  pathArray.push('translated');
+  pathArray.push('translation');
   pathArray.push(pathParts.languageCode);
 
   // Then we add one more nested level
@@ -588,8 +619,8 @@ export function getRowSupplementalResponses(
       });
     }
 
-    if (advancedFeatures.translated?.languages !== undefined) {
-      advancedFeatures.translated.languages.forEach((languageCode: LanguageCode) => {
+    if (advancedFeatures.translation?.languages !== undefined) {
+      advancedFeatures.translation.languages.forEach((languageCode: LanguageCode) => {
         const path = getSupplementalTranslationPath(rowName, languageCode);
         output.push(
           new DisplayResponse(

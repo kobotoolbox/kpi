@@ -556,11 +556,11 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     });
   });
 
-  advancedFeatures.translated?.values?.forEach((questionName: string) => {
+  advancedFeatures.translation?.values?.forEach((questionName: string) => {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = [];
     }
-    advancedFeatures.translated?.languages?.forEach((languageCode: LanguageCode) => {
+    advancedFeatures.translation?.languages?.forEach((languageCode: LanguageCode) => {
       paths[questionName].push(
         getSupplementalTranslationPath(questionName, languageCode)
       );
@@ -583,7 +583,6 @@ export function injectSupplementalRowsIntoListOfRows(
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content');
   }
-  const flatPathsWithGroups = getSurveyFlatPaths(asset.content.survey, true);
 
   let output = Array.from(rows);
 
@@ -591,6 +590,31 @@ export function injectSupplementalRowsIntoListOfRows(
   output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
 
   const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+
+  const { analysis_form_json } = asset;
+  const additional_fields: any = analysis_form_json.additional_fields;
+
+  const extraColsBySource: Record<string, any[]> = {};
+  additional_fields.forEach((add_field: any) => {
+    let sourceName: string = add_field.source;
+    if (!extraColsBySource[sourceName]) {
+      extraColsBySource[sourceName] = [];
+    }
+    extraColsBySource[sourceName].push(add_field);
+  });
+
+  const outputWithCols: string[] = [];
+  output.forEach((col: string) => {
+    let qpath = col.replace(/\//g, '-')
+    outputWithCols.push(col);
+    (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
+      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
+    });
+  });
+
+  /*
+  revisit this before merge: (does this work with longer paths / within groups?)
+
   Object.keys(supplementalDetailsPaths).forEach((rowName) => {
     // In supplementalDetailsPaths we get row names, in output we already have
     // row paths. We need to find a matching row and put all paths immediately
@@ -601,8 +625,8 @@ export function injectSupplementalRowsIntoListOfRows(
       output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
     }
   });
-
-  return output;
+  */
+  return outputWithCols;
 }
 
 export interface FlatQuestion {

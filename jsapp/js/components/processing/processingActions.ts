@@ -16,7 +16,7 @@ const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabl
 const DELETE_CHAR = '⌫';
 
 interface GoogleTsResponse {
-  status: 'complete' | 'in_progress';
+  status: 'requested' | 'in_progress' | 'complete';
   /** Full transcript text. */
   value: string;
   /** Transcript text split into chunks - scored by transcription quality. */
@@ -35,7 +35,7 @@ interface GoogleTxResponse {
 
 interface TransxQuestion {
   transcript: TransxObject;
-  translated: {
+  translation: {
     [languageCode: LanguageCode]: TransxObject;
   };
   googlets?: GoogleTsResponse;
@@ -71,11 +71,13 @@ interface AutoTranscriptRequest {
   [qpath: string]: AutoTranscriptRequestQuestion | string | undefined;
   submission?: string;
 }
+interface AutoTranscriptRequestEngineParams {
+  status: 'requested';
+  languageCode?: string;
+  regionCode?: string;
+}
 interface AutoTranscriptRequestQuestion {
-  googlets: {
-    status: 'requested';
-    languageCode: string;
-  };
+  googlets: AutoTranscriptRequestEngineParams;
 }
 
 interface TranslationRequest {
@@ -83,7 +85,7 @@ interface TranslationRequest {
   submission?: string;
 }
 interface TranslationRequestQuestion {
-  translated: TranslationsRequestObject;
+  translation: TranslationsRequestObject;
 }
 interface TranslationsRequestObject {
   [languageCode: LanguageCode]: TransxRequestObject;
@@ -102,6 +104,10 @@ interface AutoTranslationRequestQuestion {
 
 export interface ProcessingDataResponse {
   [key: string]: TransxQuestion;
+}
+export interface AutoTranscriptionEvent {
+  response: ProcessingDataResponse;
+  submissionEditId: string;
 }
 
 const processingActions = Reflux.createActions({
@@ -143,7 +149,7 @@ processingActions.activateAsset.listen((
     features.transcript = {};
   }
   if (Array.isArray(enableTranslations)) {
-    features.translated = {
+    features.translation = {
       languages: enableTranslations,
     };
   }
@@ -334,7 +340,8 @@ processingActions.requestAutoTranscription.listen((
   assetUid: string,
   qpath: string,
   submissionEditId: string,
-  languageCode: string
+  languageCode?: string,
+  regionCode?: string,
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
@@ -343,11 +350,15 @@ processingActions.requestAutoTranscription.listen((
     const data: AutoTranscriptRequest = {
       submission: submissionEditId,
     };
+    let autoparams: AutoTranscriptRequestEngineParams = {status: 'requested'};
+    if (languageCode) {
+      autoparams.languageCode = languageCode;
+    }
+    if (regionCode) {
+      autoparams.regionCode = regionCode;
+    }
     data[qpath] = {
-      googlets: {
-        status: 'requested',
-        languageCode: languageCode,
-      },
+      googlets: autoparams,
     };
 
     $.ajax({
@@ -358,24 +369,10 @@ processingActions.requestAutoTranscription.listen((
       data: JSON.stringify(data),
     })
       .done((response: ProcessingDataResponse) => {
-        // Get question for request and check if in_progress
-        const statuses = Object.entries(response)
-          .filter(response => response[0] === qpath)
-          .map(entry => entry[1])
-          .filter(question => question.googlets?.status)
-          .map(question => question.googlets?.status);
-        if (statuses.includes('in_progress')) {
-          processingActions.requestAutoTranscription.in_progress(response);
-          setTimeout(() =>
-            processingActions.requestAutoTranscription(
-              assetUid,
-              qpath,
-              submissionEditId,
-              languageCode
-            )
-          , 5000);
+        if (['requested', 'in_progress'].includes(response[qpath]?.googlets?.status ?? '')) {
+          processingActions.requestAutoTranscription.in_progress({response, submissionEditId});
         } else {
-          processingActions.requestAutoTranscription.completed(response);
+          processingActions.requestAutoTranscription.completed({response, submissionEditId});
         }
       })
       .fail(processingActions.requestAutoTranscription.failed);
@@ -387,7 +384,7 @@ function pickTranslationsFromProcessingDataResponse(
   qpath: string
 ): TransxObject[] {
   const translations: TransxObject[] = [];
-  Object.values(response[qpath]?.translated).forEach((translation) => {
+  Object.values(response[qpath]?.translation).forEach((translation) => {
     translations.push(translation);
   });
   return translations;
@@ -411,7 +408,7 @@ function getTranslationDataObject(
     submission: submissionEditId,
   };
   data[qpath] = {
-    translated: translationsObj,
+    translation: translationsObj,
   };
   return data;
 }
@@ -467,7 +464,7 @@ processingActions.setTranslation.listen((
 ) => {
   // This first block of code is about getting currently enabled languages.
   const currentFeatures = getAssetAdvancedFeatures(assetUid);
-  if (currentFeatures?.translated === undefined) {
+  if (currentFeatures?.translation === undefined) {
     processingActions.setTranslation.failed(NO_FEATURE_ERROR);
     return;
   }
@@ -475,8 +472,8 @@ processingActions.setTranslation.listen((
   // Case 1: the language is already enabled in advanced_features, so we can
   // just send the translation.
   if (
-    Array.isArray(currentFeatures.translated.languages) &&
-    currentFeatures.translated.languages.includes(languageCode)
+    Array.isArray(currentFeatures.translation.languages) &&
+    currentFeatures.translation.languages.includes(languageCode)
   ) {
     setTranslationInnerMethod(
       assetUid,
@@ -493,13 +490,13 @@ processingActions.setTranslation.listen((
 
   // We build the updated advanced_features object.
   const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
-  if (!newFeatures.translated) {
-    newFeatures.translated = {};
+  if (!newFeatures.translation) {
+    newFeatures.translation = {};
   }
-  if (Array.isArray(newFeatures.translated.languages)) {
-    newFeatures.translated.languages.push(languageCode);
+  if (Array.isArray(newFeatures.translation.languages)) {
+    newFeatures.translation.languages.push(languageCode);
   } else {
-    newFeatures.translated.languages = [languageCode];
+    newFeatures.translation.languages = [languageCode];
   }
 
   // We update the asset and go with the next call on success.

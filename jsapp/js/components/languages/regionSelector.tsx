@@ -79,7 +79,7 @@ export default class RegionSelector extends React.Component<
         }
       } catch (error) {
         // Here we use memoized value, as at this point the props might've changed.
-        console.error(`Language ${targetLanguage} not found`);
+        console.error(`Language ${targetLanguage} not found 6`);
       }
     }
   }

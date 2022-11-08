@@ -2467,7 +2467,7 @@ export const submissionWithSupplementalDetails = {
         'dateModified': '2022-05-12 10:47:51',
         'languageCode': 'fr',
       },
-      'translated': {
+      'translation': {
         'de': {
           'value': 'This is german translation text.',
           'revisions': [
