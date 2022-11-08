@@ -1,0 +1,189 @@
+{% extends 'admin/base_site.html' %}
+{% load admin_urls %}
+{% load static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Home</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; Import
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+    <form action="" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <p>
+        Things to know:
+        <ul>
+          <li>
+            <span style="color: red; font-weight: bold; font-size: 1.5em">&#9888;</span> All existing languages and regions will be <b>deleted</b> before the import
+          </li>
+          <li>
+            New translation/transcription services will be created if they do not exist already
+          </li>
+        </ul>
+      </p>
+
+      <p>
+        This importer expects the following rules:
+        <ul>
+          <li>
+            Fields should be: <code>name, code, featured, region_names, region_codes</code>, followed by translation/transcription services.
+            <ul>
+              <li>Translation service columns should be prefixed with <code>asr_</code> followed by the service code</li>
+              <li>Transcription service columns should be prefixed with <code>mt_</code> followed by the service code</li>
+            </ul>
+          </li>
+          <li><code>region_names</code> and <code>region_codes</code> columns should contain all occurrences separated by semi-colons</li>
+          <li><code>region_names</code> and <code>region_codes</code> must have the <b>exact</b> same number of items</li>
+          <li>
+            <code>asr_*</code> columns should contain as many region codes as <code>region_codes</code> in the same position.
+            Use <code>null</code> for not supported regions.
+            Leave empty if service does not support the language at all
+          </li>
+          <li>
+            <code>mt_*</code> columns should contain either the language code or, like <code>asr_*</code> columns, region codes.
+            If the service supports some regions, add them separated by semi-colons.
+            Use <code>null</code> for not supported regions. Leave empty if service does not support the language at all
+          </li>
+        </ul>
+      </p>
+
+      <h2>Example</h2>
+      Find below an subset of data with some exceptions. This provides an example how to import them
+      <ul>
+        <li>Afar: No exceptions, it cannot be translated nor transcribed</li>
+        <li>English: No exceptions, only use Google services</li>
+        <li>French: Microsoft translation service supports global French but also Canadian region. (i.e.: <code>fr</code> + <code>null</code>;<code>fr-CA</code>;<code>null</code>)</li>
+        <li>Chinese: One region equals the global language code. Translation support only regions (i.e.: <code>zh</code>;<code>zh-TW</code>)</li>
+        <li>Hebrew: Google services expect a different language code (i.e.: <code>iw</code> instead of <code>he</code>)</li>
+        <li>Serbian: Microsoft translation service support only regions with different codes (i.e.: <code>sr-Latn</code> instead of <code>sr-RS</code>)</li>
+      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th style="text-transform: lowercase">name</th>
+            <th style="text-transform: lowercase">code</th>
+            <th style="text-transform: lowercase">featured</th>
+            <th style="text-transform: lowercase">region_names</th>
+            <th style="text-transform: lowercase">region_codes</th>
+            <th style="text-transform: lowercase">asr_goog</th>
+            <th style="text-transform: lowercase">mt_goog</th>
+            <th style="text-transform: lowercase">asr_msft</th>
+            <th style="text-transform: lowercase">mt_msft</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Afar</td>
+            <td>aa</td>
+            <td>0</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>English</td>
+            <td>en</td>
+            <td>1</td>
+            <td>Canada;British;US</td>
+            <td>en-CA;en-GB;en-US</td>
+            <td>en-CA;en-GB;en-US</td>
+            <td>en</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>French</td>
+            <td>fr</td>
+            <td>1</td>
+            <td>Belgium;Canada;France</td>
+            <td>fr-BE;fr-CA;fr-FR</td>
+            <td>fr-BE;fr-CA;fr-FR</td>
+            <td>fr</td>
+            <td></td>
+            <td>fr;null;fr-CA;null</td>
+          </tr>
+          <tr>
+            <td>Chinese</td>
+            <td>zh</td>
+            <td>0</td>
+            <td>Simplified, China;Traditional, Taiwan</td>
+            <td>zh;zh-TW</td>
+            <td>zh;zh-TW</td>
+            <td>zh;zh-TW</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Hebrew</td>
+            <td>he</td>
+            <td>0</td>
+            <td>Israel</td>
+            <td>he-IL</td>
+            <td>iw-IL</td>
+            <td>iw</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Serbian</td>
+            <td>sr</td>
+            <td>0</td>
+            <td>Serbia, Latin; Serbia, Cyrillic</td>
+            <td>sr-RS; sr-CS</td>
+            <td>sr-RS; null</td>
+            <td>sr</td>
+            <td></td>
+            <td>sr-Latn, sr-Cyrl</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <fieldset class="module aligned" style="margin-top: 2em">
+        {% for field in form %}
+          <div class="form-row">
+            {{ field.errors }}
+
+            {{ field.label_tag }}
+
+            {{ field }}
+
+            {% if field.field.help_text %}
+            <p class="help">{{ field.field.help_text|safe }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </fieldset>
+
+      <div class="submit-row">
+        <input type="submit" class="default" value="Submit">
+      </div>
+    </form>
+
+    {% if results %}
+      <table>
+        <tr>
+          <td>Imported languages:</td><td>{{ results.created }}</td>
+        </tr>
+        <tr>
+          <td>Imported transcription services:</td><td>{{ results.transcription_services }}</td>
+        </tr>
+        <tr>
+          <td>Imported translation services:</td><td>{{ results.translation_services }}</td>
+        </tr>
+        <tr>
+          <td>Skipped rows:</td><td>{{ results.skipped }}</td>
+        </tr>
+      </table>
+    {% endif %}
+
+{% endblock %}

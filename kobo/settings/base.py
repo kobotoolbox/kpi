@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
     'kobo.apps.mfa.apps.MfaAppConfig',
+    'kobo.apps.languages.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
 )
 
@@ -981,6 +982,8 @@ TRENCH_AUTH = {
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
 ]
+
+MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
