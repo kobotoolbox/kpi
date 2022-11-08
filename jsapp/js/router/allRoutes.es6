@@ -1,12 +1,10 @@
 import React, {Suspense} from 'react';
-import {observe} from 'mobx';
 import {observer} from 'mobx-react';
 import autoBind from 'react-autobind';
 import {Navigate, Routes} from 'react-router-dom';
 import App from 'js/app';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import {actions} from 'js/actions';
-import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
@@ -56,24 +54,18 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
     super(props);
     this.state = {
       isPermsConfigReady: permConfig.isReady(),
-      isSessionReady: sessionStore.isAuthStateKnown,
     };
     autoBind(this);
   }
 
   componentDidMount() {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
-    observe(sessionStore, this.onSessionChange);
     actions.permissions.getConfig();
   }
 
   onGetConfigCompleted(response) {
     permConfig.setPermissions(response.results);
     this.setReady({isPermsConfigReady: permConfig.isReady()});
-  }
-
-  onSessionChange() {
-    this.setReady({isSessionReady: sessionStore.isAuthStateKnown});
   }
 
   /**
@@ -98,20 +90,12 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
       newStateObj.isSessionReady = data.isSessionReady;
     }
 
-    console.log(sessionStore.isLoggedIn, isRootRoute())
-
-    if (
+    if (!(
       newStateObj.isPermsConfigReady &&
       newStateObj.isSessionReady &&
       !sessionStore.isLoggedIn &&
       isRootRoute()
-    ) {
-      // If all necessary data is obtained, and user is not logged in, and on
-      // the root route, redirect immediately to the login page outside
-      // the React app, and skip setting the state (so no content blink).
-      console.log("REDIRECT!!!!!!!!!!!")
-      redirectToLogin();
-    } else {
+    )) {
       this.setState(newStateObj);
     }
   }
@@ -119,7 +103,19 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
   render() {
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
-    if (!this.state.isPermsConfigReady || !this.state.isSessionReady) {
+    if (!this.state.isPermsConfigReady || !sessionStore.isAuthStateKnown) {
+      return <LoadingSpinner />;
+    }
+
+    // If all necessary data is obtained, and user is not logged in, and on
+    // the root route, redirect immediately to the login page outside
+    // the React app, and skip setting the state (so no content blink).
+    if (
+      !sessionStore.isLoggedIn &&
+      isRootRoute()
+    ) {
+      redirectToLogin();
+      // redirect is async, continue showing loading
       return <LoadingSpinner />;
     }
 

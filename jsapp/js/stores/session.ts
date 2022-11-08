@@ -23,11 +23,11 @@ class SessionStore {
       action('verifyLoginSuccess', (account: AccountResponse | {message: string}) => {
         this.isPending = false;
         this.isInitialLoadComplete = true;
-        this.isAuthStateKnown = true;
         if ("email" in account) {
           this.currentAccount = account;
           this.isLoggedIn = true;
         }
+        this.isAuthStateKnown = true;
       }),
       action('verifyLoginFailure', (xhr: any) => {
         this.isPending = false;
