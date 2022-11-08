@@ -90,7 +90,7 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
         size='s'
         color='storm'
         onClick={toggleModal}
-        startIcon='filter'
+        startIcon='spreadsheet'
         label={getTriggerLabel()}
       />
 
