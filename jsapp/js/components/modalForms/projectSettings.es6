@@ -25,6 +25,8 @@ import {
   escapeHtml,
   isAValidUrl,
   validFileTypes,
+  notify,
+  join,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
@@ -496,7 +498,7 @@ class ProjectSettings extends React.Component {
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail((r) => {
-      alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+      notify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
 
@@ -561,7 +563,7 @@ class ProjectSettings extends React.Component {
                 }
               }).fail(() => {
                 this.resetImportUrlButton();
-                alertify.error(t('Failed to reload project after import!'));
+                notify.error(t('Failed to reload project after import!'));
               });
             },
             (response) => {
@@ -569,17 +571,17 @@ class ProjectSettings extends React.Component {
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (importUrl) {
-                errLines.push(`<code>Name: ${this.getFilenameFromURI(importUrl)}</code>`);
+                errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>);
               }
               if (response.messages.error) {
-                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+                errLines.push(<code>{response.messages.error_type}: {response.messages.error}</code>);
               }
-              alertify.error(errLines.join('<br/>'));
+              notify.error(join(errLines, <br/>));
             }
           );
         },
         () => {
-          alertify.error(t('Could not initialize XLSForm import!'));
+          notify.error(t('Could not initialize XLSForm import!'));
         }
       );
     }
@@ -611,7 +613,7 @@ class ProjectSettings extends React.Component {
                 }
               }).fail(() => {
                 this.setState({isUploadFilePending: false});
-                alertify.error(t('Failed to reload project after upload!'));
+                notify.error(t('Failed to reload project after upload!'));
               });
             },
             (response) => {
@@ -619,18 +621,18 @@ class ProjectSettings extends React.Component {
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (files[0].name) {
-                errLines.push(`<code>Name: ${files[0].name}</code>`);
+                errLines.push(<code>Name: ${files[0].name}</code>);
               }
               if (response.messages.error) {
-                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+                errLines.push(<code>{response.messages.error_type}: {escapeHtml(response.messages.error)}</code>);
               }
-              alertify.error(errLines.join('<br/>'));
+              notify.error(join(errLines, <br/>));
             }
           );
         },
         () => {
           this.setState({isUploadFilePending: false});
-          alertify.error(t('Could not import XLSForm!'));
+          notify.error(t('Could not import XLSForm!'));
         }
       );
     }
@@ -680,7 +682,7 @@ class ProjectSettings extends React.Component {
     this.setState({fieldsWithErrors: fieldsWithErrors});
 
     if (fieldsWithErrors.length >= 1) {
-      alertify.error(t('Some fields contain errors!'));
+      notify.error(t('Some fields contain errors!'));
       return;
     }
 
@@ -892,6 +894,9 @@ class ProjectSettings extends React.Component {
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
                 label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
+                value={this.state.name}
+                onChange={this.onNameChange}
+                data-cy='title'
               />
             </bem.FormModal__item>
           }
@@ -904,6 +909,7 @@ class ProjectSettings extends React.Component {
               onChange={this.onDescriptionChange.bind(this)}
               label={t('Description')}
               placeholder={t('Enter short description here')}
+              data-cy='description'
             />
           </bem.FormModal__item>
 
@@ -917,6 +923,7 @@ class ProjectSettings extends React.Component {
                 isLimitedHeight
                 isClearable
                 error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
+                data-cy='sector'
               />
             </bem.FormModal__item>
           }
@@ -932,6 +939,7 @@ class ProjectSettings extends React.Component {
                 isLimitedHeight
                 isClearable
                 error={this.hasFieldError('country') ? t('Please select at least one country') : false}
+                data-cy='country'
               />
             </bem.FormModal__item>
           }

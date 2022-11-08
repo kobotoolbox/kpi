@@ -1,6 +1,6 @@
 /*
  * NOTE: before using this file to check if route matches current route, please
- * try using react router way (we have it set up in `mixins.es6` as
+ * try using react router way (we have it set up in `mixins.tsx` as
  * `contextRouter` methods)
  *
  * This file has a list of functions that allows for simple checking if given
@@ -18,7 +18,7 @@ import {
  * Returns login url with a `next` parameter - after logging in, the  app will
  * redirect to the next url.
  */
-export function getLoginUrl() {
+export function getLoginUrl(): string {
   let url = PATHS.LOGIN;
   const currentLoc = hashHistory.getCurrentLocation();
   if (currentLoc?.pathname) {
@@ -169,6 +169,17 @@ export function isFormKobocatRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_KOBOCAT.replace(':uid', uid);
 }
 
+export function isFormSingleProcessingRoute(
+  uid: string,
+  qpath: string,
+  submissionEditId: string
+): boolean {
+  return getCurrentPath() === ROUTES.FORM_PROCESSING
+    .replace(':uid', uid)
+    .replace(':qpath', qpath)
+    .replace(':submissionEditId', submissionEditId);
+}
+
 export function isFormResetRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
 }
@@ -214,4 +225,18 @@ export function getRouteAssetUid() {
   }
 
   return null;
+}
+
+/** Returns parameters from path for single processing route. */
+export function getSingleProcessingRouteParameters(): {
+  uid: string;
+  qpath: string;
+  submissionEditId: string;
+} {
+  const splitPath = getCurrentPath().split('/');
+  return {
+    uid: splitPath[2],
+    qpath: splitPath[5],
+    submissionEditId: splitPath[6],
+  };
 }

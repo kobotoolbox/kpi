@@ -8,6 +8,7 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
+import {notify} from 'js/utils';
 import {
   QUERY_LIMIT_DEFAULT,
   ASSET_FILE_TYPES,
@@ -198,7 +199,7 @@ class MapSettings extends React.Component {
       description = this.state.layerName;
 
     if (!description) {
-      alertify.error(t('Please add a name for your layer file.'));
+      notify.error(t('Please add a name for your layer file.'));
       return false;
     }
 
@@ -218,13 +219,13 @@ class MapSettings extends React.Component {
         actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
       }).fail((jqxhr) => {
         var errMsg = t('Upload error: ##error_message##.').replace('##error_message##', jqxhr.statusText);
-        alertify.error(errMsg);
+        notify.error(errMsg);
       });
     });
 
     rejectedFiles.map(() => {
       var errMsg = t('Upload error: not a valid map overlay format.');
-      alertify.error(errMsg);
+      notify.error(errMsg);
     });
   }
 
@@ -237,6 +238,7 @@ class MapSettings extends React.Component {
 
     let opts = {
       title: t('Delete File'),
+      // TODO: Split this into two independent translation strings without HTML
       message: t(
         'Are you sure you want to delete this file? ' +
           '<br/><br/><strong>This action cannot be undone.</strong>'

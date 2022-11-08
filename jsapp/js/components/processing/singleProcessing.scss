@@ -1,0 +1,51 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "./singleProcessingVariables";
+
+$s-single-processing-header: sizes.$x60;
+
+.single-processing {
+  // make it appear above everything
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  background-color: colors.$kobo-cloud;
+}
+
+.single-processing__top {
+  width: 100%;
+  height: $s-single-processing-header;
+}
+
+.single-processing__bottom {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  height: calc(100% - #{$s-single-processing-header});
+  padding: 0 60px;
+
+}
+
+.single-processing__bottom-left {
+  flex: 61;
+  margin-right: sizes.$x16;
+  padding-bottom: singleProcessingVariables.$s-single-processing-bottom-space;
+}
+
+.single-processing__bottom-right {
+  flex: 39;
+  // used for details
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: singleProcessingVariables.$s-single-processing-bottom-space;
+}

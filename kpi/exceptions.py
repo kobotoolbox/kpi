@@ -19,6 +19,10 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
+class AssetAdjustContentError(Exception):
+    pass
+
+
 class AttachmentNotFoundException(Exception):
     pass
 

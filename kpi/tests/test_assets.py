@@ -474,7 +474,7 @@ class AssetScoreTestCase(TestCase):
             'settings': {},
         }
         a1 = Asset.objects.create(content=_matrix_score, asset_type='survey')
-        _snapshot = a1.snapshot
+        _snapshot = a1.snapshot()
         self.assertNotEqual(_snapshot.xml, '')
         self.assertNotEqual(_snapshot.details['status'], 'failure')
 
@@ -490,7 +490,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         self.assertTrue(None not in choices_kuids)
         # asset.snapshot.xml generates a document that does not have any
         # "$kuid" or "<$kuid>x</$kuid>" elements
-        _xml = asset.snapshot.xml
+        _xml = asset.snapshot().xml
         # as is in every xform:
         self.assertTrue('<instance>' in _xml)
         # specific to this cascading select form:
@@ -504,7 +504,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
                                   asset_type='survey')
-        export = a1.snapshot
+        export = a1.snapshot()
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
         self.assertTrue(f'<{a1.uid} id="xid_stringx">' in export.xml)
 

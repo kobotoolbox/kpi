@@ -5,23 +5,26 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
 import './accountSidebar.scss';
 import envStore from 'js/envStore';
-
-interface AccountSidebarProps {
-  submissionsPerMonth: number;
-}
+import {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import {notify} from 'js/utils';
+import {ROOT_URL} from 'js/constants';
+import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 
 interface AccountSidebarState {
 	isLoading: boolean;
+  subscribedProduct: ProductInfo | null;
 }
 
 export default class AccountSidebar extends React.Component<
-  AccountSidebarProps,
+  {},
   AccountSidebarState
 > {
-  constructor(props: AccountSidebarProps) {
+
+  constructor(props: {}) {
     super(props);
     this.state = {
       isLoading: true,
+      subscribedProduct: null,
     };
   }
 
@@ -29,6 +32,35 @@ export default class AccountSidebar extends React.Component<
     this.setState({
       isLoading: false,
     });
+
+    if (envStore.data.stripe_public_key) {
+      this.fetchSubscriptionInfo();
+    }
+  }
+
+  // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
+  // and injecting multiple stores clashes with how we do routes. When we finish
+  // these funcitons should be used from the store and removed here
+  fetchSubscriptionInfo() {
+    $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
+    })
+      .done(this.onFetchSubscriptionInfoDone.bind(this))
+      .fail(this.onFetchSubscriptionInfoFail.bind(this));
+  }
+
+  onFetchSubscriptionInfoDone(
+    response: PaginatedResponse<SubscriptionInfo>
+  ) {
+    this.setState({
+      subscribedProduct: response.results[0].plan.product ,
+    });
+  }
+
+  onFetchSubscriptionInfoFail(response: FailResponse) {
+    notify.error(response.responseText);
   }
 
   isAccountSelected(): boolean {
@@ -43,6 +75,10 @@ export default class AccountSidebar extends React.Component<
 
   isSecuritySelected(): boolean {
     return location.hash.split('#')[1] === ROUTES.SECURITY;
+  }
+
+  isPlanSelected(): boolean {
+    return location.hash.split('#')[1] === ROUTES.PLAN;
   }
 
   render() {
@@ -63,31 +99,34 @@ export default class AccountSidebar extends React.Component<
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
 
-        {/* TEMP hide tab. */}
-          {false &&
-          <bem.FormSidebar__label
-            m={{selected: this.isDataStorageSelected()}}
-            href={'#' + ROUTES.DATA_STORAGE}
-            disabled
-          >
-            {/*TODO: get the data usage icon*/}
-            <Icon name='projects' size='xl'/>
-            <bem.FormSidebar__labelText>
-              {t('Data storage')}
-            </bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
+          { /* hide "Security" entirely if nothing there is available */
+            envStore.isReady && envStore.data.mfa_enabled &&
+            <bem.FormSidebar__label
+              m={{selected: this.isSecuritySelected()}}
+              href={'#' + ROUTES.SECURITY}
+              disabled={ !(envStore.isReady && envStore.data.mfa_enabled) }
+            >
+              <Icon name='lock-alt' size='xl'/>
+              <bem.FormSidebar__labelText>
+                {t('Security')}
+              </bem.FormSidebar__labelText>
+            </bem.FormSidebar__label>
           }
 
-          <bem.FormSidebar__label
-            m={{selected: this.isSecuritySelected()}}
-            href={'#' + ROUTES.SECURITY}
-            disabled={ !(envStore.isReady && envStore.data.mfa_enabled) }
-          >
-            <Icon name='lock-alt' size='xl'/>
-            <bem.FormSidebar__labelText>
-              {t('Security')}
-            </bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
+          {
+            envStore.isReady &&
+            envStore.data.stripe_public_key &&
+            this.state.subscribedProduct &&
+              <bem.FormSidebar__label
+                m={{selected: this.isPlanSelected()}}
+                href={'#' + ROUTES.PLAN}
+              >
+                <Icon name='editor' size='xl'/>
+                <bem.FormSidebar__labelText>
+                  {t('Your plan')}
+                </bem.FormSidebar__labelText>
+              </bem.FormSidebar__label>
+          }
         </bem.FormSidebar>
       );
     }

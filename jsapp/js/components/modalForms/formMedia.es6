@@ -16,6 +16,7 @@ import {
 import {
   truncateString,
   truncateUrl,
+  notify,
 } from 'js/utils';
 import './formMedia.scss';
 
@@ -140,7 +141,7 @@ class FormMedia extends React.Component {
     var url = this.state.inputURL;
 
     if (url === '') {
-      alertify.warning(t('URL is empty!'));
+      notify.warning(t('URL is empty!'));
     } else {
       this.setState({
         isUploadURLPending: true,

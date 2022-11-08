@@ -40,7 +40,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = ShadowModel.get_content_type_for_model(KobocatXForm)
+XFORM_CT = KobocatXForm.get_content_type()
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)

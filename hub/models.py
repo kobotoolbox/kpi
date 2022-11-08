@@ -1,7 +1,6 @@
 # coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.exceptions import FieldError, ValidationError
 from django.urls import reverse
 from django.db import models
@@ -63,7 +62,7 @@ class PerUserSetting(models.Model):
     A configuration setting that has different values depending on whether not
     a user matches certain criteria
     """
-    user_queries = JSONBField(
+    user_queries = models.JSONField(
         help_text='A JSON representation of a *list* of Django queries, '
                   'e.g. `[{"email__iendswith": "@kobotoolbox.org"}, '
                   '{"email__iendswith": "@kbtdev.org"}]`. '
@@ -115,7 +114,7 @@ class ExtraUserDetail(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
-    data = JSONBField(default=dict)
+    data = models.JSONField(default=dict)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
