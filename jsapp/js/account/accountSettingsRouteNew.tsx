@@ -4,6 +4,9 @@ import bem, {makeBem} from 'js/bem';
 import {usePrompt} from 'js/router/promptBlocker';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
+import Checkbox from '../components/common/checkbox';
+import TextBox from '../components/common/textBox';
+import {addRequiredToLabel, stringToColor} from '../utils';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -33,8 +36,12 @@ function AccountSettings() {
     fieldsWithErrors: {},
   });
   useEffect(() => {
-    if (!session.isPending && session.isInitialLoadComplete)
-      session.verifyLogin();
+    if (
+      !session.isPending &&
+      session.isInitialLoadComplete &&
+      !session.isInitialRoute
+    )
+      session.refreshAccount();
   }, []);
   useEffect(() => {
     const currentAccount = session.currentAccount;
@@ -69,6 +76,17 @@ function AccountSettings() {
     !form.isPristine
   );
   const updateProfile = () => {};
+  const onAnyFieldChange = (name: string, value: boolean) => {
+    setForm({
+      ...form,
+      fields: {...form.fields, [name]: value},
+      isPristine: false,
+    });
+  };
+  const accountName = sessionStore.currentAccount.username;
+  const initialsStyle = {
+    background: `#${stringToColor(accountName)}`,
+  };
   return (
     <bem.AccountSettings>
       <bem.AccountSettings__actions>
@@ -81,9 +99,58 @@ function AccountSettings() {
           {!form.isPristine && ' *'}
         </bem.KoboButton>
       </bem.AccountSettings__actions>
+
+      <bem.AccountSettings__item m={'column'}>
+        <bem.AccountSettings__item m='username'>
+          <bem.AccountBox__initials style={initialsStyle}>
+            {accountName.charAt(0)}
+          </bem.AccountBox__initials>
+
+          <h4>{accountName}</h4>
+        </bem.AccountSettings__item>
+
+        {sessionStore.isInitialLoadComplete && (
+          <bem.AccountSettings__item m='fields'>
+            <bem.AccountSettings__item>
+              <label>{t('Privacy')}</label>
+
+              <Checkbox
+                checked={form.fields.requireAuth}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'requireAuth'
+                )}
+                name='requireAuth'
+                label={t('Require authentication to see forms and submit data')}
+              />
+            </bem.AccountSettings__item>
+
+            <bem.AccountSettings__item>
+              <TextBox
+                customModifiers='on-white'
+                label={t('Name')}
+                onChange={onAnyFieldChange}
+                value={form.fields.name}
+                placeholder={t(
+                  'Use this to display your real name to other users'
+                )}
+              />
+            </bem.AccountSettings__item>
+
+            <bem.AccountSettings__item>
+              <TextBox
+                customModifiers='on-white'
+                label={addRequiredToLabel(t('Email'))}
+                type='email'
+                value={form.fields.email}
+                onChange={onAnyFieldChange}
+              />
+            </bem.AccountSettings__item>
+          </bem.AccountSettings__item>
+        )}
+      </bem.AccountSettings__item>
     </bem.AccountSettings>
   );
 }
 
 export default observer(AccountSettings);
-

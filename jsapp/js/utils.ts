@@ -232,7 +232,7 @@ export function addRequiredToLabel(label: string, isRequired = true): string {
   return requiredTemplate.replace('##field_label##', label);
 }
 
-export function stringToColor(str: string, prc: number) {
+export function stringToColor(str: string, prc?: number) {
   // Higher prc = lighter color, lower = darker
   prc = typeof prc === 'number' ? prc : -15;
   const hash = function (word: string) {
