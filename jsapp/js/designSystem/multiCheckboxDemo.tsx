@@ -4,22 +4,26 @@ import clonedeep from 'lodash.clonedeep';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import Checkbox from 'js/components/common/checkbox';
-import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
 
 interface MultiCheckboxDemoState {
   demoItems: MultiCheckboxItem[];
+  demoIsDisabled: boolean;
 }
 
 const RANDOM_LABELS = [
-  'I have read the terms.',
-  'I confirm I am not lying about the above.',
-  'Please take all my sensitive data.',
-  'I am a human being.',
-  'I am not a human.',
-  'This is fun.',
-  'I hereby authorize this design system to everything.',
+  'I suspect my neighbour is a reptilian',
+  'I do not suspect my neighbour is not a legendary living fossil',
+  "I don't accept any terms.",
+  'I have read the terms',
+  'I confirm I am not lying about the above',
+  'Please take all my sensitive data',
+  'I am a human being',
+  'I am not a human',
+  'This is fun',
+  'I hereby authorize this design system to everything',
   "No, I don't want your newsletter",
+  "Is this it?",
   'Foo bar fum baz',
 ];
 
@@ -32,14 +36,19 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
         this.getRandomItem(),
         this.getRandomItem(),
       ],
+      demoIsDisabled: false,
     };
+  }
+
+  onIsDisabledChange(isChecked: boolean) {
+    this.setState({demoIsDisabled: isChecked});
   }
 
   getRandomItem() {
     return {
       label: RANDOM_LABELS[Math.floor(Math.random() * RANDOM_LABELS.length)],
       checked: false,
-    }
+    };
   }
 
   onAddRandomItem() {
@@ -131,6 +140,16 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
                       />
                     </div>
                   </div>
+
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='is disabled'
+                        onChange={this.onIsDisabledChange.bind(this)}
+                        checked={this.state.demoIsDisabled}
+                      />
+                    </div>
+                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
@@ -138,6 +157,7 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
                   <MultiCheckbox
                     items={this.state.demoItems}
                     onChange={this.onItemsChange.bind(this)}
+                    disabled={this.state.demoIsDisabled}
                   />
                 </div>
               </bem.SimpleTable__cell>
