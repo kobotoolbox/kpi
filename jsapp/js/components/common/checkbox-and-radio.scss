@@ -5,8 +5,9 @@
 .checkbox {
   .radio__row,
   .checkbox__wrapper {
-    padding: 4px 0;
+    padding: 0;
     cursor: pointer;
+    display: block;
 
     &:hover .radio__input:not([disabled]),
     &:hover .checkbox__input:not([disabled]) {
@@ -28,7 +29,7 @@
   }
 
   .radio__row {
-    display: block;
+    padding: 4px 0;
   }
 
   .radio__input,
@@ -96,6 +97,7 @@
     background-color: colors.$kobo-white;
     color: colors.$kobo-gray-40;
     cursor: pointer;
+    overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
 
     &::after {
       display: block;
