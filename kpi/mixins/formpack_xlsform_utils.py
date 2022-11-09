@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import copy
+import re
 from collections import OrderedDict
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 
+from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kpi.utils.asset_translation_utils import (
     compare_translations,
     # TRANSLATIONS_EQUAL,
@@ -159,9 +161,13 @@ class FormpackXLSFormUtilsMixin:
         remove_empty_expressions_in_place(content)
 
     def _remove_version(self, content):
-        for idx, field in enumerate(content[self.WORKING_SHEET]):
+        # Because we may remove some elements from `content[self.WORKING_SHEET]`,
+        # we loop on this list reversely to be sure indexes do not change when
+        # elements are removed from it.
+        for idx in range(len(content[self.WORKING_SHEET]) - 1, 0, -1):
+            field = content[self.WORKING_SHEET][idx]
             try:
-                if field['name'] == '__version__':
+                if re.match(FUZZY_VERSION_PATTERN, field['name']):
                     del content[self.WORKING_SHEET][idx]
             except KeyError:
                 pass
