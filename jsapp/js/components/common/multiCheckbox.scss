@@ -1,14 +1,19 @@
-@use "scss/_colors";
+@use 'scss/_colors';
+@use 'scss/sizes';
 
 .multi-checkbox {
   list-style: none;
   height: auto;
   width: 100%;
   overflow: hidden auto;
-  border: 1px solid colors.$kobo-gray-92;
-  border-radius: 2px;
+}
 
-  .multi-checkbox__item {
-    margin: 12px;
-  }
+.multi-checkbox__item:not(:last-child) {
+  margin-bottom: sizes.$x12;
+}
+
+.multi-checkbox__wrapper {
+  padding: sizes.$x12;
+  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border-radius: sizes.$x2;
 }

@@ -411,11 +411,13 @@ class ConnectProjects extends React.Component {
                 }
               </span>
 
-              <MultiCheckbox
-                items={this.state.columnsToDisplay}
-                disabled={this.state.isLoading}
-                onChange={this.onColumnSelected}
-              />
+              <bem.MultiCheckbox__wrapper>
+                <MultiCheckbox
+                  items={this.state.columnsToDisplay}
+                  disabled={this.state.isLoading}
+                  onChange={this.onColumnSelected}
+                />
+              </bem.MultiCheckbox__wrapper>
             </div>
           }
         </div>
