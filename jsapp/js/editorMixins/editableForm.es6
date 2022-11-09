@@ -16,7 +16,7 @@ import {
   checkIfCookieExists,
   redirectForOnaDataAuth,
 } from 'utils';
-import { TITLE, DISABLE_LIBRARY_TOGGLE } from '../ona/config';
+import { TITLE, HIDE_LIBRARY_TOGGLE } from '../ona/config';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -684,17 +684,18 @@ export default assign({
 
           <bem.FormBuilderHeader__cell m='verticalRule'/>
 
-          <bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__button
-              m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
-              onClick={this.toggleAsideLibrarySearch}
-              className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
-              disabled={DISABLE_LIBRARY_TOGGLE}
-            >
-              <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
-              <span className='panel-toggle-name'>{t('Add from Library')}</span>
-            </bem.FormBuilderHeader__button>
-          </bem.FormBuilderHeader__cell>
+          { HIDE_LIBRARY_TOGGLE &&
+            <bem.FormBuilderHeader__cell>
+              <bem.FormBuilderHeader__button
+                m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
+                onClick={this.toggleAsideLibrarySearch}
+                className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+              >
+                <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
+                <span className='panel-toggle-name'>{t('Add from Library')}</span>
+              </bem.FormBuilderHeader__button>
+            </bem.FormBuilderHeader__cell>
+          }
 
           <bem.FormBuilderHeader__cell m={'verticalRule'} />
 
