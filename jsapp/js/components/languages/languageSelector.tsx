@@ -263,18 +263,24 @@ class LanguageSelector extends React.Component<
     );
   }
 
-  renderLanguageItem(language: DetailedLanguage | ListLanguage, index: number) {
+  renderLanguageItem(
+    /** The list from which the language comes from. */
+    containingList: Array<DetailedLanguage | ListLanguage>,
+    language: DetailedLanguage | ListLanguage,
+    index: number,
+  ) {
     let shouldDisplayLine = false;
+
     // We want to display line after last featured language, so we need to get
     // previous one to check it out :)
     if (!language.featured && index !== 0) {
-      const previousLanguage = this.languages[index - 1];
+      const previousLanguage = containingList[index - 1];
       shouldDisplayLine = previousLanguage.featured;
     }
     return (
-      <React.Fragment>
+      <React.Fragment key={language.code}>
         {shouldDisplayLine && <bem.LanguageSelector__line/>}
-        <li key={language.code}>
+        <li>
           <Button
             type='bare'
             color='storm'
@@ -380,7 +386,7 @@ class LanguageSelector extends React.Component<
 
     return (
       <React.Fragment>
-        {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
+        {this.suggestedLanguages.map(this.renderLanguageItem.bind(this, this.suggestedLanguages))}
       </React.Fragment>
     );
   }
@@ -409,7 +415,7 @@ class LanguageSelector extends React.Component<
             <ul key='unorderedlist'>
               {this.renderSuggestedLanguages()}
               {this.languages.length >= 1 &&
-                this.languages.map(this.renderLanguageItem.bind(this))
+                this.languages.map(this.renderLanguageItem.bind(this, this.languages))
               }
             </ul>
           </InfiniteScroll>
