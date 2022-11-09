@@ -1,7 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-} from 'react';
+import React, {useState} from 'react';
 import clonedeep from 'lodash.clonedeep';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
@@ -16,7 +13,7 @@ import {PROJECT_FIELDS} from './projectsViewConstants';
 import './projectsFieldsSelector.scss';
 
 bem.ProjectsFieldsSelector = makeBem(null, 'projects-fields-selector');
-bem.ProjectsFieldsSelector__modalContent = makeBem(bem.ProjectsFieldsSelector, 'modal-content');
+bem.ProjectsFieldsSelector__fieldsWrapper = makeBem(bem.ProjectsFieldsSelector, 'fields-wrapper');
 
 interface ProjectsFieldsSelectorProps {
   /** Selected fields. Empty array means all fields. */
@@ -67,17 +64,22 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
     return outcome;
   };
 
-  const onCheckboxChange = (items: MultiCheckboxItem[]) => {
-    console.log('onCheckboxChange', items);
+  const onCheckboxesChange = (items: MultiCheckboxItem[]) => {
     const selectedFields = items.filter((item) => item.checked);
-    setFields(selectedFields.map((item) => item.name));
+    // If all fields are selected, we want to sotre an empty array.
+    let newFields = [];
+    if (selectedFields.length !== Object.keys(PROJECT_FIELDS).length) {
+      newFields = selectedFields.map((item) => item.name);
+    }
+    setFields(newFields);
   };
 
   const getCheckboxes = (): MultiCheckboxItem[] =>
     Object.values(PROJECT_FIELDS).map((field) => {
       return {
         name: field.name,
-        checked: fields.includes(field.name),
+        // All fields are selected by default, and all means empty array.
+        checked: fields.length === 0 || fields.includes(field.name),
         label: field.label,
       };
     });
@@ -108,10 +110,12 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
         </KoboModalHeader>
 
         <KoboModalContent>
-          <MultiCheckbox
-            items={getCheckboxes()}
-            onChange={onCheckboxChange}
-          />
+          <bem.ProjectsFieldsSelector__fieldsWrapper>
+            <MultiCheckbox
+              items={getCheckboxes()}
+              onChange={onCheckboxesChange}
+            />
+          </bem.ProjectsFieldsSelector__fieldsWrapper>
         </KoboModalContent>
 
         <KoboModalFooter>

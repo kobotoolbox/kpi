@@ -21,10 +21,12 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
   }
 
   onFiltersChange(filters: ProjectsFilterDefinition[]) {
+    console.log('onFiltersChange', filters)
     this.setState({filters: filters});
   }
 
   onFieldsChange(fields: ProjectFieldName[]) {
+    console.log('onFieldsChange', fields)
     this.setState({fields: fields});
   }
 

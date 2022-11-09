@@ -1,1 +1,9 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'scss/colors';
+
 .projects-fields-selector {}
+
+.projects-fields-selector__fields-wrapper {
+  max-height: sizes.$x200;
+}
