@@ -1,9 +1,13 @@
 # coding: utf-8
 from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
+
 from kpi.models import AssetVersion
-from kpi.permissions import SubmissionPermission
-from kpi.serializers.v2.asset_version import AssetVersionListSerializer, AssetVersionSerializer
+from kpi.permissions import AssetVersionReadOnlyPermission
+from kpi.serializers.v2.asset_version import (
+    AssetVersionListSerializer,
+    AssetVersionSerializer,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -39,7 +43,7 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
 
     model = AssetVersion
     lookup_field = 'uid'
-    permission_classes = (SubmissionPermission,)
+    permission_classes = (AssetVersionReadOnlyPermission,)
 
     def get_serializer_class(self):
         if self.action == 'list':

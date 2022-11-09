@@ -3,13 +3,13 @@ from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
-from hub.models import ExtraUserDetail
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.object_permission import get_database_user
 
 
@@ -224,6 +224,15 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
     # This change allows users with `view_asset` to permissions to
     # remove themselves from an asset that has been shared with them
     perms_map['DELETE'] = perms_map['GET']
+
+
+class AssetVersionReadOnlyPermission(AssetNestedObjectPermission):
+
+    required_permissions = ['%(app_label)s.view_asset']
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_asset'],
+    }
 
 
 # FIXME: Name is no longer accurate.
