@@ -893,8 +893,6 @@ class ProjectSettings extends React.Component {
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
                 label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
-                value={this.state.name}
-                onChange={this.onNameChange}
                 data-cy='title'
               />
             </bem.FormModal__item>
