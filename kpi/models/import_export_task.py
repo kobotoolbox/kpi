@@ -246,6 +246,20 @@ class ImportTask(ImportExportTask):
             '`single_xls_url`'
         )
 
+    @staticmethod
+    def _check_if_calculate_version(survey_dict):
+        """
+        Check if the `__version__` field is in the survey field.
+        If it is, remove it to prevent duplicates in future exports
+        """
+        if 'survey' not in survey_dict:
+            return survey_dict
+        for row in survey_dict['survey']:
+            if 'type' in row.keys():
+                if row['type'] == 'calculate' and row['name'] == '__version__':
+                    survey_dict['survey'].remove(row)
+        return survey_dict
+
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
