@@ -421,7 +421,6 @@ class ProjectSettings extends React.Component {
   }
 
   onUpdateAssetCompleted(response) {
-    console.log('onUpdateAssetCompleted', this.props.context, response);
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
@@ -436,8 +435,8 @@ class ProjectSettings extends React.Component {
       response.uid === this.state.formAsset?.uid
     ) {
       this.setState({
-        formAsset: asset,
-        fields: getInitialFieldsFromAsset(asset),
+        formAsset: response,
+        fields: this.getInitialFieldsFromAsset(response),
       });
     }
   }
@@ -458,7 +457,7 @@ class ProjectSettings extends React.Component {
     ) {
       this.setState({
         formAsset: asset,
-        fields: getInitialFieldsFromAsset(asset),
+        fields: this.getInitialFieldsFromAsset(asset),
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
