@@ -260,37 +260,30 @@ class LanguageSelector extends React.Component<
     return this.state.suggestedLanguages?.filter((language) =>
       !this.props.hiddenLanguages?.includes(language.code) &&
       language.code !== this.props.sourceLanguage
-    );
+    ) || [];
   }
 
-  renderLanguageItem(
-    /** The list from which the language comes from. */
-    containingList: Array<DetailedLanguage | ListLanguage>,
-    language: DetailedLanguage | ListLanguage,
-    index: number,
-  ) {
-    let shouldDisplayLine = false;
+  get featuredLanguages() {
+    return this.languages.filter((language) => language.featured);
+  }
 
-    // We want to display line after last featured language, so we need to get
-    // previous one to check it out :)
-    if (!language.featured && index !== 0) {
-      const previousLanguage = containingList[index - 1];
-      shouldDisplayLine = previousLanguage.featured;
-    }
+  /** Languages that are not featured. */
+  get otherLanguages() {
+    return this.languages.filter((language) => !language.featured);
+  }
+
+  renderLanguageItem(language: DetailedLanguage | ListLanguage) {
     return (
-      <React.Fragment key={language.code}>
-        {shouldDisplayLine && <bem.LanguageSelector__line/>}
-        <li>
-          <Button
-            type='bare'
-            color='storm'
-            size='m'
-            label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
-            onClick={this.selectLanguage.bind(this, language)}
-            isDisabled={this.props.isDisabled}
-          />
-        </li>
-      </React.Fragment>
+      <li key={language.code}>
+        <Button
+          type='bare'
+          color='storm'
+          size='m'
+          label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
+          onClick={this.selectLanguage.bind(this, language)}
+          isDisabled={this.props.isDisabled}
+        />
+      </li>
     );
   }
 
@@ -379,18 +372,6 @@ class LanguageSelector extends React.Component<
     );
   }
 
-  renderSuggestedLanguages() {
-    if (this.suggestedLanguages === undefined || this.suggestedLanguages.length === 0) {
-      return null;
-    }
-
-    return (
-      <React.Fragment>
-        {this.suggestedLanguages.map(this.renderLanguageItem.bind(this, this.suggestedLanguages))}
-      </React.Fragment>
-    );
-  }
-
   renderSearchForm() {
     return (
       <React.Fragment>
@@ -413,10 +394,14 @@ class LanguageSelector extends React.Component<
             useWindow={false}
           >
             <ul key='unorderedlist'>
-              {this.renderSuggestedLanguages()}
-              {this.languages.length >= 1 &&
-                this.languages.map(this.renderLanguageItem.bind(this, this.languages))
-              }
+              {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
+              {this.featuredLanguages.map(this.renderLanguageItem.bind(this))}
+              {/*
+                NOTE: here we assume there will always be at least 1 featured
+                language, thus always displaying the separator linge.
+              */}
+              {this.store.isInitialised && <bem.LanguageSelector__line/>}
+              {this.otherLanguages.map(this.renderLanguageItem.bind(this))}
             </ul>
           </InfiniteScroll>
 
