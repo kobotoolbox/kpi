@@ -1,7 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
-import AccessDenied from 'jsapp/js/router/accessDenied';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
 import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
@@ -11,31 +10,31 @@ import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
 import './planRoute.scss';
 
-/*
- * TODO: Create a basic unified frame for account settings. Find somewhere to put the BEM declaration.
- * See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options?node-id=0%3A1
- * There will be repeated styles in elements such as the header, title, and the containing div for the component.
- * Every component except for `profile` should share this frame.
+/**
+ * TODO: Most probably all different Account routes will use very similar design,
+ * so it would only make sense to define a very generic and reusable BEMs.
+ *
+ * See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options
  */
-bem.Plan = makeBem(null, 'plan');
+bem.AccountPlan = makeBem(null, 'account-plan');
 
-bem.Plan__header = makeBem(bem.Plan, 'header', 'h2');
-bem.Plan__blurb = makeBem(bem.Plan, 'blurb', 'b');
+bem.AccountPlan__header = makeBem(bem.AccountPlan, 'header', 'h2');
+bem.AccountPlan__blurb = makeBem(bem.AccountPlan, 'blurb', 'b');
 // Plan details parent div
-bem.Plan__info = makeBem(bem.Plan, 'info');
+bem.AccountPlan__info = makeBem(bem.AccountPlan, 'info');
 // Plan text description
-bem.Description = makeBem(null, 'description');
-bem.Description__header = makeBem(bem.Description, 'header');
-bem.Description__blurb = makeBem(bem.Description, 'blurb');
+bem.AccountPlan__description = makeBem(bem.AccountPlan, 'description');
+bem.AccountPlan__descriptionHeader = makeBem(bem.AccountPlan, 'description-header');
+bem.AccountPlan__descriptionBlurb = makeBem(bem.AccountPlan, 'description-blurb');
 // Data usage
-bem.Plan__data = makeBem(bem.Plan, 'data');
+bem.AccountPlan__data = makeBem(bem.AccountPlan, 'data');
 // Component inside data usage that shows range
-bem.DataRow = makeBem(null, 'data-row');
-bem.DataRow__header = makeBem(bem.DataRow, 'header');
-bem.DataRow__data = makeBem(bem.DataRow, 'data');
+bem.PlanUsageRow = makeBem(null, 'plan-usage-row');
+bem.PlanUsageRow__header = makeBem(bem.PlanUsageRow, 'header');
+bem.PlanUsageRow__data = makeBem(bem.PlanUsageRow, 'data');
 
 // Stripe table parent div
-bem.Plan__stripe = makeBem(bem.Plan, 'stripe');
+bem.AccountPlan__stripe = makeBem(bem.AccountPlan, 'stripe');
 
 const MAX_MONTHLY_SUBMISSIONS = 2; //TODO change this to 10000 after testing
 const MAX_GIGABYTES_STORAGE = 4;
@@ -146,14 +145,14 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
   private renderPlanText() {
     return (
-      <bem.Description>
-        <bem.Description__header>
+      <bem.AccountPlan__description>
+        <bem.AccountPlan__descriptionHeader>
           {this.state.subscribedProduct.name}
-        </bem.Description__header>
-        <bem.Description__blurb>
+        </bem.AccountPlan__descriptionHeader>
+        <bem.AccountPlan__descriptionBlurb>
           {this.state.subscribedProduct.description}
-        </bem.Description__blurb>
-      </bem.Description>
+        </bem.AccountPlan__descriptionBlurb>
+      </bem.AccountPlan__description>
     );
   }
 
@@ -167,12 +166,16 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       (this.state.dataUsageBytes / 1000000 / MAX_GIGABYTES_STORAGE) * 100;
 
       return (
-        <bem.Plan>
-          <bem.Plan__header>{t('Current Plan')}</bem.Plan__header>
-          <bem.Plan__info>
-            <bem.Plan__data>
-              <bem.DataRow>
-                <bem.DataRow__data>
+        <bem.AccountPlan>
+          <bem.AccountPlan__header>{t('Current Plan')}</bem.AccountPlan__header>
+          <bem.AccountPlan__info>
+            <bem.AccountPlan__data>
+              <bem.PlanUsageRow>
+                <bem.PlanUsageRow__data>
+                  {/* TODO: we temporarily use KoboRange here, but finally we
+                      should build a tailored solution here - one that will
+                      not require misusing an interactive component :)
+                  */}
                   <KoboRange
                     max={MAX_PERCENTAGE}
                     value={this.getOneDecimalDisplay(MONTHLY_USAGE_PERCENTAGE)}
@@ -181,11 +184,15 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                     color={this.getUsageColor()}
                     singleStat
                   />
-                </bem.DataRow__data>
-              </bem.DataRow>
+                </bem.PlanUsageRow__data>
+              </bem.PlanUsageRow>
 
-              <bem.DataRow>
-                <bem.DataRow__data>
+              <bem.PlanUsageRow>
+                <bem.PlanUsageRow__data>
+                  {/* TODO: we temporarily use KoboRange here, but finally we
+                      should build a tailored solution here - one that will
+                      not require misusing an interactive component :)
+                  */}
                   <KoboRange
                     max={MAX_PERCENTAGE}
                     value={this.getOneDecimalDisplay(
@@ -196,26 +203,26 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                     color={this.getUsageColor()}
                     singleStat
                   />
-                </bem.DataRow__data>
-              </bem.DataRow>
-            </bem.Plan__data>
+                </bem.PlanUsageRow__data>
+              </bem.PlanUsageRow>
+            </bem.AccountPlan__data>
 
             {this.renderPlanText()}
-          </bem.Plan__info>
+          </bem.AccountPlan__info>
 
-          <bem.Plan__header>{t('Upgrade')}</bem.Plan__header>
-          <bem.Plan__blurb>
+          <bem.AccountPlan__header>{t('Upgrade')}</bem.AccountPlan__header>
+          <bem.AccountPlan__blurb>
             {t('Add ons and upgrades to your plan')}
-          </bem.Plan__blurb>
-          <bem.Plan__stripe>
+          </bem.AccountPlan__blurb>
+          <bem.AccountPlan__stripe>
             {envStore.isReady && stripePublicKey && stripePricingTableID && (
               <stripe-pricing-table
                 pricing-table-id={stripePricingTableID}
                 publishable-key={stripePublicKey}
               />
             )}
-          </bem.Plan__stripe>
-        </bem.Plan>
+          </bem.AccountPlan__stripe>
+        </bem.AccountPlan>
       );
   }
 }
