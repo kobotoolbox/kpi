@@ -56,14 +56,6 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
     toggleModal();
   };
 
-  const getTriggerLabel = () => {
-    let outcome = t('fields');
-    if (props.fields.length >= 1) {
-      outcome += ` (${props.fields.length})`;
-    }
-    return outcome;
-  };
-
   const onCheckboxesChange = (items: MultiCheckboxItem[]) => {
     const selectedFields = items.filter((item) => item.checked);
     // If all fields are selected, we want to sotre an empty array.
@@ -93,7 +85,7 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
         color='storm'
         onClick={toggleModal}
         startIcon='spreadsheet'
-        label={getTriggerLabel()}
+        label={t('fields')}
       />
 
       <KoboModal
@@ -102,11 +94,11 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
         size='medium'
       >
         <KoboModalHeader
-          icon='filter'
+          icon='spreadsheet'
           iconColor='storm'
           onRequestCloseByX={toggleModal}
         >
-          {'Table filter'}
+          {'Select fields to display'}
         </KoboModalHeader>
 
         <KoboModalContent>
