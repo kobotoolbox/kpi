@@ -69,7 +69,7 @@ class MyLibraryStore extends Reflux.Store {
     filterValue: null,
   };
 
-  fetchDataDebounced?: Function;
+  fetchDataDebounced?: () => void;
 
   init() {
     this.fetchDataDebounced = debounce(this.fetchData.bind(this), 2500);

@@ -1,0 +1,40 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+
+.single-processing-header {
+  @include mixins.centerRowFlex;
+
+  height: 100%;
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-white;
+  padding: 0 sizes.$x18;
+}
+
+.single-processing-header__submissions {
+  @include mixins.centerRowFlex;
+
+  font-size: sizes.$x18;
+
+  > *:not(:first-child) {
+    margin-left: sizes.$x5;
+  }
+}
+
+.single-processing-header__count {
+  margin-left: sizes.$x50;
+}
+
+.single-processing-header__column {
+  &.single-processing-header__column--main {
+    flex: 1;
+
+    // HACK: this ensures this element doesn't push other flex items off screen
+    // when the content is too long.
+    min-width: 0;
+  }
+
+  & + & {
+    margin-left: sizes.$x10;
+  }
+}

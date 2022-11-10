@@ -200,15 +200,15 @@ export default class ProjectExportsList extends React.Component {
           {this.renderLanguage(exportData.data.lang)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell>
+        <bem.SimpleTable__cell m='text-center'>
           {this.renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell>
+        <bem.SimpleTable__cell m='text-center'>
           {this.renderBooleanAnswer(exportData.data.fields_from_all_versions)}
         </bem.SimpleTable__cell>
 
-        <bem.SimpleTable__cell>
+        <bem.SimpleTable__cell m='text-right'>
           {exportData.status === EXPORT_STATUSES.complete &&
             <a
               className='kobo-light-button kobo-light-button--blue'
@@ -283,11 +283,11 @@ export default class ProjectExportsList extends React.Component {
                   {t('Language')}
                 </bem.SimpleTable__cell>
 
-                <bem.SimpleTable__cell>
+                <bem.SimpleTable__cell m='text-center'>
                   {t('Include Groups')}
                 </bem.SimpleTable__cell>
 
-                <bem.SimpleTable__cell>
+                <bem.SimpleTable__cell m='text-center'>
                   {t('Multiple Versions')}
                 </bem.SimpleTable__cell>
 

@@ -1,26 +1,41 @@
+// This is a collection of DRY wrappers for alertifyjs.
 import alertify from 'alertifyjs';
+import {KeyNames} from 'js/constants';
+import type {IconName} from 'jsapp/fonts/k-icons';
 import {escapeHtml} from 'js/utils';
-import { KEY_CODES } from 'js/constants';
 
-/**
- * @namespace MultiButton
- * @param {string} label
- * @param {string} [color] "blue" or "red", if not given button will be gray
- * @param {string} [icon] one of k-icons
- * @param {boolean} [isDisabled]
- * @param {function} callback
- */
+interface MultiConfirmButton {
+  label: string;
+  /** Defaults to gray. */
+  color?: 'blue' | 'red';
+  icon?: IconName;
+  isDisabled?: boolean;
+  callback: (() => void) | undefined;
+}
+
+interface AlertifyButton {
+  text: string;
+  className: string;
+  /** primary is needed to not change for disabling below to work */
+  scope: 'primary';
+  element?: HTMLElement;
+  index: number;
+}
+
+interface MultiConfirmButtonCloseEvent {
+  index: number;
+}
 
 /**
  * Use this custom alertify modal to display multiple buttons with different
  * callbacks.
- *
- * @param {string} confirmId needs to be unique
- * @param {string} [title] optional
- * @param {string} [message] optional
- * @param {MultiButton[]} buttons
  */
-export function multiConfirm(confirmId, title, message, buttons) {
+export function multiConfirm(
+  confirmId: string,
+  title: string,
+  message: string,
+  buttons: MultiConfirmButton[]
+) {
   // `confirmId` needs to be unique, as alertify requires the custom dialog to be
   // defined before it is being invoked.
   // We check if it haven't been already defined to avoid errors and unnecessary
@@ -29,10 +44,10 @@ export function multiConfirm(confirmId, title, message, buttons) {
     // define new alertify dialog
     alertify.dialog(
       confirmId,
-      function() {
+      function () {
         return {
-          setup: function() {
-            const buttonsArray = [];
+          setup: function () {
+            const buttonsArray: AlertifyButton[] = [];
             buttons.forEach((button, i) => {
               let buttonLabel = button.label;
               if (button.icon) {
@@ -74,14 +89,14 @@ export function multiConfirm(confirmId, title, message, buttons) {
             };
           },
           prepare: function() {
-            if (message) {
+            if (message && this.setContent) {
               this.setContent(escapeHtml(message));
             }
           },
           settings: {
             onclick: Function.prototype,
           },
-          callback: function(closeEvent) {
+          callback: function (closeEvent: MultiConfirmButtonCloseEvent) {
             this.settings.onclick(closeEvent);
           },
         };
@@ -94,25 +109,26 @@ export function multiConfirm(confirmId, title, message, buttons) {
   const dialog = alertify[confirmId]();
 
   // set up closing modal on ESC key
-  const killMe = (evt) => {
-    if (evt.keyCode === KEY_CODES.ESC) {
+  const killMe = (evt: KeyboardEvent) => {
+    if (evt.key === KeyNames.Escape) {
       dialog.destroy();
     }
   };
 
   dialog.set({
-    onclick: function(closeEvent) {
+    onclick: function (closeEvent: MultiConfirmButtonCloseEvent) {
+      const foundButton = buttons[closeEvent.index];
       // button click operates on the button array indexes to know which
       // callback needs to be triggered
-      if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
-        buttons[closeEvent.index].callback();
+      if (foundButton?.callback !== undefined) {
+        foundButton.callback();
       }
     },
-    onshow: function() {
-      $(document).on('keyup', killMe);
+    onshow: function () {
+      document.addEventListener('keyup', killMe);
     },
-    onclose: function() {
-      $(document).off('keyup', killMe);
+    onclose: function () {
+      document.removeEventListener('keyup', killMe);
     },
   });
 
@@ -132,4 +148,39 @@ export function multiConfirm(confirmId, title, message, buttons) {
   });
 
   dialog.show();
+}
+
+/**
+ * A DRY dialog wrapper for `alertifyjs` that will display a simple confirmation
+ * for destroying something. The fallback text is for deleting stuff, as most
+ * common case.
+ *
+ * Usually you would only need to pass `okCallback` and `title`.
+ */
+export function destroyConfirm(
+  okCallback: () => void,
+  title: string = t('Delete?'),
+  okLabel: string = t('Delete'),
+  message: string = t('This action is not reversible'),
+) {
+  const dialog = alertify.dialog('confirm');
+
+  dialog.elements.dialog.classList.add('custom-alertify-dialog--dangerous-destroy');
+
+  dialog.setting('title', title);
+  dialog.setting('message', message);
+  dialog.setting('labels', {ok: okLabel, cancel: t('Cancel')});
+  dialog.setting('onok', okCallback);
+  dialog.setting('oncancel', dialog.destroy);
+  dialog.setting('reverseButtons', true);
+  dialog.setting('movable', false);
+  dialog.setting('resizable', false);
+  dialog.setting('closable', false);
+  dialog.setting('closableByDimmer', false);
+  dialog.setting('maximizable', false);
+  dialog.setting('pinnable', false);
+
+  dialog.show();
+
+  return dialog;
 }

@@ -3,6 +3,9 @@
 @use "scss/sizes";
 @use "js/components/common/button";
 
+$k-select-option-height: sizes.$x36;
+$k-select-menu-padding: sizes.$x6;
+
 .k-select {
   font-size: sizes.$x13;
 
@@ -31,15 +34,11 @@
   }
 }
 
-.k-select__trigger .k-icon + input,
-.k-select__trigger .k-icon + label,
-.k-select__option .k-icon + label {
-  margin-left: sizes.$x6;
-}
-
-.k-select__clear {
-  margin-left: sizes.$x6;
-  margin-right: sizes.$x6;
+.k-select__trigger,
+.k-select__trigger-selected-option {
+  > *:not(:last-child) {
+    margin-right: sizes.$x6;
+  }
 }
 
 // Styles for when menu is opened.
@@ -54,23 +53,23 @@
 .k-select__search-box,
 .k-select__trigger-selected-option {
   @include mixins.centerRowFlex;
-  max-width: 80%;
-  margin-right: auto;
+
+  min-width: 0; // HACKFIX for flex
 }
 
 .k-select__trigger-selected-option:not(.k-select__trigger-selected-option--empty) label {
   color: colors.$kobo-gray-24;
 }
 
-.k-select__search-box {
-  max-width: 70%;
-}
-
 .k-select__menu {
   display: block;
   width: 100%;
+  // We want to show four options at a time, with half of the next one visible
+  // to suggest that there are more options.
+  max-height: ($k-select-option-height * 4.5) + $k-select-menu-padding;
+  overflow-x: auto;
   margin: sizes.$x2 0 0;
-  padding: sizes.$x6 sizes.$x3;
+  padding: $k-select-menu-padding ($k-select-menu-padding * 0.5);
   border-radius: button.$button-border-radius;
   background-color: colors.$kobo-white;
   box-shadow: 0 0 sizes.$x6 rgba(colors.$kobo-storm, 0.3);
@@ -89,7 +88,7 @@
   @include mixins.centerRowFlex;
   justify-content: space-between;
   width: 100%;
-  height: sizes.$x36;
+  height: $k-select-option-height;
   color: colors.$kobo-gray-40;
   padding: 0 #{sizes.$x16 - sizes.$x2};
   text-align: left;
@@ -141,7 +140,7 @@
   }
 }
 
-// The always takes all the available space.
+// The component always takes all the available space.
 .k-select {
   width: 100%;
 

@@ -7,7 +7,15 @@ import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import type {
+  QuestionTypeName,
+  MetaQuestionTypeName,
+} from 'js/constants';
+import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
+import {openProcessing} from 'js/components/processing/processingUtils';
+import {hashHistory} from 'react-router';
+import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
@@ -22,28 +30,26 @@ bem.MediaCell__text = makeBem(bem.MediaCell, 'text', 'div');
 bem.MediaCellIconWrapper = makeBem(null, 'icon-wrapper');
 bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
 
-/**
- * Backend stored media attachment
- *
- * @namespace mediaAttachment
- * @prop {string} download_url - full file size
- * @prop {string} download_small_url - smallest file size
- * @prop {string} download_medium_url
- * @prop {string} download_large_url
- */
+interface MediaCellProps {
+ questionType: MetaQuestionTypeName | QuestionTypeName;
+ /** It's `null` for text questions. */
+ mediaAttachment: SubmissionAttachment;
+ /** Backend stored media attachment file name or the content of a text question. */
+ mediaName: string;
+ /** Index of the submission for text questions. */
+ submissionIndex: number;
+ /** Total submissions for text questions. */
+ submissionTotal: number;
+ assetUid: string;
+ qpath: string;
+ submissionUuid: string;
+}
 
-/**
- * Table cell replacement for media submissions
- *
- * @prop {string} questionType
- * @prop {mediaAttachment} mediaAttachment - `null` for text questions
- * @prop {string} mediaName - Backend stored media attachment file name or the
-                              content of a text question
- * @prop {string} submissionIndex - Index of the submission for text questions
- * @prop {string} submissionTotal - Total submissions for text questions
- */
-class MediaCell extends React.Component {
-  constructor(props) {
+/** Table cell replacement for media submissions */
+class MediaCell extends React.Component<MediaCellProps, {}> {
+  questionIcon: string;
+
+  constructor(props: MediaCellProps) {
     super(props);
     autoBind(this);
 
@@ -79,7 +85,15 @@ class MediaCell extends React.Component {
     return iconClassNames.join(' ');
   }
 
-  launchMediaModal(evt) {
+  openProcessing() {
+    openProcessing(
+      this.props.assetUid,
+      this.props.qpath,
+      this.props.submissionUuid
+    );
+  }
+
+  launchMediaModal(evt: MouseEvent | TouchEvent) {
     evt.preventDefault();
 
     stores.pageState.showModal({
@@ -98,11 +112,11 @@ class MediaCell extends React.Component {
   }
 
   renderMediaModalCustomHeader(
-    questionIcon,
-    mediaURL,
-    mediaName,
-    submissionIndex,
-    submissionTotal,
+    questionIcon: string,
+    mediaURL: string,
+    mediaName: string,
+    submissionIndex: number,
+    submissionTotal: number,
   ) {
     let titleText = null;
 
@@ -111,8 +125,8 @@ class MediaCell extends React.Component {
       titleText = truncateString(mediaName, 30);
     } else {
       titleText = t('Submission ##submissionIndex## of ##submissionTotal##')
-        .replace('##submissionIndex##', submissionIndex)
-        .replace('##submissionTotal##', submissionTotal);
+        .replace('##submissionIndex##', String(submissionIndex))
+        .replace('##submissionTotal##', String(submissionTotal));
     }
 
     return (
@@ -128,7 +142,7 @@ class MediaCell extends React.Component {
         </bem.TableMediaPreviewHeader__title>
 
         <bem.TableMediaPreviewHeader__options>
-          {this.props.mediaURL &&
+          {mediaURL &&
             <a
               className='kobo-light-button kobo-light-button--blue'
               // TODO: once we get this button to `save as`, remove this target
@@ -141,18 +155,16 @@ class MediaCell extends React.Component {
             </a>
           }
 
-          {/*
-            TODO: Uncomment this buttton after single processing view is done
-
-            <a
-              className='kobo-light-button kobo-light-button--gray'
-              href={'#'}
-            >
-              {t('process')}
-
-              <i className='k-icon k-icon-arrow-up-right'/>
-            </a>
-          */}
+          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
+            <Button
+              type='frame'
+              size='s'
+              color='storm'
+              endIcon='arrow-up-right'
+              label={t('process')}
+              onClick={this.openProcessing.bind(this)}
+            />
+          }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );

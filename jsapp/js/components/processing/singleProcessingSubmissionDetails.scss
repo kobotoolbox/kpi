@@ -1,0 +1,44 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "./singleProcessingVariables";
+
+.single-processing-media-wrapper {
+  &.single-processing-media-wrapper--audio {
+    background-color: colors.$kobo-white;
+    border-radius: sizes.$x6;
+    // right padding is for the audio player to appear centered
+    padding: sizes.$x20 #{sizes.$x20 + sizes.$x12} sizes.$x14 sizes.$x20;
+  }
+
+  &.single-processing-media-wrapper--video {
+    border-radius: sizes.$x6;
+    overflow: hidden;
+  }
+
+  &:first-child {
+    margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  }
+
+  &:not(:first-child) {
+    margin-top: sizes.$x20;
+  }
+}
+
+.single-processing-data-list {
+  flex: 1;
+  min-height: sizes.$x100;
+  margin-top: sizes.$x20;
+  padding: sizes.$x12;
+  border: sizes.$x1 solid colors.$kobo-gray-85;
+  border-radius: sizes.$x6;
+}
+
+.single-processing-data-list__body {
+  overflow-y: auto;
+  height: 100%;
+}
+
+.single-processing-video-preview {
+  width: 100%;
+  object-fit: contain;
+}
