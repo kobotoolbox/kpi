@@ -92,7 +92,7 @@ export default class LanguageSelectorDemo extends React.Component<{}, LanguageSe
                 <div className='demo__preview'>
                   <LanguageSelector
                     sourceLanguage={this.state.demoHasSourceLanguage ? 'en' : undefined}
-                    suggestedLanguages={this.state.demoHasSuggestedLanguages ? ['pl', 'fr'] : undefined}
+                    suggestedLanguages={this.state.demoHasSuggestedLanguages ? ['es', 'fr', 'pl'] : undefined}
                     onLanguageChange={this.onLanguageChange.bind(this)}
                     isDisabled={this.state.demoIsDisabled}
                   />
