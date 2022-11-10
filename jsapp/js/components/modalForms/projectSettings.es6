@@ -420,12 +420,25 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onUpdateAssetCompleted() {
+  onUpdateAssetCompleted(response) {
+    console.log('onUpdateAssetCompleted', this.props.context, response);
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
     ) {
       this.goToFormLanding();
+    }
+
+    // This handles the case when the asset was edited outside the Settings,
+    // e.g. the title editor in the header.
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+      response.uid === this.state.formAsset?.uid
+    ) {
+      this.setState({
+        formAsset: asset,
+        fields: getInitialFieldsFromAsset(asset),
+      });
     }
   }
 
