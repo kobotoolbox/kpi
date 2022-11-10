@@ -420,12 +420,24 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onUpdateAssetCompleted() {
+  onUpdateAssetCompleted(response) {
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
     ) {
       this.goToFormLanding();
+    }
+
+    // This handles the case when the asset was edited outside the Settings,
+    // e.g. the title editor in the header.
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+      response.uid === this.state.formAsset?.uid
+    ) {
+      this.setState({
+        formAsset: response,
+        fields: this.getInitialFieldsFromAsset(response),
+      });
     }
   }
 
@@ -445,7 +457,7 @@ class ProjectSettings extends React.Component {
     ) {
       this.setState({
         formAsset: asset,
-        fields: getInitialFieldsFromAsset(asset),
+        fields: this.getInitialFieldsFromAsset(asset),
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
