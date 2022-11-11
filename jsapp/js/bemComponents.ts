@@ -288,9 +288,6 @@ bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
 bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
 bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
 
-bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul');
-bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li');
-
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');
 bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');
