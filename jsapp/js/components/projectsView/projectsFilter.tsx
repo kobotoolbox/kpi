@@ -1,7 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-} from 'react';
+import React, {useState} from 'react';
 import clonedeep from 'lodash.clonedeep';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
@@ -79,25 +76,31 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
     setFilters(newFilters);
   };
 
-  const getTriggerLabel = () => {
-    let outcome = t('filter');
-    if (props.filters.length >= 1) {
-      outcome += ` (${props.filters.length})`;
-    }
-    return outcome;
-  };
-
   return (
     <bem.ProjectsFilter>
       {/* Trigger button */}
-      <Button
-        type='bare'
-        size='s'
-        color='storm'
-        onClick={toggleModal}
-        startIcon='filter'
-        label={getTriggerLabel()}
-      />
+      {props.filters.length === 0 &&
+        <Button
+          type='bare'
+          size='s'
+          color='storm'
+          onClick={toggleModal}
+          startIcon='filter'
+          label={t('filter')}
+        />
+      }
+      {/* With any filters active, we want to highlight the button - the same
+      color will be used for all columns that filters apply to. */}
+      {props.filters.length >= 1 &&
+        <Button
+          type='full'
+          size='s'
+          color='light-blue'
+          onClick={toggleModal}
+          startIcon='filter'
+          label={<span>{t('filter')} <strong>{props.filters.length}</strong></span>}
+        />
+      }
 
       <KoboModal
         isOpen={isModalOpen}
