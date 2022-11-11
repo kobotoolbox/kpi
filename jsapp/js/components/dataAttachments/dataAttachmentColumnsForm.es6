@@ -217,13 +217,12 @@ class DataAttachmentColumnsForm extends React.Component {
           <LoadingSpinner message={t('Loading imported questions')}/>
         }
 
-        <bem.MultiCheckbox__wrapper>
-          <MultiCheckbox
-            items={this.state.columnsToDisplay}
-            onChange={this.onColumnSelected}
-            disabled={this.state.isLoading}
-          />
-        </bem.MultiCheckbox__wrapper>
+        <MultiCheckbox
+          type='frame'
+          items={this.state.columnsToDisplay}
+          onChange={this.onColumnSelected}
+          disabled={this.state.isLoading}
+        />
 
         {this.state.isLoading &&
           <LoadingSpinner message={t('Updating imported questions')}/>
