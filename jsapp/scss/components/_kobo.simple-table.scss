@@ -23,6 +23,10 @@
   padding: 10px;
   background-color: $kobo-white;
 
+  &.simple-table__cell--align-top {
+    vertical-align: top;
+  }
+
   &.simple-table__cell--text-right {
     text-align: right;
   }

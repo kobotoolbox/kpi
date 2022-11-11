@@ -523,12 +523,11 @@ export default class ProjectExportsCreator extends React.Component {
     });
 
     return (
-      <bem.MultiCheckbox__wrapper>
-        <MultiCheckbox
-          items={rows}
-          onChange={this.onSelectedRowsChange}
-        />
-      </bem.MultiCheckbox__wrapper>
+      <MultiCheckbox
+        type='frame'
+        items={rows}
+        onChange={this.onSelectedRowsChange}
+      />
     );
   }
 
