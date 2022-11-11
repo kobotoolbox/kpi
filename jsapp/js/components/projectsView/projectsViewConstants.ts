@@ -10,34 +10,64 @@ interface FilterConditionDefinition {
   name: FilterConditionName;
   label: string;
   requiresValue: boolean;
+  // TODO: this is supposed to be used with the new endpoints to filter out fields
+  filterRegex: string;
 }
 type FilterConditions = {[P in FilterConditionName]: FilterConditionDefinition};
 export const FILTER_CONDITIONS: FilterConditions = {
-  is: {name: 'is', label: t('Is'), requiresValue: true},
-  isNot: {name: 'isNot', label: t('Is not'), requiresValue: true},
-  contains: {name: 'contains', label: t('Contains'), requiresValue: true},
+  is: {
+    name: 'is',
+    label: t('Is'),
+    requiresValue: true,
+    filterRegex: '^phrase$',
+  },
+  isNot: {
+    name: 'isNot',
+    label: t('Is not'),
+    requiresValue: true,
+    filterRegex: '^(?!phrase$).*$',
+  },
+  contains: {
+    name: 'contains',
+    label: t('Contains'),
+    requiresValue: true,
+    filterRegex: '^.*phrase.*$',
+  },
   doesNotContain: {
     name: 'doesNotContain',
     label: t('Does not contain'),
     requiresValue: true,
+    filterRegex: '^(?!.*phrase).*$',
   },
   startsWith: {
     name: 'startsWith',
     label: t('Starts with'),
     requiresValue: true,
+    filterRegex: '^phrase.*',
   },
-  endsWith: {name: 'endsWith', label: t('Ends with'), requiresValue: true},
-  isEmpty: {name: 'isEmpty', label: t('Is empty'), requiresValue: false},
+  endsWith: {
+    name: 'endsWith',
+    label: t('Ends with'),
+    requiresValue: true,
+    filterRegex: '^.*phrase$',
+  },
+  isEmpty: {
+    name: 'isEmpty',
+    label: t('Is empty'),
+    requiresValue: false,
+    filterRegex: '^$',
+  },
   isNotEmpty: {
     name: 'isNotEmpty',
     label: t('Is not empty'),
     requiresValue: false,
+    filterRegex: '^.+$',
   },
 };
 
 export type ProjectFieldName = 'countries' | 'dateDeployed' | 'dateModified' |
 'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
-'ownerOrg' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
+'ownerOrganisation' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
 interface FilterFieldDefinition {
   name: ProjectFieldName;
   label: string;
@@ -49,7 +79,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerUsername: {name: 'ownerUsername', label: t('Owner username')},
   ownerEmail: {name: 'ownerEmail', label: t('Owner email')},
   ownerFullName: {name: 'ownerFullName', label: t('Owner full name')},
-  ownerOrg: {name: 'ownerOrg', label: t('Owner org')},
+  ownerOrganisation: {name: 'ownerOrganisation', label: t('Owner organisation')},
   sector: {name: 'sector', label: t('Sector')},
   countries: {name: 'countries', label: t('Countries')},
   submissions: {name: 'submissions', label: t('Submissions')},
