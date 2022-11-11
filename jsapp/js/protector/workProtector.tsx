@@ -1,6 +1,6 @@
 import React from 'react'
 import alertify from 'alertifyjs'
-import {InjectedRouter, PlainRoute} from 'react-router'
+// import {InjectedRouter, PlainRoute} from 'react-router'
 import {UNSAVED_CHANGES_WARNING} from 'js/protector/protectorConstants'
 
 type WorkProtectorProps = {
@@ -10,9 +10,9 @@ type WorkProtectorProps = {
    */
   shouldProtect: boolean
   /** A `this.props.route` from a route component. */
-  currentRoute: PlainRoute<any>
+  currentRoute: any
   /** A `this.props.router` from a route component. */
-  router: InjectedRouter
+  router: any
 }
 
 /**

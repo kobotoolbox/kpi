@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import type {Location} from 'history';
 import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
@@ -164,7 +164,7 @@ class SingleProcessingStore extends Reflux.Store {
   init() {
     this.resetProcessingData();
 
-    hashHistory.listen(this.onRouteChange.bind(this));
+    // hashHistory.listen(this.onRouteChange.bind(this));
 
     actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this));
     actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this));

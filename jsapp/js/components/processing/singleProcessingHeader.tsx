@@ -12,7 +12,7 @@ import {
   getRowName,
 } from 'js/assetUtils';
 import {ROUTES} from 'js/router/routerConstants';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import KoboSelect from 'js/components/common/koboSelect';
@@ -115,7 +115,7 @@ export default class SingleProcessingHeader extends React.Component<
   /** Goes back to table view for given asset. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
-    hashHistory.push(newRoute);
+    // hashHistory.push(newRoute);
   }
 
   /** Goes to another submission. */

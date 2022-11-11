@@ -21,7 +21,7 @@ import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
-import { routerIsActive } from '../router/legacy';
+import { routerIsActive, withRouter } from '../router/legacy';
 
 const AccountSidebar = lazy(() => import("js/account/accountSidebar"));
 
@@ -211,4 +211,4 @@ Drawer.contextTypes = {
   router: PropTypes.object
 };
 
-export default Drawer;
+export default withRouter(Drawer);

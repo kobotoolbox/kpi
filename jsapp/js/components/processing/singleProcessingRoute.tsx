@@ -1,5 +1,5 @@
 import React from 'react';
-import type {RouteComponentProps} from 'react-router';
+// import type {RouteComponentProps} from 'react-router';
 import DocumentTitle from 'react-document-title';
 import {isRowProcessingEnabled} from 'js/assetUtils';
 import type {AssetResponse} from 'js/dataInterface';
@@ -20,11 +20,11 @@ bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section'
 bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
 bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
 
-type SingleProcessingRouteProps = RouteComponentProps<{
-  uid: string;
-  qpath: string;
-  submissionEditId: string;
-}, unknown>;
+// type SingleProcessingRouteProps = RouteComponentProps<{
+//   uid: string;
+//   qpath: string;
+//   submissionEditId: string;
+// }, unknown>;
 
 interface SingleProcessingRouteState {
   asset: AssetResponse | undefined;
@@ -35,10 +35,10 @@ interface SingleProcessingRouteState {
  * everything with nice spinners.
  */
 export default class SingleProcessingRoute extends React.Component<
-  SingleProcessingRouteProps,
+  any,
   SingleProcessingRouteState
 > {
-  constructor(props: SingleProcessingRouteProps) {
+  constructor(props: any) {
     super(props);
     this.state = {
       // NOTE: This route component is being loaded with PermProtectedRoute so

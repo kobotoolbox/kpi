@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {observer} from 'mobx-react';
 import bem, {makeBem} from 'js/bem';
 import {usePrompt} from 'js/router/promptBlocker';
 import sessionStore from 'js/stores/session';
@@ -35,6 +34,7 @@ function AccountSettings() {
     },
     fieldsWithErrors: {},
   });
+
   useEffect(() => {
     if (
       !session.isPending &&
@@ -153,4 +153,4 @@ function AccountSettings() {
   );
 }
 
-export default observer(AccountSettings);
+export default AccountSettings;

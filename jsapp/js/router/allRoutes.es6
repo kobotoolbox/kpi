@@ -50,7 +50,7 @@ const FormNotFound = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/formNotFound')
 );
 
-const AllRoutes = observer(class AllRoutes extends React.Component {
+const AllRoutes = class AllRoutes extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -60,8 +60,9 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
   }
 
   componentDidMount() {
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
-    stores.session.listen(this.onSessionChange);
+    actions.permissions.getConfig.completed.listen(
+      this.onGetConfigCompleted.bind(this)
+    );
     actions.permissions.getConfig();
   }
 
@@ -92,12 +93,14 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
       newStateObj.isSessionReady = data.isSessionReady;
     }
 
-    if (!(
-      newStateObj.isPermsConfigReady &&
-      newStateObj.isSessionReady &&
-      !sessionStore.isLoggedIn &&
-      isRootRoute()
-    )) {
+    if (
+      !(
+        newStateObj.isPermsConfigReady &&
+        newStateObj.isSessionReady &&
+        !sessionStore.isLoggedIn &&
+        isRootRoute()
+      )
+    ) {
       this.setState(newStateObj);
     }
   }
@@ -112,10 +115,7 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
     // If all necessary data is obtained, and user is not logged in, and on
     // the root route, redirect immediately to the login page outside
     // the React app, and skip setting the state (so no content blink).
-    if (
-      !sessionStore.isLoggedIn &&
-      isRootRoute()
-    ) {
+    if (!sessionStore.isLoggedIn && isRootRoute()) {
       redirectToLogin();
       // redirect is async, continue showing loading
       return <LoadingSpinner />;
@@ -127,9 +127,7 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
         <Routes>
           <Route path={ROUTES.ROOT} element={<App />}>
             <Route path='' element={<Navigate to={ROUTES.FORMS} replace />} />
-            <Route path={ROUTES.ACCOUNT_ROOT}>
-              {accountRoutes()}
-            </Route>
+            <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
             <Route path={ROUTES.LIBRARY}>
               <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} />} />
               <Route
@@ -321,6 +319,15 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
                       />
                     }
                   />
+                  <Route
+                    path={ROUTES.FORM_PROCESSING}
+                    element={
+                      <PermProtectedRoute
+                      requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                        protectedComponent={SingleProcessingRoute}
+                      />
+                    }
+                  />
                 </Route>
 
                 <Route path={ROUTES.FORM_SETTINGS}>
@@ -450,6 +457,6 @@ const AllRoutes = observer(class AllRoutes extends React.Component {
       </HistoryRouter>
     );
   }
-});
+};
 
-export default AllRoutes;
+export default observer(AllRoutes);
