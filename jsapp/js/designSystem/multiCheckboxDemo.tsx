@@ -1,14 +1,19 @@
 import React from 'react';
 import bem from 'js/bem';
 import clonedeep from 'lodash.clonedeep';
-import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
+import type {
+  MultiCheckboxType,
+  MultiCheckboxItem,
+} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import Checkbox from 'js/components/common/checkbox';
 import Button from 'js/components/common/button';
+import KoboSelect from 'js/components/common/koboSelect';
 
 interface MultiCheckboxDemoState {
   demoItems: MultiCheckboxItem[];
   demoIsDisabled: boolean;
+  demoType: MultiCheckboxType;
 }
 
 const RANDOM_LABELS = [
@@ -23,7 +28,7 @@ const RANDOM_LABELS = [
   'This is fun',
   'I hereby authorize this design system to everything',
   "No, I don't want your newsletter",
-  "Is this it?",
+  'Is this it?',
   'Foo bar fum baz',
 ];
 
@@ -37,6 +42,7 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
         this.getRandomItem(),
       ],
       demoIsDisabled: false,
+      demoType: 'bare',
     };
   }
 
@@ -67,6 +73,11 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
     this.setState({demoItems: newItems});
   }
 
+  onTypeChange(newType: string | null) {
+    const newTypeCasted = newType as MultiCheckboxType;
+    this.setState({demoType: newTypeCasted || 'bare'});
+  }
+
   onCheckAll() {
     const newItems = clonedeep(this.state.demoItems);
     newItems.forEach((item) => item.checked = true);
@@ -93,7 +104,7 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -149,12 +160,29 @@ export default class MultiCheckboxDemo extends React.Component<{}, MultiCheckbox
                         checked={this.state.demoIsDisabled}
                       />
                     </div>
+
+                    <div className='demo__form-config'>
+                      <label>Type:</label>
+
+                      <KoboSelect
+                        name='MultiCheckbox_type_demo'
+                        type='gray'
+                        size='s'
+                        options={[
+                          {label: 'bare', id: 'bare'},
+                          {label: 'frame', id: 'frame'},
+                        ]}
+                        selectedOption={this.state.demoType}
+                        onChange={this.onTypeChange.bind(this)}
+                      />
+                    </div>
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <MultiCheckbox
+                    type={this.state.demoType}
                     items={this.state.demoItems}
                     onChange={this.onItemsChange.bind(this)}
                     disabled={this.state.demoIsDisabled}
