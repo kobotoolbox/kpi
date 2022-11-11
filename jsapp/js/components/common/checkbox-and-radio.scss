@@ -1,5 +1,6 @@
 @use "scss/_colors";
 @use "scss/_variables";
+@use "scss/sizes";
 
 .radio,
 .checkbox {
@@ -29,7 +30,7 @@
   }
 
   .radio__row {
-    padding: 4px 0;
+    padding: sizes.$x4 0;
   }
 
   .radio__input,
@@ -42,15 +43,14 @@
 
   .radio__label,
   .checkbox__label {
-    // it's 28px plus whitespace between inline-blocks
-    max-width: calc(100% - 32px);
+    max-width: calc(100% - sizes.$x32);
     color: colors.$kobo-gray-24;
     font-size: variables.$base-font-size;
   }
 
   .radio__input + .radio__label,
   .checkbox__input + .checkbox__label {
-    margin-left: 8px;
+    margin-left: sizes.$x8;
   }
 
   .radio__input {
@@ -58,30 +58,30 @@
 
     &::after {
       content: "";
-      top: 4px;
-      left: 4px;
+      top: sizes.$x4;
+      left: sizes.$x4;
       border-radius: 50%;
-      width: 10px;
-      height: 10px;
+      width: sizes.$x10;
+      height: sizes.$x10;
       background-color: colors.$kobo-blue;
     }
   }
 
   .checkbox__input {
-    border-radius: 2px;
+    border-radius: sizes.$x2;
 
     &::after {
       content: "✓";
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 18px;
-      height: 18px;
+      width: sizes.$x18;
+      height: sizes.$x18;
       color: colors.$kobo-white;
       background-color: colors.$kobo-blue;
       text-align: center;
-      line-height: 18px;
-      font-size: 18px;
+      line-height: sizes.$x18;
+      font-size: sizes.$x18;
     }
   }
 
@@ -90,9 +90,9 @@
     appearance: none;
     position: relative;
     margin: 0;
-    border: 1px solid colors.$kobo-gray-40;
-    width: 20px;
-    height: 20px;
+    border: sizes.$x1 solid colors.$kobo-gray-40;
+    width: sizes.$x20;
+    height: sizes.$x20;
     outline: 0;
     background-color: colors.$kobo-white;
     color: colors.$kobo-gray-40;
