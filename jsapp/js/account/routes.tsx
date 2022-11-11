@@ -13,7 +13,7 @@ const PlanRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './planRoute')
 );
 const AccountSettings = React.lazy(
-  () => import(/* webpackPrefetch: true */ './accountSettingsRouteNew')
+  () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
 );
 const DataStorage = React.lazy(
   () => import(/* webpackPrefetch: true */ './dataStorageRoute')
