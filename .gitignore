@@ -5,6 +5,7 @@ node_modules
 /src/
 kpi/static/components
 misc
+jsapp/compiled
 jsapp/tmp
 jsapp/js/libs/xlform.js
 jsapp/js/refactored.es6
