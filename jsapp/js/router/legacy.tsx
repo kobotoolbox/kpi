@@ -7,8 +7,8 @@ import {
   useParams,
   useSearchParams,
   Location,
+  NavigateFunction,
 } from 'react-router-dom';
-import {usePrompt} from './promptBlocker';
 
 // https://stackoverflow.com/a/70754791/443457
 const getRoutePath = (location: Location, params: Params): string => {
@@ -27,26 +27,35 @@ const getRoutePath = (location: Location, params: Params): string => {
   return path;
 };
 
+interface RouterProp {
+  location: Location;
+  navigate: NavigateFunction;
+  params: Readonly<Params<string>>;
+  searchParams: URLSearchParams; // Replaces props.location.query
+  path: string; // Replaces props.route.path
+}
+
+export interface WithRouterProps {
+  router: RouterProp;
+  params: Readonly<Params<string>>; // Defined as props twice for compat!
+
+}
+
 /**
  * This is for class based components, which cannot use hooks
  * Attempts to mimic both react router 3 and 5!
  * https://v5.reactrouter.com/web/api/withRouter
  * Use hooks instead when possible
  */
-export function withRouter(Component: FC) {
+export function withRouter(Component: FC | typeof React.Component) {
   function ComponentWithRouterProp(props: any) {
-    let location = useLocation();
-    let navigate = useNavigate();
-    let [searchParams, _] = useSearchParams(); // Replaces props.location.query
-    let params = useParams();
-    let path = getRoutePath(location, params); // Replaces props.route.path
-    return (
-      <Component
-        {...props}
-        params={params} // Defined as props twice for compat!
-        router={{location, navigate, params, searchParams, path}}
-      />
-    );
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [searchParams, _] = useSearchParams();
+    const params = useParams();
+    const path = getRoutePath(location, params);
+    const router: RouterProp = {location, navigate, params, searchParams, path};
+    return <Component {...props} params={params} router={router} />;
   }
 
   return ComponentWithRouterProp;
