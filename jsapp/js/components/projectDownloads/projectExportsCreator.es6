@@ -524,6 +524,7 @@ export default class ProjectExportsCreator extends React.Component {
 
     return (
       <MultiCheckbox
+        type='frame'
         items={rows}
         onChange={this.onSelectedRowsChange}
       />

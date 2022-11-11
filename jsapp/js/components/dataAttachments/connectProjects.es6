@@ -412,6 +412,7 @@ class ConnectProjects extends React.Component {
               </span>
 
               <MultiCheckbox
+                type='frame'
                 items={this.state.columnsToDisplay}
                 disabled={this.state.isLoading}
                 onChange={this.onColumnSelected}
