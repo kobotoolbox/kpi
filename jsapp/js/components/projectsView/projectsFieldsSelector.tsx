@@ -104,6 +104,7 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
         <KoboModalContent>
           <bem.ProjectsFieldsSelector__fieldsWrapper>
             <MultiCheckbox
+              type='bare'
               items={getCheckboxes()}
               onChange={onCheckboxesChange}
             />
