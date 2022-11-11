@@ -1,12 +1,12 @@
 import Reflux from 'reflux';
-// import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
-import type {Location} from 'history';
+import type {Location, Update} from 'history';
 import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
 import {
   isFormSingleProcessingRoute,
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
+import {history} from 'js/router/historyRouter';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
@@ -164,7 +164,7 @@ class SingleProcessingStore extends Reflux.Store {
   init() {
     this.resetProcessingData();
 
-    // hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
 
     actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this));
     actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this));
@@ -274,8 +274,8 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  private onRouteChange(data: Location) {
-    if (this.previousPath === data.pathname) {
+  private onRouteChange(data: Update) {
+    if (this.previousPath === data.location.pathname) {
       return;
     }
 
@@ -285,17 +285,17 @@ class SingleProcessingStore extends Reflux.Store {
     // This means that we are changing either the question and the submission
     // or just the submission.
     if (
-      this.previousPath !== data.pathname &&
+      this.previousPath !== data.location.pathname &&
       this.previousPath !== undefined &&
       this.previousPath.startsWith(baseProcessingRoute) &&
-      data.pathname.startsWith(baseProcessingRoute)
+      data.location.pathname.startsWith(baseProcessingRoute)
     ) {
       this.fetchProcessingData();
       this.fetchSubmissionData();
     } else if (
       // Case 2: switching into processing route out of other place (most
       // probably from assets data table route).
-      this.previousPath !== data.pathname &&
+      this.previousPath !== data.location.pathname &&
       this.currentQuestionQpath &&
       isFormSingleProcessingRoute(
         this.currentAssetUid,
@@ -306,7 +306,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.fetchAllInitialDataForAsset();
     }
 
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
   }
 
   private fetchSubmissionData(): void {
