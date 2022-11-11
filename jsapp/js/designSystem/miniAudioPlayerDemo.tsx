@@ -42,7 +42,7 @@ export default class MiniAudioPlayerDemo extends React.Component<{}, MiniAudioPl
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -66,7 +66,7 @@ export default class MiniAudioPlayerDemo extends React.Component<{}, MiniAudioPl
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <MiniAudioPlayer
                     mediaURL={this.state.demoUrl}
