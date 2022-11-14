@@ -47,7 +47,7 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -77,7 +77,7 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <Checkbox
                     label={this.state.demoLabel}
