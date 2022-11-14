@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import clonedeep from 'lodash.clonedeep';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
@@ -41,12 +41,17 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFields, setSelectedFields] = useState(getInitialSelectedFields());
 
+  useEffect(() => {
+    if (!isModalOpen) {
+      // Reset fields when closing modal.
+      if (isModalOpen === false) {
+        setSelectedFields(getInitialSelectedFields());
+      }
+    }
+  }, [isModalOpen]);
+
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
-    // Reset fields when closing modal.
-    if (isModalOpen === false) {
-      setSelectedFields(getInitialSelectedFields());
-    }
   };
 
   const applyFields = () => {
