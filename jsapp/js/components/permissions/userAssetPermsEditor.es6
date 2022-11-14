@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {permParser} from './permParser';

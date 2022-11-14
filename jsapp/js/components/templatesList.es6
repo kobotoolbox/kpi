@@ -10,7 +10,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from '../stores';
+import sessionStore from 'js/stores/session';
 import {dataInterface} from '../dataInterface';
 import {formatTime} from 'utils';
 import {getAssetOwnerDisplayName} from 'js/assetUtils';
