@@ -116,13 +116,16 @@ class FormpackXLSFormUtilsMixin:
             if '$kuid' not in row:
                 row['$kuid'] = random_id(9)
 
-    def _strip_kuids(self, content):
+    def _strip_dollar_fields(self, content):
         # this is important when stripping out kobo-specific types because the
         # $kuid field in the xform prevents cascading selects from rendering
-        for row in content['survey']:
-            row.pop('$kuid', None)
-        for row in content.get('choices', []):
-            row.pop('$kuid', None)
+        # and other $fields end up in the exported XLSForm
+        startswithdollar = lambda key: key.startswith('$')
+        strip_row = lambda row, fields: [row.pop(key) for key in fields]
+        for sheet in ['survey', 'choices']:
+            for row in content.get(sheet, []):
+                dollar_fields = list(filter(startswithdollar, row.keys()))
+                strip_row(row, dollar_fields)
 
     def _link_list_items(self, content):
         arr = content['survey']
