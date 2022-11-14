@@ -27,7 +27,7 @@ class XlsExportableMixin:
             self._expand_kobo_qs(content)
             self._autoname(content)
             self._populate_fields_with_autofields(content)
-            self._strip_kuids(content)
+            self._strip_dollar_fields(content)
             revert_kobo_lock_structure(content)
         content = OrderedDict(content)
         self._xlsform_structure(

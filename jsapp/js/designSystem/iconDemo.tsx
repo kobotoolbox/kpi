@@ -65,7 +65,7 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -93,7 +93,7 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <Icon
                     size={this.state.demoSize}

@@ -1,9 +1,14 @@
 const BundleTracker = require('webpack-bundle-tracker');
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const fs = require('fs');
 const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
+
+const outputPath = path.resolve(__dirname, '../jsapp/compiled/');
+// ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
+fs.mkdirSync(outputPath, {recursive: true});
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -105,7 +110,7 @@ const commonOptions = {
     new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
-      output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
+      output: path.join(outputPath, 'extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({'$': 'jquery'}),
     new ESLintPlugin({
