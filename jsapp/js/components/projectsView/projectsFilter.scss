@@ -2,6 +2,11 @@
 @use 'scss/sizes';
 @use 'js/components/modals/koboModal.scss';
 
+.projects-filter {
+  display: inline-block;
+  vertical-align: top;
+}
+
 .projects-filter__modal-content {
   padding: koboModal.$kobo-modal-padding koboModal.$kobo-modal-padding 0;
 }

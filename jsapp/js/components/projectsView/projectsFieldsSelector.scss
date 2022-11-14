@@ -2,7 +2,10 @@
 @use 'scss/sizes';
 @use 'scss/colors';
 
-.projects-fields-selector {}
+.projects-fields-selector {
+  display: inline-block;
+  vertical-align: top;
+}
 
 .projects-fields-selector__fields-wrapper {
   max-height: sizes.$x200;
