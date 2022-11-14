@@ -447,7 +447,7 @@ class ProjectSettings extends React.Component {
     ) {
       this.setState({
         formAsset: asset,
-        fields: getInitialFieldsFromAsset(asset),
+        fields: this.getInitialFieldsFromAsset(asset),
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
