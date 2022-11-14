@@ -17,6 +17,7 @@ import {
 } from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import {usePrompt} from 'js/router/promptBlocker';
+import {UNSAVED_CHANGES_WARNING} from 'jsapp/js/protector/protectorConstants';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
 

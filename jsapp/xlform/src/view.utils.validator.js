@@ -1,4 +1,4 @@
-/* global viewUtils */
+/* global viewUtils, _ */
 'use strict';
 
 /*
