@@ -8,7 +8,7 @@ import ProjectsFieldsSelector from 'js/components/projectsView/projectsFieldsSel
 
 interface ProjectsViewTempDemoState {
   filters: ProjectsFilterDefinition[];
-  fields: ProjectFieldName[];
+  fields: ProjectFieldName[] | undefined;
 }
 
 export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsViewTempDemoState> {
@@ -16,17 +16,17 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
     super(props);
     this.state = {
       filters: [],
-      fields: [],
+      fields: undefined,
     };
   }
 
   onFiltersChange(filters: ProjectsFilterDefinition[]) {
-    console.log('onFiltersChange', filters)
+    console.log('onFiltersChange', filters);
     this.setState({filters: filters});
   }
 
-  onFieldsChange(fields: ProjectFieldName[]) {
-    console.log('onFieldsChange', fields)
+  onFieldsChange(fields: ProjectFieldName[] | undefined) {
+    console.log('onFieldsChange', fields);
     this.setState({fields: fields});
   }
 
@@ -43,7 +43,7 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
 
         <ProjectsFieldsSelector
           onFieldsChange={this.onFieldsChange.bind(this)}
-          fields={this.state.fields}
+          selectedFields={this.state.fields}
         />
         <hr/>
       </section>

@@ -73,18 +73,33 @@ interface FilterFieldDefinition {
   label: string;
 }
 type ProjectFields = {[P in ProjectFieldName]: FilterFieldDefinition};
+/**
+ * A full list of available fields for projects. Order is important here, as it
+ * influences the order these will be displayed in UI.
+ */
 export const PROJECT_FIELDS: ProjectFields = {
+  /** NOTE: Regardless of user settings, name is always visible. */
   name: {name: 'name', label: t('Project name')},
   description: {name: 'description', label: t('Description')},
+  status: {name: 'status', label: t('Status')},
   ownerUsername: {name: 'ownerUsername', label: t('Owner username')},
-  ownerEmail: {name: 'ownerEmail', label: t('Owner email')},
   ownerFullName: {name: 'ownerFullName', label: t('Owner full name')},
+  ownerEmail: {name: 'ownerEmail', label: t('Owner email')},
   ownerOrganisation: {name: 'ownerOrganisation', label: t('Owner organisation')},
-  sector: {name: 'sector', label: t('Sector')},
-  countries: {name: 'countries', label: t('Countries')},
-  submissions: {name: 'submissions', label: t('Submissions')},
   dateDeployed: {name: 'dateDeployed', label: t('Date deployed')},
   dateModified: {name: 'dateModified', label: t('Date modified')},
+  sector: {name: 'sector', label: t('Sector')},
+  countries: {name: 'countries', label: t('Countries')},
   languages: {name: 'languages', label: t('Languages')},
-  status: {name: 'status', label: t('Status')},
+  submissions: {name: 'submissions', label: t('Submissions')},
 };
+
+export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
+  'countries',
+  'dateDeployed',
+  'dateModified',
+  'name',
+  'ownerUsername',
+  'status',
+  'submissions',
+];

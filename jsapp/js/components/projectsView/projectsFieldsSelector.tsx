@@ -9,70 +9,70 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import type {ProjectFieldName} from './projectsViewConstants';
-import {PROJECT_FIELDS} from './projectsViewConstants';
+import {
+  PROJECT_FIELDS,
+  DEFAULT_PROJECT_FIELDS,
+} from './projectsViewConstants';
 import './projectsFieldsSelector.scss';
 
 bem.ProjectsFieldsSelector = makeBem(null, 'projects-fields-selector');
 bem.ProjectsFieldsSelector__fieldsWrapper = makeBem(bem.ProjectsFieldsSelector, 'fields-wrapper');
 
 interface ProjectsFieldsSelectorProps {
-  /** Selected fields. Empty array means all fields. */
-  fields: ProjectFieldName[];
+  /** Selected fields. If the settings don't exist yet, we accept undefined. */
+  selectedFields: ProjectFieldName[] | undefined;
   /**
    * When user clicks "apply" or "reset" button, the components will return
-   * new fields.
+   * new selected fields. The component parent needs to store them and pass
+   * again through props.
    */
-  onFieldsChange: (fields: ProjectFieldName[]) => void;
+  onFieldsChange: (fields: ProjectFieldName[] | undefined) => void;
 }
 
 export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProps) {
-  const getInitialFields = () => {
-    if (props.fields.length === 0) {
-      return [];
+  const getInitialSelectedFields = () => {
+    if (!props.selectedFields || props.selectedFields.length === 0) {
+      return DEFAULT_PROJECT_FIELDS;
     } else {
-      return clonedeep(props.fields);
+      return clonedeep(props.selectedFields);
     }
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fields, setFields] = useState(getInitialFields());
+  const [selectedFields, setSelectedFields] = useState(getInitialSelectedFields());
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
     // Reset fields when closing modal.
     if (isModalOpen === false) {
-      setFields(getInitialFields());
+      setSelectedFields(getInitialSelectedFields());
     }
   };
 
   const applyFields = () => {
-    props.onFieldsChange(fields);
+    props.onFieldsChange(selectedFields);
     toggleModal();
   };
 
   const resetFields = () => {
-    // Sending empty fields
-    props.onFieldsChange([]);
+    // Sending undefined to delete settings.
+    props.onFieldsChange(undefined);
     toggleModal();
   };
 
   const onCheckboxesChange = (items: MultiCheckboxItem[]) => {
-    const selectedFields = items.filter((item) => item.checked);
-    // If all fields are selected, we want to sotre an empty array.
-    let newFields = [];
-    if (selectedFields.length !== Object.keys(PROJECT_FIELDS).length) {
-      newFields = selectedFields.map((item) => item.name);
-    }
-    setFields(newFields);
+    const newFields = items.filter((item) => item.checked).map((item) => item.name);
+    setSelectedFields(newFields);
   };
 
   const getCheckboxes = (): MultiCheckboxItem[] =>
     Object.values(PROJECT_FIELDS).map((field) => {
       return {
         name: field.name,
-        // All fields are selected by default, and all means empty array.
-        checked: fields.length === 0 || fields.includes(field.name),
         label: field.label,
+        // We ensure "name" field is always selected
+        checked: selectedFields.includes(field.name) || field.name === 'name',
+        disabled: field.name === 'name',
       };
     });
 
