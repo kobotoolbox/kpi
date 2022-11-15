@@ -7,7 +7,7 @@ import Dropzone from 'react-dropzone';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
 import {renderBackButton} from './modalHelpers';
 import {validFileTypes} from 'utils';

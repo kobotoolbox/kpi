@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
