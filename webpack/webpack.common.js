@@ -78,7 +78,20 @@ const commonOptions = {
       },
       {
         test: /\.scss$/,
+        exclude: /\.module\.scss$/,
         use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader'],
+      },
+      {
+        test: /\.module\.scss$/,
+        use: ['style-loader', {
+          loader: 'css-loader',
+          options: {
+            modules: {
+              localIdentName:'[name]__[local]--[hash:base64:5]',
+            },
+            sourceMap: true
+          }
+        }, postCssLoader, 'sass-loader'],
       },
       {
         test: /\.coffee$/,
@@ -96,7 +109,7 @@ const commonOptions = {
     ],
   },
   resolve: {
-    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx'],
+    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
       app: path.join(__dirname, '../app'),
       jsapp: path.join(__dirname, '../jsapp'),
