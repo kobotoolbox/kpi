@@ -259,3 +259,5 @@ declare namespace JSX {
     };
   }
 }
+
+declare module "*.module.scss";
