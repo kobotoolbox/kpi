@@ -7,7 +7,7 @@ const ChangePassword = React.lazy(
   () => import(/* webpackPrefetch: true */ './changePassword')
 );
 const SecurityRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './securityRoute')
+  () => import(/* webpackPrefetch: true */ './security/securityRoute.component')
 );
 const PlanRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './planRoute')
