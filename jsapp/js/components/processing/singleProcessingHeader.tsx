@@ -12,13 +12,13 @@ import {
   getRowName,
 } from 'js/assetUtils';
 import {ROUTES} from 'js/router/routerConstants';
-// import {hashHistory} from 'react-router';
 import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import './singleProcessingHeader.scss';
 import { openProcessing } from './processingUtils';
+import { withRouter, WithRouterProps } from 'jsapp/js/router/legacy';
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header');
 bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section');
@@ -26,7 +26,7 @@ bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 's
 bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count');
 bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number');
 
-interface SingleProcessingHeaderProps {
+interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
   assetUid: string;
   assetContent: AssetContent;
@@ -36,7 +36,7 @@ interface SingleProcessingHeaderProps {
  * Component with the current question label and the UI for switching between
  * submissions and questions.
  */
-export default class SingleProcessingHeader extends React.Component<
+class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps
 > {
   private unlisteners: Function[] = [];
@@ -115,7 +115,7 @@ export default class SingleProcessingHeader extends React.Component<
   /** Goes back to table view for given asset. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
-    // hashHistory.push(newRoute);
+    this.props.router.navigate(newRoute);
   }
 
   /** Goes to another submission. */
@@ -291,3 +291,5 @@ export default class SingleProcessingHeader extends React.Component<
     );
   }
 }
+
+export default withRouter(SingleProcessingHeader);

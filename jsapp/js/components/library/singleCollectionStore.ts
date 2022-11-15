@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import type {Location} from 'history';
+import type {Update} from 'history';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -74,7 +74,7 @@ class SingleCollectionStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
-    // history.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this));
@@ -162,7 +162,7 @@ class SingleCollectionStore extends Reflux.Store {
     actions.library.searchMyCollectionAssets(params);
   }
 
-  onRouteChange(data: Location) {
+  onRouteChange(data: Update) {
     if (!this.isInitialised && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
@@ -179,7 +179,7 @@ class SingleCollectionStore extends Reflux.Store {
       this.setDefaultColumns();
       this.fetchData(true);
     }
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
   }
 
   onSearchStarted(abort: Function) {

@@ -26,6 +26,7 @@ class OwnedCollectionsStore extends Reflux.Store {
 
   init() {
     // observer(sessionStore, this.startupStore);
+    // router6 upgrade, unsure why this line would be necessary
     // hashHistory.listen(this.startupStore.bind(this));
     // stores.session.listen(this.startupStore.bind(this));
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted.bind(this));
