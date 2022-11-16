@@ -15,7 +15,7 @@ import {
   addRequiredToLabel,
   stringToColor,
 } from 'utils';
-import {ROUTES} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from './routes';
 import {usePrompt} from 'js/router/promptBlocker';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
@@ -269,7 +269,7 @@ export default class AccountSettings extends React.Component {
 
               <bem.AccountSettings__item m='password'>
                 <a
-                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
+                  href={`/#${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}
                   className='kobo-button kobo-button--blue'
                 >
                   {t('Modify Password')}
