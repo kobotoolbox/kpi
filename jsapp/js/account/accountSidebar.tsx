@@ -42,7 +42,6 @@ function AccountSidebar() {
 
   return (
     <bem.FormSidebar m='account'>
-      <h2 className="aqua"> Hi </h2>
       <AccountNavLink
         iconName='user'
         name={t('Profile')}
