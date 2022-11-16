@@ -1,5 +1,4 @@
 # coding: utf-8
-
 import copy
 import io
 import json
@@ -11,7 +10,6 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -22,6 +20,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -74,7 +73,6 @@ from ..exceptions import (
 from kobo.apps.subsequences.utils import stream_with_extras
 
 
-
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
     Used to deploy a project into KoBoCAT. Stores the project identifiers in the
@@ -95,6 +93,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     SUBMISSION_UUID_PATTERN = re.compile(
         r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
     )
+
+    @property
+    def all_time_submission_count(self):
+        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform_id=self.xform_id
+        ).aggregate(Sum('counter'))
+
+        if count := result['counter__sum']:
+            return count
+
+        return 0
 
     @property
     def attachment_storage_bytes(self):
