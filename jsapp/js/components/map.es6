@@ -10,6 +10,7 @@ import PopoverMenu from 'js/popoverMenu';
 import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
+import {withRouter} from 'js/router/legacy';
 import JSZip from 'jszip';
 import './map.scss';
 import './map.marker-colors.scss';
@@ -864,4 +865,4 @@ export class FormMap extends React.Component {
 
 reactMixin(FormMap.prototype, Reflux.ListenerMixin);
 
-export default FormMap;
+export default withRouter(FormMap);

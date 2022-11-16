@@ -66,7 +66,7 @@ class FormViewTabs extends Reflux.Component {
       this.props.router.navigate(`/forms/${this.state.asset.uid}/reset`);
 
       var path = evt.target.getAttribute('data-path');
-      window.setTimeout(function () {
+      window.setTimeout(() => {
         this.props.router.navigate(path);
       }, 50);
 
