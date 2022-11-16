@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import clonedeep from 'lodash.clonedeep';
-import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
@@ -13,10 +12,7 @@ import {
   PROJECT_FIELDS,
   DEFAULT_PROJECT_FIELDS,
 } from './projectsViewConstants';
-import './projectsFieldsSelector.scss';
-
-bem.ProjectsFieldsSelector = makeBem(null, 'projects-fields-selector');
-bem.ProjectsFieldsSelector__fieldsWrapper = makeBem(bem.ProjectsFieldsSelector, 'fields-wrapper');
+import styles from './projectsFieldsSelector.module.scss';
 
 interface ProjectsFieldsSelectorProps {
   /** Selected fields. If the settings don't exist yet, we accept undefined. */
@@ -82,7 +78,7 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
     });
 
   return (
-    <bem.ProjectsFieldsSelector>
+    <div className={styles.root}>
       {/* Trigger button */}
       <Button
         type='bare'
@@ -107,13 +103,13 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
         </KoboModalHeader>
 
         <KoboModalContent>
-          <bem.ProjectsFieldsSelector__fieldsWrapper>
+          <div className={styles.fields}>
             <MultiCheckbox
               type='bare'
               items={getCheckboxes()}
               onChange={onCheckboxesChange}
             />
-          </bem.ProjectsFieldsSelector__fieldsWrapper>
+          </div>
         </KoboModalContent>
 
         <KoboModalFooter>
@@ -134,6 +130,6 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
           />
         </KoboModalFooter>
       </KoboModal>
-    </bem.ProjectsFieldsSelector>
+    </div>
   );
 }

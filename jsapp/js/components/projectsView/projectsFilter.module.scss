@@ -1,0 +1,36 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'js/components/modals/koboModal.scss';
+
+.root {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.content {
+  padding: koboModal.$kobo-modal-padding koboModal.$kobo-modal-padding 0;
+
+  // We want the field and condition selectors to not be confined to
+  // the modal content area, but with multiple rows, it becomes impossible
+  // to not have scrollable content, thus:
+  &.has-many-filters {
+    overflow-y: auto;
+
+    // We need a tiny bit space on bottom to avoid scrollbar appearing
+    // unnecessarily, when delete button of last filter row is being pressed.
+    padding-bottom: sizes.$x1;
+  }
+}
+
+.footer {
+  @include mixins.centerRowFlex;
+
+  justify-content: space-between;
+  gap: sizes.$x8;
+  padding: koboModal.$kobo-modal-padding;
+
+  // To display the first button on the left and the rest on the right.
+  > *:first-child {
+    margin-right: auto;
+  }
+}

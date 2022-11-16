@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import classNames from 'classnames';
 import clonedeep from 'lodash.clonedeep';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
@@ -7,7 +8,7 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import type {ProjectsFilterDefinition} from './projectsViewConstants';
 import ProjectsFilterEditor from './projectsFilterEditor';
 import {removeIncorrectFilters} from './projectsViewUtils';
-import './projectsFilter.scss';
+import styles from './projectsFilter.module.scss';
 
 // If there are "many" filters being displayed, we want the modal content to be
 // styled a bit differently, so we define how much is "many" here:
@@ -77,7 +78,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
   };
 
   return (
-    <bem.ProjectsFilter>
+    <div className={styles.root}>
       {/* Trigger button */}
       {props.filters.length === 0 &&
         <Button
@@ -115,9 +116,10 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           {'Table filter'}
         </KoboModalHeader>
 
-        <bem.ProjectsFilter__modalContent m={{
-          'has-many-filters': filters.length >= MANY_FILTERS_AMOUNT,
-        }}>
+        <section className={classNames({
+          [styles.content]: true,
+          [styles['has-many-filters']]: filters.length >= MANY_FILTERS_AMOUNT,
+        })}>
           {filters.map((filter, filterIndex) => (
             <ProjectsFilterEditor
               key={filterIndex}
@@ -132,9 +134,9 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           {filters.length === 0 &&
             <p>{t('There are no filters, you can add one below')}</p>
           }
-        </bem.ProjectsFilter__modalContent>
+        </section>
 
-        <bem.ProjectsFilter__modalFooter>
+        <footer className={styles.footer}>
           <Button
             type='bare'
             color='blue'
@@ -159,8 +161,8 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
             onClick={applyFilters}
             label={t('Apply')}
           />
-        </bem.ProjectsFilter__modalFooter>
+        </footer>
       </KoboModal>
-    </bem.ProjectsFilter>
+    </div>
   );
 }
