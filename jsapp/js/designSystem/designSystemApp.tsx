@@ -34,8 +34,6 @@ const designSystemComponents = [
   ['TextBox', <TextBoxDemo/>],
 ];
 
-import ProjectsViewTempDemo from 'js/designSystem/projectsViewTempDemo';
-
 /**
  * This is an app for displaying our design system. It is meant as both
  * a developer tool and a UI testing tool for given instance/deployment.
@@ -48,8 +46,6 @@ export default class DesignSystemApp extends React.Component {
   render() {
     return (
       <section className='design-system'>
-        <ProjectsViewTempDemo/>
-
         <div className='design-system__demo-wrapper'>
           <ul>
             {designSystemComponents.map((componentArray, key) => {

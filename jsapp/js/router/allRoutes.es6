@@ -29,6 +29,8 @@ import AuthProtectedRoute from 'js/router/authProtectedRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 
+import ProjectsViewTempDemo from 'js/designSystem/projectsViewTempDemo';
+
 const Reports = React.lazy(() =>
   import(/* webpackPrefetch: true */ 'js/components/reports/reports')
 );
@@ -131,6 +133,8 @@ export default class AllRoutes extends React.Component {
       <Suspense fallback={null}>
         <Route name='home' path={ROUTES.ROOT} component={App}>
           <IndexRedirect to={ROUTES.FORMS} />
+
+          <Route path='projects' component={ProjectsViewTempDemo}/>
 
           {/* MISC */}
           <Route path={ROUTES.SECURITY} component={SecurityRoute} />

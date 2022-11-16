@@ -37,7 +37,7 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
 
   render() {
     return (
-      <section style={{backgroundColor: 'white'}}>
+      <section>
         <h1>Projects View temporary demo</h1>
 
         <ProjectsFilter
