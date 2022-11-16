@@ -1,7 +1,6 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
+import {observer} from 'mobx-react';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
@@ -13,12 +12,11 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 /**
  * @param {Object} asset - Modal asset.
  */
-export class AssetTagsForm extends React.Component {
+export const AssetTagsForm = observer(class AssetTagsForm extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      isSessionLoaded: !!sessionStore.isLoggedIn,
       tags: this.props.asset?.tag_string || '',
       isPending: false,
     };
@@ -29,9 +27,6 @@ export class AssetTagsForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(sessionStore, () => {
-      this.setState({isSessionLoaded: true});
-    });
     this.unlisteners.push(
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this))
@@ -74,7 +69,7 @@ export class AssetTagsForm extends React.Component {
   }
 
   render() {
-    if (!this.state.isSessionLoaded) {
+    if (!sessionStore.isLoggedIn) {
       return (<LoadingSpinner/>);
     }
 
@@ -102,6 +97,4 @@ export class AssetTagsForm extends React.Component {
       </bem.FormModal__form>
     );
   }
-}
-
-reactMixin(AssetTagsForm.prototype, Reflux.ListenerMixin);
+});
