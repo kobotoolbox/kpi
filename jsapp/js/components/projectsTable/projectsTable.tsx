@@ -54,7 +54,7 @@ interface ProjectsTableProps {
  /** Number of assets on all pages. */
  totalAssets: number;
  /** List of available filters values. */
- metadata: MetadataResponse; // this type ??
+ metadata?: MetadataResponse; // this type ??
  /** Seleceted order column id, one of ASSETS_TABLE_COLUMNS. */
  orderColumnId: string;
  /** Seleceted order column value. */
@@ -209,13 +209,13 @@ export default class ProjectsTable extends React.Component<
   getColumnMetadata(columnDef: ProjectsTableColumn) {
     switch (columnDef.filterByMetadataName) {
       case 'languages':
-        return this.props.metadata.languages;
+        return this.props.metadata?.languages || [];
       case 'countries':
-        return this.props.metadata.countries;
+        return this.props.metadata?.countries || [];
       case 'sectors':
-        return this.props.metadata.sectors;
+        return this.props.metadata?.sectors || [];
       case 'organizations':
-        return this.props.metadata.organizations;
+        return this.props.metadata?.organizations || [];
       default:
         return [];
     }
