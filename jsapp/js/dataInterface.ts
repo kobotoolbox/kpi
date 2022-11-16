@@ -320,6 +320,26 @@ interface AssetSummary {
   languages?: Array<string|null>;
   row_count?: number;
   default_translation?: string|null;
+  /** To be used in a warning about missing or poorly written question names. */
+  name_quality?: {
+    ok: number;
+    bad: number;
+    good: number;
+    total: number;
+    firsts: {
+      ok?: {
+        name: string;
+        index: number;
+        label: string[];
+      };
+      bad?: {
+        name: string;
+        index: number;
+        label: string[];
+      };
+    };
+  };
+  naming_conflicts?: string[];
 }
 
 interface AssetReportStylesSpecified {
@@ -385,12 +405,20 @@ export interface AssetSettings {
   sector?: {
     label: string;
     value: string;
-  };
-  country?: SelectChoice | SelectChoice[];
+  } | null;
+  country?: SelectChoice | SelectChoice[] | null;
   description?: string;
   'share-metadata'?: boolean;
   'data-table'?: AssetTableSettings;
   organization?: string;
+  collects_pii?: {
+    label: string;
+    value: string;
+  } | null;
+  operational_purpose?: {
+    label: string;
+    value: string;
+  } | null;
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -400,12 +428,12 @@ interface AssetRequestObject {
   parent: string | null;
   settings: AssetSettings;
   asset_type: AssetTypeName;
-  report_styles: {
+  report_styles?: {
     default?: {};
     specified?: AssetReportStylesSpecified;
     kuid_names?: AssetReportStylesKuidNames;
   };
-  report_custom: {
+  report_custom?: {
     [reportName: string]: {
       crid: string;
       name: string;
@@ -418,17 +446,17 @@ interface AssetRequestObject {
       };
     };
   };
-  map_styles: {};
-  map_custom: {};
+  map_styles?: {};
+  map_custom?: {};
   content?: AssetContent;
   tag_string: string;
   name: string;
   permissions: Permission[];
   export_settings: ExportSetting[];
   data_sharing: {};
-  paired_data: string;
-  advanced_features: AssetAdvancedFeatures
-  advanced_submission_schema: AdvancedSubmissionSchema
+  paired_data?: string;
+  advanced_features?: AssetAdvancedFeatures;
+  advanced_submission_schema?: AdvancedSubmissionSchema;
 }
 
 export type AssetDownloads = Array<{
@@ -450,12 +478,12 @@ export interface AssetResponse extends AssetRequestObject {
   summary: AssetSummary;
   date_modified: string;
   version_id: string|null;
-  version__content_hash: string|null;
-  version_count: number;
+  version__content_hash?: string|null;
+  version_count?: number;
   has_deployment: boolean;
   deployed_version_id: string|null;
-  analysis_form_json: any;
-  deployed_versions: {
+  analysis_form_json?: any;
+  deployed_versions?: {
     count: number;
     next: string | null;
     previous: string | null;
@@ -468,7 +496,7 @@ export interface AssetResponse extends AssetRequestObject {
     }>;
   };
   deployment__identifier: string|null;
-  deployment__links: {
+  deployment__links?: {
     url?: string;
     single_url?: string;
     single_once_url?: string;
@@ -479,7 +507,7 @@ export interface AssetResponse extends AssetRequestObject {
     single_once_iframe_url?: string;
   };
   deployment__active: boolean;
-  deployment__data_download_links: {
+  deployment__data_download_links?: {
     xls_legacy?: string;
     csv_legacy?: string;
     zip_legacy?: string;
@@ -489,18 +517,18 @@ export interface AssetResponse extends AssetRequestObject {
   };
   deployment__submission_count: number;
   downloads: AssetDownloads;
-  embeds: Array<{
+  embeds?: Array<{
     format: string;
     url: string;
   }>;
-  koboform_link: string;
-  xform_link: string;
-  hooks_link: string;
+  koboform_link?: string;
+  xform_link?: string;
+  hooks_link?: string;
   uid: string;
   kind: string;
-  xls_link: string;
-  assignable_permissions: Array<AssignablePermission|AssignablePermissionPartial>;
-  exports: string;
+  xls_link?: string;
+  assignable_permissions?: Array<AssignablePermission|AssignablePermissionPartial>;
+  exports?: string;
   data: string;
   children: {
     count: number;
