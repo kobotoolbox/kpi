@@ -37,21 +37,25 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
 
   render() {
     return (
-      <section>
-        <h1>Projects View temporary demo</h1>
+      <section style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}>
+        <div>
+          <h1>Projects View temporary demo</h1>
 
-        <ProjectsFilter
-          onFiltersChange={this.onFiltersChange.bind(this)}
-          filters={this.state.filters}
-        />
+          <ProjectsFilter
+            onFiltersChange={this.onFiltersChange.bind(this)}
+            filters={this.state.filters}
+          />
 
 
-        <ProjectsFieldsSelector
-          onFieldsChange={this.onFieldsChange.bind(this)}
-          selectedFields={this.state.fields}
-        />
-
-        <hr/>
+          <ProjectsFieldsSelector
+            onFieldsChange={this.onFieldsChange.bind(this)}
+            selectedFields={this.state.fields}
+          />
+        </div>
 
         <ProjectsTable
           context={ProjectsTableContextName.MY_LIBRARY}
@@ -65,8 +69,6 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
           filterValue={null}
           onFilterChange={(columnId: string | null, columnValue: string | null) => console.log(columnId, columnValue)}
         />
-
-        <hr/>
       </section>
     );
   }
