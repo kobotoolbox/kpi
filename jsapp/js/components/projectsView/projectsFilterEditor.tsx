@@ -1,5 +1,4 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import KoboSelect from 'js/components/common/koboSelect';
@@ -11,12 +10,7 @@ import type {
 } from './projectsViewConstants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './projectsViewConstants';
 import {isFilterConditionValueRequired} from './projectsViewUtils';
-import './projectsFilterEditor.scss';
-
-bem.ProjectsFilterEditor = makeBem(null, 'projects-filter-editor', 'form');
-bem.ProjectsFilterEditor__column = makeBem(bem.ProjectsFilterEditor, 'column');
-bem.ProjectsFilterEditor__label = makeBem(bem.ProjectsFilterEditor, 'label', 'label');
-bem.ProjectsFiltereditor__noValue = makeBem(bem.ProjectsFilterEditor, 'no-value');
+import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {
   filter: ProjectsFilterDefinition;
@@ -72,13 +66,13 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   );
 
   return (
-    <bem.ProjectsFilterEditor>
+    <div className={styles.root}>
       {/* Filter field selector */}
-      <bem.ProjectsFilterEditor__column>
+      <div className={styles.column}>
         {!props.hideLabels &&
-          <bem.ProjectsFilterEditor__label>
+          <span className={styles.label}>
             {t('Filter by')}
-          </bem.ProjectsFilterEditor__label>
+          </span>
         }
         <KoboSelect
           name={generateUid()}
@@ -91,14 +85,14 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           onChange={onFieldSelectorChange}
           placeholder={t('Select field')}
         />
-      </bem.ProjectsFilterEditor__column>
+      </div>
 
       {/* Filter condition selector */}
-      <bem.ProjectsFilterEditor__column>
+      <div className={styles.column}>
         {!props.hideLabels &&
-          <bem.ProjectsFilterEditor__label>
+          <span className={styles.label}>
             {t('Condition')}
-          </bem.ProjectsFilterEditor__label>
+          </span>
         }
         <KoboSelect
           name={generateUid()}
@@ -111,17 +105,17 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           onChange={onConditionSelectorChange}
           placeholder={t('Select condition')}
         />
-      </bem.ProjectsFilterEditor__column>
+      </div>
 
       {/* Filter value */}
-      <bem.ProjectsFilterEditor__column>
+      <div className={styles.column}>
         {!props.hideLabels &&
-          <bem.ProjectsFilterEditor__label>
+          <span className={styles.label}>
             {t('Value')}
-          </bem.ProjectsFilterEditor__label>
+          </span>
         }
         {!isFilterConditionValueRequired(props.filter.condition) &&
-          <bem.ProjectsFiltereditor__noValue/>
+          <div/>
         }
         {isFilterConditionValueRequired(props.filter.condition) &&
           <TextBox
@@ -131,9 +125,9 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             placeholder={t('Enter value')}
           />
         }
-      </bem.ProjectsFilterEditor__column>
+      </div>
 
-      <bem.ProjectsFilterEditor__column>
+      <div className={styles.column}>
         <Button
           type='bare'
           color='red'
@@ -141,7 +135,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           onClick={props.onDelete}
           startIcon='trash'
         />
-      </bem.ProjectsFilterEditor__column>
-    </bem.ProjectsFilterEditor>
+      </div>
+    </div>
   );
 }
