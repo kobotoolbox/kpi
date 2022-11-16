@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import {observer} from 'mobx-react';
 import Dropzone from 'react-dropzone';
 import WrappedSelect from 'js/components/common/wrappedSelect';
@@ -137,8 +136,6 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
   }
 });
 
-reactMixin(LibraryUploadForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryUploadForm.prototype, mixins.droppable);
-LibraryUploadForm.contextTypes = {router: PropTypes.object};
 
 export default withRouter(LibraryUploadForm);
