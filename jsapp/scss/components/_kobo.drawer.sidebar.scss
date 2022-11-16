@@ -32,6 +32,10 @@
     cursor: pointer;
   }
 
+  .form-sidebar__navlink {
+    color: $kobo-gray-40;
+  }
+
   .form-sidebar__label {
     display: flex;
     flex-direction: row;
