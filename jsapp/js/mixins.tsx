@@ -472,13 +472,13 @@ mixins.droppable = {
   _forEachDroppedFile(params: CreateImportRequest = {}) {
     const totalFiles = params.totalFiles || 1;
 
-    const router = this.context.router;
+    const router = this.props.router;
     const isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
-      && router.isActive('forms')
+      && routerIsActive('forms')
       && router.params.uid !== undefined
     );
-    const isLibrary = router.isActive('library');
+    const isLibrary = routerIsActive('library');
     const multipleFiles = (params.totalFiles && totalFiles > 1) ? true : false;
     params = assign({library: isLibrary}, params);
 
