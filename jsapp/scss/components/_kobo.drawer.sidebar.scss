@@ -36,6 +36,10 @@
     color: $kobo-gray-40;
   }
 
+  .active {
+    color: $kobo-gray-24;
+  }
+
   .form-sidebar__label {
     display: flex;
     flex-direction: row;
