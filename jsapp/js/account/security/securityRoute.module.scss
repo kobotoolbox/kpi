@@ -1,0 +1,7 @@
+@use 'scss/sizes';
+
+.security-section {
+  padding: sizes.$x50;
+  overflow-y: auto;
+  height: 100%;
+}

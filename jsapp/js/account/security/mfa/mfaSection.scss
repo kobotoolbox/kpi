@@ -2,12 +2,6 @@
 @use 'scss/_colors';
 @use 'scss/sizes';
 
-.security-section {
-  padding: sizes.$x50;
-  overflow-y: auto;
-  height: 100%;
-}
-
 .security-row {
   .security-row__header {
     display: flex;
