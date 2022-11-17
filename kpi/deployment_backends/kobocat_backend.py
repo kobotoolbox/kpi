@@ -39,6 +39,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    InvalidXFormException,
     InvalidXPathException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -1049,7 +1050,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        return self.xform.num_of_submissions
+        try:
+            return self.xform.num_of_submissions
+        except InvalidXFormException:
+            return 0
 
     @property
     def submission_list_url(self):
@@ -1167,9 +1171,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )  # Avoid extra query to validate username below
                 .first()
             )
-            if not (xform.user.username == self.asset.owner.username and
-                    xform.id_string == self.xform_id_string):
-                raise Exception(
+            if not (
+                xform
+                and xform.user.username == self.asset.owner.username
+                and xform.id_string == self.xform_id_string
+            ):
+                raise InvalidXFormException(
                     'Deployment links to an unexpected KoBoCAT XForm')
             setattr(self, '_xform', xform)
 
