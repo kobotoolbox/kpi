@@ -4,12 +4,15 @@ import DocumentTitle from 'react-document-title';
 import { observer } from 'mobx-react';
 import sessionStore from "js/stores/session";
 import {actions} from '../actions';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import TextBox from 'js/components/common/textBox';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
+import './accountSettings.scss';
+
+bem.AccountSettings = makeBem(null, 'account-settings');
 
 const ChangePassword = class ChangePassword extends React.Component {
   constructor(props) {
@@ -22,11 +25,6 @@ const ChangePassword = class ChangePassword extends React.Component {
       verifyPassword: ''
     };
     autoBind(this);
-  }
-
-  componentDidMount() {
-    this.listenTo(actions.auth.changePassword.failed, this.onChangePasswordFailed);
-    this.listenTo(actions.auth.changePassword.completed, this.onChangePasswordCompleted);
   }
 
   validateRequired(what) {
