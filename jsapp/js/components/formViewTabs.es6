@@ -234,7 +234,6 @@ class FormViewTabs extends Reflux.Component {
               <NavLink
                 to={item.path}
                 key={ind}
-                onlyActiveOnIndex
                 className={className}
                 data-path={item.path}
                 onClick={this.triggerRefresh}

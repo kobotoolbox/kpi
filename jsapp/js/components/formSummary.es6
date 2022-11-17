@@ -262,7 +262,6 @@ class FormSummary extends React.Component {
           <NavLink
             to={item.path}
             key={ind}
-            onlyActiveOnIndex
             data-path={item.path}
             onClick={this.triggerRefresh}
           >
