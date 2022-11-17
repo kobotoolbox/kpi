@@ -43,17 +43,23 @@ class JWTAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         cookie_jwt = request.COOKIES.get(settings.KPI_COOKIE_NAME)
+        auth_header = request.META.get("X-ONADATA-KOBOCAT-AUTH")
         if cookie_jwt:
             api_token = get_api_token(cookie_jwt)
-            user, created = User.objects.using('default').get_or_create(
-                username=api_token.user.username)
-
-            if created:
-                grant_default_model_level_perms(user)
-
-            if getattr(api_token, "user"):
-                return user, None
+        elif auth_header:
+            api_token = get_api_token(auth_header)
         else:
             return None
+
+        if not getattr(api_token, "user"):
+            return None
+
+        user, created = User.objects.using('default').get_or_create(
+            username=api_token.user.username)
+
+        if created:
+            grant_default_model_level_perms(user)
+
+        return user, None
 
 
