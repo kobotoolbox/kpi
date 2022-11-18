@@ -93,4 +93,8 @@ class MfaMethod(TrenchMFAMethod):
 
 class MfaMethodAdmin(TrenchMFAMethodAdmin):
 
-    search_fields = ['user__username']
+    search_fields = ('user__username',)
+    autocomplete_fields = ['user']
+
+    def has_add_permission(self, request, obj=None):
+        return False
