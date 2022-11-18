@@ -99,7 +99,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def attachment_storage_bytes(self):
-        return self.xform.attachment_storage_bytes
+        try:
+            return self.xform.attachment_storage_bytes
+        except InvalidXFormException:
+            return 0
 
     def bulk_assign_mapped_perms(self):
         """
@@ -230,13 +233,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
         today = timezone.now().date()
         try:
             monthly_counter = (
                 ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
                     'counter'
                 ).get(
-                    xform_id=self.xform_id,
+                    xform_id=xform_id,
                     year=today.year,
                     month=today.month,
                 )
