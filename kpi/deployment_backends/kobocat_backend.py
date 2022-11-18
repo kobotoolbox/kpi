@@ -233,13 +233,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
         today = timezone.now().date()
         try:
             monthly_counter = (
                 ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
                     'counter'
                 ).get(
-                    xform_id=self.xform_id,
+                    xform_id=xform_id,
                     year=today.year,
                     month=today.month,
                 )
