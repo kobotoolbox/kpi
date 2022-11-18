@@ -97,8 +97,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def all_time_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
         result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
-            xform_id=self.xform_id
+            xform_id=xform_id
         ).aggregate(Sum('counter'))
 
         if count := result['counter__sum']:
