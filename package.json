@@ -104,7 +104,7 @@
     "lodash.isequal": "^4.5.0",
     "mocha": "^7.1.2",
     "mocha-chrome": "^2.2.0",
-    "moment": "^2.25.3",
+    "moment": "^2.29.4",
     "object-assign": "^4.1.1",
     "postcss": "^7.0.30",
     "postcss-loader": "^4.2.0",
