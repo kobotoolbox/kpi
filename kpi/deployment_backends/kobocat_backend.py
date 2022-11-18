@@ -99,7 +99,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def attachment_storage_bytes(self):
-        return self.xform.attachment_storage_bytes
+        try:
+            return self.xform.attachment_storage_bytes
+        except InvalidXFormException:
+            return 0
 
     def bulk_assign_mapped_perms(self):
         """
