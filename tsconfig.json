@@ -10,6 +10,7 @@
     },
     "target": "es2016",
     "module": "es2015",
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
     "forceConsistentCasingInFileNames": true,

@@ -1,10 +1,5 @@
 @use "scss/_variables";
 
-// TODO: cleanup these buttons
-// 1. stop @extend-ing them, as ut makes for much harder debugging in Dev Tools
-//    instead create few mixins and use those
-// 2. simplify the number of options
-
 // Inspired but simplified version of MDL buttons
 
 // The button component. Defaults to a flat button.

@@ -5,6 +5,7 @@ coverage
 coveralls
 ipython
 mock
+model-bakery
 mongomock
 pytest
 pytest-cov

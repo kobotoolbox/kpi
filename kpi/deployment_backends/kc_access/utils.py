@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import logging
+from contextlib import ContextDecorator
 from typing import Union
 
 import requests
@@ -9,6 +10,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError, ProgrammingError, transaction
 from django.db.models import Model
+from django.db.transaction import Atomic
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
@@ -126,17 +128,15 @@ def set_kc_require_auth(user_id, require_auth):
     """
     user = User.objects.get(pk=user_id)
     _trigger_kc_profile_creation(user)
-    token, _ = Token.objects.get_or_create(user=user)
     with transaction.atomic():
+        token, _ = Token.objects.get_or_create(user=user)
         try:
-            profile = KobocatUserProfile.objects.get(user_id=user_id)
+            KobocatUserProfile.objects.filter(user_id=user_id).update(
+                require_auth=require_auth
+            )
         except ProgrammingError as e:
             raise ProgrammingError('set_kc_require_auth error accessing '
                                    'kobocat tables: {}'.format(repr(e)))
-        else:
-            if profile.require_auth != require_auth:
-                profile.require_auth = require_auth
-                profile.save()
 
 
 def _get_content_type_kwargs_for_related(obj):
@@ -297,7 +297,6 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
     KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 
-@transaction.atomic()
 def assign_applicable_kc_permissions(
     obj: Model,
     user: Union[AnonymousUser, User, int],
@@ -349,7 +348,6 @@ def assign_applicable_kc_permissions(
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)
 
 
-@transaction.atomic()
 def remove_applicable_kc_permissions(
     obj: Model,
     user: Union[AnonymousUser, User, int],
@@ -426,3 +424,41 @@ def delete_kc_users(deleted_pks: list) -> bool:
         return False
 
     return True
+
+
+def kc_transaction_atomic(using='kobocat', *args, **kwargs):
+    """
+    KoBoCAT database does not exist in testing environment.
+    `transaction.atomic(using='kobocat') cannot be called without raising errors.
+
+    This utility returns an a context manager which does nothing if environment
+    is set to `TESTING`. Otherwise, it returns a real context manager which
+    provides transactions support.
+    """
+    class DummyAtomic(ContextDecorator):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            pass
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            pass
+
+    assert (
+        callable(using) or using == 'kobocat'
+    ), "`kc_transaction_atomic` may only be used with the 'kobocat' database"
+
+    if settings.TESTING:
+        # Bare decorator: @atomic -- although the first argument is called
+        # `using`, it's actually the function being decorated.
+        if callable(using):
+            return DummyAtomic()(using)
+        else:
+            return DummyAtomic()
+
+    # Not in a testing environment; use the real `atomic`
+    if callable(using):
+        return transaction.atomic('kobocat', *args, **kwargs)(using)
+    else:
+        return transaction.atomic('kobocat', *args, **kwargs)

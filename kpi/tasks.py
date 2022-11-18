@@ -1,9 +1,10 @@
 # coding: utf-8
+from datetime import timedelta
+import constance
 import requests
 from django.conf import settings
 from django.core.management import call_command
-from rest_framework import status
-from rest_framework.reverse import reverse
+from django.utils.timezone import now
 
 from kobo.celery import celery_app
 
@@ -64,3 +65,16 @@ def enketo_flush_cached_preview(server_url, form_id):
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()
+
+
+@celery_app.task
+def remove_asset_snapshots(asset_id: int):
+    """
+    Temporary task to delete old snapshots.
+    TODO remove when kpi#2434 is merged
+    """
+    call_command(
+        'delete_assets_snapshots',
+        days=constance.config.ASSET_SNAPSHOT_DAYS_RETENTION,
+        asset_id=asset_id,
+    )

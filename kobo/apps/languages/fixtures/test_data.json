@@ -1,0 +1,268 @@
+[
+    {
+        "fields": {
+            "name": "Aché",
+            "code": "guq",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "French",
+            "code": "fr",
+            "featured": true
+        },
+        "model": "languages.language",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "English",
+            "code": "en",
+            "featured": true
+        },
+        "model": "languages.language",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "name": "Hebrew",
+            "code": "he",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "name": "Afrikaans",
+            "code": "af",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "name": "Serbian",
+            "code": "sr",
+            "featured": false
+        },
+        "model": "languages.language",
+        "pk": 6
+    },
+    {
+        "fields": {
+            "name": "France",
+            "code": "fr-FR",
+            "language_id": 2
+        },
+        "model": "languages.languageregion",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Canada",
+            "code": "fr-CA",
+            "language_id": 2
+        },
+        "model": "languages.languageregion",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "US",
+            "code": "en-US",
+            "language_id": 3
+        },
+        "model": "languages.languageregion",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "name": "Canada",
+            "code": "en-CA",
+            "language_id": 3
+        },
+        "model": "languages.languageregion",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "name": "Israel",
+            "code": "he-IL",
+            "language_id": 4
+        },
+        "model": "languages.languageregion",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "name": "Latin",
+            "code": "sr-RS",
+            "language_id": 5
+        },
+        "model": "languages.languageregion",
+        "pk": 6
+    },
+    {
+        "fields": {
+            "name": "Cyrillic",
+            "code": "sr-CS",
+            "language_id": 5
+        },
+        "model": "languages.languageregion",
+        "pk": 7
+    },
+    {
+        "fields": {
+            "name": "Microsoft",
+            "code": "msft"
+        },
+        "model": "languages.translationservice",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Google",
+            "code": "goog"
+        },
+        "model": "languages.translationservice",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "Microsoft",
+            "code": "msft"
+        },
+        "model": "languages.transcriptionservice",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Google",
+            "code": "goog"
+        },
+        "model": "languages.transcriptionservice",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1,
+            "region_id": 1
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1,
+            "region_id": 2
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 2,
+            "region_id": 1
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 2,
+            "region_id": 2
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2,
+            "region_id": 3
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2,
+            "region_id": 4
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 6
+    },
+    {
+        "fields": {
+            "language_id": 4,
+            "service_id": 2,
+            "region_id": 5,
+            "mapping_code": "iw-IL"
+        },
+        "model": "languages.transcriptionservicelanguagem2m",
+        "pk": 7
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 2
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "language_id": 2,
+            "service_id": 1,
+            "region_id": 2
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "language_id": 3,
+            "service_id": 2
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "language_id": 5,
+            "service_id": 1,
+            "region_id": 6,
+            "mapping_code": "sr-Latn"
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 5
+    },
+    {
+        "fields": {
+            "language_id": 5,
+            "service_id": 1,
+            "region_id": 7,
+            "mapping_code": "sr-Cyl"
+        },
+        "model": "languages.translationservicelanguagem2m",
+        "pk": 6
+    }
+]

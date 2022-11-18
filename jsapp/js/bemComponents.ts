@@ -6,11 +6,15 @@
 
 import bem, {makeBem} from 'js/bem';
 
+// DEPRECATED: please don't use this component. From now on, we will only use
+// the `Button` component (from `js/components/common/button`) as it covers
+// all possible cases.
 bem.Button = makeBem(null, 'mdl-button', 'button');
-
 bem.KoboButton = makeBem(null, 'kobo-button', 'button');
 bem.KoboLightButton = makeBem(null, 'kobo-light-button', 'button');
 bem.KoboTextButton = makeBem(null, 'kobo-text-button', 'button');
+// END DEPRECATED
+
 bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
 
 bem.KoboSelect = makeBem(null, 'kobo-select');
@@ -114,12 +118,6 @@ bem.LibList__tag = makeBem(bem.LibList, 'tag', 'span');
 bem.LibList__label = makeBem(bem.LibList, 'label');
 bem.LibList__dragbox = makeBem(bem.LibList, 'dragbox');
 bem.LibList__qtype = makeBem(bem.LibList, 'qtype');
-
-bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
-bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
-bem.SubmissionDataTable__column = makeBem(bem.SubmissionDataTable, 'column');
-bem.SubmissionDataTable__XMLName = makeBem(bem.SubmissionDataTable, 'xml-name');
-bem.SubmissionDataTable__value = makeBem(bem.SubmissionDataTable, 'value');
 
 bem.TableMeta = makeBem(null, 'table-meta');
 bem.TableMeta__counter = makeBem(bem.TableMeta, 'counter');
@@ -265,17 +263,6 @@ bem.KDrawer = makeBem(null, 'k-drawer');
 bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav');
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav');
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside');
-
-bem.HelpBubble = makeBem(null, 'help-bubble');
-bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button');
-bem.HelpBubble__back = makeBem(bem.HelpBubble, 'back', 'button');
-bem.HelpBubble__trigger = makeBem(bem.HelpBubble, 'trigger', 'button');
-bem.HelpBubble__triggerCounter = makeBem(bem.HelpBubble, 'trigger-counter', 'span');
-bem.HelpBubble__popup = makeBem(bem.HelpBubble, 'popup');
-bem.HelpBubble__popupContent = makeBem(bem.HelpBubble, 'popup-content');
-bem.HelpBubble__row = makeBem(bem.HelpBubble, 'row');
-bem.HelpBubble__rowAnchor = makeBem(bem.HelpBubble, 'row', 'a');
-bem.HelpBubble__rowWrapper = makeBem(bem.HelpBubble, 'row-wrapper');
 
 bem.SimpleTable = makeBem(null, 'simple-table', 'table');
 bem.SimpleTable__header = makeBem(bem.SimpleTable, 'header', 'thead');

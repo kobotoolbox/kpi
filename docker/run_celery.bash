@@ -7,6 +7,9 @@ source /etc/profile
 # according to the user's preference saved by django-constance
 cd "${KPI_SRC_DIR}"
 
+AUTOSCALE_MIN="${CELERY_AUTOSCALE_MIN:-2}"
+AUTOSCALE_MAX="${CELERY_AUTOSCALE_MAX:-6}"
+
 exec celery -A kobo worker --loglevel=info \
     --hostname=kpi_main_worker@%h \
     --logfile=${KPI_LOGS_DIR}/celery.log \
@@ -15,4 +18,4 @@ exec celery -A kobo worker --loglevel=info \
     --exclude-queues=kpi_low_priority_queue \
     --uid=${UWSGI_USER} \
     --gid=${UWSGI_GROUP} \
-    --autoscale 2,2
+    --autoscale ${AUTOSCALE_MIN},${AUTOSCALE_MAX}

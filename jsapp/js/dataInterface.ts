@@ -2,9 +2,7 @@
  * The only file that is making calls to Backend. You shouldn't use it directly,
  * but through proper actions in `jsapp/js/actions.es6`.
  *
- * TODO: Instead of splitting this huge file it could be a good idead to move
- * all the calls from here to appropriate actions and drop this file entirely.
- * And make actions for calls that doesn't have them.
+ * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
 import {assign} from 'js/utils';
@@ -13,6 +11,7 @@ import {
   COMMON_QUERIES,
 } from './constants';
 import type {EnvStoreFieldItem} from 'js/envStore';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
   ValidationStatus,
@@ -74,7 +73,6 @@ interface AssetFileRequest {
 }
 
 export interface CreateImportRequest {
-  // TODO there might be more here
   base64Encoded?: string;
   name?: string;
   destination?: string;
@@ -95,13 +93,21 @@ export interface ImportResponse {
 }
 
 export interface FailResponse {
-  responseJSON: {
-    detail: string;
+  responseJSON?: {
+    detail?: string;
+    error?: string;
   };
   responseText: string;
   status: number;
   statusText: string;
 }
+
+interface ProcessingResponseData {
+  [questionName: string]: any;
+  _id: number;
+};
+
+export interface GetProcessingSubmissionsResponse extends PaginatedResponse<ProcessingResponseData> {}
 
 export interface SubmissionAttachment {
   download_url: string;
@@ -113,6 +119,39 @@ export interface SubmissionAttachment {
   instance: number;
   xform: number;
   id: number;
+}
+
+interface SubmissionSupplementalDetails {
+  [questionName: string]: {
+    transcript?: {
+      languageCode: LanguageCode
+      value: string
+      dateCreated: string
+      dateModified: string
+      engine?: string
+      revisions?: {
+        dateModified: string
+        engine?: string
+        languageCode: LanguageCode
+        value: string
+      }[]
+    }
+    translated?: {
+      [languageCode: LanguageCode]: {
+        languageCode: LanguageCode
+        value: string
+        dateCreated: string
+        dateModified: string
+        engine?: string
+        revisions?: {
+          dateModified: string
+          engine?: string
+          languageCode: LanguageCode
+          value: string
+        }[]
+      }
+    }
+  }
 }
 
 export interface SubmissionResponse {
@@ -138,6 +177,7 @@ export interface SubmissionResponse {
   start?: string;
   today?: string;
   username?: string;
+  _supplementalDetails?: SubmissionSupplementalDetails;
 }
 
 interface AssignablePermission {
@@ -207,6 +247,8 @@ interface ExportSettingSettings {
  * a more complex question type.
  */
 export interface SurveyRow {
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $qpath: string;
   $autoname: string;
   $kuid: string;
   // We use dynamic import to avoid changing this ambient module to a normal
@@ -225,19 +267,22 @@ export interface SurveyRow {
   'kobo--rank-items'?: string;
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
+  /** HXL tags. */
+  tags: string[]
 }
 
 export interface SurveyChoice {
   $autovalue: string;
   $kuid: string;
-  label: string[];
+  label?: string[];
   list_name: string;
   name: string;
+  'media::image'?: string[];
 }
 
 interface AssetLockingProfileDefinition {
   name: string;
-  restrictions: string[]; // TODO use restrictions enum after it is added
+  restrictions: string[]; // TODO make sure it's a type not a string when, see: https://github.com/kobotoolbox/kpi/issues/3904
 }
 
 export interface AssetContentSettings {
@@ -285,6 +330,41 @@ interface AssetReportStylesKuidNames {
   [name: string]: {};
 }
 
+interface AdvancedSubmissionSchema {
+  type: 'string' | 'object'
+  $description: string
+  url?: string
+  properties?: AdvancedSubmissionSchemaDefinition
+  additionalProperties?: boolean
+  required?: string[]
+  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
+}
+
+export interface AssetAdvancedFeatures {
+  transcript?: {
+    /** List of question names */
+    values?: string[]
+    /** List of transcript enabled languages. */
+    languages?: string[]
+  }
+  translation?: {
+    /** List of question names */
+    values?: string[]
+    /** List of translations enabled languages. */
+    languages?: string[]
+  }
+}
+
+interface AdvancedSubmissionSchemaDefinition {
+  [name: string]: {
+    type: 'string' | 'object'
+    description: string
+    properties?: {[name: string]: {}}
+    additionalProperties?: boolean
+    required?: string[]
+  }
+}
+
 /**
  * None of these are actually stored as `null`s, but we use this interface for
  * a new settings draft too and it's simpler that way.
@@ -315,7 +395,7 @@ export interface AssetSettings {
 
 /** This is the asset object Frontend uses with the endpoints. */
 interface AssetRequestObject {
-  // TODO there might be a few properties in AssetResponse that should be here,
+  // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null;
   settings: AssetSettings;
@@ -347,6 +427,8 @@ interface AssetRequestObject {
   export_settings: ExportSetting[];
   data_sharing: {};
   paired_data: string;
+  advanced_features: AssetAdvancedFeatures
+  advanced_submission_schema: AdvancedSubmissionSchema
 }
 
 /**
@@ -367,6 +449,7 @@ export interface AssetResponse extends AssetRequestObject {
   version_count: number;
   has_deployment: boolean;
   deployed_version_id: string|null;
+  analysis_form_json: any;
   deployed_versions: {
     count: number;
     next: string | null;
@@ -425,7 +508,9 @@ export interface AssetResponse extends AssetRequestObject {
   access_types: string[]|null;
 
   // TODO: think about creating a new interface for asset that is being extended
-  // on frontend. Here are some properties we add to the response:
+  // on frontend.
+  // See: https://github.com/kobotoolbox/kpi/issues/3905
+  // Here are some properties we add to the response:
   tags?: string[];
   unparsed__settings?: AssetContentSettings;
   settings__style?: string;
@@ -490,6 +575,15 @@ export interface AccountResponse {
   };
 }
 
+export interface TransxLanguages {
+  [languageCode: string]: {
+    /** Human readable and localized language name. */
+    name: string;
+    /** A list of available services. */
+    options: string[];
+  };
+}
+
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -502,13 +596,18 @@ export interface EnvironmentResponse {
   sector_choices: string[][];
   operational_purpose_choices: string[][];
   country_choices: string[][];
-  all_languages: string[][];
   interface_languages: string[][];
+  transcription_languages: TransxLanguages;
+  translation_languages: TransxLanguages;
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
-  mfa_localized_help_text: {[name: string]: string}
-  mfa_enabled: boolean
+  asr_mt_features_enabled: boolean;
+  mfa_localized_help_text: {[name: string]: string};
+  mfa_enabled: boolean;
+  mfa_code_length: number;
+  stripe_public_key: string | null;
+  stripe_pricing_table_id: string | null;
 }
 
 const DEFAULT_PAGE_SIZE = 100;
@@ -587,7 +686,6 @@ export const dataInterface: DataInterface = {
       twitter?: string;
       linkedin?: string;
       instagram?: string;
-      metadata?: string;
     };
     current_password?: string;
     new_password?: string;
@@ -933,6 +1031,7 @@ export const dataInterface: DataInterface = {
       data: {
         ordering: '-date_created',
         // TODO: handle pagination of this in future, for now we get "all"
+        // see: https://github.com/kobotoolbox/kpi/issues/3906
         limit: 9999,
       },
     });
@@ -965,7 +1064,9 @@ export const dataInterface: DataInterface = {
   getExportSettings(assetUid: string) {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
-      // TODO: handle pagination of this in future, for now we get "all"
+      // NOTE: we make an educated guess that there would be no real world
+      // situations that would require more than 9999 saved settings.
+      // No pagination here, sorry.
       data: {limit: 9999},
     });
   },
@@ -1392,28 +1493,6 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/files/${uid}/`,
       method: 'DELETE',
-    });
-  },
-
-  getHelpInAppMessages() {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/`,
-      method: 'GET',
-    });
-  },
-
-  patchHelpInAppMessage(uid: string, data: {
-    interactions: {
-      readTime: string;
-      acknowledged: boolean;
-    };
-  }) {
-    return $ajax({
-      url: `${ROOT_URL}/help/in_app_messages/${uid}/`,
-      method: 'PATCH',
-      data: JSON.stringify(data),
-      dataType: 'json',
-      contentType: 'application/json',
     });
   },
 

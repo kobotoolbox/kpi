@@ -164,11 +164,7 @@ export default class MetadataEditor extends React.Component {
         {envStore.isReady &&
           envStore.data.support_url && (
             <bem.TextBox__labelLink
-              // TODO update support article to include background-audio
-              href={
-                envStore.data.support_url +
-                RECORDING_SUPPORT_URL
-              }
+              href={envStore.data.support_url + RECORDING_SUPPORT_URL}
               target='_blank'
             >
               <i className='k-icon k-icon-help' />

@@ -2,7 +2,6 @@
 # 😬
 import copy
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from rest_framework.reverse import reverse
 
@@ -63,15 +62,16 @@ class AssetSnapshot(
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONBField(default=dict)
-    details = JSONBField(default=dict)
+    source = models.JSONField(default=dict)
+    details = models.JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
+    submission_uuid = models.CharField(null=True, max_length=41)
     _reversion_version_id = models.IntegerField(null=True)
-    asset_version = models.OneToOneField('AssetVersion',
-                                         on_delete=models.CASCADE,
-                                         null=True)
+    asset_version = models.ForeignKey(
+        'AssetVersion', on_delete=models.CASCADE, null=True
+    )
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
@@ -159,6 +159,22 @@ class AssetSnapshot(
             form_title=form_title,
             id_string=id_string,
         )
+        if self.submission_uuid:
+            _xml = self.xml
+            rootUuid = self.submission_uuid.replace('uuid:', '')
+            # this code would fit best within "generate_xml_from_source" method, where
+            # additional XForm attributes are passed to formpack / pyxform at generation,
+            # but the equivalent change can be done with string replacement
+            instance_id_path = f'/{id_string}/meta/instanceID'
+            after_instanceid = '<rootUuid/>'
+            before_modelclose = '<bind calculate="\'' + rootUuid + '\'" ' + \
+                f'nodeset="/{id_string}/meta/rootUuid" ' + \
+                'required="true()" type="string"/>'
+
+            _xml = _xml.replace('<instanceID/>', f'<instanceID/>\n{after_instanceid}')
+            _xml = _xml.replace('</model>', f'{before_modelclose}\n</model>')
+            self.xml = _xml
+
         self.source = _source
         return super().save(*args, **kwargs)
 
@@ -196,7 +212,7 @@ class AssetSnapshot(
         source_copy = copy.deepcopy(source)
         self._expand_kobo_qs(source_copy)
         self._populate_fields_with_autofields(source_copy)
-        self._strip_kuids(source_copy)
+        self._strip_dollar_fields(source_copy)
 
         allow_choice_duplicates(source_copy)
 

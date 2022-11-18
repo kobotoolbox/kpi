@@ -1,14 +1,36 @@
 import React from 'react';
-import ButtonDemo from 'js/designSystem/buttonDemo'
-import CheckboxDemo from 'js/designSystem/checkboxDemo'
-import IconDemo from 'js/designSystem/iconDemo'
-import InlineMessageDemo from 'js/designSystem/inlineMessageDemo'
-import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo'
-import KoboRangeDemo from 'js/designSystem/koboRangeDemo'
-import KoboSelectDemo from 'js/designSystem/koboSelectDemo'
-import RadioDemo from 'js/designSystem/radioDemo'
-import TextBoxDemo from 'js/designSystem/textboxDemo'
-import './demo.scss'
+import ButtonDemo from 'js/designSystem/buttonDemo';
+import CheckboxDemo from 'js/designSystem/checkboxDemo';
+import IconDemo from 'js/designSystem/iconDemo';
+import InlineMessageDemo from 'js/designSystem/inlineMessageDemo';
+import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo';
+import KoboModalDemo from 'js/designSystem/koboModalDemo';
+import KoboPromptDemo from 'js/designSystem/koboPromptDemo';
+import KoboRangeDemo from 'js/designSystem/koboRangeDemo';
+import KoboSelectDemo from 'js/designSystem/koboSelectDemo';
+import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
+import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo';
+import RadioDemo from 'js/designSystem/radioDemo';
+import RegionSelectorDemo from 'js/designSystem/regionSelectorDemo';
+import TextBoxDemo from 'js/designSystem/textboxDemo';
+import './demo.scss';
+
+const designSystemComponents = [
+  ['Button', <ButtonDemo/>],
+  ['Checkbox', <CheckboxDemo/>],
+  ['Icon', <IconDemo/>],
+  ['InlineMessage', <InlineMessageDemo/>],
+  ['KoboDropdown', <KoboDropdownDemo/>],
+  ['KoboModal', <KoboModalDemo/>],
+  ['KoboPrompt', <KoboPromptDemo/>],
+  ['KoboRange', <KoboRangeDemo/>],
+  ['KoboSelect', <KoboSelectDemo/>],
+  ['LanguageSelector', <LanguageSelectorDemo/>],
+  ['MiniAudioPlayer', <MiniAudioPlayerDemo/>],
+  ['Radio', <RadioDemo/>],
+  ['RegionSelector', <RegionSelectorDemo/>],
+  ['TextBox', <TextBoxDemo/>],
+];
 
 /**
  * This is an app for displaying our design system. It is meant as both
@@ -23,17 +45,27 @@ export default class DesignSystemApp extends React.Component {
     return (
       <section className='design-system'>
         <div className='design-system__demo-wrapper'>
-          <ButtonDemo/>
-          <CheckboxDemo/>
-          <IconDemo/>
-          <InlineMessageDemo/>
-          <KoboDropdownDemo/>
-          <KoboRangeDemo/>
-          <KoboSelectDemo/>
-          <RadioDemo/>
-          <TextBoxDemo/>
+          <ul>
+            {designSystemComponents.map((componentArray, key) => {
+              const anchorName = `anchor-${key}`;
+              return (
+                <li>
+                  <a href={`#${anchorName}`}>{componentArray[0]}</a>
+                </li>
+              );
+            })}
+          </ul>
+          {designSystemComponents.map((componentArray, key) => {
+            const anchorName = `anchor-${key}`;
+            return (
+              <React.Fragment>
+                <a id={anchorName}/>
+                {componentArray[1]}
+              </React.Fragment>
+            );
+          })}
         </div>
       </section>
-    )
+    );
   }
 }

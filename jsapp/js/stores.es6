@@ -12,6 +12,7 @@
  * TODO: it would be best to split these to separate files within `jsapp/js/stores`
  * directory and probably import all of them here and keep this file as a single
  * source for all stores(?).
+ * See: https://github.com/kobotoolbox/kpi/issues/3908
  */
 
 import Reflux from 'reflux';
@@ -218,6 +219,9 @@ stores.session = Reflux.createStore({
 });
 
 /**
+ * This store keeps data of assets, both complete (i.e. with `content` property)
+ * and incomplete (e.g. from asset lists).
+ *
  * NOTE: this is not a reliable source of complete assets (i.e. ones with
  * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
  * one without it.

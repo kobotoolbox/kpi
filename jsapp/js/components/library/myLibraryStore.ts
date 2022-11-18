@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
 import {Location} from 'history';
 import {hashHistory} from 'react-router';
@@ -69,10 +69,10 @@ class MyLibraryStore extends Reflux.Store {
     filterValue: null
   }
 
-  fetchDataDebounced?: Function
+  fetchDataDebounced?: () => void
 
   init() {
-    this.fetchDataDebounced = _.debounce(this.fetchData.bind(this), 2500);
+    this.fetchDataDebounced = debounce(this.fetchData.bind(this), 2500);
 
     this.setDefaultColumns();
 

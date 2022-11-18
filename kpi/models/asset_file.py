@@ -3,7 +3,6 @@ import posixpath
 from mimetypes import guess_type
 from typing import Optional
 
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
 from private_storage.fields import PrivateFileField
@@ -102,7 +101,7 @@ class AssetFile(models.Model, AbstractFormMedia):
     description = models.CharField(max_length=255)
     date_created = models.DateTimeField(default=timezone.now)
     content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
-    metadata = JSONBField(default=dict)
+    metadata = models.JSONField(default=dict)
     date_deleted = models.DateTimeField(null=True, default=None)
     date_modified = models.DateTimeField(default=timezone.now)
     synced_with_backend = models.BooleanField(default=False)

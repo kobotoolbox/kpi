@@ -5,9 +5,11 @@ from functools import reduce
 from operator import add
 from typing import Optional, Union
 
+from jsonschema import validate as jsonschema_validate
+
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.fields import JSONField as JSONBField
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -18,8 +20,19 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
-from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
-                                         DEFAULT_REPORTS_KEY)
+from kobo.apps.reports.constants import (
+    SPECIFIC_REPORTS_KEY,
+    DEFAULT_REPORTS_KEY,
+)
+from kobo.apps.subsequences.advanced_features_params_schema import (
+    ADVANCED_FEATURES_PARAMS_SCHEMA,
+)
+from kobo.apps.subsequences.utils import (
+    advanced_feature_instances,
+    advanced_submission_jsonschema,
+)
+from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
+
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
@@ -62,11 +75,11 @@ from kpi.mixins import (
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
-from .asset_user_partial_permission import AssetUserPartialPermission
-from .asset_version import AssetVersion
+from kpi.tasks import remove_asset_snapshots
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -137,12 +150,14 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONBField(default=dict)
-    summary = JSONBField(default=dict)
-    report_styles = JSONBField(default=dict)
-    report_custom = JSONBField(default=dict)
+    content = models.JSONField(default=dict)
+    summary = models.JSONField(default=dict)
+    report_styles = models.JSONField(default=dict)
+    report_custom = models.JSONField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
+    advanced_features = LazyDefaultJSONBField(default=dict)
+    known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey('Asset', related_name='children',
@@ -151,12 +166,12 @@ class Asset(ObjectPermissionMixin,
                               on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings = JSONBField(default=dict)
+    settings = models.JSONField(default=dict)
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
     # ToDo Move the field to another table with one-to-one relationship
-    _deployment_data = JSONBField(default=dict)
+    _deployment_data = models.JSONField(default=dict)
 
     # JSON with subset of fields to share
     # {
@@ -387,6 +402,78 @@ class Asset(ObjectPermissionMixin,
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
+    def get_advanced_feature_instances(self):
+        return advanced_feature_instances(self.content, self.advanced_features)
+
+    @property
+    def has_advanced_features(self):
+        if self.advanced_features is None:
+            return False
+        return len(self.advanced_features) > 0
+
+    def _get_additional_fields(self):
+        return parse_known_cols(self.known_cols)
+
+    def _get_engines(self):
+        for instance in self.get_advanced_feature_instances():
+            for key, val in instance.engines():
+                yield key, val
+
+    def analysis_form_json(self):
+        additional_fields = list(self._get_additional_fields())
+        engines = dict(self._get_engines())
+        return {'engines': engines, 'additional_fields': additional_fields}
+
+    def validate_advanced_features(self):
+        if self.advanced_features is None:
+            self.advanced_features = {}
+        jsonschema_validate(instance=self.advanced_features,
+                            schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
+
+    def update_submission_extra(self, content, user=None):
+        submission_uuid = content.get('submission')
+        # the view had better have handled this
+        assert submission_uuid is not None
+
+        # `select_for_update()` can only lock things that exist; make sure
+        # a `SubmissionExtras` exists for this submission before proceeding
+        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
+
+        with transaction.atomic():
+            sub = (
+                self.submission_extras.filter(submission_uuid=submission_uuid)
+                .select_for_update()
+                .first()
+            )
+            instances = self.get_advanced_feature_instances()
+            compiled_content = {**sub.content}
+            for instance in instances:
+                compiled_content = instance.compile_revised_record(
+                    compiled_content, edits=content
+                )
+            sub.content = compiled_content
+            sub.save()
+
+        return sub
+
+    def get_advanced_submission_schema(self, url=None,
+                                       content=False):
+        if len(self.advanced_features) == 0:
+            NO_FEATURES_MSG = 'no advanced features activated for this form'
+            return {'type': 'object', '$description': NO_FEATURES_MSG}
+        last_deployed_version = self.deployed_versions.first()
+        if content:
+            return advanced_submission_jsonschema(content,
+                                                  self.advanced_features,
+                                                  url=url)
+        if last_deployed_version is None:
+            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
+            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
+        content = last_deployed_version.version_content
+        return advanced_submission_jsonschema(content,
+                                              self.advanced_features,
+                                              url=url)
+
     def adjust_content_on_save(self):
         """
         This is called on save by default if content exists.
@@ -399,6 +486,7 @@ class Asset(ObjectPermissionMixin,
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
+        self._insert_qpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
 
@@ -609,6 +697,17 @@ class Asset(ObjectPermissionMixin,
         return self.deployed_versions.first()
 
     @property
+    def latest_deployed_version_uid(self) -> Optional[str]:
+        """
+        Use this property to only load the `uid` field (and avoid big contents
+        like `AssetVersion.content`)
+        """
+        version = self.deployed_versions.only('uid', 'asset_id').first()
+        if not version:
+            return None
+        return version.uid
+
+    @property
     def latest_version(self):
         versions = None
         try:
@@ -736,6 +835,12 @@ class Asset(ObjectPermissionMixin,
         if adjust_content:
             self.adjust_content_on_save()
 
+        if (
+            not update_fields
+            or update_fields and 'advanced_features' in update_fields
+        ):
+            self.validate_advanced_features()
+
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
             self._populate_summary()
@@ -811,10 +916,6 @@ class Asset(ObjectPermissionMixin,
 
         if create_version:
             self.create_version()
-
-    @property
-    def snapshot(self):
-        return self._snapshot(regenerate=False)
 
     @property
     def tag_string(self):
@@ -938,17 +1039,6 @@ class Asset(ObjectPermissionMixin,
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
-    # TODO: take leading underscore off of `_snapshot()` and call it directly?
-    # we would also have to remove or rename the `snapshot` property
-    def versioned_snapshot(
-        self, version_uid: str, root_node_name: Optional[str] = None
-    ) -> AssetSnapshot:
-        return self._snapshot(
-            regenerate=False,
-            version_uid=version_uid,
-            root_node_name=root_node_name,
-        )
-
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
@@ -978,10 +1068,11 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     @transaction.atomic
-    def _snapshot(
+    def snapshot(
         self,
-        regenerate: bool = True,
+        regenerate: bool = False,
         version_uid: Optional[str] = None,
+        submission_uuid: Optional[str] = None,
         root_node_name: Optional[str] = None,
     ) -> AssetSnapshot:
         if version_uid:
@@ -989,20 +1080,21 @@ class Asset(ObjectPermissionMixin,
         else:
             asset_version = self.latest_version
 
-        try:
-            snapshot = AssetSnapshot.objects.get(asset=self,
-                                                 asset_version=asset_version)
-            if regenerate:
-                snapshot.delete()
-                snapshot = False
-        except AssetSnapshot.MultipleObjectsReturned:
-            # how did multiple snapshots get here?
-            snaps = AssetSnapshot.objects.filter(asset=self,
-                                                 asset_version=asset_version)
-            snaps.delete()
+        snap_params = {
+            'asset': self,
+            'asset_version': asset_version,
+        }
+        if submission_uuid:
+            snap_params['submission_uuid'] = submission_uuid
+
+        if regenerate:
             snapshot = False
-        except AssetSnapshot.DoesNotExist:
-            snapshot = False
+            # Let's do some housekeeping
+            remove_asset_snapshots.delay(self.id)
+        else:
+            snapshot = AssetSnapshot.objects.filter(**snap_params).order_by(
+                '-date_created'
+            ).first()
 
         if not snapshot:
             try:
@@ -1024,9 +1116,8 @@ class Asset(ObjectPermissionMixin,
 
             self._append(content, settings=settings_)
 
-            snapshot = AssetSnapshot.objects.create(
-                asset=self, asset_version=asset_version, source=content
-            )
+            snap_params['source'] = content
+            snapshot = AssetSnapshot.objects.create(**snap_params)
 
         return snapshot
 

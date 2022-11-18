@@ -15,10 +15,10 @@ import responses
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils.datastructures import MultiValueDictKeyError
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.audit_log.models import AuditLog
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
@@ -28,13 +28,16 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
+    enketo_edit_instance_response_with_root_name_validation,
     enketo_view_instance_response,
 )
 
@@ -166,10 +169,40 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
 
         self.assertEqual(response.data['count'], 0)
+
+    def test_audit_log_on_bulk_delete(self):
+        """
+        Validate that all submission ids are logged in AuditLog table on
+        bulk deletion.
+        """
+        expected_submission_ids = [
+            s['_id']
+            for s in self.asset.deployment.get_submissions(
+                self.asset.owner, fields=['_id']
+            )
+        ]
+        (
+            app_label,
+            model_name,
+        ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
+        audit_log_count = AuditLog.objects.filter(
+            user=self.someuser, app_label=app_label, model_name=model_name
+        ).count()
+        # No submissions have been deleted yet
+        assert audit_log_count == 0
+        # Delete all submissions
+        self.test_delete_submissions_as_owner()
+
+        # All submissions have been deleted and should be logged
+        deleted_submission_ids = AuditLog.objects.values_list(
+            'pk', flat=True
+        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        assert len(expected_submission_ids) > 0
+        assert sorted(expected_submission_ids), sorted(deleted_submission_ids)
 
     def test_delete_submissions_as_anonymous(self):
         """
@@ -213,7 +246,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
 
@@ -243,7 +276,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
@@ -313,7 +346,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], count - len(random_submissions))
 
@@ -514,8 +547,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         # User `anotheruser` should only see submissions where `submitted_by`
         # is filled in and equals to `anotheruser`
-        viewable_submissions_count = len(self.submissions_submitted_by_anotheruser)
-        self.assertTrue(response.data.get('count') == viewable_submissions_count)
+        viewable_submission_count = len(self.submissions_submitted_by_anotheruser)
+        self.assertTrue(response.data.get('count') == viewable_submission_count)
         for submission in response.data['results']:
             self.assertTrue(submission['_submitted_by'] == 'anotheruser')
 
@@ -714,7 +747,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can delete their own data.
         """
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_someuser[0]
         url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
@@ -722,6 +755,31 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_list_url, {'format': 'json'})
 
         self.assertEqual(response.data['count'], len(self.submissions) - 1)
+
+    def test_audit_log_on_delete(self):
+        """
+        Validate that the submission id is logged in AuditLog table when it is
+        deleted.
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        (
+            app_label,
+            model_name,
+        ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
+        audit_log_count = AuditLog.objects.filter(
+            user=self.someuser, app_label=app_label, model_name=model_name
+        ).count()
+        # No submissions have been deleted yet
+        assert audit_log_count == 0
+        # Delete one submission
+        self.test_delete_submission_as_owner()
+
+        # All submissions have been deleted and should be logged
+        deleted_submission_ids = AuditLog.objects.values_list(
+            'pk', flat=True
+        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        assert len(deleted_submission_ids) > 0
+        assert [submission['_id']], deleted_submission_ids
 
     def test_delete_not_existing_submission_as_owner(self):
         """
@@ -1030,7 +1088,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
     def test_edit_submission_with_digest_credentials(self):
         url = reverse(
             self._get_endpoint('assetsnapshot-submission-alias'),
-            args=(self.asset.snapshot.uid,),
+            args=(self.asset.snapshot().uid,),
         )
         self.client.logout()
         client = DigestClient()
@@ -1065,7 +1123,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
     def test_edit_submission_with_authenticated_session_but_no_digest(self):
         url = reverse(
             self._get_endpoint('assetsnapshot-submission-alias'),
-            args=(self.asset.snapshot.uid,),
+            args=(self.asset.snapshot().uid,),
         )
         self.login_as_other_user('anotheruser', 'anotheruser')
         # Try to edit someuser's submission by anotheruser who has no
@@ -1113,14 +1171,78 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             self.client.get(edit_url, {'format': 'json'})
             url = reverse(
                 self._get_endpoint('assetsnapshot-submission'),
-                args=(self.asset.snapshot.uid,),
+                args=(self.asset.snapshot().uid,),
             )
             submission_urls.append(url)
+
         # Post all edits to their submission URLs. There is no valid XML being
-        # sent, so we expect a KeyError exeption if all is good
+        # sent, so we expect a KeyError exception if all is good
         for url in submission_urls:
             with pytest.raises(KeyError) as e:
                 res = self.client.post(url)
+
+    @responses.activate
+    def test_edit_submission_with_different_root_name(self):
+
+        # Mock Enketo response
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response_with_root_name_validation,
+            content_type='application/json',
+        )
+
+        # Force random name to create a different root name for already submitted
+        # data
+        self.asset.content['settings']['name'] = 'different_root_name'
+        self.asset.content['settings']['id_string'] = 'different_root_name'
+        self.asset.save()  # Create a new version
+        self.asset.deploy(backend='mock', active=True)
+
+        xml_submission = self.asset.deployment.get_submission(
+            self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+        )
+
+        # Create a snapshot without specifying the root name. The default root
+        # name will be the name saved in the settings of the asset version.
+        snapshot = self.asset.snapshot(
+            version_uid=self.asset.latest_deployed_version_uid,
+            submission_uuid=f"uuid:{self.submission['_uuid']}"
+        )
+
+        (
+            form_root_name,
+            submission_root_name,
+        ) = get_form_and_submission_tag_names(snapshot.xml, xml_submission)
+
+        # Asset uid should be different from the name stored in settings
+        assert self.asset.uid != self.asset.content['settings']['name']
+        # submission tag name should equal the asset uid
+        assert submission_root_name == self.asset.uid
+        # form tag name should equal 'different_root_name'
+        # (i.e.: `self.asset.content['settings']['name']`), thus different from
+        # submission tag name
+        assert form_root_name == self.asset.content['settings']['name']
+        assert form_root_name != submission_root_name
+
+        # Enketo will raise the error
+        # > "Error trying to parse XML record. Different root nodes"
+        # if submission and form root nodes do not match.
+        # To avoid this error, the XML of the form is always regenerated with
+        # a submission root name on edit.
+        # The mock response of Enketo simulates Enketo response and validates
+        # that both root nodes match.
+        # See `enketo_edit_instance_response_with_root_name_validation()`
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        # Validate a new snapshot has been generated for the same criteria
+        new_snapshot = self.asset.snapshot(
+            version_uid=self.asset.latest_deployed_version_uid,
+            submission_uuid=f"uuid:{self.submission['_uuid']}"
+        )
+        assert new_snapshot.pk != snapshot.pk
 
     @responses.activate
     def test_get_edit_link_submission_with_latest_asset_deployment(self):
@@ -1369,6 +1491,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         assert submission['_id'] != duplicate_submission['_id']
         assert duplicate_submission['_id'] == expected_next_id
         assert submission['meta/instanceID'] != duplicate_submission['meta/instanceID']
+        assert submission['meta/instanceID'] == duplicate_submission['meta/deprecatedID']
         assert submission['start'] != duplicate_submission['start']
         assert submission['end'] != duplicate_submission['end']
 

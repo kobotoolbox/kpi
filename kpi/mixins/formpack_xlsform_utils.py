@@ -20,6 +20,9 @@ from kpi.utils.autoname import (
     autoname_fields_in_place,
     autovalue_choices_in_place,
 )
+from kpi.utils.absolute_paths import (
+    insert_full_paths_in_place,
+)
 from kpi.utils.kobo_to_xlsform import (
     expand_rank_and_score_in_place,
     replace_with_autofields,
@@ -57,6 +60,9 @@ class FormpackXLSFormUtilsMixin:
     def _autoname(self, content):
         autoname_fields_in_place(content, '$autoname')
         autovalue_choices_in_place(content, '$autovalue')
+
+    def _insert_qpath(self, content):
+        insert_full_paths_in_place(content)
 
     def _populate_fields_with_autofields(self, content):
         replace_with_autofields(content)
@@ -110,13 +116,16 @@ class FormpackXLSFormUtilsMixin:
             if '$kuid' not in row:
                 row['$kuid'] = random_id(9)
 
-    def _strip_kuids(self, content):
+    def _strip_dollar_fields(self, content):
         # this is important when stripping out kobo-specific types because the
         # $kuid field in the xform prevents cascading selects from rendering
-        for row in content['survey']:
-            row.pop('$kuid', None)
-        for row in content.get('choices', []):
-            row.pop('$kuid', None)
+        # and other $fields end up in the exported XLSForm
+        startswithdollar = lambda key: key.startswith('$')
+        strip_row = lambda row, fields: [row.pop(key) for key in fields]
+        for sheet in ['survey', 'choices']:
+            for row in content.get(sheet, []):
+                dollar_fields = list(filter(startswithdollar, row.keys()))
+                strip_row(row, dollar_fields)
 
     def _link_list_items(self, content):
         arr = content['survey']

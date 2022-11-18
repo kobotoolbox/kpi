@@ -11,7 +11,7 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {assign} from '../utils';
+import {assign, escapeHtml} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -339,7 +339,7 @@ export default assign({
         .catch((resp) => {
           var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;${t('Keep this window open and try saving again while using a better connection.')}`;
           if (resp.statusText !== 'error') {
-            errorMsg = resp.statusText;
+            errorMsg = escapeHtml(resp.statusText);
           }
 
           alertify.defaults.theme.ok = 'ajs-cancel';
@@ -396,7 +396,7 @@ export default assign({
           }
         });
         return hasSelect;
-      })(); // todo: only true if survey has select questions
+      })();
       ooo.name = this.state.name;
       ooo.hasSettings = this.state.backRoute === ROUTES.FORMS;
       ooo.styleValue = this.state.settings__style;
@@ -633,6 +633,7 @@ export default assign({
               }]}
               onClick={this.saveForm}
               disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
+              data-cy='save'
             >
               <i />
               {saveButtonText}
@@ -750,11 +751,7 @@ export default assign({
         { envStore.isReady &&
           envStore.data.support_url &&
           <bem.TextBox__labelLink
-            // TODO update support article to include background-audio
-            href={
-              envStore.data.support_url +
-              RECORDING_SUPPORT_URL
-            }
+            href={envStore.data.support_url + RECORDING_SUPPORT_URL}
             target='_blank'
             data-tip={t('help')}
           >

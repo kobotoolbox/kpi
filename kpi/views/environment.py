@@ -9,15 +9,22 @@ from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from kobo.static_lists import (
-    COUNTRIES,
-    LANGUAGES,
-    TRANSCRIPTION_LANGUAGES,
-    TRANSLATION_LANGUAGES
-)
+from kobo.static_lists import COUNTRIES
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.mfa.models import MfaAvailableToUser
 from kpi.utils.object_permission import get_database_user
+
+
+def _check_asr_mt_access_for_user(user):
+    # This is for proof-of-concept testing and will be replaced with proper
+    # quotas and accounting
+    if user.is_anonymous:
+        return False
+    asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
+    return (
+        asr_mt_invitees.strip() == '*'
+        or user.username in asr_mt_invitees.split('\n')
+    )
 
 
 class EnvironmentView(APIView):
@@ -102,11 +109,15 @@ class EnvironmentView(APIView):
 
             data[key.lower()] = value
 
+        asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
+
+        data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
+            request.user
+        )
         data['country_choices'] = COUNTRIES
-        data['all_languages'] = LANGUAGES
         data['interface_languages'] = settings.LANGUAGES
-        data['transcription_languages'] = TRANSCRIPTION_LANGUAGES
-        data['translation_languages'] = TRANSLATION_LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        data['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+        data['stripe_pricing_table_id'] = settings.STRIPE_PRICING_TABLE_ID
         return Response(data)

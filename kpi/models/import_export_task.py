@@ -18,19 +18,14 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-
 import formpack
-from formpack.constants import KOBO_LOCK_SHEET
+from formpack.constants import (
+    KOBO_LOCK_SHEET,
+)
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -40,7 +35,15 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from private_storage.fields import PrivateFileField
+from pyxform import xls2json_backends
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+from openpyxl.utils.exceptions import InvalidFileException
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -99,8 +102,8 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    data = JSONBField()
-    messages = JSONBField(default=dict)
+    data = models.JSONField()
+    messages = models.JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -113,6 +116,7 @@ class ImportExportTask(models.Model):
         asynchronous task runner (Celery)
         """
         with transaction.atomic():
+            # FIXME: use `select_for_update`
             _refetched_self = self._meta.model.objects.get(pk=self.pk)
             self.status = _refetched_self.status
             del _refetched_self
@@ -581,7 +585,7 @@ class ExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments']
+        additional_fields = ['_attachments', '_supplementalDetails']
 
         field_groups = set()
         for field in fields:
@@ -790,9 +794,20 @@ class ExportTaskBase(ImportExportTask):
             query=query,
         )
 
+        if source.has_advanced_features:
+            extr = dict(
+                source.submission_extras.values_list(
+                    'submission_uuid', 'content'
+                )
+            )
+            submission_stream = stream_with_extras(submission_stream, extr)
+
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
+
+        if source.has_advanced_features:
+            pack.extend_survey(source.analysis_form_json())
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp
@@ -837,6 +852,7 @@ class ExportTaskBase(ImportExportTask):
                     this_moment - stuck_export.date_created,
                 )
             )
+            # FIXME: use `select_for_update`
             stuck_export.status = cls.ERROR
             stuck_export.save()
 
@@ -853,6 +869,7 @@ class ExportTaskBase(ImportExportTask):
         user_source_exports = cls.objects.filter(
             user=user, data__source=source
         ).order_by('-date_created')
+        # FIXME: use `select_for_update`
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
         ]

@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 import json
 import re
 from xml.etree import ElementTree as ET
@@ -21,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
 from kobo.apps.reports.report_data import build_formpack
 from kpi.authentication import EnketoSessionAuthentication
@@ -336,7 +338,42 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         bulk_actions_validator = DataBulkActionsValidator(**kwargs)
         bulk_actions_validator.is_valid(raise_exception=True)
+        audit_logs = []
+        if request.method == 'DELETE':
+            # Prepare audit logs
+            data = copy.deepcopy(bulk_actions_validator.data)
+            # Retrieve all submissions matching `submission_ids` or `query`.
+            # If user is not allowed to see some of the submissions (i.e.: user
+            # with partial permissions), the request will be rejected
+            # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
+            submissions = deployment.get_submissions(
+                user=request.user,
+                submission_ids=data['submission_ids'],
+                query=data['query'],
+                fields=['_id', '_uuid']
+            )
+            (
+                app_label,
+                model_name,
+            ) = deployment.submission_model.get_app_label_and_model_name()
+            for submission in submissions:
+                audit_logs.append(AuditLog(
+                    app_label=app_label,
+                    model_name=model_name,
+                    object_id=submission['_id'],
+                    user=request.user,
+                    metadata={
+                        'asset_uid': self.asset.uid,
+                        'uuid': submission['_uuid'],
+                    }
+                ))
+
+        # Send request to KC
         json_response = action_(bulk_actions_validator.data, request.user)
+
+        # If requests has succeeded, let's log deletions (if any)
+        if json_response['status'] == status.HTTP_200_OK and audit_logs:
+            AuditLog.objects.bulk_create(audit_logs)
 
         return Response(**json_response)
 
@@ -344,9 +381,34 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
+
+        # Need to get `uuid` before the data is gone
+        submission = deployment.get_submission(
+            submission_id=submission_id,
+            user=request.user,
+            fields=['_id', '_uuid']
+        )
+
         json_response = deployment.delete_submission(
             submission_id, user=request.user
         )
+
+        if json_response['status'] == status.HTTP_204_NO_CONTENT:
+            (
+                app_label,
+                model_name,
+            ) = deployment.submission_model.get_app_label_and_model_name()
+            AuditLog.objects.create(
+                app_label=app_label,
+                model_name=model_name,
+                object_id=pk,
+                user=request.user,
+                metadata={
+                    'asset_uid': self.asset.uid,
+                    'uuid': submission['_uuid'],
+                }
+            )
+
         return Response(**json_response)
 
     @action(
@@ -385,20 +447,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # `retrieve()` don't need Django Queryset, we only need return `None`.
         return None
 
-    def get_submission(self):
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-
-        assert lookup_url_kwarg in self.kwargs, (
-                'Expected view %s to be called with a URL keyword argument '
-                'named "%s". Fix your URL conf, or set the `.lookup_field` '
-                'attribute on the view correctly.' %
-                (self.__class__.__name__, lookup_url_kwarg)
-        )
-
-        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        print('FILTER KWARGS', filter_kwargs)
-
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
@@ -431,7 +479,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
         # It avoids retrieving all the objects from MongoDB
-        dummy_submissions_list = [None] * deployment.current_submissions_count
+        dummy_submissions_list = [None] * deployment.current_submission_count
         page = self.paginate_queryset(dummy_submissions_list)
         if page is not None:
             return self.get_paginated_response(submissions)
@@ -609,7 +657,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
-
+        if 'meta/rootUuid' in submission_json:
+            # this submission has been edited at least one time
+            submission_uuid = submission_json['meta/rootUuid']
+        else:
+            # never been edited
+            submission_uuid = submission_json['meta/instanceID']
         # Do not use version_uid from the submission until UI gives users the
         # possibility to choose which version they want to use
 
@@ -635,8 +688,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # of the submission disappears between the call to `build_formpack()`
         # and here, but allow a 500 error in that case because there's nothing
         # the client can do about it
-        snapshot = self.asset.versioned_snapshot(
-            version_uid=version_uid, root_node_name=xml_root_node_name
+        snapshot = self.asset.snapshot(
+            regenerate=True,
+            root_node_name=xml_root_node_name,
+            version_uid=version_uid,
+            submission_uuid=submission_uuid,
         )
 
         data = {

@@ -3,6 +3,7 @@
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
 // over time it accumulated many small unique modifiers.
+// See: https://github.com/kobotoolbox/kpi/issues/3926
 //
 // Best things to do here:
 // 1. For sure don't add anything new, unless it really makes sense to be part
@@ -58,7 +59,7 @@ $side-tabs-width-mobile: 70px;
   .form-view__sidetabs + .report-view,
   .form-view__sidetabs + .loading,
   .form-view__sidetabs + .access-denied {
-    width: calc(100% - 170px);
+    width: calc(100% - $side-tabs-width);
     height: calc(100% - 48px);
     overflow: auto;
     overflow-x: hidden;
@@ -857,8 +858,6 @@ $side-tabs-width-mobile: 70px;
 }
 
 // Compensate for when sidebar(s) messes up modal a bit
-
-// TODO: Clean this up via PR changes
 @media
   (min-width: 770px) and (max-width: 1020px),
   (max-width: 560px) {

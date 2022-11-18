@@ -1,11 +1,9 @@
-// TODO: double check the display logic for buttons (permissions)
-
 /**
  * This is intended to be displayed in multiple places:
  * - library asset landing page
  * - library listing row
- * - project landing page (TODO in future)
- * - projects listing row (TODO in future)
+ * - project landing page (see: https://github.com/kobotoolbox/kpi/issues/2758)
+ * - projects listing row (see: https://github.com/kobotoolbox/kpi/issues/2758)
  */
 
 import React from 'react';
@@ -181,7 +179,6 @@ class AssetActionButtons extends React.Component {
   viewContainingCollection() {
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
-    hashHistory.push(`/library/asset/${parentAssetUid}`);
     hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
   }
 

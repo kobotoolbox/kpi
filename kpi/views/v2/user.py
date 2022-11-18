@@ -4,10 +4,12 @@ from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.pagination import LimitOffsetPagination
 
-from kpi.tasks import sync_kobocat_xforms
+from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
-from kpi.serializers.v2.user import UserSerializer
+from kpi.serializers.v2.user import UserSerializer, UserListSerializer
+from kpi.tasks import sync_kobocat_xforms
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -17,15 +19,33 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
 
     queryset = User.objects.all()
+    filter_backends = (SearchFilter,)
     serializer_class = UserSerializer
     lookup_field = 'username'
+    pagination_class = LimitOffsetPagination
+    search_default_field_lookups = [
+        'username__icontains',
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.authentication_classes += [ApplicationTokenAuthentication]
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserListSerializer
+        else:
+            return UserSerializer
+
     def list(self, request, *args, **kwargs):
-        raise exceptions.PermissionDenied()
+        if not request.user.is_superuser:
+            raise exceptions.PermissionDenied()
+
+        filtered_queryset = self.filter_queryset(self.queryset).order_by('id')
+        page = self.paginate_queryset(filtered_queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],
