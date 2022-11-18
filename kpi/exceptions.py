@@ -74,6 +74,10 @@ class InvalidSearchException(exceptions.APIException):
     default_code = 'invalid_search'
 
 
+class InvalidXFormException(Exception):
+    pass
+
+
 class InvalidXPathException(Exception):
     pass
 

@@ -38,6 +38,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    InvalidXFormException,
     InvalidXPathException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -107,7 +108,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def attachment_storage_bytes(self):
-        return self.xform.attachment_storage_bytes
+        try:
+            return self.xform.attachment_storage_bytes
+        except InvalidXFormException:
+            return 0
 
     def bulk_assign_mapped_perms(self):
         """
@@ -238,13 +242,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
         today = timezone.now().date()
         try:
             monthly_counter = (
                 ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
                     'counter'
                 ).get(
-                    xform_id=self.xform_id,
+                    xform_id=xform_id,
                     year=today.year,
                     month=today.month,
                 )
@@ -1058,7 +1067,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        return self.xform.num_of_submissions
+        try:
+            return self.xform.num_of_submissions
+        except InvalidXFormException:
+            return 0
 
     @property
     def submission_list_url(self):
@@ -1176,9 +1188,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )  # Avoid extra query to validate username below
                 .first()
             )
-            if not (xform.user.username == self.asset.owner.username and
-                    xform.id_string == self.xform_id_string):
-                raise Exception(
+            if not (
+                xform
+                and xform.user.username == self.asset.owner.username
+                and xform.id_string == self.xform_id_string
+            ):
+                raise InvalidXFormException(
                     'Deployment links to an unexpected KoBoCAT XForm')
             setattr(self, '_xform', xform)
 
