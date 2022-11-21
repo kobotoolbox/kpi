@@ -6,7 +6,7 @@
 #
 -e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@7c5cf0596da54546b67cbb7fd4c486f2a7761c4e#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@43daf1d1bd9ffecaeb0e66f8ffb5a957a6e9b9e2#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
     # via -r dependencies/pip/requirements.in
@@ -24,9 +24,11 @@ async-timeout==4.0.2
     # via redis
 attrs==21.4.0
     # via jsonschema
-azure-core==1.23.1
-    # via azure-storage-blob
-azure-storage-blob==12.11.0
+azure-core==1.24.1
+    # via
+    #   azure-storage-blob
+    #   msrest
+azure-storage-blob==12.12.0
     # via django-storages
 begins==0.9
     # via formpack
@@ -42,6 +44,8 @@ botocore==1.25.2
     # via
     #   boto3
     #   s3transfer
+cachetools==5.2.0
+    # via google-auth
 celery[redis]==5.2.6
     # via
     #   -r dependencies/pip/requirements.in
@@ -198,6 +202,52 @@ geojson-rewind==1.0.2
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+google-api-core[grpc]==2.8.2
+    # via
+    #   google-api-python-client
+    #   google-cloud-core
+    #   google-cloud-speech
+    #   google-cloud-storage
+    #   google-cloud-translate
+google-api-python-client==2.62.0
+    # via -r dependencies/pip/requirements.in
+google-auth==2.8.0
+    # via
+    #   google-api-core
+    #   google-api-python-client
+    #   google-auth-httplib2
+    #   google-cloud-core
+    #   google-cloud-storage
+google-auth-httplib2==0.1.0
+    # via google-api-python-client
+google-cloud-core==2.3.1
+    # via
+    #   google-cloud-storage
+    #   google-cloud-translate
+google-cloud-speech==2.14.1
+    # via -r dependencies/pip/requirements.in
+google-cloud-storage==2.4.0
+    # via -r dependencies/pip/requirements.in
+google-cloud-translate==3.7.4
+    # via -r dependencies/pip/requirements.in
+google-crc32c==1.3.0
+    # via google-resumable-media
+google-resumable-media==2.3.3
+    # via google-cloud-storage
+googleapis-common-protos==1.56.2
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio==1.46.3
+    # via
+    #   google-api-core
+    #   grpcio-status
+grpcio-status==1.46.3
+    # via google-api-core
+httplib2==0.20.4
+    # via
+    #   google-api-python-client
+    #   google-auth-httplib2
 idna==3.3
     # via requests
 isodate==0.6.1
@@ -211,7 +261,9 @@ jsonfield==3.1.0
     #   -r dependencies/pip/requirements.in
     #   dj-stripe
 jsonschema==4.4.0
-    # via formpack
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
 jwcrypto==1.2
     # via django-oauth-toolkit
 kombu==5.2.4
@@ -227,7 +279,7 @@ markdown==3.3.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-markdownx
-msrest==0.6.21
+msrest==0.7.1
     # via azure-storage-blob
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
@@ -250,12 +302,28 @@ pillow==9.1.0
     # via django-markdownx
 prompt-toolkit==3.0.29
     # via click-repl
+proto-plus==1.20.6
+    # via
+    #   google-cloud-speech
+    #   google-cloud-translate
+protobuf==3.20.1
+    # via
+    #   google-api-core
+    #   google-cloud-speech
+    #   google-cloud-translate
+    #   googleapis-common-protos
+    #   grpcio-status
+    #   proto-plus
 psycopg2==2.9.3
     # via -r dependencies/pip/requirements.in
 pyasn1==0.4.8
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.2.8
+    # via google-auth
 pycparser==2.21
     # via cffi
 pygments==2.12.0
@@ -273,7 +341,9 @@ pyopenssl==22.0.0
 pyotp==2.6.0
     # via django-trench
 pyparsing==3.0.8
-    # via packaging
+    # via
+    #   httplib2
+    #   packaging
 pyquery==1.4.3
     # via formpack
 pyrsistent==0.18.1
@@ -310,6 +380,8 @@ requests==2.27.1
     #   azure-core
     #   django-allauth
     #   django-oauth-toolkit
+    #   google-api-core
+    #   google-cloud-storage
     #   msrest
     #   requests-oauthlib
     #   responses
@@ -323,6 +395,8 @@ requests-oauthlib==1.3.1
     #   msrest
 responses==0.20.0
     # via -r dependencies/pip/requirements.in
+rsa==4.8
+    # via google-auth
 s3transfer==0.5.2
     # via boto3
 sentry-sdk==1.5.12
@@ -334,6 +408,9 @@ six==1.16.0
     #   azure-core
     #   click-repl
     #   django-organizations
+    #   google-auth
+    #   google-auth-httplib2
+    #   grpcio
     #   isodate
     #   python-dateutil
 smsapi-client==2.6.0
@@ -357,6 +434,8 @@ twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
     # via azure-core
+uritemplate==4.1.1
+    # via google-api-python-client
 urllib3==1.26.9
     # via
     #   botocore

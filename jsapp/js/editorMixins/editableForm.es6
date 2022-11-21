@@ -7,7 +7,6 @@ import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
@@ -68,7 +67,8 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html';
 
 export default assign({
   componentDidMount() {
-    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
+    // TODO router6 might be a Prompt?
+    // this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
 
     this.loadAsideSettings();
 
@@ -322,7 +322,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push(this.state.backRoute);
+          this.props.router.navigate(this.state.backRoute);
         });
     } else {
       // update existing asset
@@ -512,7 +512,7 @@ export default assign({
 
   safeNavigateToRoute(route) {
     if (!this.needsSave()) {
-      hashHistory.push(route);
+      this.props.router.navigate(route);
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
@@ -520,7 +520,7 @@ export default assign({
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
-          hashHistory.push(route);
+          this.props.router.navigate(route);
         },
         oncancel: dialog.destroy
       };
@@ -531,7 +531,7 @@ export default assign({
   safeNavigateToList() {
     if (this.state.backRoute) {
       this.safeNavigateToRoute(this.state.backRoute);
-    } else if (this.props.location.pathname.startsWith(ROUTES.LIBRARY)) {
+    } else if (this.props.router.location.pathname.startsWith(ROUTES.LIBRARY)) {
       this.safeNavigateToRoute(ROUTES.LIBRARY);
     } else {
       this.safeNavigateToRoute(ROUTES.FORMS);

@@ -29,6 +29,18 @@ export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOpt
   // To avoid changing too much, the default remains 'success' if unspecified.
   //   e.g. notify('yay!') // success
 
+  // avoid displaying a (specific) JSON structure in the notification
+  if (typeof msg === 'string' && msg[0] === '{') {
+    try {
+      let parsed = JSON.parse(msg);
+      if (Object.keys(parsed).length === 1 && 'detail' in parsed) {
+        msg = `${parsed.detail}`;
+      }
+    } catch (err) {
+      console.error('notification starts with { but is not parseable JSON.')
+    }
+  }
+
   switch (atype) {
 
     case 'success':
@@ -232,7 +244,7 @@ export function addRequiredToLabel(label: string, isRequired = true): string {
   return requiredTemplate.replace('##field_label##', label);
 }
 
-export function stringToColor(str: string, prc: number) {
+export function stringToColor(str: string, prc?: number) {
   // Higher prc = lighter color, lower = darker
   prc = typeof prc === 'number' ? prc : -15;
   const hash = function (word: string) {
@@ -420,4 +432,13 @@ export function generateUid() {
 export function csrfSafeMethod(method: string) {
   // these HTTP methods do not require CSRF protection
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
+}
+
+export function downloadUrl(url: string) {
+  const aEl = document.createElement('a');
+  const splitUrl = url.split('/');
+  const fileName = splitUrl[splitUrl.length - 1];
+  aEl.href = url;
+  aEl.setAttribute('download', fileName);
+  aEl.click();
 }

@@ -11,6 +11,10 @@ from kobo.apps.superuser_stats.views import (
     country_report,
     retrieve_reports,
 )
+from kobo.apps.accounts.mfa.views import (
+    MfaLoginView,
+    MfaTokenView,
+)
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
@@ -34,6 +38,8 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
+    re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
+    re_path(r'^api/v2/auth/', include('kobo.apps.accounts.mfa.urls')),
     re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(

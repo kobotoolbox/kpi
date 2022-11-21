@@ -49,23 +49,24 @@ class EnvironmentTests(BaseTestCase):
                 self.assertGreater(len(x), 200) and self.assertIn(
                     ('KEN', 'Kenya'), x
                 ),
-            'all_languages': lambda x: \
-                self.assertGreater(len(x), 100) and self.assertIn(
-                    ('fa', 'Persian'), x
-                ),
+            #'all_languages': lambda x: \
+            #    self.assertGreater(len(x), 100) and self.assertIn(
+            #        ('fa', 'Persian'), x
+            #    ),
             'interface_languages': lambda x: \
                 self.assertGreater(len(x), 5) and self.assertIn(
                     ('ar', 'العربيّة'), x
                 ),
-            'transcription_languages': lambda x: \
-                self.assertGreater(len(x), 50) and self.assertIn(
-                    'uk-UA', x
-                ),
-            'translation_languages': lambda x: \
-                self.assertGreater(len(x), 50) and self.assertIn(
-                    'fa-IR', x
-                ),
+            #'transcription_languages': lambda x: \
+            #    self.assertGreater(len(x), 50) and self.assertIn(
+            #        'uk-UA', x
+            #    ),
+            #'translation_languages': lambda x: \
+            #    self.assertGreater(len(x), 50) and self.assertIn(
+            #        'fa-IR', x
+            #    ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
+            'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
             'mfa_localized_help_text': lambda i18n_texts: {
                 lang: markdown(text)
@@ -88,7 +89,10 @@ class EnvironmentTests(BaseTestCase):
             try:
                 callable_or_value(response_value)
             except TypeError:
-                self.assertEqual(response_value, callable_or_value)
+                pass
+            else:
+                continue
+            self.assertEqual(response_value, callable_or_value)
 
     def test_anonymous_succeeds(self):
         response = self.client.get(self.url, format='json')

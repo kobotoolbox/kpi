@@ -29,7 +29,7 @@
     color: colors.$kobo-gray-65;
   }
 
-  .kobo-range__unit {
+  .kobo-range__unit:not(:first-child) {
     margin-left: 4px;
   }
 }

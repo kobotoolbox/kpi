@@ -69,7 +69,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         else:
             # asset.snapshot pulls, by default, a snapshot for the latest
             # version.
-            snapshot = asset.snapshot
+            snapshot = asset.snapshot()
 
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.details)
