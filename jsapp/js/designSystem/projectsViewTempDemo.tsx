@@ -8,7 +8,6 @@ import ProjectsFieldsSelector from 'js/components/projectsView/projectsFieldsSel
 
 import ProjectsTable from 'js/components/projectsTable/projectsTable';
 import type {OrderDirection} from 'js/components/projectsTable/projectsTableConstants';
-import {ProjectsTableContextName} from 'js/components/projectsTable/projectsTableConstants';
 import mockAssets from './assetsResponseMock';
 
 interface ProjectsViewTempDemoState {
@@ -58,16 +57,11 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
         </div>
 
         <ProjectsTable
-          context={ProjectsTableContextName.MY_LIBRARY}
           assets={mockAssets.results}
           totalAssets={mockAssets.count}
-          metadata={mockAssets.metadata}
           orderColumnId='name'
           orderValue='ascending'
           onOrderChange={(columnId: string, columnValue: OrderDirection) => console.log(columnId, columnValue)}
-          filterColumnId={null}
-          filterValue={null}
-          onFilterChange={(columnId: string | null, columnValue: string | null) => console.log(columnId, columnValue)}
         />
       </section>
     );

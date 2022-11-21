@@ -6,12 +6,9 @@ import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';
 import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
-import type {ProjectsTableContextName} from './projectsTableConstants';
-import {PROJECTS_TABLE_CONTEXTS} from './projectsTableConstants';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse;
-  context: ProjectsTableContextName;
 }
 
 class ProjectsTableRow extends React.Component<ProjectsTableRowProps> {
@@ -68,21 +65,13 @@ class ProjectsTableRow extends React.Component<ProjectsTableRowProps> {
           {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner__username)}
         </bem.AssetsTableRow__column>
 
-        {this.props.context === PROJECTS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
-          <bem.AssetsTableRow__column m='subscribers-count'>
-            {this.props.asset.subscribers_count}
-          </bem.AssetsTableRow__column>
-        }
-
         <bem.AssetsTableRow__column m='languages'>
           {assetUtils.getLanguagesDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
-        {this.props.context === PROJECTS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
-          <bem.AssetsTableRow__column m='primary-sector'>
-            {assetUtils.getSectorDisplayString(this.props.asset)}
-          </bem.AssetsTableRow__column>
-        }
+        <bem.AssetsTableRow__column m='primary-sector'>
+          {assetUtils.getSectorDisplayString(this.props.asset)}
+        </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='date-modified'>
           {formatTime(this.props.asset.date_modified)}

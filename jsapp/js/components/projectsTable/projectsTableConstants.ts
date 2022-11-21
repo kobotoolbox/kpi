@@ -1,25 +1,7 @@
-import {createEnum} from 'js/constants';
-
-export enum ProjectsTableContextName {
-  MY_LIBRARY = 'MY_LIBRARY',
-  COLLECTION_CONTENT = 'COLLECTION_CONTENT',
-  PUBLIC_COLLECTIONS = 'PUBLIC_COLLECTIONS',
-}
-
-export const PROJECTS_TABLE_CONTEXTS = createEnum([
-  ProjectsTableContextName.MY_LIBRARY,
-  ProjectsTableContextName.COLLECTION_CONTENT,
-  ProjectsTableContextName.PUBLIC_COLLECTIONS,
-]);
-
 export type OrderDirection = 'ascending' | 'descending';
 
-export const ORDER_DIRECTIONS: {[id in OrderDirection]: OrderDirection} = {
-  ascending: 'ascending',
-  descending: 'descending',
-};
-
-export type ProjectsTableColumnName = 'date-modified' | 'icon-status' | 'items-count' | 'languages' | 'name' | 'owner' | 'primary-sector' | 'subscribers-count';
+export type ProjectsTableColumnName = 'date-modified' | 'icon-status' |
+'items-count' | 'languages' | 'name' | 'owner';
 
 export interface ProjectsTableColumn {
   label: string;
@@ -35,24 +17,28 @@ export interface ProjectsTableColumn {
   filterByMetadataName?: string;
 }
 
-export const PROJECTS_TABLE_COLUMNS: {[id: string]: ProjectsTableColumn} = Object.freeze({
+type ProjectsTableColumns = {
+  readonly [id in ProjectsTableColumnName]: ProjectsTableColumn;
+};
+
+export const PROJECTS_TABLE_COLUMNS: ProjectsTableColumns = {
   'icon-status': {
     label: t('Type'),
     id: 'icon-status',
     orderBy: 'asset_type',
-    defaultValue: ORDER_DIRECTIONS.ascending,
+    defaultValue: 'ascending',
   },
   'date-modified': {
     label: t('Last Modified'),
     id: 'date-modified',
     orderBy: 'date_modified',
-    defaultValue: ORDER_DIRECTIONS.descending,
+    defaultValue: 'descending',
   },
   name: {
     label: t('Name'),
     id: 'name',
     orderBy: 'name',
-    defaultValue: ORDER_DIRECTIONS.ascending,
+    defaultValue: 'ascending',
   },
   'items-count': {
     label: t('Items'),
@@ -66,13 +52,7 @@ export const PROJECTS_TABLE_COLUMNS: {[id: string]: ProjectsTableColumn} = Objec
     label: t('Owner'),
     id: 'owner',
     orderBy: 'owner__username',
-    defaultValue: ORDER_DIRECTIONS.ascending,
-  },
-  'subscribers-count': {
-    label: t('Subscribers'),
-    id: 'subscribers-count',
-    orderBy: 'subscribers_count',
-    defaultValue: ORDER_DIRECTIONS.ascending,
+    defaultValue: 'ascending',
   },
   languages: {
     label: t('Languages'),
@@ -88,4 +68,4 @@ export const PROJECTS_TABLE_COLUMNS: {[id: string]: ProjectsTableColumn} = Objec
     filterByPath: ['settings', 'sector'],
     filterByMetadataName: 'sectors',
   },
-});
+};

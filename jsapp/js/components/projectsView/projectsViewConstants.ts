@@ -65,14 +65,24 @@ export const FILTER_CONDITIONS: FilterConditions = {
   },
 };
 
+type OrderDirection = 'ascending' | 'descending';
+
 export type ProjectFieldName = 'countries' | 'dateDeployed' | 'dateModified' |
 'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
 'ownerOrganisation' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
-interface FilterFieldDefinition {
+
+export interface ProjectFieldDefinition {
   name: ProjectFieldName;
   label: string;
+  /** Backend property name used for ordering and filtering. */
+  propertyName?: string;
+  /** The default order direction for this field. */
+  orderDefaultValue?: OrderDirection;
+  /** A path to asset property that holds the data. */
+  filterPropertyPath?: string[];
 }
-type ProjectFields = {[P in ProjectFieldName]: FilterFieldDefinition};
+
+type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
 /**
  * A full list of available fields for projects. Order is important here, as it
  * influences the order these will be displayed in UI.

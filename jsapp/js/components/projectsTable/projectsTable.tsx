@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import bem, {makeBem} from 'js/bem';
 import {
@@ -8,20 +7,13 @@ import {
   getScrollbarWidth,
 } from 'js/utils';
 import ProjectsTableRow from './projectsTableRow';
-import {
-  PROJECTS_TABLE_CONTEXTS,
-  ORDER_DIRECTIONS,
-  PROJECTS_TABLE_COLUMNS,
-} from './projectsTableConstants';
 import type {
-  OrderDirection,
-  ProjectsTableContextName,
-  ProjectsTableColumn,
-} from './projectsTableConstants';
-import type {
-  AssetResponse,
-  MetadataResponse,
-} from 'js/dataInterface';
+  ProjectFieldDefinition,
+  ProjectFieldName,
+} from 'js/components/projectsView/projectsViewConstants';
+import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
+import type {OrderDirection} from './projectsTableConstants';
+import type {AssetResponse} from 'js/dataInterface';
 import './projectsTable.scss';
 
 bem.ProjectsTable = makeBem(null, 'projects-table');
@@ -40,11 +32,9 @@ bem.ProjectsTablePagination__button = makeBem(bem.ProjectsTablePagination, 'butt
 bem.ProjectsTablePagination__index = makeBem(bem.ProjectsTablePagination, 'index');
 
 type OrderChangeCallback = (columnId: string, columnValue: OrderDirection) => void;
-type FilterChangeCallback = (columnId: string | null, columnValue: string | null) => void;
 type SwitchPageCallback = (pageNumber: number) => void;
 
 interface ProjectsTableProps {
- context: ProjectsTableContextName;
  /** Displays a spinner */
  isLoading?: boolean;
  /** To display contextual empty message when zero assets. */
@@ -53,20 +43,12 @@ interface ProjectsTableProps {
  assets: AssetResponse[];
  /** Number of assets on all pages. */
  totalAssets: number;
- /** List of available filters values. */
- metadata?: MetadataResponse; // this type ??
  /** Seleceted order column id, one of ASSETS_TABLE_COLUMNS. */
  orderColumnId: string;
  /** Seleceted order column value. */
  orderValue: string;
  /** Called when user selects a column for odering. */
  onOrderChange: OrderChangeCallback;
- /** Seleceted filter column, one of ASSETS_TABLE_COLUMNS. */
- filterColumnId: string | null;
- /** Seleceted filter column value. */
- filterValue: string | null;
- /** Called when user selects a column for filtering. */
- onFilterChange: FilterChangeCallback;
  /**
   * For displaying pagination. If you omit any of these, pagination will simply
   * not be rendered. Good to use when you actually don't need it.
@@ -144,59 +126,27 @@ export default class ProjectsTable extends React.Component<
    * This function is only a callback handler, as the asset reordering itself
    * should be handled by the component that is providing the assets list.
    */
-  onChangeOrder(columnId: string) {
+  onChangeOrder(columnId: ProjectFieldName) {
     if (this.props.orderColumnId === columnId) {
       // clicking already selected column results in switching the order direction
-      let newVal = null;
-      if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
-        newVal = ORDER_DIRECTIONS.descending;
-      } else {
-        newVal = ORDER_DIRECTIONS.ascending;
+      let newVal: OrderDirection = 'ascending';
+      if (this.props.orderValue === 'ascending') {
+        newVal = 'descending';
       }
       this.props.onOrderChange(this.props.orderColumnId, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChange(columnId, PROJECTS_TABLE_COLUMNS[columnId].defaultValue || ORDER_DIRECTIONS.ascending);
+      this.props.onOrderChange(columnId, PROJECT_FIELDS[columnId].orderDefaultValue || 'ascending');
     }
   }
 
-  /**
-   * This function is only a callback handler, as the asset filtering itself
-   * should be handled by the component that is providing the assets list.
-   */
-  onChangeFilter(columnId: string, filterValue: string | null = null) {
-    if (
-      this.props.filterColumnId === columnId &&
-      this.props.filterValue === filterValue
-    ) {
-      // when clicking already selected item, clear it
-      this.props.onFilterChange(null, null);
-    } else {
-      this.props.onFilterChange(columnId, filterValue);
-    }
-  }
-
-  onClearFilter(evt: React.MouseEvent | React.TouchEvent) {
-    evt.stopPropagation();
-    this.props.onFilterChange(null, null);
-  }
-
-  renderHeader(columnDef: ProjectsTableColumn) {
+  renderHeader(columnDef: ProjectFieldDefinition) {
     if (columnDef.orderBy) {
       return this.renderOrderableHeader(columnDef);
-    } else if (columnDef.filterBy) {
-      return this.renderFilterableHeader(columnDef);
     } else {
-      let displayLabel = columnDef.label;
-      if (
-        columnDef.id === PROJECTS_TABLE_COLUMNS['items-count'].id &&
-        this.props.context === PROJECTS_TABLE_CONTEXTS.COLLECTION_CONTENT
-      ) {
-        displayLabel = t('Questions');
-      }
       return (
         <bem.ProjectsTableRow__column m={columnDef.id} disabled>
-          {displayLabel}
+          {columnDef.label}
         </bem.ProjectsTableRow__column>
       );
     }
@@ -206,82 +156,13 @@ export default class ProjectsTable extends React.Component<
     this.setState({isPopoverVisible: true});
   }
 
-  getColumnMetadata(columnDef: ProjectsTableColumn) {
-    switch (columnDef.filterByMetadataName) {
-      case 'languages':
-        return this.props.metadata?.languages || [];
-      case 'countries':
-        return this.props.metadata?.countries || [];
-      case 'sectors':
-        return this.props.metadata?.sectors || [];
-      case 'organizations':
-        return this.props.metadata?.organizations || [];
-      default:
-        return [];
-    }
-  }
-
-  renderFilterableHeader(columnDef: ProjectsTableColumn) {
-    const options = this.getColumnMetadata(columnDef);
-
-    if (options.length === 0) {
-      return (
-        <bem.ProjectsTableRow__column m={columnDef.id} disabled>
-          {columnDef.label}
-        </bem.ProjectsTableRow__column>
-      );
-    }
-
-    let icon = (<i className='k-icon k-icon-filter-arrows'/>);
-    if (this.props.filterColumnId === columnDef.id) {
-      icon = (<i className='k-icon k-icon-close' onClick={this.onClearFilter.bind(this)}/>);
-    }
-
-    return (
-      <bem.ProjectsTableRow__column m={columnDef.id}>
-        <PopoverMenu
-          type='projects-table'
-          triggerLabel={<span>{columnDef.label} {icon}</span>}
-          clearPopover={this.state.shouldHidePopover}
-          popoverSetVisible={this.onPopoverSetVisible.bind(this)}
-        >
-          {options.map((option, index) => {
-            let optionValue;
-            let optionLabel;
-
-            if (typeof option === 'string') {
-              optionValue = option;
-              optionLabel = option;
-            }
-            if (Array.isArray(option)) {
-              optionValue = option[0];
-              optionLabel = option[1];
-            }
-
-            return (
-              <bem.PopoverMenu__link
-                onClick={this.onChangeFilter.bind(this, columnDef.id, optionValue)}
-                key={`option-${index}`}
-              >
-                {optionLabel}
-                {optionValue === this.props.filterValue &&
-                  <i className='k-icon k-icon-check'/>
-                }
-              </bem.PopoverMenu__link>
-            );
-          })}
-        </PopoverMenu>
-      </bem.ProjectsTableRow__column>
-    );
-  }
-
-  renderOrderableHeader(columnDef: ProjectsTableColumn) {
+  renderOrderableHeader(columnDef: ProjectFieldDefinition) {
     let hideIcon = false;
     let hideLabel = false;
 
     // for `icon-status` we don't display empty icon, because the column is
     // too narrow to display label and icon together
-    if (columnDef.id === PROJECTS_TABLE_COLUMNS['icon-status'].id) {
+    if (columnDef.id === PROJECT_FIELDS['icon-status'].id) {
       hideIcon = this.props.orderColumnId !== columnDef.id;
       hideLabel = this.props.orderColumnId === columnDef.id;
     }
@@ -289,10 +170,10 @@ export default class ProjectsTable extends React.Component<
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
-      if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
+      if (this.props.orderValue === 'ascending') {
         icon = (<i className='k-icon k-icon-angle-up'/>);
       }
-      if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
+      if (this.props.orderValue === 'descending') {
         icon = (<i className='k-icon k-icon-angle-down'/>);
       }
     }
@@ -374,7 +255,7 @@ export default class ProjectsTable extends React.Component<
   }
 
   render() {
-    const modifiers: string[] = [this.props.context];
+    const modifiers: string[] = [];
     if (this.state.isFullscreen) {
       modifiers.push('fullscreen');
     }
@@ -383,18 +264,12 @@ export default class ProjectsTable extends React.Component<
       <bem.ProjectsTable m={modifiers}>
         <bem.ProjectsTable__header>
           <bem.ProjectsTableRow m='header'>
-            {this.renderHeader(PROJECTS_TABLE_COLUMNS['icon-status'])}
-            {this.renderHeader(PROJECTS_TABLE_COLUMNS.name)}
-            {this.renderHeader(PROJECTS_TABLE_COLUMNS['items-count'])}
-            {this.renderHeader(PROJECTS_TABLE_COLUMNS.owner)}
-            {this.props.context === PROJECTS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
-              this.renderHeader(PROJECTS_TABLE_COLUMNS['subscribers-count'])
-            }
-            {this.renderHeader(PROJECTS_TABLE_COLUMNS.languages)}
-            {this.props.context === PROJECTS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
-              this.renderHeader(PROJECTS_TABLE_COLUMNS['primary-sector'])
-            }
-            {this.renderHeader(PROJECTS_TABLE_COLUMNS['date-modified'])}
+            {this.renderHeader(PROJECT_FIELDS['icon-status'])}
+            {this.renderHeader(PROJECT_FIELDS.name)}
+            {this.renderHeader(PROJECT_FIELDS['items-count'])}
+            {this.renderHeader(PROJECT_FIELDS.owner)}
+            {this.renderHeader(PROJECT_FIELDS.languages)}
+            {this.renderHeader(PROJECT_FIELDS['date-modified'])}
 
             {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
               <div
@@ -420,7 +295,6 @@ export default class ProjectsTable extends React.Component<
             <ProjectsTableRow
               asset={asset}
               key={asset.uid}
-              context={this.props.context}
             />
           )}
         </bem.ProjectsTable__body>
