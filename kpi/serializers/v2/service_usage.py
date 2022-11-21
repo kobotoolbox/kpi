@@ -37,7 +37,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         if not asset.has_deployment:
             return 0
 
-        return asset.deployment.submission_count
+        return asset.deployment.all_time_submission_count
 
     def get_storage_bytes(self, asset):
         # Get value from asset deployment (if it has deployment)
