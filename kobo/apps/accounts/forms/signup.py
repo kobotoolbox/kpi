@@ -9,8 +9,6 @@ from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
 
-USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
-USERNAME_MAX_LENGTH = 30
 USERNAME_INVALID_MESSAGE = t(
     'Usernames must be between 2 and 30 characters in length, '
     'and may only consist of lowercase letters, numbers, '
@@ -26,12 +24,6 @@ CONFIGURABLE_METADATA_FIELDS = (
 
 
 class SignupForm(BaseSignupForm):
-    username = forms.RegexField(
-        regex=USERNAME_REGEX,
-        max_length=USERNAME_MAX_LENGTH,
-        label=t("Username"),
-        error_messages={'invalid': USERNAME_INVALID_MESSAGE},
-    )
     name = forms.CharField(
         label=t('Name'),
         required=False,
@@ -73,9 +65,8 @@ class SignupForm(BaseSignupForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Remove upstream placeholders
-        self.fields["email"].widget.attrs["placeholder"] = ""
-        self.fields["password1"].widget.attrs["placeholder"] = ""
-        self.fields["password2"].widget.attrs["placeholder"] = ""
+        for field_name in ["username", "email", "password1", "password2"]:
+            self.fields[field_name].widget.attrs["placeholder"] = ""
         self.fields["password2"].label = t("Password confirmation")
 
         # Intentional t() call on dynamic string because the default choices

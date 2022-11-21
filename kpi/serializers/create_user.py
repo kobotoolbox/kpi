@@ -2,10 +2,10 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kobo.apps.accounts.forms.signup import (
-    USERNAME_INVALID_MESSAGE,
-    USERNAME_MAX_LENGTH,
+from kobo.apps.accounts.validators import (
     USERNAME_REGEX,
+    USERNAME_MAX_LENGTH,
+    USERNAME_INVALID_MESSAGE,
 )
 
 
@@ -13,7 +13,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=USERNAME_REGEX,
         max_length=USERNAME_MAX_LENGTH,
-        error_messages={'invalid': USERNAME_INVALID_MESSAGE}
+        error_messages={'invalid': USERNAME_INVALID_MESSAGE},
     )
     email = serializers.EmailField()
 
@@ -28,7 +28,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'required': True}
+            'email': {'required': True},
         }
 
     def create(self, validated_data):

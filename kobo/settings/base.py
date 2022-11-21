@@ -687,6 +687,7 @@ CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 ''' Django allauth configuration '''
 ACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.AccountAdapter"
+ACCOUNT_USERNAME_VALIDATORS = "kobo.apps.accounts.validators.username_validators"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_FORMS = {
