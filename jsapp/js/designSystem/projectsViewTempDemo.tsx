@@ -9,7 +9,7 @@ import ProjectsFieldsSelector from 'js/components/projectsView/projectsFieldsSel
 import ProjectsTable from 'js/components/projectsTable/projectsTable';
 import type {OrderDirection} from 'js/components/projectsTable/projectsTableConstants';
 import {ProjectsTableContextName} from 'js/components/projectsTable/projectsTableConstants';
-import mockAssets from 'js/components/projectsView/assetsResponseMock';
+import mockAssets from './assetsResponseMock';
 
 interface ProjectsViewTempDemoState {
   filters: ProjectsFilterDefinition[];

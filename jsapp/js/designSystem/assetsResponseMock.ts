@@ -1,3 +1,7 @@
+// NOTE: this is a temporary file that is used for ProjectsTable before
+// a proper endpoint will be hooked up. It allows for some easier testing
+// and styles development.
+
 import {AssetTypeName} from 'js/constants';
 import type {AssetsResponse} from 'js/dataInterface';
 const response: AssetsResponse = {
