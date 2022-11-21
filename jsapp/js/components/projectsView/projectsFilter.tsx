@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import classNames from 'classnames';
 import clonedeep from 'lodash.clonedeep';
-import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
@@ -13,10 +12,6 @@ import styles from './projectsFilter.module.scss';
 // If there are "many" filters being displayed, we want the modal content to be
 // styled a bit differently, so we define how much is "many" here:
 const MANY_FILTERS_AMOUNT = 5;
-
-bem.ProjectsFilter = makeBem(null, 'projects-filter');
-bem.ProjectsFilter__modalContent = makeBem(bem.ProjectsFilter, 'modal-content');
-bem.ProjectsFilter__modalFooter = makeBem(bem.ProjectsFilter, 'modal-footer', 'footer');
 
 interface ProjectsFilterProps {
   /** A list of existing filters (if any are defined). */
