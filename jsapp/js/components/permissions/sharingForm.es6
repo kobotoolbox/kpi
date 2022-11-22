@@ -19,7 +19,6 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
-import './sharingForm.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import './sharingForm.scss';
 // parts
