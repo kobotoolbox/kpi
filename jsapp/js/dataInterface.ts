@@ -17,6 +17,7 @@ import type {
   ValidationStatus,
   AssetFileType,
 } from 'js/constants';
+import { Json } from './components/common/common.interfaces';
 
 interface AssetsRequestData {
   q?: string;
@@ -572,7 +573,15 @@ export interface AccountResponse {
     sector: string;
     country: string;
     organization: string;
+    organization_website: string;
+    bio: string;
+    city: string;
     require_auth: boolean;
+    twitter: string;
+    linkedin: string;
+    instagram: string;
+    // JSON values are the backend reality, but we make make assumptions
+    [key: string]: Json;
   };
   git_rev: {
     short: string;
@@ -682,6 +691,7 @@ interface DataInterface {
 const $ajax = (o: {}) => $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
+  getProfile: () => fetch(`${ROOT_URL}/me/`).then((response) => response.json()),  // TODO replace selfProfile
   selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> => $ajax({url: `${ROOT_URL}/me/`}),
 
   apiToken: (): JQuery.jqXHR<{token: string}> => $ajax({

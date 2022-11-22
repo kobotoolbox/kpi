@@ -3,6 +3,7 @@ import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'js/utils';
 import envStore from 'js/envStore';
+import sessionStore from 'js/stores/session';
 import type {
   AssetTypeName,
   AnyRowTypeName,
@@ -52,8 +53,8 @@ export function cleanupTags(tags: string[]) {
  */
 export function getAssetOwnerDisplayName(username: string) {
   if (
-    stores.session.currentAccount?.username &&
-    stores.session.currentAccount.username === username
+    sessionStore.currentAccount?.username &&
+    sessionStore.currentAccount.username === username
   ) {
     return t('me');
   } else {
@@ -721,8 +722,8 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
 export function isSelfOwned(asset: AssetResponse) {
   return (
     asset &&
-    stores.session.currentAccount &&
-    asset.owner__username === stores.session.currentAccount.username
+    sessionStore.currentAccount &&
+    asset.owner__username === sessionStore.currentAccount.username
   );
 }
 

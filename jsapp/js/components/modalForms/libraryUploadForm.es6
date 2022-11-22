@@ -1,14 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
+import {observer} from 'mobx-react';
 import Dropzone from 'react-dropzone';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
+import {withRouter} from 'js/router/legacy';
 import {renderBackButton} from './modalHelpers';
 import {validFileTypes} from 'utils';
 import {ASSET_TYPES} from 'js/constants';
@@ -28,11 +28,10 @@ const DESIRED_TYPES = [
  * @prop {function} onSetModalTitle
  * @prop {file} [file] optional preloaded file
  */
-class LibraryUploadForm extends React.Component {
+const LibraryUploadForm = observer(class LibraryUploadForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
       isPending: false,
       // default is block
       desiredType: DESIRED_TYPES[0],
@@ -40,12 +39,6 @@ class LibraryUploadForm extends React.Component {
     };
 
     autoBind(this);
-  }
-
-  componentDidMount() {
-    this.listenTo(stores.session, () => {
-      this.setState({isSessionLoaded: true});
-    });
   }
 
   isSubmitEnabled() {
@@ -77,7 +70,7 @@ class LibraryUploadForm extends React.Component {
   }
 
   render() {
-    if (!this.state.isSessionLoaded) {
+    if (!sessionStore.isLoggedIn) {
       return (<LoadingSpinner/>);
     }
 
@@ -140,10 +133,8 @@ class LibraryUploadForm extends React.Component {
       </bem.FormModal__form>
     );
   }
-}
+});
 
-reactMixin(LibraryUploadForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryUploadForm.prototype, mixins.droppable);
-LibraryUploadForm.contextTypes = {router: PropTypes.object};
 
-export default LibraryUploadForm;
+export default withRouter(LibraryUploadForm);
