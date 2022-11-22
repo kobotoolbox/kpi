@@ -7,12 +7,9 @@ import {
   getScrollbarWidth,
 } from 'js/utils';
 import ProjectsTableRow from './projectsTableRow';
-import type {
-  ProjectFieldDefinition,
-  ProjectFieldName,
-} from 'js/components/projectsView/projectsViewConstants';
+import type {ProjectFieldName, OrderDirection} from 'js/components/projectsView/projectsViewConstants';
 import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
-import type {OrderDirection} from './projectsTableConstants';
+import ProjectsTableHeader from './projectsTableHeader';
 import type {AssetResponse} from 'js/dataInterface';
 import './projectsTable.scss';
 
@@ -31,9 +28,6 @@ bem.ProjectsTablePagination = makeBem(null, 'projects-table-pagination');
 bem.ProjectsTablePagination__button = makeBem(bem.ProjectsTablePagination, 'button', 'button');
 bem.ProjectsTablePagination__index = makeBem(bem.ProjectsTablePagination, 'index');
 
-type OrderChangeCallback = (columnId: string, columnValue: OrderDirection) => void;
-type SwitchPageCallback = (pageNumber: number) => void;
-
 interface ProjectsTableProps {
  /** Displays a spinner */
  isLoading?: boolean;
@@ -44,11 +38,11 @@ interface ProjectsTableProps {
  /** Number of assets on all pages. */
  totalAssets: number;
  /** Seleceted order column id, one of ASSETS_TABLE_COLUMNS. */
- orderColumnId: string;
+ orderFieldName: ProjectFieldName;
  /** Seleceted order column value. */
- orderValue: string;
+ orderDirection: OrderDirection;
  /** Called when user selects a column for odering. */
- onOrderChange: OrderChangeCallback;
+ onOrderChangeRequested: (fieldName: string, direction: OrderDirection) => void;
  /**
   * For displaying pagination. If you omit any of these, pagination will simply
   * not be rendered. Good to use when you actually don't need it.
@@ -56,7 +50,7 @@ interface ProjectsTableProps {
  currentPage?: number;
  totalPages?: number;
  /** Called when user clicks page change. */
- onSwitchPage?: SwitchPageCallback;
+ onSwitchPage?: (pageNumber: number) => void;
 }
 
 interface ProjectsTableState {
@@ -126,69 +120,26 @@ export default class ProjectsTable extends React.Component<
    * This function is only a callback handler, as the asset reordering itself
    * should be handled by the component that is providing the assets list.
    */
+  /**
+   * Sends a request to change order. If same field was sent, it means we want
+   * to change order. If different field, it means default order for that field.
+   */
   onChangeOrder(columnId: ProjectFieldName) {
-    if (this.props.orderColumnId === columnId) {
+    if (this.props.orderFieldName === columnId) {
       // clicking already selected column results in switching the order direction
       let newVal: OrderDirection = 'ascending';
-      if (this.props.orderValue === 'ascending') {
+      if (this.props.orderDirection === 'ascending') {
         newVal = 'descending';
       }
-      this.props.onOrderChange(this.props.orderColumnId, newVal);
+      this.props.onOrderChangeRequested(this.props.orderFieldName, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChange(columnId, PROJECT_FIELDS[columnId].orderDefaultValue || 'ascending');
-    }
-  }
-
-  renderHeader(columnDef: ProjectFieldDefinition) {
-    if (columnDef.orderBy) {
-      return this.renderOrderableHeader(columnDef);
-    } else {
-      return (
-        <bem.ProjectsTableRow__column m={columnDef.id} disabled>
-          {columnDef.label}
-        </bem.ProjectsTableRow__column>
-      );
+      this.props.onOrderChangeRequested(columnId, PROJECT_FIELDS[columnId].orderDefaultValue || 'ascending');
     }
   }
 
   onPopoverSetVisible() {
     this.setState({isPopoverVisible: true});
-  }
-
-  renderOrderableHeader(columnDef: ProjectFieldDefinition) {
-    let hideIcon = false;
-    let hideLabel = false;
-
-    // for `icon-status` we don't display empty icon, because the column is
-    // too narrow to display label and icon together
-    if (columnDef.id === PROJECT_FIELDS['icon-status'].id) {
-      hideIcon = this.props.orderColumnId !== columnDef.id;
-      hideLabel = this.props.orderColumnId === columnDef.id;
-    }
-
-    // empty icon to take up space in column
-    let icon = (<i className='k-icon'/>);
-    if (this.props.orderColumnId === columnDef.id) {
-      if (this.props.orderValue === 'ascending') {
-        icon = (<i className='k-icon k-icon-angle-up'/>);
-      }
-      if (this.props.orderValue === 'descending') {
-        icon = (<i className='k-icon k-icon-angle-down'/>);
-      }
-    }
-
-    return (
-      <bem.ProjectsTableRow__column
-        m={columnDef.id}
-        onClick={this.onChangeOrder.bind(this, columnDef.id)}
-      >
-        {!hideLabel &&
-          <bem.ProjectsTableRow__headerLabel>{columnDef.label}</bem.ProjectsTableRow__headerLabel>
-        }
-        {!hideIcon && icon}
-      </bem.ProjectsTableRow__column>
-    );
   }
 
   /**
@@ -262,23 +213,11 @@ export default class ProjectsTable extends React.Component<
 
     return (
       <bem.ProjectsTable m={modifiers}>
-        <bem.ProjectsTable__header>
-          <bem.ProjectsTableRow m='header'>
-            {this.renderHeader(PROJECT_FIELDS['icon-status'])}
-            {this.renderHeader(PROJECT_FIELDS.name)}
-            {this.renderHeader(PROJECT_FIELDS['items-count'])}
-            {this.renderHeader(PROJECT_FIELDS.owner)}
-            {this.renderHeader(PROJECT_FIELDS.languages)}
-            {this.renderHeader(PROJECT_FIELDS['date-modified'])}
-
-            {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
-              <div
-                className='projects-table__scrollbar-padding'
-                style={{width: `${this.state.scrollbarWidth}px`}}
-              />
-            }
-          </bem.ProjectsTableRow>
-        </bem.ProjectsTable__header>
+        <ProjectsTableHeader
+          orderFieldName={this.props.orderFieldName}
+          orderDirection={this.props.orderDirection}
+          onChangeOrderRequested={this.onChangeOrder.bind(this)}
+        />
 
         <bem.ProjectsTable__body ref={this.bodyRef}>
           {this.props.isLoading &&

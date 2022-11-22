@@ -7,7 +7,7 @@ import ProjectsFilter from 'js/components/projectsView/projectsFilter';
 import ProjectsFieldsSelector from 'js/components/projectsView/projectsFieldsSelector';
 
 import ProjectsTable from 'js/components/projectsTable/projectsTable';
-import type {OrderDirection} from 'js/components/projectsTable/projectsTableConstants';
+import type {OrderDirection} from 'js/components/projectsView/projectsViewConstants';
 import mockAssets from './assetsResponseMock';
 
 interface ProjectsViewTempDemoState {
@@ -59,9 +59,9 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
         <ProjectsTable
           assets={mockAssets.results}
           totalAssets={mockAssets.count}
-          orderColumnId='name'
-          orderValue='ascending'
-          onOrderChange={(columnId: string, columnValue: OrderDirection) => console.log(columnId, columnValue)}
+          orderFieldName='name'
+          orderDirection='ascending'
+          onOrderChangeRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
         />
       </section>
     );
