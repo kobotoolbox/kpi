@@ -1,4 +1,5 @@
 @use "sass:color";
+@use 'scss/zindexes';
 
 // ==========================================================================
 // Card (incl. Header and Expanded)
@@ -195,7 +196,7 @@ $cardIndicatorIconWidth: 21px;
     right: 1px; // needed for settings icon to not cover the right border when active
     width: $s-fb-row-buttons-width;
     height: 100%;
-    z-index: 3;
+    z-index: zindexes.$z-form-builder-card-buttons;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -216,7 +217,7 @@ $cardIndicatorIconWidth: 21px;
     height: 100%;
     left: 0px;
     top: 0px;
-    z-index: 2;
+    z-index: zindexes.$z-form-builder-card-shade;
     text-align: center;
     vertical-align: middle;
     display: none;
@@ -298,7 +299,7 @@ $cardIndicatorIconWidth: 21px;
 
 .card--shaded {
     .card__buttons {
-        z-index: 4;
+        z-index: zindexes.$z-form-builder-card-buttons + 1;
     }
     .card__header .card__text .bg {
         display: block;
