@@ -1,15 +1,11 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {hashHistory} from 'react-router';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
 import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
-import {
-  ASSET_TYPES,
-  ACCESS_TYPES,
-} from 'js/constants';
+import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import type {AssetResponse, AssetDownloads} from 'js/dataInterface';
@@ -21,6 +17,8 @@ import {
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './projectActionButtons.scss';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {withRouter} from 'jsapp/js/router/legacy';
 
 bem.ProjectActionButtons = makeBem(null, 'project-action-buttons', 'menu');
 bem.ProjectActionButtons__button = makeBem(bem.ProjectActionButtons, 'button', 'a');
@@ -28,7 +26,7 @@ bem.ProjectActionButtons__iconButton = makeBem(bem.ProjectActionButtons, 'icon-b
 
 const assetActions = mixins.clickAssets.click.asset;
 
-interface ProjectActionButtonsProps {
+interface ProjectActionButtonsProps extends WithRouterProps {
   asset: AssetResponse;
   has_deployment?: boolean;
   deployment__active?: boolean;
@@ -137,10 +135,10 @@ class ProjectActionButtons extends React.Component<
    */
   onDeleteComplete(assetUid: string) {
     if (isAnyLibraryItemRoute() && getRouteAssetUid() === assetUid) {
-      hashHistory.push(ROUTES.LIBRARY);
+      this.props.router.navigate(ROUTES.LIBRARY);
     }
     if (isAnyFormRoute() && getRouteAssetUid() === assetUid) {
-      hashHistory.push(ROUTES.FORMS);
+      this.props.router.navigate(ROUTES.FORMS);
     }
   }
 
@@ -195,7 +193,9 @@ class ProjectActionButtons extends React.Component<
     }
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
-    hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
+    this.props.router.navigate(
+      ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid)
+    );
   }
 
   getFormBuilderLink() {
@@ -508,4 +508,4 @@ class ProjectActionButtons extends React.Component<
   }
 }
 
-export default ProjectActionButtons;
+export default withRouter(ProjectActionButtons);

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import {Link} from 'react-router';
+import {Link} from 'react-router-dom';
 import Reflux from 'reflux';
 import mixins from '../mixins';
 import bem from 'js/bem';

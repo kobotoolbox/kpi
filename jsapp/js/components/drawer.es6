@@ -1,15 +1,16 @@
-import React from 'react';
+import React, {lazy, Suspense} from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import {observer} from 'mobx-react';
 import Reflux from 'reflux';
-import { Link, hashHistory } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import {stores} from '../stores';
+import sessionStore from '../stores/session';
 import bem from 'js/bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
-import AccountSidebar from 'js/components/account/accountSidebar';
 import HelpBubble from 'js/components/support/helpBubble';
 import {
   COMMON_QUERIES,
@@ -19,6 +20,10 @@ import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
+import {history} from 'js/router/historyRouter';
+import { routerIsActive, withRouter } from '../router/legacy';
+
+const AccountSidebar = lazy(() => import("js/account/accountSidebar"));
 
 const INITIAL_STATE = {
   headerFilters: 'forms',
@@ -30,7 +35,7 @@ const INITIAL_STATE = {
   })
 };
 
-class FormSidebar extends Reflux.Component {
+const FormSidebar = observer(class FormSidebar extends Reflux.Component {
   constructor(props){
     super(props);
     this.state = assign({
@@ -40,7 +45,6 @@ class FormSidebar extends Reflux.Component {
     this.state = assign(INITIAL_STATE, this.state);
 
     this.stores = [
-      stores.session,
       stores.pageState
     ];
     this.unlisteners = [];
@@ -48,7 +52,7 @@ class FormSidebar extends Reflux.Component {
   }
   componentDidMount() {
     this.unlisteners.push(
-      hashHistory.listen(this.onRouteChange.bind(this))
+      history.listen(this.onRouteChange.bind(this))
     );
   }
   componentWillUnmount() {
@@ -65,7 +69,7 @@ class FormSidebar extends Reflux.Component {
       <React.Fragment>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
-          disabled={!stores.session.isLoggedIn}
+          disabled={!sessionStore.isLoggedIn}
           onClick={this.newFormModal}
         >
           {t('new')}
@@ -77,7 +81,7 @@ class FormSidebar extends Reflux.Component {
   onRouteChange() {
     this.setState(INITIAL_STATE);
   }
-}
+});
 
 FormSidebar.contextTypes = {
   router: PropTypes.object
@@ -106,12 +110,11 @@ class DrawerLink extends React.Component {
     var link;
     if (this.props.linkto) {
       link = (
-        <Link to={this.props.linkto}
+        <NavLink to={this.props.linkto}
             className={classNames.join(' ')}
-            activeClassName='active'
             data-tip={this.props.label}>
           {icon}
-        </Link>
+        </NavLink>
       );
     } else {
       link = (
@@ -127,18 +130,22 @@ class DrawerLink extends React.Component {
   }
 }
 
-class Drawer extends Reflux.Component {
+const Drawer = observer(class Drawer extends Reflux.Component {
   constructor(props){
     super(props);
     autoBind(this);
     this.stores = [
-      stores.session,
       stores.pageState,
     ];
   }
+
+  isAccount() {
+    return routerIsActive(ROUTES.ACCOUNT_ROOT);
+  }
+
   render() {
     // no sidebar for not logged in users
-    if (!stores.session.isLoggedIn) {
+    if (!sessionStore.isLoggedIn) {
       return null;
     }
 
@@ -157,7 +164,9 @@ class Drawer extends Reflux.Component {
           }
 
           { this.isAccount() &&
-            <AccountSidebar/>
+            <Suspense fallback={null}>
+              <AccountSidebar/>
+            </Suspense>
           }
 
           { !this.isLibrary() && !this.isAccount() &&
@@ -168,12 +177,12 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
-          { stores.session.isLoggedIn &&
+          { sessionStore.isLoggedIn &&
             <HelpBubble/>
           }
-          { stores.session.isLoggedIn &&
-            stores.session.currentAccount.projects_url &&
-            <a href={stores.session.currentAccount.projects_url}
+          { sessionStore.isLoggedIn &&
+            sessionStore.currentAccount.projects_url &&
+            <a href={sessionStore.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'
               data-tip={t('Projects (legacy)')}
@@ -192,7 +201,7 @@ class Drawer extends Reflux.Component {
       </bem.KDrawer>
       );
   }
-}
+});
 
 reactMixin(Drawer.prototype, searches.common);
 reactMixin(Drawer.prototype, mixins.droppable);
@@ -202,4 +211,4 @@ Drawer.contextTypes = {
   router: PropTypes.object
 };
 
-export default Drawer;
+export default withRouter(Drawer);
