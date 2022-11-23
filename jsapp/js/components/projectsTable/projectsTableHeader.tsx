@@ -18,11 +18,8 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
   // TODO get this value from calculation
   const scrollbarWidth = 15;
 
-  const renderHeader = (field: ProjectFieldDefinition) => {
+  const renderColumn = (field: ProjectFieldDefinition) => {
     // TODO don't render hidden fields :)
-
-    let hideIcon = false;
-    let hideLabel = false;
 
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
@@ -38,12 +35,11 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     return (
       <bem.ProjectsTableRow__column
         m={field.name}
-        onClick={props.onChangeOrderRequested.bind(field.name)}
+        key={field.name}
+        onClick={() => props.onChangeOrderRequested(field.name)}
       >
-        {!hideLabel &&
-          <bem.ProjectsTableRow__headerLabel>{field.label}</bem.ProjectsTableRow__headerLabel>
-        }
-        {!hideIcon && icon}
+        <bem.ProjectsTableRow__headerLabel>{field.label}</bem.ProjectsTableRow__headerLabel>
+        {icon}
       </bem.ProjectsTableRow__column>
     );
   };
@@ -54,7 +50,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
         {/* First column is always visible and displays a checkbox. */}
         <bem.ProjectsTableRow__column m='checkbox'/>
 
-        {Object.values(PROJECT_FIELDS).map(renderHeader)}
+        {Object.values(PROJECT_FIELDS).map(renderColumn)}
 
         <div
           className='projects-table__scrollbar-padding'

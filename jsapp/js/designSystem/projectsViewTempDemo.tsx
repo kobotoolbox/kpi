@@ -61,7 +61,7 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
           totalAssets={mockAssets.count}
           orderFieldName='name'
           orderDirection='ascending'
-          onOrderChangeRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
+          onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
         />
       </section>
     );

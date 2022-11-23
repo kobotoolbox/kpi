@@ -42,7 +42,7 @@ interface ProjectsTableProps {
  /** Seleceted order column value. */
  orderDirection: OrderDirection;
  /** Called when user selects a column for odering. */
- onOrderChangeRequested: (fieldName: string, direction: OrderDirection) => void;
+ onChangeOrderRequested: (fieldName: string, direction: OrderDirection) => void;
  /**
   * For displaying pagination. If you omit any of these, pagination will simply
   * not be rendered. Good to use when you actually don't need it.
@@ -54,8 +54,6 @@ interface ProjectsTableProps {
 }
 
 interface ProjectsTableState {
-  shouldHidePopover: boolean;
-  isPopoverVisible: boolean;
   scrollbarWidth: number | null;
   isFullscreen: boolean;
 }
@@ -70,8 +68,6 @@ export default class ProjectsTable extends React.Component<
   constructor(props: ProjectsTableProps){
     super(props);
     this.state = {
-      shouldHidePopover: false,
-      isPopoverVisible: false,
       scrollbarWidth: null,
       isFullscreen: false,
     };
@@ -124,22 +120,18 @@ export default class ProjectsTable extends React.Component<
    * Sends a request to change order. If same field was sent, it means we want
    * to change order. If different field, it means default order for that field.
    */
-  onChangeOrder(columnId: ProjectFieldName) {
-    if (this.props.orderFieldName === columnId) {
+  onChangeOrderRequested(fieldName: ProjectFieldName) {
+    if (this.props.orderFieldName === fieldName) {
       // clicking already selected column results in switching the order direction
       let newVal: OrderDirection = 'ascending';
       if (this.props.orderDirection === 'ascending') {
         newVal = 'descending';
       }
-      this.props.onOrderChangeRequested(this.props.orderFieldName, newVal);
+      this.props.onChangeOrderRequested(this.props.orderFieldName, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChangeRequested(columnId, PROJECT_FIELDS[columnId].orderDefaultValue || 'ascending');
+      this.props.onChangeOrderRequested(fieldName, PROJECT_FIELDS[fieldName].orderDefaultValue || 'ascending');
     }
-  }
-
-  onPopoverSetVisible() {
-    this.setState({isPopoverVisible: true});
   }
 
   /**
@@ -181,30 +173,6 @@ export default class ProjectsTable extends React.Component<
     }
   }
 
-  renderFooter() {
-    return (
-      <bem.ProjectsTable__footer>
-        {this.props.totalAssets !== null &&
-          <span>
-            {t('##count## items').replace('##count##', String(this.props.totalAssets))}
-          </span>
-        }
-
-        {this.renderPagination()}
-
-        {this.props.totalAssets !== null &&
-          <button
-            className='mdl-button'
-            onClick={this.toggleFullscreen.bind(this)}
-          >
-            {t('Toggle fullscreen')}
-            <i className='k-icon k-icon-expand' />
-          </button>
-        }
-      </bem.ProjectsTable__footer>
-    );
-  }
-
   render() {
     const modifiers: string[] = [];
     if (this.state.isFullscreen) {
@@ -216,7 +184,7 @@ export default class ProjectsTable extends React.Component<
         <ProjectsTableHeader
           orderFieldName={this.props.orderFieldName}
           orderDirection={this.props.orderDirection}
-          onChangeOrderRequested={this.onChangeOrder.bind(this)}
+          onChangeOrderRequested={this.onChangeOrderRequested.bind(this)}
         />
 
         <bem.ProjectsTable__body ref={this.bodyRef}>
@@ -233,12 +201,32 @@ export default class ProjectsTable extends React.Component<
           {!this.props.isLoading && this.props.assets.map((asset) =>
             <ProjectsTableRow
               asset={asset}
+              isSelected={false}
+              onSelectRequested={(isSelected: boolean) => console.log('row checkbox click', isSelected)}
               key={asset.uid}
             />
           )}
         </bem.ProjectsTable__body>
 
-        {this.renderFooter()}
+        <bem.ProjectsTable__footer>
+          {this.props.totalAssets !== null &&
+            <span>
+              {t('##count## items').replace('##count##', String(this.props.totalAssets))}
+            </span>
+          }
+
+          {this.renderPagination()}
+
+          {this.props.totalAssets !== null &&
+            <button
+              className='mdl-button'
+              onClick={this.toggleFullscreen.bind(this)}
+            >
+              {t('Toggle fullscreen')}
+              <i className='k-icon k-icon-expand' />
+            </button>
+          }
+        </bem.ProjectsTable__footer>
       </bem.ProjectsTable>
     );
   }
