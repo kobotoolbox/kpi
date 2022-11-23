@@ -1,6 +1,7 @@
-@use "scss/_colors";
-@use "scss/_variables";
-@use "scss/libs/_mdl";
+@use 'scss/_colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
+@use 'scss/zindexes';
 
 /* ==========================================================================
  * projectsTable
@@ -22,7 +23,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &.projects-table--fullscreen {
     position: fixed;
-    z-index: mdl.$z-fullscreen;
+    z-index: zindexes.$z-fullscreen;
     border: 15px solid mdl.$root-background;
     top: 0;
     left: 0;
@@ -168,7 +169,7 @@ $z-projects-table-row-header: 30;
     }
 
     .projects-table-row__column--icon-status {
-      padding: 16px 0 0 0;
+      padding: 16px 0 0;
 
       .k-icon {
         font-size: 24px;
@@ -242,7 +243,7 @@ $z-projects-table-row-header: 30;
 
       &.k-icon-filter-arrows {
         font-size: 9px;
-        margin-left: 0px !important;
+        margin-left: 0 !important;
       }
     }
 
@@ -251,10 +252,10 @@ $z-projects-table-row-header: 30;
 
       .popover-menu__toggle {
         display: block;
-        color: currentColor;
+        color: currentcolor;
 
         &:hover {
-          color: currentColor;
+          color: currentcolor;
         }
 
         .k-icon {
@@ -368,7 +369,7 @@ $z-projects-table-row-header: 30;
   padding: 3px 5px;
   font-size: 12px;
   line-height: 1;
-  color: currentColor;
+  color: currentcolor;
   background: colors.$kobo-gray-92;
   border-radius: 2px;
 
