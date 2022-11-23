@@ -1,18 +1,20 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
+import { observer } from 'mobx-react';
+import sessionStore from "js/stores/session";
 import {actions} from '../actions';
-import bem from 'js/bem';
-import {stores} from '../stores';
+import bem, {makeBem} from 'js/bem';
 import TextBox from 'js/components/common/textBox';
-import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
+import {withRouter} from 'js/router/legacy';
+import './accountSettings.scss';
 
-export default class ChangePassword extends React.Component {
+bem.AccountSettings = makeBem(null, 'account-settings');
+
+const ChangePassword = class ChangePassword extends React.Component {
   constructor(props) {
     super(props);
     this.errors = {};
@@ -25,11 +27,6 @@ export default class ChangePassword extends React.Component {
     autoBind(this);
   }
 
-  componentDidMount() {
-    this.listenTo(actions.auth.changePassword.failed, this.onChangePasswordFailed);
-    this.listenTo(actions.auth.changePassword.completed, this.onChangePasswordCompleted);
-  }
-
   validateRequired(what) {
     if (!this.state[what]) {
       this.errors[what] = t('This field is required.');
@@ -37,7 +34,7 @@ export default class ChangePassword extends React.Component {
   }
 
   close() {
-    hashHistory.goBack();
+    this.props.router.navigate(-1)
   }
 
   changePassword() {
@@ -81,11 +78,11 @@ export default class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session.isLoggedIn) {
+    if(!sessionStore.isLoggedIn) {
       return null;
     }
 
-    var accountName = stores.session.currentAccount.username;
+    var accountName = sessionStore.currentAccount.username;
     var initialsStyle = {
       background: `#${stringToColor(accountName)}`
     };
@@ -176,5 +173,4 @@ export default class ChangePassword extends React.Component {
   }
 }
 
-reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
-reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);
+export default observer(withRouter(ChangePassword));

@@ -15,8 +15,11 @@
     opacity: 0.5;
   }
 
-  .form-sidebar__label--selected {
-    border-left: sizes.$x3 solid colors.$kobo-teal;
+  a.active {
+    .form-sidebar__label {
+      border-left: sizes.$x3 solid colors.$kobo-teal;
+
+    }
   }
 
   i.k-icon {

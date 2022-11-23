@@ -8,7 +8,6 @@
  * of defined ROUTES.
  */
 
-import {hashHistory} from 'react-router';
 import {
   ROUTES,
   PATHS,
@@ -20,9 +19,9 @@ import {
  */
 export function getLoginUrl(): string {
   let url = PATHS.LOGIN;
-  const currentLoc = hashHistory.getCurrentLocation();
-  if (currentLoc?.pathname) {
-    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+  const currentLoc = getCurrentPath();
+  if (currentLoc) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc}`);
     // add redirection after logging in to current page
     url += `?next=${nextUrl}`;
   }
@@ -34,7 +33,8 @@ export function redirectToLogin() {
 }
 
 export function getCurrentPath(): string {
-  return hashHistory.getCurrentLocation().pathname;
+  const route = location.hash.split('#');
+  return route.length > 1 ? route[1] : '';
 }
 
 /*
@@ -42,15 +42,7 @@ export function getCurrentPath(): string {
  */
 
 export function isRootRoute(): boolean {
-  return getCurrentPath() === ROUTES.ROOT;
-}
-
-export function isAccountSettingsRoute(): boolean {
-  return getCurrentPath() === ROUTES.ACCOUNT_SETTINGS;
-}
-
-export function isChangePasswordRoute(): boolean {
-  return getCurrentPath() === ROUTES.CHANGE_PASSWORD;
+  return getCurrentPath() === ROUTES.ROOT || window.location.pathname === ROUTES.ROOT;
 }
 
 export function isLibraryRoute(): boolean {

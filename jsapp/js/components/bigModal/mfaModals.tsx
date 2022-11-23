@@ -1,6 +1,7 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import {stores} from 'jsapp/js/stores';
+import { observer } from 'mobx-react';
+import sessionStore from 'js/stores/session';
 import QRCode from 'qrcode.react';
 import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
@@ -49,7 +50,7 @@ interface MFAModalsState {
   errorText: string | undefined;
 }
 
-export default class MFAModals extends React.Component<
+const MFAModals = class MFAModals extends React.Component<
   MFAModalsProps,
   MFAModalsState
 > {
@@ -198,7 +199,7 @@ export default class MFAModals extends React.Component<
 
   downloadCodes() {
     if (this.state.backupCodes) {
-      const USERNAME = stores.session.currentAccount.username;
+      const USERNAME = sessionStore.currentAccount.username;
       // gets date in yyyymmdd
       const DATE = new Date().toJSON().slice(0, 10).replace(/-/g, '');
 
@@ -586,3 +587,5 @@ export default class MFAModals extends React.Component<
     }
   }
 }
+
+export default (observer as any)(MFAModals);
