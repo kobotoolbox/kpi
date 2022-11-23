@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -17,30 +18,24 @@ except ImportError:
 
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
-from lxml import etree
 from django.core.files import File
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as t
+from lxml import etree
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 
-from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_JSON,
-    SUBMISSION_FORMAT_TYPE_XML,
-    PERM_FROM_KC_ONLY,
-    PERM_CHANGE_SUBMISSIONS,
-    PERM_DELETE_SUBMISSIONS,
-    PERM_VALIDATE_SUBMISSIONS,
-)
-from kpi.exceptions import (
-    AttachmentNotFoundException,
-    InvalidXPathException,
-    SubmissionIntegrityError,
-    SubmissionNotFoundException,
-    XPathNotFoundException,
-)
+from kpi.constants import (PERM_CHANGE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS,
+                           PERM_FROM_KC_ONLY, PERM_VALIDATE_SUBMISSIONS,
+                           SUBMISSION_FORMAT_TYPE_JSON,
+                           SUBMISSION_FORMAT_TYPE_XML)
+from kpi.exceptions import (AttachmentNotFoundException, InvalidXPathException,
+                            SubmissionIntegrityError,
+                            SubmissionNotFoundException,
+                            XPathNotFoundException)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -49,24 +44,17 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
+
+from ..exceptions import (BadFormatException,
+                          KobocatBulkUpdateSubmissionsClientException,
+                          KobocatDeploymentException,
+                          KobocatDuplicateSubmissionException)
 from .base_backend import BaseDeploymentBackend
-from .kc_access.shadow_models import (
-    KobocatOneTimeAuthToken,
-    KobocatXForm,
-    ReadOnlyKobocatAttachment,
-    ReadOnlyKobocatInstance,
-)
-from .kc_access.utils import (
-    assign_applicable_kc_permissions,
-    instance_count,
-    last_submission_time
-)
-from ..exceptions import (
-    BadFormatException,
-    KobocatBulkUpdateSubmissionsClientException,
-    KobocatDeploymentException,
-    KobocatDuplicateSubmissionException,
-)
+from .kc_access.shadow_models import (KobocatOneTimeAuthToken, KobocatXForm,
+                                      ReadOnlyKobocatAttachment,
+                                      ReadOnlyKobocatInstance)
+from .kc_access.utils import (assign_applicable_kc_permissions, instance_count,
+                              last_submission_time)
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -1372,7 +1360,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: requests.models.Response
         """
         if not is_user_anonymous(user):
-            token, created = Token.objects.get_or_create(user=user)
+            token = User.objects.using("kobocat").select_related(
+                "auth_token").get(username=user.username).auth_token
             kc_request.headers['Authorization'] = 'Token %s' % token.key
         session = requests.Session()
         return session.send(kc_request.prepare())
