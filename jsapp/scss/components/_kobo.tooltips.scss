@@ -1,3 +1,5 @@
+@use 'scss/zindexes';
+
 /*
 Kobo Tooltips
 
@@ -7,7 +9,6 @@ Additional class names:
 - `right-tooltip`
 - `left-tooltip`
 */
-$z-tooltip: 2;
 
 // Our own, css-only tooltips
 @media screen and (min-width: 768px) {
@@ -23,7 +24,7 @@ $z-tooltip: 2;
       visibility: hidden;
       transition-duration: 0.2s;
       transition-property: visibility, opacity;
-      z-index: $z-tooltip;
+      z-index: zindexes.$z-tooltip;
     }
 
     &::after {

@@ -1,4 +1,4 @@
-$z-kobo-dropdown-menu: 100;
+@use 'scss/zindexes';
 
 .kobo-dropdown {
   display: inline-block;
@@ -24,7 +24,7 @@ $z-kobo-dropdown-menu: 100;
   .kobo-dropdown__menu {
     display: block;
     position: absolute;
-    z-index: $z-kobo-dropdown-menu;
+    z-index: zindexes.$z-dropdown;
     border-radius: 4px;
     list-style: none;
     margin: 0;
