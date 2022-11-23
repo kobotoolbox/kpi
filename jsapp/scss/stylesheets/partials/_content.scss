@@ -30,27 +30,6 @@
     }
 }
 
-.container__wide {
-  max-width: 1024px;
-  margin:0 auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-
-// Used to contain the question library sidebar
-.container__fixed {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 4;
-  height: 10px;
-  top:80px;
-  width: 100%;
-}
-
 // Legacy
 .content--centered {
   text-align: center;
