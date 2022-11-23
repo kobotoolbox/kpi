@@ -15,17 +15,25 @@ import {
   addRequiredToLabel,
   stringToColor,
 } from 'utils';
-import {ROUTES} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from './routes';
+import {usePrompt} from 'js/router/promptBlocker';
 import envStore from 'js/envStore';
 import './accountSettings.scss';
 
-const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
+
+
+/** Use usePrompt directly instead for functional components */
+const Prompt = () => {
+  // Hard coded message to discourage usage
+  usePrompt(t('You have unsaved changes. Leave settings without saving?'));
+  return <></>;
+};
 
 /**
  * NOTE: We have multiple components with similar form:
@@ -57,7 +65,6 @@ export default class AccountSettings extends React.Component {
   }
 
   componentDidMount() {
-    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
     this.listenTo(stores.session, this.rebuildState);
     this.rebuildState();
   }
@@ -68,7 +75,7 @@ export default class AccountSettings extends React.Component {
 
   routerWillLeave() {
     if (!this.state.isPristine) {
-      return UNSAVED_CHANGES_WARNING;
+      return true
     }
   }
 
@@ -207,6 +214,7 @@ export default class AccountSettings extends React.Component {
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
+            {this.routerWillLeave() && <Prompt/>}
             <bem.KoboButton
               className='account-settings-save'
               onClick={this.updateProfile}
@@ -261,7 +269,7 @@ export default class AccountSettings extends React.Component {
 
               <bem.AccountSettings__item m='password'>
                 <a
-                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
+                  href={`/#${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}
                   className='kobo-button kobo-button--blue'
                 >
                   {t('Modify Password')}
