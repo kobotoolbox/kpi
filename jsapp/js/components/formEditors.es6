@@ -7,6 +7,7 @@ import editableFormMixin from '../editorMixins/editableForm';
 import {update_states} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from '../mixins';
+import {withRouter} from 'js/router/legacy';
 
 /**
  * These are the components that are used for Form Builder routes.
@@ -31,7 +32,7 @@ reactMixin(FormPage.prototype, editableFormMixin);
 reactMixin(FormPage.prototype, mixins.permissions);
 FormPage.contextTypes = {router: PropTypes.object};
 
-export class LibraryAssetEditor extends React.Component {
+class LibraryAssetEditorComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -44,25 +45,31 @@ export class LibraryAssetEditor extends React.Component {
     };
     autoBind(this);
 
-    if (this.props.route.path === ROUTES.EDIT_LIBRARY_ITEM) {
+
+    if (this.props.router.path === ROUTES.EDIT_LIBRARY_ITEM) {
       this.state.isNewAsset = false;
     }
 
-    if (this.props.route.path === ROUTES.NEW_LIBRARY_ITEM) {
+    if (this.props.router.path === ROUTES.NEW_LIBRARY_ITEM) {
       this.state.asset = false;
     }
 
-    if (this.props.route.path === ROUTES.NEW_LIBRARY_CHILD) {
+    if (this.props.router.path === ROUTES.NEW_LIBRARY_CHILD) {
       this.state.asset = false;
       this.state.parentAsset = this.props.params.uid;
-      this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.props.params.uid);
+      this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(
+        ':uid',
+        this.props.params.uid
+      );
     }
 
-    if (this.props.location.query.back) {
-      this.state.backRoute = this.props.location.query.back;
+    if (this.props.router.searchParams.get('back')) {
+      this.state.backRoute = this.props.router.searchParams.get('back');
     }
   }
 }
-reactMixin(LibraryAssetEditor.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryAssetEditor.prototype, editableFormMixin);
-LibraryAssetEditor.contextTypes = {router: PropTypes.object};
+reactMixin(LibraryAssetEditorComponent.prototype, Reflux.ListenerMixin);
+reactMixin(LibraryAssetEditorComponent.prototype, editableFormMixin);
+LibraryAssetEditorComponent.contextTypes = {router: PropTypes.object};
+
+export const LibraryAssetEditor = withRouter(LibraryAssetEditorComponent);

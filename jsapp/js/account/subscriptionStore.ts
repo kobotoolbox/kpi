@@ -2,7 +2,6 @@ import {makeAutoObservable} from 'mobx';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
-import envStore from 'js/envStore';
 
 // For plan displaying purposes we only care about this part of the response
 export interface ProductInfo {

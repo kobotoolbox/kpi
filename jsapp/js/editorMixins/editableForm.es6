@@ -7,7 +7,6 @@ import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
@@ -47,6 +46,7 @@ import {
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
+import { usePrompt } from 'js/router/promptBlocker';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -54,6 +54,12 @@ const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
 const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
+/** Use usePrompt directly instead for functional components */
+const Prompt = () => {
+  usePrompt(UNSAVED_CHANGES_WARNING);
+  return <></>;
+};
+
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
@@ -68,8 +74,6 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html';
 
 export default assign({
   componentDidMount() {
-    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
-
     this.loadAsideSettings();
 
     if (!this.state.isNewAsset) {
@@ -322,7 +326,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push(this.state.backRoute);
+          this.props.router.navigate(this.state.backRoute);
         });
     } else {
       // update existing asset
@@ -512,7 +516,7 @@ export default assign({
 
   safeNavigateToRoute(route) {
     if (!this.needsSave()) {
-      hashHistory.push(route);
+      this.props.router.navigate(route);
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
@@ -520,7 +524,7 @@ export default assign({
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
-          hashHistory.push(route);
+          this.props.router.navigate(route);
         },
         oncancel: dialog.destroy
       };
@@ -531,7 +535,7 @@ export default assign({
   safeNavigateToList() {
     if (this.state.backRoute) {
       this.safeNavigateToRoute(this.state.backRoute);
-    } else if (this.props.location.pathname.startsWith(ROUTES.LIBRARY)) {
+    } else if (this.props.router.location.pathname.startsWith(ROUTES.LIBRARY)) {
       this.safeNavigateToRoute(ROUTES.LIBRARY);
     } else {
       this.safeNavigateToRoute(ROUTES.FORMS);
@@ -936,6 +940,14 @@ export default assign({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <>
+        {
+          /*
+            TODO: Try to fix quirks that arise from this <Prompt/> usage
+            Issue: https://github.com/kobotoolbox/kpi/issues/4154
+          */
+          this.state.preventNavigatingOut && <Prompt/>
+        }
         <bem.uiPanel m={['transparent', 'fixed']}>
           <bem.uiPanel__body>
             {this.renderAside()}
@@ -997,6 +1009,7 @@ export default assign({
             }
           </bem.uiPanel__body>
         </bem.uiPanel>
+        </>
       </DocumentTitle>
     );
   },
