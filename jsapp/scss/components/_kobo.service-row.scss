@@ -1,10 +1,10 @@
 @use "sass:math";
+@use 'scss/zindexes';
 
 $s-service-row-action-button: 36px;
 $s-service-row-action-button-icon: 26px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
-$s-service-row-z-link: 10;
 
 .service-row {
   display: flex;
@@ -21,7 +21,7 @@ $s-service-row-z-link: 10;
 
   &:hover .service-row__action-button {
     position: relative;
-    z-index: $s-service-row-z-link + 1;
+    z-index: zindexes.$z-service-row-link + 1;
   }
 
   &:not(.service-row--header):hover {
@@ -49,7 +49,7 @@ $s-service-row-z-link: 10;
 
 .service-row__link-overlay {
   position: absolute;
-  z-index: $s-service-row-z-link;
+  z-index: zindexes.$z-service-row-link;
   top: 0;
   left: 0;
   right: 0;

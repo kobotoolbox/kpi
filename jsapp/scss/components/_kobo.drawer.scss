@@ -1,3 +1,5 @@
+@use 'scss/zindexes';
+
 // drawer (sidebar)
 
 .k-drawer {
@@ -88,7 +90,7 @@
 @media screen and (max-width: 999px) {
   .k-drawer {
     position: fixed;
-    z-index: 1050; // must be over leaflet
+    z-index: zindexes.$z-kobo-drawer;
     // We need some pxs more as there is shadow on the drawer.
     left: -1 * $s-drawer-width - 10px;
     transition: left 0.5s;

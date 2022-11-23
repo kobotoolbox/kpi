@@ -10,8 +10,6 @@ $layout-nav-color: $kobo-white !default;
 $layout-header-bg-color: $kobo-gray-24 !default;
 $layout-desktop-header-height: 64px;
 
-$z-fullscreen: 101;
-
 @mixin box-shadow {
   box-shadow: 0 0 2px 0 rgba($kobo-gray-24, 0.06), 0 2px 2px 0 rgba($kobo-gray-24, 0.12);
   border-radius: 2px;
