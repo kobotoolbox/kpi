@@ -17,7 +17,7 @@
 
 import Reflux from 'reflux';
 import {Cookies} from 'react-cookie';
-import {parsed, parseTags} from './assetParserUtils';
+import {parseTags} from './assetParserUtils';
 import {actions} from './actions';
 import {
   log,

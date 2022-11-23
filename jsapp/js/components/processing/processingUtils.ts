@@ -1,7 +1,7 @@
 import {ROUTES} from 'js/router/routerConstants';
 import {SUPPLEMENTAL_DETAILS_PROP} from 'js/constants';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import {hashHistory} from 'react-router';
+import { history } from 'jsapp/js/router/historyRouter';
 
 /**
  * Returns a path that leads to transcription value in the submission response,
@@ -55,5 +55,5 @@ export function openProcessing(
     .replace(':uid', assetUid)
     .replace(':qpath', qpath)
     .replace(':submissionEditId', submissionEditId);
-  hashHistory.push(route);
+  history.push(route);
 }
