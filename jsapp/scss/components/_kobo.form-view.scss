@@ -1,4 +1,5 @@
 @use "scss/_variables";
+@use 'scss/zindexes';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
@@ -39,7 +40,7 @@ $side-tabs-width-mobile: 70px;
     // We force the position to avoid problems with stronger specificity
     // breaking the fullscreen functionality.
     position: fixed !important;
-    z-index: $z-fullscreen;
+    z-index: zindexes.$z-fullscreen;
     top: 0;
     left: 0;
     bottom: 0;

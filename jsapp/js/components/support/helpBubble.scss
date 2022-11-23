@@ -1,8 +1,8 @@
 @use 'scss/_colors';
 @use 'scss/_variables';
+@use 'scss/zindexes';
 @use 'scss/libs/_mdl';
 
-$z-help-bubble-popup: 801;
 $s-help-bubble-row-spacing: 20px;
 
 .help-bubble {
@@ -120,7 +120,7 @@ $s-help-bubble-row-spacing: 20px;
   display: flex;
   flex-direction: row;
   position: fixed;
-  z-index: $z-help-bubble-popup;
+  z-index: zindexes.$z-help-bubble-popup;
   left: variables.$drawer-icons-width - 1px;
   background: colors.$kobo-white;
   width: 360px;
