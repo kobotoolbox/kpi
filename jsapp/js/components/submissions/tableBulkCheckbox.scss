@@ -14,5 +14,10 @@
       padding: 0;
       display: block;
     }
+
+    // Fix react-table agressive styles
+    input.checkbox__input {
+      padding: 0;
+    }
   }
 }
