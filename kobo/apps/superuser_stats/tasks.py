@@ -576,7 +576,7 @@ def generate_user_details_report(output_filename: str):
         writer = csv.writer(f)
         writer.writerow(columns)
         for row in data:
-            metadata = row.pop('metadata', {})
+            metadata = row.pop('metadata', {}) or {}
             flatten_metadata_inplace(metadata)
             row.update(metadata)
             flat_row = [get_row_value(row, col) for col in columns]
