@@ -1,8 +1,7 @@
 # coding: utf-8
 import re
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 
-from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import get_storage_class
 from django.http import HttpResponse, StreamingHttpResponse, Http404
@@ -44,9 +43,11 @@ def country_report(request):
     )
 
     # Get the date filters from the query and set defaults
-    start_date = request.GET.get('start_date', today)
-    tomorrow = today + timedelta(days=1)
-    end_date = request.GET.get('end_date', tomorrow)
+    if not (start_date := request.GET.get('start_date')):
+        start_date = f'{today}'
+
+    if not (end_date := request.GET.get('end_date')):
+        end_date = f'{today}'
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
@@ -64,8 +65,8 @@ def country_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
-        f'  {url}?start_date={today}&end_date={tomorrow}'
+        f'<a href="{url}?start_date={today}&end_date={today}">'
+        f'  {url}?start_date={today}&end_date={today}'
         f'</a>'
         f'<p>The default start_date and end_date is today\'s date.</p>'
         f'</body></html>'
@@ -88,10 +89,10 @@ def continued_usage_report(request):
     )
 
     # Get the date filters from the query and set defaults
-    tomorrow = today + timedelta(days=1)
-    end_date = request.GET.get('end_date', tomorrow)
+    if not (end_date := request.GET.get('end_date')):
+        end_date = str(today)
 
-    # Generate the CSV file{tomorrow}
+    # Generate the CSV file
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
     generate_continued_usage_report.delay(filename, end_date)
@@ -103,14 +104,13 @@ def continued_usage_report(request):
         f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
         f'If you receive a 404, please refresh your browser periodically until '
         f'your request succeeds.<br><br>'
-        f'To select a date range, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
+        f'To select an end date, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?end_date={tomorrow}">'
-        f'  {url}?end_date={tomorrow}'
+        f'<a href="{url}?end_date={today}">'
+        f'  {url}?end_date={today}'
         f'</a>'
-        f'<p>The default end date and time is '
-        f'{tomorrow}.</p>'
+        f'<p>The default end date is {today}.</p>'
         f'</body></html>'
     )
 
@@ -132,13 +132,16 @@ def domain_report(request):
     )
 
     # Get the date filters from the query and set defaults
-    start_date = request.GET.get('start_date', today)
-    tomorrow = today + timedelta(days=1)
-    end_date = request.GET.get('end_date', tomorrow)
+    if not (start_date := request.GET.get('start_date')):
+        start_date = f'{today}'
+
+    if not (end_date := request.GET.get('end_date')):
+        end_date = f'{today}'
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
+
     generate_domain_report.delay(filename, start_date, end_date)
 
     # Generate page text
@@ -153,8 +156,8 @@ def domain_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
-        f'  {url}?start_date={today}&end_date={tomorrow}'
+        f'<a href="{url}?start_date={today}&end_date={today}">'
+        f'  {url}?start_date={today}&end_date={today}'
         f'</a>'
         f'<p>The default start_date and end_date is today\'s date, but submissions '
         f'count will be 0 unless the range includes first of the month.</p>'
