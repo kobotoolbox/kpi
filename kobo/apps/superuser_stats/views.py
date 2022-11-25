@@ -36,6 +36,7 @@ def country_report(request):
     per country as reported by the user
     """
     today = timezone.now().date()
+    first_of_month = today.replace(day=1)
     base_filename = 'country-report_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
         today,
@@ -65,10 +66,11 @@ def country_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date={today}&end_date={today}">'
-        f'  {url}?start_date={today}&end_date={today}'
+        f'<a href="{url}?start_date={first_of_month}&end_date={today}">'
+        f'  {url}?start_date={first_of_month}&end_date={today}'
         f'</a>'
-        f'<p>The default start_date and end_date is today\'s date.</p>'
+        f'<p>Range is <b>inclusive</b>.</p>'
+        f'<p>The default range is current month: {today.strftime("%B %Y")}.</p>'
         f'</body></html>'
     )
 
@@ -125,6 +127,7 @@ def domain_report(request):
     """
     # Generate the file basename
     today = timezone.now().date()
+    first_of_month = today.replace(day=1)
     base_filename = 'domain-report_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
         today,
@@ -156,11 +159,12 @@ def domain_report(request):
         f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
         f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date={today}&end_date={today}">'
-        f'  {url}?start_date={today}&end_date={today}'
+        f'<a href="{url}?start_date={first_of_month}&end_date={today}">'
+        f'  {url}?start_date={first_of_month}&end_date={today}'
         f'</a>'
-        f'<p>The default start_date and end_date is today\'s date, but submissions '
-        f'count will be 0 unless the range includes first of the month.</p>'
+        f'<p>Range is <b>inclusive</b>.</p>'
+        f'<p>The default range is current month: {today.strftime("%B %Y")}.</p>'
+        f'<p>Submissions count will be 0 unless the range includes first of the month.</p>'
         f'</body></html>'
     )
 
@@ -319,6 +323,7 @@ def user_statistics_report(request):
         f'<a href="{url}?start_month={start_month}&end_month={end_month}">'
         f'  {url}?start_month={start_month}&end_month={end_month}'
         f'</a>'
+        f'<p>Range is <b>inclusive</b>.</p>'
         f'<p>The default range is current month: {today.strftime("%B %Y")}.</p>'
         f'</body></html>'
     )
