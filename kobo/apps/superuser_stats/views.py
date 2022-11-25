@@ -2,6 +2,7 @@
 import re
 from datetime import datetime, date, timedelta
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import get_storage_class
 from django.http import HttpResponse, StreamingHttpResponse, Http404
@@ -283,9 +284,18 @@ def user_statistics_report(request):
 
     # Get the date filters from the query and set defaults
     today = timezone.now().date()
-    start_date = request.GET.get('start_date', today)
-    tomorrow = today + timedelta(days=1)
-    end_date = request.GET.get('end_date', tomorrow)
+    first_of_month = today.replace(day=1)
+    if start_month := request.GET.get('start_month'):
+        start_date = f'{start_month}-1'
+    else:
+        start_date = str(first_of_month)
+        start_month = first_of_month.strftime('%Y-%m')
+
+    if end_month := request.GET.get('end_month'):
+        end_date = f'{end_month}-01'
+    else:
+        end_date = str(first_of_month)
+        end_month = first_of_month.strftime('%Y-%m')
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
@@ -300,13 +310,13 @@ def user_statistics_report(request):
         f'receive a 404, please refresh your browser periodically until your '
         f'request succeeds.<br><br>'
         f'To select a date range, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
-        f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
-        f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
+        f'<code style="background: lightgray">start_month</code> parameter to <code style="background: lightgray">YYYY-MM</code> and/or the '
+        f'<code style="background: lightgray">end_month</code> parameter to <code style="background: lightgray">YYYY-MM</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?start_date={today}&end_date={tomorrow}">'
-        f'  {url}?start_date={today}&end_date={tomorrow}'
+        f'<a href="{url}?start_month={start_month}&end_month={end_month}">'
+        f'  {url}?start_month={start_month}&end_month={end_month}'
         f'</a>'
-        f'<p>The default start_date and end_date is today\'s date.</p>'
+        f'<p>The default range is current month: {today.strftime("%B %Y")}.</p>'
         f'</body></html>'
     )
     return HttpResponse(template_ish)
