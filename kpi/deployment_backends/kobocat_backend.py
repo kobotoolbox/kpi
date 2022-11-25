@@ -841,7 +841,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 return self.connect(self.identifier, active)
             raise
 
-        self.set_asset_uid()
+        # self.set_asset_uid()
 
     def remove_from_kc_only_flag(self,
                                  specific_user: Union[int, 'User'] = None):
