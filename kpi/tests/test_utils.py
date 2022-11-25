@@ -212,6 +212,22 @@ class UtilsTestCase(TestCase):
             parse(query_string, default_field_lookups)
         )
 
+    def test_query_parser_with_array_field(self):
+
+        query_string = 'field__property__key:value'
+
+        default_field_lookups = []
+        search_list_fields = ['field__property']
+
+        expected_q = (
+            Q(field__property__contains=[{'key': 'value'}])
+            | Q(field__property__key='value')
+        )
+
+        assert expected_q == parse(
+            query_string, default_field_lookups, search_list_fields=search_list_fields
+        )
+
     def test_query_parser_default_search_too_short(self):
         # if the search query without a field is less than a specified
         # length of characters (currently 3), then it should

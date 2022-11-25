@@ -39,9 +39,15 @@ class QueryParseActions:
     (see the file grammar.peg)
     """
 
-    def __init__(self, default_field_lookups: list, min_search_characters: int):
+    def __init__(
+        self,
+        default_field_lookups: list,
+        min_search_characters: int,
+        search_list_fields: list,
+    ):
         self.default_field_lookups = default_field_lookups
         self.min_search_characters = min_search_characters
+        self.search_list_fields = search_list_fields
 
     @staticmethod
     def process_value(field, value):
@@ -148,10 +154,42 @@ class QueryParseActions:
         else:
             # A field+colon, and a value [[field,':'],value]
             field = elements[0].elements[0]
+
             # ByPass `status` field because it does not really exist.
             # It's only a property of Asset model.
             if field == 'status':
                 return Q()
+
+            for list_field in self.search_list_fields:
+                # Some fields (e.g. Asset.settings['country']) store a list or
+                # dict. We need to combine `OR` filters to match both scenarios.
+                if field.startswith(list_field):
+                    value = _get_value('', elements)
+                    # Retrieve first word after double underscore. Ignore others.
+                    key = field.replace(f'{list_field}__', '').split('__')[0]
+
+                    # Use offset to detect where it is a negative query.
+                    # e.g.
+                    #   - q=foo:bar -> Offset = 0
+                    #   - q=NOT foo:bar -> Offset = 4
+                    not_query = elements[0].offset
+                    if not_query:
+                        # Logic to match list and dict with PostgreSQL is a
+                        # bit different with a negative query.
+                        q_list = [
+                            ~Q(**{f'{list_field}__contains': [{key: value}]}),
+                            ~Q(**{field: value})
+                        ]
+                        # Kludge: Because `NOT` operators are already included in
+                        # Q objects, we want to thwart the behavior of `notexp()`
+                        # by returning a negative query.
+                        return ~reduce(operator.or_, q_list)
+                    else:
+                        q_list = [
+                            Q(**{f'{list_field}__contains': [{key: value}]}),
+                            Q(**{field: value})
+                        ]
+                        return reduce(operator.or_, q_list)
 
         value = _get_value(field, elements)
         return Q(**{field: value})
@@ -189,14 +227,17 @@ def get_parsed_parameters(parsed_query: Q) -> dict:
 
         parameters[child[0]].append(child[1])
 
-    # Cast to `dict` to be able raise KeyError when accessing a non-existing
+    # Cast to `dict` to be able to raise KeyError when accessing a non-existing
     # member of returned value
     return dict(parameters)
 
 
 @cache_for_request
 def parse(
-    query: str, default_field_lookups: list, min_search_characters: int = None
+    query: str,
+    default_field_lookups: list,
+    min_search_characters: int = None,
+    search_list_fields: list = [],
 ) -> Q:
     """
     Parse a Boolean query string into a Django Q object.
@@ -210,5 +251,8 @@ def parse(
         min_search_characters = settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS
 
     return grammar_parse(
-        query, QueryParseActions(default_field_lookups, min_search_characters)
+        query,
+        QueryParseActions(
+            default_field_lookups, min_search_characters, search_list_fields
+        ),
     )

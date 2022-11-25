@@ -30,3 +30,7 @@ HASH_BIG_FILE_SIZE_THRESHOLD = 200 * 1024  # 200 kB
 # Chunk size in bytes to read per iteration when hash of a file is calculated
 # Should match KoBoCAT setting
 HASH_BIG_FILE_CHUNK = 5 * 1024  # 5 kB
+
+SHELL_PLUS_PRINT_SQL_TRUNCATE = None
+RUNSERVER_PLUS_PRINT_SQL_TRUNCATE = None
+CELERY_TASK_ALWAYS_EAGER = True
