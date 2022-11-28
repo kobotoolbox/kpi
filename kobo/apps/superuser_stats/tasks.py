@@ -234,27 +234,27 @@ def generate_forms_count_by_submission_range(output_filename: str):
     ranges = [
         {
             'label': '0',
-            'orm_criteria': {'num_of_submissions': 0}
+            'orm_criteria': {'count': 0}
         },
         {
             'label': '1 - 500',
-            'orm_criteria': {'num_of_submissions__range': (1, 500)}
+            'orm_criteria': {'count__range': (1, 500)}
         },
         {
             'label': '501 - 1000',
-            'orm_criteria': {'num_of_submissions__range': (501, 1000)}
+            'orm_criteria': {'count__range': (501, 1000)}
         },
         {
             'label': '1001 - 10000',
-            'orm_criteria': {'num_of_submissions__range': (1001, 10000)}
+            'orm_criteria': {'count__range': (1001, 10000)}
         },
         {
             'label': '10001 - 50000',
-            'orm_criteria': {'num_of_submissions__range': (10001, 50000)}
+            'orm_criteria': {'count__range': (10001, 50000)}
         },
         {
             'label': '50001 and more',
-            'orm_criteria': {'num_of_submissions__gte': 50001}
+            'orm_criteria': {'count__gte': 50001}
         },
     ]
 
@@ -263,10 +263,21 @@ def generate_forms_count_by_submission_range(output_filename: str):
 
     today = datetime.today()
     date_ = today - relativedelta(years=1)
-    queryset = KobocatXForm.objects.filter(date_created__gte=date_)
+    no_submissions = KobocatXForm.objects.filter(
+        date_created__date__gte=date_,
+        num_of_submissions=0
+    )
+    queryset = ReadOnlyKobocatInstance.objects.values(
+        'xform_id'
+    ).filter(
+        date_created__date__gte=date_,
+    ).annotate(count=Count('xform_id'))
 
     for r in ranges:
-        forms_count = queryset.filter(**r['orm_criteria']).count()
+        if r['label'] == '0':
+            forms_count = no_submissions.count()
+        else:
+            forms_count = queryset.filter(**r['orm_criteria']).count()
         data.append([r['label'], forms_count])
 
     headers = ['Range', 'Count']
