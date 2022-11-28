@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/_colors';
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 @use 'scss/sizes';
 @use 'scss/breakpoints';
 @use 'sass:color';
@@ -123,7 +123,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
 .kobo-modal-overlay {
   position: fixed;
-  z-index: zindexes.$z-modal;
+  z-index: z-indexes.$z-modal;
   inset: 0;
   background-color: color.change(colors.$kobo-storm, $alpha: 0.6);
 }

@@ -1,5 +1,5 @@
 @use "scss/_variables";
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 // header and navigation styling
 
@@ -126,7 +126,7 @@
 .popover-menu--account-menu {
   .popover-menu__content {
     min-width: 240px;
-    z-index: zindexes.$z-account-menu;
+    z-index: z-indexes.$z-account-menu;
   }
 }
 

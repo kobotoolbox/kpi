@@ -1,4 +1,4 @@
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 /*
 Kobo Tooltips
@@ -24,7 +24,7 @@ Additional class names:
       visibility: hidden;
       transition-duration: 0.2s;
       transition-property: visibility, opacity;
-      z-index: zindexes.$z-tooltip;
+      z-index: z-indexes.$z-tooltip;
     }
 
     &::after {
