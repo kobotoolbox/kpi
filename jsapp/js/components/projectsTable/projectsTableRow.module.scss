@@ -9,7 +9,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   display: flex;
   flex-direction: row;
   position: relative;
-  align-items: flex-start;
+  align-items: stretch;
+  cursor: pointer;
 
   &:first-of-type .cell {
     border-top-color: transparent;
@@ -75,7 +76,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 }
 
 .row.row-project {
-  &:hover {
+  &:hover .cell {
     background-color: $projects-table-hover-bg;
   }
 }
@@ -128,16 +129,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   .cell-name .project-name {
     font-weight: 700;
   }
-}
-
-.overlay-link {
-  cursor: pointer;
-  position: absolute;
-  z-index: z-indexes.$z-table-row-link;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
 }
 
 .header-label {

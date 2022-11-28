@@ -16,6 +16,15 @@ interface ProjectsTableRowProps {
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
+  const onRowClick = () => {
+    console.log('TODO navigate to landing page');
+  };
+
+  const onCheckboxClick = (evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
+    // To avoid navigation when checkbox was clicked.
+    evt.stopPropagation();
+  };
+
   const renderColumnContent = (field: ProjectFieldDefinition) => {
     switch (field.name) {
       case 'name':
@@ -25,7 +34,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'status':
         return 'status';
       case 'ownerUsername':
-        return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username)
+        return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
       case 'ownerFullName':
         return 'owner full name';
       case 'ownerEmail':
@@ -54,20 +63,20 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   };
 
    return (
-    <div className={classNames(
-      styles.row,
-      styles['row-project'],
-      styles[`row-${props.asset.asset_type}`]
-    )}>
-      {/* This makes the whole row clickable */}
-      <a className={styles['overlay-link']} href={`#/library/asset/${props.asset.uid}`}/>
-
+    <div
+      className={classNames(
+        styles.row,
+        styles['row-project'],
+        styles[`row-${props.asset.asset_type}`]
+      )}
+      onClick={onRowClick}
+    >
       {/* First column is always visible and displays a checkbox. */}
       <div className={classNames(styles.cell, styles['cell-checkbox'])}>
         <Checkbox
           checked={props.isSelected}
           onChange={props.onSelectRequested}
-          label=''
+          onClick={onCheckboxClick}
         />
       </div>
 
