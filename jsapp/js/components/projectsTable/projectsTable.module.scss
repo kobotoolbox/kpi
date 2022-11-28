@@ -2,7 +2,7 @@
 @use 'scss/colors';
 @use 'scss/variables';
 @use 'scss/libs/mdl';
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 $projects-table-min-width: 820px;
 
@@ -18,7 +18,7 @@ $projects-table-min-width: 820px;
 
   &.fullscreen {
     position: fixed;
-    z-index: zindexes.$z-fullscreen;
+    z-index: z-indexes.$z-fullscreen;
     border: sizes.$x5 solid mdl.$root-background;
     top: 0;
     left: 0;
@@ -32,7 +32,7 @@ $projects-table-min-width: 820px;
 .header {
   position: sticky;
   top: 0;
-  z-index: zindexes.$z-table-row-header;
+  z-index: z-indexes.$z-table-row-header;
 }
 
 .header,

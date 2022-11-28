@@ -1,7 +1,7 @@
 @use 'scss/sizes';
 @use 'scss/colors';
 @use 'scss/variables';
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 $projects-table-hover-bg: colors.$kobo-gray-98;
 
@@ -36,7 +36,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &.cell-checkbox {
     width: sizes.$x20;
     position: relative;
-    z-index: zindexes.$z-table-row-buttons;
+    z-index: z-indexes.$z-table-row-buttons;
   }
 
   &.cell-countries,
@@ -76,7 +76,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
 .buttons-wrapper {
   position: absolute;
-  z-index: zindexes.$z-table-row-buttons;
+  z-index: z-indexes.$z-table-row-buttons;
   top: sizes.$x1; // because of top border
   right: 0;
   bottom: 0; // stretch for whole row
@@ -161,7 +161,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 .overlay-link {
   cursor: pointer;
   position: absolute;
-  z-index: zindexes.$z-table-row-link;
+  z-index: z-indexes.$z-table-row-link;
   top: 0;
   left: 0;
   width: 100%;
