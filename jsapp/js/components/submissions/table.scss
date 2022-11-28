@@ -1,5 +1,5 @@
 @use "scss/_colors";
-@use "scss/zindexes";
+@use 'scss/z-indexes';
 @use "js/components/common/checkbox-and-radio";
 
 // These are custom styles for Table View table.
@@ -404,7 +404,7 @@ $s-data-table-font: 13px;
   // currently hovered cell will be on top - for tooltips and dropdowns
   .rt-th:hover.is-frozen,
   .rt-td:hover.is-frozen {
-    z-index: zindexes.$z-data-table-frozen-column + 10;
+    z-index: z-indexes.$z-data-table-frozen-column + 10;
   }
 
   // currently focused cell will be over hovered one to not cover opened dropdown
@@ -415,12 +415,12 @@ $s-data-table-font: 13px;
   // happen for a regular user.
   .rt-th:focus-within.is-frozen,
   .rt-td:focus-within.is-frozen {
-    z-index: zindexes.$z-data-table-frozen-column + 11;
+    z-index: z-indexes.$z-data-table-frozen-column + 11;
   }
 
   .rt-th.is-frozen,
   .rt-td.is-frozen {
-    z-index: zindexes.$z-data-table-frozen-column;
+    z-index: z-indexes.$z-data-table-frozen-column;
     position: relative;
     left: 0;
     // needed for tooltips and for ::after shadow

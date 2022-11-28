@@ -1,5 +1,5 @@
 @use "sass:math";
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 $s-service-row-action-button: 36px;
 $s-service-row-action-button-icon: 26px;
@@ -21,7 +21,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
   &:hover .service-row__action-button {
     position: relative;
-    z-index: zindexes.$z-service-row-link + 1;
+    z-index: z-indexes.$z-service-row-link + 1;
   }
 
   &:not(.service-row--header):hover {
@@ -49,7 +49,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
 .service-row__link-overlay {
   position: absolute;
-  z-index: zindexes.$z-service-row-link;
+  z-index: z-indexes.$z-service-row-link;
   top: 0;
   left: 0;
   right: 0;
