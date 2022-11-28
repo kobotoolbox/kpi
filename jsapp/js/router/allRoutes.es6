@@ -21,6 +21,7 @@ import sessionStore from 'js/stores/session';
 import {Tracking} from './useTracking';
 import {history} from './historyRouter';
 import accountRoutes from 'js/account/routes';
+import projectsRoutes from 'js/projects/routes';
 
 // Workaround https://github.com/remix-run/react-router/issues/8139
 import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
@@ -128,6 +129,7 @@ const AllRoutes = class AllRoutes extends React.Component {
           <Route path={ROUTES.ROOT} element={<App />}>
             <Route path='' element={<Navigate to={ROUTES.FORMS} replace />} />
             <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
+            <Route path={ROUTES.PROJECTS_ROOT}>{projectsRoutes()}</Route>
             <Route path={ROUTES.LIBRARY}>
               <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} />} />
               <Route
