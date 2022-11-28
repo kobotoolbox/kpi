@@ -46,6 +46,7 @@ import {
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
+import { usePrompt } from 'js/router/promptBlocker';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -53,6 +54,12 @@ const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
 const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
+/** Use usePrompt directly instead for functional components */
+const Prompt = () => {
+  usePrompt(UNSAVED_CHANGES_WARNING);
+  return <></>;
+};
+
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
@@ -67,9 +74,6 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html';
 
 export default assign({
   componentDidMount() {
-    // TODO router6 might be a Prompt?
-    // this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
-
     this.loadAsideSettings();
 
     if (!this.state.isNewAsset) {
@@ -936,6 +940,14 @@ export default assign({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <>
+        {
+          /*
+            TODO: Try to fix quirks that arise from this <Prompt/> usage
+            Issue: https://github.com/kobotoolbox/kpi/issues/4154
+          */
+          this.state.preventNavigatingOut && <Prompt/>
+        }
         <bem.uiPanel m={['transparent', 'fixed']}>
           <bem.uiPanel__body>
             {this.renderAside()}
@@ -997,6 +1009,7 @@ export default assign({
             }
           </bem.uiPanel__body>
         </bem.uiPanel>
+        </>
       </DocumentTitle>
     );
   },
