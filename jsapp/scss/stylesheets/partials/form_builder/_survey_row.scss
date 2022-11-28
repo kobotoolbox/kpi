@@ -1,4 +1,4 @@
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 // ==========================================================================
 // Survey Row
@@ -383,7 +383,7 @@ $nested-btn--addrow-height: 24px;
   height: $nested-btn--addrow-height + 2 * $click-area-nested-btn--addrow-padding-tb;
   top: -30px;
   padding: $click-area-nested-btn--addrow-padding-tb 0 0 3px;
-  z-index: zindexes.$z-form-builder-add-row;
+  z-index: z-indexes.$z-form-builder-add-row;
 
   // 101 so it is above .btn--addrow when last item in group
   .k-icon {
@@ -395,7 +395,7 @@ $nested-btn--addrow-height: 24px;
 
 .group__rows .group__rows .btn--addrow {
   left: -24px;
-  z-index: zindexes.$z-form-builder-add-row + 1;
+  z-index: z-indexes.$z-form-builder-add-row + 1;
   width: 30px;
 }
 

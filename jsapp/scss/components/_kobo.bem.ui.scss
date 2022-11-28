@@ -1,5 +1,5 @@
 @use "scss/_variables";
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 #kpiapp,
 .mdl-wrapper,
@@ -124,7 +124,7 @@
   max-width: 300px;
   text-align: left;
   background: $kobo-white;
-  z-index: zindexes.$z-popover-menu;
+  z-index: z-indexes.$z-popover-menu;
   right: -10px;
   transition: opacity 0.35s;
   opacity: 1;

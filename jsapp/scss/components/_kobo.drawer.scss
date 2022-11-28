@@ -1,4 +1,4 @@
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 // drawer (sidebar)
 
@@ -90,7 +90,7 @@
 @media screen and (max-width: 999px) {
   .k-drawer {
     position: fixed;
-    z-index: zindexes.$z-kobo-drawer;
+    z-index: z-indexes.$z-kobo-drawer;
     // We need some pxs more as there is shadow on the drawer.
     left: -1 * $s-drawer-width - 10px;
     transition: left 0.5s;
