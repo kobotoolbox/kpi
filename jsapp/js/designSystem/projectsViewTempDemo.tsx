@@ -2,13 +2,13 @@ import React from 'react';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
+  OrderDirection,
 } from 'js/components/projectsView/projectsViewConstants';
 import ProjectsFilter from 'js/components/projectsView/projectsFilter';
 import ProjectsFieldsSelector from 'js/components/projectsView/projectsFieldsSelector';
-
 import ProjectsTable from 'js/components/projectsTable/projectsTable';
-import type {OrderDirection} from 'js/components/projectsView/projectsViewConstants';
 import mockAssets from './assetsResponseMock';
+import ProjectActionButtons from 'js/components/projectsTable/projectActionButtons';
 
 interface ProjectsViewTempDemoState {
   filters: ProjectsFilterDefinition[];
@@ -41,7 +41,10 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
         flexDirection: 'column',
         height: '100%',
       }}>
-        <div>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}>
           <h1>Projects View temporary demo</h1>
 
           <ProjectsFilter
@@ -54,6 +57,8 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
             onFieldsChange={this.onFieldsChange.bind(this)}
             selectedFields={this.state.fields}
           />
+
+          <ProjectActionButtons asset={mockAssets.results[0]}/>
         </div>
 
         <ProjectsTable

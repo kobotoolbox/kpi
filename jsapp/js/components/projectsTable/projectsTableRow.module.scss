@@ -74,37 +74,9 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   }
 }
 
-.buttons-wrapper {
-  position: absolute;
-  z-index: z-indexes.$z-table-row-buttons;
-  top: sizes.$x1; // because of top border
-  right: 0;
-  bottom: 0; // stretch for whole row
-  opacity: 0;
-  visibility: hidden;
-  background-color: $projects-table-hover-bg;
-  padding: sizes.$x13 sizes.$x10 0 0;
-
-  // for nicer blending in with the possible text underneath
-  &::before {
-    content: '';
-    position: absolute;
-    right: 100%;
-    top: 0;
-    height: 100%;
-    width: sizes.$x16;
-    background: linear-gradient(90deg, transparent, $projects-table-hover-bg);
-  }
-}
-
 .row.row-project {
   &:hover {
     background-color: $projects-table-hover-bg;
-
-    .buttons-wrapper {
-      opacity: 1;
-      visibility: visible;
-    }
   }
 }
 

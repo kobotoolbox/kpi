@@ -1,11 +1,7 @@
 import React from 'react';
 import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
-import type {
-  ProjectFieldDefinition,
-  ProjectFieldName,
-} from 'js/components/projectsView/projectsViewConstants';
+import type {ProjectFieldDefinition} from 'js/components/projectsView/projectsViewConstants';
 import Checkbox from 'js/components/common/checkbox';
-import ProjectActionButtons from './projectActionButtons';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';

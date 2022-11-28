@@ -124,7 +124,7 @@
   max-width: 300px;
   text-align: left;
   background: $kobo-white;
-  z-index: z-indexes.$z-popover-menu;
+  z-index: z-indexes.$z-dropdown;
   right: -10px;
   transition: opacity 0.35s;
   opacity: 1;
