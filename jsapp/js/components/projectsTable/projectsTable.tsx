@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import ProjectsTableRow from './projectsTableRow';
 import type {ProjectFieldName, OrderDirection} from 'js/components/projectsView/projectsViewConstants';
@@ -25,6 +24,10 @@ interface ProjectsTableProps {
  orderDirection: OrderDirection;
  /** Called when user selects a column for odering. */
  onChangeOrderRequested: (fieldName: string, direction: OrderDirection) => void;
+ /** A list of uids */
+ selectedRows: string[];
+ /** Called when user selects a row (by clicking its checkbox) */
+ onRowsSelected: (uids: string[]) => void;
  /**
   * For displaying pagination. If you omit any of these, pagination will simply
   * not be rendered. Good to use when you actually don't need it.
@@ -35,28 +38,10 @@ interface ProjectsTableProps {
  onSwitchPage?: (pageNumber: number) => void;
 }
 
-interface ProjectsTableState {
-  isFullscreen: boolean;
-}
-
 /**
  * Displays a table of assets.
  */
-export default class ProjectsTable extends React.Component<
-  ProjectsTableProps,
-  ProjectsTableState
-> {
-  constructor(props: ProjectsTableProps){
-    super(props);
-    this.state = {
-      isFullscreen: false,
-    };
-  }
-
-  toggleFullscreen() {
-    this.setState({isFullscreen: !this.state.isFullscreen});
-  }
-
+export default class ProjectsTable extends React.Component<ProjectsTableProps> {
   switchPage(newPageNumber: number) {
     if (this.props.onSwitchPage) {
       this.props.onSwitchPage(newPageNumber);
@@ -83,6 +68,16 @@ export default class ProjectsTable extends React.Component<
       // change column and revert order direction to default
       this.props.onChangeOrderRequested(fieldName, PROJECT_FIELDS[fieldName].orderDefaultValue || 'ascending');
     }
+  }
+
+  onRowSelectionChange(rowUid: string, isSelected: boolean) {
+    const uidsSet = new Set(this.props.selectedRows);
+    if (isSelected) {
+      uidsSet.add(rowUid);
+    } else {
+      uidsSet.delete(rowUid);
+    }
+    this.props.onRowsSelected(Array.from(uidsSet));
   }
 
   /**
@@ -128,10 +123,7 @@ export default class ProjectsTable extends React.Component<
 
   render() {
     return (
-      <div className={classNames({
-        [styles.root]: true,
-        [styles.fullscreen]: this.state.isFullscreen,
-      })}>
+      <div className={styles.root}>
         <ProjectsTableHeader
           orderFieldName={this.props.orderFieldName}
           orderDirection={this.props.orderDirection}
@@ -152,8 +144,10 @@ export default class ProjectsTable extends React.Component<
           {!this.props.isLoading && this.props.assets.map((asset) =>
             <ProjectsTableRow
               asset={asset}
-              isSelected={false}
-              onSelectRequested={(isSelected: boolean) => console.log('row checkbox click', isSelected)}
+              isSelected={this.props.selectedRows.includes(asset.uid)}
+              onSelectRequested={(isSelected: boolean) =>
+                this.onRowSelectionChange(asset.uid, isSelected)
+              }
               key={asset.uid}
             />
           )}
@@ -167,16 +161,6 @@ export default class ProjectsTable extends React.Component<
           }
 
           {this.renderPagination()}
-
-          {this.props.totalAssets !== null &&
-            <button
-              className='mdl-button'
-              onClick={this.toggleFullscreen.bind(this)}
-            >
-              {t('Toggle fullscreen')}
-              <i className='k-icon k-icon-expand' />
-            </button>
-          }
         </footer>
       </div>
     );

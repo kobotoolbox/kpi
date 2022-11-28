@@ -13,6 +13,7 @@ import ProjectActionButtons from 'js/components/projectsTable/projectActionButto
 interface ProjectsViewTempDemoState {
   filters: ProjectsFilterDefinition[];
   fields: ProjectFieldName[] | undefined;
+  selectedRows: string[];
 }
 
 export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsViewTempDemoState> {
@@ -21,6 +22,7 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
     this.state = {
       filters: [],
       fields: undefined,
+      selectedRows: [],
     };
   }
 
@@ -34,6 +36,11 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
     this.setState({fields: fields});
   }
 
+  onSelectedRowsChange(uids: string[]) {
+    console.log('selected rows', uids);
+    this.setState({selectedRows: uids});
+  }
+
   render() {
     return (
       <section style={{
@@ -44,6 +51,7 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
         <div style={{
           display: 'flex',
           flexDirection: 'row',
+          alignItems: 'center',
         }}>
           <h1>Projects View temporary demo</h1>
 
@@ -67,6 +75,8 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
           orderFieldName='name'
           orderDirection='ascending'
           onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
+          selectedRows={this.state.selectedRows}
+          onRowsSelected={this.onSelectedRowsChange.bind(this)}
           currentPage={1}
           totalPages={35}
           onSwitchPage={(pageNumber: number) => console.log(pageNumber)}

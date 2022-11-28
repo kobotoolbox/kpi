@@ -35,6 +35,12 @@ $projects-table-min-width: 820px;
   z-index: z-indexes.$z-table-row-header;
 }
 
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: z-indexes.$z-table-row-header;
+}
+
 .header,
 .body,
 .footer {
