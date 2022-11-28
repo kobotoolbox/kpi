@@ -1,4 +1,4 @@
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
@@ -24,7 +24,7 @@
       top: calc(100% + 6px);
       left: 50%;
       transform: translate(-50%, 0);
-      z-index: zindexes.$z-tooltip;
+      z-index: z-indexes.$z-tooltip;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s;
@@ -53,7 +53,7 @@
         height: 0;
         left: 50%;
         transform: translate(-50%, 0);
-        z-index: zindexes.$z-tooltip;
+        z-index: z-indexes.$z-tooltip;
       }
     }
 
