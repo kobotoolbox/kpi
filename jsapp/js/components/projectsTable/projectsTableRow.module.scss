@@ -1,0 +1,186 @@
+@use 'scss/sizes';
+@use 'scss/colors';
+@use 'scss/variables';
+@use 'scss/zindexes';
+
+$projects-table-hover-bg: colors.$kobo-gray-98;
+
+.row {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: flex-start;
+
+  &:first-of-type .cell {
+    border-top-color: transparent;
+  }
+
+  &:first-of-type:hover .cell {
+    border-top-color: colors.$kobo-gray-92;
+  }
+}
+
+.cell {
+  border-top: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: sizes.$x20 sizes.$x10;
+  color: colors.$kobo-gray-40;
+  flex: 1 0 auto;
+  // ensures the table columns are same width for all rows
+  width: 10%;
+
+  &[disabled] {
+    pointer-events: none;
+  }
+
+  // All different kinds of cells below - one for each field:
+  &.cell-checkbox {
+    width: sizes.$x20;
+    position: relative;
+    z-index: zindexes.$z-table-row-buttons;
+  }
+
+  &.cell-countries,
+  &.cell-description,
+  &.cell-ownerEmail,
+  &.cell-ownerFullName,
+  &.cell-ownerOrganisation,
+  &.cell-ownerUsername,
+  &.cell-status,
+  &.cell-submissions {
+    width: 10%;
+  }
+
+  &.cell-dateDeployed {
+    width: 17.5%;
+    text-align: right;
+  }
+
+  &.cell-dateModified {
+    width: 17.5%;
+    text-align: right;
+  }
+
+  &.cell-languages {
+    width: 12.5%;
+  }
+
+  &.cell-name {
+    color: colors.$kobo-gray-24;
+    width: 25%;
+  }
+
+  &.cell-sector {
+    width: 15%;
+  }
+}
+
+.buttons-wrapper {
+  position: absolute;
+  z-index: zindexes.$z-table-row-buttons;
+  top: sizes.$x1; // because of top border
+  right: 0;
+  bottom: 0; // stretch for whole row
+  opacity: 0;
+  visibility: hidden;
+  background-color: $projects-table-hover-bg;
+  padding: sizes.$x13 sizes.$x10 0 0;
+
+  // for nicer blending in with the possible text underneath
+  &::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 100%;
+    width: sizes.$x16;
+    background: linear-gradient(90deg, transparent, $projects-table-hover-bg);
+  }
+}
+
+.row.row-project {
+  &:hover {
+    background-color: $projects-table-hover-bg;
+
+    .buttons-wrapper {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.row.row-header {
+  .cell {
+    color: colors.$kobo-gray-24;
+    border-top: 0;
+    cursor: pointer;
+    font-weight: 700;
+    white-space: nowrap;
+    height: sizes.$x40;
+    line-height: sizes.$x20;
+    background-color: colors.$kobo-gray-96;
+    padding: sizes.$x10;
+
+    &:hover {
+      background-color: colors.$kobo-gray-92;
+    }
+
+    .k-icon {
+      font-size: variables.$base-font-size;
+      // to take up space when empty
+      min-width: sizes.$x14;
+      width: sizes.$x14;
+      margin-left: sizes.$x3;
+      display: inline-block;
+
+      &.k-icon-filter-arrows {
+        font-size: sizes.$x10;
+        margin-left: 0 !important;
+      }
+    }
+  }
+}
+
+.row.row-message {
+  padding: sizes.$x40;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
+
+  .pro-tip {
+    font-size: 1rem;
+    margin-top: sizes.$x20;
+  }
+}
+
+.row.row-collection {
+  .cell-name .project-name {
+    font-weight: 700;
+  }
+}
+
+.overlay-link {
+  cursor: pointer;
+  position: absolute;
+  z-index: zindexes.$z-table-row-link;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.header-label {
+  font-size: 0.9rem;
+}
+
+.badge {
+  display: inline-block;
+  vertical-align: middle;
+  padding: sizes.$x3 sizes.$x5;
+  font-size: sizes.$x12;
+  line-height: 1;
+  color: currentcolor;
+  background: colors.$kobo-gray-92;
+  border-radius: sizes.$x2;
+  min-width: sizes.$x18;
+  text-align: center;
+}

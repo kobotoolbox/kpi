@@ -1,32 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import bem, {makeBem} from 'js/bem';
-import {
-  hasVerticalScrollbar,
-  getScrollbarWidth,
-} from 'js/utils';
 import ProjectsTableRow from './projectsTableRow';
 import type {ProjectFieldName, OrderDirection} from 'js/components/projectsView/projectsViewConstants';
 import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
 import ProjectsTableHeader from './projectsTableHeader';
 import type {AssetResponse} from 'js/dataInterface';
-import './projectsTable.scss';
-
-bem.ProjectsTable = makeBem(null, 'projects-table');
-bem.ProjectsTable__header = makeBem(bem.ProjectsTable, 'header');
-bem.ProjectsTable__body = makeBem(bem.ProjectsTable, 'body');
-bem.ProjectsTable__footer = makeBem(bem.ProjectsTable, 'footer');
-bem.ProjectsTableRow = makeBem(null, 'projects-table-row');
-bem.ProjectsTableRow__link = makeBem(bem.ProjectsTableRow, 'link', 'a');
-bem.ProjectsTableRow__buttons = makeBem(bem.ProjectsTableRow, 'buttons');
-bem.ProjectsTableRow__column = makeBem(bem.ProjectsTableRow, 'column');
-bem.ProjectsTableRow__headerLabel = makeBem(bem.ProjectsTableRow, 'header-label', 'span');
-bem.ProjectsTableRow__tags = makeBem(bem.ProjectsTableRow, 'tags', 'div');
-bem.ProjectsTableRow__tag = makeBem(bem.ProjectsTableRow, 'tag', 'span');
-bem.ProjectsTablePagination = makeBem(null, 'projects-table-pagination');
-bem.ProjectsTablePagination__button = makeBem(bem.ProjectsTablePagination, 'button', 'button');
-bem.ProjectsTablePagination__index = makeBem(bem.ProjectsTablePagination, 'index');
+import styles from './projectsTable.module.scss';
+import rowStyles from './projectsTableRow.module.scss';
+import classNames from 'classnames';
 
 interface ProjectsTableProps {
  /** Displays a spinner */
@@ -54,7 +36,6 @@ interface ProjectsTableProps {
 }
 
 interface ProjectsTableState {
-  scrollbarWidth: number | null;
   isFullscreen: boolean;
 }
 
@@ -68,42 +49,12 @@ export default class ProjectsTable extends React.Component<
   constructor(props: ProjectsTableProps){
     super(props);
     this.state = {
-      scrollbarWidth: null,
       isFullscreen: false,
     };
-    this.bodyRef = React.createRef();
-  }
-
-  private updateScrollbarWidthBound = this.updateScrollbarWidth.bind(this);
-
-  bodyRef: React.RefObject<any>;
-
-  componentDidMount() {
-    this.updateScrollbarWidth();
-    window.addEventListener('resize', this.updateScrollbarWidthBound);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.updateScrollbarWidthBound);
-  }
-
-  componentDidUpdate(prevProps: ProjectsTableProps) {
-    if (prevProps.isLoading !== this.props.isLoading) {
-      this.updateScrollbarWidth();
-    }
   }
 
   toggleFullscreen() {
     this.setState({isFullscreen: !this.state.isFullscreen});
-  }
-
-  updateScrollbarWidth() {
-    const bodyNode = ReactDOM.findDOMNode(this.bodyRef?.current) as HTMLElement;
-    if (bodyNode && hasVerticalScrollbar(bodyNode)) {
-      this.setState({scrollbarWidth: getScrollbarWidth()});
-    } else {
-      this.setState({scrollbarWidth: null});
-    }
   }
 
   switchPage(newPageNumber: number) {
@@ -145,28 +96,30 @@ export default class ProjectsTable extends React.Component<
     ) {
       const naturalCurrentPage = this.props.currentPage + 1;
       return (
-        <bem.ProjectsTablePagination>
-          <bem.ProjectsTablePagination__button
+        <footer className={styles.pagination}>
+          <button
+            className={styles['pagination-button']}
             disabled={this.props.currentPage === 0}
             onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
           >
             <i className='k-icon k-icon-angle-left'/>
             {t('Previous')}
-          </bem.ProjectsTablePagination__button>
+          </button>
 
-          <bem.ProjectsTablePagination__index>
+          <span className={styles['pagination-index']}>
             {/* we avoid displaying 1/0 as it doesn't make sense to humans */}
             {naturalCurrentPage}/{this.props.totalPages || 1}
-          </bem.ProjectsTablePagination__index>
+          </span>
 
-          <bem.ProjectsTablePagination__button
+          <button
+            className={styles['pagination-button']}
             disabled={naturalCurrentPage >= this.props.totalPages}
             onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
           >
             {t('Next')}
             <i className='k-icon k-icon-angle-right'/>
-          </bem.ProjectsTablePagination__button>
-        </bem.ProjectsTablePagination>
+          </button>
+        </footer>
       );
     } else {
       return null;
@@ -174,28 +127,26 @@ export default class ProjectsTable extends React.Component<
   }
 
   render() {
-    const modifiers: string[] = [];
-    if (this.state.isFullscreen) {
-      modifiers.push('fullscreen');
-    }
-
     return (
-      <bem.ProjectsTable m={modifiers}>
+      <div className={classNames({
+        [styles.root]: true,
+        [styles.fullscreen]: this.state.isFullscreen,
+      })}>
         <ProjectsTableHeader
           orderFieldName={this.props.orderFieldName}
           orderDirection={this.props.orderDirection}
           onChangeOrderRequested={this.onChangeOrderRequested.bind(this)}
         />
 
-        <bem.ProjectsTable__body ref={this.bodyRef}>
+        <div className={styles.body}>
           {this.props.isLoading &&
             <LoadingSpinner/>
           }
 
           {!this.props.isLoading && this.props.assets.length === 0 &&
-            <bem.ProjectsTableRow m='empty-message'>
+            <div className={classNames(rowStyles.row, rowStyles['row-message'])}>
               {this.props.emptyMessage || t('There are no assets to display.')}
-            </bem.ProjectsTableRow>
+            </div>
           }
 
           {!this.props.isLoading && this.props.assets.map((asset) =>
@@ -206,9 +157,9 @@ export default class ProjectsTable extends React.Component<
               key={asset.uid}
             />
           )}
-        </bem.ProjectsTable__body>
+        </div>
 
-        <bem.ProjectsTable__footer>
+        <footer className={styles.footer}>
           {this.props.totalAssets !== null &&
             <span>
               {t('##count## items').replace('##count##', String(this.props.totalAssets))}
@@ -226,8 +177,8 @@ export default class ProjectsTable extends React.Component<
               <i className='k-icon k-icon-expand' />
             </button>
           }
-        </bem.ProjectsTable__footer>
-      </bem.ProjectsTable>
+        </footer>
+      </div>
     );
   }
 }

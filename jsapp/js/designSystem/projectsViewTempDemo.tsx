@@ -62,6 +62,9 @@ export default class ProjectsViewTempDemo extends React.Component<{}, ProjectsVi
           orderFieldName='name'
           orderDirection='ascending'
           onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
+          currentPage={1}
+          totalPages={35}
+          onSwitchPage={(pageNumber: number) => console.log(pageNumber)}
         />
       </section>
     );

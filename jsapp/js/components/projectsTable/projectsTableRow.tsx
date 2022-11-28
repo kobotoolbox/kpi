@@ -1,8 +1,6 @@
 import React from 'react';
-import bem from 'js/bem';
 import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
 import type {
-  OrderDirection,
   ProjectFieldDefinition,
   ProjectFieldName,
 } from 'js/components/projectsView/projectsViewConstants';
@@ -11,8 +9,9 @@ import ProjectActionButtons from './projectActionButtons';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';
-import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
+import styles from './projectsTableRow.module.scss';
+import classNames from 'classnames';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse;
@@ -24,19 +23,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const renderColumnContent = (field: ProjectFieldDefinition) => {
     switch (field.name) {
       case 'name':
-        return (
-          <>
-            <AssetName asset={props.asset}/>
-
-            {props.asset.settings && props.asset.tag_string && props.asset.tag_string.length > 0 &&
-              <bem.AssetsTableRow__tags>
-                {props.asset.tag_string.split(',').map((tag) =>
-                  ([' ', <bem.AssetsTableRow__tag key={tag}>{tag}</bem.AssetsTableRow__tag>])
-                )}
-              </bem.AssetsTableRow__tags>
-            }
-          </>
-        );
+        return <AssetName asset={props.asset}/>;
       case 'description':
         return 'description';
       case 'status':
@@ -61,9 +48,9 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':
         return (
-          <bem.AssetsTableRow__tag m='gray-circle'>
+          <span className={styles.badge}>
             {props.asset.summary.row_count}
-          </bem.AssetsTableRow__tag>
+          </span>
         );
       default:
         return null;
@@ -71,28 +58,35 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   };
 
    return (
-    <bem.AssetsTableRow m={['asset', `type-${props.asset.asset_type}`]}>
-      <bem.AssetsTableRow__link href={`#/library/asset/${props.asset.uid}`}/>
+    <div className={classNames(
+      styles.row,
+      styles['row-project'],
+      styles[`row-${props.asset.asset_type}`]
+    )}>
+      {/* This makes the whole row clickable */}
+      <a className={styles['overlay-link']} href={`#/library/asset/${props.asset.uid}`}/>
 
-      <bem.AssetsTableRow__buttons>
+      <div className={styles['buttons-wrapper']}>
         <ProjectActionButtons asset={props.asset}/>
-      </bem.AssetsTableRow__buttons>
+      </div>
 
       {/* First column is always visible and displays a checkbox. */}
-      <bem.ProjectsTableRow__column m='checkbox'>
+      <div className={classNames(styles.cell, styles['cell-checkbox'])}>
         <Checkbox
           checked={props.isSelected}
           onChange={props.onSelectRequested}
           label=''
         />
-      </bem.ProjectsTableRow__column>
+      </div>
 
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) =>
-        <bem.AssetsTableRow__column m={field.name} key={field.name}>
+        <div
+          className={classNames(styles.cell, styles[`cell-${field.name}`])}
+          key={field.name}
+        >
           {renderColumnContent(field)}
-        </bem.AssetsTableRow__column>
+        </div>
       )}
-
-    </bem.AssetsTableRow>
+    </div>
   );
 }

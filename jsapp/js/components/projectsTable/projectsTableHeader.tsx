@@ -1,11 +1,13 @@
 import React from 'react';
-import bem from 'js/bem';
 import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
 import type {
   OrderDirection,
   ProjectFieldDefinition,
   ProjectFieldName,
 } from 'js/components/projectsView/projectsViewConstants';
+import tableStyles from './projectsTable.module.scss';
+import rowStyles from './projectsTableRow.module.scss';
+import classNames from 'classnames';
 
 interface ProjectsTableHeaderProps {
   /** Current ordering field. */
@@ -15,9 +17,6 @@ interface ProjectsTableHeaderProps {
 }
 
 export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
-  // TODO get this value from calculation
-  const scrollbarWidth = 15;
-
   const renderColumn = (field: ProjectFieldDefinition) => {
     // TODO don't render hidden fields :)
 
@@ -33,31 +32,26 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     }
 
     return (
-      <bem.ProjectsTableRow__column
-        m={field.name}
+      <div
+        className={classNames(rowStyles.cell, rowStyles[`cell-${field.name}`])}
         key={field.name}
         onClick={() => props.onChangeOrderRequested(field.name)}
       >
-        <bem.ProjectsTableRow__headerLabel>{field.label}</bem.ProjectsTableRow__headerLabel>
+        <label className={rowStyles['header-label']}>{field.label}</label>
         {icon}
-      </bem.ProjectsTableRow__column>
+      </div>
     );
   };
 
   return (
-    <bem.ProjectsTable__header>
-      <bem.ProjectsTableRow m='header'>
+    <header className={tableStyles.header}>
+      <div className={classNames(rowStyles.row, rowStyles['row-header'])}>
         {/* First column is always visible and displays a checkbox. */}
-        <bem.ProjectsTableRow__column m='checkbox'/>
+        <div className={classNames(rowStyles.cell, rowStyles['cell-checkbox'])}/>
 
         {Object.values(PROJECT_FIELDS).map(renderColumn)}
-
-        <div
-          className='projects-table__scrollbar-padding'
-          style={{width: `${scrollbarWidth}px`}}
-        />
-      </bem.ProjectsTableRow>
-    </bem.ProjectsTable__header>
+      </div>
+    </header>
   );
 }
 
