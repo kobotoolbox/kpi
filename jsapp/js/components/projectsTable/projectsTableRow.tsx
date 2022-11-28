@@ -62,10 +62,6 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       {/* This makes the whole row clickable */}
       <a className={styles['overlay-link']} href={`#/library/asset/${props.asset.uid}`}/>
 
-      <div className={styles['buttons-wrapper']}>
-        <ProjectActionButtons asset={props.asset}/>
-      </div>
-
       {/* First column is always visible and displays a checkbox. */}
       <div className={classNames(styles.cell, styles['cell-checkbox'])}>
         <Checkbox
