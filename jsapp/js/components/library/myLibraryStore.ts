@@ -12,7 +12,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from 'js/components/assetsTable/assetsTableConstants';
-import type {OrderDirection} from 'js/components/projectsView/projectsViewConstants';
+import type {OrderDirection} from 'js/projects/projectsView/projectsViewConstants';
 import {ROUTES} from 'js/router/routerConstants';
 import { history } from "js/router/historyRouter";
 import type {

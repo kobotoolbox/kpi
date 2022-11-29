@@ -1,7 +1,7 @@
 import React from 'react';
 import AssetsTable from 'js/components/assetsTable/assetsTable';
 import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
-import type {OrderDirection} from 'js/components/projectsView/projectsViewConstants';
+import type {OrderDirection} from 'js/projects/projectsView/projectsViewConstants';
 import singleCollectionStore from './singleCollectionStore';
 import type {AssetResponse} from 'js/dataInterface';
 

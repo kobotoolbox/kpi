@@ -1,8 +1,8 @@
 import React from 'react';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import ProjectsTableRow from './projectsTableRow';
-import type {ProjectFieldName, OrderDirection} from 'js/components/projectsView/projectsViewConstants';
-import {PROJECT_FIELDS} from 'js/components/projectsView/projectsViewConstants';
+import type {ProjectFieldName, OrderDirection} from 'js/projects/projectsView/projectsViewConstants';
+import {PROJECT_FIELDS} from 'js/projects/projectsView/projectsViewConstants';
 import ProjectsTableHeader from './projectsTableHeader';
 import type {AssetResponse} from 'js/dataInterface';
 import styles from './projectsTable.module.scss';
