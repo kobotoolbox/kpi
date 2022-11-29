@@ -5,12 +5,12 @@ import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
-import {addRequiredToLabel, stringToColor} from '../utils';
+import {addRequiredToLabel, notify, stringToColor} from '../utils';
 import {ACCOUNT_ROUTES} from './routes';
 import ApiTokenDisplay from '../components/apiTokenDisplay';
-import envStore from '../envStore';
+import envStore, { EnvStoreDataItem } from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
-import {actions} from 'js/actions';
+import {dataInterface} from '../dataInterface';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -18,10 +18,49 @@ bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
+interface Form{
+  isPristine: boolean;
+  fields: {
+    name: string;
+    email: string;
+    organization: string;
+    organizationWebsite: string;
+    sector: string;
+    gender: string;
+    bio: string;
+    city: string;
+    country: string;
+    requireAuth: boolean;
+    twitter: string;
+    linkedin: string;
+    instagram: string;
+  };
+  fieldsWithErrors: {
+    email?: string[];
+    extra_details?: {
+      name?: string;
+      organization?: string;
+      organizationWebsite?: string;
+      sector?: string;
+      gender?: string;
+      bio?: string;
+      city?: string;
+      country?: string;
+      requireAuth?: string;
+      twitter?: string;
+      linkedin?: string;
+      instagram?: string;
+    };
+  };
+  sectorChoices: EnvStoreDataItem[];
+  countryChoices: EnvStoreDataItem[];
+  genderChoices: EnvStoreDataItem[];
+}
+
 function AccountSettings() {
   const [session] = useState(() => sessionStore);
   const environment = envStore.data;
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<Form>({
     isPristine: true,
     fields: {
       name: '',
@@ -97,14 +136,50 @@ function AccountSettings() {
     t('You have unsaved changes. Leave settings without saving?'),
     !form.isPristine
   );
-  const updateProfile = () => {};
-  const onUpdateComplete = () => {};
-  const onAnyFieldChange = (name: string, value: boolean) => {
+  const updateProfile = () => {
+    dataInterface.patchProfile({
+      email: form.fields.email,
+      extra_details: JSON.stringify({
+        name: form.fields.name,
+        organization: form.fields.organization,
+        organization_website: form.fields.organizationWebsite,
+        sector: form.fields.sector,
+        gender: form.fields.gender,
+        bio: form.fields.bio,
+        city: form.fields.city,
+        country: form.fields.country,
+        require_auth: form.fields.requireAuth,
+        twitter: form.fields.twitter,
+        linkedin: form.fields.linkedin,
+        instagram: form.fields.instagram,
+      }),
+    }).done(() => {
+      onUpdateComplete()
+    }).fail((...args: any) => {
+      onUpdateFail(args)
+    });
+  };
+  const onAnyFieldChange = (name: string, value: any) => {
     setForm({
       ...form,
       fields: {...form.fields, [name]: value},
       isPristine: false,
     });
+  };
+  const onUpdateComplete = () => {
+    notify(t('Updated profile successfully'));
+    setForm({
+      ...form,
+      isPristine: true,
+      fieldsWithErrors: {},
+    })
+  };
+  const onUpdateFail = (data: any) => {
+    setForm({
+      ...form,
+      isPristine: false,
+      fieldsWithErrors: data[0].responseJSON,
+    })
   };
   const accountName = sessionStore.currentAccount.username;
   const initialsStyle = {
@@ -115,7 +190,7 @@ function AccountSettings() {
       <bem.AccountSettings__actions>
         <bem.KoboButton
           className='account-settings-save'
-          onClick={updateProfile()}
+          onClick={updateProfile.bind(form)}
           m={['blue']}
         >
           {t('Save Changes')}
@@ -152,9 +227,12 @@ function AccountSettings() {
               <TextBox
                 customModifiers='on-white'
                 label={t('Name')}
-                onChange={onAnyFieldChange}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange, 
+                  'name'
+                  )}
                 value={form.fields.name}
-                // errors={form.fieldsWithErrors.extra_details?.name}
+                errors={form.fieldsWithErrors.extra_details?.name}
                 placeholder={t(
                   'Use this to display your real name to other users'
                 )}
@@ -166,9 +244,12 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={addRequiredToLabel(t('Email'))}
                 type='email'
-                onChange={onAnyFieldChange}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'email'
+                )}
                 value={form.fields.email}
-                // errors={form.fieldsWithErrors.email}
+                errors={form.fieldsWithErrors.email}
               />
             </bem.AccountSettings__item>
 
@@ -187,9 +268,12 @@ function AccountSettings() {
               <TextBox
                 customModifiers='on-white'
                 label={addRequiredToLabel(t('Organization'))}
-                onChange={onAnyFieldChange}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'organization'
+                )}
                 value={form.fields.organization}
-                // errors={form.fieldsWithErrors.extra_details?.organization}
+                errors={form.fieldsWithErrors.extra_details?.organization}
               />
             </bem.AccountSettings__item>
 
@@ -198,8 +282,11 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={t('Organization Website')}
                 value={form.fields.organizationWebsite}
-                // errors={form.fieldsWithErrors.extra_details?.organizationWebsite}
-                onChange={onAnyFieldChange}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'organization_website'
+                )}
+                errors={form.fieldsWithErrors.extra_details?.organizationWebsite}
               />
             </bem.AccountSettings__item>
 
@@ -207,9 +294,12 @@ function AccountSettings() {
               <WrappedSelect
                 label={addRequiredToLabel(t('Primary Sector'))}
                 value={form.fields.sector}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'sector'
+                )}
                 options={form.sectorChoices}
-                // errors={form.fieldsWithErrors.extra_details?.sector}
-                // onChange={onAnyFieldChange}
+                error={form.fieldsWithErrors.extra_details?.sector}
               />
             </bem.AccountSettings__item>
 
@@ -217,9 +307,12 @@ function AccountSettings() {
               <WrappedSelect
                 label={t('Gender')}
                 value={form.fields.gender}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'gender'
+                )}
                 options={form.genderChoices}
-                // errors={form.fieldsWithErrors.extra_details?.gender}
-                // onChange={onAnyFieldChange}
+                error={form.fieldsWithErrors.extra_details?.gender}
               />
             </bem.AccountSettings__item>
 
@@ -228,8 +321,11 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={t('Bio')}
                 value={form.fields.bio}
-                onChange={onAnyFieldChange}
-                // errors={form.fieldsWithErrors.extra_details?.bio}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'bio'
+                )}
+                errors={form.fieldsWithErrors.extra_details?.bio}
               />
             </bem.AccountSettings__item>
 
@@ -237,9 +333,12 @@ function AccountSettings() {
               <WrappedSelect
                 label={t('Country')}
                 value={form.fields.country}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange, 
+                  'country'
+                )}
                 options={form.countryChoices}
-                // onChange={onAnyFieldChange.bind(onAnyFieldChange, 'country')}
-                // errors={form.fieldsWithErrors.extra_details?.country}
+                error={form.fieldsWithErrors.extra_details?.country}
               />
             </bem.AccountSettings__item>
 
@@ -248,8 +347,11 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={t('City')}
                 value={form.fields.city}
-                onChange={onAnyFieldChange}
-                // errors={form.fieldsWithErrors.extra_details?.city}
+                onChange={onAnyFieldChange.bind(
+                  onAnyFieldChange,
+                  'city'
+                )}
+                errors={form.fieldsWithErrors.extra_details?.city}
               />
             </bem.AccountSettings__item>
 
@@ -261,8 +363,11 @@ function AccountSettings() {
                 <TextBox
                   customModifiers='on-white'
                   value={form.fields.twitter}
-                  onChange={onAnyFieldChange}
-                  // errors={form.fieldsWithErrors.extra_details?.twitter}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    'twitter'
+                  )}
+                  errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
               </label>
               <label>
@@ -271,8 +376,11 @@ function AccountSettings() {
                 <TextBox
                   customModifiers='on-white'
                   value={form.fields.linkedin}
-                  onChange={onAnyFieldChange}
-                  // errors={form.fieldsWithErrors.extra_details?.linkedin}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    'linkedin'
+                  )}
+                  errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
               </label>
               <label>
@@ -281,8 +389,11 @@ function AccountSettings() {
                 <TextBox
                   customModifiers='on-white'
                   value={form.fields.instagram}
-                  onChange={onAnyFieldChange}
-                  // errors={form.fieldsWithErrors.extra_details?.instagram}
+                  onChange={onAnyFieldChange.bind(
+                    onAnyFieldChange,
+                    'instagram'
+                  )}
+                  errors={form.fieldsWithErrors.extra_details?.instagram}
                 />
               </label>
             </bem.AccountSettings__item>
