@@ -1,7 +1,7 @@
 @use 'scss/_colors';
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
-@use 'scss/zindexes';
+@use 'scss/z-indexes';
 
 /* ==========================================================================
  * projectsTable
@@ -23,7 +23,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &.projects-table--fullscreen {
     position: fixed;
-    z-index: zindexes.$z-fullscreen;
+    z-index: z-indexes.$z-fullscreen;
     border: 15px solid mdl.$root-background;
     top: 0;
     left: 0;
