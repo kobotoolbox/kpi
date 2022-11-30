@@ -44,15 +44,13 @@ export default function CustomViewsRoute() {
 
       <ProjectsTable
         assets={mockAssets.results}
-        totalAssets={mockAssets.count}
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
         selectedRows={selectedRows}
         onRowsSelected={setSelectedRows}
-        currentPage={1}
-        totalPages={35}
-        onSwitchPage={(pageNumber: number) => console.log(pageNumber)}
+        onRequestLoadNextPage={() => console.log('load next page please!')}
+        hasMorePages
       />
     </section>
   );

@@ -35,15 +35,8 @@ $projects-table-min-width: 820px;
   z-index: z-indexes.$z-table-row-header;
 }
 
-.footer {
-  position: sticky;
-  bottom: 0;
-  z-index: z-indexes.$z-table-row-header;
-}
-
 .header,
-.body,
-.footer {
+.body {
   min-width: 800px;
   width: 100%;
 }
@@ -54,86 +47,4 @@ $projects-table-min-width: 820px;
 
 .body > .loading {
   margin: sizes.$x40 auto;
-}
-
-.footer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: sizes.$x10;
-  color: colors.$kobo-gray-40;
-  background-color: colors.$kobo-gray-96;
-  height: sizes.$x40;
-
-  .mdl-button {
-    margin-left: 0;
-    margin-right: 0;
-    padding-right: 0;
-    padding-left: sizes.$x12;
-    line-height: sizes.$x32;
-    height: sizes.$x32;
-    min-height: sizes.$x32;
-
-    .k-icon {
-      font-size: sizes.$x24;
-      margin: 0 sizes.$x3;
-      float: right;
-    }
-  }
-}
-
-//  Pagination
-
-.pagination {
-  display: inline-block;
-  color: inherit;
-}
-
-.pagination-index {
-  display: inline;
-  margin: 0 sizes.$x10;
-}
-
-.pagination-button {
-  appearance: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  cursor: pointer;
-  color: inherit;
-  height: sizes.$x20;
-
-  &:hover {
-    opacity: 0.8;
-  }
-
-  &:active {
-    opacity: 0.6;
-  }
-
-  &[disabled] {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  .k-icon {
-    font-size: variables.$base-font-size;
-    margin: 0 sizes.$x3;
-    display: inline-block;
-    vertical-align: middle;
-  }
-}
-
-.projects-table--MY_LIBRARY,
-.projects-table--PUBLIC_COLLECTIONS {
-  height: calc(100% - #{variables.$s-breadcrumbs-height});
-  display: flex;
-  flex-direction: column;
-
-  .body {
-    flex: 1;
-    overflow-y: auto;
-  }
 }

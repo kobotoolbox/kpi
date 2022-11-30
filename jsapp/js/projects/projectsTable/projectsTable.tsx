@@ -1,4 +1,5 @@
 import React from 'react';
+import InfiniteScroll from 'react-infinite-scroller';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import ProjectsTableRow from './projectsTableRow';
 import type {ProjectFieldName, OrderDirection} from 'js/projects/projectsView/projectsViewConstants';
@@ -10,17 +11,11 @@ import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
 interface ProjectsTableProps {
- /** Displays a spinner */
  isLoading?: boolean;
  /** To display contextual empty message when zero assets. */
  emptyMessage?: string;
- /** List of assets to be displayed. */
  assets: AssetResponse[];
- /** Number of assets on all pages. */
- totalAssets: number;
- /** Seleceted order column id, one of ASSETS_TABLE_COLUMNS. */
  orderFieldName: ProjectFieldName;
- /** Seleceted order column value. */
  orderDirection: OrderDirection;
  /** Called when user selects a column for odering. */
  onChangeOrderRequested: (fieldName: string, direction: OrderDirection) => void;
@@ -28,30 +23,16 @@ interface ProjectsTableProps {
  selectedRows: string[];
  /** Called when user selects a row (by clicking its checkbox) */
  onRowsSelected: (uids: string[]) => void;
- /**
-  * For displaying pagination. If you omit any of these, pagination will simply
-  * not be rendered. Good to use when you actually don't need it.
-  */
- currentPage?: number;
- totalPages?: number;
- /** Called when user clicks page change. */
- onSwitchPage?: (pageNumber: number) => void;
+ /** Used for infinite scroll. */
+ onRequestLoadNextPage: () => void;
+ /** If there are more results to be loaded. */
+ hasMorePages: boolean;
 }
 
 /**
  * Displays a table of assets.
  */
 export default class ProjectsTable extends React.Component<ProjectsTableProps> {
-  switchPage(newPageNumber: number) {
-    if (this.props.onSwitchPage) {
-      this.props.onSwitchPage(newPageNumber);
-    }
-  }
-
-  /**
-   * This function is only a callback handler, as the asset reordering itself
-   * should be handled by the component that is providing the assets list.
-   */
   /**
    * Sends a request to change order. If same field was sent, it means we want
    * to change order. If different field, it means default order for that field.
@@ -80,47 +61,6 @@ export default class ProjectsTable extends React.Component<ProjectsTableProps> {
     this.props.onRowsSelected(Array.from(uidsSet));
   }
 
-  /**
-   * Safe: returns nothing if pagination properties are not set.
-   */
-  renderPagination() {
-    if (
-      this.props.currentPage &&
-      this.props.totalPages &&
-      this.props.onSwitchPage
-    ) {
-      const naturalCurrentPage = this.props.currentPage + 1;
-      return (
-        <footer className={styles.pagination}>
-          <button
-            className={styles['pagination-button']}
-            disabled={this.props.currentPage === 0}
-            onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
-          >
-            <i className='k-icon k-icon-angle-left'/>
-            {t('Previous')}
-          </button>
-
-          <span className={styles['pagination-index']}>
-            {/* we avoid displaying 1/0 as it doesn't make sense to humans */}
-            {naturalCurrentPage}/{this.props.totalPages || 1}
-          </span>
-
-          <button
-            className={styles['pagination-button']}
-            disabled={naturalCurrentPage >= this.props.totalPages}
-            onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
-          >
-            {t('Next')}
-            <i className='k-icon k-icon-angle-right'/>
-          </button>
-        </footer>
-      );
-    } else {
-      return null;
-    }
-  }
-
   render() {
     return (
       <div className={styles.root}>
@@ -141,27 +81,25 @@ export default class ProjectsTable extends React.Component<ProjectsTableProps> {
             </div>
           }
 
-          {!this.props.isLoading && this.props.assets.map((asset) =>
-            <ProjectsTableRow
-              asset={asset}
-              isSelected={this.props.selectedRows.includes(asset.uid)}
-              onSelectRequested={(isSelected: boolean) =>
-                this.onRowSelectionChange(asset.uid, isSelected)
-              }
-              key={asset.uid}
-            />
-          )}
+          <InfiniteScroll
+            pageStart={0}
+            loadMore={this.props.onRequestLoadNextPage.bind(this)}
+            hasMore={this.props.hasMorePages}
+            loader={<LoadingSpinner hideMessage key='loadingspinner'/>}
+            useWindow={false}
+          >
+            {this.props.assets.map((asset) =>
+              <ProjectsTableRow
+                asset={asset}
+                isSelected={this.props.selectedRows.includes(asset.uid)}
+                onSelectRequested={(isSelected: boolean) =>
+                  this.onRowSelectionChange(asset.uid, isSelected)
+                }
+                key={asset.uid}
+              />
+            )}
+          </InfiniteScroll>
         </div>
-
-        <footer className={styles.footer}>
-          {this.props.totalAssets !== null &&
-            <span>
-              {t('##count## items').replace('##count##', String(this.props.totalAssets))}
-            </span>
-          }
-
-          {this.renderPagination()}
-        </footer>
       </div>
     );
   }
