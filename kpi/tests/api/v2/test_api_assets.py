@@ -27,11 +27,8 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
-from kpi.tests.test_regional_views_utils import config as regional_config
 from kpi.utils.regional_views import (
-    RegionalView,
     get_region_for_view,
-    get_regional_views,
 )
 
 
@@ -256,171 +253,171 @@ class AssetListApiTests(BaseAssetTestCase):
         })
         assert expected_order_by_name_collections_first == uids
 
-class AssetRegionalListApiTests(BaseAssetTestCase):
-    fixtures = ['test_data']
-
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
-
-    def setUp(self):
-        self.client.login(username='someuser', password='someuser')
-        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
-        self.asset_views_url = reverse(self._get_endpoint('asset-views'))
-        asset_country_settings = [
-            [
-                {'value': 'ZAF', 'label': 'South Africa'},
-            ],
-            [
-                {'value': 'CAN', 'label': 'Canada'},
-            ],
-        ]
-        for i, asset in enumerate(Asset.objects.all()[:2]):
-            asset.settings.update({'country': asset_country_settings[i]})
-            asset.content = {
-                'survey': [
-                    {
-                        'type': 'text',
-                        'name': 'q1',
-                        'label': 'q1',
-                    },
-                ],
-            }
-            asset.save()
-            asset.deploy(backend='mock', active=True)
-
-    def _login_as_anotheruser(self):
-        self.client.logout()
-        self.client.login(username='anotheruser', password='anotheruser')
-
-    @override_config(**regional_config)
-    def test_regional_views_list(self):
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-        # someuser should only see view 0 and 1
-        assert len(data) == 2
-        assert data[0]['id'] == 0
-        assert data[1]['id'] == 1
-
-        self._login_as_anotheruser()
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-        # anotheruser should only see view 1 and 2
-        assert len(data) == 2
-        assert data[0]['id'] == 1
-        assert data[1]['id'] == 2
-
-    @override_config(**regional_config)
-    def test_regional_asset_views_for_someuser(self):
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-        view_0_url = data[0]['url']
-        regional_res = self.client.get(
-            view_0_url, HTTP_ACCEPT='application/json'
-        )
-        assert regional_res.json()['count'] == 2
-
-        view_1_url = data[1]['url']
-        regional_res = self.client.get(
-            view_1_url, HTTP_ACCEPT='application/json'
-        )
-        regional_data = regional_res.json()
-        assert regional_data['count'] == 1
-        asset_countries = set(
-            c['value']
-            for c in regional_data['results'][0]['settings']['country']
-        )
-        region_for_view = set(get_region_for_view(1))
-        assert asset_countries & region_for_view
-
-    @override_config(**regional_config)
-    def test_regional_asset_views_for_anotheruser(self):
-        self._login_as_anotheruser()
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-        expected_vals = [
-            {'view': 1, 'count': 1},
-            {'view': 2, 'count': 1},
-        ]
-        for i, item in enumerate(expected_vals):
-            regional_res = self.client.get(
-                data[i]['url'], HTTP_ACCEPT='application/json'
-            )
-            regional_data = regional_res.json()
-            assert regional_data['count'] == item['count']
-            asset_countries = set(
-                c['value']
-                for c in regional_data['results'][0]['settings']['country']
-            )
-            region_for_view = set(get_region_for_view(item['view']))
-            assert asset_countries & region_for_view
-
-    @override_config(**regional_config)
-    def test_regional_asset_views_for_someuser_can_view_submissions(self):
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-
-        # someuser cannot see data for view 0
-        regional_res = self.client.get(
-            data[0]['url'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert not asset_data['data']
-
-        # someuser can see data for view 1
-        regional_res = self.client.get(
-            data[1]['url'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert asset_data['data']
-        data_res = self.client.get(
-            asset_data['data'], HTTP_ACCEPT='application/json'
-        )
-        assert data_res.status_code == status.HTTP_200_OK
-
-    @override_config(**regional_config)
-    def test_regional_asset_views_for_anotheruser_can_view_permissions(self):
-        self._login_as_anotheruser()
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-
-        # anotheruser cannot see permissions for view 1
-        regional_res = self.client.get(
-            data[0]['url'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert not asset_data['permissions']
-
-        # anotheruser can see permissions for view 2
-        regional_res = self.client.get(
-            data[1]['url'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert asset_data['permissions']
-
-    @override_config(**regional_config)
-    def test_regional_asset_views_for_anotheruser_can_change_metadata(self):
-        self._login_as_anotheruser()
-        res = self.client.get(self.asset_views_url)
-        data = res.json()
-
-        # anotheruser can change metadata for view 1
-        regional_res = self.client.get(
-            data[0]['url'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        change_metadata_res = self.client.patch(
-            asset_data['url'], data={'name': 'A new name'}
-        )
-        assert change_metadata_res.status_code == status.HTTP_200_OK
-
-        # anotheruser cannot change metadata for view 2
-        regional_res = self.client.get(
-            data[1]['url'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        change_metadata_res = self.client.patch(
-            asset_data['url'], data={'name': 'A new name'}
-        )
-        assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
+#class AssetRegionalListApiTests(BaseAssetTestCase):
+#    fixtures = ['test_data']
+#
+#    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+#
+#    def setUp(self):
+#        self.client.login(username='someuser', password='someuser')
+#        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
+#        self.asset_views_url = reverse(self._get_endpoint('asset-views'))
+#        asset_country_settings = [
+#            [
+#                {'value': 'ZAF', 'label': 'South Africa'},
+#            ],
+#            [
+#                {'value': 'CAN', 'label': 'Canada'},
+#            ],
+#        ]
+#        for i, asset in enumerate(Asset.objects.all()[:2]):
+#            asset.settings.update({'country': asset_country_settings[i]})
+#            asset.content = {
+#                'survey': [
+#                    {
+#                        'type': 'text',
+#                        'name': 'q1',
+#                        'label': 'q1',
+#                    },
+#                ],
+#            }
+#            asset.save()
+#            asset.deploy(backend='mock', active=True)
+#
+#    def _login_as_anotheruser(self):
+#        self.client.logout()
+#        self.client.login(username='anotheruser', password='anotheruser')
+#
+#    @override_config(**regional_config)
+#    def test_regional_views_list(self):
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#        # someuser should only see view 0 and 1
+#        assert len(data) == 2
+#        assert data[0]['id'] == 0
+#        assert data[1]['id'] == 1
+#
+#        self._login_as_anotheruser()
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#        # anotheruser should only see view 1 and 2
+#        assert len(data) == 2
+#        assert data[0]['id'] == 1
+#        assert data[1]['id'] == 2
+#
+#    @override_config(**regional_config)
+#    def test_regional_asset_views_for_someuser(self):
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#        view_0_url = data[0]['url']
+#        regional_res = self.client.get(
+#            view_0_url, HTTP_ACCEPT='application/json'
+#        )
+#        assert regional_res.json()['count'] == 2
+#
+#        view_1_url = data[1]['url']
+#        regional_res = self.client.get(
+#            view_1_url, HTTP_ACCEPT='application/json'
+#        )
+#        regional_data = regional_res.json()
+#        assert regional_data['count'] == 1
+#        asset_countries = set(
+#            c['value']
+#            for c in regional_data['results'][0]['settings']['country']
+#        )
+#        region_for_view = set(get_region_for_view(1))
+#        assert asset_countries & region_for_view
+#
+#    @override_config(**regional_config)
+#    def test_regional_asset_views_for_anotheruser(self):
+#        self._login_as_anotheruser()
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#        expected_vals = [
+#            {'view': 1, 'count': 1},
+#            {'view': 2, 'count': 1},
+#        ]
+#        for i, item in enumerate(expected_vals):
+#            regional_res = self.client.get(
+#                data[i]['url'], HTTP_ACCEPT='application/json'
+#            )
+#            regional_data = regional_res.json()
+#            assert regional_data['count'] == item['count']
+#            asset_countries = set(
+#                c['value']
+#                for c in regional_data['results'][0]['settings']['country']
+#            )
+#            region_for_view = set(get_region_for_view(item['view']))
+#            assert asset_countries & region_for_view
+#
+#    @override_config(**regional_config)
+#    def test_regional_asset_views_for_someuser_can_view_submissions(self):
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#
+#        # someuser cannot see data for view 0
+#        regional_res = self.client.get(
+#            data[0]['url'], HTTP_ACCEPT='application/json'
+#        )
+#        asset_data = regional_res.json()['results'][0]
+#        assert not asset_data['data']
+#
+#        # someuser can see data for view 1
+#        regional_res = self.client.get(
+#            data[1]['url'], HTTP_ACCEPT='application/json'
+#        )
+#        asset_data = regional_res.json()['results'][0]
+#        assert asset_data['data']
+#        data_res = self.client.get(
+#            asset_data['data'], HTTP_ACCEPT='application/json'
+#        )
+#        assert data_res.status_code == status.HTTP_200_OK
+#
+#    @override_config(**regional_config)
+#    def test_regional_asset_views_for_anotheruser_can_view_permissions(self):
+#        self._login_as_anotheruser()
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#
+#        # anotheruser cannot see permissions for view 1
+#        regional_res = self.client.get(
+#            data[0]['url'], HTTP_ACCEPT='application/json'
+#        )
+#        asset_data = regional_res.json()['results'][0]
+#        assert not asset_data['permissions']
+#
+#        # anotheruser can see permissions for view 2
+#        regional_res = self.client.get(
+#            data[1]['url'], HTTP_ACCEPT='application/json'
+#        )
+#        asset_data = regional_res.json()['results'][0]
+#        assert asset_data['permissions']
+#
+#    @override_config(**regional_config)
+#    def test_regional_asset_views_for_anotheruser_can_change_metadata(self):
+#        self._login_as_anotheruser()
+#        res = self.client.get(self.asset_views_url)
+#        data = res.json()
+#
+#        # anotheruser can change metadata for view 1
+#        regional_res = self.client.get(
+#            data[0]['url'], HTTP_ACCEPT='application/json'
+#        )
+#        asset_data = regional_res.json()['results'][0]
+#        change_metadata_res = self.client.patch(
+#            asset_data['url'], data={'name': 'A new name'}
+#        )
+#        assert change_metadata_res.status_code == status.HTTP_200_OK
+#
+#        # anotheruser cannot change metadata for view 2
+#        regional_res = self.client.get(
+#            data[1]['url'], HTTP_ACCEPT='application/json'
+#        )
+#        asset_data = regional_res.json()['results'][0]
+#        change_metadata_res = self.client.patch(
+#            asset_data['url'], data={'name': 'A new name'}
+#        )
+#        assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
 
 
 class AssetVersionApiTests(BaseTestCase):

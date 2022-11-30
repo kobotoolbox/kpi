@@ -249,8 +249,9 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['HEAD'] = perms_map['GET']
 
     def has_object_permission(self, request, view, obj):
+        user = get_database_user(request.user)
         if user_has_regional_asset_perm(
-            obj, request.user, 'change_metadata'
+            obj, user, 'change_metadata'
         ):
             return True
         return super().has_object_permission(request, view, obj)

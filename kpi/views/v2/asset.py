@@ -67,7 +67,6 @@ from kpi.utils.object_permission import (
 )
 from kpi.utils.regional_views import (
     get_regional_views_for_user,
-    get_view_as_int,
     user_has_regional_asset_perm,
 )
 
@@ -671,7 +670,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         # regional view
-        view = get_view_as_int(request.GET.get('view'))
+        view = request.GET.get('view')
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
         self.__filtered_queryset = self.filter_queryset(self.get_queryset())

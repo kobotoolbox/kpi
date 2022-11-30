@@ -38,7 +38,6 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments_queryset,
 )
 from kpi.utils.regional_views import (
-    get_view_as_int,
     user_has_regional_asset_perm,
     view_has_perm,
 )
@@ -783,4 +782,4 @@ class AssetMetadataListSerializer(AssetSerializer):
 
     def _get_view(self) -> int:
         request = self.context.get('request')
-        return get_view_as_int(request.GET.get('view'))
+        return request.GET.get('view')
