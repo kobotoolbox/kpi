@@ -6,6 +6,7 @@ import type {
 } from './projectsView/projectsViewConstants';
 import ProjectsFilter from './projectsView/projectsFilter';
 import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
+import ViewSwitcher from './projectsView/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import ProjectActionButtons from 'js/projects/projectsTable/projectActionButtons';
 import mockAssets from './assetsResponseMock';
@@ -26,7 +27,7 @@ export default function CustomViewsRoute() {
         flexDirection: 'row',
         alignItems: 'center',
       }}>
-        <h1>Projects View temporary demo</h1>
+        <ViewSwitcher viewUid='1' viewCount={15}/>
 
         <ProjectsFilter
           onFiltersChange={setFilters}
