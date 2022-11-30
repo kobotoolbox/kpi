@@ -6,11 +6,15 @@
 
 import bem, {makeBem} from 'js/bem';
 
+// DEPRECATED: please don't use this component. From now on, we will only use
+// the `Button` component (from `js/components/common/button`) as it covers
+// all possible cases.
 bem.Button = makeBem(null, 'mdl-button', 'button');
-
 bem.KoboButton = makeBem(null, 'kobo-button', 'button');
 bem.KoboLightButton = makeBem(null, 'kobo-light-button', 'button');
 bem.KoboTextButton = makeBem(null, 'kobo-text-button', 'button');
+// END DEPRECATED
+
 bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
 
 bem.KoboSelect = makeBem(null, 'kobo-select');
@@ -114,12 +118,6 @@ bem.LibList__tag = makeBem(bem.LibList, 'tag', 'span');
 bem.LibList__label = makeBem(bem.LibList, 'label');
 bem.LibList__dragbox = makeBem(bem.LibList, 'dragbox');
 bem.LibList__qtype = makeBem(bem.LibList, 'qtype');
-
-bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
-bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
-bem.SubmissionDataTable__column = makeBem(bem.SubmissionDataTable, 'column');
-bem.SubmissionDataTable__XMLName = makeBem(bem.SubmissionDataTable, 'xml-name');
-bem.SubmissionDataTable__value = makeBem(bem.SubmissionDataTable, 'value');
 
 bem.TableMeta = makeBem(null, 'table-meta');
 bem.TableMeta__counter = makeBem(bem.TableMeta, 'counter');
@@ -256,7 +254,7 @@ bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper');
 bem.FormSidebar = makeBem(null, 'form-sidebar');
 bem.FormSidebar__item = makeBem(bem.FormSidebar, 'item', 'a');
 bem.FormSidebar__itemText = makeBem(bem.FormSidebar, 'item-text');
-bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label', 'a');
+bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label');
 bem.FormSidebar__labelText = makeBem(bem.FormSidebar, 'label-text');
 bem.FormSidebar__labelCount = makeBem(bem.FormSidebar, 'label-count');
 bem.FormSidebar__grouping = makeBem(bem.FormSidebar, 'grouping');
@@ -289,9 +287,6 @@ bem.Checkbox = makeBem(null, 'checkbox');
 bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
 bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
 bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
-
-bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul');
-bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li');
 
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');

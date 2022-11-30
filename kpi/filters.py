@@ -384,14 +384,18 @@ class SearchFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=view.search_default_field_lookups
+                q,
+                default_field_lookups=view.search_default_field_lookups,
+                min_search_characters=getattr(
+                    view, 'min_search_characters', None
+                ),
             )
         except ParseError:
             return queryset.model.objects.none()
         except SearchQueryTooShortException as e:
             # raising an exception if the default search query without a
             # specified field is less than a set length of characters -
-            # currently 3
+            # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
 
         try:

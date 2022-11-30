@@ -1,7 +1,7 @@
 import findIndex from 'lodash.findindex';
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
-import {stores} from 'js/stores';
+import { observer } from 'mobx-react';
+import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import {ASSET_TYPES} from 'js/constants';
@@ -25,8 +25,10 @@ class OwnedCollectionsStore extends Reflux.Store {
   };
 
   init() {
-    hashHistory.listen(this.startupStore.bind(this));
-    stores.session.listen(this.startupStore.bind(this));
+    // observer(sessionStore, this.startupStore);
+    // router6 upgrade, unsure why this line would be necessary
+    // hashHistory.listen(this.startupStore.bind(this));
+    // stores.session.listen(this.startupStore.bind(this));
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted.bind(this));
     actions.library.getCollections.failed.listen(this.onGetCollectionsFailed.bind(this));
     // NOTE: this could update the list of collections, but currently nothing is using
@@ -45,7 +47,7 @@ class OwnedCollectionsStore extends Reflux.Store {
     if (
       !this.isInitialised &&
       isAnyLibraryRoute() &&
-      stores.session.isLoggedIn &&
+      sessionStore.isLoggedIn &&
       !this.data.isFetchingData
     ) {
       this.fetchData();
@@ -69,7 +71,7 @@ class OwnedCollectionsStore extends Reflux.Store {
   onAssetChangedOrCreated(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
-      asset.owner__username === stores.session.currentAccount.username
+      asset.owner__username === sessionStore.currentAccount.username
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.collections.length; i++) {
@@ -103,8 +105,8 @@ class OwnedCollectionsStore extends Reflux.Store {
     this.trigger(this.data);
 
     actions.library.getCollections({
-      owner: stores.session.currentAccount.username,
-      pageSize: 0, // zero gives all results with no limit
+      owner: sessionStore.currentAccount.username,
+      pageSize: 0 // zero gives all results with no limit
     });
   }
 

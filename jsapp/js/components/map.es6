@@ -3,7 +3,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
-import {hashHistory} from 'react-router';
 import bem from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
@@ -11,6 +10,7 @@ import PopoverMenu from 'js/popoverMenu';
 import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
+import {withRouter} from 'js/router/legacy';
 import JSZip from 'jszip';
 import './map.scss';
 import './map.marker-colors.scss';
@@ -551,9 +551,9 @@ export class FormMap extends React.Component {
 
     let name = evt.target.getAttribute('data-name') || undefined;
     if (name != undefined) {
-      hashHistory.push(`/forms/${this.props.asset.uid}/data/map/${name}`);
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`);
     } else {
-      hashHistory.push(`/forms/${this.props.asset.uid}/data/map`);
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map`);
     }
   }
   filterLanguage (evt) {
@@ -865,4 +865,4 @@ export class FormMap extends React.Component {
 
 reactMixin(FormMap.prototype, Reflux.ListenerMixin);
 
-export default FormMap;
+export default withRouter(FormMap);

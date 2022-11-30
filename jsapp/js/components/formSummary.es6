@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
+import { Link, NavLink } from 'react-router-dom';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';
@@ -259,18 +259,16 @@ class FormSummary extends React.Component {
     return (
       <bem.FormView__cell m='data-tabs'>
         { sideTabs.map((item, ind) =>
-          <Link
+          <NavLink
             to={item.path}
             key={ind}
-            activeClassName='active'
-            onlyActiveOnIndex
             data-path={item.path}
             onClick={this.triggerRefresh}
           >
             <i className={`k-icon ${item.icon}`} />
             {item.label}
             <Icon name='angle-right' size='s'/>
-          </Link>
+          </NavLink>
         )}
       </bem.FormView__cell>
     );
@@ -343,6 +341,7 @@ class FormSummary extends React.Component {
     let hasProjectInfo = (
       this.state.settings &&
       (
+        this.state.settings.description ||
         hasCountry ||
         this.state.settings.sector ||
         this.state.settings.operational_purpose ||
@@ -363,7 +362,7 @@ class FormSummary extends React.Component {
                 <bem.FormView__cell m={['label', 'first']}>
                   {t('Project information')}
                 </bem.FormView__cell>
-                <bem.FormView__cell m={['box', 'padding']}>
+                <bem.FormView__cell m='box'>
                   {(hasCountry || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
                       {hasCountry &&
@@ -400,7 +399,7 @@ class FormSummary extends React.Component {
                     <bem.FormView__group m='items'>
                       <bem.FormView__cell m={['padding', 'description']}>
                         <bem.FormView__label m='description'>{t('Description')}</bem.FormView__label>
-                        {this.state.settings.description}
+                        <p>{this.state.settings.description}</p>
                       </bem.FormView__cell>
                     </bem.FormView__group>
                   }

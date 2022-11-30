@@ -88,3 +88,9 @@ i {
   // we use <i> for icons and we want to avoid any focus styles
   outline: none !important;
 }
+
+small {
+  // To avoid text layout misalignment.
+  display: inline-block;
+  vertical-align: bottom;
+}

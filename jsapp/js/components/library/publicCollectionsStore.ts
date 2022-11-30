@@ -1,6 +1,5 @@
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
-import type {Location} from 'history';
+import type {Update} from 'history';
 import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
@@ -18,6 +17,7 @@ import {
   ACCESS_TYPES,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
+import {history} from 'js/router/historyRouter';
 import type {
   AssetResponse,
   AssetsResponse,
@@ -80,7 +80,7 @@ class PublicCollectionsStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
-    hashHistory.listen(this.onRouteChange.bind(this));
+    history.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged.bind(this), this);
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));
@@ -163,7 +163,7 @@ class PublicCollectionsStore extends Reflux.Store {
     actions.library.searchPublicCollections(params);
   }
 
-  onRouteChange(data: Location) {
+  onRouteChange(data: Update) {
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
@@ -174,7 +174,7 @@ class PublicCollectionsStore extends Reflux.Store {
       this.setDefaultColumns();
       this.fetchData(true);
     }
-    this.previousPath = data.pathname;
+    this.previousPath = data.location.pathname;
   }
 
   searchBoxStoreChanged() {

@@ -1,12 +1,7 @@
-const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
 const WebpackCommon = require('./webpack.common');
-
-const outputPath = path.resolve(__dirname, '../jsapp/compiled/');
-// ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
-fs.mkdirSync(outputPath, {recursive: true});
 
 module.exports = WebpackCommon({
   mode: 'production',
@@ -26,7 +21,7 @@ module.exports = WebpackCommon({
     browsertests: path.resolve(__dirname, '../test/index.js'),
   },
   output: {
-    path: outputPath,
+    path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
     filename: '[name]-[contenthash].js',
   },

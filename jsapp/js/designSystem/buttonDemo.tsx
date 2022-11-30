@@ -8,7 +8,7 @@ import Button, {ButtonType, ButtonColor, ButtonSize} from 'js/components/common/
 import {IconNames} from 'jsapp/fonts/k-icons'
 
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full']
-const buttonColors: ButtonColor[] = ['blue', 'red', 'storm']
+const buttonColors: ButtonColor[] = ['blue', 'light-blue', 'red', 'storm']
 const buttonSizes: ButtonSize[] = ['s', 'm', 'l']
 
 const iconNamesOptions: IconNameOption[] = []
@@ -129,7 +129,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -240,7 +240,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <Button
                     type={this.state.demoType}
