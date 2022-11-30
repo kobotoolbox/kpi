@@ -5,6 +5,7 @@ import type {
 } from './projectsView/projectsViewConstants';
 import ProjectsFilter from './projectsView/projectsFilter';
 import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
+import ViewSwitcher from './projectsView/viewSwitcher';
 
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import type {OrderDirection} from 'js/projects/projectsTable/projectsTableConstants';
@@ -21,17 +22,22 @@ export default function CustomViewsRoute() {
       flexDirection: 'column',
       height: '100%',
     }}>
-      <h1>Projects View temporary demo</h1>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+      }}>
+        <ViewSwitcher viewUid='1' viewCount={15}/>
 
-      <ProjectsFilter
-        onFiltersChange={setFilters}
-        filters={filters}
-      />
+        <ProjectsFilter
+          onFiltersChange={setFilters}
+          filters={filters}
+        />
 
-      <ProjectsFieldsSelector
-        onFieldsChange={setFields}
-        selectedFields={fields}
-      />
+        <ProjectsFieldsSelector
+          onFieldsChange={setFields}
+          selectedFields={fields}
+        />
+      </div>
 
       <ProjectsTable
         context={ProjectsTableContextName.MY_LIBRARY}

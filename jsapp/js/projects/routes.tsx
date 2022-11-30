@@ -12,7 +12,7 @@ const CustomViewsRoute = React.lazy(
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/my',
-  CUSTOM_VIEWS: ROUTES.PROJECTS_ROOT + '/custom/:viewuid',
+  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/custom/:viewUid',
 };
 
 export default function routes() {
@@ -31,7 +31,7 @@ export default function routes() {
         }
       />
       <Route
-        path={PROJECTS_ROUTES.CUSTOM_VIEWS}
+        path={PROJECTS_ROUTES.CUSTOM_VIEW}
         element={
           <RequireAuth>
             <CustomViewsRoute/>
