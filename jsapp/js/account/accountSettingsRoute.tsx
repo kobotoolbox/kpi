@@ -8,7 +8,7 @@ import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
 import {ACCOUNT_ROUTES} from './routes';
 import ApiTokenDisplay from '../components/apiTokenDisplay';
-import envStore, { EnvStoreDataItem } from '../envStore';
+import envStore, {EnvStoreDataItem} from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
 
@@ -18,7 +18,7 @@ bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
-interface Form{
+interface Form {
   isPristine: boolean;
   fields: {
     name: string;
@@ -137,27 +137,30 @@ function AccountSettings() {
     !form.isPristine
   );
   const updateProfile = () => {
-    dataInterface.patchProfile({
-      email: form.fields.email,
-      extra_details: JSON.stringify({
-        name: form.fields.name,
-        organization: form.fields.organization,
-        organization_website: form.fields.organizationWebsite,
-        sector: form.fields.sector,
-        gender: form.fields.gender,
-        bio: form.fields.bio,
-        city: form.fields.city,
-        country: form.fields.country,
-        require_auth: form.fields.requireAuth,
-        twitter: form.fields.twitter,
-        linkedin: form.fields.linkedin,
-        instagram: form.fields.instagram,
-      }),
-    }).done(() => {
-      onUpdateComplete()
-    }).fail((...args: any) => {
-      onUpdateFail(args)
-    });
+    dataInterface
+      .patchProfile({
+        email: form.fields.email,
+        extra_details: JSON.stringify({
+          name: form.fields.name,
+          organization: form.fields.organization,
+          organization_website: form.fields.organizationWebsite,
+          sector: form.fields.sector,
+          gender: form.fields.gender,
+          bio: form.fields.bio,
+          city: form.fields.city,
+          country: form.fields.country,
+          require_auth: form.fields.requireAuth,
+          twitter: form.fields.twitter,
+          linkedin: form.fields.linkedin,
+          instagram: form.fields.instagram,
+        }),
+      })
+      .done(() => {
+        onUpdateComplete();
+      })
+      .fail((...args: any) => {
+        onUpdateFail(args);
+      });
   };
   const onAnyFieldChange = (name: string, value: any) => {
     setForm({
@@ -172,14 +175,14 @@ function AccountSettings() {
       ...form,
       isPristine: true,
       fieldsWithErrors: {},
-    })
+    });
   };
   const onUpdateFail = (data: any) => {
     setForm({
       ...form,
       isPristine: false,
       fieldsWithErrors: data[0].responseJSON,
-    })
+    });
   };
   const accountName = sessionStore.currentAccount.username;
   const initialsStyle = {
@@ -227,10 +230,7 @@ function AccountSettings() {
               <TextBox
                 customModifiers='on-white'
                 label={t('Name')}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange, 
-                  'name'
-                  )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
                 value={form.fields.name}
                 errors={form.fieldsWithErrors.extra_details?.name}
                 placeholder={t(
@@ -244,10 +244,7 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={addRequiredToLabel(t('Email'))}
                 type='email'
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'email'
-                )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'email')}
                 value={form.fields.email}
                 errors={form.fieldsWithErrors.email}
               />
@@ -259,10 +256,10 @@ function AccountSettings() {
                 className='kobo-button kobo-button--blue'
               >
                 {t('Modify Password')}
-                </a>
+              </a>
             </bem.AccountSettings__item>
 
-            <ApiTokenDisplay/>
+            <ApiTokenDisplay />
 
             <bem.AccountSettings__item>
               <TextBox
@@ -286,7 +283,9 @@ function AccountSettings() {
                   onAnyFieldChange,
                   'organization_website'
                 )}
-                errors={form.fieldsWithErrors.extra_details?.organizationWebsite}
+                errors={
+                  form.fieldsWithErrors.extra_details?.organizationWebsite
+                }
               />
             </bem.AccountSettings__item>
 
@@ -294,10 +293,7 @@ function AccountSettings() {
               <WrappedSelect
                 label={addRequiredToLabel(t('Primary Sector'))}
                 value={form.fields.sector}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'sector'
-                )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'sector')}
                 options={form.sectorChoices}
                 error={form.fieldsWithErrors.extra_details?.sector}
               />
@@ -307,10 +303,7 @@ function AccountSettings() {
               <WrappedSelect
                 label={t('Gender')}
                 value={form.fields.gender}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'gender'
-                )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'gender')}
                 options={form.genderChoices}
                 error={form.fieldsWithErrors.extra_details?.gender}
               />
@@ -321,10 +314,7 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={t('Bio')}
                 value={form.fields.bio}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'bio'
-                )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
                 errors={form.fieldsWithErrors.extra_details?.bio}
               />
             </bem.AccountSettings__item>
@@ -333,10 +323,7 @@ function AccountSettings() {
               <WrappedSelect
                 label={t('Country')}
                 value={form.fields.country}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange, 
-                  'country'
-                )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'country')}
                 options={form.countryChoices}
                 error={form.fieldsWithErrors.extra_details?.country}
               />
@@ -347,10 +334,7 @@ function AccountSettings() {
                 customModifiers='on-white'
                 label={t('City')}
                 value={form.fields.city}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'city'
-                )}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
                 errors={form.fieldsWithErrors.extra_details?.city}
               />
             </bem.AccountSettings__item>
@@ -363,10 +347,7 @@ function AccountSettings() {
                 <TextBox
                   customModifiers='on-white'
                   value={form.fields.twitter}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    'twitter'
-                  )}
+                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
               </label>
@@ -376,10 +357,7 @@ function AccountSettings() {
                 <TextBox
                   customModifiers='on-white'
                   value={form.fields.linkedin}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    'linkedin'
-                  )}
+                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
               </label>
@@ -397,7 +375,6 @@ function AccountSettings() {
                 />
               </label>
             </bem.AccountSettings__item>
-
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>
