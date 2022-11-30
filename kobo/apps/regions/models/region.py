@@ -28,12 +28,18 @@ def _get_permission_choices():
     return [(p, p) for p in allowed_perms]
 
 
+def _get_country_choices():
+    return (('*', '*'),) + COUNTRIES
+
+
 class Region(models.Model):
 
     uid = KpiUidField(uid_prefix='r')
     name = models.CharField(max_length=200)
     countries = ChoiceArrayField(
-        base_field=models.CharField(max_length=5, choices=COUNTRIES),
+        base_field=models.CharField(
+            max_length=5, choices=_get_country_choices()
+        ),
         default=list,
     )
     permissions = ChoiceArrayField(
