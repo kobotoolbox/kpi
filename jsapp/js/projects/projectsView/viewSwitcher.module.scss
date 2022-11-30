@@ -1,0 +1,63 @@
+@use 'sass:color';
+@use 'scss/sizes';
+@use 'scss/colors';
+@use 'scss/mixins';
+@use 'js/components/common/button';
+
+.root {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.trigger-icon {
+  margin-left: sizes.$x5;
+}
+
+.root.is-menu-visible .trigger-icon {
+  color: colors.$kobo-blue;
+}
+
+.trigger {
+  @include mixins.buttonReset;
+  @include mixins.centerRowFlex;
+  font-size: sizes.$x20;
+  font-weight: 800;
+  color: colors.$kobo-gray-24;
+  padding: sizes.$x6 sizes.$x16;
+}
+
+.trigger-badge {
+  margin-left: sizes.$x14;
+  font-size: sizes.$x13;
+  line-height: sizes.$x16;
+  background-color: colors.$kobo-cloud;
+  border-radius: sizes.$x14;
+  padding: sizes.$x6 sizes.$x14;
+}
+
+.menu {
+  display: block;
+  width: 100%;
+  min-width: sizes.$x300;
+  max-height: sizes.$x200;
+  max-width: sizes.$x300;
+  overflow-x: auto;
+  padding: sizes.$x20 0;
+  border-radius: button.$button-border-radius;
+  background-color: colors.$kobo-white;
+  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
+}
+
+.menu-option {
+  @include mixins.buttonReset;
+  @include mixins.textEllipsis;
+  font-size: sizes.$x16;
+  font-weight: 500;
+  padding: sizes.$x10 sizes.$x30;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    color: colors.$kobo-blue;
+  }
+}

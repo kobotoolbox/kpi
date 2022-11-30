@@ -1,9 +1,11 @@
 import React from 'react';
+import ViewSwitcher from './projectsView/viewSwitcher';
 
 export default function CustomViewsRoute() {
   return (
     <div>
-      <h1>Custom Views route</h1>
+      <ViewSwitcher viewUid='1' viewCount={15}/>
+      TBD Custom View 1
     </div>
   );
 }
