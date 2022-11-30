@@ -22,7 +22,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
 
     @action(detail=True, methods=['GET'])
-    def view(self, request, uid):
+    def assets(self, request, uid):
         return Response({'uid': uid})
 
     @action(detail=True, methods=['GET'])

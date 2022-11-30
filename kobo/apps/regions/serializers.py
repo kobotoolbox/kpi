@@ -1,26 +1,18 @@
 # coding: utf-8
+from __future__ import annotations
+
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from .models.region import Region
 
 
-class RegionServiceSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = (
-            'uid',
-            'name',
-            'countries',
-            'permissions',
-        )
-
-
 class RegionSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
-    view_url = serializers.SerializerMethodField()
+    assets_url = serializers.SerializerMethodField()
     export_url = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
 
     class Meta:
         model = Region
@@ -28,22 +20,16 @@ class RegionSerializer(serializers.ModelSerializer):
             'uid',
             'name',
             'url',
-            'view_url',
+            'assets_url',
             'export_url',
             'countries',
             'permissions',
+            'users',
         )
 
-    def get_url(self, obj) -> str:
+    def get_assets_url(self, obj) -> str:
         return reverse(
-            'region-detail',
-            args=(obj.uid,),
-            request=self.context.get('request', None),
-        )
-
-    def get_view_url(self, obj) -> str:
-        return reverse(
-            'region-view',
+            'region-assets',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
@@ -51,6 +37,16 @@ class RegionSerializer(serializers.ModelSerializer):
     def get_export_url(self, obj) -> str:
         return reverse(
             'region-export',
+            args=(obj.uid,),
+            request=self.context.get('request', None),
+        )
+
+    def get_users(self, obj) -> List[str]:
+        return obj.users.all().values_list('username', flat=True)
+
+    def get_url(self, obj) -> str:
+        return reverse(
+            'region-detail',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )

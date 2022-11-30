@@ -4,12 +4,13 @@ from django.contrib import admin
 from django.db import models
 
 from kobo.static_lists import COUNTRIES
-from kpi.fields import KpiUidField
-from kpi.models.asset import (
-    Asset,
-    PERM_DISCOVER_ASSET,
-    PERM_PARTIAL_SUBMISSIONS,
+from kpi.constants import (
+    PERM_CHANGE_METADATA,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_PERMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
+from kpi.fields import KpiUidField
 from .assignment import AssignmentRegionM2MInline
 from ..fields import ChoiceArrayField
 
@@ -18,11 +19,13 @@ def _get_permission_choices():
     """
     'choices' must be an iterable (e.g., a list or tuple)
     """
-    return [
-        (p, p)
-        for p in Asset.ASSIGNABLE_PERMISSIONS
-        if p not in [PERM_DISCOVER_ASSET, PERM_PARTIAL_SUBMISSIONS]
+    allowed_perms = [
+        PERM_CHANGE_METADATA,
+        PERM_VIEW_ASSET,
+        PERM_VIEW_PERMISSIONS,
+        PERM_VIEW_SUBMISSIONS,
     ]
+    return [(p, p) for p in allowed_perms]
 
 
 class Region(models.Model):
@@ -54,9 +57,6 @@ class Region(models.Model):
 
 
 class RegionForm(forms.ModelForm):
-
-    # countries =
-
     class Meta:
         model = Region
         exclude = ('uid',)

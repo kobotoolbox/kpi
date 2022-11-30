@@ -7,14 +7,16 @@ User = get_user_model()
 
 
 class Assignment(User):
-
     class Meta:
         proxy = True
 
 
 class AssignmentAdmin(admin.ModelAdmin):
 
-    list_display = ('username', 'regional_views_csv',)
+    list_display = (
+        'username',
+        'regional_views_csv',
+    )
     search_fields = ('username',)
 
     @admin.display(description='Regional views')

@@ -10,5 +10,5 @@ from .models.region import (
     RegionAdmin,
 )
 
-admin.site.register(Assignment, AssignmentAdmin)
 admin.site.register(Region, RegionAdmin)
+admin.site.register(Assignment, AssignmentAdmin)
