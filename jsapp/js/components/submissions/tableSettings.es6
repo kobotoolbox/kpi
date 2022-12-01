@@ -47,7 +47,7 @@ class TableSettings extends React.Component {
     this.setState({showHXLTags: isChecked});
   }
 
-  onLabelChange(name, value) {
+  onLabelChange(value) {
     this.setState({translationIndex: parseInt(value)});
   }
 

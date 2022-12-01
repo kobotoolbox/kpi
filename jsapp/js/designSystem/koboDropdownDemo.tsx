@@ -11,7 +11,7 @@ type KoboDropdownDemoState = {
 }
 
 interface Option {
-  value: string
+  value: KoboDropdownPlacements
   label: string
 }
 
@@ -35,8 +35,9 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
     }
   }
 
-  onPlacementChange({}: any, newPlacement: KoboDropdownPlacements) {
-    this.setState({demoPlacement: newPlacement})
+  onPlacementChange(newPlacement: string) {
+    const newPlacementCasted = newPlacement as KoboDropdownPlacements;
+    this.setState({demoPlacement: newPlacementCasted});
   }
 
   onIsDisabledChange(isChecked: boolean) {

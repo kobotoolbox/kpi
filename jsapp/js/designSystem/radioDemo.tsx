@@ -53,7 +53,7 @@ export default class RadioDemo extends React.Component<{}, RadioDemoState> {
     this.setState({demoIsDisabled: isChecked})
   }
 
-  onSelectedOptionChange(radioName: string, selectedOption: string) {
+  onSelectedOptionChange(selectedOption: string, radioName: string) {
     if (radioName === 'radio-demo') {
       this.setState({selectedOption: selectedOption})
     }
