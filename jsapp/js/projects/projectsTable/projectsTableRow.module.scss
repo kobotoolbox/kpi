@@ -134,16 +134,3 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 .header-label {
   font-size: 0.9rem;
 }
-
-.badge {
-  display: inline-block;
-  vertical-align: middle;
-  padding: sizes.$x3 sizes.$x5;
-  font-size: sizes.$x12;
-  line-height: 1;
-  color: currentcolor;
-  background: colors.$kobo-gray-92;
-  border-radius: sizes.$x2;
-  min-width: sizes.$x18;
-  text-align: center;
-}

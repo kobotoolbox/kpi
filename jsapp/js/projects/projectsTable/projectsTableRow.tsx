@@ -2,6 +2,7 @@ import React from 'react';
 import {PROJECT_FIELDS} from 'js/projects/projectsView/projectsViewConstants';
 import type {ProjectFieldDefinition} from 'js/projects/projectsView/projectsViewConstants';
 import Checkbox from 'js/components/common/checkbox';
+import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';
@@ -33,11 +34,26 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return props.asset.settings.description;
       case 'status':
         if (props.asset.has_deployment && !props.asset.deployment__active) {
-          return 'archived';
+          return <Badge
+            color='light-amber'
+            size='s'
+            icon='project-archived'
+            label={t('archived')}
+          />;
         } else if (props.asset.has_deployment) {
-          return 'deployed';
+          return <Badge
+            color='light-blue'
+            size='s'
+            icon='project-deployed'
+            label={t('deployed')}
+          />;
         } else {
-          return 'draft';
+          return <Badge
+            color='light-teal'
+            size='s'
+            icon='project-draft'
+            label={t('draft')}
+          />;
         }
       case 'ownerUsername':
         return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
@@ -59,9 +75,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':
         return (
-          <span className={styles.badge}>
-            {props.asset.summary.row_count}
-          </span>
+          <Badge color='cloud' size='m' label={props.asset.summary.row_count}/>
         );
       default:
         return null;
