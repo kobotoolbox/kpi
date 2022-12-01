@@ -62,16 +62,19 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
     }
   }
 
-  onTypeChange({}: any, newType: ButtonType) {
-    this.setState({demoType: newType})
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as ButtonType;
+    this.setState({demoType: newTypeCasted});
   }
 
-  onColorChange({}: any, newColor: ButtonColor) {
-    this.setState({demoColor: newColor})
+  onColorChange(newColor: string) {
+    const newColorCasted = newColor as ButtonColor;
+    this.setState({demoColor: newColorCasted});
   }
 
-  onSizeChange({}: any, newSize: ButtonSize) {
-    this.setState({demoSize: newSize})
+  onSizeChange(newSize: string) {
+    const newSizeCasted = newSize as ButtonSize;
+    this.setState({demoSize: newSizeCasted});
   }
 
   onStartIconChange(newStartIcon: IconNameOption | null) {
