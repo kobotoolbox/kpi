@@ -30,9 +30,15 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'name':
         return <AssetName asset={props.asset}/>;
       case 'description':
-        return 'description';
+        return props.asset.settings.description;
       case 'status':
-        return 'status';
+        if (props.asset.has_deployment && !props.asset.deployment__active) {
+          return 'archived';
+        } else if (props.asset.has_deployment) {
+          return 'deployed';
+        } else {
+          return 'draft';
+        }
       case 'ownerUsername':
         return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
       case 'ownerFullName':
@@ -79,6 +85,8 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           onClick={onCheckboxClick}
         />
       </div>
+
+      {/* TODO: all these cells should be displaying one line with ellipsis overflow */}
 
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) =>
         <div
