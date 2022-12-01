@@ -41,8 +41,9 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
     }
   }
 
-  onSizeChange({}: any, newSize: IconSize) {
-    this.setState({demoSize: newSize})
+  onSizeChange(newSize: string) {
+    const newSizeCasted = newSize as IconSize;
+    this.setState({demoSize: newSizeCasted});
   }
 
   onNameChange(newName: IconNameOption | null) {

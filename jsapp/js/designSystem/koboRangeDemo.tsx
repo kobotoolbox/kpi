@@ -52,8 +52,9 @@ export default class KoboRangeDemo extends React.Component<{}, KoboRangeDemoStat
     this.setState({demoCurrentLabel: newLabel})
   }
 
-  onColorChange({}: any, newColor: KoboRangeColors) {
-    this.setState({demoColor: newColor})
+  onColorChange(newColor: string) {
+    const newColorCasted = newColor as KoboRangeColors;
+    this.setState({demoColor: newColorCasted});
   }
 
   onMaxChange(newMax: number) {
