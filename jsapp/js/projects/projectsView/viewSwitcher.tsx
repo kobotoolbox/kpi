@@ -67,6 +67,7 @@ export default function ViewSwitcher(props: ViewSwitcherProps) {
           <div className={styles.menu}>
             {DEFINED_VIEWS.map((view) =>
               <button
+                key={view.uid}
                 className={styles['menu-option']}
                 onClick={() => onOptionClick(view.uid)}
               >

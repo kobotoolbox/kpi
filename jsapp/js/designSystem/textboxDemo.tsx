@@ -63,11 +63,12 @@ export default class TextBoxDemo extends React.Component<{}, TextBoxDemoState> {
     }
   }
 
-  onTypeChange({}: any, newType: AvailableType) {
-    this.setState({demoType: newType})
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as AvailableType;
+    this.setState({demoType: newTypeCasted})
   }
 
-  onErrorsChange({}: any, newErrors: string) {
+  onErrorsChange(newErrors: string) {
     this.setState({demoErrors: newErrors})
   }
 
