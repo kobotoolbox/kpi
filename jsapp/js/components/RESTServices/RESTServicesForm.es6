@@ -173,7 +173,7 @@ export default class RESTServicesForm extends React.Component {
     this.setState({emailNotification: isChecked});
   }
 
-  handleTypeRadioChange(name, value) {this.setState({[name]: value});}
+  handleTypeRadioChange(value, name) {this.setState({[name]: value});}
 
   handleCustomHeaderChange(evt) {
     const propName = evt.target.name;
