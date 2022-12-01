@@ -45,10 +45,10 @@ def country_report(request):
 
     # Get the date filters from the query and set defaults
     if not (start_date := request.GET.get('start_date')):
-        start_date = f'{today}'
+        start_date = str(first_of_month)
 
     if not (end_date := request.GET.get('end_date')):
-        end_date = f'{today}'
+        end_date = str(today)
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
@@ -136,10 +136,10 @@ def domain_report(request):
 
     # Get the date filters from the query and set defaults
     if not (start_date := request.GET.get('start_date')):
-        start_date = f'{today}'
+        start_date = str(first_of_month)
 
     if not (end_date := request.GET.get('end_date')):
-        end_date = f'{today}'
+        end_date = str(today)
 
     # Generate the CSV file
     filename = _base_filename_to_full_filename(
