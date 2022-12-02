@@ -65,5 +65,5 @@ class LoginTests(KpiTestCase):
         self.assertEqual(len(response.redirect_chain), 1)
         redirection, status_code = response.redirect_chain[0]
         self.assertEqual(status_code, status.HTTP_302_FOUND)
-        expected = f"{reverse('kobo_login')}?next={reverse('admin:index')}"
+        expected = f"{reverse('kobo_login')}?next={reverse('admin:login')}"
         self.assertEqual(expected, redirection)
