@@ -4,7 +4,7 @@ ENV VIRTUAL_ENV=/opt/venv
 
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install --quiet pip==22.0.4 && \
+RUN pip install --quiet pip==22.3.1 && \
     pip install --quiet pip-tools
 COPY ./dependencies/pip/requirements.txt "/tmp/pip_dependencies.txt"
 RUN pip-sync "/tmp/pip_dependencies.txt" 1>/dev/null
