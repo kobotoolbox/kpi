@@ -5,8 +5,8 @@ from .views import EmailAddressViewSet
 
 
 router = routers.SimpleRouter()
-router.register(r'emails', EmailAddressViewSet)
+router.register(r'emails', EmailAddressViewSet, basename='emails')
 
 urlpatterns = [
-    path("me/", include(router.urls)),
+    path('me/', include(router.urls)),
 ]
