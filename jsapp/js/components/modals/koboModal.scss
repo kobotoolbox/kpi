@@ -16,7 +16,6 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 .kobo-modal {
   position: fixed;
   border-radius: sizes.$x6;
-  overflow: hidden;
   max-width: 90vw;
   max-height: 90vh;
   min-width: $kobo-modal-width-min;
@@ -26,6 +25,10 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   box-shadow: 0 0 sizes.$x12 0 color.change(colors.$kobo-gray-24, $alpha: 0.25);
   display: flex;
   flex-direction: column;
+
+  // It's set on purpose here to make sure noone will make it hidden, as we
+  // need some content to be overflowing (e.g. dropdowns).
+  overflow: visible;
 
   @media all and (max-height: breakpoints.$b480) {
     transform: translate(-50%, -50%);
@@ -57,6 +60,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   justify-content: space-between;
   padding: $kobo-modal-padding;
   background-color: colors.$kobo-gray-98;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
 
   h1 {
     @include mixins.centerRowFlex;
@@ -79,6 +83,10 @@ $kobo-modal-header-icon-margin: sizes.$x10;
 
   &.kobo-modal__header-icon--red {
     color: colors.$kobo-red;
+  }
+
+  &.kobo-modal__header-icon--storm {
+    color: colors.$kobo-storm;
   }
 }
 
@@ -103,16 +111,6 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   justify-content: flex-end;
   gap: sizes.$x8;
   padding: $kobo-modal-padding;
-}
-
-// If the KoboModalHeader component is used together with the KoboModalContent
-// component, and the Header has icon, we want the content of Content to be
-// aligned with the Header title.
-.kobo-modal__header.kobo-modal__header--has-icon + .kobo-modal__content {
-  padding-left:
-    $kobo-modal-padding
-    + icon.$s-icon-s
-    + $kobo-modal-header-icon-margin;
 }
 
 // If the KoboModalContent component is used together with the KoboModalFooter
