@@ -669,22 +669,12 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({'asset': asset, }, template_name='koboform.html')
 
     def list(self, request, *args, **kwargs):
-        # regional view
-        view = request.GET.get('view')
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
         self.__filtered_queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(self.__filtered_queryset)
         if page is not None:
-            if view is not None:
-                serializer = AssetMetadataListSerializer(
-                    page,
-                    many=True,
-                    read_only=True,
-                    context=self.get_serializer_context(),
-                )
-                return self.get_paginated_response(serializer.data)
             serializer = self.get_serializer(page, many=True)
             metadata = None
             if request.GET.get('metadata') == 'on':
@@ -737,19 +727,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
-
-    @action(
-        detail=False,
-        methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
-    )
-    def views(self, request):
-        regional_views_for_user = get_regional_views_for_user(request.user)
-        for view in regional_views_for_user:
-            url = reverse('asset-list', request=request)
-            view.url = f'{url}?view={view.id}'
-
-        return Response([view.to_dict() for view in regional_views_for_user])
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()

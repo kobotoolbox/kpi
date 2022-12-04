@@ -782,4 +782,4 @@ class AssetMetadataListSerializer(AssetSerializer):
 
     def _get_view(self) -> int:
         request = self.context.get('request')
-        return request.GET.get('view')
+        return request.parser_context['kwargs']['uid']
