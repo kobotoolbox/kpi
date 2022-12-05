@@ -12,23 +12,11 @@ import classNames from 'classnames';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse;
-  isSelected?: boolean;
-  /**
-   * MVP of Custom Views feature is not gonna use the checkboxes, so we hide it
-   * behind the callback function by making it optional and not passing it in
-   * the parent component.
-   */
-  onSelectRequested?: (isSelected: boolean) => void;
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const onRowClick = () => {
     console.log('TODO navigate to landing page');
-  };
-
-  const onCheckboxClick = (evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
-    // To avoid navigation when checkbox was clicked.
-    evt.stopPropagation();
   };
 
   const renderColumnContent = (field: ProjectFieldDefinition) => {
@@ -96,19 +84,6 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       )}
       onClick={onRowClick}
     >
-      {/* First column is always visible and displays a checkbox. */}
-      {props.onSelectRequested !== undefined &&
-        <div className={classNames(styles.cell, styles['cell-checkbox'])}>
-          <Checkbox
-            checked={Boolean(props.isSelected)}
-            onChange={props.onSelectRequested}
-            onClick={onCheckboxClick}
-          />
-        </div>
-      }
-
-      {/* TODO: all these cells should be displaying one line with ellipsis overflow */}
-
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) =>
         <div
           className={classNames(styles.cell, styles[`cell-${field.name}`])}

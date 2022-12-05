@@ -1,3 +1,4 @@
+@use 'scss/mixins';
 @use 'scss/sizes';
 @use 'scss/colors';
 @use 'scss/variables';
@@ -31,13 +32,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &[disabled] {
     pointer-events: none;
-  }
-
-  // All different kinds of cells below - one for each field:
-  &.cell-checkbox {
-    width: sizes.$x20;
-    position: relative;
-    z-index: z-indexes.$z-table-row-buttons;
   }
 
   &.cell-countries,
@@ -76,6 +70,10 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 }
 
 .row.row-project {
+  .cell {
+    @include mixins.textEllipsis;
+  }
+
   &:hover .cell {
     background-color: $projects-table-hover-bg;
   }

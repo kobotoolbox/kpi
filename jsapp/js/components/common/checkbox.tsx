@@ -7,7 +7,11 @@ interface CheckboxProps {
   checked: boolean;
   disabled?: boolean;
   onChange: (isChecked: boolean) => void;
-  /** Useful if you need to hijack the event. */
+  /**
+   * Useful if you need to hijack the event, e.g. checkbox parent is clickable
+   * and clicking the checkbox shouldn't cause that parent click - we can use
+   * `evt.stopPropagation()` and be happy.
+   */
   onClick?: (evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => void;
   label?: string;
   /** Only needed if checkbox is in submittable form. */
