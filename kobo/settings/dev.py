@@ -31,6 +31,7 @@ HASH_BIG_FILE_SIZE_THRESHOLD = 200 * 1024  # 200 kB
 # Should match KoBoCAT setting
 HASH_BIG_FILE_CHUNK = 5 * 1024  # 5 kB
 
+# To avoid buffer to be truncated when running `runserver_plus` or `shell_plus`
+# with optjon `--print-sql`
 SHELL_PLUS_PRINT_SQL_TRUNCATE = None
 RUNSERVER_PLUS_PRINT_SQL_TRUNCATE = None
-CELERY_TASK_ALWAYS_EAGER = True
