@@ -26,6 +26,18 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task
+def regional_export_in_background(regional_export_task_uid):
+    from kpi.models.import_export_task import (
+        RegionalExportTask,
+    )  # avoid circular imports
+
+    regional_export_task = RegionalExportTask.objects.get(
+        uid=regional_export_task_uid
+    )
+    regional_export_task.run()
+
+
+@celery_app.task
 def sync_kobocat_xforms(
     username=None,
     quiet=True,

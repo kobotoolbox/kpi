@@ -3,19 +3,21 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from rest_framework import viewsets
+from django.http import Http404
+from rest_framework import viewsets, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.filters import SearchFilter
-from kpi.models import Asset
+from kpi.models import Asset, RegionalExportTask
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.regional_views import (
     get_region_for_view,
     user_has_view_perms,
 )
+from kpi.tasks import regional_export_in_background
 from .models.region import Region
 from .serializers import RegionSerializer
 
@@ -43,19 +45,57 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(
             self._get_regional_queryset(assets, uid, _type='asset')
         )
-
         return self._get_regional_response(queryset, _type='asset')
 
-    @action(detail=True, methods=['GET'])
-    def export(self, request, uid):
-        return Response({'status': 'TBD'})
+    @action(
+        detail=True,
+        methods=['GET', 'POST'],
+        url_path='(?P<_type>(assets|users))/export',
+    )
+    def export(self, request, uid, _type):
+        user = request.user
+
+        if not user_has_view_perms(user, uid):
+            raise Http404
+
+        if request.method == 'GET':
+            export = RegionalExportTask.objects.filter(
+                user=user, data__view=uid, data__type=_type
+            ).last()
+            if not export:
+                return Response({})
+
+            file_location = serializers.FileField().to_representation(
+                export.result
+            )
+            return Response(
+                {
+                    'status': export.status,
+                    'result': request.build_absolute_uri(file_location),
+                }
+            )
+        elif request.method == 'POST':
+            regional_export_task = RegionalExportTask.objects.create(
+                user=user,
+                data={
+                    'view': uid,
+                    'type': _type,
+                },
+            )
+
+            # Have Celery run the export in the background
+            regional_export_in_background.delay(
+                regional_export_task_uid=regional_export_task.uid
+            )
+
+            return Response({'status': regional_export_task.status})
 
     @action(detail=True, methods=['GET'])
     def users(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
         users = User.objects.all()
-        queryset = (
+        queryset = self.filter_queryset(
             self._get_regional_queryset(users, uid, _type='user')
             .exclude(pk=settings.ANONYMOUS_USER_ID)
             .distinct()

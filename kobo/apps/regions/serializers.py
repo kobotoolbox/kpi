@@ -11,7 +11,9 @@ class RegionSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
     assets = serializers.SerializerMethodField()
+    assets_export = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
+    users_export = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
 
     class Meta:
@@ -21,7 +23,9 @@ class RegionSerializer(serializers.ModelSerializer):
             'name',
             'url',
             'assets',
+            'assets_export',
             'users',
+            'users_export',
             'countries',
             'permissions',
             'assigned_users',
@@ -34,6 +38,13 @@ class RegionSerializer(serializers.ModelSerializer):
             request=self.context.get('request', None),
         )
 
+    def get_assets_export(self, obj) -> str:
+        return reverse(
+            'region-export',
+            args=(obj.uid, 'assets'),
+            request=self.context.get('request', None),
+        )
+
     def get_assigned_users(self, obj) -> List[str]:
         return obj.users.all().values_list('username', flat=True)
 
@@ -41,6 +52,13 @@ class RegionSerializer(serializers.ModelSerializer):
         return reverse(
             'region-users',
             args=(obj.uid,),
+            request=self.context.get('request', None),
+        )
+
+    def get_users_export(self, obj) -> str:
+        return reverse(
+            'region-export',
+            args=(obj.uid, 'users'),
             request=self.context.get('request', None),
         )
 
