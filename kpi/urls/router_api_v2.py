@@ -142,7 +142,7 @@ router_api_v2.register(
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'imports', ImportTaskViewSet)
-router_api_v2.register(r'asset-meta', RegionViewSet)
+router_api_v2.register(r'regions', RegionViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)

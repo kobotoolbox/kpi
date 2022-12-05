@@ -10,9 +10,9 @@ from .models.region import Region
 class RegionSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
-    assets_url = serializers.SerializerMethodField()
-    export_url = serializers.SerializerMethodField()
+    assets = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
+    assigned_users = serializers.SerializerMethodField()
 
     class Meta:
         model = Region
@@ -20,29 +20,29 @@ class RegionSerializer(serializers.ModelSerializer):
             'uid',
             'name',
             'url',
-            'assets_url',
-            'export_url',
+            'assets',
+            'users',
             'countries',
             'permissions',
-            'users',
+            'assigned_users',
         )
 
-    def get_assets_url(self, obj) -> str:
+    def get_assets(self, obj) -> str:
         return reverse(
             'region-assets',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
 
-    def get_export_url(self, obj) -> str:
+    def get_assigned_users(self, obj) -> List[str]:
+        return obj.users.all().values_list('username', flat=True)
+
+    def get_users(self, obj) -> str:
         return reverse(
-            'region-export',
+            'region-users',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
-
-    def get_users(self, obj) -> List[str]:
-        return obj.users.all().values_list('username', flat=True)
 
     def get_url(self, obj) -> str:
         return reverse(

@@ -353,13 +353,13 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
         data = res.json()
         results = data['results']
 
-        view_0_url = results[0]['assets_url']
+        view_0_url = results[0]['assets']
         regional_res = self.client.get(
             view_0_url, HTTP_ACCEPT='application/json'
         )
         assert regional_res.json()['count'] == 2
 
-        view_1_url = results[1]['assets_url']
+        view_1_url = results[1]['assets']
         regional_res = self.client.get(
             view_1_url, HTTP_ACCEPT='application/json'
         )
@@ -385,7 +385,7 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
 
         for i, item in enumerate(expected_vals):
             regional_res = self.client.get(
-                results[i]['assets_url'], HTTP_ACCEPT='application/json'
+                results[i]['assets'], HTTP_ACCEPT='application/json'
             )
             regional_data = regional_res.json()
             assert regional_data['count'] == item['count']
@@ -403,14 +403,14 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
 
         # someuser cannot see data for Overview
         regional_res = self.client.get(
-            results[0]['assets_url'], HTTP_ACCEPT='application/json'
+            results[0]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
         assert not asset_data['data']
 
         # someuser can see data for view 1
         regional_res = self.client.get(
-            results[1]['assets_url'], HTTP_ACCEPT='application/json'
+            results[1]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
         assert asset_data['data']
@@ -427,14 +427,14 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
 
         # anotheruser cannot see permissions for view 1
         regional_res = self.client.get(
-            results[0]['assets_url'], HTTP_ACCEPT='application/json'
+            results[0]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
         assert not asset_data['permissions']
 
         # anotheruser can see permissions for view 2
         regional_res = self.client.get(
-            results[1]['assets_url'], HTTP_ACCEPT='application/json'
+            results[1]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
         assert asset_data['permissions']
@@ -447,7 +447,7 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
 
         # anotheruser can change metadata for view 1
         regional_res = self.client.get(
-            results[0]['assets_url'], HTTP_ACCEPT='application/json'
+            results[0]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
         change_metadata_res = self.client.patch(
@@ -457,7 +457,7 @@ class AssetRegionalListApiTests(BaseAssetTestCase):
 
         # anotheruser cannot change metadata for view 2
         regional_res = self.client.get(
-            results[1]['assets_url'], HTTP_ACCEPT='application/json'
+            results[1]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
         change_metadata_res = self.client.patch(

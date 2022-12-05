@@ -1,4 +1,6 @@
 # coding: utf-8
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from rest_framework import viewsets
@@ -9,6 +11,7 @@ from rest_framework.response import Response
 from kpi.filters import SearchFilter
 from kpi.models import Asset
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
+from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.regional_views import (
     get_region_for_view,
     user_has_view_perms,
@@ -34,32 +37,50 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['GET'])
     def assets(self, request, uid):
-        assets = Asset.objects.all()
         if not user_has_view_perms(request.user, uid):
             raise Http404
+        assets = Asset.objects.all()
         queryset = self.filter_queryset(
-            self._get_regional_queryset(assets, uid)
+            self._get_regional_queryset(assets, uid, _type='asset')
         )
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self._get_asset_metadata_serializer(page)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self._get_asset_metadata_serializer(queryset)
-        return Response(serializer.data)
+        return self._get_regional_response(queryset, _type='asset')
 
     @action(detail=True, methods=['GET'])
     def export(self, request, uid):
         return Response({'status': 'TBD'})
+
+    @action(detail=True, methods=['GET'])
+    def users(self, request, uid):
+        if not user_has_view_perms(request.user, uid):
+            raise Http404
+        users = User.objects.all()
+        queryset = (
+            self._get_regional_queryset(users, uid, _type='user')
+            .exclude(pk=settings.ANONYMOUS_USER_ID)
+            .distinct()
+            .order_by('id')
+        )
+        return self._get_regional_response(queryset, _type='user')
 
     def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
         return context_
 
-    def _get_asset_metadata_serializer(self, queryset):
-        return AssetMetadataListSerializer(
+    def _get_regional_response(self, queryset, _type):
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self._get_regional_serializer(page, _type=_type)
+            return self.get_paginated_response(serializer.data)
+        serializer = self._get_regional_serializer(queryset, _type=_type)
+        return Response(serializer.data)
+
+    def _get_regional_serializer(self, queryset, _type):
+        serializer = AssetMetadataListSerializer
+        if _type == 'user':
+            serializer = UserListSerializer
+        return serializer(
             queryset,
             many=True,
             read_only=True,
@@ -67,12 +88,21 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
     @staticmethod
-    def _get_regional_queryset(queryset: QuerySet, view: str) -> QuerySet:
-        region = get_region_for_view(view)
+    def _get_regional_queryset(
+        queryset: QuerySet, uid: str, _type: str
+    ) -> QuerySet:
+
+        region = get_region_for_view(uid)
+
         if '*' in region:
             return queryset
 
-        q = Q(settings__country__in=region)
+        q_terms = {
+            'asset': 'settings__country',
+            'user': 'extra_details__data__country',
+        }
+
+        q = Q(**{f'{q_terms[_type]}__in': region})
         for country in region:
-            q |= Q(settings__country__contains=[{'value': country}])
+            q |= Q(**{f'{q_terms[_type]}__contains': [{'value': country}]})
         return queryset.filter(q)
