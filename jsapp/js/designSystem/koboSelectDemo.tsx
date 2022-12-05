@@ -34,12 +34,14 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
     }
   }
 
-  onTypeChange({}: any, newType: KoboSelectType) {
-    this.setState({demoType: newType})
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as KoboSelectType;
+    this.setState({demoType: newTypeCasted});
   }
 
-  onSizeChange({}: any, newSize: ButtonSize) {
-    this.setState({demoSize: newSize})
+  onSizeChange(newSize: string) {
+    const newSizeCasted = newSize as ButtonSize;
+    this.setState({demoSize: newSizeCasted});
   }
 
   onIsClearableChange(isChecked: boolean) {

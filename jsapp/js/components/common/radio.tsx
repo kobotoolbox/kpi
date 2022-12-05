@@ -15,7 +15,7 @@ interface RadioProps {
   title?: string;
   /** Internal ID useful for the identification of radio. */
   name: string;
-  onChange: Function;
+  onChange: (newSelectedValue: string, radioName: string) => void;
   /** The `value` of selected option. */
   selected: string;
   /** Disables whole radio component. */
@@ -34,10 +34,7 @@ class Radio extends React.Component<RadioProps> {
   }
 
   onChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.props.onChange(
-      evt.currentTarget.name,
-      evt.currentTarget.value
-    );
+    this.props.onChange(evt.currentTarget.value, evt.currentTarget.name);
   }
 
   render() {

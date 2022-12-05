@@ -1,7 +1,7 @@
+@use 'scss/z-indexes';
+
 $s-form-builder-header: 125px;
-$z-form-builder-header: 20;
 $s-form-builder-aside: 400px;
-$z-form-builder-aside: 10;
 $t-form-builder-aside-open: 200ms;
 $s-form-builder-content-width: 1024px;
 
@@ -94,7 +94,7 @@ $s-form-builder-content-width: 1024px;
 .form-builder-header {
   height: $s-form-builder-header;
   position: relative;
-  z-index: $z-form-builder-header;
+  z-index: z-indexes.$z-form-builder-header;
 
   .form-builder-header__row {
     display: flex;
@@ -363,7 +363,7 @@ $s-form-builder-content-width: 1024px;
   background-color: $kobo-gray-96;
   transition: right $t-form-builder-aside-open;
   box-shadow: 0 0 3px 0 rgba($kobo-gray-24, 0.2), 0 0 10px 0 rgba($kobo-gray-24, 0.1);
-  z-index: $z-form-builder-aside;
+  z-index: z-indexes.$z-form-builder-aside;
 
   &:not(.form-builder-aside--visible) {
     right: -1 * $s-form-builder-aside - 10px;
