@@ -2,7 +2,7 @@ import React from 'react';
 import {useNavigate} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectsView/projectsViewConstants';
-import type {ProjectFieldDefinition} from 'js/projects/projectsView/projectsViewConstants';
+import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/projectsView/projectsViewConstants';
 import Checkbox from 'js/components/common/checkbox';
 import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
@@ -14,6 +14,7 @@ import classNames from 'classnames';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse;
+  highlightedFields: ProjectFieldName[];
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
@@ -90,7 +91,11 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     >
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) =>
         <div
-          className={classNames(styles.cell, styles[`cell-${field.name}`])}
+          className={classNames({
+            [styles.cell]: true,
+            [styles[`cell-${field.name}`]]: true,
+            [styles['cell-highlighted']]: props.highlightedFields.includes(field.name),
+          })}
           key={field.name}
         >
           {renderColumnContent(field)}

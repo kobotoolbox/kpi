@@ -10,6 +10,7 @@ import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
 interface ProjectsTableHeaderProps {
+  highlightedFields: ProjectFieldName[];
   /** Current ordering field. */
   orderFieldName: ProjectFieldName;
   orderDirection: OrderDirection;
@@ -33,7 +34,11 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
 
     return (
       <div
-        className={classNames(rowStyles.cell, rowStyles[`cell-${field.name}`])}
+        className={classNames({
+          [rowStyles.cell]: true,
+          [rowStyles[`cell-${field.name}`]]: true,
+          [rowStyles['cell-highlighted']]: props.highlightedFields.includes(field.name),
+        })}
         key={field.name}
         onClick={() => props.onChangeOrderRequested(field.name)}
       >

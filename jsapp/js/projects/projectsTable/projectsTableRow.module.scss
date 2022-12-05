@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'scss/colors';
@@ -67,6 +68,14 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &.cell-sector {
     width: 15%;
   }
+}
+
+.row.row-project .cell.cell-highlighted {
+  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
+}
+
+.row.row-header .cell.cell-highlighted {
+  background-color: colors.$kobo-light-blue;
 }
 
 .row.row-project {

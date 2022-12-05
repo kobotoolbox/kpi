@@ -14,6 +14,16 @@ export default function CustomViewsRoute() {
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
 
+  const getHighlightedFields = () => {
+    const outcome: ProjectFieldName[] = [];
+    filters.forEach((item: ProjectsFilterDefinition) => {
+      if (item.fieldName !== undefined) {
+        outcome.push(item.fieldName);
+      }
+    });
+    return outcome;
+  }
+
   return (
     <section style={{
       display: 'flex',
@@ -40,6 +50,7 @@ export default function CustomViewsRoute() {
 
       <ProjectsTable
         assets={mockAssets.results}
+        highlightedFields={getHighlightedFields()}
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
