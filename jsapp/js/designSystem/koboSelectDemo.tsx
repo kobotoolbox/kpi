@@ -34,12 +34,14 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
     }
   }
 
-  onTypeChange({}: any, newType: KoboSelectType) {
-    this.setState({demoType: newType})
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as KoboSelectType;
+    this.setState({demoType: newTypeCasted});
   }
 
-  onSizeChange({}: any, newSize: ButtonSize) {
-    this.setState({demoSize: newSize})
+  onSizeChange(newSize: string) {
+    const newSizeCasted = newSize as ButtonSize;
+    this.setState({demoSize: newSizeCasted});
   }
 
   onIsClearableChange(isChecked: boolean) {
@@ -85,7 +87,7 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -159,7 +161,7 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <div style={{maxWidth: '300px'}}>
                   <KoboSelect

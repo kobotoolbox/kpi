@@ -8,7 +8,6 @@
  * of defined ROUTES.
  */
 
-import {hashHistory} from 'react-router';
 import {
   ROUTES,
   PATHS,
@@ -18,11 +17,11 @@ import {
  * Returns login url with a `next` parameter - after logging in, the  app will
  * redirect to the next url.
  */
-export function getLoginUrl() {
+export function getLoginUrl(): string {
   let url = PATHS.LOGIN;
-  const currentLoc = hashHistory.getCurrentLocation();
-  if (currentLoc?.pathname) {
-    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+  const currentLoc = getCurrentPath();
+  if (currentLoc) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc}`);
     // add redirection after logging in to current page
     url += `?next=${nextUrl}`;
   }
@@ -34,7 +33,8 @@ export function redirectToLogin() {
 }
 
 export function getCurrentPath(): string {
-  return hashHistory.getCurrentLocation().pathname;
+  const route = location.hash.split('#');
+  return route.length > 1 ? route[1] : '';
 }
 
 /*
@@ -42,15 +42,7 @@ export function getCurrentPath(): string {
  */
 
 export function isRootRoute(): boolean {
-  return getCurrentPath() === ROUTES.ROOT;
-}
-
-export function isAccountSettingsRoute(): boolean {
-  return getCurrentPath() === ROUTES.ACCOUNT_SETTINGS;
-}
-
-export function isChangePasswordRoute(): boolean {
-  return getCurrentPath() === ROUTES.CHANGE_PASSWORD;
+  return getCurrentPath() === ROUTES.ROOT || window.location.pathname === ROUTES.ROOT;
 }
 
 export function isLibraryRoute(): boolean {
@@ -169,6 +161,17 @@ export function isFormKobocatRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_KOBOCAT.replace(':uid', uid);
 }
 
+export function isFormSingleProcessingRoute(
+  uid: string,
+  qpath: string,
+  submissionEditId: string
+): boolean {
+  return getCurrentPath() === ROUTES.FORM_PROCESSING
+    .replace(':uid', uid)
+    .replace(':qpath', qpath)
+    .replace(':submissionEditId', submissionEditId);
+}
+
 export function isFormResetRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
 }
@@ -214,4 +217,18 @@ export function getRouteAssetUid() {
   }
 
   return null;
+}
+
+/** Returns parameters from path for single processing route. */
+export function getSingleProcessingRouteParameters(): {
+  uid: string;
+  qpath: string;
+  submissionEditId: string;
+} {
+  const splitPath = getCurrentPath().split('/');
+  return {
+    uid: splitPath[2],
+    qpath: splitPath[5],
+    submissionEditId: splitPath[6],
+  };
 }

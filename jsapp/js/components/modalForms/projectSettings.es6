@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import { observer } from 'mobx-react';
 import Reflux from 'reflux';
-import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import Button from 'js/components/common/button';
 import clonedeep from 'lodash.clonedeep';
@@ -14,7 +14,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import assetUtils from 'js/assetUtils';
 import {stores} from 'js/stores';
-import {hashHistory} from 'react-router';
+import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
@@ -35,6 +35,8 @@ import {ROUTES} from 'js/router/routerConstants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
+import {history} from 'js/router/historyRouter';
+import {withRouter} from 'js/router/legacy';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -70,7 +72,7 @@ class ProjectSettings extends React.Component {
     this.unlisteners = [];
 
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       isSubmitPending: false,
       formAsset: this.props.formAsset,
       // project details
@@ -104,7 +106,7 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    this.listenTo(stores.session, () => {
+    observer(sessionStore, () => {
       this.setState({
         isSessionLoaded: true,
       });
@@ -117,7 +119,7 @@ class ProjectSettings extends React.Component {
       actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      hashHistory.listen(this.onRouteChange.bind(this))
+      history.listen(this.onRouteChange.bind(this))
     );
   }
 
@@ -348,7 +350,7 @@ class ProjectSettings extends React.Component {
 
   goToFormBuilder(assetUid) {
     stores.pageState.hideModal();
-    hashHistory.push(`/forms/${assetUid}/edit`);
+    this.props.router.navigate(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
@@ -367,12 +369,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
+    this.props.router.navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    hashHistory.push(ROUTES.FORMS);
+    this.props.router.navigate(ROUTES.FORMS);
   }
 
   /*
@@ -420,12 +422,24 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onUpdateAssetCompleted() {
+  onUpdateAssetCompleted(response) {
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
     ) {
       this.goToFormLanding();
+    }
+
+    // This handles the case when the asset was edited outside the Settings,
+    // e.g. the title editor in the header.
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+      response.uid === this.state.formAsset?.uid
+    ) {
+      this.setState({
+        formAsset: response,
+        fields: this.getInitialFieldsFromAsset(response),
+      });
     }
   }
 
@@ -445,7 +459,7 @@ class ProjectSettings extends React.Component {
     ) {
       this.setState({
         formAsset: asset,
-        fields: getInitialFieldsFromAsset(asset),
+        fields: this.getInitialFieldsFromAsset(asset),
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
@@ -893,8 +907,6 @@ class ProjectSettings extends React.Component {
                 errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
                 label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
                 placeholder={t('Enter title of project here')}
-                value={this.state.name}
-                onChange={this.onNameChange}
                 data-cy='title'
               />
             </bem.FormModal__item>
@@ -1114,4 +1126,4 @@ reactMixin(ProjectSettings.prototype, mixins.dmix);
 
 ProjectSettings.contextTypes = {router: PropTypes.object};
 
-export default ProjectSettings;
+export default withRouter(ProjectSettings);

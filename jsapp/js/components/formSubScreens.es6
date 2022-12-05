@@ -16,6 +16,7 @@ import FormMap from './map';
 import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
+import {withRouter} from 'js/router/legacy';
 
 const ConnectProjects = React.lazy(() =>
   import(
@@ -62,7 +63,7 @@ export class FormSubScreens extends React.Component {
         deployment__identifier = this.state.deployment__identifier;
         report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
-      switch (this.props.location.pathname) {
+      switch (this.props.router.location.pathname) {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={null}>
@@ -178,4 +179,4 @@ FormSubScreens.contextTypes = {
   router: PropTypes.object,
 };
 
-export default FormSubScreens;
+export default withRouter(FormSubScreens);

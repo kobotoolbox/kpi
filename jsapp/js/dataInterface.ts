@@ -11,11 +11,13 @@ import {
   COMMON_QUERIES,
 } from './constants';
 import type {EnvStoreFieldItem} from 'js/envStore';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
 } from 'js/constants';
+import { Json } from './components/common/common.interfaces';
 
 interface AssetsRequestData {
   q?: string;
@@ -93,12 +95,20 @@ export interface ImportResponse {
 
 export interface FailResponse {
   responseJSON?: {
-    detail: string;
+    detail?: string;
+    error?: string;
   };
   responseText: string;
   status: number;
   statusText: string;
 }
+
+interface ProcessingResponseData {
+  [questionName: string]: any;
+  _id: number;
+};
+
+export interface GetProcessingSubmissionsResponse extends PaginatedResponse<ProcessingResponseData> {}
 
 export interface SubmissionAttachment {
   download_url: string;
@@ -110,6 +120,39 @@ export interface SubmissionAttachment {
   instance: number;
   xform: number;
   id: number;
+}
+
+interface SubmissionSupplementalDetails {
+  [questionName: string]: {
+    transcript?: {
+      languageCode: LanguageCode
+      value: string
+      dateCreated: string
+      dateModified: string
+      engine?: string
+      revisions?: {
+        dateModified: string
+        engine?: string
+        languageCode: LanguageCode
+        value: string
+      }[]
+    }
+    translated?: {
+      [languageCode: LanguageCode]: {
+        languageCode: LanguageCode
+        value: string
+        dateCreated: string
+        dateModified: string
+        engine?: string
+        revisions?: {
+          dateModified: string
+          engine?: string
+          languageCode: LanguageCode
+          value: string
+        }[]
+      }
+    }
+  }
 }
 
 export interface SubmissionResponse {
@@ -135,6 +178,7 @@ export interface SubmissionResponse {
   start?: string;
   today?: string;
   username?: string;
+  _supplementalDetails?: SubmissionSupplementalDetails;
 }
 
 interface AssignablePermission {
@@ -204,6 +248,8 @@ interface ExportSettingSettings {
  * a more complex question type.
  */
 export interface SurveyRow {
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $qpath: string;
   $autoname: string;
   $kuid: string;
   // We use dynamic import to avoid changing this ambient module to a normal
@@ -222,6 +268,8 @@ export interface SurveyRow {
   'kobo--rank-items'?: string;
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
+  /** HXL tags. */
+  tags: string[]
 }
 
 export interface SurveyChoice {
@@ -273,6 +321,26 @@ interface AssetSummary {
   languages?: Array<string|null>;
   row_count?: number;
   default_translation?: string|null;
+  /** To be used in a warning about missing or poorly written question names. */
+  name_quality?: {
+    ok: number;
+    bad: number;
+    good: number;
+    total: number;
+    firsts: {
+      ok?: {
+        name: string;
+        index: number;
+        label: string[];
+      };
+      bad?: {
+        name: string;
+        index: number;
+        label: string[];
+      };
+    };
+  };
+  naming_conflicts?: string[];
 }
 
 interface AssetReportStylesSpecified {
@@ -281,6 +349,41 @@ interface AssetReportStylesSpecified {
 
 interface AssetReportStylesKuidNames {
   [name: string]: {};
+}
+
+interface AdvancedSubmissionSchema {
+  type: 'string' | 'object'
+  $description: string
+  url?: string
+  properties?: AdvancedSubmissionSchemaDefinition
+  additionalProperties?: boolean
+  required?: string[]
+  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
+}
+
+export interface AssetAdvancedFeatures {
+  transcript?: {
+    /** List of question names */
+    values?: string[]
+    /** List of transcript enabled languages. */
+    languages?: string[]
+  }
+  translation?: {
+    /** List of question names */
+    values?: string[]
+    /** List of translations enabled languages. */
+    languages?: string[]
+  }
+}
+
+interface AdvancedSubmissionSchemaDefinition {
+  [name: string]: {
+    type: 'string' | 'object'
+    description: string
+    properties?: {[name: string]: {}}
+    additionalProperties?: boolean
+    required?: string[]
+  }
 }
 
 /**
@@ -303,12 +406,20 @@ export interface AssetSettings {
   sector?: {
     label: string;
     value: string;
-  };
-  country?: SelectChoice | SelectChoice[];
+  } | null;
+  country?: SelectChoice | SelectChoice[] | null;
   description?: string;
   'share-metadata'?: boolean;
   'data-table'?: AssetTableSettings;
   organization?: string;
+  collects_pii?: {
+    label: string;
+    value: string;
+  } | null;
+  operational_purpose?: {
+    label: string;
+    value: string;
+  } | null;
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -318,12 +429,12 @@ interface AssetRequestObject {
   parent: string | null;
   settings: AssetSettings;
   asset_type: AssetTypeName;
-  report_styles: {
+  report_styles?: {
     default?: {};
     specified?: AssetReportStylesSpecified;
     kuid_names?: AssetReportStylesKuidNames;
   };
-  report_custom: {
+  report_custom?: {
     [reportName: string]: {
       crid: string;
       name: string;
@@ -336,16 +447,23 @@ interface AssetRequestObject {
       };
     };
   };
-  map_styles: {};
-  map_custom: {};
+  map_styles?: {};
+  map_custom?: {};
   content?: AssetContent;
   tag_string: string;
   name: string;
   permissions: Permission[];
   export_settings: ExportSetting[];
   data_sharing: {};
-  paired_data: string;
+  paired_data?: string;
+  advanced_features?: AssetAdvancedFeatures;
+  advanced_submission_schema?: AdvancedSubmissionSchema;
 }
+
+export type AssetDownloads = Array<{
+  format: string;
+  url: string;
+}>;
 
 /**
  * This is the complete asset object we use throught the Frontend code. It is
@@ -361,11 +479,12 @@ export interface AssetResponse extends AssetRequestObject {
   summary: AssetSummary;
   date_modified: string;
   version_id: string|null;
-  version__content_hash: string|null;
-  version_count: number;
+  version__content_hash?: string|null;
+  version_count?: number;
   has_deployment: boolean;
   deployed_version_id: string|null;
-  deployed_versions: {
+  analysis_form_json?: any;
+  deployed_versions?: {
     count: number;
     next: string | null;
     previous: string | null;
@@ -378,7 +497,7 @@ export interface AssetResponse extends AssetRequestObject {
     }>;
   };
   deployment__identifier: string|null;
-  deployment__links: {
+  deployment__links?: {
     url?: string;
     single_url?: string;
     single_once_url?: string;
@@ -389,7 +508,7 @@ export interface AssetResponse extends AssetRequestObject {
     single_once_iframe_url?: string;
   };
   deployment__active: boolean;
-  deployment__data_download_links: {
+  deployment__data_download_links?: {
     xls_legacy?: string;
     csv_legacy?: string;
     zip_legacy?: string;
@@ -398,22 +517,19 @@ export interface AssetResponse extends AssetRequestObject {
     csv?: string;
   };
   deployment__submission_count: number;
-  downloads: Array<{
+  downloads: AssetDownloads;
+  embeds?: Array<{
     format: string;
     url: string;
   }>;
-  embeds: Array<{
-    format: string;
-    url: string;
-  }>;
-  koboform_link: string;
-  xform_link: string;
-  hooks_link: string;
+  koboform_link?: string;
+  xform_link?: string;
+  hooks_link?: string;
   uid: string;
   kind: string;
-  xls_link: string;
-  assignable_permissions: Array<AssignablePermission|AssignablePermissionPartial>;
-  exports: string;
+  xls_link?: string;
+  assignable_permissions?: Array<AssignablePermission|AssignablePermissionPartial>;
+  exports?: string;
   data: string;
   children: {
     count: number;
@@ -485,7 +601,15 @@ export interface AccountResponse {
     sector: string;
     country: string;
     organization: string;
+    organization_website: string;
+    bio: string;
+    city: string;
     require_auth: boolean;
+    twitter: string;
+    linkedin: string;
+    instagram: string;
+    // JSON values are the backend reality, but we make make assumptions
+    [key: string]: Json;
   };
   git_rev: {
     short: string;
@@ -508,6 +632,15 @@ export interface UserResponse {
   public_collections_count: number;
 }
 
+export interface TransxLanguages {
+  [languageCode: string]: {
+    /** Human readable and localized language name. */
+    name: string;
+    /** A list of available services. */
+    options: string[];
+  };
+}
+
 export interface EnvironmentResponse {
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -520,11 +653,13 @@ export interface EnvironmentResponse {
   sector_choices: string[][];
   operational_purpose_choices: string[][];
   country_choices: string[][];
-  all_languages: string[][];
   interface_languages: string[][];
+  transcription_languages: TransxLanguages;
+  translation_languages: TransxLanguages;
   submission_placeholder: string;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
+  asr_mt_features_enabled: boolean;
   mfa_localized_help_text: {[name: string]: string};
   mfa_enabled: boolean;
   mfa_code_length: number;
@@ -584,6 +719,7 @@ interface DataInterface {
 const $ajax = (o: {}) => $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
+  getProfile: () => fetch(`${ROOT_URL}/me/`).then((response) => response.json()),  // TODO replace selfProfile
   selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> => $ajax({url: `${ROOT_URL}/me/`}),
 
   apiToken: (): JQuery.jqXHR<{token: string}> => $ajax({

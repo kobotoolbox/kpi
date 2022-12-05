@@ -28,11 +28,6 @@ from kpi.utils.object_permission import (
     get_perm_ids_from_code_names,
 )
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.regional_views import (
-    get_region_for_view,
-    get_view_as_int,
-    user_has_view_perms,
-)
 from .models import Asset, ObjectPermission
 
 
@@ -135,14 +130,6 @@ class KpiObjectPermissionsFilter:
             # stuff. This isn't a list, though, so return it all
             return queryset
 
-        regional_view = get_view_as_int(request.GET.get('view'))
-        if regional_view is not None:
-            if not user_has_view_perms(request.user, regional_view):
-                raise Http404
-            queryset = self._get_regional_queryset(queryset, regional_view)
-            if self._return_queryset:
-                return queryset.distinct()
-
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
         if self._return_queryset:
             return queryset.distinct()
@@ -185,18 +172,6 @@ class KpiObjectPermissionsFilter:
             ).values_list('id', flat=True)
         )
         return queryset.filter(pk__in=asset_ids)
-
-    def _get_regional_queryset(self, queryset: QuerySet, view: int) -> QuerySet:
-        region = get_region_for_view(view)
-
-        self._return_queryset = True
-        if isinstance(region, str) and '*' == region:
-            return queryset
-        elif isinstance(region, list):
-            q = Q(settings__country__in=region)
-            for country in region:
-                q |= Q(settings__country__contains=[{'value': country}])
-            return queryset.filter(q)
 
     def _get_queryset_for_data_sharing_enabled(
         self, request: Request, queryset: QuerySet
@@ -419,14 +394,18 @@ class SearchFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=view.search_default_field_lookups
+                q,
+                default_field_lookups=view.search_default_field_lookups,
+                min_search_characters=getattr(
+                    view, 'min_search_characters', None
+                ),
             )
         except ParseError:
             return queryset.model.objects.none()
         except SearchQueryTooShortException as e:
             # raising an exception if the default search query without a
             # specified field is less than a set length of characters -
-            # currently 3
+            # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
 
         try:

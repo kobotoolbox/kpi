@@ -98,7 +98,7 @@ class CreateAssetVersions(AssetsTestCase):
         # _kuid1 = _content['survey'][0]['$kuid']
         _content_copy = deepcopy(_content)
         # remove this next line when todo is fixed
-        self.asset._strip_kuids(_content_copy)
+        self.asset._strip_dollar_fields(_content_copy)
         _c1 = json.dumps(_content_copy, sort_keys=True)
         surv_l = len(_content['survey'])
         self.assertEqual(surv_l, 2)
@@ -116,7 +116,7 @@ class CreateAssetVersions(AssetsTestCase):
         aa = Asset.objects.get(uid=self.asset.uid)
         _content_copy2 = deepcopy(aa.content)
         # remove this next line when todo is fixed
-        self.asset._strip_kuids(_content_copy2)
+        self.asset._strip_dollar_fields(_content_copy2)
         _c3 = json.dumps(_content_copy2, sort_keys=True)
         # _kuid3 = aa.content['survey'][0]['$kuid']
         surv_l_3 = len(aa.content['survey'])
@@ -474,7 +474,7 @@ class AssetScoreTestCase(TestCase):
             'settings': {},
         }
         a1 = Asset.objects.create(content=_matrix_score, asset_type='survey')
-        _snapshot = a1.snapshot
+        _snapshot = a1.snapshot()
         self.assertNotEqual(_snapshot.xml, '')
         self.assertNotEqual(_snapshot.details['status'], 'failure')
 
@@ -490,7 +490,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         self.assertTrue(None not in choices_kuids)
         # asset.snapshot.xml generates a document that does not have any
         # "$kuid" or "<$kuid>x</$kuid>" elements
-        _xml = asset.snapshot.xml
+        _xml = asset.snapshot().xml
         # as is in every xform:
         self.assertTrue('<instance>' in _xml)
         # specific to this cascading select form:
@@ -504,29 +504,10 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
                                   asset_type='survey')
-        export = a1.snapshot
+        export = a1.snapshot()
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
         self.assertTrue(f'<{a1.uid} id="xid_stringx">' in export.xml)
 
-
-# TODO: test values of "valid_xlsform_content"
-
-# class ReadAssetsTests(AssetsTestCase):
-#     def test_strip_kuids(self):
-#         sans_kuid = self.sa.to_ss_structure(content_tag='survey', strip_kuids=True)['survey']
-#         self.assertEqual(len(sans_kuid), 2)
-#         self.assertTrue('kuid' not in sans_kuid[0].keys())
-
-# class UpdateAssetsTest(AssetsTestCase):
-#     def test_add_settings(self):
-#         self.assertEqual(self.asset.settings, None)
-#         self.asset.settings = {'style':'grid-theme'}
-# self.assertEqual(self.asset.settings, {'style':'grid-theme'})
-#         ss_struct = self.asset.to_ss_structure()['settings']
-#         self.assertEqual(len(ss_struct), 1)
-#         self.assertEqual(ss_struct[0], {
-#                 'style': 'grid-theme',
-#             })
 
 class ShareAssetsTest(AssetsTestCase):
 

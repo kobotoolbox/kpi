@@ -1,48 +1,11 @@
 # coding: utf-8
-import json
-from dataclasses import dataclass
-from typing import List, Union, Optional
+from __future__ import annotations
 
-import constance
+from django.db.models import Q
 from rest_framework.request import Request
 
-
-class DataDict:
-    def to_dict(self):
-        return self.__dict__
-
-
-@dataclass
-class RegionalView(DataDict):
-    id: int
-    label: str
-    countries: Union[str, List[str]]
-    permissions: List[str]
-
-
-@dataclass
-class RegionalAssignment(DataDict):
-    view: int
-    username: str
-
-
-def get_regional_assignments() -> List[RegionalAssignment]:
-    """
-    Returns a list of RegionalAssignment objects as defined in constance.config
-    """
-    return [
-        RegionalAssignment(**ra)
-        for ra in json.loads(constance.config.REGIONAL_ASSIGNMENTS)
-    ]
-
-
-def get_regional_views() -> List[RegionalView]:
-    """
-    Returns a list of RegionalView objects as defined in constance.config
-    """
-    return [
-        RegionalView(**rv) for rv in json.loads(constance.config.REGIONAL_VIEWS)
-    ]
+from kobo.apps.regions.models.region import Region
+from kobo.apps.regions.models.assignment import Assignment
 
 
 def get_asset_countries(asset: 'models.Asset') -> List[str]:
@@ -70,37 +33,15 @@ def get_regional_user_permissions_for_asset(
 
     asset_countries = get_asset_countries(asset)
 
-    # views that asset is in
-    views_for_asset = [
-        view
-        for view in get_regional_views()
-        if (set(asset_countries) & set(view.countries))
-        or ('*' == view.countries)
-    ]
-    if not views_for_asset:
-        return []
-
-    # view ids that user is in
-    view_ids_for_user = [
-        v.view
-        for v in get_regional_assignments()
-        if v.username == user.username
-    ]
-    if not view_ids_for_user:
-        return []
-
-    # views that both the user and asset are in
-    views_for_user_and_asset = [
-        v for v in views_for_asset if v.id in view_ids_for_user
-    ]
-    if not views_for_user_and_asset:
-        return []
-
-    # unique, flattened list of permissions for asset
-    # [['p1'], ['p1', 'p2']] -> ['p1', 'p2']
-    return list(
-        set(perm for v in views_for_user_and_asset for perm in v.permissions)
+    q = Q(countries__contains=['*'])
+    for country in asset_countries:
+        q |= Q(countries__contains=[country])
+    perms = list(
+        Region.objects.filter(q, users=user).values_list(
+            'permissions', flat=True
+        )
     )
+    return list(set(p for np in perms for p in np))
 
 
 def user_has_regional_asset_perm(
@@ -113,60 +54,31 @@ def user_has_regional_asset_perm(
     return perm in get_regional_user_permissions_for_asset(asset, user)
 
 
-def user_has_view_perms(user: 'auth.User', view: int) -> bool:
+def user_has_view_perms(user: 'auth.User', view: str) -> bool:
     """
     Returns True if user has any permissions permission to a specified view
     """
-    return user.username in [
-        v.username for v in get_regional_assignments() if v.view == view
-    ]
+    return Region.objects.filter(uid=view, users=user).exists()
 
 
-def view_has_perm(view: int, perm: str) -> bool:
+def view_has_perm(view: str, perm: str) -> bool:
     """
     Returns True if a view has a specified permission associated with it
     """
-    if view is not None:
-        # flattened list of permissions
-        perms_for_view = [
-            perm
-            for v in get_regional_views()
-            for perm in v.permissions
-            if v.id == view
-        ]
-        if perm in perms_for_view:
-            return True
-    return False
+    return Region.objects.filter(
+        uid=view, permissions__contains=[perm]
+    ).exists()
 
 
-def get_region_for_view(view: int) -> List[str]:
+def get_region_for_view(view: str) -> List[str]:
     """
     Returns list of county codes for a specified view id
     """
-    regions = [r.countries for r in get_regional_views() if r.id == view]
-    return regions[0] if regions else []
+    return Region.objects.get(uid=view).countries
 
 
-def get_regional_views_for_user(user: 'auth.User') -> List[RegionalView]:
+def get_regional_views_for_user(user: 'auth.User') -> List[Region]:
     """
     Returns a list of all available regional views for a user
     """
-    views_for_user = [
-        v.view
-        for v in get_regional_assignments()
-        if v.username == user.username
-    ]
-    return [v for v in get_regional_views() if v.id in views_for_user]
-
-
-def get_view_as_int(view: Optional[str]) -> int:
-    """
-    Returns an int value for the view specified in the query params of the
-    request
-    """
-    if view is not None:
-        try:
-            view = int(view)
-        except ValueError:
-            raise Exception('`view` must be an integer value')
-    return view
+    return list(Region.objects.filter(users=user))

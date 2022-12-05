@@ -7,7 +7,7 @@ import Icon from 'jsapp/js/components/common/icon';
 bem.KoboModal__header = makeBem(bem.KoboModal, 'header', 'header');
 bem.KoboModal__headerIcon = makeBem(bem.KoboModal, 'header-icon', 'span');
 
-export type KoboModalHeaderIconColors = 'blue' | 'red';
+export type KoboModalHeaderIconColors = 'blue' | 'red' | 'storm';
 
 interface KoboModalHeaderProps {
   /** Optional icon displayed on the left of the title. */
@@ -21,7 +21,7 @@ interface KoboModalHeaderProps {
 
 export default function KoboModalHeader(props: KoboModalHeaderProps) {
   return (
-    <bem.KoboModal__header m={{'has-icon': Boolean(props.icon)}}>
+    <bem.KoboModal__header>
       <h1>
         {props.icon && (
           <bem.KoboModal__headerIcon m={props.iconColor || 'blue'}>

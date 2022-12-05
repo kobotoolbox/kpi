@@ -16,7 +16,6 @@ import React from 'react';
 import _ from 'lodash';
 import alertify from 'alertifyjs';
 import toast from 'react-hot-toast';
-import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
@@ -29,6 +28,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
+import sessionStore from 'js/stores/session';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -48,6 +48,8 @@ import type {
   Permission,
   SubmissionResponse,
 } from 'js/dataInterface';
+import { routerGetAssetId, routerIsActive } from './router/legacy';
+import { history } from "./router/historyRouter";
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -126,12 +128,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  history.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  hashHistory.push(ROUTES.LIBRARY);
+                  history.push(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -177,7 +179,7 @@ mixins.dmix = {
         }, {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
-            hashHistory.push(`/forms/${asset.uid}`);
+            history.push(`/forms/${asset.uid}`);
           },
         });
 
@@ -209,7 +211,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        hashHistory.push(`/forms/${asset.uid}`);
+        history.push(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -470,13 +472,13 @@ mixins.droppable = {
   _forEachDroppedFile(params: CreateImportRequest = {}) {
     const totalFiles = params.totalFiles || 1;
 
-    const router = this.context.router;
+    const router = this.props.router;
     const isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
-      && router.isActive('forms')
+      && routerIsActive('forms')
       && router.params.uid !== undefined
     );
-    const isLibrary = router.isActive('library');
+    const isLibrary = routerIsActive('library');
     const multipleFiles = (params.totalFiles && totalFiles > 1) ? true : false;
     params = assign({library: isLibrary}, params);
 
@@ -514,13 +516,13 @@ mixins.droppable = {
               // TODO: use a more specific error message here
               notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
-                hashHistory.push(`/forms/${params.assetUid}`);
+                history.push(`/forms/${params.assetUid}`);
               }
             } else {
               if (isProjectReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (!isLibrary) {
-                hashHistory.push(`/forms/${assetUid}`);
+                history.push(`/forms/${assetUid}`);
               }
               notify(t('XLS Import completed'));
             }
@@ -645,7 +647,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              hashHistory.push(goToUrl);
+              history.push(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -677,10 +679,10 @@ mixins.clickAssets = {
         });
       },
       edit: function (uid: string) {
-        if (this.context.router.isActive('library')) {
-          hashHistory.push(`/library/asset/${uid}/edit`);
+        if (routerIsActive('library')) {
+          history.push(`/library/asset/${uid}/edit`);
         } else {
-          hashHistory.push(`/forms/${uid}/edit`);
+          history.push(`/forms/${uid}/edit`);
         }
       },
       delete: function (
@@ -855,7 +857,7 @@ mixins.clickAssets = {
           // Get permissions url related to current user
           const permUserUrl = perm.user.split('/');
           return (
-            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            permUserUrl[permUserUrl.length - 2] === sessionStore.currentAccount.username &&
             perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)?.url
           );
         });
@@ -934,7 +936,7 @@ mixins.permissions = {
     }
 
     // Case 3: User has only partial permission, and things are complicated
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
     const partialPerms = asset.permissions.find((perm) => (
         perm.user === buildUserUrl(currentUsername) &&
         this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
@@ -962,7 +964,7 @@ mixins.permissions = {
     if (!asset.permissions) {
       return false;
     }
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
 
     if (asset.owner__username === currentUsername) {
       return true;
@@ -989,7 +991,7 @@ mixins.permissions = {
    */
   userCanPartially(permName: string, asset: AssetResponse) {
 
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
 
     // Owners cannot have partial permissions because they have full permissions.
     // Both are contradictory.
@@ -1003,55 +1005,43 @@ mixins.permissions = {
 
 mixins.contextRouter = {
   isFormList() {
-    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
+    return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
   isLibrary() {
-    return this.context.router.isActive(ROUTES.LIBRARY);
+    return routerIsActive(ROUTES.LIBRARY);
   },
   isMyLibrary() {
-    return this.context.router.isActive(ROUTES.MY_LIBRARY);
+    return routerIsActive(ROUTES.MY_LIBRARY);
   },
   isPublicCollections() {
-    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
-  },
-  isLibraryList() {
-    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
+    return routerIsActive(ROUTES.PUBLIC_COLLECTIONS);
   },
   isLibrarySingle() {
-    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
+    return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
   },
   isFormSingle() {
-    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
+    return routerIsActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
   },
   currentAssetID() {
-    return this.context.router.params.assetid || this.context.router.params.uid;
+    return routerGetAssetId();
   },
   currentAsset() {
     return assetStore.data[this.currentAssetID()];
   },
-  isActiveRoute(path: string, indexOnly = false) {
-    return this.context.router.isActive(path, indexOnly);
+  isActiveRoute(path: string) {
+    return routerIsActive(path);
   },
   isFormBuilder() {
-    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
+    if (routerIsActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
     }
 
     const uid = this.currentAssetID();
     return (
       uid !== undefined &&
-      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
-    );
-  },
-  isAccount() {
-    return (
-      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
-      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
-      this.context.router.isActive(ROUTES.SECURITY) ||
-      this.context.router.isActive(ROUTES.PLAN) ||
-      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+      routerIsActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      routerIsActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
 };

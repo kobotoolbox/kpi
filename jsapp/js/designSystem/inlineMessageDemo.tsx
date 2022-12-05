@@ -42,8 +42,9 @@ export default class InlineMessageDemo extends React.Component<{}, InlineMessage
     };
   }
 
-  onTypeChange({}, newType: InlineMessageType) {
-    this.setState({demoType: newType});
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as InlineMessageType;
+    this.setState({demoType: newTypeCasted});
   }
 
   onIconChange(newIcon: IconNameOption | null) {
@@ -68,7 +69,7 @@ export default class InlineMessageDemo extends React.Component<{}, InlineMessage
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -109,7 +110,7 @@ export default class InlineMessageDemo extends React.Component<{}, InlineMessage
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <InlineMessage
                     type={this.state.demoType}

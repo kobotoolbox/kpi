@@ -84,6 +84,10 @@ PERM_PARTIAL_SUBMISSIONS = 'partial_submissions'
 PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 
+# REGIONAL PERMISSIONS
+PERM_VIEW_PERMISSIONS = 'view_permissions'
+PERM_CHANGE_METADATA = 'change_metadata'
+
 # CALCULATED_PERMISSIONS
 PERM_DELETE_ASSET = 'delete_asset'
 PERM_DELETE_SUBMISSIONS = 'delete_submissions'
