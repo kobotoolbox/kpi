@@ -1,4 +1,6 @@
 import React from 'react';
+import {useNavigate} from 'react-router-dom';
+import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectsView/projectsViewConstants';
 import type {ProjectFieldDefinition} from 'js/projects/projectsView/projectsViewConstants';
 import Checkbox from 'js/components/common/checkbox';
@@ -15,8 +17,10 @@ interface ProjectsTableRowProps {
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
+  const navigate = useNavigate();
+
   const onRowClick = () => {
-    console.log('TODO navigate to landing page');
+    navigate(ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid));
   };
 
   const renderColumnContent = (field: ProjectFieldDefinition) => {
