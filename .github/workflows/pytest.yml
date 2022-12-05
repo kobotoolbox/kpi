@@ -47,7 +47,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install pip-tools
-      run: python -m pip install pip-tools
+      run: python -m pip install pip-tools==6.\*
     - name: Update Debian package lists
       run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
     - name: Install Debian dependencies
