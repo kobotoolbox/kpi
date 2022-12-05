@@ -55,19 +55,19 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'ownerUsername':
         return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
       case 'ownerFullName':
-        return 'owner full name';
+        return 'ENDPOINT?';
       case 'ownerEmail':
-        return 'owner email';
+        return 'ENDPOINT?';
       case 'ownerOrganisation':
-        return 'owner organisation';
+        return 'ENDPOINT?';
       case 'dateDeployed':
-        return 'date deployed';
+        return 'ENDPOINT?';
       case 'dateModified':
         return formatTime(props.asset.date_modified);
       case 'sector':
         return assetUtils.getSectorDisplayString(props.asset);
       case 'countries':
-        return 'countries';
+        return assetUtils.getCountryDisplayString(props.asset);
       case 'languages':
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':
