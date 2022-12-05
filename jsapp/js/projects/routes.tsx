@@ -11,8 +11,8 @@ const CustomViewsRoute = React.lazy(
 );
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
-  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/my',
-  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/custom/:viewUid',
+  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
 };
 
 export default function routes() {
