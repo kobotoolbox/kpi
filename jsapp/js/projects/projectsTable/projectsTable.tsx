@@ -19,10 +19,6 @@ interface ProjectsTableProps {
  orderDirection: OrderDirection;
  /** Called when user selects a column for odering. */
  onChangeOrderRequested: (fieldName: string, direction: OrderDirection) => void;
- /** A list of uids */
- selectedRows: string[];
- /** Called when user selects a row (by clicking its checkbox) */
- onRowsSelected: (uids: string[]) => void;
  /** Used for infinite scroll. */
  onRequestLoadNextPage: () => void;
  /** If there are more results to be loaded. */
@@ -49,16 +45,6 @@ export default class ProjectsTable extends React.Component<ProjectsTableProps> {
       // change column and revert order direction to default
       this.props.onChangeOrderRequested(fieldName, PROJECT_FIELDS[fieldName].orderDefaultValue || 'ascending');
     }
-  }
-
-  onRowSelectionChange(rowUid: string, isSelected: boolean) {
-    const uidsSet = new Set(this.props.selectedRows);
-    if (isSelected) {
-      uidsSet.add(rowUid);
-    } else {
-      uidsSet.delete(rowUid);
-    }
-    this.props.onRowsSelected(Array.from(uidsSet));
   }
 
   render() {
@@ -91,10 +77,6 @@ export default class ProjectsTable extends React.Component<ProjectsTableProps> {
             {this.props.assets.map((asset) =>
               <ProjectsTableRow
                 asset={asset}
-                isSelected={this.props.selectedRows.includes(asset.uid)}
-                onSelectRequested={(isSelected: boolean) =>
-                  this.onRowSelectionChange(asset.uid, isSelected)
-                }
                 key={asset.uid}
               />
             )}

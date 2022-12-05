@@ -8,13 +8,11 @@ import ProjectsFilter from './projectsView/projectsFilter';
 import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
 import ViewSwitcher from './projectsView/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
-import ProjectActionButtons from 'js/projects/projectsTable/projectActionButtons';
 import mockAssets from './assetsResponseMock';
 
 export default function CustomViewsRoute() {
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   return (
     <section style={{
@@ -38,8 +36,6 @@ export default function CustomViewsRoute() {
           onFieldsChange={setFields}
           selectedFields={fields}
         />
-
-        <ProjectActionButtons asset={mockAssets.results[0]}/>
       </div>
 
       <ProjectsTable
@@ -47,8 +43,6 @@ export default function CustomViewsRoute() {
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
-        selectedRows={selectedRows}
-        onRowsSelected={setSelectedRows}
         onRequestLoadNextPage={() => console.log('load next page please!')}
         hasMorePages
       />

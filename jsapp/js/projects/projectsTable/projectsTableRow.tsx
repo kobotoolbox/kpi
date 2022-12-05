@@ -12,8 +12,13 @@ import classNames from 'classnames';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse;
-  isSelected: boolean;
-  onSelectRequested: (isSelected: boolean) => void;
+  isSelected?: boolean;
+  /**
+   * MVP of Custom Views feature is not gonna use the checkboxes, so we hide it
+   * behind the callback function by making it optional and not passing it in
+   * the parent component.
+   */
+  onSelectRequested?: (isSelected: boolean) => void;
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
@@ -92,13 +97,15 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       onClick={onRowClick}
     >
       {/* First column is always visible and displays a checkbox. */}
-      <div className={classNames(styles.cell, styles['cell-checkbox'])}>
-        <Checkbox
-          checked={props.isSelected}
-          onChange={props.onSelectRequested}
-          onClick={onCheckboxClick}
-        />
-      </div>
+      {props.onSelectRequested !== undefined &&
+        <div className={classNames(styles.cell, styles['cell-checkbox'])}>
+          <Checkbox
+            checked={Boolean(props.isSelected)}
+            onChange={props.onSelectRequested}
+            onClick={onCheckboxClick}
+          />
+        </div>
+      }
 
       {/* TODO: all these cells should be displaying one line with ellipsis overflow */}
 
