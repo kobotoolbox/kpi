@@ -4,12 +4,13 @@ from __future__ import annotations
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models.region import Region
+from .models.custom_project import CustomProject
 
 
-class RegionSerializer(serializers.ModelSerializer):
+class CustomProjectSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
+    countries = serializers.SerializerMethodField()
     assets = serializers.SerializerMethodField()
     assets_export = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -17,7 +18,7 @@ class RegionSerializer(serializers.ModelSerializer):
     assigned_users = serializers.SerializerMethodField()
 
     class Meta:
-        model = Region
+        model = CustomProject
         fields = (
             'uid',
             'name',
@@ -33,14 +34,14 @@ class RegionSerializer(serializers.ModelSerializer):
 
     def get_assets(self, obj) -> str:
         return reverse(
-            'region-assets',
+            'customproject-assets',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
 
     def get_assets_export(self, obj) -> str:
         return reverse(
-            'region-export',
+            'customproject-export',
             args=(obj.uid, 'assets'),
             request=self.context.get('request', None),
         )
@@ -48,23 +49,26 @@ class RegionSerializer(serializers.ModelSerializer):
     def get_assigned_users(self, obj) -> List[str]:
         return obj.users.all().values_list('username', flat=True)
 
+    def get_countries(self, obj) -> List[str]:
+        return obj.get_countries()
+
     def get_users(self, obj) -> str:
         return reverse(
-            'region-users',
+            'customproject-users',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
 
     def get_users_export(self, obj) -> str:
         return reverse(
-            'region-export',
+            'customproject-export',
             args=(obj.uid, 'users'),
             request=self.context.get('request', None),
         )
 
     def get_url(self, obj) -> str:
         return reverse(
-            'region-detail',
+            'customproject-detail',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )

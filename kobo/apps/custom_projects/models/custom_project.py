@@ -3,7 +3,6 @@ from django import forms
 from django.contrib import admin
 from django.db import models
 
-from kobo.static_lists import COUNTRIES
 from kpi.constants import (
     PERM_CHANGE_METADATA,
     PERM_VIEW_ASSET,
@@ -11,7 +10,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
-from .assignment import AssignmentRegionM2MInline
+from .assignment import AssignmentCustomProjectM2MInline
 from ..fields import ChoiceArrayField
 
 
@@ -28,20 +27,11 @@ def _get_permission_choices():
     return [(p, p) for p in allowed_perms]
 
 
-def _get_country_choices():
-    return (('*', '*'),) + COUNTRIES
+class CustomProject(models.Model):
 
-
-class Region(models.Model):
-
-    uid = KpiUidField(uid_prefix='r')
+    uid = KpiUidField(uid_prefix='cp')
     name = models.CharField(max_length=200)
-    countries = ChoiceArrayField(
-        base_field=models.CharField(
-            max_length=5, choices=_get_country_choices()
-        ),
-        default=list,
-    )
+    countries = models.CharField(max_length=1000)
     permissions = ChoiceArrayField(
         base_field=models.CharField(
             max_length=20, choices=_get_permission_choices()
@@ -50,28 +40,35 @@ class Region(models.Model):
     )
     users = models.ManyToManyField(
         'auth.User',
-        related_name='regional_views',
-        through='AssignmentRegionM2M',
+        related_name='custom_projects',
+        through='AssignmentCustomProjectM2M',
     )
 
     class Meta:
-        verbose_name = 'region'
+        verbose_name = 'custom project'
         ordering = ['name']
 
     def __str__(self):
         return self.name
 
+    def get_countries(self):
+        return [c.strip().upper() for c in self.countries.split(',')]
 
-class RegionForm(forms.ModelForm):
+    def save(self, *args, **kwargs):
+        self.countries = ', '.join(self.get_countries())
+        super().save(*args, **kwargs)
+
+
+class CustomProjectForm(forms.ModelForm):
     class Meta:
-        model = Region
+        model = CustomProject
         exclude = ('uid',)
 
 
-class RegionAdmin(admin.ModelAdmin):
+class CustomProjectAdmin(admin.ModelAdmin):
 
-    form = RegionForm
+    form = CustomProjectForm
 
     list_display = ('name', 'countries', 'permissions')
     exclude = ('uid',)
-    inlines = (AssignmentRegionM2MInline,)
+    inlines = (AssignmentCustomProjectM2MInline,)

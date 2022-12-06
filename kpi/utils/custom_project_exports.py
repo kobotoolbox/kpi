@@ -9,7 +9,7 @@ from django.db.models.functions import Cast
 from django.db.models.query import QuerySet
 
 from kpi.models.asset import Asset
-from kpi.utils.regional_views import (
+from kpi.utils.custom_projects import (
     get_region_for_view,
 )
 
@@ -136,7 +136,7 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
     return data.values(*vals).order_by('id')
 
 
-def create_regional_export(
+def create_custom_project_export(
         export_type: str, username: str, uid: str
 ) -> StringIO:
     config = CONFIG[export_type]

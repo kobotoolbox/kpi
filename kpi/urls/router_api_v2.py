@@ -6,7 +6,7 @@ from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 from kobo.apps.organizations.views import OrganizationViewSet
-from kobo.apps.regions.views import RegionViewSet
+from kobo.apps.custom_projects.views import CustomProjectViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
@@ -142,7 +142,7 @@ router_api_v2.register(
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'imports', ImportTaskViewSet)
-router_api_v2.register(r'regions', RegionViewSet)
+router_api_v2.register(r'project-views', CustomProjectViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)

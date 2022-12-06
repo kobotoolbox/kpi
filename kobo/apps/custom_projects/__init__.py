@@ -2,12 +2,12 @@
 from django.apps import AppConfig
 
 
-class RegionAppConfig(AppConfig):
-    name = 'kobo.apps.regions'
-    verbose_name = 'Regional Views'
+class CustomProjectAppConfig(AppConfig):
+    name = 'kobo.apps.custom_projects'
+    verbose_name = 'Custom Projects'
 
     def ready(self):
         # Makes sure all signal handlers are connected
         # Uncomment the lines below if you need signals
-        # from kobo.apps.regions import signals
+        # from kobo.apps.custom_projects import signals
         super().ready()

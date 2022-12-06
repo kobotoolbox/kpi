@@ -1,10 +1,10 @@
 # coding: utf-8
 from django.contrib.auth.models import User
 
-from kobo.apps.regions.models.region import Region
+from kobo.apps.custom_projects.models.custom_project import CustomProject
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.utils.regional_views import (
+from kpi.utils.custom_projects import (
     get_regional_user_permissions_for_asset,
     user_has_regional_asset_perm,
     user_has_view_perms,
@@ -14,14 +14,14 @@ from kpi.utils.regional_views import (
 )
 
 
-class RegionalViewsUtilsTestCase(BaseTestCase):
+class CustomProjectsUtilsTestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         regional_assignments = [
             {
                 'name': 'Overview',
-                'countries': ['*'],
+                'countries': '*',
                 'permissions': [
                     'view_asset',
                     'view_permissions',
@@ -30,7 +30,7 @@ class RegionalViewsUtilsTestCase(BaseTestCase):
             },
             {
                 'name': 'Test view 1',
-                'countries': ['ZAF', 'NAM', 'ZWE', 'MOZ', 'BWA', 'LSO'],
+                'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
                 'permissions': [
                     'view_asset',
                     'view_submissions',
@@ -40,7 +40,7 @@ class RegionalViewsUtilsTestCase(BaseTestCase):
             },
             {
                 'name': 'Test view 2',
-                'countries': ['USA', 'CAN'],
+                'countries': 'USA, CAN',
                 'permissions': [
                     'view_asset',
                     'view_permissions',
@@ -59,7 +59,7 @@ class RegionalViewsUtilsTestCase(BaseTestCase):
         for region in regional_assignments:
             usernames = region.pop('users')
             users = [self._get_user_obj(u) for u in usernames]
-            r = Region.objects.create(**region)
+            r = CustomProject.objects.create(**region)
             r.users.set(users)
             r.save()
 
@@ -99,14 +99,14 @@ class RegionalViewsUtilsTestCase(BaseTestCase):
             assert not user_has_regional_asset_perm(self.asset, self.user, perm)
 
     def test_user_has_view_perms(self):
-        views = Region.objects.filter(
+        views = CustomProject.objects.filter(
             name__in=['Overview', 'Test view 1']
         ).values_list('uid', flat=True)
         for view in views:
             assert user_has_view_perms(self.user, view)
 
     def test_view_has_perm(self):
-        view = Region.objects.get(name='Test view 1').uid
+        view = CustomProject.objects.get(name='Test view 1').uid
         assigned_perms = [
             'view_asset',
             'view_submissions',
@@ -117,16 +117,16 @@ class RegionalViewsUtilsTestCase(BaseTestCase):
 
     def test_get_region_for_view(self):
         assert '*' in get_region_for_view(
-            Region.objects.get(name='Overview').uid
+            CustomProject.objects.get(name='Overview').uid
         )
         assert sorted(['BWA', 'LSO', 'MOZ', 'NAM', 'ZAF', 'ZWE']) == sorted(
-            get_region_for_view(Region.objects.get(name='Test view 1').uid)
+            get_region_for_view(CustomProject.objects.get(name='Test view 1').uid)
         )
 
     def test_get_regional_views_for_user(self):
         assert sorted(
             list(
-                Region.objects.filter(
+                CustomProject.objects.filter(
                     name__in=['Overview', 'Test view 1']
                 ).values_list('uid', flat=True)
             )

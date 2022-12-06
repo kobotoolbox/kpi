@@ -4,8 +4,8 @@ from __future__ import annotations
 from django.db.models import Q
 from rest_framework.request import Request
 
-from kobo.apps.regions.models.region import Region
-from kobo.apps.regions.models.assignment import Assignment
+from kobo.apps.custom_projects.models.custom_project import CustomProject
+from kobo.apps.custom_projects.models.assignment import Assignment
 
 
 def get_asset_countries(asset: 'models.Asset') -> List[str]:
@@ -33,11 +33,11 @@ def get_regional_user_permissions_for_asset(
 
     asset_countries = get_asset_countries(asset)
 
-    q = Q(countries__contains=['*'])
+    q = Q(countries__contains='*')
     for country in asset_countries:
-        q |= Q(countries__contains=[country])
+        q |= Q(countries__contains=country)
     perms = list(
-        Region.objects.filter(q, users=user).values_list(
+        CustomProject.objects.filter(q, users=user).values_list(
             'permissions', flat=True
         )
     )
@@ -58,14 +58,14 @@ def user_has_view_perms(user: 'auth.User', view: str) -> bool:
     """
     Returns True if user has any permissions permission to a specified view
     """
-    return Region.objects.filter(uid=view, users=user).exists()
+    return CustomProject.objects.filter(uid=view, users=user).exists()
 
 
 def view_has_perm(view: str, perm: str) -> bool:
     """
     Returns True if a view has a specified permission associated with it
     """
-    return Region.objects.filter(
+    return CustomProject.objects.filter(
         uid=view, permissions__contains=[perm]
     ).exists()
 
@@ -74,11 +74,11 @@ def get_region_for_view(view: str) -> List[str]:
     """
     Returns list of county codes for a specified view id
     """
-    return Region.objects.get(uid=view).countries
+    return CustomProject.objects.get(uid=view).get_countries()
 
 
-def get_regional_views_for_user(user: 'auth.User') -> List[Region]:
+def get_regional_views_for_user(user: 'auth.User') -> List[CustomProject]:
     """
     Returns a list of all available regional views for a user
     """
-    return list(Region.objects.filter(users=user))
+    return list(CustomProject.objects.filter(users=user))

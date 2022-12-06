@@ -10,21 +10,21 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.filters import SearchFilter
-from kpi.models import Asset, RegionalExportTask
+from kpi.models import Asset, CustomProjectExportTask
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
-from kpi.utils.regional_views import (
+from kpi.utils.custom_projects import (
     get_region_for_view,
     user_has_view_perms,
 )
 from kpi.tasks import regional_export_in_background
-from .models.region import Region
-from .serializers import RegionSerializer
+from .models.custom_project import CustomProject
+from .serializers import CustomProjectSerializer
 
 
-class RegionViewSet(viewsets.ReadOnlyModelViewSet):
+class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
 
-    serializer_class = RegionSerializer
+    serializer_class = CustomProjectSerializer
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
     filter_backends = [SearchFilter]
@@ -32,7 +32,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
         'name__icontains',
     ]
     min_search_characters = 2
-    queryset = Region.objects.all()
+    queryset = CustomProject.objects.all()
 
     def get_queryset(self, *args, **kwargs):
         return self.queryset.filter(users=self.request.user)
@@ -59,7 +59,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
             raise Http404
 
         if request.method == 'GET':
-            export = RegionalExportTask.objects.filter(
+            export = CustomProjectExportTask.objects.filter(
                 user=user, data__view=uid, data__type=_type
             ).last()
             if not export:
@@ -75,7 +75,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             )
         elif request.method == 'POST':
-            regional_export_task = RegionalExportTask.objects.create(
+            regional_export_task = CustomProjectExportTask.objects.create(
                 user=user,
                 data={
                     'view': uid,

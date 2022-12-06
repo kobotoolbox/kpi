@@ -5,10 +5,10 @@ from .models.assignment import (
    Assignment,
    AssignmentAdmin,
 )
-from .models.region import (
-    Region,
-    RegionAdmin,
+from .models.custom_project import (
+    CustomProject,
+    CustomProjectAdmin,
 )
 
-admin.site.register(Region, RegionAdmin)
+admin.site.register(CustomProject, CustomProjectAdmin)
 admin.site.register(Assignment, AssignmentAdmin)

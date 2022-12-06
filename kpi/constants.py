@@ -84,7 +84,7 @@ PERM_PARTIAL_SUBMISSIONS = 'partial_submissions'
 PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 
-# REGIONAL PERMISSIONS
+# CUSTOM PROJECT PERMISSIONS
 PERM_VIEW_PERMISSIONS = 'view_permissions'
 PERM_CHANGE_METADATA = 'change_metadata'
 

@@ -65,7 +65,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.utils.regional_views import (
+from kpi.utils.custom_projects import (
     get_regional_views_for_user,
     user_has_regional_asset_perm,
 )

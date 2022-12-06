@@ -10,7 +10,7 @@ from .object_permission import ObjectPermission
 from .import_export_task import (
     ExportTask,
     ImportTask,
-    RegionalExportTask,
+    CustomProjectExportTask,
     SynchronousExport,
 )
 from .tag_uid import TagUid
