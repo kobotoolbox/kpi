@@ -159,8 +159,8 @@ class AssetFile(models.Model, AbstractFormMedia):
 
     @staticmethod
     def get_path(asset, file_type, filename):
-        default_storage = get_storage_class()()
-        valid_filename = default_storage.get_valid_name(filename)
+        storage = AssetFile._meta.get_field('content').storage
+        valid_filename = storage.get_valid_name(filename)
 
         return posixpath.join(
             asset.owner.username,
