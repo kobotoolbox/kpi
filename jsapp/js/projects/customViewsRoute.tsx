@@ -1,10 +1,15 @@
 import React, {useState} from 'react';
-import type {ProjectsFilterDefinition} from './projectsView/projectsViewConstants';
+import type {
+  ProjectsFilterDefinition,
+  ProjectFieldName,
+} from './projectsView/projectsViewConstants';
 import ProjectsFilter from './projectsView/projectsFilter';
+import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
 import ViewSwitcher from './projectsView/viewSwitcher';
 
 export default function CustomViewsRoute() {
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
+  const [fields, setFields] = useState<ProjectFieldName[] | undefined>([]);
 
   return (
     <section>
@@ -14,6 +19,11 @@ export default function CustomViewsRoute() {
         <ProjectsFilter
           onFiltersChange={setFilters}
           filters={filters}
+        />
+
+        <ProjectsFieldsSelector
+          onFieldsChange={setFields}
+          selectedFields={fields}
         />
       </div>
 
