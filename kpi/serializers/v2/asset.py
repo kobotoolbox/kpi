@@ -791,13 +791,17 @@ class AssetMetadataListSerializer(AssetSerializer):
         return ''
 
     def get_date_first_deployement(self, obj):
-        return obj.asset_versions.filter(deployed=True).last().date_modified
+        version = obj.asset_versions.filter(deployed=True).last()
+        if version:
+            return version.date_modified
 
     def get_date_latest_deployement(self, obj):
-        return obj.asset_versions.filter(deployed=True).first().date_modified
+        version = obj.asset_versions.filter(deployed=True).first()
+        if version:
+            return version.date_modified
 
     def get_languages(self, obj):
-        return obj.summary['languages']
+        return obj.summary.get('languages', [])
 
     def get_owner__email(self, obj):
         return obj.owner.email
