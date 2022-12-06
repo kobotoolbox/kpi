@@ -2,9 +2,13 @@
 from datetime import timedelta
 import constance
 import requests
+
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.utils.timezone import now
+from django.core.mail import send_mail
+from rest_framework import serializers
 
 from kobo.celery import celery_app
 
@@ -26,15 +30,32 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task
-def regional_export_in_background(regional_export_task_uid):
+def regional_export_in_background(regional_export_task_uid, username):
     from kpi.models.import_export_task import (
         CustomProjectExportTask,
     )  # avoid circular imports
 
+    user = User.objects.get(username=username)
+
     regional_export_task = CustomProjectExportTask.objects.get(
         uid=regional_export_task_uid
     )
-    regional_export_task.run()
+    export = regional_export_task.run()
+    file_location = serializers.FileField().to_representation(export.result)
+    file_url = f'{settings.KOBOFORM_URL}{file_location}'
+    msg = (
+        f'Hello {user.username},\n\n'
+        f'Your report is complete: {file_url}\n\n'
+        'Regards,\n'
+        'KoboToolbox'
+    )
+    send_mail(
+        subject='Custom Project Report Complete',
+        message=msg,
+        from_email=constance.config.SUPPORT_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 
 
 @celery_app.task

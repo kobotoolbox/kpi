@@ -167,6 +167,8 @@ class ImportExportTask(models.Model):
                           exc_info=True)
             self.save(update_fields=['status'])
 
+        return self
+
 
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')

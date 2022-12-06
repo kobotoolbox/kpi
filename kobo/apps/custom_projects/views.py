@@ -85,7 +85,8 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
 
             # Have Celery run the export in the background
             regional_export_in_background.delay(
-                regional_export_task_uid=regional_export_task.uid
+                regional_export_task_uid=regional_export_task.uid,
+                username=user.username,
             )
 
             return Response({'status': regional_export_task.status})
