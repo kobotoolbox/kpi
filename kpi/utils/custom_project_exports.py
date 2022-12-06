@@ -37,7 +37,6 @@ SETTINGS_FIELDS = (
 )
 
 USER_FIELDS = (
-    'id',
     'username',
     'is_superuser',
     'is_staff',

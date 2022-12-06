@@ -747,19 +747,34 @@ class AssetUrlListSerializer(AssetSerializer):
 
 
 class AssetMetadataListSerializer(AssetSerializer):
+
+    date_latest_deployement = serializers.SerializerMethodField()
+    date_first_deployement = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    owner__name = serializers.SerializerMethodField()
+    owner__email = serializers.SerializerMethodField()
+    owner__organization = serializers.SerializerMethodField()
+
     class Meta(AssetSerializer.Meta):
         fields = (
             'url',
             'date_modified',
             'date_created',
+            'date_latest_deployement',
+            'date_first_deployement',
             'owner',
             'owner__username',
+            'owner__email',
+            'owner__name',
+            'owner__organization',
             'uid',
-            'settings',
             'kind',
             'name',
+            'settings',
+            'languages',
             'asset_type',
             'version_id',
+            'version_count',
             'has_deployment',
             'deployed_version_id',
             'deployment__active',
@@ -770,14 +785,39 @@ class AssetMetadataListSerializer(AssetSerializer):
             'data',
         )
 
+    def get_data(self, *args, **kwargs):
+        if view_has_perm(self._get_view(), PERM_VIEW_SUBMISSIONS):
+            return super().get_data(*args, **kwargs)
+        return ''
+
+    def get_date_first_deployement(self, obj):
+        return obj.asset_versions.filter(deployed=True).last().date_modified
+
+    def get_date_latest_deployement(self, obj):
+        return obj.asset_versions.filter(deployed=True).first().date_modified
+
+    def get_languages(self, obj):
+        return obj.summary['languages']
+
+    def get_owner__email(self, obj):
+        return obj.owner.email
+
+    def get_owner__name(self, obj):
+        return self._get_user_detail(obj, 'name')
+
+    def get_owner__organization(self, obj):
+        return self._get_user_detail(obj, 'organization')
+
     def get_permissions(self, *args, **kwargs):
         if view_has_perm(self._get_view(), 'view_permissions'):
             return super().get_permissions(*args, **kwargs)
         return []
 
-    def get_data(self, *args, **kwargs):
-        if view_has_perm(self._get_view(), PERM_VIEW_SUBMISSIONS):
-            return super().get_data(*args, **kwargs)
+    @staticmethod
+    def _get_user_detail(obj, attr):
+        owner = obj.owner
+        if hasattr(owner, 'extra_details'):
+            return owner.extra_details.data.get(attr, '')
         return ''
 
     def _get_view(self) -> int:
