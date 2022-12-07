@@ -129,7 +129,10 @@ const AllRoutes = class AllRoutes extends React.Component {
             <Route path='' element={<Navigate to={ROUTES.FORMS} replace />} />
             <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
             <Route path={ROUTES.LIBRARY}>
-              <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} />} />
+              <Route
+                path=''
+                element={<Navigate to={ROUTES.MY_LIBRARY} replace />}
+              />
               <Route
                 path={ROUTES.MY_LIBRARY}
                 element={
