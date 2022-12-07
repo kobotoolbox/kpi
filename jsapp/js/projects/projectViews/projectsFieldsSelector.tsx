@@ -7,11 +7,11 @@ import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
-import type {ProjectFieldName} from './projectsViewConstants';
+import type {ProjectFieldName} from './constants';
 import {
   PROJECT_FIELDS,
   DEFAULT_PROJECT_FIELDS,
-} from './projectsViewConstants';
+} from './constants';
 import styles from './projectsFieldsSelector.module.scss';
 
 interface ProjectsFieldsSelectorProps {

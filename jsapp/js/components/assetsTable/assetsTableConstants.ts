@@ -1,5 +1,5 @@
 import {createEnum} from 'js/constants';
-import type {OrderDirection} from 'js/projects/projectsView/projectsViewConstants';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 
 export enum AssetsTableContextName {
   MY_LIBRARY = 'MY_LIBRARY',

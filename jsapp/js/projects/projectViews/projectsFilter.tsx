@@ -4,9 +4,9 @@ import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import type {ProjectsFilterDefinition} from './projectsViewConstants';
+import type {ProjectsFilterDefinition} from './constants';
 import ProjectsFilterEditor from './projectsFilterEditor';
-import {removeIncorrectFilters} from './projectsViewUtils';
+import {removeIncorrectFilters} from './utils';
 import styles from './projectsFilter.module.scss';
 
 // If there are "many" filters being displayed, we want the modal content to be
