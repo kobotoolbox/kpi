@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {notify} from 'js/utils';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
@@ -9,6 +10,7 @@ import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
 import {DEFAULT_PROJECT_FIELDS} from './projectsView/projectsViewConstants';
 import ViewSwitcher from './projectsView/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
+import Button from 'js/components/common/button';
 import mockAssets from './assetsResponseMock';
 
 export default function CustomViewRoute() {
@@ -24,6 +26,12 @@ export default function CustomViewRoute() {
       }
     });
     return outcome;
+  }
+
+  const exportAllData = () => {
+    notify.warning(t("Export is being generated, you will receive an email when it's done"));
+    // TODO make the call :)
+    console.log('call backend to initiate downloading data to email');
   }
 
   return (
@@ -47,6 +55,15 @@ export default function CustomViewRoute() {
         <ProjectsFieldsSelector
           onFieldsChange={setFields}
           selectedFields={fields}
+        />
+
+        <Button
+          type='frame'
+          color='storm'
+          size='s'
+          startIcon='download'
+          label={t('Export all data')}
+          onClick={exportAllData}
         />
       </div>
 
