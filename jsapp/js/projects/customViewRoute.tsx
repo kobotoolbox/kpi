@@ -45,7 +45,7 @@ export default function CustomViewRoute() {
         flexDirection: 'row',
         alignItems: 'center',
       }}>
-        <ViewSwitcher viewUid='1' viewCount={15}/>
+        <ViewSwitcher selectedViewUid='1' viewCount={15}/>
 
         <ProjectsFilter
           onFiltersChange={setFilters}

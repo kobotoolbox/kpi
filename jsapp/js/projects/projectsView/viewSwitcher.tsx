@@ -9,17 +9,17 @@ import styles from './viewSwitcher.module.scss';
 // TODO get this list from backend:
 const DEFINED_VIEWS = [
   {
-    uid: 'kobo_my_projects',
-    label: t('My Projects'),
-  },
-  {
     uid: '1',
     label: 'Custom View 1',
+  },
+  {
+    uid: '2',
+    label: 'Custom View 2',
   },
 ];
 
 interface ViewSwitcherProps {
-  viewUid: string;
+  selectedViewUid: string;
   /** Total number of asset of current view. */
   viewCount?: number;
   disabled?: boolean;
@@ -52,7 +52,7 @@ export default function ViewSwitcher(props: ViewSwitcherProps) {
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
           <button className={styles.trigger}>
-            {DEFINED_VIEWS.find((view) => view.uid === props.viewUid)?.label}
+            {DEFINED_VIEWS.find((view) => view.uid === props.selectedViewUid)?.label}
             {props.viewCount !== undefined &&
               <span className={styles['trigger-badge']}>{props.viewCount}</span>
             }
@@ -65,6 +65,13 @@ export default function ViewSwitcher(props: ViewSwitcherProps) {
         }
         menuContent={
           <div className={styles.menu}>
+            <button
+              key='kobo_my_projects'
+              className={styles['menu-option']}
+              onClick={() => onOptionClick('kobo_my_projects')}
+            >
+              {t('My Projects')}
+            </button>
             {DEFINED_VIEWS.map((view) =>
               <button
                 key={view.uid}
