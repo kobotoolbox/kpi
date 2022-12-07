@@ -40,7 +40,6 @@ class AccountsEmailTestCase(APITestCase):
             1,
             'Ignore duplicate emails',
         )
-        self.assertEqual(len(mail.outbox), 2, 'Send another email')
 
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
@@ -55,4 +54,17 @@ class AccountsEmailTestCase(APITestCase):
         self.assertEqual(
             self.user.emailaddress_set.filter(verified=False).count(), 1
         )
-        self.assertEqual(len(mail.outbox), 3)
+        self.assertEqual(len(mail.outbox), 2)
+
+    def test_delete_email(self):
+        baker.make('account.emailaddress', user=self.user)
+        primary_email = baker.make(
+            'account.emailaddress', user=self.user, verified=True, primary=True
+        )
+
+        res = self.client.delete(self.url_list)
+        self.assertEqual(res.status_code, 204)
+        self.assertEqual(self.user.emailaddress_set.count(), 1)
+        self.assertTrue(
+            self.user.emailaddress_set.filter(pk=primary_email.pk).exists()
+        )

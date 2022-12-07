@@ -11,9 +11,9 @@ class EmailAddressSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # First delete any non-primary, unconfirmed emails
         request = self.context['request']
-        request.user.emailaddress_set.filter(
-            primary=False, verified=False
-        ).delete()
+        request.user.emailaddress_set.exclude(
+            email=validated_data['email']
+        ).filter(primary=False, verified=False).delete()
         return EmailAddress.objects.add_email(
             request,
             request.user,
