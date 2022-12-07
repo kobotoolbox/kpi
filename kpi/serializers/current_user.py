@@ -21,7 +21,6 @@ from kpi.utils.gravatar_url import gravatar_url
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
@@ -50,6 +49,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'new_password',
             'git_rev',
         )
+        read_only_fields = ('email',)
 
     def get_server_time(self, obj):
         # Currently unused on the front end
