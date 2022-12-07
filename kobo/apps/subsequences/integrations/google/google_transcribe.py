@@ -12,6 +12,7 @@ from googleapiclient import discovery
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
 from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
 from .utils import google_credentials_from_constance_config
+from kobo.apps.trackers.utils import update_nlp_counter
 
 GS_BUCKET_PREFIX = 'speech_tmp'
 REQUEST_TIMEOUT = 5 # seconds
@@ -123,6 +124,12 @@ class GoogleTranscribeEngine(AutoTranscription):
 
             speech_results = speech_client.long_running_recognize(audio=audio, config=config)
             cache.set(cache_key, speech_results.operation.name, GOOGLE_CACHE_TIMEOUT)
+            update_nlp_counter(
+                'google_asr_seconds',
+                int(duration.total_seconds()),
+                self.asset.owner.id,
+                self.asset.id,
+            )
             try:
                 result = speech_results.result(timeout=REQUEST_TIMEOUT)
             except TimeoutError as err:
