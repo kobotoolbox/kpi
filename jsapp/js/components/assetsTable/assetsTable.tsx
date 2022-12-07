@@ -17,7 +17,7 @@ import type {
   AssetsTableContextName,
   AssetsTableColumn,
 } from './assetsTableConstants';
-import type {OrderDirection} from 'js/projects/projectsView/projectsViewConstants';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 import type {
   AssetResponse,
   MetadataResponse,

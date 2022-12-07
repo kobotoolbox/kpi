@@ -7,9 +7,9 @@ import type {
   FilterConditionName,
   ProjectFieldName,
   ProjectsFilterDefinition,
-} from './projectsViewConstants';
-import {FILTER_CONDITIONS, PROJECT_FIELDS} from './projectsViewConstants';
-import {isFilterConditionValueRequired} from './projectsViewUtils';
+} from './constants';
+import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
+import {isFilterConditionValueRequired} from './utils';
 import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {

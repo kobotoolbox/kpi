@@ -4,11 +4,11 @@ import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
   OrderDirection,
-} from './projectsView/projectsViewConstants';
-import ProjectsFilter from './projectsView/projectsFilter';
-import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
-import {DEFAULT_PROJECT_FIELDS} from './projectsView/projectsViewConstants';
-import ViewSwitcher from './projectsView/viewSwitcher';
+} from './projectViews/constants';
+import ProjectsFilter from './projectViews/projectsFilter';
+import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
+import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
+import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import mockAssets from './assetsResponseMock';

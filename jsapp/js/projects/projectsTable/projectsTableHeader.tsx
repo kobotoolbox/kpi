@@ -1,10 +1,10 @@
 import React from 'react';
-import {PROJECT_FIELDS} from 'js/projects/projectsView/projectsViewConstants';
+import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
   OrderDirection,
   ProjectFieldDefinition,
   ProjectFieldName,
-} from 'js/projects/projectsView/projectsViewConstants';
+} from 'js/projects/projectViews/constants';
 import tableStyles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';

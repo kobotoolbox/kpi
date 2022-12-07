@@ -1,8 +1,8 @@
 import type {
   FilterConditionName,
   ProjectsFilterDefinition,
-} from './projectsViewConstants';
-import {FILTER_CONDITIONS} from './projectsViewConstants';
+} from './constants';
+import {FILTER_CONDITIONS} from './constants';
 
 /**
  * Checks if value is requied for given filter condition. If no condition is

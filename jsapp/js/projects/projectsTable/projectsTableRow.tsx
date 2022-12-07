@@ -1,8 +1,8 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
-import {PROJECT_FIELDS} from 'js/projects/projectsView/projectsViewConstants';
-import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/projectsView/projectsViewConstants';
+import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
+import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/projectViews/constants';
 import Checkbox from 'js/components/common/checkbox';
 import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
