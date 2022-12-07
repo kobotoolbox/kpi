@@ -10,7 +10,7 @@ import ViewSwitcher from './projectsView/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import mockAssets from './assetsResponseMock';
 
-export default function CustomViewsRoute() {
+export default function CustomViewRoute() {
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
 
