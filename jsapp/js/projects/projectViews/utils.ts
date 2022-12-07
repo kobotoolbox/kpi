@@ -5,7 +5,7 @@ import type {
 import {FILTER_CONDITIONS} from './constants';
 
 /**
- * Checks if value is requied for given filter condition. If no condition is
+ * Checks if value is required for given filter condition. If no condition is
  * provided, we assume value is needed (useful when filter is being created
  * in ProjectsFilterEditor, and we want the value input to be available before
  * condition is selected).

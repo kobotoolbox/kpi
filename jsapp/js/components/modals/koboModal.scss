@@ -26,7 +26,7 @@ $kobo-modal-header-icon-margin: sizes.$x10;
   display: flex;
   flex-direction: column;
 
-  // It's set on purpose here to make sure noone will make it hidden, as we
+  // It's set on purpose here to make sure no one will make it hidden, as we
   // need some content to be overflowing (e.g. dropdowns).
   overflow: visible;
 
