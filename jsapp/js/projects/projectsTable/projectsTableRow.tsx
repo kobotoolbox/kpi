@@ -1,95 +1,114 @@
 import React from 'react';
-import bem from 'js/bem';
-import ProjectActionButtons from './projectActionButtons';
+import {useNavigate} from 'react-router-dom';
+import {ROUTES} from 'js/router/routerConstants';
+import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
+import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/projectViews/constants';
+import Checkbox from 'js/components/common/checkbox';
+import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';
-import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
-import type {ProjectsTableContextName} from './projectsTableConstants';
-import {PROJECTS_TABLE_CONTEXTS} from './projectsTableConstants';
+import styles from './projectsTableRow.module.scss';
+import classNames from 'classnames';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse;
-  context: ProjectsTableContextName;
+  highlightedFields: ProjectFieldName[];
+  visibleFields: ProjectFieldName[];
 }
 
-class ProjectsTableRow extends React.Component<ProjectsTableRowProps> {
-  render() {
-    let iconClassName = '';
-    if (this.props.asset) {
-      iconClassName = assetUtils.getAssetIcon(this.props.asset);
+export default function ProjectsTableRow(props: ProjectsTableRowProps) {
+  const navigate = useNavigate();
+
+  const onRowClick = () => {
+    navigate(ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid));
+  };
+
+  const renderColumnContent = (field: ProjectFieldDefinition) => {
+    switch (field.name) {
+      case 'name':
+        return <AssetName asset={props.asset}/>;
+      case 'description':
+        return props.asset.settings.description;
+      case 'status':
+        if (props.asset.has_deployment && !props.asset.deployment__active) {
+          return <Badge
+            color='light-amber'
+            size='s'
+            icon='project-archived'
+            label={t('archived')}
+          />;
+        } else if (props.asset.has_deployment) {
+          return <Badge
+            color='light-blue'
+            size='s'
+            icon='project-deployed'
+            label={t('deployed')}
+          />;
+        } else {
+          return <Badge
+            color='light-teal'
+            size='s'
+            icon='project-draft'
+            label={t('draft')}
+          />;
+        }
+      case 'ownerUsername':
+        return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
+      case 'ownerFullName':
+        return 'ENDPOINT?';
+      case 'ownerEmail':
+        return 'ENDPOINT?';
+      case 'ownerOrganisation':
+        return 'ENDPOINT?';
+      case 'dateDeployed':
+        return 'ENDPOINT?';
+      case 'dateModified':
+        return formatTime(props.asset.date_modified);
+      case 'sector':
+        return assetUtils.getSectorDisplayString(props.asset);
+      case 'countries':
+        return assetUtils.getCountryDisplayString(props.asset);
+      case 'languages':
+        return assetUtils.getLanguagesDisplayString(props.asset);
+      case 'submissions':
+        return (
+          <Badge color='cloud' size='m' label={props.asset.summary.row_count}/>
+        );
+      default:
+        return null;
     }
+  };
 
-    let rowCount = null;
-    if (
-      this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
-      this.props.asset.summary?.row_count
-    ) {
-      rowCount = this.props.asset.summary.row_count;
-    } else if (
-      this.props.asset.asset_type === ASSET_TYPES.collection.id &&
-      this.props.asset.children
-    ) {
-      rowCount = this.props.asset.children.count;
-    }
-
-    return (
-      <bem.AssetsTableRow m={['asset', `type-${this.props.asset.asset_type}`]}>
-        <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`}/>
-
-        <bem.AssetsTableRow__buttons>
-          <ProjectActionButtons asset={this.props.asset}/>
-        </bem.AssetsTableRow__buttons>
-
-        <bem.AssetsTableRow__column m='icon-status'>
-          <i className={`k-icon ${iconClassName}`}/>
-        </bem.AssetsTableRow__column>
-
-        <bem.AssetsTableRow__column m='name'>
-          <AssetName asset={this.props.asset}/>
-
-          {this.props.asset.settings && this.props.asset.tag_string && this.props.asset.tag_string.length > 0 &&
-            <bem.AssetsTableRow__tags>
-              {this.props.asset.tag_string.split(',').map((tag) =>
-                ([' ', <bem.AssetsTableRow__tag key={tag}>{tag}</bem.AssetsTableRow__tag>])
-              )}
-            </bem.AssetsTableRow__tags>
-          }
-        </bem.AssetsTableRow__column>
-
-        <bem.AssetsTableRow__column m='item-count'>
-          {rowCount !== null &&
-            <bem.AssetsTableRow__tag m='gray-circle'>{rowCount}</bem.AssetsTableRow__tag>
-          }
-        </bem.AssetsTableRow__column>
-
-        <bem.AssetsTableRow__column m='owner'>
-          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner__username)}
-        </bem.AssetsTableRow__column>
-
-        {this.props.context === PROJECTS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
-          <bem.AssetsTableRow__column m='subscribers-count'>
-            {this.props.asset.subscribers_count}
-          </bem.AssetsTableRow__column>
+   return (
+    <div
+      className={classNames(
+        styles.row,
+        styles['row-project'],
+        styles[`row-${props.asset.asset_type}`]
+      )}
+      onClick={onRowClick}
+    >
+      {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {
+        // Hide not visible fields.
+        if (!props.visibleFields.includes(field.name)) {
+          return null;
         }
 
-        <bem.AssetsTableRow__column m='languages'>
-          {assetUtils.getLanguagesDisplayString(this.props.asset)}
-        </bem.AssetsTableRow__column>
-
-        {this.props.context === PROJECTS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
-          <bem.AssetsTableRow__column m='primary-sector'>
-            {assetUtils.getSectorDisplayString(this.props.asset)}
-          </bem.AssetsTableRow__column>
-        }
-
-        <bem.AssetsTableRow__column m='date-modified'>
-          {formatTime(this.props.asset.date_modified)}
-        </bem.AssetsTableRow__column>
-      </bem.AssetsTableRow>
-    );
-  }
+        return (
+          <div
+            className={classNames({
+              [styles.cell]: true,
+              [styles[`cell-${field.name}`]]: true,
+              [styles['cell-highlighted']]: props.highlightedFields.includes(field.name),
+            })}
+            key={field.name}
+          >
+            {renderColumnContent(field)}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
-
-export default ProjectsTableRow;
