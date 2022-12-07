@@ -6,6 +6,7 @@ import type {
 } from './projectsView/projectsViewConstants';
 import ProjectsFilter from './projectsView/projectsFilter';
 import ProjectsFieldsSelector from './projectsView/projectsFieldsSelector';
+import {DEFAULT_PROJECT_FIELDS} from './projectsView/projectsViewConstants';
 import ViewSwitcher from './projectsView/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import mockAssets from './assetsResponseMock';
@@ -14,7 +15,8 @@ export default function CustomViewRoute() {
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
 
-  const getHighlightedFields = () => {
+  /** Returns a list of names for fields that have at least 1 filter defined. */
+  const getFilteredFieldsNames = () => {
     const outcome: ProjectFieldName[] = [];
     filters.forEach((item: ProjectsFilterDefinition) => {
       if (item.fieldName !== undefined) {
@@ -50,7 +52,8 @@ export default function CustomViewRoute() {
 
       <ProjectsTable
         assets={mockAssets.results}
-        highlightedFields={getHighlightedFields()}
+        highlightedFields={getFilteredFieldsNames()}
+        visibleFields={fields || DEFAULT_PROJECT_FIELDS}
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}

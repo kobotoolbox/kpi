@@ -15,6 +15,7 @@ import classNames from 'classnames';
 interface ProjectsTableRowProps {
   asset: AssetResponse;
   highlightedFields: ProjectFieldName[];
+  visibleFields: ProjectFieldName[];
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
@@ -89,18 +90,25 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       )}
       onClick={onRowClick}
     >
-      {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) =>
-        <div
-          className={classNames({
-            [styles.cell]: true,
-            [styles[`cell-${field.name}`]]: true,
-            [styles['cell-highlighted']]: props.highlightedFields.includes(field.name),
-          })}
-          key={field.name}
-        >
-          {renderColumnContent(field)}
-        </div>
-      )}
+      {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {
+        // Hide not visible fields.
+        if (!props.visibleFields.includes(field.name)) {
+          return null;
+        }
+
+        return (
+          <div
+            className={classNames({
+              [styles.cell]: true,
+              [styles[`cell-${field.name}`]]: true,
+              [styles['cell-highlighted']]: props.highlightedFields.includes(field.name),
+            })}
+            key={field.name}
+          >
+            {renderColumnContent(field)}
+          </div>
+        );
+      })}
     </div>
   );
 }

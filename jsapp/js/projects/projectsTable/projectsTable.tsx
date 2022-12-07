@@ -17,6 +17,7 @@ interface ProjectsTableProps {
  assets: AssetResponse[];
  /** Renders the columns for highlighted fields in some fancy way. */
  highlightedFields: ProjectFieldName[];
+ visibleFields: ProjectFieldName[];
  orderFieldName: ProjectFieldName;
  orderDirection: OrderDirection;
  /** Called when user selects a column for odering. */
@@ -53,6 +54,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
     <div className={styles.root}>
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
+        visibleFields={props.visibleFields}
         orderFieldName={props.orderFieldName}
         orderDirection={props.orderDirection}
         onChangeOrderRequested={onChangeOrderRequested}
@@ -80,6 +82,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
             <ProjectsTableRow
               asset={asset}
               highlightedFields={props.highlightedFields}
+              visibleFields={props.visibleFields}
               key={asset.uid}
             />
           )}

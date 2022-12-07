@@ -11,6 +11,7 @@ import classNames from 'classnames';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
+  visibleFields: ProjectFieldName[];
   /** Current ordering field. */
   orderFieldName: ProjectFieldName;
   orderDirection: OrderDirection;
@@ -19,7 +20,10 @@ interface ProjectsTableHeaderProps {
 
 export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
   const renderColumn = (field: ProjectFieldDefinition) => {
-    // TODO don't render hidden fields :)
+    // Hide not visible fields.
+    if (!props.visibleFields.includes(field.name)) {
+      return null;
+    }
 
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
