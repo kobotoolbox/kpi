@@ -90,11 +90,12 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
 .row.row-header {
   .cell {
+    @include mixins.textEllipsis;
+
     color: colors.$kobo-gray-24;
     border-top: 0;
     cursor: pointer;
     font-weight: 700;
-    white-space: nowrap;
     height: sizes.$x40;
     line-height: sizes.$x20;
     background-color: colors.$kobo-gray-96;
@@ -102,20 +103,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     &:hover {
       background-color: colors.$kobo-gray-92;
-    }
-
-    .k-icon {
-      font-size: variables.$base-font-size;
-      // to take up space when empty
-      min-width: sizes.$x14;
-      width: sizes.$x14;
-      margin-left: sizes.$x3;
-      display: inline-block;
-
-      &.k-icon-filter-arrows {
-        font-size: sizes.$x10;
-        margin-left: 0 !important;
-      }
     }
   }
 }
