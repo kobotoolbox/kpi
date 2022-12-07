@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useParams} from 'react-router-dom'
 import {notify} from 'js/utils';
 import type {
   ProjectsFilterDefinition,
@@ -14,8 +15,13 @@ import Button from 'js/components/common/button';
 import mockAssets from './assetsResponseMock';
 
 export default function CustomViewRoute() {
+  const {viewUid} = useParams();
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
+
+  if (viewUid === undefined) {
+    return null;
+  }
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -45,7 +51,7 @@ export default function CustomViewRoute() {
         flexDirection: 'row',
         alignItems: 'center',
       }}>
-        <ViewSwitcher selectedViewUid='1' viewCount={15}/>
+        <ViewSwitcher selectedViewUid={viewUid}/>
 
         <ProjectsFilter
           onFiltersChange={setFilters}

@@ -7,6 +7,7 @@ import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDro
 import {PROJECTS_ROUTES} from 'js/projects/routes';
 import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
+import {HOME_VIEW} from './constants';
 
 interface ViewSwitcherProps {
   selectedViewUid: string;
@@ -23,11 +24,19 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
   const onOptionClick = (viewUid: string) => {
     console.log(viewUid);
-    if (viewUid === 'kobo_my_projects' || viewUid === null) {
+    if (viewUid === HOME_VIEW.uid || viewUid === null) {
       navigate(PROJECTS_ROUTES.MY_PROJECTS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
     }
+  };
+
+  const getTriggerLabel = () => {
+    if (props.selectedViewUid === HOME_VIEW.uid) {
+      return HOME_VIEW.name;
+    }
+
+    return viewsStore.getView(props.selectedViewUid)?.name
   };
 
   return (
@@ -43,7 +52,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
           <button className={styles.trigger}>
-            {viewsStore.getView(props.selectedViewUid)?.name}
+            {getTriggerLabel()}
             {props.viewCount !== undefined &&
               <span className={styles['trigger-badge']}>{props.viewCount}</span>
             }
@@ -57,11 +66,11 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         menuContent={
           <div className={styles.menu}>
             <button
-              key='kobo_my_projects'
+              key={HOME_VIEW.uid}
               className={styles['menu-option']}
-              onClick={() => onOptionClick('kobo_my_projects')}
+              onClick={() => onOptionClick(HOME_VIEW.uid)}
             >
-              {t('My Projects')}
+              {HOME_VIEW.name}
             </button>
             {viewsStore.views.map((view) =>
               <button

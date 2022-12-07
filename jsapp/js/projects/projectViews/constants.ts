@@ -1,5 +1,10 @@
 export type OrderDirection = 'ascending' | 'descending';
 
+export const HOME_VIEW = {
+  uid: 'kobo_my_projects',
+  name: t('My Projects'),
+}
+
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName;
   condition?: FilterConditionName;
