@@ -41,13 +41,11 @@ class ProjectViewsStore {
   }
 
   private onFetchDataDone(response: PaginatedResponse<ProjectView>) {
-    console.log('onFetchDataDone', response);
     this.views = response.results;
     this.isInitialised = true;
   }
 
   private onFetchDataFail(response: FailResponse) {
-    console.log('onFetchDataFail', response);
     notify.error(response.responseText);
   }
 }

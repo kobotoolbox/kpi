@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {useParams} from 'react-router-dom'
+import {useParams} from 'react-router-dom';
 import {notify} from 'js/utils';
 import type {
   ProjectsFilterDefinition,
@@ -12,16 +12,19 @@ import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
-import mockAssets from './assetsResponseMock';
+import CustomViewStore from './customViewStore';
+import {observer} from 'mobx-react-lite';
 
-export default function CustomViewRoute() {
+function CustomViewRoute() {
   const {viewUid} = useParams();
-  const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
-  const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
 
   if (viewUid === undefined) {
     return null;
   }
+
+  const [viewStore] = useState(() => new CustomViewStore(viewUid));
+  const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
+  const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -74,15 +77,17 @@ export default function CustomViewRoute() {
       </div>
 
       <ProjectsTable
-        assets={mockAssets.results}
+        assets={viewStore.assets}
         highlightedFields={getFilteredFieldsNames()}
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
         onRequestLoadNextPage={() => console.log('load next page please!')}
-        hasMorePages
+        hasMorePages={viewStore.hasMoreAssets}
       />
     </section>
   );
 }
+
+export default observer(CustomViewRoute);

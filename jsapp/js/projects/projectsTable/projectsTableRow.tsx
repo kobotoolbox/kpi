@@ -74,7 +74,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':
         return (
-          <Badge color='cloud' size='m' label={props.asset.summary.row_count}/>
+          <Badge color='cloud' size='m' label={props.asset.deployment__submission_count}/>
         );
       default:
         return null;
