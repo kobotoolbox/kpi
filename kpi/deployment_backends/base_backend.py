@@ -41,6 +41,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def all_time_submission_count(self):
+        pass
+
+    @property
+    @abc.abstractmethod
     def attachment_storage_bytes(self):
         pass
 
