@@ -19,6 +19,7 @@ import constance
 import requests
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -69,6 +70,7 @@ from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
 )
 from kpi.utils.strings import to_str
+from kpi.utils.custom_project_exports import create_custom_project_export
 from kpi.zip_importer import HttpContentParse
 
 
@@ -164,6 +166,8 @@ class ImportExportTask(models.Model):
                                                      repr(e)),
                           exc_info=True)
             self.save(update_fields=['status'])
+
+        return self
 
 
 class ImportTask(ImportExportTask):
@@ -405,6 +409,43 @@ def export_upload_to(self, filename):
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
     return posixpath.join(self.user.username, 'exports', filename)
+
+
+class CustomProjectExportTask(ImportExportTask):
+    uid = KpiUidField(uid_prefix='cpe')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    def _build_export_filename(self, export_type, username, view):
+        time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        return f'{export_type}-{username}-view_{view}-{time}.csv'
+
+    def _run_task(self, messages):
+        export_type = self.data.get('type')
+        view = self.data.get('view')
+
+        filename = self._build_export_filename(
+            export_type, self.user.username, view
+        )
+        self.result.save(filename, ContentFile(b''))
+        # FileField files are opened read-only by default and must be
+        # closed and reopened to allow writing
+        # https://code.djangoproject.com/ticket/13809
+        self.result.close()
+        self.result.file.close()
+
+        buff = create_custom_project_export(export_type, self.user.username, view)
+
+        with self.result.storage.open(self.result.name, 'wb') as output_file:
+            output_file.write(buff.read().encode())
+
+        # Restore the FileField to its typical state
+        self.result.open('rb')
+        self.save()
+
+    def delete(self, *args, **kwargs):
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 class ExportTaskBase(ImportExportTask):

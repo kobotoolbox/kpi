@@ -11,6 +11,7 @@ from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     ASSET_TYPES,
@@ -51,7 +52,11 @@ from kpi.renderers import (
     XlsRenderer,
 )
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.serializers.v2.asset import (
+    AssetListSerializer,
+    AssetMetadataListSerializer,
+    AssetSerializer,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -59,6 +64,10 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
+)
+from kpi.utils.custom_projects import (
+    get_regional_views_for_user,
+    user_has_regional_asset_perm,
 )
 
 
@@ -334,6 +343,21 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'uid__icontains',
     ]
 
+
+    def get_object(self):
+        if self.request.method == 'PATCH':
+            try:
+                asset = Asset.objects.get(uid=self.kwargs['uid'])
+            except Asset.DoesNotExist:
+                raise Http404
+
+            if user_has_regional_asset_perm(
+                asset, self.request.user, 'change_metadata'
+            ):
+                return asset
+
+        return super().get_object()
+
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
         asset = self.get_object()
@@ -556,7 +580,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return metadata
 
-    def get_paginated_response(self, data, metadata):
+    def get_paginated_response(self, data, metadata=None):
         """
         Override parent `get_paginated_response` response to include `metadata`
         """

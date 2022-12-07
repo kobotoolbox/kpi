@@ -2,6 +2,7 @@
 import json
 import re
 
+import constance
 from django.conf import settings
 from django.utils.translation import gettext as t
 from rest_framework import serializers
@@ -35,6 +36,10 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
+)
+from kpi.utils.custom_projects import (
+    user_has_regional_asset_perm,
+    view_has_perm,
 )
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -168,8 +173,22 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def update(self, asset, validated_data):
+        request = self.context['request']
+        user = request.user
+        if not asset.has_perm(
+            user, 'change_asset'
+        ) and user_has_regional_asset_perm(asset, user, 'change_metadata'):
+            _validated_data = {}
+            settings = validated_data.get('settings')
+            if settings:
+                _validated_data['settings'] = settings
+            name = validated_data.get('name')
+            if name:
+                _validated_data['name'] = name
+            return super().update(asset, _validated_data)
+
         asset_content = asset.content
-        _req_data = self.context['request'].data
+        _req_data = request.data
         _has_translations = 'translations' in _req_data
         _has_content = 'content' in _req_data
         if _has_translations and not _has_content:
@@ -572,6 +591,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return parent
 
+    def validate_settings(self, settings: dict) -> dict:
+        if not self.instance or not settings:
+            return settings
+        return {**self.instance.settings, **settings}
+
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -720,3 +744,86 @@ class AssetUrlListSerializer(AssetSerializer):
 
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
+
+
+class AssetMetadataListSerializer(AssetSerializer):
+
+    date_latest_deployement = serializers.SerializerMethodField()
+    date_first_deployement = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    owner__name = serializers.SerializerMethodField()
+    owner__email = serializers.SerializerMethodField()
+    owner__organization = serializers.SerializerMethodField()
+
+    class Meta(AssetSerializer.Meta):
+        fields = (
+            'url',
+            'date_modified',
+            'date_created',
+            'date_latest_deployement',
+            'date_first_deployement',
+            'owner',
+            'owner__username',
+            'owner__email',
+            'owner__name',
+            'owner__organization',
+            'uid',
+            'kind',
+            'name',
+            'settings',
+            'languages',
+            'asset_type',
+            'version_id',
+            'version_count',
+            'has_deployment',
+            'deployed_version_id',
+            'deployment__active',
+            'deployment__submission_count',
+            'permissions',
+            'status',
+            'data_sharing',
+            'data',
+        )
+
+    def get_data(self, *args, **kwargs):
+        if view_has_perm(self._get_view(), PERM_VIEW_SUBMISSIONS):
+            return super().get_data(*args, **kwargs)
+        return ''
+
+    def get_date_first_deployement(self, obj):
+        version = obj.asset_versions.filter(deployed=True).last()
+        if version:
+            return version.date_modified
+
+    def get_date_latest_deployement(self, obj):
+        version = obj.asset_versions.filter(deployed=True).first()
+        if version:
+            return version.date_modified
+
+    def get_languages(self, obj):
+        return obj.summary.get('languages', [])
+
+    def get_owner__email(self, obj):
+        return obj.owner.email
+
+    def get_owner__name(self, obj):
+        return self._get_user_detail(obj, 'name')
+
+    def get_owner__organization(self, obj):
+        return self._get_user_detail(obj, 'organization')
+
+    def get_permissions(self, *args, **kwargs):
+        if view_has_perm(self._get_view(), 'view_permissions'):
+            return super().get_permissions(*args, **kwargs)
+        return []
+
+    @staticmethod
+    def _get_user_detail(obj, attr):
+        owner = obj.owner
+        if hasattr(owner, 'extra_details'):
+            return owner.extra_details.data.get(attr, '')
+        return ''
+
+    def _get_view(self) -> int:
+        request = self.context.get('request')
+        return request.parser_context['kwargs']['uid']
