@@ -30,17 +30,15 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task
-def regional_export_in_background(regional_export_task_uid, username):
+def custom_project_export_in_background(export_task_uid, username):
     from kpi.models.import_export_task import (
         CustomProjectExportTask,
     )  # avoid circular imports
 
     user = User.objects.get(username=username)
 
-    regional_export_task = CustomProjectExportTask.objects.get(
-        uid=regional_export_task_uid
-    )
-    export = regional_export_task.run()
+    export_task = CustomProjectExportTask.objects.get(uid=export_task_uid)
+    export = export_task.run()
     file_location = serializers.FileField().to_representation(export.result)
     file_url = f'{settings.KOBOFORM_URL}{file_location}'
     msg = (

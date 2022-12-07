@@ -17,7 +17,7 @@ from kpi.utils.custom_projects import (
     get_region_for_view,
     user_has_view_perms,
 )
-from kpi.tasks import regional_export_in_background
+from kpi.tasks import custom_project_export_in_background
 from .models.custom_project import CustomProject
 from .serializers import CustomProjectSerializer
 
@@ -75,7 +75,7 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             )
         elif request.method == 'POST':
-            regional_export_task = CustomProjectExportTask.objects.create(
+            export_task = CustomProjectExportTask.objects.create(
                 user=user,
                 data={
                     'view': uid,
@@ -84,12 +84,12 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
             # Have Celery run the export in the background
-            regional_export_in_background.delay(
-                regional_export_task_uid=regional_export_task.uid,
+            custom_project_export_in_background.delay(
+                export_task_uid=export_task.uid,
                 username=user.username,
             )
 
-            return Response({'status': regional_export_task.status})
+            return Response({'status': export_task.status})
 
     @action(detail=True, methods=['GET'])
     def users(self, request, uid):
