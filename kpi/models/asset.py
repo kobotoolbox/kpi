@@ -9,7 +9,6 @@ from jsonschema import validate as jsonschema_validate
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -71,6 +70,7 @@ from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     ObjectPermissionMixin,
     XlsExportableMixin,
+    StandardizeSearchableFieldMixin,
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
@@ -146,6 +146,7 @@ class Asset(ObjectPermissionMixin,
             DeployableMixin,
             XlsExportableMixin,
             FormpackXLSFormUtilsMixin,
+            StandardizeSearchableFieldMixin,
             models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
@@ -841,9 +842,22 @@ class Asset(ObjectPermissionMixin,
         ):
             self.validate_advanced_features()
 
+        # standardize settings (only when required)
+        if not update_fields or update_fields and 'settings' in update_fields:
+            self.standardize_json_field('settings', 'country', list)
+            self.standardize_json_field(
+                'settings',
+                'country_codes',
+                list,
+                [c['value'] for c in self.settings['country']],
+            )
+            self.standardize_json_field('settings', 'sector', dict)
+            self.standardize_json_field('settings', 'description', str)
+
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
             self._populate_summary()
+            self.standardize_json_field('summary', 'languages', list)
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:

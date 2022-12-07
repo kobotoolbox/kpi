@@ -361,9 +361,6 @@ class SearchFilter(filters.BaseFilterBackend):
                 min_search_characters=getattr(
                     view, 'min_search_characters', None
                 ),
-                search_list_fields=getattr(
-                    view, 'search_list_fields', []
-                ),
             )
         except ParseError:
             return queryset.model.objects.none()
