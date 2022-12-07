@@ -1,22 +1,12 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {observer} from 'mobx-react-lite';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
 import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
+import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
-
-// TODO get this list from backend:
-const DEFINED_VIEWS = [
-  {
-    uid: '1',
-    label: 'Custom View 1',
-  },
-  {
-    uid: '2',
-    label: 'Custom View 2',
-  },
-];
 
 interface ViewSwitcherProps {
   selectedViewUid: string;
@@ -25,9 +15,10 @@ interface ViewSwitcherProps {
   disabled?: boolean;
 }
 
-export default function ViewSwitcher(props: ViewSwitcherProps) {
+function ViewSwitcher(props: ViewSwitcherProps) {
   // We track the menu visibility for the trigger icon.
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [viewsStore] = useState(() => projectViewsStore);
   const navigate = useNavigate();
 
   const onOptionClick = (viewUid: string) => {
@@ -52,7 +43,7 @@ export default function ViewSwitcher(props: ViewSwitcherProps) {
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
           <button className={styles.trigger}>
-            {DEFINED_VIEWS.find((view) => view.uid === props.selectedViewUid)?.label}
+            {viewsStore.getView(props.selectedViewUid)?.name}
             {props.viewCount !== undefined &&
               <span className={styles['trigger-badge']}>{props.viewCount}</span>
             }
@@ -72,13 +63,13 @@ export default function ViewSwitcher(props: ViewSwitcherProps) {
             >
               {t('My Projects')}
             </button>
-            {DEFINED_VIEWS.map((view) =>
+            {viewsStore.views.map((view) =>
               <button
                 key={view.uid}
                 className={styles['menu-option']}
                 onClick={() => onOptionClick(view.uid)}
               >
-                {view.label}
+                {view.name}
               </button>
             )}
           </div>
@@ -87,3 +78,5 @@ export default function ViewSwitcher(props: ViewSwitcherProps) {
     </div>
   );
 }
+
+export default observer(ViewSwitcher);

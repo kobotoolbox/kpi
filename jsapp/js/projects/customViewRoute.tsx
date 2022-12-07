@@ -26,13 +26,13 @@ export default function CustomViewRoute() {
       }
     });
     return outcome;
-  }
+  };
 
   const exportAllData = () => {
     notify.warning(t("Export is being generated, you will receive an email when it's done"));
     // TODO make the call :)
     console.log('call backend to initiate downloading data to email');
-  }
+  };
 
   return (
     <section style={{

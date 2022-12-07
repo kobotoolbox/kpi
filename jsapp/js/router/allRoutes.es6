@@ -131,7 +131,7 @@ const AllRoutes = class AllRoutes extends React.Component {
             <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
             <Route path={ROUTES.PROJECTS_ROOT}>{projectsRoutes()}</Route>
             <Route path={ROUTES.LIBRARY}>
-              <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} />} />
+              <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace/>} />
               <Route
                 path={ROUTES.MY_LIBRARY}
                 element={
