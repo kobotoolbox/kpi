@@ -19,7 +19,7 @@ class AssignmentAdmin(admin.ModelAdmin):
     )
     search_fields = ('username',)
 
-    @admin.display(description='Custom projects')
+    @admin.display(description='Custom project views')
     def custom_projects_csv(self, obj):
         return ', '.join([r.name for r in obj.custom_projects.all()])
 
