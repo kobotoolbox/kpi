@@ -1,6 +1,7 @@
 // List of server routes
 export const PATHS = Object.freeze({
   LOGIN: '/accounts/login',
+  RESET: '/accounts/password/reset/',
 });
 
 /** Needed for easier detecting if a processing route. */
