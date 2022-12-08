@@ -39,16 +39,11 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &.cell-description,
   &.cell-ownerEmail,
   &.cell-ownerFullName,
-  &.cell-ownerOrganisation,
+  &.cell-ownerOrganization,
   &.cell-ownerUsername,
   &.cell-status,
   &.cell-submissions {
     width: 10%;
-  }
-
-  &.cell-dateDeployed {
-    width: 17.5%;
-    text-align: right;
   }
 
   &.cell-dateModified {

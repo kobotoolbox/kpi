@@ -95,7 +95,7 @@ function CustomViewRoute() {
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
-        onRequestLoadNextPage={() => console.log('load next page please!')}
+        onRequestLoadNextPage={customView.fetchMoreAssets}
         hasMorePages={customView.hasMoreAssets}
       />
     </section>

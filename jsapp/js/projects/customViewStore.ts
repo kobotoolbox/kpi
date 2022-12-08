@@ -16,6 +16,7 @@ export interface ProjectViewAsset {
   owner: string;
   owner__username: string;
   owner__email: string;
+  /** Full name */
   owner__name: string;
   owner__organization: string;
   uid: string;

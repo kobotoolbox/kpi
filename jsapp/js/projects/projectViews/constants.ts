@@ -72,9 +72,9 @@ export const FILTER_CONDITIONS: FilterConditions = {
   },
 };
 
-export type ProjectFieldName = 'countries' | 'dateDeployed' | 'dateModified' |
+export type ProjectFieldName = 'countries' | 'dateModified' |
 'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
-'ownerOrganisation' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
+'ownerOrganization' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
 
 export interface ProjectFieldDefinition {
   name: ProjectFieldName;
@@ -136,16 +136,9 @@ export const PROJECT_FIELDS: ProjectFields = {
     orderDefaultValue: 'ascending',
     filterPropertyPath: ['xxxxxx','yyyyy'],
   },
-  ownerOrganisation: {
-    name: 'ownerOrganisation',
-    label: t('Owner organisation'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
-  },
-  dateDeployed: {
-    name: 'dateDeployed',
-    label: t('Date deployed'),
+  ownerOrganization: {
+    name: 'ownerOrganization',
+    label: t('Owner organization'),
     propertyName: 'xxxx',
     orderDefaultValue: 'ascending',
     filterPropertyPath: ['xxxxxx','yyyyy'],
@@ -189,7 +182,6 @@ export const PROJECT_FIELDS: ProjectFields = {
 
 export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
   'countries',
-  'dateDeployed',
   'dateModified',
   'name',
   'ownerUsername',

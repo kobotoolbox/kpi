@@ -57,13 +57,11 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'ownerUsername':
         return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
       case 'ownerFullName':
-        return 'ENDPOINT?';
+        return 'owner__name' in props.asset ? props.asset.owner__name : null;
       case 'ownerEmail':
-        return 'ENDPOINT?';
-      case 'ownerOrganisation':
-        return 'ENDPOINT?';
-      case 'dateDeployed':
-        return 'ENDPOINT?';
+        return 'owner__email' in props.asset ? props.asset.owner__email : null;
+      case 'ownerOrganization':
+        return 'owner__organization' in props.asset ? props.asset.owner__organization : null;
       case 'dateModified':
         return formatTime(props.asset.date_modified);
       case 'sector':
@@ -74,7 +72,11 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':
         return (
-          <Badge color='cloud' size='m' label={props.asset.deployment__submission_count}/>
+          <Badge
+            color='cloud'
+            size='m'
+            label={props.asset.deployment__submission_count}
+          />
         );
       default:
         return null;

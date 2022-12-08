@@ -14,7 +14,6 @@ describe('projectViewsUtils', () => {
         {fieldName: 'languages', condition: 'contains', value: ''},
         {condition: 'isNot', value: 'Fum'},
         {fieldName: 'ownerUsername', value: 'Baz'},
-        {fieldName: 'dateDeployed'},
         {condition: 'isEmpty'},
         {condition: 'endsWith'},
         {value: 'Asd'},
