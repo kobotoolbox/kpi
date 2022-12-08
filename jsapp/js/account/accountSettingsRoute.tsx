@@ -249,16 +249,6 @@ function AccountSettings() {
               />
             </bem.AccountSettings__item>
 
-            <bem.AccountSettings__item m='password'>
-              <a
-                href={`/#${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}
-                className='kobo-button kobo-button--blue'
-              >
-                {t('Modify Password')}
-              </a>
-            </bem.AccountSettings__item>
-
-
             <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
