@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {COMMON_QUERIES} from 'js/constants';
+import {HOME_VIEW} from 'js/projects/projectViews/constants';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import SearchCollectionList from '../components/searchcollectionlist';
+import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
 
 class FormsSearchableList extends React.Component {
   constructor(props) {
@@ -24,9 +26,11 @@ class FormsSearchableList extends React.Component {
   }
   render () {
     return (
-      <SearchCollectionList
-        searchContext={this.state.searchContext} />
-      );
+      <>
+        <ViewSwitcher selectedViewUid={HOME_VIEW.uid}/>
+        <SearchCollectionList searchContext={this.state.searchContext} />
+      </>
+    );
   }
 }
 

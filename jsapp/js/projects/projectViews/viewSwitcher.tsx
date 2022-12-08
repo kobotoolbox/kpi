@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
 import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
+import {ROUTES} from 'js/router/routerConstants';
 import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
 import {HOME_VIEW} from './constants';
@@ -22,7 +23,8 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   const onOptionClick = (viewUid: string) => {
     console.log(viewUid);
     if (viewUid === HOME_VIEW.uid || viewUid === null) {
-      navigate(PROJECTS_ROUTES.MY_PROJECTS);
+      // TODO change this to PROJECTS_ROUTES.MY_PROJECTS
+      navigate(ROUTES.FORMS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
     }
@@ -43,6 +45,10 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
     return viewsStore.getView(props.selectedViewUid)?.assets_count;
   };
+
+  if (!viewsStore.isInitialised) {
+    return null;
+  }
 
   return (
     <div className={classNames({
