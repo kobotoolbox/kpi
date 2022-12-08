@@ -4,11 +4,16 @@ import re
 from copy import deepcopy
 from lxml import etree
 
+import pytest
 from django.conf import settings
 from django.db.models import Q
 from django.test import TestCase
 
-from kpi.exceptions import SearchQueryTooShortException
+from kpi.exceptions import (
+    SearchQueryTooShortException,
+    QueryParserBadSyntax,
+    QueryParserNotSupportedFieldLookup,
+)
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
@@ -212,21 +217,30 @@ class UtilsTestCase(TestCase):
             parse(query_string, default_field_lookups)
         )
 
-    def test_query_parser_with_array_field(self):
+    def test_query_parser_with_lists_in_json_field(self):
 
-        query_string = 'field__property__key:value'
+        # List of dicts
+        query_string = 'field__property[]__key:value'
+        expected_q = Q(field__property__contains=[{'key': 'value'}])
 
-        default_field_lookups = []
-        search_list_fields = ['field__property']
+        assert expected_q == parse(query_string, [])
 
-        expected_q = (
-            Q(field__property__contains=[{'key': 'value'}])
-            | Q(field__property__key='value')
-        )
+        # List of strings
+        query_string = 'field__property[]:value'
+        expected_q = Q(field__property=['value'])
+        assert expected_q == parse(query_string, [])
 
-        assert expected_q == parse(
-            query_string, default_field_lookups, search_list_fields=search_list_fields
-        )
+    def test_query_parser_with_empty_lists_in_json_field(self):
+
+        query_string = 'field__property[]:""'
+        expected_q = Q(field__property=[])
+        assert expected_q == parse(query_string, [])
+
+    def test_query_parser_not_supported_lookup_with_empty_lists_in_json_field(self):
+
+        query_string = 'field__property[]__key__icontains:value'
+        with pytest.raises(QueryParserNotSupportedFieldLookup):
+            parse(query_string, [])
 
     def test_query_parser_default_search_too_short(self):
         # if the search query without a field is less than a specified

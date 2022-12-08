@@ -23,7 +23,7 @@ def standarize_fields(apps, schema_editor):
             (populate_assetversions) to prepare the versions.
             """
         )
-        call_command('standarize_searchable_fields')
+        call_command('standardize_searchable_fields')
 
 
 class Migration(migrations.Migration):

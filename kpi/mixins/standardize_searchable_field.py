@@ -10,6 +10,12 @@ class StandardizeSearchableFieldMixin:
         property_type: Union[str, list, dict],
         default: Optional[Union[str, list, dict]] = None,
     ):
+        """
+        Standardize a property inside a jsonb field to match expected
+        structure.
+        It helps the search with the query parser.
+        """
+
         field = getattr(self, field_name)
         try:
             value = field.get(property_name)
@@ -35,7 +41,17 @@ class StandardizeSearchableFieldMixin:
         field[property_name] = value
         setattr(self, field_name, field)
 
-    def standardize_field(self, field_name: str, default, allows_null=True):
+    def standardize_field(
+        self, field_name: str, default: str = "", allows_null=True
+    ):
+        """
+        Standardize the default value of a field.
+        It helps the search with the query parser.
+
+        Note: Not used anywhere. It is just a future-proof utility in case
+        some fields allows '' and null, or 0 and null.
+        """
+
         value = getattr(self, field_name)
 
         if not value:

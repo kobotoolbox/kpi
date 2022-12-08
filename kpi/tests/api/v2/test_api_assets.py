@@ -310,7 +310,14 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
             }),
         }
         resp = self.client.patch(self.asset_url, data, format='json')
-        self.assertEqual(resp.data['settings'], {'mysetting': "value"})
+        expected = {
+            'country': [],
+            'country_codes': [],
+            'description': '',
+            'mysetting': 'value',
+            'sector': {},
+        }
+        self.assertEqual(resp.data['settings'], expected)
 
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')
@@ -467,7 +474,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
                                partial_perms=partial_perms)
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Test that a user with the permissions to view submissions can 
+        # Test that a user with the permissions to view submissions can
         # access the data
         self.asset.remove_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS)
         self.asset.assign_perm(anotheruser, PERM_VIEW_SUBMISSIONS)

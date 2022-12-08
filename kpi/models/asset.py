@@ -843,7 +843,10 @@ class Asset(ObjectPermissionMixin,
             self.validate_advanced_features()
 
         # standardize settings (only when required)
-        if not update_fields or update_fields and 'settings' in update_fields:
+        if (
+            (not update_fields or update_fields and 'settings' in update_fields)
+            and self.asset_type in [ASSET_TYPE_COLLECTION, ASSET_TYPE_SURVEY]
+        ):
             self.standardize_json_field('settings', 'country', list)
             self.standardize_json_field(
                 'settings',
