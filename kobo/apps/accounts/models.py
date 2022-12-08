@@ -1,4 +1,6 @@
+from allauth.account.signals import email_confirmed
 from django.db import models
+from django.dispatch import receiver
 
 
 class ImportedVerification(models.Model):
@@ -15,3 +17,12 @@ class ImportedVerification(models.Model):
         primary_key=True,
         related_name='+',
     )
+
+
+@receiver(email_confirmed)
+def on_email_confirmed(sender, **kwargs):
+    """Confirmed email should always replace primary"""
+    email_address = kwargs['email_address']
+    if not email_address.primary:
+        email_address.set_as_primary()
+    email_address.user.emailaddress_set.filter(primary=False).delete()

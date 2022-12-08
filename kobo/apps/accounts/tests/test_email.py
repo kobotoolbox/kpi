@@ -1,7 +1,8 @@
+from allauth.account.models import EmailAddress
 from django.core import mail
 from django.urls import reverse
-from rest_framework.test import APITestCase
 from model_bakery import baker
+from rest_framework.test import APITestCase
 
 
 class AccountsEmailTestCase(APITestCase):
@@ -67,4 +68,32 @@ class AccountsEmailTestCase(APITestCase):
         self.assertEqual(self.user.emailaddress_set.count(), 1)
         self.assertTrue(
             self.user.emailaddress_set.filter(pk=primary_email.pk).exists()
+        )
+
+    def test_new_confirm_email(self):
+        baker.make(
+            'account.emailaddress', user=self.user, primary=True, verified=True
+        )
+        data = {'email': 'new@example.com'}
+        res = self.client.post(self.url_list, data, format='json')
+        # Locate confirm URL in email with HMAC value
+        for line in mail.outbox[0].body.splitlines():
+            if 'confirm-email' in line:
+                confirm_url = line.split('testserver')[1].rsplit('/', 1)[0]
+        # TODO fix unrelated context processors performance
+        # with self.assertNumQueries(13):
+        res = self.client.post(confirm_url + "/")
+        self.assertEqual(res.status_code, 302)
+        self.assertTrue(
+            self.user.emailaddress_set.filter(
+                email=data['email'], verified=True
+            ).exists(),
+            'New email should be confirmed',
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, data['email'])
+        self.assertEqual(
+            self.user.emailaddress_set.count(),
+            1,
+            'Expect only 1 email after confirm',
         )

@@ -1,7 +1,6 @@
 from django.core import validators
 from django.utils.translation import gettext_lazy as t
 
-
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
 USERNAME_INVALID_MESSAGE = t(
