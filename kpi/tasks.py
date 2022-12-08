@@ -30,14 +30,14 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task
-def custom_project_export_in_background(export_task_uid, username):
+def project_view_export_in_background(export_task_uid, username):
     from kpi.models.import_export_task import (
-        CustomProjectExportTask,
+        ProjectViewExportTask,
     )  # avoid circular imports
 
     user = User.objects.get(username=username)
 
-    export_task = CustomProjectExportTask.objects.get(uid=export_task_uid)
+    export_task = ProjectViewExportTask.objects.get(uid=export_task_uid)
     export = export_task.run()
     file_location = serializers.FileField().to_representation(export.result)
     file_url = f'{settings.KOBOFORM_URL}{file_location}'
@@ -49,7 +49,7 @@ def custom_project_export_in_background(export_task_uid, username):
     )
     if export.status == 'complete':
         send_mail(
-            subject='Custom Project Report Complete',
+            subject='Project View Report Complete',
             message=msg,
             from_email=constance.config.SUPPORT_EMAIL,
             recipient_list=[user.email],

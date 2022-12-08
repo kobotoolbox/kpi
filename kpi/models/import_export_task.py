@@ -70,7 +70,7 @@ from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
 )
 from kpi.utils.strings import to_str
-from kpi.utils.custom_project_exports import create_custom_project_export
+from kpi.utils.project_view_exports import create_project_view_export
 from kpi.zip_importer import HttpContentParse
 
 
@@ -462,7 +462,7 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class CustomProjectExportTask(ImportExportTask):
+class ProjectViewExportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='cpe')
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
@@ -479,7 +479,7 @@ class CustomProjectExportTask(ImportExportTask):
         )
         absolute_filename = self.get_absolute_filename(filename)
 
-        buff = create_custom_project_export(export_type, self.user.username, view)
+        buff = create_project_view_export(export_type, self.user.username, view)
 
         with self.result.storage.open(absolute_filename, 'wb') as output_file:
             output_file.write(buff.read().encode())

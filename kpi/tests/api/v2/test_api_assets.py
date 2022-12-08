@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
-from kobo.apps.custom_projects.models.custom_project import CustomProject
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_VIEW_ASSET,
@@ -28,7 +28,7 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     get_region_for_view,
 )
 
@@ -254,7 +254,7 @@ class AssetListApiTests(BaseAssetTestCase):
         })
         assert expected_order_by_name_collections_first == uids
 
-class AssetCustomProjectListApiTests(BaseAssetTestCase):
+class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -262,7 +262,7 @@ class AssetCustomProjectListApiTests(BaseAssetTestCase):
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
         self.asset_list_url = reverse(self._get_endpoint('asset-list'))
-        self.region_views_url = reverse(self._get_endpoint('customproject-list'))
+        self.region_views_url = reverse(self._get_endpoint('projectview-list'))
         asset_country_settings = [
             [
                 {'value': 'ZAF', 'label': 'South Africa'},
@@ -318,7 +318,7 @@ class AssetCustomProjectListApiTests(BaseAssetTestCase):
         for region in regional_assignments:
             usernames = region.pop('users')
             users = [self._get_user_obj(u) for u in usernames]
-            r = CustomProject.objects.create(**region)
+            r = ProjectView.objects.create(**region)
             r.users.set(users)
             r.save()
 

@@ -15,16 +15,16 @@ class AssignmentAdmin(admin.ModelAdmin):
 
     list_display = (
         'username',
-        'custom_projects_csv',
+        'project_views_csv',
     )
     search_fields = ('username',)
 
-    @admin.display(description='Custom project views')
-    def custom_projects_csv(self, obj):
-        return ', '.join([r.name for r in obj.custom_projects.all()])
+    @admin.display(description='Project views')
+    def project_views_csv(self, obj):
+        return ', '.join([r.name for r in obj.project_views.all()])
 
     def get_queryset(self, request):
-        return self.model.objects.exclude(custom_projects__isnull=True)
+        return self.model.objects.exclude(project_views__isnull=True)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -36,23 +36,23 @@ class AssignmentAdmin(admin.ModelAdmin):
         return False
 
 
-class AssignmentCustomProjectM2M(models.Model):
+class AssignmentProjectViewM2M(models.Model):
 
     user = models.ForeignKey('auth.User', null=True, on_delete=models.CASCADE)
-    custom_project = models.ForeignKey(
-        'CustomProject',
+    project_view = models.ForeignKey(
+        'ProjectView',
         on_delete=models.CASCADE,
         blank=True,
         null=True,
     )
 
 
-class AssignmentCustomProjectM2MInline(admin.TabularInline):
+class AssignmentProjectViewM2MInline(admin.TabularInline):
 
     verbose_name = 'Assignment'
     verbose_name_plural = 'Assignments'
-    fields = ('user', 'custom_project')
+    fields = ('user', 'project_view')
     autocomplete_fields = ['user']
 
-    model = AssignmentCustomProjectM2M
+    model = AssignmentProjectViewM2M
     extra = 1

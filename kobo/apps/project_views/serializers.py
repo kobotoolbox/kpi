@@ -6,13 +6,13 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kpi.models import Asset
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     get_region_for_view,
 )
-from .models.custom_project import CustomProject
+from .models.project_view import ProjectView
 
 
-class CustomProjectSerializer(serializers.ModelSerializer):
+class ProjectViewSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
@@ -24,7 +24,7 @@ class CustomProjectSerializer(serializers.ModelSerializer):
     assigned_users = serializers.SerializerMethodField()
 
     class Meta:
-        model = CustomProject
+        model = ProjectView
         fields = (
             'uid',
             'name',
@@ -41,7 +41,7 @@ class CustomProjectSerializer(serializers.ModelSerializer):
 
     def get_assets(self, obj) -> str:
         return reverse(
-            'customproject-assets',
+            'projectview-assets',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
@@ -60,7 +60,7 @@ class CustomProjectSerializer(serializers.ModelSerializer):
 
     def get_assets_export(self, obj) -> str:
         return reverse(
-            'customproject-export',
+            'projectview-export',
             args=(obj.uid, 'assets'),
             request=self.context.get('request', None),
         )
@@ -73,21 +73,21 @@ class CustomProjectSerializer(serializers.ModelSerializer):
 
     def get_users(self, obj) -> str:
         return reverse(
-            'customproject-users',
+            'projectview-users',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
 
     def get_users_export(self, obj) -> str:
         return reverse(
-            'customproject-export',
+            'projectview-export',
             args=(obj.uid, 'users'),
             request=self.context.get('request', None),
         )
 
     def get_url(self, obj) -> str:
         return reverse(
-            'customproject-detail',
+            'projectview-detail',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )

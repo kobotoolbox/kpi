@@ -5,10 +5,10 @@ from .models.assignment import (
    Assignment,
    AssignmentAdmin,
 )
-from .models.custom_project import (
-    CustomProject,
-    CustomProjectAdmin,
+from .models.project_view import (
+    ProjectView,
+    ProjectViewAdmin,
 )
 
-admin.site.register(CustomProject, CustomProjectAdmin)
+admin.site.register(ProjectView, ProjectViewAdmin)
 admin.site.register(Assignment, AssignmentAdmin)

@@ -10,7 +10,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
-from .assignment import AssignmentCustomProjectM2MInline
+from .assignment import AssignmentProjectViewM2MInline
 from ..fields import ChoiceArrayField
 
 
@@ -27,7 +27,7 @@ def _get_permission_choices():
     return [(p, p) for p in allowed_perms]
 
 
-class CustomProject(models.Model):
+class ProjectView(models.Model):
 
     uid = KpiUidField(uid_prefix='cp')
     name = models.CharField(max_length=200)
@@ -40,12 +40,12 @@ class CustomProject(models.Model):
     )
     users = models.ManyToManyField(
         'auth.User',
-        related_name='custom_projects',
-        through='AssignmentCustomProjectM2M',
+        related_name='project_views',
+        through='AssignmentProjectViewM2M',
     )
 
     class Meta:
-        verbose_name = 'custom project view'
+        verbose_name = 'project view'
         ordering = ['name']
 
     def __str__(self):
@@ -59,16 +59,16 @@ class CustomProject(models.Model):
         super().save(*args, **kwargs)
 
 
-class CustomProjectForm(forms.ModelForm):
+class ProjectViewForm(forms.ModelForm):
     class Meta:
-        model = CustomProject
+        model = ProjectView
         exclude = ('uid',)
 
 
-class CustomProjectAdmin(admin.ModelAdmin):
+class ProjectViewAdmin(admin.ModelAdmin):
 
-    form = CustomProjectForm
+    form = ProjectViewForm
 
     list_display = ('name', 'countries', 'permissions')
     exclude = ('uid',)
-    inlines = (AssignmentCustomProjectM2MInline,)
+    inlines = (AssignmentProjectViewM2MInline,)

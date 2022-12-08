@@ -9,7 +9,7 @@ from django.db.models import Count, F, Max, Min, OuterRef, Q
 from django.db.models.query import QuerySet
 
 from kpi.models import Asset, AssetVersion
-from kpi.utils.custom_projects import get_region_for_view
+from kpi.utils.project_views import get_region_for_view
 
 
 ASSET_FIELDS = (
@@ -147,7 +147,7 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
     return data.values(*vals).order_by('id')
 
 
-def create_custom_project_export(
+def create_project_view_export(
         export_type: str, username: str, uid: str
 ) -> StringIO:
     config = CONFIG[export_type]

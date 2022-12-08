@@ -4,8 +4,8 @@ from __future__ import annotations
 from django.db.models import Q
 from rest_framework.request import Request
 
-from kobo.apps.custom_projects.models.custom_project import CustomProject
-from kobo.apps.custom_projects.models.assignment import Assignment
+from kobo.apps.project_views.models.project_view import ProjectView
+from kobo.apps.project_views.models.assignment import Assignment
 
 
 def get_asset_countries(asset: 'models.Asset') -> List[str]:
@@ -37,7 +37,7 @@ def get_regional_user_permissions_for_asset(
     for country in asset_countries:
         q |= Q(countries__contains=country)
     perms = list(
-        CustomProject.objects.filter(q, users=user).values_list(
+        ProjectView.objects.filter(q, users=user).values_list(
             'permissions', flat=True
         )
     )
@@ -58,14 +58,14 @@ def user_has_view_perms(user: 'auth.User', view: str) -> bool:
     """
     Returns True if user has any permissions permission to a specified view
     """
-    return CustomProject.objects.filter(uid=view, users=user).exists()
+    return ProjectView.objects.filter(uid=view, users=user).exists()
 
 
 def view_has_perm(view: str, perm: str) -> bool:
     """
     Returns True if a view has a specified permission associated with it
     """
-    return CustomProject.objects.filter(
+    return ProjectView.objects.filter(
         uid=view, permissions__contains=[perm]
     ).exists()
 
@@ -74,11 +74,11 @@ def get_region_for_view(view: str) -> List[str]:
     """
     Returns list of county codes for a specified view id
     """
-    return CustomProject.objects.get(uid=view).get_countries()
+    return ProjectView.objects.get(uid=view).get_countries()
 
 
-def get_regional_views_for_user(user: 'auth.User') -> List[CustomProject]:
+def get_regional_views_for_user(user: 'auth.User') -> List[ProjectView]:
     """
     Returns a list of all available regional views for a user
     """
-    return list(CustomProject.objects.filter(users=user))
+    return list(ProjectView.objects.filter(users=user))

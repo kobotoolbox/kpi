@@ -37,7 +37,7 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     user_has_regional_asset_perm,
     view_has_perm,
 )
