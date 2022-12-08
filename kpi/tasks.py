@@ -47,13 +47,14 @@ def custom_project_export_in_background(export_task_uid, username):
         'Regards,\n'
         'KoboToolbox'
     )
-    send_mail(
-        subject='Custom Project Report Complete',
-        message=msg,
-        from_email=constance.config.SUPPORT_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=False,
-    )
+    if export.status == 'complete':
+        send_mail(
+            subject='Custom Project Report Complete',
+            message=msg,
+            from_email=constance.config.SUPPORT_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
 
 
 @celery_app.task

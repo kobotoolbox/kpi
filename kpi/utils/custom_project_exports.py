@@ -1,17 +1,15 @@
+# coding: utf-8
+from __future__ import annotations
 import csv
 from io import StringIO
-from typing import Union, List, Tuple
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import CharField, Count, F, Q
-from django.db.models.functions import Cast
+from django.db.models import Count, F, Max, Min, OuterRef, Q
 from django.db.models.query import QuerySet
 
-from kpi.models.asset import Asset
-from kpi.utils.custom_projects import (
-    get_region_for_view,
-)
+from kpi.models import Asset, AssetVersion
+from kpi.utils.custom_projects import get_region_for_view
 
 
 ASSET_FIELDS = (
@@ -21,6 +19,8 @@ ASSET_FIELDS = (
     'asset_type',
     'date_modified',
     'date_created',
+    'date_latest_deployement',
+    'date_first_deployement',
     'owner',
     'owner__username',
     'owner__email',
@@ -40,8 +40,8 @@ USER_FIELDS = (
     'username',
     'is_superuser',
     'is_staff',
-    'date_joined_str',
-    'last_login_str',
+    'date_joined',
+    'last_login',
     'is_active',
     'email',
     'mfa_is_active',
@@ -112,6 +112,18 @@ def get_q(countries: List[str], export_type: str) -> QuerySet:
 def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
     if export_type == 'assets':
         vals = ASSET_FIELDS + (SETTINGS,)
+        subquery_latest_deployed = (
+            AssetVersion.objects.values('asset_id')
+            .annotate(last_deployed=Max('date_modified'))
+            .filter(asset_id=OuterRef('pk'))
+            .values('last_deployed')
+        )
+        subquery_first_deployed = (
+            AssetVersion.objects.values('asset_id')
+            .annotate(first_deployed=Min('date_modified'))
+            .filter(asset_id=OuterRef('pk'))
+            .values('first_deployed')
+        )
         data = filtered_queryset.annotate(
             owner__name=F('owner__extra_details__data__name'),
             owner__organization=F('owner__extra_details__data__organization'),
@@ -119,6 +131,8 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
             deployment__submission_count=F(
                 '_deployment_data__num_of_submissions'
             ),
+            date_latest_deployement=subquery_latest_deployed,
+            date_first_deployement=subquery_first_deployed,
         )
     else:
         vals = USER_FIELDS + (METADATA,)
@@ -127,8 +141,6 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
         ).annotate(
             mfa_is_active=F('mfa_methods__is_active'),
             metadata=F('extra_details__data'),
-            date_joined_str=Cast('date_joined', CharField()),
-            last_login_str=Cast('last_login', CharField()),
             asset_count=Count('assets'),
         )
 
