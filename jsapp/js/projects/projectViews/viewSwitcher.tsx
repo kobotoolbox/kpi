@@ -11,9 +11,6 @@ import {HOME_VIEW} from './constants';
 
 interface ViewSwitcherProps {
   selectedViewUid: string;
-  /** Total number of asset of current view. */
-  viewCount?: number;
-  disabled?: boolean;
 }
 
 function ViewSwitcher(props: ViewSwitcherProps) {
@@ -36,7 +33,15 @@ function ViewSwitcher(props: ViewSwitcherProps) {
       return HOME_VIEW.name;
     }
 
-    return viewsStore.getView(props.selectedViewUid)?.name
+    return viewsStore.getView(props.selectedViewUid)?.name;
+  };
+
+  const getTriggerCount = () => {
+    if (props.selectedViewUid === HOME_VIEW.uid) {
+      return null;
+    }
+
+    return viewsStore.getView(props.selectedViewUid)?.assets_count;
   };
 
   return (
@@ -47,14 +52,13 @@ function ViewSwitcher(props: ViewSwitcherProps) {
       <KoboDropdown
         name='projects_view_switcher'
         placement={KoboDropdownPlacements['down-left']}
-        isDisabled={props.disabled || false}
         hideOnMenuClick
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
           <button className={styles.trigger}>
             {getTriggerLabel()}
-            {props.viewCount !== undefined &&
-              <span className={styles['trigger-badge']}>{props.viewCount}</span>
+            {getTriggerCount() !== null &&
+              <span className={styles['trigger-badge']}>{getTriggerCount()}</span>
             }
             <Icon
               classNames={[styles['trigger-icon']]}

@@ -6,6 +6,7 @@ import type {ProjectFieldName, OrderDirection} from 'js/projects/projectViews/co
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import ProjectsTableHeader from './projectsTableHeader';
 import type {AssetResponse} from 'js/dataInterface';
+import type {ProjectViewAsset} from 'js/projects/customViewStore';
 import styles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
@@ -14,7 +15,7 @@ interface ProjectsTableProps {
  isLoading?: boolean;
  /** To display contextual empty message when zero assets. */
  emptyMessage?: string;
- assets: AssetResponse[];
+ assets: Array<AssetResponse | ProjectViewAsset>;
  /** Renders the columns for highlighted fields in some fancy way. */
  highlightedFields: ProjectFieldName[];
  visibleFields: ProjectFieldName[];
@@ -48,7 +49,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
       // change column and revert order direction to default
       props.onChangeOrderRequested(fieldName, PROJECT_FIELDS[fieldName].orderDefaultValue || 'ascending');
     }
-  }
+  };
 
   return (
     <div className={styles.root}>

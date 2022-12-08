@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {notify} from 'js/utils';
 import type {
@@ -12,7 +12,7 @@ import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
-import CustomViewStore from './customViewStore';
+import customViewStore from './customViewStore';
 import {observer} from 'mobx-react-lite';
 
 function CustomViewRoute() {
@@ -22,9 +22,15 @@ function CustomViewRoute() {
     return null;
   }
 
-  const [viewStore] = useState(() => new CustomViewStore(viewUid));
+  const [viewStore] = useState(customViewStore);
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
+
+  useEffect(() => {
+    console.log('viewUid changed');
+    viewStore.setUp(viewUid);
+    viewStore.fetchAssets();
+  }, [viewUid]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -42,6 +48,9 @@ function CustomViewRoute() {
     // TODO make the call :)
     console.log('call backend to initiate downloading data to email');
   };
+
+  console.log('viewStore', viewStore);
+  console.log('viewStore.assets', viewStore.assets);
 
   return (
     <section style={{
@@ -78,6 +87,7 @@ function CustomViewRoute() {
 
       <ProjectsTable
         assets={viewStore.assets}
+        isLoading={!viewStore.isInitialised}
         highlightedFields={getFilteredFieldsNames()}
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
         orderFieldName='name'

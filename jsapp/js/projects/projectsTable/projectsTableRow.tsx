@@ -3,17 +3,17 @@ import {useNavigate} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/projectViews/constants';
-import Checkbox from 'js/components/common/checkbox';
 import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
 import type {AssetResponse} from 'js/dataInterface';
+import type {ProjectViewAsset} from 'js/projects/customViewStore';
 import assetUtils from 'js/assetUtils';
 import styles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
 interface ProjectsTableRowProps {
-  asset: AssetResponse;
+  asset: AssetResponse | ProjectViewAsset;
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
 }

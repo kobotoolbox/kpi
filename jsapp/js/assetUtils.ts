@@ -32,6 +32,7 @@ import type {
   SurveyChoice,
   Permission,
 } from 'js/dataInterface';
+import type {ProjectViewAsset} from 'js/projects/customViewStore';
 import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
@@ -91,9 +92,19 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
   return foundIndex;
 }
 
-export function getLanguagesDisplayString(asset: AssetResponse) {
-  if (asset?.summary?.languages && asset.summary.languages.length >= 1) {
+export function getLanguagesDisplayString(asset: AssetResponse | ProjectViewAsset) {
+  if (
+    'summary' in asset &&
+    asset?.summary?.languages &&
+    asset.summary.languages.length >= 1
+  ) {
     return asset?.summary?.languages?.join(', ');
+  } else if (
+    asset &&
+    'languages' in asset &&
+    asset.languages.length >= 1
+  ) {
+    return asset.languages.join(', ');
   } else {
     return '-';
   }
@@ -102,7 +113,7 @@ export function getLanguagesDisplayString(asset: AssetResponse) {
 /**
  * Returns `-` for assets without sector and localized label otherwise
  */
-export function getSectorDisplayString(asset: AssetResponse): string {
+export function getSectorDisplayString(asset: AssetResponse | ProjectViewAsset): string {
   let output = '-';
 
   if (asset.settings.sector?.value) {
@@ -122,7 +133,7 @@ export function getSectorDisplayString(asset: AssetResponse): string {
   return output;
 }
 
-export function getCountryDisplayString(asset: AssetResponse): string {
+export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset): string {
   if (asset.settings.country) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
@@ -158,7 +169,7 @@ interface DisplayNameObj {
  * containing final name and all useful data. Most of the times you should use
  * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
+export function getAssetDisplayName(asset: AssetResponse | ProjectViewAsset): DisplayNameObj {
   const emptyName = t('untitled');
 
   const output: DisplayNameObj = {
@@ -169,7 +180,11 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
   if (asset.name) {
     output.original = asset.name;
   }
-  if (asset?.summary?.labels && asset.summary.labels.length > 0) {
+  if (
+    'summary' in asset &&
+    asset?.summary?.labels &&
+    asset.summary.labels.length > 0
+  ) {
     // for unnamed assets, we try to display first question name
     output.question = asset.summary.labels[0];
   }

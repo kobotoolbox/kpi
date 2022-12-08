@@ -1,28 +1,61 @@
 import {makeAutoObservable} from 'mobx';
 import type {
-  AssetResponse,
+  AssetSettings,
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 
-/**
- * Handles fetching (with filters and ordering) assets for given view.
- * NOTE: This store requires to be initialized with the `viewUid` parameter.
- */
-export default class CustomViewStore {
-  public viewUid: string;
-  public assets: AssetResponse[] = [];
+export interface ProjectViewAsset {
+  url: string;
+  date_modified: string;
+  date_created: string;
+  date_latest_deployement: null;
+  date_first_deployement: null;
+  owner: string;
+  owner__username: string;
+  owner__email: string;
+  owner__name: string;
+  owner__organization: string;
+  uid: string;
+  kind: string;
+  name: string;
+  settings: AssetSettings;
+  languages: Array<string | null>;
+  asset_type: string;
+  version_id: string;
+  version_count: number;
+  has_deployment: boolean;
+  deployed_version_id: string | null;
+  deployment__active: boolean;
+  deployment__submission_count: number;
+  permissions: [];
+  status: string;
+  data_sharing: {};
+  data: string;
+}
+
+class CustomViewStore {
+  public assets: ProjectViewAsset[] = [];
   /** Whether the first call was made. */
   public isInitialised = false;
   public isLoading = false;
+  private viewUid?: string;
+  /** We use `null` here because the endpoint uses it. */
   private nextPageUrl: string | null = null;
 
-  constructor(viewUid: string) {
-    this.viewUid = viewUid;
+  constructor() {
     makeAutoObservable(this);
-    this.fetchAssets();
+  }
+
+  /** Use this whenever you need to change the view */
+  public setUp(viewUid: string) {
+    this.viewUid = viewUid;
+    this.assets = [];
+    this.isInitialised = false;
+    this.isLoading = false;
+    this.nextPageUrl = null;
   }
 
   /** If next page of results is available. */
@@ -55,14 +88,14 @@ export default class CustomViewStore {
     }
   }
 
-  private onFetchAssetsDone(response: PaginatedResponse<AssetResponse>) {
+  private onFetchAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {
     this.isInitialised = true;
     this.isLoading = false;
     this.assets = response.results;
     this.nextPageUrl = response.next;
   }
 
-  private onFetchMoreAssetsDone(response: PaginatedResponse<AssetResponse>) {
+  private onFetchMoreAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {
     // This differs from `onFetchAssetsDone`, because it adds the Assets
     // to existing ones.
     this.isLoading = false;
@@ -75,3 +108,8 @@ export default class CustomViewStore {
     notify.error(response.responseText);
   }
 }
+
+/** Handles fetching (with filters and ordering) assets for given view. */
+const customViewStore = new CustomViewStore();
+
+export default customViewStore;

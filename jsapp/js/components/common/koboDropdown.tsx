@@ -19,7 +19,7 @@ export enum KoboDropdownPlacements {
 interface KoboDropdownProps {
   placement: KoboDropdownPlacements;
   /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
-  isDisabled: boolean;
+  isDisabled?: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
   hideOnMenuClick: boolean;
   triggerContent: React.ReactNode;
