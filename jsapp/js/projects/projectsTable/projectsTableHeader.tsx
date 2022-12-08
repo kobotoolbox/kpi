@@ -1,10 +1,10 @@
 import React from 'react';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
-  OrderDirection,
   ProjectFieldDefinition,
   ProjectFieldName,
 } from 'js/projects/projectViews/constants';
+import type {ProjectsTableOrder} from './projectsTable';
 import tableStyles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
@@ -12,9 +12,7 @@ import classNames from 'classnames';
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
-  /** Current ordering field. */
-  orderFieldName: ProjectFieldName;
-  orderDirection: OrderDirection;
+  order: ProjectsTableOrder;
   onChangeOrderRequested: (fieldName: ProjectFieldName) => void;
 }
 
@@ -27,11 +25,11 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
 
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
-    if (props.orderFieldName === field.name) {
-      if (props.orderDirection === 'ascending') {
+    if (props.order.fieldName === field.name) {
+      if (props.order.direction === 'ascending') {
         icon = (<i className='k-icon k-icon-angle-up'/>);
       }
-      if (props.orderDirection === 'descending') {
+      if (props.order.direction === 'descending') {
         icon = (<i className='k-icon k-icon-angle-down'/>);
       }
     }

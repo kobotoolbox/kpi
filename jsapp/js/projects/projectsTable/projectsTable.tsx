@@ -11,6 +11,11 @@ import styles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
+export interface ProjectsTableOrder {
+  fieldName: ProjectFieldName;
+  direction: OrderDirection;
+}
+
 interface ProjectsTableProps {
  isLoading?: boolean;
  /** To display contextual empty message when zero assets. */
@@ -19,10 +24,9 @@ interface ProjectsTableProps {
  /** Renders the columns for highlighted fields in some fancy way. */
  highlightedFields: ProjectFieldName[];
  visibleFields: ProjectFieldName[];
- orderFieldName: ProjectFieldName;
- orderDirection: OrderDirection;
+ order: ProjectsTableOrder;
  /** Called when user selects a column for odering. */
- onChangeOrderRequested: (fieldName: string, direction: OrderDirection) => void;
+ onChangeOrderRequested: (order: ProjectsTableOrder) => void;
  /** Used for infinite scroll. */
  onRequestLoadNextPage: () => void;
  /** If there are more results to be loaded. */
@@ -38,16 +42,22 @@ export default function ProjectsTable(props: ProjectsTableProps) {
    * to change order. If different field, it means default order for that field.
    */
   const onChangeOrderRequested = (fieldName: ProjectFieldName) => {
-    if (props.orderFieldName === fieldName) {
+    if (props.order.fieldName === fieldName) {
       // clicking already selected column results in switching the order direction
       let newVal: OrderDirection = 'ascending';
-      if (props.orderDirection === 'ascending') {
+      if (props.order.direction === 'ascending') {
         newVal = 'descending';
       }
-      props.onChangeOrderRequested(props.orderFieldName, newVal);
+      props.onChangeOrderRequested({
+        fieldName: props.order.fieldName,
+        direction: newVal,
+      });
     } else {
       // change column and revert order direction to default
-      props.onChangeOrderRequested(fieldName, PROJECT_FIELDS[fieldName].orderDefaultValue || 'ascending');
+      props.onChangeOrderRequested({
+        fieldName: fieldName,
+        direction: PROJECT_FIELDS[fieldName].defaultDirection || 'ascending',
+      });
     }
   };
 
@@ -56,8 +66,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
         visibleFields={props.visibleFields}
-        orderFieldName={props.orderFieldName}
-        orderDirection={props.orderDirection}
+        order={props.order}
         onChangeOrderRequested={onChangeOrderRequested}
       />
 

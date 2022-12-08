@@ -4,17 +4,24 @@ import {notify, downloadUrl} from 'js/utils';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
-  OrderDirection,
 } from './projectViews/constants';
 import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
-import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
+import {
+  DEFAULT_PROJECT_FIELDS,
+  PROJECT_FIELDS,
+} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
-import ProjectsTable from 'js/projects/projectsTable/projectsTable';
+import ProjectsTable, { ProjectsTableOrder } from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 import {observer} from 'mobx-react-lite';
+
+const DEFAULT_ORDER: ProjectsTableOrder = {
+  fieldName: PROJECT_FIELDS.name.name,
+  direction: PROJECT_FIELDS.name.defaultDirection || 'ascending',
+}
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -27,6 +34,7 @@ function CustomViewRoute() {
   const [customView] = useState(customViewStore);
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
+  const [order, setOrder] = useState<ProjectsTableOrder>(DEFAULT_ORDER);
 
   useEffect(() => {
     customView.setUp(viewUid);
@@ -92,9 +100,8 @@ function CustomViewRoute() {
         isLoading={!customView.isInitialised}
         highlightedFields={getFilteredFieldsNames()}
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
-        orderFieldName='name'
-        orderDirection='ascending'
-        onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
+        order={order}
+        onChangeOrderRequested={setOrder}
         onRequestLoadNextPage={customView.fetchMoreAssets}
         hasMorePages={customView.hasMoreAssets}
       />
