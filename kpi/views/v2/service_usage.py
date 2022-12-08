@@ -1,14 +1,11 @@
 # coding: utf-8
 from rest_framework import (
-    mixins,
     renderers,
-    serializers,
     viewsets,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from kpi.models import Asset
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 

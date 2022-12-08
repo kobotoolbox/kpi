@@ -1,6 +1,7 @@
 @use "scss/_colors";
 @use "scss/_variables";
 @use "scss/libs/_mdl";
+@use 'scss/z-indexes';
 
 /* ==========================================================================
  * AssetsTable
@@ -22,7 +23,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
 
   &.assets-table--fullscreen {
     position: fixed;
-    z-index: mdl.$z-fullscreen;
+    z-index: z-indexes.$z-fullscreen;
     border: 15px solid mdl.$root-background;
     top: 0;
     left: 0;
@@ -147,10 +148,6 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
  * AssetsTableRow
  * ========================================================================== */
 
-$z-assets-table-row-link: 10;
-$z-assets-table-row-buttons: 20;
-$z-assets-table-row-header: 30;
-
 .assets-table-row {
   display: flex;
   flex-direction: row;
@@ -264,7 +261,7 @@ $z-assets-table-row-header: 30;
 
       .popover-menu__content {
         top: 30px - 2px;
-        z-index: $z-assets-table-row-header;
+        z-index: z-indexes.$z-assets-table-row-header;
         padding: 10px;
         max-width: calc(100% + 20px);
         min-width: auto;
@@ -292,7 +289,7 @@ $z-assets-table-row-header: 30;
   .assets-table-row__link {
     cursor: pointer;
     position: absolute;
-    z-index: $z-assets-table-row-link;
+    z-index: z-indexes.$z-assets-table-row-link;
     top: 0;
     left: 0;
     width: 100%;
@@ -385,7 +382,7 @@ $z-assets-table-row-header: 30;
 
 .assets-table-row__buttons {
   position: absolute;
-  z-index: $z-assets-table-row-buttons;
+  z-index: z-indexes.$z-assets-table-row-buttons;
   top: 1px; // because of top border
   right: 0;
   bottom: 0; // stretch for whole row

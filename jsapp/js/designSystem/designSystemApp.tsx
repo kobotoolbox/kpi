@@ -1,4 +1,5 @@
 import React from 'react';
+import BadgeDemo from 'js/designSystem/badgeDemo';
 import ButtonDemo from 'js/designSystem/buttonDemo';
 import CheckboxDemo from 'js/designSystem/checkboxDemo';
 import IconDemo from 'js/designSystem/iconDemo';
@@ -17,6 +18,7 @@ import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
 const designSystemComponents = [
+  ['Badge', <BadgeDemo/>],
   ['Button', <ButtonDemo/>],
   ['Checkbox', <CheckboxDemo/>],
   ['Icon', <IconDemo/>],

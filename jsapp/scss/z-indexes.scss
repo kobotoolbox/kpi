@@ -1,0 +1,38 @@
+// Depth variables (for z-indexes)
+
+$z-modal: 3000;
+
+$z-help-bubble-popup: 2000;
+
+$z-account-menu: 1101;
+
+$z-kobo-drawer: 1050; // must be over leaflet
+
+$z-map-overlay: 1001; // leaflet interface elements
+$z-map-list: 689;
+$z-map-settings: 699;
+$z-map-settings-2: 700;
+$z-map-settings-3: 701;
+
+$z-form-builder-add-row: 101;
+
+$z-fullscreen: 101;
+$z-dropdown: 100;
+
+$z-assets-table-row-header: 30;
+$z-assets-table-row-buttons: 20;
+$z-assets-table-row-link: 10;
+
+$z-form-builder-header: 20;
+$z-form-builder-aside: 10;
+
+$z-service-row-link: 10;
+
+$z-data-table-frozen-column: 10;
+
+$z-popover-menu: 10;
+
+$z-tooltip: 2;
+
+$z-form-builder-card-buttons: 3;
+$z-form-builder-card-shade: 2;
