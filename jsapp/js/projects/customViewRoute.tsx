@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
-import {notify} from 'js/utils';
+import {notify, downloadUrl} from 'js/utils';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
@@ -13,6 +13,7 @@ import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
+import projectViewsStore from './projectViews/projectViewsStore';
 import {observer} from 'mobx-react-lite';
 
 function CustomViewRoute() {
@@ -22,14 +23,14 @@ function CustomViewRoute() {
     return null;
   }
 
-  const [viewStore] = useState(customViewStore);
+  const [projectViews] = useState(projectViewsStore);
+  const [customView] = useState(customViewStore);
   const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
 
   useEffect(() => {
-    console.log('viewUid changed');
-    viewStore.setUp(viewUid);
-    viewStore.fetchAssets();
+    customView.setUp(viewUid);
+    customView.fetchAssets();
   }, [viewUid]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
@@ -45,12 +46,13 @@ function CustomViewRoute() {
 
   const exportAllData = () => {
     notify.warning(t("Export is being generated, you will receive an email when it's done"));
-    // TODO make the call :)
-    console.log('call backend to initiate downloading data to email');
+    const foundView = projectViews.getView(viewUid);
+    if (foundView) {
+      // TODO verify if this is how we want to use that url
+      downloadUrl(foundView.assets_export);
+      console.log('download', foundView.assets_export);
+    }
   };
-
-  console.log('viewStore', viewStore);
-  console.log('viewStore.assets', viewStore.assets);
 
   return (
     <section style={{
@@ -86,15 +88,15 @@ function CustomViewRoute() {
       </div>
 
       <ProjectsTable
-        assets={viewStore.assets}
-        isLoading={!viewStore.isInitialised}
+        assets={customView.assets}
+        isLoading={!customView.isInitialised}
         highlightedFields={getFilteredFieldsNames()}
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
         orderFieldName='name'
         orderDirection='ascending'
         onChangeOrderRequested={(fieldName: string, direction: OrderDirection) => console.log(fieldName, direction)}
         onRequestLoadNextPage={() => console.log('load next page please!')}
-        hasMorePages={viewStore.hasMoreAssets}
+        hasMorePages={customView.hasMoreAssets}
       />
     </section>
   );
