@@ -45,7 +45,7 @@ class CustomProject(models.Model):
     )
 
     class Meta:
-        verbose_name = 'custom project'
+        verbose_name = 'custom project view'
         ordering = ['name']
 
     def __str__(self):

@@ -4,7 +4,7 @@ from django.apps import AppConfig
 
 class CustomProjectAppConfig(AppConfig):
     name = 'kobo.apps.custom_projects'
-    verbose_name = 'Custom Projects'
+    verbose_name = 'Custom Project Views'
 
     def ready(self):
         # Makes sure all signal handlers are connected
