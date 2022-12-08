@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
+import {observer} from 'mobx-react-lite';
 import {notify, downloadUrl} from 'js/utils';
 import type {
   ProjectsFilterDefinition,
@@ -12,16 +13,17 @@ import {
   PROJECT_FIELDS,
 } from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
-import ProjectsTable, { ProjectsTableOrder } from 'js/projects/projectsTable/projectsTable';
+import type {ProjectsTableOrder} from 'js/projects/projectsTable/projectsTable';
+import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
-import {observer} from 'mobx-react-lite';
+import styles from './customViewRoute.module.scss';
 
 const DEFAULT_ORDER: ProjectsTableOrder = {
   fieldName: PROJECT_FIELDS.name.name,
   direction: PROJECT_FIELDS.name.defaultDirection || 'ascending',
-}
+};
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -63,16 +65,8 @@ function CustomViewRoute() {
   };
 
   return (
-    <section style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-    }}>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}>
+    <section className={styles.root}>
+      <header className={styles.header}>
         <ViewSwitcher selectedViewUid={viewUid}/>
 
         <ProjectsFilter
@@ -93,7 +87,7 @@ function CustomViewRoute() {
           label={t('Export all data')}
           onClick={exportAllData}
         />
-      </div>
+      </header>
 
       <ProjectsTable
         assets={customView.assets}
