@@ -42,8 +42,9 @@ export default class InlineMessageDemo extends React.Component<{}, InlineMessage
     };
   }
 
-  onTypeChange({}, newType: InlineMessageType) {
-    this.setState({demoType: newType});
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as InlineMessageType;
+    this.setState({demoType: newTypeCasted});
   }
 
   onIconChange(newIcon: IconNameOption | null) {

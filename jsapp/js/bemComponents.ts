@@ -136,9 +136,6 @@ bem.CollectionNav__link = makeBem(bem.CollectionNav, 'link', 'a');
 bem.CollectionNav__searchcancel = makeBem(bem.CollectionNav, 'searchcancel', 'i');
 bem.CollectionNav__searchicon = makeBem(bem.CollectionNav, 'searchicon', 'i');
 
-bem.Library = makeBem(null, 'library');
-bem.Library__typeFilter = makeBem(bem.Library, 'type-filter', 'label');
-
 bem.List = makeBem(null, 'list');
 bem.List__heading = makeBem(bem.List, 'heading');
 bem.List__subheading = makeBem(bem.List, 'subheading');
