@@ -964,7 +964,7 @@ class ProjectSettings extends React.Component {
             <Checkbox
               checked={this.state.fields['share-metadata']}
               onChange={this.onAnyFieldChange.bind(this, 'share-metadata')}
-              label={t('Help ${ TITLE } improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              label={`Help ${ TITLE } improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.`}
             />
           </bem.FormModal__item>
 
