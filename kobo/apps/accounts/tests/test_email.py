@@ -44,12 +44,9 @@ class AccountsEmailTestCase(APITestCase):
 
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
-        # TODO fix unrelated context processors performance
-        # These comes from the email template usage
-        # See kpi/context_processors.py
         # Auth, Select, Delete (many), Get or Create
-        # with self.assertNumQueries(8):
-        res = self.client.post(self.url_list, data, format='json')
+        with self.assertNumQueries(10):
+            res = self.client.post(self.url_list, data, format='json')
         self.assertContains(res, data['email'], status_code=201)
         self.assertEqual(self.user.emailaddress_set.count(), 2)
         self.assertEqual(
@@ -80,9 +77,8 @@ class AccountsEmailTestCase(APITestCase):
         for line in mail.outbox[0].body.splitlines():
             if 'confirm-email' in line:
                 confirm_url = line.split('testserver')[1].rsplit('/', 1)[0]
-        # TODO fix unrelated context processors performance
-        # with self.assertNumQueries(13):
-        res = self.client.post(confirm_url + "/")
+        with self.assertNumQueries(14):
+            res = self.client.post(confirm_url + "/")
         self.assertEqual(res.status_code, 302)
         self.assertTrue(
             self.user.emailaddress_set.filter(
