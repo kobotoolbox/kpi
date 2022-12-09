@@ -1,5 +1,5 @@
 import React from 'react';
-import ViewSwitcher from './projectsView/viewSwitcher';
+import ViewSwitcher from './projectViews/viewSwitcher';
 
 export default function MyProjectsRoute() {
   return (

@@ -1,0 +1,130 @@
+@use 'sass:color';
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'scss/colors';
+@use 'scss/variables';
+@use 'scss/z-indexes';
+
+$projects-table-hover-bg: colors.$kobo-gray-98;
+
+.row {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: stretch;
+  cursor: pointer;
+
+  &:first-of-type .cell {
+    border-top-color: transparent;
+  }
+
+  &:first-of-type:hover .cell {
+    border-top-color: colors.$kobo-gray-92;
+  }
+}
+
+.cell {
+  border-top: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: sizes.$x20 sizes.$x10;
+  color: colors.$kobo-gray-40;
+  flex: 1 0 auto;
+  // ensures the table columns are same width for all rows
+  width: 10%;
+
+  &[disabled] {
+    pointer-events: none;
+  }
+
+  &.cell-countries,
+  &.cell-description,
+  &.cell-ownerEmail,
+  &.cell-ownerFullName,
+  &.cell-ownerOrganisation,
+  &.cell-ownerUsername,
+  &.cell-status,
+  &.cell-submissions {
+    width: 10%;
+  }
+
+  &.cell-dateDeployed {
+    width: 17.5%;
+    text-align: right;
+  }
+
+  &.cell-dateModified {
+    width: 17.5%;
+    text-align: right;
+  }
+
+  &.cell-languages {
+    width: 12.5%;
+  }
+
+  &.cell-name {
+    color: colors.$kobo-gray-24;
+    width: 25%;
+  }
+
+  &.cell-sector {
+    width: 15%;
+  }
+}
+
+.row.row-project .cell.cell-highlighted {
+  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
+}
+
+.row.row-header .cell.cell-highlighted {
+  background-color: colors.$kobo-light-blue;
+}
+
+.row.row-project {
+  .cell {
+    @include mixins.textEllipsis;
+  }
+
+  &:hover .cell {
+    background-color: $projects-table-hover-bg;
+  }
+}
+
+.row.row-header {
+  .cell {
+    @include mixins.textEllipsis;
+
+    color: colors.$kobo-gray-24;
+    border-top: 0;
+    cursor: pointer;
+    font-weight: 700;
+    height: sizes.$x40;
+    line-height: sizes.$x20;
+    background-color: colors.$kobo-gray-96;
+    padding: sizes.$x10;
+
+    &:hover {
+      background-color: colors.$kobo-gray-92;
+    }
+  }
+}
+
+.row.row-message {
+  padding: sizes.$x40;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
+
+  .pro-tip {
+    font-size: 1rem;
+    margin-top: sizes.$x20;
+  }
+}
+
+.row.row-collection {
+  .cell-name .project-name {
+    font-weight: 700;
+  }
+}
+
+.header-label {
+  font-size: 0.9rem;
+}

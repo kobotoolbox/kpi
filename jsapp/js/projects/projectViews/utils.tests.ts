@@ -1,8 +1,8 @@
 import chai from 'chai';
-import type {ProjectsFilterDefinition} from './projectsViewConstants';
-import {removeIncorrectFilters} from './projectsViewUtils';
+import type {ProjectsFilterDefinition} from './constants';
+import {removeIncorrectFilters} from './utils';
 
-describe('projectsViewUtils', () => {
+describe('projectViewsUtils', () => {
   describe('removeIncorrectFilters', () => {
     it('should return only correct filters', () => {
       const dirty: ProjectsFilterDefinition[] = [

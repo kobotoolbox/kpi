@@ -6,13 +6,13 @@ import {ROUTES} from 'js/router/routerConstants';
 const MyProjectsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './myProjectsRoute')
 );
-const CustomViewsRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './customViewsRoute')
+const CustomViewRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './customViewRoute')
 );
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
-  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/my',
-  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/custom/:viewUid',
+  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
 };
 
 export default function routes() {
@@ -34,7 +34,7 @@ export default function routes() {
         path={PROJECTS_ROUTES.CUSTOM_VIEW}
         element={
           <RequireAuth>
-            <CustomViewsRoute/>
+            <CustomViewRoute/>
           </RequireAuth>
         }
       />
