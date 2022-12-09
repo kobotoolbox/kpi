@@ -5,11 +5,11 @@ import KoboSelect from 'js/components/common/koboSelect';
 import {generateUid} from 'js/utils';
 import type {
   FilterConditionName,
-  FilterFieldName,
+  ProjectFieldName,
   ProjectsFilterDefinition,
-} from './projectsViewConstants';
-import {FILTER_CONDITIONS, FILTER_FIELDS} from './projectsViewConstants';
-import {isFilterConditionValueRequired} from './projectsViewUtils';
+} from './constants';
+import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
+import {isFilterConditionValueRequired} from './utils';
 import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {
@@ -32,7 +32,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   const onFieldSelectorChange = (newValue: string | null) => {
     let fieldValue;
     if (newValue) {
-      fieldValue = newValue as FilterFieldName;
+      fieldValue = newValue as ProjectFieldName;
     }
     props.onFilterChange({
       fieldName: fieldValue,
@@ -54,7 +54,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   };
 
   const getFieldSelectorOptions = () => (
-    Object.values(FILTER_FIELDS).map((filterDefinition) => {
+    Object.values(PROJECT_FIELDS).map((filterDefinition) => {
       return {label: filterDefinition.label, id: filterDefinition.name};
     })
   );
