@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 import json
 import re
 
@@ -785,45 +786,45 @@ class AssetMetadataListSerializer(AssetSerializer):
             'data',
         )
 
-    def get_data(self, *args, **kwargs):
+    def get_data(self, *args: list, **kwargs: dict) -> str:
         if view_has_perm(self._get_view(), PERM_VIEW_SUBMISSIONS):
             return super().get_data(*args, **kwargs)
         return ''
 
-    def get_date_first_deployement(self, obj):
+    def get_date_first_deployement(self, obj: Asset) -> Optional[datetime.datetime]:
         version = obj.asset_versions.filter(deployed=True).last()
         if version:
             return version.date_modified
 
-    def get_date_latest_deployement(self, obj):
+    def get_date_latest_deployement(self, obj: Asset) -> Optional[datetime.datetime]:
         version = obj.asset_versions.filter(deployed=True).first()
         if version:
             return version.date_modified
 
-    def get_languages(self, obj):
+    def get_languages(self, obj: Asset) -> List[str]:
         return obj.summary.get('languages', [])
 
-    def get_owner__email(self, obj):
+    def get_owner__email(self, obj: Asset) -> str:
         return obj.owner.email
 
-    def get_owner__name(self, obj):
+    def get_owner__name(self, obj: Asset) -> str:
         return self._get_user_detail(obj, 'name')
 
-    def get_owner__organization(self, obj):
+    def get_owner__organization(self, obj: Asset) -> str:
         return self._get_user_detail(obj, 'organization')
 
-    def get_permissions(self, *args, **kwargs):
+    def get_permissions(self, *args: list, **kwargs: dict) -> list:
         if view_has_perm(self._get_view(), 'view_permissions'):
             return super().get_permissions(*args, **kwargs)
         return []
 
     @staticmethod
-    def _get_user_detail(obj, attr):
+    def _get_user_detail(obj, attr: str) -> str:
         owner = obj.owner
         if hasattr(owner, 'extra_details'):
             return owner.extra_details.data.get(attr, '')
         return ''
 
-    def _get_view(self) -> int:
+    def _get_view(self) -> str:
         request = self.context.get('request')
         return request.parser_context['kwargs']['uid']

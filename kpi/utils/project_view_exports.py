@@ -80,7 +80,7 @@ CONFIG = {
 }
 
 
-def flatten_settings_inplace(settings: dict):
+def flatten_settings_inplace(settings: dict) -> None:
     for k, v in settings.items():
         if isinstance(v, list) and v:
             settings[k] = ', '.join([item['value'] for item in v])

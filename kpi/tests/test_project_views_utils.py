@@ -64,7 +64,7 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
             r.save()
 
     @staticmethod
-    def _get_user_obj(username):
+    def _get_user_obj(username: str) -> User:
         return User.objects.get(username=username)
 
     def test_regional_user_perms_for_asset(self):

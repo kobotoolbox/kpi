@@ -39,14 +39,14 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             'assigned_users',
         )
 
-    def get_assets(self, obj) -> str:
+    def get_assets(self, obj: ProjectView) -> list:
         return reverse(
             'projectview-assets',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
 
-    def get_assets_count(self, obj) -> str:
+    def get_assets_count(self, obj: ProjectView) -> int:
         region = get_region_for_view(obj.uid)
         queryset = Asset.objects.all()
 
@@ -58,34 +58,34 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             q |= Q(settings__country__contains=[{'value': country}])
         return queryset.filter(q).count()
 
-    def get_assets_export(self, obj) -> str:
+    def get_assets_export(self, obj: ProjectView) -> str:
         return reverse(
             'projectview-export',
             args=(obj.uid, 'assets'),
             request=self.context.get('request', None),
         )
 
-    def get_assigned_users(self, obj) -> List[str]:
+    def get_assigned_users(self, obj: ProjectView) -> List[str]:
         return obj.users.all().values_list('username', flat=True)
 
-    def get_countries(self, obj) -> List[str]:
+    def get_countries(self, obj: ProjectView) -> List[str]:
         return obj.get_countries()
 
-    def get_users(self, obj) -> str:
+    def get_users(self, obj: ProjectView) -> List[str]:
         return reverse(
             'projectview-users',
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
 
-    def get_users_export(self, obj) -> str:
+    def get_users_export(self, obj: ProjectView) -> str:
         return reverse(
             'projectview-export',
             args=(obj.uid, 'users'),
             request=self.context.get('request', None),
         )
 
-    def get_url(self, obj) -> str:
+    def get_url(self, obj: ProjectView) -> str:
         return reverse(
             'projectview-detail',
             args=(obj.uid,),

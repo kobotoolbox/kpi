@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 from django import forms
 from django.contrib import admin
 from django.db import models
@@ -14,7 +16,7 @@ from .assignment import AssignmentProjectViewM2MInline
 from ..fields import ChoiceArrayField
 
 
-def _get_permission_choices():
+def _get_permission_choices() -> List[Tuple(str, str)]:
     """
     'choices' must be an iterable (e.g., a list or tuple)
     """
@@ -46,15 +48,15 @@ class ProjectView(models.Model):
 
     class Meta:
         verbose_name = 'project view'
-        ordering = ['name']
+        ordering = ('name',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def get_countries(self):
+    def get_countries(self) -> List[str]:
         return [c.strip().upper() for c in self.countries.split(',')]
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.countries = ', '.join(self.get_countries())
         super().save(*args, **kwargs)
 

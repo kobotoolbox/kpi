@@ -19,7 +19,6 @@ import constance
 import requests
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -463,14 +462,16 @@ def export_upload_to(self, filename):
 
 
 class ProjectViewExportTask(ImportExportTask):
-    uid = KpiUidField(uid_prefix='cpe')
+    uid = KpiUidField(uid_prefix='pve')
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
-    def _build_export_filename(self, export_type, username, view):
+    def _build_export_filename(
+        self, export_type: str, username: str, view: str
+    ) -> str:
         time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         return f'{export_type}-{username}-view_{view}-{time}.csv'
 
-    def _run_task(self, messages):
+    def _run_task(self, messages: list) -> None:
         export_type = self.data.get('type')
         view = self.data.get('view')
 
@@ -487,7 +488,7 @@ class ProjectViewExportTask(ImportExportTask):
         self.result = absolute_filename
         self.save()
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs) -> None:
         # removing exported file from storage
         self.result.delete(save=False)
         super().delete(*args, **kwargs)

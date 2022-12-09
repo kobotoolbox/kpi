@@ -30,7 +30,9 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task
-def project_view_export_in_background(export_task_uid, username):
+def project_view_export_in_background(
+    export_task_uid: str, username: str
+) -> None:
     from kpi.models.import_export_task import (
         ProjectViewExportTask,
     )  # avoid circular imports

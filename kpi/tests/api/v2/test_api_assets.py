@@ -4,7 +4,6 @@ import copy
 import json
 from io import StringIO
 
-from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -322,12 +321,12 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             r.users.set(users)
             r.save()
 
-    def _login_as_anotheruser(self):
+    def _login_as_anotheruser(self) -> None:
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
 
     @staticmethod
-    def _get_user_obj(username):
+    def _get_user_obj(username: str) -> User:
         return User.objects.get(username=username)
 
     def test_regional_views_list(self):

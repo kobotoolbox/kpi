@@ -1,7 +1,12 @@
 # coding: utf-8
+from __future__ import annotations
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models.query import QuerySet
+
+from rest_framework.request import Request
 
 User = get_user_model()
 
@@ -20,19 +25,25 @@ class AssignmentAdmin(admin.ModelAdmin):
     search_fields = ('username',)
 
     @admin.display(description='Project views')
-    def project_views_csv(self, obj):
+    def project_views_csv(self, obj: Assignment) -> str:
         return ', '.join([r.name for r in obj.project_views.all()])
 
-    def get_queryset(self, request):
+    def get_queryset(self, request: Request) -> QuerySet:
         return self.model.objects.exclude(project_views__isnull=True)
 
-    def has_add_permission(self, request, obj=None):
+    def has_add_permission(
+        self, request: Reqest, obj: Assignment = None
+    ) -> bool:
         return False
 
-    def has_change_permission(self, request, obj=None):
+    def has_change_permission(
+        self, request: Request, obj: Assignment = None
+    ) -> bool:
         return False
 
-    def has_delete_permission(self, request, obj=None):
+    def has_delete_permission(
+        self, request: Request, obj: Assignment = None
+    ) -> bool:
         return False
 
 
@@ -52,7 +63,7 @@ class AssignmentProjectViewM2MInline(admin.TabularInline):
     verbose_name = 'Assignment'
     verbose_name_plural = 'Assignments'
     fields = ('user', 'project_view')
-    autocomplete_fields = ['user']
+    autocomplete_fields = ('user',)
 
     model = AssignmentProjectViewM2M
     extra = 1

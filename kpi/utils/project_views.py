@@ -4,8 +4,7 @@ from __future__ import annotations
 from django.db.models import Q
 from rest_framework.request import Request
 
-from kobo.apps.project_views.models.project_view import ProjectView
-from kobo.apps.project_views.models.assignment import Assignment
+from kobo.apps.project_views.models import Assignment, ProjectView
 
 
 def get_asset_countries(asset: 'models.Asset') -> List[str]:
