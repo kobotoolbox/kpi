@@ -8,15 +8,19 @@ export interface EmailResponse {
 }
 
 export async function getUserEmails(): Promise<PaginatedResponse<EmailResponse>> {
-  return fetch(`${ROOT_URL}/me/emails`)
+  return fetch(`${ROOT_URL}/me/emails/`)
     .then((response) => response.json())
     .catch((error) => console.log(error));
 }
 
 export async function setUserEmail(newEmail: string): Promise<EmailResponse> {
-  return fetch(`${ROOT_URL}/me/emails`, {
+  return fetch(`${ROOT_URL}/me/emails/`, {
     method: 'POST',
-    body: JSON.stringify({'email': newEmail}),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify({email: newEmail}),
   })
     .then((response) => response.json())
     .catch((error) => console.log(error));

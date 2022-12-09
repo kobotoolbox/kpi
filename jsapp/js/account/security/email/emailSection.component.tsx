@@ -21,13 +21,15 @@ export default function EmailSection() {
   });
 
   useEffect(() => {
-    getUserEmails().then((data) => {
-      setEmail({
-        isLoading: false,
-        emails: data.results,
-        newEmail: '',
+    if (email.isLoading) {
+      getUserEmails().then((data) => {
+        setEmail({
+          ...email,
+          isLoading: false,
+          emails: data.results,
+        });
       });
-    });
+    }
   });
 
   function setNewUserEmail(newEmail: string) {
@@ -41,8 +43,7 @@ export default function EmailSection() {
     });
   }
 
-  function onTextFieldChange(value: any) {
-    console.log(value);
+  function onTextFieldChange(value: string) {
     setEmail({
       ...email,
       newEmail: value,
@@ -50,8 +51,9 @@ export default function EmailSection() {
   }
 
   const currentAccount = session.currentAccount;
-  const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified);
-  console.log(email.newEmail);
+  function getUnverifiedEmail(): EmailResponse | undefined {
+    return email.emails.find((userEmail) => !userEmail.verified);
+  }
 
   return (
     <div className={style['email-section']}>
@@ -61,10 +63,10 @@ export default function EmailSection() {
         'email' in currentAccount && (
           <h2>{currentAccount.email}</h2>
       )}
-      {unverifiedEmail?.email && (
+      {getUnverifiedEmail() && (
         <div>
           <h2>Unverified email</h2>
-          <h2>{unverifiedEmail.email}</h2>
+          <h2>{getUnverifiedEmail()?.email}</h2>
         </div>
       )}
       <TextBox
@@ -81,7 +83,7 @@ export default function EmailSection() {
         size='l'
         color='blue'
         type='frame'
-        onClick={setNewUserEmail.bind(email.newEmail)}
+        onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
       />
     </div>
   );
