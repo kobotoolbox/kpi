@@ -7,7 +7,6 @@ import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
 import {ACCOUNT_ROUTES} from './routes';
-import ApiTokenDisplay from '../components/apiTokenDisplay';
 import envStore, {EnvStoreDataItem} from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
@@ -249,17 +248,6 @@ function AccountSettings() {
                 errors={form.fieldsWithErrors.email}
               />
             </bem.AccountSettings__item>
-
-            <bem.AccountSettings__item m='password'>
-              <a
-                href={`/#${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}
-                className='kobo-button kobo-button--blue'
-              >
-                {t('Modify Password')}
-              </a>
-            </bem.AccountSettings__item>
-
-            <ApiTokenDisplay />
 
             <bem.AccountSettings__item>
               <TextBox

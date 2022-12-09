@@ -1,0 +1,47 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/libs/_mdl';
+
+.securityRowHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: sizes.$x14;
+  border-bottom: sizes.$x1 solid;
+  border-color: colors.$kobo-gray-85;
+}
+
+.title {
+  color: colors.$kobo-gray-40;
+  font-weight: 600;
+}
+
+.root {
+  margin-top: sizes.$x20;
+  margin-bottom: sizes.$x20;
+
+  // Override styles for <ApiTokenDisplay>
+  :global {
+    .form-modal__item--api-token {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+
+      .text-box {
+        display: inline-block;
+        vertical-align: top;
+        width: 50%;
+        margin-right: sizes.$x5;
+
+        .text-box__input {
+          font-family: mdl.$font_mono;
+        }
+      }
+
+      // hide label redundant with section name
+      label:first-of-type {
+        display: none;
+      }
+    }
+  }
+}

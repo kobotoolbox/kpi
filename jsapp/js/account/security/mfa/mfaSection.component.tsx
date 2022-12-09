@@ -174,8 +174,8 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
 
         <bem.SecurityRow__description>
           {t(
-            'Two-factor authenication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
-              'We recommend enabling two-factor authenication for an additional layer of protection.'
+            'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
+              'We recommend enabling two-factor authentication for an additional layer of protection.'
           )}
         </bem.SecurityRow__description>
 

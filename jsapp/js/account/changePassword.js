@@ -13,6 +13,10 @@ import {withRouter} from 'js/router/legacy';
 import './accountSettings.scss';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
+bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
+bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
+bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
+bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 const ChangePassword = class ChangePassword extends React.Component {
   constructor(props) {
