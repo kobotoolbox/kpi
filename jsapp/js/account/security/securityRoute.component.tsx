@@ -2,6 +2,7 @@ import React from 'react';
 import MfaSection from './mfa/mfaSection.component';
 import PasswordSection from './password/passwordSection.component';
 import ApiTokenSection from './apiToken/apiTokenSection.component';
+import SsoSection from './sso/ssoSection.component';
 import style from './securityRoute.module.scss';
 
 export default function securityRoute() {
@@ -11,6 +12,7 @@ export default function securityRoute() {
       <PasswordSection />
       <ApiTokenSection />
       <MfaSection />
+      <SsoSection />
     </div>
   );
 }
