@@ -1,6 +1,7 @@
 import React from 'react';
 import MfaSection from './mfa/mfaSection.component';
 import PasswordSection from './password/passwordSection.component';
+import EmailSection from './email/emailSection.component';
 import style from './securityRoute.module.scss';
 
 export default function securityRoute() {
@@ -9,6 +10,7 @@ export default function securityRoute() {
       <h1>Security</h1>
       <PasswordSection />
       <MfaSection />
+      <EmailSection />
     </div>
   );
 }
