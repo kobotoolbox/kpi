@@ -4,7 +4,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
-from django.http import Http404
 from rest_framework import filters
 from rest_framework.request import Request
 
@@ -19,7 +18,11 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import SearchQueryTooShortException
+from kpi.exceptions import (
+    QueryParserBadSyntax,
+    QueryParserNotSupportedFieldLookup,
+    SearchQueryTooShortException,
+)
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
@@ -81,8 +84,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 
 class KpiObjectPermissionsFilter:
-
-    _return_queryset = False
 
     STATUS_PARAMETER = 'status'
     PARENT_UID_PARAMETER = 'parent__uid'
@@ -367,7 +368,11 @@ class SearchFilter(filters.BaseFilterBackend):
             )
         except ParseError:
             return queryset.model.objects.none()
-        except SearchQueryTooShortException as e:
+        except (
+            QueryParserBadSyntax,
+            QueryParserNotSupportedFieldLookup,
+            SearchQueryTooShortException,
+        ) as e:
             # raising an exception if the default search query without a
             # specified field is less than a set length of characters -
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)

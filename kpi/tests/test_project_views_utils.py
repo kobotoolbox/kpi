@@ -1,10 +1,10 @@
 # coding: utf-8
 from django.contrib.auth.models import User
 
-from kobo.apps.custom_projects.models.custom_project import CustomProject
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     get_regional_user_permissions_for_asset,
     user_has_regional_asset_perm,
     user_has_view_perms,
@@ -14,7 +14,7 @@ from kpi.utils.custom_projects import (
 )
 
 
-class CustomProjectsUtilsTestCase(BaseTestCase):
+class ProjectViewsUtilsTestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -59,12 +59,12 @@ class CustomProjectsUtilsTestCase(BaseTestCase):
         for region in regional_assignments:
             usernames = region.pop('users')
             users = [self._get_user_obj(u) for u in usernames]
-            r = CustomProject.objects.create(**region)
+            r = ProjectView.objects.create(**region)
             r.users.set(users)
             r.save()
 
     @staticmethod
-    def _get_user_obj(username):
+    def _get_user_obj(username: str) -> User:
         return User.objects.get(username=username)
 
     def test_regional_user_perms_for_asset(self):
@@ -99,14 +99,14 @@ class CustomProjectsUtilsTestCase(BaseTestCase):
             assert not user_has_regional_asset_perm(self.asset, self.user, perm)
 
     def test_user_has_view_perms(self):
-        views = CustomProject.objects.filter(
+        views = ProjectView.objects.filter(
             name__in=['Overview', 'Test view 1']
         ).values_list('uid', flat=True)
         for view in views:
             assert user_has_view_perms(self.user, view)
 
     def test_view_has_perm(self):
-        view = CustomProject.objects.get(name='Test view 1').uid
+        view = ProjectView.objects.get(name='Test view 1').uid
         assigned_perms = [
             'view_asset',
             'view_submissions',
@@ -117,16 +117,16 @@ class CustomProjectsUtilsTestCase(BaseTestCase):
 
     def test_get_region_for_view(self):
         assert '*' in get_region_for_view(
-            CustomProject.objects.get(name='Overview').uid
+            ProjectView.objects.get(name='Overview').uid
         )
         assert sorted(['BWA', 'LSO', 'MOZ', 'NAM', 'ZAF', 'ZWE']) == sorted(
-            get_region_for_view(CustomProject.objects.get(name='Test view 1').uid)
+            get_region_for_view(ProjectView.objects.get(name='Test view 1').uid)
         )
 
     def test_get_regional_views_for_user(self):
         assert sorted(
             list(
-                CustomProject.objects.filter(
+                ProjectView.objects.filter(
                     name__in=['Overview', 'Test view 1']
                 ).values_list('uid', flat=True)
             )

@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 from django import forms
 from django.contrib import admin
 from django.db import models
@@ -10,11 +12,11 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
-from .assignment import AssignmentCustomProjectM2MInline
+from .assignment import AssignmentProjectViewM2MInline
 from ..fields import ChoiceArrayField
 
 
-def _get_permission_choices():
+def _get_permission_choices() -> List[Tuple(str, str)]:
     """
     'choices' must be an iterable (e.g., a list or tuple)
     """
@@ -27,7 +29,7 @@ def _get_permission_choices():
     return [(p, p) for p in allowed_perms]
 
 
-class CustomProject(models.Model):
+class ProjectView(models.Model):
 
     uid = KpiUidField(uid_prefix='cp')
     name = models.CharField(max_length=200)
@@ -40,35 +42,35 @@ class CustomProject(models.Model):
     )
     users = models.ManyToManyField(
         'auth.User',
-        related_name='custom_projects',
-        through='AssignmentCustomProjectM2M',
+        related_name='project_views',
+        through='AssignmentProjectViewM2M',
     )
 
     class Meta:
-        verbose_name = 'custom project view'
-        ordering = ['name']
+        verbose_name = 'project view'
+        ordering = ('name',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def get_countries(self):
+    def get_countries(self) -> List[str]:
         return [c.strip().upper() for c in self.countries.split(',')]
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.countries = ', '.join(self.get_countries())
         super().save(*args, **kwargs)
 
 
-class CustomProjectForm(forms.ModelForm):
+class ProjectViewForm(forms.ModelForm):
     class Meta:
-        model = CustomProject
+        model = ProjectView
         exclude = ('uid',)
 
 
-class CustomProjectAdmin(admin.ModelAdmin):
+class ProjectViewAdmin(admin.ModelAdmin):
 
-    form = CustomProjectForm
+    form = ProjectViewForm
 
     list_display = ('name', 'countries', 'permissions')
     exclude = ('uid',)
-    inlines = (AssignmentCustomProjectM2MInline,)
+    inlines = (AssignmentProjectViewM2MInline,)

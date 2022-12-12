@@ -65,7 +65,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     get_regional_views_for_user,
     user_has_regional_asset_perm,
 )
@@ -251,7 +251,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     ### Reports
 
-    Returns the submission data for all deployments of a survey. 
+    Returns the submission data for all deployments of a survey.
     This data is grouped by answers, and does not show the data for individual submissions.
     The endpoint will return a <b>404 NOT FOUND</b> error if the asset is not deployed and will only return the data for the most recently deployed version.
 
@@ -761,7 +761,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         asset = self.get_object()
         if not asset.has_deployment:
             raise Http404
-        serializer = ReportsDetailSerializer(asset, 
+        serializer = ReportsDetailSerializer(asset,
                                              context=self.get_serializer_context())
         return Response(serializer.data)
 
