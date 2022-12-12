@@ -1,5 +1,8 @@
 @use "scss/_variables";
 
+// A rare light mid-blue
+$kobo-light-mid-blue: #c0e3ff;
+
 // ==========================================================================
 // Registration Forms
 // ==========================================================================
@@ -11,7 +14,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: $kobo-white;
+  color: $kobo-gray-96;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -28,14 +31,19 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba($kobo-gray-24, 0.75);
+    background: rgba($kobo-gray-24, 0.8);
     padding: 20px 30px;
+    border-radius: 10px;
 
     a {
-      color: lighten($kobo-blue, 20%);
+      color: $kobo-light-mid-blue;
+      text-decoration: underline;
+      text-decoration-skip-ink: none;
+      text-decoration-color: rgba($kobo-light-mid-blue, 0.5);
 
       &:hover {
-        color: $kobo-blue;
+        color: $kobo-mid-blue;
+        text-decoration-color: rgba($kobo-mid-blue, 0.5);
       }
 
       &.registration__forgot {
@@ -100,11 +108,11 @@
   font-size: variables.$base-font-size;
   border-bottom: 3px solid transparent;
   margin-top: 1px;
-  opacity: 0.9;
+  background-color: $kobo-cloud;
 
   &:focus {
     border-bottom-color: $kobo-blue;
-    opacity: 1;
+    background-color: $kobo-white;
   }
 }
 
@@ -112,10 +120,6 @@
   select {
     margin-top: 4px;
     border-bottom: none;
-  }
-
-  label {
-    opacity: 0.85;
   }
 
   span.required {
