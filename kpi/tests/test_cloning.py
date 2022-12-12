@@ -281,10 +281,11 @@ class TestCloning(KpiTestCase):
                 "value": "Arts, Entertainment, and Recreation",
                 "label": "Arts, Entertainment, and Recreation"
             },
-            "country": {
+            "country": [{
                 "value": "ALB",
                 "label": "Albania"
-            },
+            }],
+            "country_codes": ["ALB"],
             "share-metadata": True,
             "description": "This form can be cloned"
         }
@@ -316,10 +317,11 @@ class TestCloning(KpiTestCase):
                 "value": "Arts, Entertainment, and Recreation",
                 "label": "Arts, Entertainment, and Recreation"
             },
-            "country": {
+            "country": [{
                 "value": "ALB",
                 "label": "Albania"
-            },
+            }],
+            "country_codes": ["ALB"],
             "share-metadata": True,  # A template should not have this property
             "description": "This form can be cloned"
         }
@@ -355,10 +357,11 @@ class TestCloning(KpiTestCase):
                 "value": "Arts, Entertainment, and Recreation",
                 "label": "Arts, Entertainment, and Recreation"
             },
-            "country": {
+            "country": [{
                 "value": "ALB",
                 "label": "Albania"
-            },
+            }],
+            "country_codes": ["ALB"],
             "share-metadata": True,
             "description": "This form can be cloned"
         }
@@ -410,13 +413,12 @@ class TestCloning(KpiTestCase):
             "description": "A template to be cloned"
         }
         template_asset = self.create_asset(
-            'template_asset', 
+            'template_asset',
             settings=json.dumps(template_settings),
             asset_type=ASSET_TYPE_TEMPLATE
         )
 
         return survey_asset, template_asset
-
 
     def test_clone_template_to_existing_asset(self):
         self.login(self.someuser.username, self.someuser_password)
@@ -428,10 +430,9 @@ class TestCloning(KpiTestCase):
                                                   asset_type=survey_asset.asset_type)
 
         self.assertEqual(survey_asset.content.get("survey"), [])
-        self.assertEqual(modified_survey_asset.settings.get("description"), "A template to be cloned")
-        self.assertEqual(modified_survey_asset.settings.get("country").get("value"), "CAN")
+        self.assertEqual(modified_survey_asset.settings['description'], "A template to be cloned")
+        self.assertEqual(modified_survey_asset.settings['country'][0].get("value"), "CAN")
         self.assertEqual(modified_survey_asset.asset_type, survey_asset.asset_type)
-
 
     def test_override_settings_while_cloning_template_to_existing_asset(self):
         self.login(self.someuser.username, self.someuser_password)
@@ -448,7 +449,7 @@ class TestCloning(KpiTestCase):
             'I prefer my own, thank you very much!'
         )
         self.assertEqual(
-            modified_survey_asset.settings["country"]["value"], "CAN"
+            modified_survey_asset.settings["country"][0]["value"], "CAN"
         )
 
 
