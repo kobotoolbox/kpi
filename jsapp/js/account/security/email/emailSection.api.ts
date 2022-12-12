@@ -1,5 +1,5 @@
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
-import {ROOT_URL} from 'js/constants';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
 
 export interface EmailResponse {
   primary: boolean;
@@ -7,21 +7,12 @@ export interface EmailResponse {
   verified: boolean;
 }
 
-export async function getUserEmails(): Promise<PaginatedResponse<EmailResponse>> {
-  return fetch(`${ROOT_URL}/me/emails/`)
-    .then((response) => response.json())
-    .catch((error) => console.log(error));
+const LIST_URL = '/me/emails';
+
+export async function getUserEmails() {
+  return fetchGet<PaginatedResponse<EmailResponse>>(LIST_URL);
 }
 
-export async function setUserEmail(newEmail: string): Promise<EmailResponse> {
-  return fetch(`${ROOT_URL}/me/emails/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'same-origin',
-    body: JSON.stringify({email: newEmail}),
-  })
-    .then((response) => response.json())
-    .catch((error) => console.log(error));
+export async function setUserEmail(newEmail: string) {
+  return fetchPost<EmailResponse>(LIST_URL, {email: newEmail});
 }
