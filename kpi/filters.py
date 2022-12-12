@@ -4,7 +4,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
-from django.http import Http404
 from rest_framework import filters
 from rest_framework.request import Request
 
@@ -81,8 +80,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 
 class KpiObjectPermissionsFilter:
-
-    _return_queryset = False
 
     STATUS_PARAMETER = 'status'
     PARENT_UID_PARAMETER = 'parent__uid'

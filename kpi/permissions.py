@@ -14,7 +14,7 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     get_regional_user_permissions_for_asset,
     user_has_regional_asset_perm,
 )

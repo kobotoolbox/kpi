@@ -10,21 +10,21 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.filters import SearchFilter
-from kpi.models import Asset, CustomProjectExportTask
+from kpi.models import Asset, ProjectViewExportTask
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
-from kpi.utils.custom_projects import (
+from kpi.utils.project_views import (
     get_region_for_view,
     user_has_view_perms,
 )
-from kpi.tasks import custom_project_export_in_background
-from .models.custom_project import CustomProject
-from .serializers import CustomProjectSerializer
+from kpi.tasks import project_view_export_in_background
+from .models.project_view import ProjectView
+from .serializers import ProjectViewSerializer
 
 
-class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
+class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
 
-    serializer_class = CustomProjectSerializer
+    serializer_class = ProjectViewSerializer
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
     filter_backends = [SearchFilter]
@@ -32,7 +32,7 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
         'name__icontains',
     ]
     min_search_characters = 2
-    queryset = CustomProject.objects.all()
+    queryset = ProjectView.objects.all()
 
     def get_queryset(self, *args, **kwargs):
         return self.queryset.filter(users=self.request.user)
@@ -59,7 +59,7 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
             raise Http404
 
         if request.method == 'GET':
-            export = CustomProjectExportTask.objects.filter(
+            export = ProjectViewExportTask.objects.filter(
                 user=user, data__view=uid, data__type=_type
             ).last()
             if not export:
@@ -75,7 +75,7 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             )
         elif request.method == 'POST':
-            export_task = CustomProjectExportTask.objects.create(
+            export_task = ProjectViewExportTask.objects.create(
                 user=user,
                 data={
                     'view': uid,
@@ -84,7 +84,7 @@ class CustomProjectViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
             # Have Celery run the export in the background
-            custom_project_export_in_background.delay(
+            project_view_export_in_background.delay(
                 export_task_uid=export_task.uid,
                 username=user.username,
             )
