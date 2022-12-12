@@ -334,10 +334,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'uid__icontains',
     ]
 
-    search_list_fields = [
-        'settings__country'
-    ]
-
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
         asset = self.get_object()
