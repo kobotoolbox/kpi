@@ -9,6 +9,7 @@ class StandardizeSearchableFieldMixin:
         property_name: str,
         property_type: Union[str, list, dict],
         default: Optional[Union[str, list, dict]] = None,
+        force_default: bool = False,
     ):
         """
         Standardize a property inside a jsonb field to match expected
@@ -23,6 +24,10 @@ class StandardizeSearchableFieldMixin:
             # JSONB Field contains a string instead of a json
             field = {}
             value = ''
+
+        # Reset to None before reassigning the default value
+        if force_default:
+            value = None
 
         if property_type is list:
             if not value or value == [None] or isinstance(value, str):
