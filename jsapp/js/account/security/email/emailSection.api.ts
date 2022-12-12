@@ -7,7 +7,7 @@ export interface EmailResponse {
   verified: boolean;
 }
 
-const LIST_URL = '/me/emails';
+const LIST_URL = '/me/emails/';
 
 export async function getUserEmails() {
   return fetchGet<PaginatedResponse<EmailResponse>>(LIST_URL);
