@@ -855,6 +855,7 @@ class Asset(ObjectPermissionMixin,
                 'country_codes',
                 list,
                 [c['value'] for c in self.settings['country']],
+                force_default=True
             )
             self.standardize_json_field('settings', 'sector', dict)
             self.standardize_json_field('settings', 'description', str)
