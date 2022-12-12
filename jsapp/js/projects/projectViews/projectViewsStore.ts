@@ -31,7 +31,7 @@ class ProjectViewsStore {
     return this.views.find((view) => view.uid === uid);
   }
 
-  private fetchData() {
+  public fetchData() {
     $.ajax({
       dataType: 'json',
       method: 'GET',

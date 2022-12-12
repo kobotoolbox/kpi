@@ -17,7 +17,7 @@ interface ViewSwitcherProps {
 function ViewSwitcher(props: ViewSwitcherProps) {
   // We track the menu visibility for the trigger icon.
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [viewsStore] = useState(() => projectViewsStore);
+  const [projectViews] = useState(() => projectViewsStore);
   const navigate = useNavigate();
 
   const onOptionClick = (viewUid: string) => {
@@ -27,6 +27,9 @@ function ViewSwitcher(props: ViewSwitcherProps) {
       navigate(ROUTES.FORMS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
+      // The store keeps a number of assets of each view, and that number
+      // might change after changing projects, so we make sure we get fresh data
+      projectViews.fetchData();
     }
   };
 
@@ -35,7 +38,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
       return HOME_VIEW.name;
     }
 
-    return viewsStore.getView(props.selectedViewUid)?.name;
+    return projectViews.getView(props.selectedViewUid)?.name;
   };
 
   const getTriggerCount = () => {
@@ -43,10 +46,10 @@ function ViewSwitcher(props: ViewSwitcherProps) {
       return null;
     }
 
-    return viewsStore.getView(props.selectedViewUid)?.assets_count;
+    return projectViews.getView(props.selectedViewUid)?.assets_count;
   };
 
-  if (!viewsStore.isInitialised) {
+  if (!projectViews.isInitialised) {
     return null;
   }
 
@@ -82,7 +85,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
             >
               {HOME_VIEW.name}
             </button>
-            {viewsStore.views.map((view) =>
+            {projectViews.views.map((view) =>
               <button
                 key={view.uid}
                 className={styles['menu-option']}
