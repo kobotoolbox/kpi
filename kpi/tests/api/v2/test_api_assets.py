@@ -5,6 +5,7 @@ import json
 import os
 from io import StringIO
 
+from dateutil.parser import parse
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -254,6 +255,7 @@ class AssetListApiTests(BaseAssetTestCase):
         })
         assert expected_order_by_name_collections_first == uids
 
+
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
@@ -464,6 +466,46 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             asset_data['url'], data={'name': 'A new name'}
         )
         assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_regional_asset_views_trivial_ordering(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        assets_url = results[0]['assets']
+        regional_res_asc = self.client.get(
+            f'{assets_url}?ordering=name', HTTP_ACCEPT='application/json'
+        )
+        regional_res_desc = self.client.get(
+            f'{assets_url}?ordering=-name', HTTP_ACCEPT='application/json'
+        )
+        results_asc = regional_res_asc.json()['results']
+        results_desc = regional_res_desc.json()['results']
+        assert results_desc[0]['name'] == 'fixture asset with translations'
+        assert results_asc[0]['name'] == 'fixture asset'
+
+    def test_regional_asset_views_special_ordering(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        assets_url = results[0]['assets']
+        regional_res_asc = self.client.get(
+            f'{assets_url}?ordering=date_deployed', HTTP_ACCEPT='application/json'
+        )
+        regional_res_desc = self.client.get(
+            f'{assets_url}?ordering=-date_deployed', HTTP_ACCEPT='application/json'
+        )
+        results_asc = regional_res_asc.json()['results']
+        results_desc = regional_res_desc.json()['results']
+        assets = Asset.objects.all().order_by('date_modified')[:2]
+
+        response_dt_desc = parse(results_desc[0]['date_latest_deployement'])  # FIXME typo date_latest_deployment
+        assert assets[1].latest_deployed_version.date_modified == response_dt_desc
+
+        response_dt_asc = parse(results_asc[0]['date_latest_deployement'])  # FIXME typo date_latest_deployment
+        assert assets[0].latest_deployed_version.date_modified == response_dt_asc
+        assert response_dt_desc > response_dt_asc
 
 
 class AssetVersionApiTests(BaseTestCase):
