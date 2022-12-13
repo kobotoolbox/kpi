@@ -20,12 +20,9 @@
         </ul>
       </div>
       {% include "socialaccount/snippets/login_extra.html" %}
-    {% else %}
-      <p>{% blocktrans %}If you have not created an account yet, then please
-      <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
     {% endif %}
 
-    
+
     {% csrf_token %}
     {{ form.as_p }}
     {% if redirect_field_value %}
@@ -55,9 +52,9 @@
     </div>
 
     {# SSO section #}
-    {# TODO: Show this section only if SSO is enabled and there's a provider. #}
-    {# TODO: If there is more than one provider, use another design. #}
-    <div class="registration__sso">
+    {# TODO: Use Django template logic instead of CSS/JS for this section #}
+    {# TODO: If there is more than one provider, draw a button for each. #}
+    <div class="registration__sso registration__sso--hidden">
       <hr></hr>
       <h2>{% trans "Log in using SSO" %}</h2>
       <p>
@@ -83,9 +80,14 @@
         document.querySelectorAll('label[for="id_login"],label[for="id_password"]'
           ).forEach((el)=>{ el.innerText = el.innerText.replaceAll(':', '')})
 
-        // {# Functionality HACK: Grab link from first provider and use it for SSO login  #}
+        // {# HACK: Setup SSO section with JS #}
         var providers = document.querySelectorAll('a.socialaccount_provider')
-        if (providers.length >= 1) {
+        if (providers.length > 0 ) {
+          // {# HACK: Unhide the SSO section #}
+          document.querySelector('.registration__sso').classList.remove('registration__sso--hidden')
+
+          // {# HACK: Grab link from first provider and use it for SSO login  #}
+          // {# TODO: Handle more than 1 provider by making multiple labeled buttons #}
           document.querySelector('a[name="SSO Login"]').href = providers[0].href
         }
       })

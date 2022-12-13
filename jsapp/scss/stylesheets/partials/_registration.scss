@@ -89,6 +89,12 @@ $kobo-light-mid-blue: #c0e3ff;
         }
       }
     }
+
+    // HACK: Hide the SSO section until JS sees at least one provider.
+    // TODO: Use Django logic instead
+    .registration__sso--hidden {
+      display: none;
+    }
   }
 
   a:focus-visible {
