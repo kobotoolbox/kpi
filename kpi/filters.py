@@ -2,7 +2,17 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    F,
+    IntegerField,
+    Max,
+    OuterRef,
+    Q,
+    Value,
+    When,
+)
 from django.db.models.query import QuerySet
 from rest_framework import filters
 from rest_framework.request import Request
@@ -20,6 +30,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
     get_objects_for_user,
@@ -45,8 +56,9 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
     def filter_queryset(self, request, queryset, view):
         query_params = request.query_params
-        collections_first = query_params.get('collections_first',
-                                             'false').lower() == 'true'
+        collections_first = (
+            query_params.get('collections_first', 'false').lower() == 'true'
+        )
         ordering = self.get_ordering(request, queryset, view)
 
         if collections_first:
@@ -70,10 +82,26 @@ class AssetOrderingFilter(filters.OrderingFilter):
             ordering.insert(0, '-ordering_priority')
 
         if ordering:
-            if 'subscribers_count' in ordering or \
-                    '-subscribers_count' in ordering:
-                queryset = queryset.annotate(subscribers_count=
-                                             Count('userassetsubscription__user'))
+            if (
+                'subscribers_count' in ordering
+                or '-subscribers_count' in ordering
+            ):
+                queryset = queryset.annotate(
+                    subscribers_count=Count('userassetsubscription__user')
+                )
+
+            if (
+                'date_deployed' in ordering
+                or '-date_deployed' in ordering
+            ):
+                subquery_last_deployed = (
+                    AssetVersion.objects.values('asset_id')
+                    .annotate(last_deployed=Max('date_modified'))
+                    .filter(asset_id=OuterRef('pk'))
+                    .values('last_deployed')
+                )
+                queryset = queryset.annotate(date_deployed=subquery_last_deployed)
+
             return queryset.order_by(*ordering)
 
         return queryset
