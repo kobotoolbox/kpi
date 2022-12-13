@@ -35,6 +35,11 @@ $kobo-light-mid-blue: #c0e3ff;
     padding: 20px 30px;
     border-radius: 10px;
 
+    label {
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+
     a {
       color: $kobo-light-mid-blue;
       text-decoration: underline;
@@ -45,13 +50,54 @@ $kobo-light-mid-blue: #c0e3ff;
         color: $kobo-mid-blue;
         text-decoration-color: rgba($kobo-mid-blue, 0.5);
       }
+    }
 
-      &.registration__forgot {
-        float: right;
-        margin-top: -12px;
-        margin-bottom: 12px;
+    hr {
+      border-top: 1px solid $kobo-storm;
+    }
+
+    // HACK: Hide the SocialAccount Providers list
+    // TODO: Modify the Django templates instead
+    .socialaccount_ballot {
+      display: none;
+    }
+
+    // SSO section styles
+    .registration__sso {
+      font-size: variables.$base-font-size;
+      padding-bottom: 20px;
+
+      h2 {
+        margin-top: 20px;
+        font-size: variables.$base-font-size;
+        text-align: center;
+      }
+
+      p {
+        font-size: 0.8em;
+        text-align: center;
+      }
+
+      // Special button variant only used here
+      a.kobo-button--sso-login {
+        background-color: $kobo-light-mid-blue;
+        color: $kobo-dark-blue;
+
+        &:focus {
+          // outline: 2px solid $kobo-dark-blue;
+          outline-offset: 0;
+        }
       }
     }
+  }
+
+  a:focus-visible {
+    // ux/accessibility: bring back the tabfocus ring
+    outline-color: $kobo-cloud;              // Ours (fallback)
+    outline-color: Highlight;                // Firefox
+    outline-color: -webkit-focus-ring-color; // Chrome & Safari
+    outline-offset: 4px;
+    outline-style: auto;
   }
 
   .registration--logo {
@@ -113,6 +159,14 @@ $kobo-light-mid-blue: #c0e3ff;
   &:focus {
     border-bottom-color: $kobo-blue;
     background-color: $kobo-white;
+  }
+}
+
+.registration button[type="submit"] {
+  margin-top: 28px;
+
+  &:focus {
+    outline: 2px solid $kobo-cloud;
   }
 }
 
@@ -223,13 +277,24 @@ $kobo-light-mid-blue: #c0e3ff;
   text-align: center;
 }
 
+.registration__create-or-forgot {
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
 .registration__footer {
   clear: both;
   text-align: center;
   margin: 20px 10px 10px 10px;
+  text-shadow: $kobo-gray-14 0 0 2px; // contrast against photo background
 
   a {
     color: $kobo-white;
+
+    &:hover {
+      color: $kobo-cloud;
+    }
   }
 
   .registration__legal a {
@@ -252,6 +317,10 @@ $kobo-light-mid-blue: #c0e3ff;
   a {
     opacity: 0.8;
     color: $kobo-white;
+
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 

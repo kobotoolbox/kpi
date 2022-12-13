@@ -6,11 +6,12 @@
 
 
   <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
+    {#  KoboToolbox Logo #}
     <div class="registration--logo"><a href="/">
     {% block logo %}{{ block.super }}{% endblock %}
     </a></div>
 
-
+    {# SSO Providers, Username, and Password #}
     {% get_providers as socialaccount_providers %}
     {% if socialaccount_providers %}
       <div class="socialaccount_ballot">
@@ -30,10 +31,8 @@
     {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
-    <a href="{% url 'account_reset_password' %}" class="registration__forgot">
-      {% trans "Forgot?" %}
-    </a>
 
+    {# Login Button #}
     <button
       type="submit"
       name="Login"
@@ -42,10 +41,55 @@
       {% trans "Login" %}
     </button>
 
-    {% if config.REGISTRATION_OPEN %}
-      <div class="registration__footer">
-        {% trans "or" %} <a href="{{ signup_url }}">{% trans "create an account" %}</a>
-      </div>
-    {% endif %}
+    {# Create an account, Forgot Password? #}
+    <div class="registration__create-or-forgot">
+      {% if config.REGISTRATION_OPEN %}
+        <a href="{{ signup_url }}" class="registration__create-account">
+          {% trans "Create an account" %}
+        </a>
+      {% endif %}
+
+      <a href="{% url 'account_reset_password' %}" class="registration__forgot-password">
+        {% trans "Forgot password?" %}
+      </a>
+    </div>
+
+    {# SSO section #}
+    {# TODO: Show this section only if SSO is enabled and there's a provider. #}
+    {# TODO: If there is more than one provider, use another design. #}
+    <div class="registration__sso">
+      <hr></hr>
+      <h2>{% trans "Log in using SSO" %}</h2>
+      <p>
+        {% trans "If you set up Single Sign On in your account settings, you will only be able to log in through this method." %}
+        {# TODO: Link to documentation #}
+        {# <a href="#">{% trans "Learn more" %}</a> #}
+      </p>
+      <a
+        name="SSO Login"
+        {# HACK: Uses a hardcoded URL at first #}
+        href="/accounts/microsoft/login/?process=login"
+        class="kobo-button kobo-button--sso-login kobo-button--fullwidth"
+      >
+          {% trans "SSO Login" %}
+      </a>
+    </div>
+
+    <script>
+      // {# TODO: Modify the Django templates instead of this. #}
+
+      jQuery(function () {
+        // {# Cosmetic: Remove colons from Username, Password #}
+        document.querySelectorAll('label[for="id_login"],label[for="id_password"]'
+          ).forEach((el)=>{ el.innerText = el.innerText.replaceAll(':', '')})
+
+        // {# Functionality HACK: Grab link from first provider and use it for SSO login  #}
+        var providers = document.querySelectorAll('a.socialaccount_provider')
+        if (providers.length >= 1) {
+          document.querySelector('a[name="SSO Login"]').href = providers[0].href
+        }
+      })
+    </script>
+
   </form>
 {% endblock %}
