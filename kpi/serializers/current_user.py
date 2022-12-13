@@ -14,6 +14,7 @@ from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from hub.models import ExtraUserDetail
+from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
 from kpi.deployment_backends.kc_access.utils import set_kc_require_auth
 from kpi.fields import WritableJSONField
@@ -29,6 +30,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
+    identities = SocialAccountSerializer(
+        source="socialaccount_set", many=True, read_only=True
+    )
+
 
     class Meta:
         model = User
@@ -48,6 +53,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
+            'identities',
         )
         read_only_fields = ('email',)
 
