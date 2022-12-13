@@ -62,14 +62,9 @@
         {# TODO: Link to documentation #}
         {# <a href="#">{% trans "Learn more" %}</a> #}
       </p>
-      <a
-        name="SSO Login"
-        {# HACK: Uses a hardcoded URL at first #}
-        href="/accounts/microsoft/login/?process=login"
-        class="kobo-button kobo-button--sso-login kobo-button--fullwidth"
-      >
-          {% trans "SSO Login" %}
-      </a>
+      <div class="registration__sso-buttons">
+        {# JS relocates the providers list here. #}
+      </div>
     </div>
 
     <script>
@@ -83,13 +78,34 @@
         // {# HACK: Setup SSO section with JS #}
         var providers = document.querySelectorAll('a.socialaccount_provider')
         if (providers.length > 0 ) {
-          // {# HACK: Unhide the SSO section #}
-          document.querySelector('.registration__sso').classList.remove('registration__sso--hidden')
+          // Move list
+          var providersList = document.querySelector('ul.socialaccount_providers')
+          document.querySelector('.registration__sso-buttons').append(providersList)
 
-          // {# HACK: Grab link from first provider and use it for SSO login  #}
-          // {# TODO: Handle more than 1 provider by making multiple labeled buttons #}
-          document.querySelector('a[name="SSO Login"]').href = providers[0].href
+          // Modify SSO login link appearances:
+          document.querySelectorAll('a.socialaccount_provider').forEach((el) => {
+            // Style as button
+            el.classList.add('kobo-button', 'kobo-button--sso-login', 'kobo-button--fullwidth')
+
+            if (providers.length === 1) {
+              // Label with "SSO Login"
+              el.innerText = '{% trans "SSO Login" %}'
+            } else {
+              // Label with provider name
+              el.innerText = '{% trans "Log in with" %} ' + el.title
+            }
+          })
+
+          // Finally, unhide the SSO section
+          document.querySelector('.registration__sso').classList.remove('registration__sso--hidden')
         }
+
+        // {# Polish: Make SSO links act more like buttons #}
+        document.addEventListener('keydown', function(e) {
+          if ((e.code === 'Space') && e.target.classList.contains('kobo-button--sso-login')) {
+            e.target.click()
+          }
+        })
       })
     </script>
 

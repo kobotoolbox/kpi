@@ -88,6 +88,13 @@ $kobo-light-mid-blue: #c0e3ff;
           outline-offset: 0;
         }
       }
+
+      ul.socialaccount_providers {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 8px;
+      }
     }
 
     // HACK: Hide the SSO section until JS sees at least one provider.
