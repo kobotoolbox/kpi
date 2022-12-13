@@ -77,7 +77,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
 
         {!props.isLoading && props.assets.length === 0 &&
           <div className={classNames(rowStyles.row, rowStyles['row-message'])}>
-            {props.emptyMessage || t('There are no assets to display.')}
+            {props.emptyMessage || t('There are no projects to display.')}
           </div>
         }
 
