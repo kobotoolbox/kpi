@@ -20,12 +20,14 @@ from kpi.constants import (
     ASSET_STATUS_SHARED,
     ASSET_TYPES,
     ASSET_TYPE_COLLECTION,
-    PERM_DISCOVER_ASSET,
     PERM_CHANGE_ASSET,
-    PERM_VIEW_ASSET,
+    PERM_CHANGE_METADATA,
+    PERM_DISCOVER_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
-    PERM_VIEW_SUBMISSIONS,
+    PERM_VIEW_ASSET,
     PERM_VIEW_PERMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import (
     PaginatedApiField,
@@ -177,15 +179,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def update(self, asset, validated_data):
         request = self.context['request']
         user = request.user
-        if not asset.has_perm(
-            user, 'change_asset'
-        ) and user_has_regional_asset_perm(asset, user, 'change_metadata'):
+        if (
+            not asset.has_perm(user, PERM_CHANGE_ASSET)
+            and user_has_regional_asset_perm(asset, user, PERM_CHANGE_METADATA)
+        ):
             _validated_data = {}
-            settings = validated_data.get('settings')
-            if settings:
+            if settings := validated_data.get('settings'):
                 _validated_data['settings'] = settings
-            name = validated_data.get('name')
-            if name:
+            if name := validated_data.get('name'):
                 _validated_data['name'] = name
             return super().update(asset, _validated_data)
 
@@ -787,24 +788,34 @@ class AssetMetadataListSerializer(AssetSerializer):
             'data',
         )
 
-    def get_data(self, *args: list, **kwargs: dict) -> str:
-        if view_has_perm(self._get_view(), PERM_VIEW_SUBMISSIONS):
-            return super().get_data(*args, **kwargs)
+    def get_data(self, obj: Asset) -> str:
+        if view_has_perm(
+            self._get_view(), PERM_VIEW_SUBMISSIONS
+        ) or self._user_has_asset_perms(obj, PERM_VIEW_SUBMISSIONS):
+            return super().get_data(obj)
         return ''
 
     def get_date_first_deployment(
         self, obj: Asset
     ) -> Optional[datetime.datetime]:
-        version = obj.asset_versions.filter(deployed=True).last()
-        if version:
-            return version.date_modified
+        if first_version := (
+            obj.asset_versions.only('date_modified')
+            .filter(deployed=True)
+            .order_by('date_modified')
+            .first()
+        ):
+            return first_version.date_modified
 
     def get_date_latest_deployment(
         self, obj: Asset
     ) -> Optional[datetime.datetime]:
-        version = obj.asset_versions.filter(deployed=True).first()
-        if version:
-            return version.date_modified
+        if latest_version := (
+            obj.asset_versions.only('date_modified')
+            .filter(deployed=True)
+            .order_by('date_modified')
+            .last()
+        ):
+            return latest_version.date_modified
 
     def get_languages(self, obj: Asset) -> list[str]:
         return obj.summary.get('languages', [])
@@ -818,9 +829,11 @@ class AssetMetadataListSerializer(AssetSerializer):
     def get_owner__organization(self, obj: Asset) -> str:
         return self._get_user_detail(obj, 'organization')
 
-    def get_permissions(self, *args: list, **kwargs: dict) -> list:
-        if view_has_perm(self._get_view(), PERM_VIEW_PERMISSIONS):
-            return super().get_permissions(*args, **kwargs)
+    def get_permissions(self, obj: Asset) -> list:
+        if view_has_perm(
+            self._get_view(), PERM_VIEW_PERMISSIONS
+        ) or self._user_has_asset_perms(obj, PERM_MANAGE_ASSET):
+            return super().get_permissions(obj)
         return []
 
     @staticmethod
@@ -833,3 +846,10 @@ class AssetMetadataListSerializer(AssetSerializer):
     def _get_view(self) -> str:
         request = self.context.get('request')
         return request.parser_context['kwargs']['uid']
+
+    def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
+        request = self.context.get('request')
+        user = get_database_user(request.user)
+        if obj.owner == user or obj.has_perm(user, perm):
+            return True
+        return False

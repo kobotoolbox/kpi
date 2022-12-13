@@ -49,7 +49,7 @@ class ProjectViewSerializer(serializers.ModelSerializer):
 
     def get_assets_count(self, obj: ProjectView) -> int:
         region = get_region_for_view(obj.uid)
-        queryset = Asset.objects.all()
+        queryset = Asset.objects.defer('content').all()
 
         if '*' in region:
             return queryset.count()
@@ -71,10 +71,10 @@ class ProjectViewSerializer(serializers.ModelSerializer):
 
     def get_countries(self, obj: ProjectView) -> list[str]:
         """
-        Return the country label if it's available, otherwise the code entered
-        for the region.
+        Return a sorted list of country labels if it's available, otherwise the
+        code entered for the country.
         """
-        return [dict(COUNTRIES).get(c, c) for c in obj.get_countries()]
+        return sorted(dict(COUNTRIES).get(c, c) for c in obj.get_countries())
 
     def get_users(self, obj: ProjectView) -> list[str]:
         return reverse(

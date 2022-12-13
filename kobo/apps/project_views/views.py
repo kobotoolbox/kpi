@@ -67,9 +67,7 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
             if not export:
                 return Response({})
 
-            file_location = serializers.FileField().to_representation(
-                export.result
-            )
+            file_location = export.result.url
             return Response(
                 {
                     'status': export.status,
