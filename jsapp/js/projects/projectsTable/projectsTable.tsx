@@ -11,6 +11,8 @@ import styles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
+const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-succesfully';
+
 export interface ProjectsTableOrder {
   fieldName: ProjectFieldName;
   direction: OrderDirection;
@@ -62,7 +64,10 @@ export default function ProjectsTable(props: ProjectsTableProps) {
   };
 
   return (
-    <div className={styles.root}>
+    // NOTE: react-infinite-scroller wants us to use refs, but there seems to
+    // be some kind of a bug - either in their code or their typings. Thus we
+    // are going to use OlDsChOoL `id` :shrug:.
+    <div className={styles.root} id={SCROLL_PARENT_ID}>
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
         visibleFields={props.visibleFields}
@@ -82,11 +87,13 @@ export default function ProjectsTable(props: ProjectsTableProps) {
         }
 
         <InfiniteScroll
+          getScrollParent={()=>document.getElementById(SCROLL_PARENT_ID)}
           pageStart={0}
           loadMore={props.onRequestLoadNextPage}
           hasMore={props.hasMorePages}
           loader={<LoadingSpinner hideMessage key='loadingspinner'/>}
           useWindow={false}
+          initialLoad={false}
         >
           {props.assets.map((asset) =>
             <ProjectsTableRow
