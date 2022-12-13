@@ -36,7 +36,6 @@ class SocialAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialAccount
         fields = (
-            'id',
             'provider',
             'uid',
             'last_login',

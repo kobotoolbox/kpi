@@ -583,6 +583,15 @@ export interface PermissionDefinition {
 
 export interface PermissionsConfigResponse extends PaginatedResponse<PermissionDefinition> {}
 
+interface SocialAccount {
+  provider: string;
+  uid: string;
+  last_login: string;
+  date_joined: string;
+  email: string | null;
+  username: string | null;
+}
+
 export interface AccountResponse {
   username: string;
   first_name: string;
@@ -617,6 +626,7 @@ export interface AccountResponse {
     branch: string;
     tag: boolean;
   };
+  identities: SocialAccount[];
 }
 
 interface UserNotLoggedInResponse {

@@ -6,7 +6,6 @@ import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
-import {ACCOUNT_ROUTES} from './routes';
 import envStore, {EnvStoreDataItem} from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
