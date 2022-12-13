@@ -96,7 +96,7 @@ function CustomViewRoute() {
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
         order={order}
         onChangeOrderRequested={setOrder}
-        onRequestLoadNextPage={customView.fetchMoreAssets}
+        onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
       />
     </section>
