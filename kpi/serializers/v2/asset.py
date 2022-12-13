@@ -25,6 +25,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    PERM_VIEW_PERMISSIONS,
 )
 from kpi.fields import (
     PaginatedApiField,
@@ -749,8 +750,8 @@ class AssetUrlListSerializer(AssetSerializer):
 
 class AssetMetadataListSerializer(AssetSerializer):
 
-    date_latest_deployement = serializers.SerializerMethodField()
-    date_first_deployement = serializers.SerializerMethodField()
+    date_latest_deployment = serializers.SerializerMethodField()
+    date_first_deployment = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     owner__name = serializers.SerializerMethodField()
     owner__email = serializers.SerializerMethodField()
@@ -761,8 +762,8 @@ class AssetMetadataListSerializer(AssetSerializer):
             'url',
             'date_modified',
             'date_created',
-            'date_latest_deployement',
-            'date_first_deployement',
+            'date_latest_deployment',
+            'date_first_deployment',
             'owner',
             'owner__username',
             'owner__email',
@@ -791,17 +792,21 @@ class AssetMetadataListSerializer(AssetSerializer):
             return super().get_data(*args, **kwargs)
         return ''
 
-    def get_date_first_deployement(self, obj: Asset) -> Optional[datetime.datetime]:
+    def get_date_first_deployment(
+        self, obj: Asset
+    ) -> Optional[datetime.datetime]:
         version = obj.asset_versions.filter(deployed=True).last()
         if version:
             return version.date_modified
 
-    def get_date_latest_deployement(self, obj: Asset) -> Optional[datetime.datetime]:
+    def get_date_latest_deployment(
+        self, obj: Asset
+    ) -> Optional[datetime.datetime]:
         version = obj.asset_versions.filter(deployed=True).first()
         if version:
             return version.date_modified
 
-    def get_languages(self, obj: Asset) -> List[str]:
+    def get_languages(self, obj: Asset) -> list[str]:
         return obj.summary.get('languages', [])
 
     def get_owner__email(self, obj: Asset) -> str:
@@ -814,7 +819,7 @@ class AssetMetadataListSerializer(AssetSerializer):
         return self._get_user_detail(obj, 'organization')
 
     def get_permissions(self, *args: list, **kwargs: dict) -> list:
-        if view_has_perm(self._get_view(), 'view_permissions'):
+        if view_has_perm(self._get_view(), PERM_VIEW_PERMISSIONS):
             return super().get_permissions(*args, **kwargs)
         return []
 

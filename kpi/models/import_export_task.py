@@ -68,8 +68,8 @@ from kpi.utils.rename_xls_sheet import (
     NoFromSheetError,
     ConflictSheetError,
 )
-from kpi.utils.strings import to_str
 from kpi.utils.project_view_exports import create_project_view_export
+from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
 
 
@@ -473,8 +473,8 @@ class ProjectViewExportTask(ImportExportTask):
         return f'{export_type}-{username}-view_{view}-{time}.csv'
 
     def _run_task(self, messages: list) -> None:
-        export_type = self.data.get('type')
-        view = self.data.get('view')
+        export_type = self.data['type']
+        view = self.data['view']
 
         filename = self._build_export_filename(
             export_type, self.user.username, view

@@ -16,7 +16,7 @@ from .assignment import AssignmentProjectViewM2MInline
 from ..fields import ChoiceArrayField
 
 
-def _get_permission_choices() -> List[Tuple(str, str)]:
+def _get_permission_choices() -> list[tuple(str, str)]:
     """
     'choices' must be an iterable (e.g., a list or tuple)
     """
@@ -31,7 +31,7 @@ def _get_permission_choices() -> List[Tuple(str, str)]:
 
 class ProjectView(models.Model):
 
-    uid = KpiUidField(uid_prefix='cp')
+    uid = KpiUidField(uid_prefix='pv')
     name = models.CharField(max_length=200)
     countries = models.CharField(max_length=1000)
     permissions = ChoiceArrayField(
@@ -53,7 +53,7 @@ class ProjectView(models.Model):
     def __str__(self) -> str:
         return self.name
 
-    def get_countries(self) -> List[str]:
+    def get_countries(self) -> list[str]:
         return [c.strip().upper() for c in self.countries.split(',')]
 
     def save(self, *args, **kwargs) -> None:

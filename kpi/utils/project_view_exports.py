@@ -19,8 +19,8 @@ ASSET_FIELDS = (
     'asset_type',
     'date_modified',
     'date_created',
-    'date_latest_deployement',
-    'date_first_deployement',
+    'date_latest_deployment',
+    'date_first_deployment',
     'owner',
     'owner__username',
     'owner__email',
@@ -96,7 +96,7 @@ def get_row_value(row: dict, col: str) -> Union[str, int, float, bool, None]:
     return val
 
 
-def get_q(countries: List[str], export_type: str) -> QuerySet:
+def get_q(countries: list[str], export_type: str) -> QuerySet:
     q_term = CONFIG[export_type]['q_term']
 
     if '*' in countries:
@@ -131,8 +131,8 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
             deployment__submission_count=F(
                 '_deployment_data__num_of_submissions'
             ),
-            date_latest_deployement=subquery_latest_deployed,
-            date_first_deployement=subquery_first_deployed,
+            date_latest_deployment=subquery_latest_deployed,
+            date_first_deployment=subquery_first_deployed,
         )
     else:
         vals = USER_FIELDS + (METADATA,)
