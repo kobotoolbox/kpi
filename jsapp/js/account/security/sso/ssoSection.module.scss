@@ -10,6 +10,15 @@
   border-color: colors.$kobo-gray-85;
 }
 
+.ssoSectionBody {
+  display: flex;
+  justify-content: space-between;
+
+  .securityDescription {
+    width: 70%;
+  }
+}
+
 .title {
   color: colors.$kobo-gray-40;
   font-weight: 600;
