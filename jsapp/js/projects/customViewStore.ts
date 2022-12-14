@@ -1,41 +1,11 @@
 import {makeAutoObservable} from 'mobx';
 import type {
-  AssetSettings,
+  ProjectViewAsset,
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-
-export interface ProjectViewAsset {
-  url: string;
-  date_modified: string;
-  date_created: string;
-  date_latest_deployement: null;
-  date_first_deployement: null;
-  owner: string;
-  owner__username: string;
-  owner__email: string;
-  /** Full name */
-  owner__name: string;
-  owner__organization: string;
-  uid: string;
-  kind: string;
-  name: string;
-  settings: AssetSettings;
-  languages: Array<string | null>;
-  asset_type: string;
-  version_id: string;
-  version_count: number;
-  has_deployment: boolean;
-  deployed_version_id: string | null;
-  deployment__active: boolean;
-  deployment__submission_count: number;
-  permissions: [];
-  status: string;
-  data_sharing: {};
-  data: string;
-}
 
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];

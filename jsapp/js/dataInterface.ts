@@ -548,6 +548,37 @@ export interface AssetResponse extends AssetRequestObject {
   settings__title?: string;
 }
 
+/** This is the asset object returned by project-views endpoint. */
+export interface ProjectViewAsset {
+  url: string;
+  date_modified: string;
+  date_created: string;
+  date_latest_deployement: null;
+  date_first_deployement: null;
+  owner: string;
+  owner__username: string;
+  owner__email: string;
+  /** Full name */
+  owner__name: string;
+  owner__organization: string;
+  uid: string;
+  kind: string;
+  name: string;
+  settings: AssetSettings;
+  languages: Array<string | null>;
+  asset_type: string;
+  version_id: string;
+  version_count: number;
+  has_deployment: boolean;
+  deployed_version_id: string | null;
+  deployment__active: boolean;
+  deployment__submission_count: number;
+  permissions: [];
+  status: string;
+  data_sharing: {};
+  data: string;
+}
+
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
   metadata?: MetadataResponse;
 }

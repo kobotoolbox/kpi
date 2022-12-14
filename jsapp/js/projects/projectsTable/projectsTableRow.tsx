@@ -6,8 +6,7 @@ import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/project
 import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
-import type {AssetResponse} from 'js/dataInterface';
-import type {ProjectViewAsset} from 'js/projects/customViewStore';
+import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import assetUtils from 'js/assetUtils';
 import styles from './projectsTableRow.module.scss';
 import classNames from 'classnames';

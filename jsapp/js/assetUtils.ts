@@ -28,11 +28,11 @@ import {
 import type {
   AssetContent,
   AssetResponse,
+  ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
   Permission,
 } from 'js/dataInterface';
-import type {ProjectViewAsset} from 'js/projects/customViewStore';
 import {
   getSupplementalTranscriptPath,
   getSupplementalTranslationPath,
