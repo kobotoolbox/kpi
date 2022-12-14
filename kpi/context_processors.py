@@ -3,7 +3,7 @@ import constance
 import markdown
 from django.conf import settings
 
-from hub.models import ConfigurationFile, PerUserSetting
+from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
 
 

@@ -1,5 +1,8 @@
 @use "scss/_variables";
 
+// A rare light mid-blue
+$kobo-light-mid-blue: #c0e3ff;
+
 // ==========================================================================
 // Registration Forms
 // ==========================================================================
@@ -11,7 +14,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: $kobo-white;
+  color: $kobo-gray-96;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -28,22 +31,86 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba($kobo-gray-24, 0.75);
+    background: rgba($kobo-gray-24, 0.8);
     padding: 20px 30px;
+    border-radius: 10px;
+
+    label {
+      display: inline-block;
+      margin-bottom: 2px;
+    }
 
     a {
-      color: lighten($kobo-blue, 20%);
+      color: $kobo-light-mid-blue;
+      text-decoration: underline;
+      text-decoration-skip-ink: none;
+      text-decoration-color: rgba($kobo-light-mid-blue, 0.5);
 
       &:hover {
-        color: $kobo-blue;
-      }
-
-      &.registration__forgot {
-        float: right;
-        margin-top: -12px;
-        margin-bottom: 12px;
+        color: $kobo-mid-blue;
+        text-decoration-color: rgba($kobo-mid-blue, 0.5);
       }
     }
+
+    hr {
+      border-top: 1px solid $kobo-storm;
+    }
+
+    // HACK: Hide the SocialAccount Providers list
+    // TODO: Modify the Django templates instead
+    .socialaccount_ballot {
+      display: none;
+    }
+
+    // SSO section styles
+    .registration__sso {
+      font-size: variables.$base-font-size;
+      padding-bottom: 20px;
+
+      h2 {
+        margin-top: 20px;
+        font-size: variables.$base-font-size;
+        text-align: center;
+      }
+
+      p {
+        font-size: 0.8em;
+        text-align: center;
+      }
+
+      // Special button variant only used here
+      a.kobo-button--sso-login {
+        background-color: $kobo-light-mid-blue;
+        color: $kobo-dark-blue;
+
+        &:focus {
+          // outline: 2px solid $kobo-dark-blue;
+          outline-offset: 0;
+        }
+      }
+
+      ul.socialaccount_providers {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 8px;
+      }
+    }
+
+    // HACK: Hide the SSO section until JS sees at least one provider.
+    // TODO: Use Django logic instead
+    .registration__sso--hidden {
+      display: none;
+    }
+  }
+
+  a:focus-visible {
+    // ux/accessibility: bring back the tabfocus ring
+    outline-color: $kobo-cloud;              // Ours (fallback)
+    outline-color: Highlight;                // Firefox
+    outline-color: -webkit-focus-ring-color; // Chrome & Safari
+    outline-offset: 4px;
+    outline-style: auto;
   }
 
   .registration--logo {
@@ -100,11 +167,19 @@
   font-size: variables.$base-font-size;
   border-bottom: 3px solid transparent;
   margin-top: 1px;
-  opacity: 0.9;
+  background-color: $kobo-cloud;
 
   &:focus {
     border-bottom-color: $kobo-blue;
-    opacity: 1;
+    background-color: $kobo-white;
+  }
+}
+
+.registration button[type="submit"] {
+  margin-top: 28px;
+
+  &:focus {
+    outline: 2px solid $kobo-cloud;
   }
 }
 
@@ -112,10 +187,6 @@
   select {
     margin-top: 4px;
     border-bottom: none;
-  }
-
-  label {
-    opacity: 0.85;
   }
 
   span.required {
@@ -219,13 +290,24 @@
   text-align: center;
 }
 
+.registration__create-or-forgot {
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
 .registration__footer {
   clear: both;
   text-align: center;
   margin: 20px 10px 10px 10px;
+  text-shadow: $kobo-gray-14 0 0 2px; // contrast against photo background
 
   a {
     color: $kobo-white;
+
+    &:hover {
+      color: $kobo-cloud;
+    }
   }
 
   .registration__legal a {
@@ -248,6 +330,10 @@
   a {
     opacity: 0.8;
     color: $kobo-white;
+
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 

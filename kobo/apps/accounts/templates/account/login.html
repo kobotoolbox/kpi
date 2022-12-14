@@ -6,11 +6,12 @@
 
 
   <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
+    {#  KoboToolbox Logo #}
     <div class="registration--logo"><a href="/">
     {% block logo %}{{ block.super }}{% endblock %}
     </a></div>
 
-
+    {# SSO Providers, Username, and Password #}
     {% get_providers as socialaccount_providers %}
     {% if socialaccount_providers %}
       <div class="socialaccount_ballot">
@@ -19,21 +20,16 @@
         </ul>
       </div>
       {% include "socialaccount/snippets/login_extra.html" %}
-    {% else %}
-      <p>{% blocktrans %}If you have not created an account yet, then please
-      <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
     {% endif %}
 
-    
+
     {% csrf_token %}
     {{ form.as_p }}
     {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
-    <a href="{% url 'account_reset_password' %}" class="registration__forgot">
-      {% trans "Forgot?" %}
-    </a>
 
+    {# Login Button #}
     <button
       type="submit"
       name="Login"
@@ -42,10 +38,76 @@
       {% trans "Login" %}
     </button>
 
-    {% if config.REGISTRATION_OPEN %}
-      <div class="registration__footer">
-        {% trans "or" %} <a href="{{ signup_url }}">{% trans "create an account" %}</a>
+    {# Create an account, Forgot Password? #}
+    <div class="registration__create-or-forgot">
+      {% if config.REGISTRATION_OPEN %}
+        <a href="{{ signup_url }}" class="registration__create-account">
+          {% trans "Create an account" %}
+        </a>
+      {% endif %}
+
+      <a href="{% url 'account_reset_password' %}" class="registration__forgot-password">
+        {% trans "Forgot password?" %}
+      </a>
+    </div>
+
+    {# SSO section #}
+    {# TODO: Use Django template logic instead of CSS/JS for this section #}
+    {# TODO: If there is more than one provider, draw a button for each. #}
+    <div class="registration__sso registration__sso--hidden">
+      <hr></hr>
+      <h2>{% trans "Log in using SSO" %}</h2>
+      <p>
+        {% trans "If you set up Single Sign On in your account settings, you will only be able to log in through this method." %}
+        {# TODO: Link to documentation #}
+        {# <a href="#">{% trans "Learn more" %}</a> #}
+      </p>
+      <div class="registration__sso-buttons">
+        {# JS relocates the providers list here. #}
       </div>
-    {% endif %}
+    </div>
+
+    <script>
+      // {# TODO: Modify the Django templates instead of this. #}
+
+      jQuery(function () {
+        // {# Cosmetic: Remove colons from Username, Password #}
+        document.querySelectorAll('label[for="id_login"],label[for="id_password"]'
+          ).forEach((el)=>{ el.innerText = el.innerText.replaceAll(':', '')})
+
+        // {# HACK: Setup SSO section with JS #}
+        var providers = document.querySelectorAll('a.socialaccount_provider')
+        if (providers.length > 0 ) {
+          // Move list
+          var providersList = document.querySelector('ul.socialaccount_providers')
+          document.querySelector('.registration__sso-buttons').append(providersList)
+
+          // Modify SSO login link appearances:
+          document.querySelectorAll('a.socialaccount_provider').forEach((el) => {
+            // Style as button
+            el.classList.add('kobo-button', 'kobo-button--sso-login', 'kobo-button--fullwidth')
+
+            if (providers.length === 1) {
+              // Label with "SSO Login"
+              el.innerText = '{% trans "SSO Login" %}'
+            } else {
+              // Label with provider name
+              el.innerText = '{% trans "Log in with" %} ' + el.title
+            }
+          })
+
+          // Finally, unhide the SSO section
+          document.querySelector('.registration__sso').classList.remove('registration__sso--hidden')
+        }
+
+        // {# Polish: Make SSO links act more like buttons #}
+        document.addEventListener('keydown', function(e) {
+          if ((e.code === 'Space') && e.target.classList.contains('kobo-button--sso-login')) {
+            e.target.click()
+          }
+        })
+      })
+    </script>
+
   </form>
 {% endblock %}

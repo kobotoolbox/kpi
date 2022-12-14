@@ -1,4 +1,5 @@
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount
 from rest_framework import serializers
 
 
@@ -20,3 +21,35 @@ class EmailAddressSerializer(serializers.ModelSerializer):
             validated_data['email'],
             confirm=True,
         )
+
+
+# https://github.com/iMerica/dj-rest-auth/blob/6b394d9d6bb1f2979ea2d31e5a1199368d5616c1/dj_rest_auth/registration/serializers.py#L22
+# https://gitlab.com/glitchtip/glitchtip-backend/-/blob/master/users/serializers.py#L40
+class SocialAccountSerializer(serializers.ModelSerializer):
+    """
+    serialize allauth SocialAccounts for use with a REST API
+    """
+
+    email = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SocialAccount
+        fields = (
+            'provider',
+            'uid',
+            'last_login',
+            'date_joined',
+            'email',
+            'username',
+        )
+
+    def get_email(self, obj):
+        if obj.extra_data:
+            if "email" in obj.extra_data:
+                return obj.extra_data.get("email")
+            return obj.extra_data.get("userPrincipalName")  # MS oauth uses this
+
+    def get_username(self, obj):
+        if obj.extra_data:
+            return obj.extra_data.get("username")
