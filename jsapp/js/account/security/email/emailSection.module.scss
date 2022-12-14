@@ -1,0 +1,54 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+@use 'scss/libs/_mdl';
+
+.email-section {
+  margin-top: sizes.$x20;
+  margin-bottom: sizes.$x20;
+}
+
+.email-header {
+  display: flex;
+  margin-bottom: sizes.$x14;
+  border-bottom: sizes.$x1 solid;
+  border-color: colors.$kobo-gray-85;
+  color: colors.$kobo-gray-40;
+  font-weight: 600;
+}
+
+.email-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: sizes.$x14;
+
+  p {
+    margin: 0;
+    flex: 8;
+  }
+
+  label {
+    flex: 6;
+    margin-right: sizes.$x12;
+  }
+
+  button {
+    flex: 1;
+  }
+}
+
+.email-unverified {
+  display: flex;
+  width: 45%;
+
+  p.blurb {
+    flex: 14;
+    margin: 0;
+  }
+
+  > i {
+    flex: 1;
+    color: colors.$kobo-amber;
+  }
+}
