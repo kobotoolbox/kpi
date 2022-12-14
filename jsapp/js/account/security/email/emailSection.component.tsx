@@ -53,7 +53,7 @@ export default function EmailSection() {
   }
 
   const currentAccount = session.currentAccount;
-  const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified);
+  const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary);
 
   return (
     <div className={style['email-section']}>
