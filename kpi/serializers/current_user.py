@@ -30,7 +30,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
-    identities = SocialAccountSerializer(
+    social_accounts = SocialAccountSerializer(
         source="socialaccount_set", many=True, read_only=True
     )
 
@@ -53,7 +53,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
-            'identities',
+            'social_accounts',
         )
         read_only_fields = ('email',)
 

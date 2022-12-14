@@ -9,7 +9,7 @@ class AccountsEmailTestCase(APITestCase):
     def setUp(self):
         self.user = baker.make('auth.User')
         self.client.force_login(self.user)
-        self.url_list = reverse('emails-list')
+        self.url_list = reverse('emailaddress-list')
 
     def test_list(self):
         user_email = baker.make('account.emailaddress', user=self.user)

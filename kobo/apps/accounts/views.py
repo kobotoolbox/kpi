@@ -1,8 +1,11 @@
 from allauth.account.models import EmailAddress
-from rest_framework import status, viewsets, mixins
-from rest_framework.response import Response
+from allauth.socialaccount.models import SocialAccount
+from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
-from .serializers import EmailAddressSerializer
+from rest_framework.response import Response
+
+from .mixins import MultipleFieldLookupMixin
+from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
 
 class EmailAddressViewSet(
@@ -33,3 +36,20 @@ class EmailAddressViewSet(
             primary=False, verified=False
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SocialAccountViewSet(
+    MultipleFieldLookupMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    lookup_value_regex = r"(?P<provider>[^/.]+)/(?P<uid>[-\w]+)"
+    lookup_fields = ['provider', 'uid']
+    queryset = SocialAccount.objects.all()
+    serializer_class = SocialAccountSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)

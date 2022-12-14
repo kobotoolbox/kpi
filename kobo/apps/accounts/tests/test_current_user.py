@@ -9,7 +9,7 @@ class CurrentUserAPITestCase(APITestCase):
         self.client.force_login(self.user)
         self.url = reverse('currentuser-detail')
 
-    def test_identities(self):
+    def test_social_accounts(self):
         social_accounts = baker.make(
             "socialaccount.SocialAccount", user=self.user, _quantity=2
         )

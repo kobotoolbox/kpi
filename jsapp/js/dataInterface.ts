@@ -626,7 +626,7 @@ export interface AccountResponse {
     branch: string;
     tag: boolean;
   };
-  identities: SocialAccount[];
+  social_accounts: SocialAccount[];
 }
 
 interface UserNotLoggedInResponse {
