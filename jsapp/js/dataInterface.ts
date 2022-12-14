@@ -409,7 +409,6 @@ export interface AssetSettings {
   } | null;
   country?: SelectChoice | SelectChoice[] | null;
   description?: string;
-  'share-metadata'?: boolean;
   'data-table'?: AssetTableSettings;
   organization?: string;
   collects_pii?: {

@@ -21,7 +21,6 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   const navigate = useNavigate();
 
   const onOptionClick = (viewUid: string) => {
-    console.log(viewUid);
     if (viewUid === HOME_VIEW.uid || viewUid === null) {
       // TODO change this to PROJECTS_ROUTES.MY_PROJECTS
       navigate(ROUTES.FORMS);
