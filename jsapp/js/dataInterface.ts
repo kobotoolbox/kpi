@@ -553,8 +553,8 @@ export interface ProjectViewAsset {
   url: string;
   date_modified: string;
   date_created: string;
-  date_latest_deployement: null;
-  date_first_deployement: null;
+  date_latest_deployment: string | null;
+  date_first_deployment: string | null;
   owner: string;
   owner__username: string;
   owner__email: string;
@@ -573,7 +573,7 @@ export interface ProjectViewAsset {
   deployed_version_id: string | null;
   deployment__active: boolean;
   deployment__submission_count: number;
-  permissions: [];
+  permissions: string[];
   status: string;
   data_sharing: {};
   data: string;

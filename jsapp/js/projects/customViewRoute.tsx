@@ -19,6 +19,7 @@ import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 import styles from './customViewRoute.module.scss';
+import {toJS} from 'mobx';
 
 const DEFAULT_ORDER: ProjectsTableOrder = {
   fieldName: PROJECT_FIELDS.name.name,
@@ -34,7 +35,6 @@ function CustomViewRoute() {
 
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
-  const [filters, setFilters] = useState<ProjectsFilterDefinition[]>([]);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
   const [order, setOrder] = useState<ProjectsTableOrder>(DEFAULT_ORDER);
 
@@ -46,7 +46,7 @@ function CustomViewRoute() {
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
     const outcome: ProjectFieldName[] = [];
-    filters.forEach((item: ProjectsFilterDefinition) => {
+    customView.filters.forEach((item: ProjectsFilterDefinition) => {
       if (item.fieldName !== undefined) {
         outcome.push(item.fieldName);
       }
@@ -70,8 +70,8 @@ function CustomViewRoute() {
         <ViewSwitcher selectedViewUid={viewUid}/>
 
         <ProjectsFilter
-          onFiltersChange={setFilters}
-          filters={filters}
+          onFiltersChange={customView.setFilters.bind(customView)}
+          filters={toJS(customView.filters)}
         />
 
         <ProjectsFieldsSelector

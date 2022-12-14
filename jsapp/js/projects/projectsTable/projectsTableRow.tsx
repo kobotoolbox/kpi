@@ -63,6 +63,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return 'owner__organization' in props.asset ? props.asset.owner__organization : null;
       case 'dateModified':
         return formatTime(props.asset.date_modified);
+      case 'dateDeployed':
+        if (
+          'date_latest_deployment' in props.asset &&
+          props.asset.date_latest_deployment !== null
+        ) {
+          return formatTime(props.asset.date_latest_deployment);
+        }
+        return null;
       case 'sector':
         return assetUtils.getSectorDisplayString(props.asset);
       case 'countries':

@@ -6,9 +6,12 @@ import type {
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import type {ProjectsFilterDefinition} from './projectViews/constants';
+import {buildQueriesFromFilters} from './projectViews/utils';
 
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];
+  public filters: ProjectsFilterDefinition[] = [];
   /** Whether the first call was made. */
   public isInitialised = false;
   public isLoading = false;
@@ -34,13 +37,25 @@ class CustomViewStore {
     return this.nextPageUrl !== null;
   }
 
-  /** Gets the first page of results. */
+  /** Stores the filters and fetches completely new list of assets. */
+  public setFilters(filters: ProjectsFilterDefinition[]) {
+    this.filters = filters;
+    this.fetchAssets();
+  }
+
+  /**
+   * Gets the first page of results. It will replace whatever assets are loaded
+   * already.
+   */
   public fetchAssets() {
+    this.isInitialised = false;
     this.isLoading = true;
+    this.assets = [];
+    const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/`,
+      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?q=${queriesString}`,
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));

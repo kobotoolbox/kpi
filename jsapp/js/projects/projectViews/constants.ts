@@ -93,7 +93,7 @@ export const DATE_FILTER_QUERIES = {
   partOf: '<field>__regex:<YYYY-MM>',
 };
 
-export type ProjectFieldName = 'countries' | 'dateModified' |
+export type ProjectFieldName = 'countries' | 'dateModified' | 'dateDeployed' |
 'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
 'ownerOrganization' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
 
@@ -101,7 +101,7 @@ export interface ProjectFieldDefinition {
   name: ProjectFieldName;
   label: string;
   /** Backend property name used for ordering and filtering. */
-  propertyName: string;
+  apiPropertyName: string;
   /** The default order direction for this field. */
   defaultDirection: OrderDirection;
   /** Some of the fields (submission) doesn't allow any filtering yet. */
@@ -114,88 +114,99 @@ type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
  * influences the order these will be displayed in UI.
  */
 export const PROJECT_FIELDS: ProjectFields = {
-  /** NOTE: Regardless of user settings, name is always visible. */
+  /**
+   * NOTE: Regardless of user settings, we should keep the name field column
+   * always visible. We keep this comment here, as multiple places are ensuring
+   * this condition is met.
+   */
   name: {
     name: 'name',
     label: t('Project name'),
-    propertyName: 'name',
+    apiPropertyName: 'name',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   description: {
     name: 'description',
     label: t('Description'),
-    propertyName: 'settings__description',
+    apiPropertyName: 'settings__description',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
-    propertyName: '_deployment_data',
+    apiPropertyName: '_deployment_data',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
-    propertyName: 'owner__username',
+    apiPropertyName: 'owner__username',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
-    propertyName: 'owner__extra_details__data__name',
+    apiPropertyName: 'owner__extra_details__data__name',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
-    propertyName: 'owner__email',
+    apiPropertyName: 'owner__email',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
-    propertyName: 'owner__extra_details__data__organization',
+    apiPropertyName: 'owner__extra_details__data__organization',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
-    propertyName: 'date_modified__date',
+    apiPropertyName: 'date_modified__date',
+    defaultDirection: 'descending',
+    allowsFiltering: true,
+  },
+  dateDeployed: {
+    name: 'dateDeployed',
+    label: t('Date deployed'),
+    apiPropertyName: 'date_deployed__date',
     defaultDirection: 'descending',
     allowsFiltering: true,
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
-    propertyName: 'settings__sector',
+    apiPropertyName: 'settings__sector',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
-    propertyName: 'settings__country_codes[]',
+    apiPropertyName: 'settings__country_codes[]',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
-    propertyName: 'summary__languages[]',
+    apiPropertyName: 'summary__languages[]',
     defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'deployment__submission_count',
     defaultDirection: 'ascending',
     allowsFiltering: false,
   },
@@ -204,6 +215,7 @@ export const PROJECT_FIELDS: ProjectFields = {
 export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
   'countries',
   'dateModified',
+  'dateDeployed',
   'name',
   'ownerUsername',
   'status',
