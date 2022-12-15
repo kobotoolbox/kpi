@@ -86,8 +86,8 @@ class Grammar(object):
     REGEX_2 = re.compile('^[^"]')
     REGEX_3 = re.compile('^[^\']')
     REGEX_4 = re.compile('^[a-zA-Z_]')
-    REGEX_5 = re.compile('^[a-zA-Z0-9\\-_]')
-    REGEX_6 = re.compile('^[\\s]')
+    REGEX_5 = re.compile(r'[\w\-\[\]]')
+    REGEX_6 = re.compile(r'^\s')
 
     def _read_query(self):
         address0, index0 = FAILURE, self._offset
@@ -952,7 +952,7 @@ class Grammar(object):
                         self._failure = self._offset
                         self._expected = []
                     if self._offset == self._failure:
-                        self._expected.append('[a-zA-Z0-9\\-_]')
+                        self._expected.append(r'[\w\-\[\]]')
                 if address3 is not FAILURE:
                     elements1.append(address3)
                     remaining0 -= 1
@@ -1031,6 +1031,7 @@ def format_error(input, offset, expected):
     position -= len(line) + 1
     message += ' ' * (offset - position)
     return message + '^'
+
 
 def parse(input, actions=None, types=None):
     parser = Parser(input, actions, types)

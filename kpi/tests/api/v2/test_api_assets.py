@@ -519,7 +519,14 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
             }),
         }
         resp = self.client.patch(self.asset_url, data, format='json')
-        self.assertEqual(resp.data['settings'], {'mysetting': "value"})
+        expected = {
+            'country': [],
+            'country_codes': [],
+            'description': '',
+            'mysetting': 'value',
+            'sector': {},
+        }
+        self.assertEqual(resp.data['settings'], expected)
 
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')

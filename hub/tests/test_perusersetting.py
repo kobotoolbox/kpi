@@ -47,29 +47,3 @@ class PerUserSettingTestCase(TestCase):
         self.assertFalse(setting.user_matches(self.non_matching_user))
         setting.user_queries = [{'not_a_real_field': 'impossible value'}]
         self.assertFalse(setting.user_matches(self.non_matching_user))
-
-
-class IntercomConfigurationTestCase(TestCase):
-    fixtures = ['test_data']
-
-    def setUp(self):
-        self.setting = PerUserSetting.objects.create(
-            name='INTERCOM_APP_ID',
-            user_queries=[{"username": "someuser"}],
-            value_when_matched='arm&leg',
-            value_when_not_matched='',
-        )
-
-    def test_intercom_for_matching_user(self):
-        self.assertTrue(self.client.login(username='someuser',
-                                          password='someuser'))
-        response = self.client.get(reverse('kpi-root'))
-        lines = [line.strip() for line in to_str(response.content).split('\n')]
-        self.assertTrue("window.IntercomAppId = 'arm&leg';" in lines)
-
-    def test_no_intercom_for_non_matching_user(self):
-        self.assertTrue(self.client.login(username='anotheruser',
-                                          password='anotheruser'))
-        response = self.client.get(reverse('kpi-root'))
-        lines = [line.strip() for line in to_str(response.content).split('\n')]
-        self.assertFalse("window.IntercomAppId = 'arm&leg';" in lines)

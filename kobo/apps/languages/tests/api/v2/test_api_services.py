@@ -1,9 +1,7 @@
 # coding: utf-8
-import pytest
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kpi.exceptions import SearchQueryTooShortException
 from .base import BaseApiTestCase
 
 

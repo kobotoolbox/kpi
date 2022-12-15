@@ -104,11 +104,6 @@ $s-help-bubble-row-spacing: 20px;
 // bubble styles
 // -----------------------------------------------------------------------------
 
-.help-bubble--intercom .help-bubble__popup {
-  bottom: 5px + 43px * 3;
-  max-height: calc(90vh - #{43px * 4});
-}
-
 .help-bubble--support .help-bubble__popup {
   bottom: 5px + 43px * 2;
   max-height: calc(90vh - #{43px * 3});
