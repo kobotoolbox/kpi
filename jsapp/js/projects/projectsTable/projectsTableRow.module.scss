@@ -13,20 +13,13 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   position: relative;
   align-items: stretch;
   cursor: pointer;
-
-  &:first-of-type .cell {
-    border-top-color: transparent;
-  }
-
-  &:first-of-type:hover .cell {
-    border-top-color: colors.$kobo-gray-92;
-  }
 }
 
 .cell {
-  border-top: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x20 sizes.$x10;
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: sizes.$x24 sizes.$x16;
   color: colors.$kobo-gray-40;
+  line-height: sizes.$x20;
   flex: 1 0 auto;
   // ensures the table columns are same width for all rows
   width: 10%;
@@ -38,40 +31,39 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &[data-fieldName='countries'],
   &[data-fieldName='description'],
   &[data-fieldName='ownerEmail'],
-  &[data-fieldName='ownerFullName'],
   &[data-fieldName='ownerOrganization'],
-  &[data-fieldName='ownerUsername'],
   &[data-fieldName='status'],
   &[data-fieldName='submissions'] {
-    width: 10%;
+    width: 12.5%;
+  }
+
+  &[data-fieldName='ownerFullName'],
+  &[data-fieldName='ownerUsername'] {
+    width: 12.5%;
+    font-weight: 600;
   }
 
   &[data-fieldName='dateModified'],
   &[data-fieldName='dateDeployed'] {
     width: 17.5%;
+    justify-content: flex-end;
     text-align: right;
   }
 
   &[data-fieldName='languages'] {
-    width: 12.5%;
+    width: 15%;
   }
 
   &[data-fieldName='name'] {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-dark-blue;
+    font-size: sizes.$x16;
+    font-weight: 600;
     width: 25%;
   }
 
   &[data-fieldName='sector'] {
     width: 15%;
   }
-}
-
-.row.rowTypeProject .cell.cellHighlighted {
-  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
-}
-
-.row.rowTypeHeader .cell.cellHighlighted {
-  background-color: colors.$kobo-light-blue;
 }
 
 .row.rowTypeProject {
@@ -81,24 +73,36 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &:hover .cell {
     background-color: $projects-table-hover-bg;
+
+    &.cellHighlighted {
+      background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
+    }
   }
 }
 
 .row.rowTypeHeader {
   .cell {
     @include mixins.textEllipsis;
-
-    color: colors.$kobo-gray-24;
+    @include mixins.centerRowFlex;
+    color: colors.$kobo-gray-40;
     border-top: 0;
     cursor: pointer;
     font-weight: 700;
-    height: sizes.$x40;
-    line-height: sizes.$x20;
-    background-color: colors.$kobo-gray-96;
-    padding: sizes.$x10;
+    font-size: sizes.$x13;
+    height: sizes.$x36;
+    line-height: sizes.$x16;
+    padding-top: sizes.$x12;
+    padding-bottom: sizes.$x12;
+    background-color: colors.$kobo-white;
 
     &:hover {
-      background-color: colors.$kobo-gray-92;
+      color: colors.$kobo-gray-14 !important;
+    }
+
+    :global {
+      .k-icon:not(:first-child) {
+        margin-left: sizes.$x10;
+      }
     }
   }
 }
@@ -116,5 +120,16 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 }
 
 .headerLabel {
-  font-size: 0.9rem;
+  cursor: inherit;
+}
+
+// Highlighted columns:
+
+.row.rowTypeProject .cell.cellHighlighted {
+  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
+}
+
+.row.rowTypeHeader .cell.cellHighlighted {
+  background-color: colors.$kobo-light-blue;
+  color: colors.$kobo-dark-blue;
 }

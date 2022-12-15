@@ -85,7 +85,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'sector':
         return assetUtils.getSectorDisplayString(props.asset);
       case 'countries':
-        return assetUtils.getCountryDisplayString(props.asset);
+        if (Array.isArray(props.asset.settings.country)) {
+          return props.asset.settings.country.map((country) =>
+            <Badge color='cloud' size='m' label={country.label} />
+          );
+        } else if (typeof props.asset.settings.country === 'string') {
+          (<Badge color='cloud' size='m' label={props.asset.settings.country} />);
+        }
+        return null;
       case 'languages':
         return assetUtils.getLanguagesDisplayString(props.asset);
       case 'submissions':

@@ -8,6 +8,7 @@ import type {ProjectsTableOrder} from './projectsTable';
 import tableStyles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
+import Icon from 'js/components/common/icon';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
@@ -23,17 +24,6 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       return null;
     }
 
-    // empty icon to take up space in column
-    let icon = <i className='k-icon' />;
-    if (props.order.fieldName === field.name) {
-      if (props.order.direction === 'ascending') {
-        icon = <i className='k-icon k-icon-angle-up' />;
-      }
-      if (props.order.direction === 'descending') {
-        icon = <i className='k-icon k-icon-angle-down' />;
-      }
-    }
-
     return (
       <div
         className={classNames({
@@ -47,7 +37,15 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
         onClick={() => props.onChangeOrderRequested(field.name)}
       >
         <label className={rowStyles.headerLabel}>{field.label}</label>
-        {icon}
+
+        {props.order.fieldName === field.name &&
+          props.order.direction === 'ascending' && (
+            <Icon name='sort-up' size='s' />
+          )}
+        {props.order.fieldName === field.name &&
+          props.order.direction === 'descending' && (
+            <Icon name='sort-down' size='s' />
+          )}
       </div>
     );
   };
