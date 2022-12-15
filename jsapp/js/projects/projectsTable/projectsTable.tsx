@@ -86,11 +86,11 @@ export default function ProjectsTable(props: ProjectsTableProps) {
         }
 
         <InfiniteScroll
-          getScrollParent={()=>document.getElementById(SCROLL_PARENT_ID)}
+          getScrollParent={() => document.getElementById(SCROLL_PARENT_ID)}
           pageStart={0}
           loadMore={props.onRequestLoadNextPage}
           hasMore={props.hasMorePages}
-          loader={<LoadingSpinner hideMessage key='loadingspinner'/>}
+          loader={<LoadingSpinner classNames={[styles.loader]} hideMessage key='loadingspinner'/>}
           useWindow={false}
           initialLoad={false}
         >
