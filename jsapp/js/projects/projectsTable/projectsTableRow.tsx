@@ -130,7 +130,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
                 field.name
               ),
             })}
-            data-fieldName={field.name}
+            data-field={field.name}
             key={field.name}
           >
             {renderColumnContent(field)}

@@ -30,6 +30,10 @@
       margin-left: sizes.$x5;
     }
   }
+
+  &:active {
+    transform: none;
+  }
 }
 
 .triggerBadge {

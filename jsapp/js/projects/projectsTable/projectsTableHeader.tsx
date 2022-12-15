@@ -32,7 +32,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
             field.name
           ),
         })}
-        data-fieldName={field.name}
+        data-field={field.name}
         key={field.name}
         onClick={() => props.onChangeOrderRequested(field.name)}
       >

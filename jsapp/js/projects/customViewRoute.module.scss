@@ -1,3 +1,6 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -5,7 +8,7 @@
 }
 
 .header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  @include mixins.centerRowFlex;
+  gap: sizes.$x30;
+  padding: sizes.$x30 sizes.$x30 sizes.$x40;
 }

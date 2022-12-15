@@ -13,6 +13,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   position: relative;
   align-items: stretch;
   cursor: pointer;
+  margin: 0 sizes.$x30;
 }
 
 .cell {
@@ -28,40 +29,48 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     pointer-events: none;
   }
 
-  &[data-fieldName='countries'],
-  &[data-fieldName='description'],
-  &[data-fieldName='ownerEmail'],
-  &[data-fieldName='ownerOrganization'],
-  &[data-fieldName='status'],
-  &[data-fieldName='submissions'] {
+  &[data-field='countries'],
+  &[data-field='description'],
+  &[data-field='ownerEmail'],
+  &[data-field='ownerOrganization'],
+  &[data-field='status'],
+  &[data-field='submissions'] {
     width: 12.5%;
   }
 
-  &[data-fieldName='ownerFullName'],
-  &[data-fieldName='ownerUsername'] {
+  &[data-field='countries'] {
+    width: 15%;
+
+    > *:not(:last-child) {
+      margin-right: sizes.$x5;
+    }
+  }
+
+  &[data-field='ownerFullName'],
+  &[data-field='ownerUsername'] {
     width: 12.5%;
     font-weight: 600;
   }
 
-  &[data-fieldName='dateModified'],
-  &[data-fieldName='dateDeployed'] {
+  &[data-field='dateModified'],
+  &[data-field='dateDeployed'] {
     width: 17.5%;
     justify-content: flex-end;
     text-align: right;
   }
 
-  &[data-fieldName='languages'] {
+  &[data-field='languages'] {
     width: 15%;
   }
 
-  &[data-fieldName='name'] {
+  &[data-field='name'] {
     color: colors.$kobo-dark-blue;
     font-size: sizes.$x16;
     font-weight: 600;
     width: 25%;
   }
 
-  &[data-fieldName='sector'] {
+  &[data-field='sector'] {
     width: 15%;
   }
 }
