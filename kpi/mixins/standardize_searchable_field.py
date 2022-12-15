@@ -47,7 +47,7 @@ class StandardizeSearchableFieldMixin:
         setattr(self, field_name, field)
 
     def standardize_field(
-        self, field_name: str, default: str = "", allows_null=True
+        self, field_name: str, default: str = "", allows_null: bool = True
     ):
         """
         Standardize the default value of a field.
