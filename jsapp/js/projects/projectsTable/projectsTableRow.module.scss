@@ -35,46 +35,46 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     pointer-events: none;
   }
 
-  &.cell-countries,
-  &.cell-description,
-  &.cell-ownerEmail,
-  &.cell-ownerFullName,
-  &.cell-ownerOrganization,
-  &.cell-ownerUsername,
-  &.cell-status,
-  &.cell-submissions {
+  &[data-fieldName='countries'],
+  &[data-fieldName='description'],
+  &[data-fieldName='ownerEmail'],
+  &[data-fieldName='ownerFullName'],
+  &[data-fieldName='ownerOrganization'],
+  &[data-fieldName='ownerUsername'],
+  &[data-fieldName='status'],
+  &[data-fieldName='submissions'] {
     width: 10%;
   }
 
-  &.cell-dateModified,
-  &.cell-dateDeployed {
+  &[data-fieldName='dateModified'],
+  &[data-fieldName='dateDeployed'] {
     width: 17.5%;
     text-align: right;
   }
 
-  &.cell-languages {
+  &[data-fieldName='languages'] {
     width: 12.5%;
   }
 
-  &.cell-name {
+  &[data-fieldName='name'] {
     color: colors.$kobo-gray-24;
     width: 25%;
   }
 
-  &.cell-sector {
+  &[data-fieldName='sector'] {
     width: 15%;
   }
 }
 
-.row.row-project .cell.cell-highlighted {
+.row.rowTypeProject .cell.cellHighlighted {
   background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
 }
 
-.row.row-header .cell.cell-highlighted {
+.row.rowTypeHeader .cell.cellHighlighted {
   background-color: colors.$kobo-light-blue;
 }
 
-.row.row-project {
+.row.rowTypeProject {
   .cell {
     @include mixins.textEllipsis;
   }
@@ -84,7 +84,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   }
 }
 
-.row.row-header {
+.row.rowTypeHeader {
   .cell {
     @include mixins.textEllipsis;
 
@@ -103,24 +103,18 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   }
 }
 
-.row.row-message {
+.row.rowTypeMessage {
   padding: sizes.$x40;
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
 
-  .pro-tip {
+  .proTip {
     font-size: 1rem;
     margin-top: sizes.$x20;
   }
 }
 
-.row.row-collection {
-  .cell-name .project-name {
-    font-weight: 700;
-  }
-}
-
-.header-label {
+.headerLabel {
   font-size: 0.9rem;
 }

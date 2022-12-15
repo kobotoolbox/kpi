@@ -38,15 +38,15 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       <div
         className={classNames({
           [rowStyles.cell]: true,
-          [rowStyles[`cell-${field.name}`]]: true,
-          [rowStyles['cell-highlighted']]: props.highlightedFields.includes(
+          [rowStyles.cellHighlighted]: props.highlightedFields.includes(
             field.name
           ),
         })}
+        data-fieldName={field.name}
         key={field.name}
         onClick={() => props.onChangeOrderRequested(field.name)}
       >
-        <label className={rowStyles['header-label']}>{field.label}</label>
+        <label className={rowStyles.headerLabel}>{field.label}</label>
         {icon}
       </div>
     );
@@ -54,7 +54,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
 
   return (
     <header className={tableStyles.header}>
-      <div className={classNames(rowStyles.row, rowStyles['row-header'])}>
+      <div className={classNames(rowStyles.row, rowStyles.rowTypeHeader)}>
         {Object.values(PROJECT_FIELDS).map(renderColumn)}
       </div>
     </header>

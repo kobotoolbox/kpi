@@ -105,8 +105,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     <div
       className={classNames(
         styles.row,
-        styles['row-project'],
-        styles[`row-${props.asset.asset_type}`]
+        styles.rowTypeProject
       )}
       onClick={onRowClick}
     >
@@ -120,11 +119,11 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           <div
             className={classNames({
               [styles.cell]: true,
-              [styles[`cell-${field.name}`]]: true,
-              [styles['cell-highlighted']]: props.highlightedFields.includes(
+              [styles.cellHighlighted]: props.highlightedFields.includes(
                 field.name
               ),
             })}
+            data-fieldName={field.name}
             key={field.name}
           >
             {renderColumnContent(field)}

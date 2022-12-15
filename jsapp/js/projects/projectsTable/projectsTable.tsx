@@ -81,7 +81,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
         {props.isLoading && <LoadingSpinner />}
 
         {!props.isLoading && props.assets.length === 0 && (
-          <div className={classNames(rowStyles.row, rowStyles['row-message'])}>
+          <div className={classNames(rowStyles.row, rowStyles.rowMessage)}>
             {props.emptyMessage || t('There are no projects to display.')}
           </div>
         )}
@@ -92,7 +92,8 @@ export default function ProjectsTable(props: ProjectsTableProps) {
           loadMore={props.onRequestLoadNextPage}
           hasMore={props.hasMorePages}
           loader={
-            // We want to hide the plugin spinner when we already display the main one - this ensures no double spinners
+            // We want to hide the plugin spinner when we already display
+            // the main one - this ensures no double spinners
             props.isLoading ? <></> : <LoadingSpinner hideMessage key='0' />
           }
           useWindow={false}
