@@ -137,6 +137,16 @@ class PairedDataException(Exception):
     pass
 
 
+class QueryParserBadSyntax(InvalidSearchException):
+    default_detail = t('Bad syntax')
+    default_code = 'query_parser_bad_syntax'
+
+
+class QueryParserNotSupportedFieldLookup(InvalidSearchException):
+    default_detail = t('Not supported field lookup')
+    default_code = 'not_supported_field_lookup'
+
+
 class ReadOnlyModelError(Exception):
 
     def __init__(self, msg='This model is read only', *args, **kwargs):
