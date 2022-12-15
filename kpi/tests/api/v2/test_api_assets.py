@@ -403,13 +403,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         data = res.json()
         results = data['results']
 
-        # someuser cannot see data for Overview
-        regional_res = self.client.get(
-            results[0]['assets'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert not asset_data['data']
-
         # someuser can see data for view 1
         regional_res = self.client.get(
             results[1]['assets'], HTTP_ACCEPT='application/json'

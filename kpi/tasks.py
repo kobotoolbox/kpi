@@ -41,8 +41,7 @@ def project_view_export_in_background(
 
     export_task = ProjectViewExportTask.objects.get(uid=export_task_uid)
     export = export_task.run()
-    file_location = serializers.FileField().to_representation(export.result)
-    file_url = f'{settings.KOBOFORM_URL}{file_location}'
+    file_url = f'{settings.KOBOFORM_URL}{export.result.url}'
     msg = (
         f'Hello {user.username},\n\n'
         f'Your report is complete: {file_url}\n\n'

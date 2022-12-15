@@ -11,7 +11,6 @@ from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from rest_framework.reverse import reverse
 
 from kpi.constants import (
     ASSET_TYPES,
@@ -22,6 +21,7 @@ from kpi.constants import (
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
     PERM_FROM_KC_ONLY,
+    PERM_CHANGE_METADATA,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import (
@@ -54,7 +54,6 @@ from kpi.renderers import (
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import (
     AssetListSerializer,
-    AssetMetadataListSerializer,
     AssetSerializer,
 )
 from kpi.utils.hash import calculate_hash
@@ -65,10 +64,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.utils.project_views import (
-    get_regional_views_for_user,
-    user_has_regional_asset_perm,
-)
+from kpi.utils.project_views import user_has_regional_asset_perm
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -343,7 +339,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'uid__icontains',
     ]
 
-
     def get_object(self):
         if self.request.method == 'PATCH':
             try:
@@ -352,7 +347,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise Http404
 
             if user_has_regional_asset_perm(
-                asset, self.request.user, 'change_metadata'
+                asset, self.request.user, PERM_CHANGE_METADATA
             ):
                 return asset
 
