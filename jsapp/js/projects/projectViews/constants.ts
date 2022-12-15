@@ -180,7 +180,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Date deployed'),
     apiPropertyName: 'date_deployed__date',
     defaultDirection: 'descending',
-    allowsFiltering: true,
+    allowsFiltering: false,
   },
   sector: {
     name: 'sector',
