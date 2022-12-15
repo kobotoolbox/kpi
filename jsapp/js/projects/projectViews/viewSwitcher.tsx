@@ -3,7 +3,9 @@ import {useNavigate} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
-import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
+import KoboDropdown, {
+  KoboDropdownPlacements,
+} from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
 import {ROUTES} from 'js/router/routerConstants';
 import projectViewsStore from './projectViewsStore';
@@ -53,10 +55,12 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   }
 
   return (
-    <div className={classNames({
-      [styles.root]: true,
-      [styles['is-menu-visible']]: isMenuVisible,
-    })}>
+    <div
+      className={classNames({
+        [styles.root]: true,
+        [styles['is-menu-visible']]: isMenuVisible,
+      })}
+    >
       <KoboDropdown
         name='projects_view_switcher'
         placement={KoboDropdownPlacements['down-left']}
@@ -65,13 +69,12 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         triggerContent={
           <button className={styles.trigger}>
             {getTriggerLabel()}
-            {getTriggerCount() !== null &&
-              <span className={styles['trigger-badge']}>{getTriggerCount()}</span>
-            }
-            <Icon
-              size='xxs'
-              name={isMenuVisible ? 'caret-up' : 'caret-down'}
-            />
+            {getTriggerCount() !== null && (
+              <span className={styles['trigger-badge']}>
+                {getTriggerCount()}
+              </span>
+            )}
+            <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>
         }
         menuContent={
@@ -83,7 +86,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
             >
               {HOME_VIEW.name}
             </button>
-            {projectViews.views.map((view) =>
+            {projectViews.views.map((view) => (
               <button
                 key={view.uid}
                 className={styles['menu-option']}
@@ -91,7 +94,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
               >
                 {view.name}
               </button>
-            )}
+            ))}
           </div>
         }
       />

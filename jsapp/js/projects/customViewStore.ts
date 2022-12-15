@@ -66,7 +66,10 @@ class CustomViewStore {
     this.isLoading = true;
     this.assets = [];
     const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
-    const orderingString = this.order.direction === 'descending' ? `-${this.order.fieldName}` : this.order.fieldName;
+    const orderingString =
+      this.order.direction === 'descending'
+        ? `-${this.order.fieldName}`
+        : this.order.fieldName;
     $.ajax({
       dataType: 'json',
       method: 'GET',

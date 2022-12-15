@@ -1,6 +1,5 @@
 import type {
   FilterConditionName,
-  ProjectFieldDefinition,
   ProjectsFilterDefinition,
 } from './constants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
@@ -11,7 +10,9 @@ import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
  * in ProjectsFilterEditor, and we want the value input to be available before
  * condition is selected).
  */
-export function isFilterConditionValueRequired(conditionName?: FilterConditionName) {
+export function isFilterConditionValueRequired(
+  conditionName?: FilterConditionName
+) {
   if (conditionName) {
     const conditionDefinition = FILTER_CONDITIONS[conditionName];
     if (conditionDefinition) {
@@ -31,10 +32,7 @@ export function removeIncorrectFilters(filters: ProjectsFilterDefinition[]) {
     if (
       filter.fieldName &&
       filter.condition &&
-      (
-        !isValueRequired ||
-        (isValueRequired && filter.value)
-      )
+      (!isValueRequired || (isValueRequired && filter.value))
     ) {
       // We rewrite filter object to avoid including value if a non-value
       // condition was selected.
@@ -52,9 +50,9 @@ export function removeIncorrectFilters(filters: ProjectsFilterDefinition[]) {
 }
 
 export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
-  return filters.map((filter) => {
+  return removeIncorrectFilters(filters).map((filter) => {
     // It is not possible to not have these two, since `removeIncorrectFilters`
-    // was most probably run over `filters`, but TypeScript needs it.
+    // was run over `filters`, but TypeScript needs it.
     if (!filter.fieldName || !filter.condition) {
       return '';
     }
@@ -62,13 +60,17 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     const conditionDefinition = FILTER_CONDITIONS[filter.condition];
 
     if (conditionDefinition.requiresValue && filter.value) {
-      return conditionDefinition.filterQuery
-        .replace('<field>', fieldDefinition.apiPropertyName)
-        // wrapping term in quotes to make it work with spaces
-        .replace('<term>', `"${filter.value}"`);
+      return (
+        conditionDefinition.filterQuery
+          .replace('<field>', fieldDefinition.apiPropertyName)
+          // wrapping term in quotes to make it work with spaces
+          .replace('<term>', `"${filter.value}"`)
+      );
     } else if (!conditionDefinition.requiresValue) {
-      return conditionDefinition.filterQuery
-        .replace('<field>', fieldDefinition.apiPropertyName);
+      return conditionDefinition.filterQuery.replace(
+        '<field>',
+        fieldDefinition.apiPropertyName
+      );
     }
 
     return '';

@@ -10,7 +10,6 @@ import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
 import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
-import type {ProjectsTableOrder} from 'js/projects/projectsTable/projectsTable';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
@@ -27,7 +26,9 @@ function CustomViewRoute() {
 
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
-  const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
+  const [fields, setFields] = useState<ProjectFieldName[] | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     customView.setUp(viewUid);
@@ -46,7 +47,9 @@ function CustomViewRoute() {
   };
 
   const exportAllData = () => {
-    notify.warning(t("Export is being generated, you will receive an email when it's done"));
+    notify.warning(
+      t("Export is being generated, you will receive an email when it's done")
+    );
     const foundView = projectViews.getView(viewUid);
     if (foundView) {
       // TODO verify if this is how we want to use that url
@@ -58,7 +61,7 @@ function CustomViewRoute() {
   return (
     <section className={styles.root}>
       <header className={styles.header}>
-        <ViewSwitcher selectedViewUid={viewUid}/>
+        <ViewSwitcher selectedViewUid={viewUid} />
 
         <ProjectsFilter
           onFiltersChange={customView.setFilters.bind(customView)}

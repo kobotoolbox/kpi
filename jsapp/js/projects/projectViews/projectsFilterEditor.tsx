@@ -53,29 +53,25 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     });
   };
 
-  const getFieldSelectorOptions = () => (
+  const getFieldSelectorOptions = () =>
     Object.values(PROJECT_FIELDS)
       .filter((filterDefinition) => filterDefinition.allowsFiltering)
       .map((filterDefinition) => {
         return {label: filterDefinition.label, id: filterDefinition.name};
-      })
-  );
+      });
 
-  const getConditionSelectorOptions = () => (
+  const getConditionSelectorOptions = () =>
     Object.values(FILTER_CONDITIONS).map((conditionDefinition) => {
       return {label: conditionDefinition.label, id: conditionDefinition.name};
-    })
-  );
+    });
 
   return (
     <div className={styles.root}>
       {/* Filter field selector */}
       <div className={styles.column}>
-        {!props.hideLabels &&
-          <span className={styles.label}>
-            {t('Filter by')}
-          </span>
-        }
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Filter by')}</span>
+        )}
         <KoboSelect
           name={generateUid()}
           type='outline'
@@ -91,11 +87,9 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter condition selector */}
       <div className={styles.column}>
-        {!props.hideLabels &&
-          <span className={styles.label}>
-            {t('Condition')}
-          </span>
-        }
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Condition')}</span>
+        )}
         <KoboSelect
           name={generateUid()}
           type='outline'
@@ -111,22 +105,18 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter value */}
       <div className={styles.column}>
-        {!props.hideLabels &&
-          <span className={styles.label}>
-            {t('Value')}
-          </span>
-        }
-        {!isFilterConditionValueRequired(props.filter.condition) &&
-          <div/>
-        }
-        {isFilterConditionValueRequired(props.filter.condition) &&
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Value')}</span>
+        )}
+        {!isFilterConditionValueRequired(props.filter.condition) && <div />}
+        {isFilterConditionValueRequired(props.filter.condition) && (
           <TextBox
             customModifiers='on-white'
             value={props.filter.value || ''}
             onChange={onFilterValueChange}
             placeholder={t('Enter value')}
           />
-        }
+        )}
       </div>
 
       <div className={styles.column}>

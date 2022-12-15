@@ -11,8 +11,15 @@ export interface ProjectsFilterDefinition {
   value?: string;
 }
 
-export type FilterConditionName = 'contains' | 'doesNotContain' | 'endsWith' |
-'is' | 'isEmpty' | 'isNot' | 'isNotEmpty' | 'startsWith';
+export type FilterConditionName =
+  | 'contains'
+  | 'doesNotContain'
+  | 'endsWith'
+  | 'is'
+  | 'isEmpty'
+  | 'isNot'
+  | 'isNotEmpty'
+  | 'startsWith';
 interface FilterConditionDefinition {
   name: FilterConditionName;
   label: string;
@@ -93,9 +100,20 @@ export const DATE_FILTER_QUERIES = {
   partOf: '<field>__regex:<YYYY-MM>',
 };
 
-export type ProjectFieldName = 'countries' | 'dateModified' | 'dateDeployed' |
-'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
-'ownerOrganization' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
+export type ProjectFieldName =
+  | 'countries'
+  | 'dateDeployed'
+  | 'dateModified'
+  | 'description'
+  | 'languages'
+  | 'name'
+  | 'ownerEmail'
+  | 'ownerFullName'
+  | 'ownerOrganization'
+  | 'ownerUsername'
+  | 'sector'
+  | 'status'
+  | 'submissions';
 
 export interface ProjectFieldDefinition {
   name: ProjectFieldName;
