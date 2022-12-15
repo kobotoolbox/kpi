@@ -69,7 +69,6 @@ function ViewSwitcher(props: ViewSwitcherProps) {
               <span className={styles['trigger-badge']}>{getTriggerCount()}</span>
             }
             <Icon
-              classNames={[styles['trigger-icon']]}
               size='xxs'
               name={isMenuVisible ? 'caret-up' : 'caret-down'}
             />
