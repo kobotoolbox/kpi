@@ -2,7 +2,10 @@ import React from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import ProjectsTableRow from './projectsTableRow';
-import type {ProjectFieldName, OrderDirection} from 'js/projects/projectViews/constants';
+import type {
+  ProjectFieldName,
+  OrderDirection,
+} from 'js/projects/projectViews/constants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import ProjectsTableHeader from './projectsTableHeader';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
@@ -18,20 +21,20 @@ export interface ProjectsTableOrder {
 }
 
 interface ProjectsTableProps {
- isLoading?: boolean;
- /** To display contextual empty message when zero assets. */
- emptyMessage?: string;
- assets: Array<AssetResponse | ProjectViewAsset>;
- /** Renders the columns for highlighted fields in some fancy way. */
- highlightedFields: ProjectFieldName[];
- visibleFields: ProjectFieldName[];
- order: ProjectsTableOrder;
- /** Called when user selects a column for odering. */
- onChangeOrderRequested: (order: ProjectsTableOrder) => void;
- /** Used for infinite scroll. */
- onRequestLoadNextPage: () => void;
- /** If there are more results to be loaded. */
- hasMorePages: boolean;
+  isLoading?: boolean;
+  /** To display contextual empty message when zero assets. */
+  emptyMessage?: string;
+  assets: Array<AssetResponse | ProjectViewAsset>;
+  /** Renders the columns for highlighted fields in some fancy way. */
+  highlightedFields: ProjectFieldName[];
+  visibleFields: ProjectFieldName[];
+  order: ProjectsTableOrder;
+  /** Called when user selects a column for odering. */
+  onChangeOrderRequested: (order: ProjectsTableOrder) => void;
+  /** Used for infinite scroll. */
+  onRequestLoadNextPage: () => void;
+  /** If there are more results to be loaded. */
+  hasMorePages: boolean;
 }
 
 /**
@@ -75,33 +78,34 @@ export default function ProjectsTable(props: ProjectsTableProps) {
       />
 
       <div className={styles.body}>
-        {props.isLoading &&
-          <LoadingSpinner/>
-        }
+        {props.isLoading && <LoadingSpinner />}
 
-        {!props.isLoading && props.assets.length === 0 &&
+        {!props.isLoading && props.assets.length === 0 && (
           <div className={classNames(rowStyles.row, rowStyles['row-message'])}>
             {props.emptyMessage || t('There are no projects to display.')}
           </div>
-        }
+        )}
 
         <InfiniteScroll
           getScrollParent={() => document.getElementById(SCROLL_PARENT_ID)}
           pageStart={0}
           loadMore={props.onRequestLoadNextPage}
           hasMore={props.hasMorePages}
-          loader={<LoadingSpinner classNames={[styles.loader]} hideMessage key='loadingspinner'/>}
+          loader={
+            // We want to hide the plugin spinner when we already display the main one - this ensures no double spinners
+            props.isLoading ? <></> : <LoadingSpinner hideMessage key='0' />
+          }
           useWindow={false}
           initialLoad={false}
         >
-          {props.assets.map((asset) =>
+          {props.assets.map((asset) => (
             <ProjectsTableRow
               asset={asset}
               highlightedFields={props.highlightedFields}
               visibleFields={props.visibleFields}
               key={asset.uid}
             />
-          )}
+          ))}
         </InfiniteScroll>
       </div>
     </div>

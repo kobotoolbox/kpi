@@ -2,7 +2,10 @@ import React from 'react';
 import {useNavigate} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
-import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/projectViews/constants';
+import type {
+  ProjectFieldName,
+  ProjectFieldDefinition,
+} from 'js/projects/projectViews/constants';
 import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
@@ -27,31 +30,37 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const renderColumnContent = (field: ProjectFieldDefinition) => {
     switch (field.name) {
       case 'name':
-        return <AssetName asset={props.asset}/>;
+        return <AssetName asset={props.asset} />;
       case 'description':
         return props.asset.settings.description;
       case 'status':
         if (props.asset.has_deployment && !props.asset.deployment__active) {
-          return <Badge
-            color='light-amber'
-            size='s'
-            icon='project-archived'
-            label={t('archived')}
-          />;
+          return (
+            <Badge
+              color='light-amber'
+              size='s'
+              icon='project-archived'
+              label={t('archived')}
+            />
+          );
         } else if (props.asset.has_deployment) {
-          return <Badge
-            color='light-blue'
-            size='s'
-            icon='project-deployed'
-            label={t('deployed')}
-          />;
+          return (
+            <Badge
+              color='light-blue'
+              size='s'
+              icon='project-deployed'
+              label={t('deployed')}
+            />
+          );
         } else {
-          return <Badge
-            color='light-teal'
-            size='s'
-            icon='project-draft'
-            label={t('draft')}
-          />;
+          return (
+            <Badge
+              color='light-teal'
+              size='s'
+              icon='project-draft'
+              label={t('draft')}
+            />
+          );
         }
       case 'ownerUsername':
         return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
@@ -60,7 +69,9 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'ownerEmail':
         return 'owner__email' in props.asset ? props.asset.owner__email : null;
       case 'ownerOrganization':
-        return 'owner__organization' in props.asset ? props.asset.owner__organization : null;
+        return 'owner__organization' in props.asset
+          ? props.asset.owner__organization
+          : null;
       case 'dateModified':
         return formatTime(props.asset.date_modified);
       case 'dateDeployed':
@@ -90,7 +101,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     }
   };
 
-   return (
+  return (
     <div
       className={classNames(
         styles.row,
@@ -110,7 +121,9 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
             className={classNames({
               [styles.cell]: true,
               [styles[`cell-${field.name}`]]: true,
-              [styles['cell-highlighted']]: props.highlightedFields.includes(field.name),
+              [styles['cell-highlighted']]: props.highlightedFields.includes(
+                field.name
+              ),
             })}
             key={field.name}
           >

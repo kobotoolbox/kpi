@@ -24,13 +24,13 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     }
 
     // empty icon to take up space in column
-    let icon = (<i className='k-icon'/>);
+    let icon = <i className='k-icon' />;
     if (props.order.fieldName === field.name) {
       if (props.order.direction === 'ascending') {
-        icon = (<i className='k-icon k-icon-angle-up'/>);
+        icon = <i className='k-icon k-icon-angle-up' />;
       }
       if (props.order.direction === 'descending') {
-        icon = (<i className='k-icon k-icon-angle-down'/>);
+        icon = <i className='k-icon k-icon-angle-down' />;
       }
     }
 
@@ -39,7 +39,9 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
         className={classNames({
           [rowStyles.cell]: true,
           [rowStyles[`cell-${field.name}`]]: true,
-          [rowStyles['cell-highlighted']]: props.highlightedFields.includes(field.name),
+          [rowStyles['cell-highlighted']]: props.highlightedFields.includes(
+            field.name
+          ),
         })}
         key={field.name}
         onClick={() => props.onChangeOrderRequested(field.name)}
@@ -58,4 +60,3 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     </header>
   );
 }
-

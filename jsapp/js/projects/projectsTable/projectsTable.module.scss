@@ -41,14 +41,16 @@ $projects-table-min-width: 820px;
 
 .body {
   flex: 1;
-}
 
-// The loading message of the ProjectsTable component
-.body > .loading {
-  margin: sizes.$x40 auto;
-}
+  :global {
+    // The loading message of the ProjectsTable component
+    .loading:first-of-type {
+      margin: sizes.$x40 auto;
+    }
 
-// The loading spinner of the react-infinite-scroller plugin
-.loader {
-  padding: sizes.$x10 0 sizes.$x20;
+    // The loading spinner of the react-infinite-scroller plugin
+    .loading:last-of-type {
+      padding: sizes.$x10 0 sizes.$x20;
+    }
+  }
 }
