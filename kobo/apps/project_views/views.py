@@ -16,6 +16,7 @@ from kpi.filters import (
 from kpi.models import Asset, ProjectViewExportTask
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     get_region_for_view,
     user_has_view_perms,
@@ -50,7 +51,8 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ProjectView.objects.all()
 
     def get_queryset(self, *args, **kwargs):
-        return self.queryset.filter(users=self.request.user)
+        user= get_database_user(self.request.user)
+        return self.queryset.filter(users=user)
 
     @action(
         detail=True,
@@ -60,18 +62,18 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
-        assets = Asset.objects.all()
+        assets = Asset.objects.defer('content').all()
         queryset = self.filter_queryset(
-            self._get_regional_queryset(assets, uid, _type='asset')
+            self._get_regional_queryset(assets, uid, obj_type='asset')
         )
-        return self._get_regional_response(queryset, _type='asset')
+        return self._get_regional_response(queryset, obj_type='asset')
 
     @action(
         detail=True,
         methods=['GET', 'POST'],
-        url_path='(?P<_type>(assets|users))/export',
+        url_path='(?P<obj_type>(assets|users))/export',
     )
-    def export(self, request, uid, _type):
+    def export(self, request, uid, obj_type):
         user = request.user
 
         if not user_has_view_perms(user, uid):
@@ -79,14 +81,12 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
 
         if request.method == 'GET':
             export = ProjectViewExportTask.objects.filter(
-                user=user, data__view=uid, data__type=_type
+                user=user, data__view=uid, data__type=obj_type
             ).last()
             if not export:
                 return Response({})
 
-            file_location = serializers.FileField().to_representation(
-                export.result
-            )
+            file_location = export.result.url
             return Response(
                 {
                     'status': export.status,
@@ -98,7 +98,7 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
                 user=user,
                 data={
                     'view': uid,
-                    'type': _type,
+                    'type': obj_type,
                 },
             )
 
@@ -116,29 +116,29 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
             raise Http404
         users = User.objects.all()
         queryset = self.filter_queryset(
-            self._get_regional_queryset(users, uid, _type='user')
+            self._get_regional_queryset(users, uid, obj_type='user')
             .exclude(pk=settings.ANONYMOUS_USER_ID)
             .distinct()
             .order_by('id')
         )
-        return self._get_regional_response(queryset, _type='user')
+        return self._get_regional_response(queryset, obj_type='user')
 
     def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
         return context_
 
-    def _get_regional_response(self, queryset, _type):
+    def _get_regional_response(self, queryset, obj_type):
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self._get_regional_serializer(page, _type=_type)
+            serializer = self._get_regional_serializer(page, obj_type=obj_type)
             return self.get_paginated_response(serializer.data)
-        serializer = self._get_regional_serializer(queryset, _type=_type)
+        serializer = self._get_regional_serializer(queryset, obj_type=obj_type)
         return Response(serializer.data)
 
-    def _get_regional_serializer(self, queryset, _type):
+    def _get_regional_serializer(self, queryset, obj_type):
         serializer = AssetMetadataListSerializer
-        if _type == 'user':
+        if obj_type == 'user':
             serializer = UserListSerializer
         return serializer(
             queryset,
@@ -149,7 +149,7 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
 
     @staticmethod
     def _get_regional_queryset(
-        queryset: QuerySet, uid: str, _type: str
+        queryset: QuerySet, uid: str, obj_type: str
     ) -> QuerySet:
 
         region = get_region_for_view(uid)
@@ -162,7 +162,7 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
             'user': 'extra_details__data__country',
         }
 
-        q = Q(**{f'{q_terms[_type]}__in': region})
+        q = Q(**{f'{q_terms[obj_type]}__in': region})
         for country in region:
-            q |= Q(**{f'{q_terms[_type]}__contains': [{'value': country}]})
+            q |= Q(**{f'{q_terms[obj_type]}__contains': [{'value': country}]})
         return queryset.filter(q)

@@ -5,6 +5,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+from kobo.static_lists import COUNTRIES
 from kpi.models import Asset
 from kpi.utils.project_views import (
     get_region_for_view,
@@ -48,7 +49,7 @@ class ProjectViewSerializer(serializers.ModelSerializer):
 
     def get_assets_count(self, obj: ProjectView) -> int:
         region = get_region_for_view(obj.uid)
-        queryset = Asset.objects.all()
+        queryset = Asset.objects.defer('content').all()
 
         if '*' in region:
             return queryset.count()
@@ -65,13 +66,17 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             request=self.context.get('request', None),
         )
 
-    def get_assigned_users(self, obj: ProjectView) -> List[str]:
+    def get_assigned_users(self, obj: ProjectView) -> list[str]:
         return obj.users.all().values_list('username', flat=True)
 
-    def get_countries(self, obj: ProjectView) -> List[str]:
-        return obj.get_countries()
+    def get_countries(self, obj: ProjectView) -> list[str]:
+        """
+        Return a sorted list of country labels if it's available, otherwise the
+        code entered for the country.
+        """
+        return sorted(dict(COUNTRIES).get(c, c) for c in obj.get_countries())
 
-    def get_users(self, obj: ProjectView) -> List[str]:
+    def get_users(self, obj: ProjectView) -> list[str]:
         return reverse(
             'projectview-users',
             args=(obj.uid,),
