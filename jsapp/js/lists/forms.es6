@@ -8,6 +8,7 @@ import {searches} from '../searches';
 import mixins from '../mixins';
 import SearchCollectionList from '../components/searchcollectionlist';
 import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
+import styles from './forms.module.scss';
 
 class FormsSearchableList extends React.Component {
   constructor(props) {
@@ -27,7 +28,9 @@ class FormsSearchableList extends React.Component {
   render () {
     return (
       <>
-        <ViewSwitcher selectedViewUid={HOME_VIEW.uid}/>
+        <div className={styles.myProjectsHeader}>
+          <ViewSwitcher selectedViewUid={HOME_VIEW.uid}/>
+        </div>
         <SearchCollectionList searchContext={this.state.searchContext} />
       </>
     );

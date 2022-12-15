@@ -81,7 +81,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
         {props.isLoading && <LoadingSpinner />}
 
         {!props.isLoading && props.assets.length === 0 && (
-          <div className={classNames(rowStyles.row, rowStyles.rowMessage)}>
+          <div className={classNames(rowStyles.row, rowStyles.rowTypeMessage)}>
             {props.emptyMessage || t('There are no projects to display.')}
           </div>
         )}
