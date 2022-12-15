@@ -7,21 +7,6 @@ from django_request_cache import cache_for_request
 from kobo.apps.project_views.models import ProjectView
 
 
-def get_asset_countries(asset: 'models.Asset') -> list[str]:
-    """
-    Returns a list of country values (codes) specified in the Asset.settings
-
-    If the 'country' key exists in Asset.settings, it may look like either:
-        - Current structure: [{'value': 'ZAF', 'label': 'South Africa'}]
-    or:
-        - Legacy: {'value': 'ZAF', 'label': 'South Africa'}
-    """
-    countries = asset.settings.get('country')
-    if countries is not None and isinstance(countries, list):
-        return [c['value'] for c in countries]
-    return [countries['value']] if countries else []
-
-
 def get_regional_user_permissions_for_asset(
     asset: 'models.Asset', user: 'auth.User'
 ) -> list[str]:
@@ -30,7 +15,7 @@ def get_regional_user_permissions_for_asset(
     asset within a region
     """
 
-    asset_countries = get_asset_countries(asset)
+    asset_countries = asset.settings.get('country_codes', [])
 
     q = Q(countries__contains='*')
     for country in asset_countries:
