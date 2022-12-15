@@ -20,7 +20,6 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
-    PERM_FROM_KC_ONLY,
     PERM_CHANGE_METADATA,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
@@ -35,9 +34,9 @@ from kpi.filters import (
 from kpi.highlighters import highlight_xform
 from kpi.models import (
     Asset,
-    ObjectPermission,
     UserAssetSubscription,
 )
+from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     get_perm_name,
@@ -67,7 +66,9 @@ from kpi.utils.object_permission import (
 from kpi.utils.project_views import user_has_regional_asset_perm
 
 
-class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class AssetViewSet(
+    ObjectPermissionViewSetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+):
     """
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
@@ -247,7 +248,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     ### Reports
 
-    Returns the submission data for all deployments of a survey. 
+    Returns the submission data for all deployments of a survey.
     This data is grouped by answers, and does not show the data for individual submissions.
     The endpoint will return a <b>404 NOT FOUND</b> error if the asset is not deployed and will only return the data for the most recently deployed version.
 
@@ -610,31 +611,21 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             queryset = self.__filtered_queryset
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = AssetPagination.\
-                get_all_asset_ids_from_queryset(queryset)
-
-            # 2) Get object permissions per asset
-            object_permissions = ObjectPermission.objects.filter(
-                asset_id__in=asset_ids,
-                deny=False,
-            ).exclude(
-                permission__codename=PERM_FROM_KC_ONLY
-            ).select_related(
-                'user', 'permission'
-            ).order_by(
-                'user__username', 'permission__codename'
+            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
+                queryset
             )
 
-            object_permissions_per_asset = defaultdict(list)
-
-            for op in object_permissions:
-                object_permissions_per_asset[op.asset_id].append(op)
-
-            context_['object_permissions_per_asset'] = object_permissions_per_asset
+            # 2) Get object permissions per asset
+            context_[
+                'object_permissions_per_asset'
+            ] = self.cache_all_assets_perms(asset_ids)
 
             # 3) Get the collection subscriptions per asset
-            subscriptions_queryset = UserAssetSubscription.objects. \
-                values('asset_id', 'user_id').distinct().order_by('asset_id')
+            subscriptions_queryset = (
+                UserAssetSubscription.objects.values('asset_id', 'user_id')
+                .distinct()
+                .order_by('asset_id')
+            )
 
             user_subscriptions_per_asset = defaultdict(list)
             for record in subscriptions_queryset:
@@ -756,7 +747,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         asset = self.get_object()
         if not asset.has_deployment:
             raise Http404
-        serializer = ReportsDetailSerializer(asset, 
+        serializer = ReportsDetailSerializer(asset,
                                              context=self.get_serializer_context())
         return Response(serializer.data)
 
