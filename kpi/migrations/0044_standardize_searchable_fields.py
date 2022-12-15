@@ -29,7 +29,7 @@ def standardize_fields(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0044_project_view_export_task'),
+        ('kpi', '0043_asset_tracks_addl_columns'),
     ]
 
     # allow this command to be run backwards

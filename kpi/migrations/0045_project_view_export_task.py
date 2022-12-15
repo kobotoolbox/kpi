@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('kpi', '0044_standardize_searchable_jsonb_fields'),
+        ('kpi', '0044_standardize_searchable_fields'),
     ]
 
     operations = [
