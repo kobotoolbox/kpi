@@ -493,10 +493,10 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         results_desc = regional_res_desc.json()['results']
         assets = Asset.objects.all().order_by('date_modified')[:2]
 
-        response_dt_desc = parse(results_desc[0]['date_latest_deployement'])  # FIXME typo date_latest_deployment
+        response_dt_desc = parse(results_desc[0]['date_latest_deployment'])
         assert assets[1].latest_deployed_version.date_modified == response_dt_desc
 
-        response_dt_asc = parse(results_asc[0]['date_latest_deployement'])  # FIXME typo date_latest_deployment
+        response_dt_asc = parse(results_asc[0]['date_latest_deployment'])
         assert assets[0].latest_deployed_version.date_modified == response_dt_asc
         assert response_dt_desc > response_dt_asc
 
