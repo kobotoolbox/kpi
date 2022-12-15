@@ -71,7 +71,7 @@ class PerUserSetting(models.Model):
                   'the queries in the list.'
     )
     name = models.CharField(max_length=255, unique=True,
-                            default='INTERCOM_APP_ID')  # The only one for now!
+                            default='INTERCOM_APP_ID')  # Not used
     value_when_matched = models.CharField(max_length=2048, blank=True)
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 

@@ -3,14 +3,14 @@ from django.core.management import call_command
 from django.db import migrations
 
 
-def standarize_fields(apps, schema_editor):
+def standardize_fields(apps, schema_editor):
     if settings.SKIP_HEAVY_MIGRATIONS:
         print(
             """
             !!! ATTENTION !!!
             If you have existing projects you need to run this management command:
 
-               > python manage.py standarize_searcheable_jsonb_fields
+               > python manage.py standardize_searchable_fields
 
             Otherwise, search with query parser will not be accurate.
             """
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            standarize_fields,
+            standardize_fields,
             noop,
         ),
     ]
