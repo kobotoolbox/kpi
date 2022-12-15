@@ -16,7 +16,6 @@ export const simpleTemplate = {
     },
     'description': '',
     'organization': 'Kobo Inc.',
-    'share-metadata': true,
   },
   'asset_type': 'template',
   'summary': {
@@ -138,7 +137,6 @@ export const simpleTemplateLocked = {
     },
     'description': '',
     'organization': 'Kobo Inc.',
-    'share-metadata': true,
   },
   'asset_type': 'template',
   'summary': {

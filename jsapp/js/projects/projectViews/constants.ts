@@ -3,7 +3,7 @@ export type OrderDirection = 'ascending' | 'descending';
 export const HOME_VIEW = {
   uid: 'kobo_my_projects',
   name: t('My Projects'),
-}
+};
 
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName;
@@ -17,8 +17,7 @@ interface FilterConditionDefinition {
   name: FilterConditionName;
   label: string;
   requiresValue: boolean;
-  // TODO: this is supposed to be used with the new endpoints to filter out fields
-  filterRegex: string;
+  filterQuery: string;
 }
 type FilterConditions = {[P in FilterConditionName]: FilterConditionDefinition};
 export const FILTER_CONDITIONS: FilterConditions = {
@@ -26,53 +25,75 @@ export const FILTER_CONDITIONS: FilterConditions = {
     name: 'is',
     label: t('Is'),
     requiresValue: true,
-    filterRegex: '^phrase$',
+    filterQuery: '<field>__iexact:<term>',
   },
   isNot: {
     name: 'isNot',
     label: t('Is not'),
     requiresValue: true,
-    filterRegex: '^(?!phrase$).*$',
+    filterQuery: 'NOT <field>__iexact:<term>',
   },
   contains: {
     name: 'contains',
     label: t('Contains'),
     requiresValue: true,
-    filterRegex: '^.*phrase.*$',
+    filterQuery: '<field>__icontains:<term>',
   },
   doesNotContain: {
     name: 'doesNotContain',
     label: t('Does not contain'),
     requiresValue: true,
-    filterRegex: '^(?!.*phrase).*$',
+    filterQuery: 'NOT <field>__icontains:<term>',
   },
   startsWith: {
     name: 'startsWith',
     label: t('Starts with'),
     requiresValue: true,
-    filterRegex: '^phrase.*',
+    filterQuery: '<field>__istartswith:<term>',
   },
   endsWith: {
     name: 'endsWith',
     label: t('Ends with'),
     requiresValue: true,
-    filterRegex: '^.*phrase$',
+    filterQuery: '<field>__iendswith:<term>',
   },
   isEmpty: {
     name: 'isEmpty',
     label: t('Is empty'),
     requiresValue: false,
-    filterRegex: '^$',
+    filterQuery: '<field>:""',
   },
   isNotEmpty: {
     name: 'isNotEmpty',
     label: t('Is not empty'),
     requiresValue: false,
-    filterRegex: '^.+$',
+    filterQuery: 'NOT <field>:""',
   },
 };
 
-export type ProjectFieldName = 'countries' | 'dateModified' |
+/**
+ * EXCEPTION: the `status` field is combined from different pieces of data thus
+ * it needs these queries :sadface:
+ */
+export const STATUS_FILTER_QUERIES = {
+  draft: '_deployment_data__iexact:{}',
+  deployed: '_deployment_data__active:true',
+  archived: '_deployment_data__active:false',
+};
+
+/**
+ * EXCEPTION: Dates are special pieces of data and they can be filtered in
+ * a meaningful way by using these queries.
+ */
+export const DATE_FILTER_QUERIES = {
+  greaterThan: '<field>__gt:<YYYY-MM-DD>',
+  greaterOrEqualThan: '<field>__gte:<YYYY-MM-DD>',
+  lessThan: '<field>__lt:<YYYY-MM-DD>',
+  lessOrEqualThan: '<field>__lte:<YYYY-MM-DD>',
+  partOf: '<field>__regex:<YYYY-MM>',
+};
+
+export type ProjectFieldName = 'countries' | 'dateModified' | 'dateDeployed' |
 'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
 'ownerOrganization' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
 
@@ -80,11 +101,11 @@ export interface ProjectFieldDefinition {
   name: ProjectFieldName;
   label: string;
   /** Backend property name used for ordering and filtering. */
-  propertyName?: string;
+  apiPropertyName: string;
   /** The default order direction for this field. */
-  defaultDirection?: OrderDirection;
-  /** A path to asset property that holds the data. */
-  filterPropertyPath?: string[];
+  defaultDirection: OrderDirection;
+  /** Some of the fields (submission) doesn't allow any filtering yet. */
+  allowsFiltering: boolean;
 }
 
 type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
@@ -93,96 +114,108 @@ type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
  * influences the order these will be displayed in UI.
  */
 export const PROJECT_FIELDS: ProjectFields = {
-  /** NOTE: Regardless of user settings, name is always visible. */
+  /**
+   * NOTE: Regardless of user settings, we should keep the name field column
+   * always visible. We keep this comment here, as multiple places are ensuring
+   * this condition is met.
+   */
   name: {
     name: 'name',
     label: t('Project name'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'name',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   description: {
     name: 'description',
     label: t('Description'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'settings__description',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
-    propertyName: 'xxxx',
+    apiPropertyName: '_deployment_data',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'owner__username',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'owner__extra_details__data__name',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'owner__email',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'owner__extra_details__data__organization',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
-    propertyName: 'date_modified',
+    apiPropertyName: 'date_modified__date',
     defaultDirection: 'descending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
+  },
+  dateDeployed: {
+    name: 'dateDeployed',
+    label: t('Date deployed'),
+    apiPropertyName: 'date_deployed__date',
+    defaultDirection: 'descending',
+    allowsFiltering: true,
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'settings__sector',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'settings__country_codes[]',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'summary__languages[]',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: true,
   },
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
-    propertyName: 'xxxx',
+    apiPropertyName: 'deployment__submission_count',
     defaultDirection: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    allowsFiltering: false,
   },
 };
 
 export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
   'countries',
   'dateModified',
+  'dateDeployed',
   'name',
   'ownerUsername',
   'status',

@@ -54,9 +54,11 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   };
 
   const getFieldSelectorOptions = () => (
-    Object.values(PROJECT_FIELDS).map((filterDefinition) => {
-      return {label: filterDefinition.label, id: filterDefinition.name};
-    })
+    Object.values(PROJECT_FIELDS)
+      .filter((filterDefinition) => filterDefinition.allowsFiltering)
+      .map((filterDefinition) => {
+        return {label: filterDefinition.label, id: filterDefinition.name};
+      })
   );
 
   const getConditionSelectorOptions = () => (

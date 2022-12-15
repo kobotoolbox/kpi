@@ -46,7 +46,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     width: 10%;
   }
 
-  &.cell-dateModified {
+  &.cell-dateModified,
+  &.cell-dateDeployed {
     width: 17.5%;
     text-align: right;
   }

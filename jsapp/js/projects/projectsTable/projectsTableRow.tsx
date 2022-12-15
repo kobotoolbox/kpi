@@ -6,8 +6,7 @@ import type {ProjectFieldName, ProjectFieldDefinition} from 'js/projects/project
 import Badge from 'js/components/common/badge';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
-import type {AssetResponse} from 'js/dataInterface';
-import type {ProjectViewAsset} from 'js/projects/customViewStore';
+import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import assetUtils from 'js/assetUtils';
 import styles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
@@ -64,6 +63,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return 'owner__organization' in props.asset ? props.asset.owner__organization : null;
       case 'dateModified':
         return formatTime(props.asset.date_modified);
+      case 'dateDeployed':
+        if (
+          'date_latest_deployment' in props.asset &&
+          props.asset.date_latest_deployment !== null
+        ) {
+          return formatTime(props.asset.date_latest_deployment);
+        }
+        return null;
       case 'sector':
         return assetUtils.getSectorDisplayString(props.asset);
       case 'countries':

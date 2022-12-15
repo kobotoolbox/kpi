@@ -1,44 +1,17 @@
 import {makeAutoObservable} from 'mobx';
 import type {
-  AssetSettings,
+  ProjectViewAsset,
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-
-export interface ProjectViewAsset {
-  url: string;
-  date_modified: string;
-  date_created: string;
-  date_latest_deployement: null;
-  date_first_deployement: null;
-  owner: string;
-  owner__username: string;
-  owner__email: string;
-  /** Full name */
-  owner__name: string;
-  owner__organization: string;
-  uid: string;
-  kind: string;
-  name: string;
-  settings: AssetSettings;
-  languages: Array<string | null>;
-  asset_type: string;
-  version_id: string;
-  version_count: number;
-  has_deployment: boolean;
-  deployed_version_id: string | null;
-  deployment__active: boolean;
-  deployment__submission_count: number;
-  permissions: [];
-  status: string;
-  data_sharing: {};
-  data: string;
-}
+import type {ProjectsFilterDefinition} from './projectViews/constants';
+import {buildQueriesFromFilters} from './projectViews/utils';
 
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];
+  public filters: ProjectsFilterDefinition[] = [];
   /** Whether the first call was made. */
   public isInitialised = false;
   public isLoading = false;
@@ -64,13 +37,25 @@ class CustomViewStore {
     return this.nextPageUrl !== null;
   }
 
-  /** Gets the first page of results. */
+  /** Stores the filters and fetches completely new list of assets. */
+  public setFilters(filters: ProjectsFilterDefinition[]) {
+    this.filters = filters;
+    this.fetchAssets();
+  }
+
+  /**
+   * Gets the first page of results. It will replace whatever assets are loaded
+   * already.
+   */
   public fetchAssets() {
+    this.isInitialised = false;
     this.isLoading = true;
+    this.assets = [];
+    const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/`,
+      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?q=${queriesString}`,
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));
