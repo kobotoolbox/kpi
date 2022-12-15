@@ -700,7 +700,9 @@ ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_SESSION_REMEMBER = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_AUTO_SIGNUP = False
-REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
+SOCIALACCOUNT_FORMS = {
+    'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
+}
 
 SOCIALACCOUNT_PROVIDERS = {}
 if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):

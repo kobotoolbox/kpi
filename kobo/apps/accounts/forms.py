@@ -1,13 +1,16 @@
-# coding: utf-8
 import json
 
 import constance
+from allauth.account.forms import LoginForm as BaseLoginForm
+from allauth.account.forms import PasswordField
 from allauth.account.forms import SignupForm as BaseSignupForm
+from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
+
 
 USERNAME_INVALID_MESSAGE = t(
     'Usernames must be between 2 and 30 characters in length, '
@@ -23,7 +26,14 @@ CONFIGURABLE_METADATA_FIELDS = (
 )
 
 
-class SignupForm(BaseSignupForm):
+class LoginForm(BaseLoginForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["login"].widget.attrs["placeholder"] = ""
+        self.fields["password"].widget.attrs["placeholder"] = ""
+
+
+class KoboSignupMixin(forms.Form):
     name = forms.CharField(
         label=t('Name'),
         required=False,
@@ -53,21 +63,15 @@ class SignupForm(BaseSignupForm):
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
-    field_order = [
-        'name',
-        'organization',
-        'username',
-        'email',
-        'sector',
-        'country',
-    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Remove upstream placeholders
-        for field_name in ["username", "email", "password1", "password2"]:
-            self.fields[field_name].widget.attrs["placeholder"] = ""
-        self.fields["password2"].label = t("Password confirmation")
+        for field_name in ['username', 'email', 'password1', 'password2']:
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs['placeholder'] = ''
+        if 'password2' in self.fields:
+            self.fields['password2'].label = t('Password confirmation')
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -112,3 +116,30 @@ class SignupForm(BaseSignupForm):
             raise forms.ValidationError(
                 constance.config.REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE
             )
+
+
+class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
+    field_order = [
+        'username',
+        'email',
+        'name',
+        'gender',
+        'sector',
+        'country',
+        'organization',
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs['readonly'] = True
+
+
+class SignupForm(KoboSignupMixin, BaseSignupForm):
+    field_order = [
+        'name',
+        'organization',
+        'username',
+        'email',
+        'sector',
+        'country',
+    ]
