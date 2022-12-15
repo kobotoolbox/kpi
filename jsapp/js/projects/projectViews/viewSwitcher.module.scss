@@ -9,7 +9,7 @@
   vertical-align: top;
 }
 
-.root.is-menu-visible .trigger {
+.root.isMenuVisible .trigger {
   :global {
     .k-icon {
       color: colors.$kobo-blue;
@@ -32,7 +32,7 @@
   }
 }
 
-.trigger-badge {
+.triggerBadge {
   margin-left: sizes.$x14;
   font-size: sizes.$x13;
   line-height: sizes.$x16;
@@ -54,7 +54,7 @@
   box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
 }
 
-.menu-option {
+.menuOption {
   @include mixins.buttonReset;
   @include mixins.textEllipsis;
   font-size: sizes.$x16;

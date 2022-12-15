@@ -58,7 +58,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     <div
       className={classNames({
         [styles.root]: true,
-        [styles['is-menu-visible']]: isMenuVisible,
+        [styles.isMenuVisible]: isMenuVisible,
       })}
     >
       <KoboDropdown
@@ -70,7 +70,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
           <button className={styles.trigger}>
             {getTriggerLabel()}
             {getTriggerCount() !== null && (
-              <span className={styles['trigger-badge']}>
+              <span className={styles.triggerBadge}>
                 {getTriggerCount()}
               </span>
             )}
@@ -81,7 +81,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
           <div className={styles.menu}>
             <button
               key={HOME_VIEW.uid}
-              className={styles['menu-option']}
+              className={styles.menuOption}
               onClick={() => onOptionClick(HOME_VIEW.uid)}
             >
               {HOME_VIEW.name}
@@ -89,7 +89,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
             {projectViews.views.map((view) => (
               <button
                 key={view.uid}
-                className={styles['menu-option']}
+                className={styles.menuOption}
                 onClick={() => onOptionClick(view.uid)}
               >
                 {view.name}

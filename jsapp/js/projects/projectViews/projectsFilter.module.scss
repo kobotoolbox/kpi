@@ -13,7 +13,7 @@
   // We want the field and condition selectors to not be confined to
   // the modal content area, but with multiple rows, it becomes impossible
   // to not have scrollable content, thus:
-  &.has-many-filters {
+  &.hasManyFilters {
     overflow-y: auto;
 
     // We need a tiny bit space on bottom to avoid scrollbar appearing

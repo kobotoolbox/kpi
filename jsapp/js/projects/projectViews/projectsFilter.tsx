@@ -121,7 +121,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
         <section
           className={classNames({
             [styles.content]: true,
-            [styles['has-many-filters']]: filters.length >= MANY_FILTERS_AMOUNT,
+            [styles.hasManyFilters]: filters.length >= MANY_FILTERS_AMOUNT,
           })}
         >
           {filters.map((filter, filterIndex) => (
