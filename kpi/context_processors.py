@@ -3,7 +3,7 @@ import constance
 import markdown
 from django.conf import settings
 
-from hub.models import ConfigurationFile, PerUserSetting
+from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
 
 
@@ -13,12 +13,6 @@ def external_service_tokens(request):
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     if settings.RAVEN_JS_DSN:
         out['raven_js_dsn'] = settings.RAVEN_JS_DSN
-    try:
-        intercom_setting = PerUserSetting.objects.get(name='INTERCOM_APP_ID')
-    except PerUserSetting.DoesNotExist:
-        pass
-    else:
-        out['intercom_app_id'] = intercom_setting.get_for_user(request.user)
     return out
 
 
