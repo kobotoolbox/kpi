@@ -52,9 +52,7 @@
     </div>
 
     {# SSO section #}
-    {# TODO: Use Django template logic instead of CSS/JS for this section #}
-    {# TODO: If there is more than one provider, draw a button for each. #}
-    <div class="registration__sso registration__sso--hidden">
+    <div class="registration__sso registration__sso--hidden registration__sso--login">
       <hr></hr>
       <h2>{% trans "Log in using SSO" %}</h2>
       <p>
@@ -68,14 +66,14 @@
     </div>
 
     <script>
-      // {# TODO: Modify the Django templates instead of this. #}
-
       jQuery(function () {
+        // {# TODO: Implement these changes using Django template logic instead of CSS/JS, here and in signup.html #}
         // {# Cosmetic: Remove colons from Username, Password #}
         document.querySelectorAll('label[for="id_login"],label[for="id_password"]'
           ).forEach((el)=>{ el.innerText = el.innerText.replaceAll(':', '')})
 
-        // {# HACK: Setup SSO section with JS #}
+
+        // {# HACK: Setup SSO section with JS - see also signup.html #}
         var providers = document.querySelectorAll('a.socialaccount_provider')
         if (providers.length > 0 ) {
           // Move list
@@ -85,7 +83,7 @@
           // Modify SSO login link appearances:
           document.querySelectorAll('a.socialaccount_provider').forEach((el) => {
             // Style as button
-            el.classList.add('kobo-button', 'kobo-button--sso-login', 'kobo-button--fullwidth')
+            el.classList.add('kobo-button', 'kobo-button--sso', 'kobo-button--fullwidth')
 
             if (providers.length === 1) {
               // Label with "SSO Login"
@@ -96,13 +94,13 @@
             }
           })
 
-          // Finally, unhide the SSO section
+          // Unhide the SSO section
           document.querySelector('.registration__sso').classList.remove('registration__sso--hidden')
         }
 
         // {# Polish: Make SSO links act more like buttons #}
         document.addEventListener('keydown', function(e) {
-          if ((e.code === 'Space') && e.target.classList.contains('kobo-button--sso-login')) {
+          if ((e.code === 'Space') && e.target.classList.contains('kobo-button--sso')) {
             e.target.click()
           }
         })

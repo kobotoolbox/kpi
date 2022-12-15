@@ -67,19 +67,36 @@ $kobo-light-mid-blue: #c0e3ff;
       font-size: variables.$base-font-size;
       padding-bottom: 20px;
 
-      h2 {
-        margin-top: 20px;
-        font-size: variables.$base-font-size;
-        text-align: center;
+      // Login page variant
+      &.registration__sso--login {
+        h2 {
+          margin-top: 20px;
+          font-size: variables.$base-font-size;
+          text-align: center;
+        }
+
+        p {
+          font-size: 0.8em;
+          text-align: center;
+        }
       }
 
-      p {
-        font-size: 0.8em;
-        text-align: center;
+      // Registration page variant
+      &.registration__sso--signup {
+        h2 {
+          margin-top: 20px;
+          font-size: variables.$base-font-size;
+        }
+
+        p {
+          font-size: 0.8em;
+        }
       }
+
+
 
       // Special button variant only used here
-      a.kobo-button--sso-login {
+      a.kobo-button--sso {
         background-color: $kobo-light-mid-blue;
         color: $kobo-dark-blue;
 
