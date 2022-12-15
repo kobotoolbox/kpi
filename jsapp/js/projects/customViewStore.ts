@@ -6,12 +6,20 @@ import type {
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import {PROJECT_FIELDS} from './projectViews/constants';
 import type {ProjectsFilterDefinition} from './projectViews/constants';
 import {buildQueriesFromFilters} from './projectViews/utils';
+import type {ProjectsTableOrder} from './projectsTable/projectsTable';
+
+const DEFAULT_ORDER: ProjectsTableOrder = {
+  fieldName: PROJECT_FIELDS.name.name,
+  direction: PROJECT_FIELDS.name.defaultDirection,
+};
 
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];
   public filters: ProjectsFilterDefinition[] = [];
+  public order: ProjectsTableOrder = DEFAULT_ORDER;
   /** Whether the first call was made. */
   public isInitialised = false;
   public isLoading = false;
@@ -37,9 +45,15 @@ class CustomViewStore {
     return this.nextPageUrl !== null;
   }
 
-  /** Stores the filters and fetches completely new list of assets. */
+  /** Stores the new filters and fetches completely new list of assets. */
   public setFilters(filters: ProjectsFilterDefinition[]) {
     this.filters = filters;
+    this.fetchAssets();
+  }
+
+  /** Stores the new ordering and fetches completely new list of assets. */
+  public setOrder(order: ProjectsTableOrder) {
+    this.order = order;
     this.fetchAssets();
   }
 
@@ -52,10 +66,11 @@ class CustomViewStore {
     this.isLoading = true;
     this.assets = [];
     const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
+    const orderingString = this.order.direction === 'descending' ? `-${this.order.fieldName}` : this.order.fieldName;
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?q=${queriesString}`,
+      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&q=${queriesString}`,
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));

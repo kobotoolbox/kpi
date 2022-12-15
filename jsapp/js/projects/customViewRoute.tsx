@@ -8,10 +8,7 @@ import type {
 } from './projectViews/constants';
 import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
-import {
-  DEFAULT_PROJECT_FIELDS,
-  PROJECT_FIELDS,
-} from './projectViews/constants';
+import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import type {ProjectsTableOrder} from 'js/projects/projectsTable/projectsTable';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
@@ -20,11 +17,6 @@ import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 import styles from './customViewRoute.module.scss';
 import {toJS} from 'mobx';
-
-const DEFAULT_ORDER: ProjectsTableOrder = {
-  fieldName: PROJECT_FIELDS.name.name,
-  direction: PROJECT_FIELDS.name.defaultDirection || 'ascending',
-};
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -36,7 +28,6 @@ function CustomViewRoute() {
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
   const [fields, setFields] = useState<ProjectFieldName[] | undefined>(undefined);
-  const [order, setOrder] = useState<ProjectsTableOrder>(DEFAULT_ORDER);
 
   useEffect(() => {
     customView.setUp(viewUid);
@@ -94,8 +85,8 @@ function CustomViewRoute() {
         isLoading={!customView.isInitialised}
         highlightedFields={getFilteredFieldsNames()}
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
-        order={order}
-        onChangeOrderRequested={setOrder}
+        order={customView.order}
+        onChangeOrderRequested={customView.setOrder.bind(customView)}
         onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
       />
