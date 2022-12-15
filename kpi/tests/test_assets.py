@@ -10,6 +10,7 @@ from django.test import TestCase
 from rest_framework import serializers
 
 from kpi.constants import (
+    ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
@@ -65,6 +66,21 @@ class AssetsTestCase(TestCase):
              '$kuid': 'def'},
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
+
+    def _content(self, form_title='some form title'):
+        return {
+            'survey': [
+                {'type': 'text', 'label': 'Question 1',
+                 'name': 'q1', 'kuid': 'abc'},
+                {'type': 'text', 'label': 'Question 2',
+                 'name': 'q2', 'kuid': 'def'}
+            ],
+            # settingslist
+            'settings': [
+                {'form_title': form_title,
+                 'id_string': 'xid_stringx'},
+            ]
+        }
 
 
 class CreateAssetVersions(AssetsTestCase):
@@ -364,20 +380,6 @@ class AssetContentTests(AssetsTestCase):
 
 
 class AssetSettingsTests(AssetsTestCase):
-    def _content(self, form_title='some form title'):
-        return {
-            'survey': [
-                {'type': 'text', 'label': 'Question 1',
-                 'name': 'q1', 'kuid': 'abc'},
-                {'type': 'text', 'label': 'Question 2',
-                 'name': 'q2', 'kuid': 'def'}
-            ],
-            # settingslist
-            'settings': [
-                {'form_title': form_title,
-                 'id_string': 'xid_stringx'},
-            ]
-        }
 
     def test_asset_type_changes_based_on_row_count(self):
         # we are inferring the asset_type from the content so that
@@ -447,6 +449,24 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 
+    def test_standardize_searchable_fields(self):
+        asset = Asset.objects.create(
+            content=self._content('abcxyz'),
+            settings={
+                'country': {'value': 'CAN', 'label': 'Canada'},
+                'sector': [None],
+            },
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        expected_settings = {
+            'country': [{'value': 'CAN', 'label': 'Canada'}],
+            'country_codes': ['CAN'],
+            'description': '',
+            'sector': {}
+        }
+        assert asset.settings == expected_settings
+
 
 class AssetScoreTestCase(TestCase):
     fixtures = ['test_data']
@@ -479,7 +499,7 @@ class AssetScoreTestCase(TestCase):
         self.assertNotEqual(_snapshot.details['status'], 'failure')
 
 
-class AssetSnapshotXmlTestCase(AssetSettingsTests):
+class AssetSnapshotXmlTestCase(AssetsTestCase):
     def test_cascading_select_xform(self):
         asset = Asset.objects.create(asset_type='survey',
                                      content=CASCADE_CONTENT)
