@@ -1,6 +1,7 @@
 # coding: utf-8
 # 😬
 import copy
+import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
@@ -509,7 +510,8 @@ class Asset(ObjectPermissionMixin,
             strip_kobo_locking_profile(self.content)
 
         if _title is not None:
-            self.name = _title
+            # Remove newlines and tabs (they are stripped in front end anyway)
+            self.name = re.sub(r'[\n\t]+', '', _title)
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work

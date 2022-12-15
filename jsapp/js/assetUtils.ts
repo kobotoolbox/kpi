@@ -544,7 +544,7 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
   const paths: {[questionName: string]: string[]} = {};
   const advancedFeatures = asset.advanced_features;
 
-  advancedFeatures.transcript?.values?.forEach((questionName: string) => {
+  advancedFeatures?.transcript?.values?.forEach((questionName: string) => {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = [];
     }
@@ -557,7 +557,7 @@ export function getSupplementalDetailsPaths(asset: AssetResponse): {
     });
   });
 
-  advancedFeatures.translation?.values?.forEach((questionName: string) => {
+  advancedFeatures?.translation?.values?.forEach((questionName: string) => {
     if (!Array.isArray(paths[questionName])) {
       paths[questionName] = [];
     }
@@ -752,7 +752,7 @@ export function getAssetAdvancedFeatures(assetUid: string) {
 export function getAssetProcessingUrl(assetUid: string): string | undefined {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset) {
-    return foundAsset.advanced_submission_schema.url;
+    return foundAsset.advanced_submission_schema?.url;
   }
   return undefined;
 }
@@ -760,10 +760,10 @@ export function getAssetProcessingUrl(assetUid: string): string | undefined {
 /** Returns a list of all rows (their `qpath`s) activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid);
-  if (foundAsset?.advanced_submission_schema.properties) {
+  if (foundAsset?.advanced_submission_schema?.properties) {
     const rows: string[] = [];
     Object.keys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
-      if (foundAsset.advanced_submission_schema.properties !== undefined) {
+      if (foundAsset.advanced_submission_schema?.properties !== undefined) {
         const propertyObj = foundAsset.advanced_submission_schema.properties[propertyName];
         // NOTE: we assume that the properties will hold only a special string
         // "submission" property and one object property for each
