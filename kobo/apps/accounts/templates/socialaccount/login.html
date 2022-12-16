@@ -18,12 +18,10 @@
     >
       {% blocktrans with provider.name as provider %}Connect with {{provider}}{% endblocktrans %}
     </button>
-    <p class="or-go-back">
-    {% trans "or" %} <a href="javascript:history.back()">{% trans "go back" %}</a>
   {% else %}
     {# "Log in" #}
-    <h1>{% blocktrans with provider.name as provider %}Log in via {{ provider }}{% endblocktrans %}</h1>
-    <p>{% blocktrans with provider.name as provider %}You are about to log in using a third party account from {{ provider }}.{% endblocktrans %}</p>
+    <h1>{% trans "Log in with Single Sign On" %}</h1>
+    <p>{% blocktrans with provider.name as provider %}Click the button below to log in to KoboToolbox with your {{ provider }} account.{% endblocktrans %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--blue kobo-button--fullwidth"
@@ -32,5 +30,8 @@
     </button>
   {% endif %}
   {% csrf_token %}
+  <p class="or-go-back">
+    {% trans "or" %} <a href="javascript:history.back()">{% trans "go back" %}</a>
+  </p>
 </form>
 {% endblock %}
