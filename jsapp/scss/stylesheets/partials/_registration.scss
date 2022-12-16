@@ -90,12 +90,6 @@ $kobo-light-mid-blue: #c0e3ff;
       }
     }
 
-    // HACK: Hide the SocialAccount Providers list
-    // TODO: Modify the Django templates instead
-    .socialaccount_ballot {
-      display: none;
-    }
-
     // SSO section styles
     .registration__sso {
       font-size: variables.$base-font-size;
@@ -144,12 +138,6 @@ $kobo-light-mid-blue: #c0e3ff;
         justify-content: space-between;
         gap: 8px;
       }
-    }
-
-    // HACK: Hide the SSO section until JS sees at least one provider.
-    // TODO: Use Django logic instead
-    .registration__sso--hidden {
-      display: none;
     }
   }
 
