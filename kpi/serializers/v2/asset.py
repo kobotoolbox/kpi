@@ -2,10 +2,12 @@
 from __future__ import annotations
 import json
 import re
+from typing import Optional
+from datetime import datetime
 
-import constance
 from django.conf import settings
 from django.utils.translation import gettext as t
+from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -226,7 +228,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return obj.analysis_form_json()
 
     def get_version_count(self, obj):
-        return obj.asset_versions.count()
+        try:
+            return len(obj.prefetched_latest_versions)
+        except AttributeError:
+            return obj.asset_versions.count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls',
@@ -749,7 +754,7 @@ class AssetUrlListSerializer(AssetSerializer):
         fields = ('url',)
 
 
-class AssetMetadataListSerializer(AssetSerializer):
+class AssetMetadataListSerializer(AssetListSerializer):
 
     date_latest_deployment = serializers.SerializerMethodField()
     date_first_deployment = serializers.SerializerMethodField()
@@ -797,24 +802,14 @@ class AssetMetadataListSerializer(AssetSerializer):
 
     def get_date_first_deployment(
         self, obj: Asset
-    ) -> Optional[datetime.datetime]:
-        if first_version := (
-            obj.asset_versions.only('date_modified')
-            .filter(deployed=True)
-            .order_by('date_modified')
-            .first()
-        ):
+    ) -> Optional[datetime]:
+        if first_version := self._get_asset_deployed_versions(obj)[-1]:
             return first_version.date_modified
 
     def get_date_latest_deployment(
         self, obj: Asset
-    ) -> Optional[datetime.datetime]:
-        if latest_version := (
-            obj.asset_versions.only('date_modified')
-            .filter(deployed=True)
-            .order_by('date_modified')
-            .last()
-        ):
+    ) -> Optional[datetime]:
+        if latest_version := self._get_asset_deployed_versions(obj)[0]:
             return latest_version.date_modified
 
     def get_languages(self, obj: Asset) -> list[str]:
@@ -847,6 +842,18 @@ class AssetMetadataListSerializer(AssetSerializer):
         request = self.context.get('request')
         return request.parser_context['kwargs']['uid']
 
+    @cache_for_request
+    def _get_asset_deployed_versions(self, obj: Asset) -> list:
+        try:
+            versions = obj.prefetched_latest_versions
+        except AttributeError:
+            versions = self.asset_versions.only(
+                'date_modified', 'deployed'
+            ).order_by('-date_modified')
+
+        return [v for v in versions if v.deployed is True]
+
+    @cache_for_request
     def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
         request = self.context.get('request')
         user = get_database_user(request.user)
