@@ -5,10 +5,12 @@ import json
 import os
 from io import StringIO
 
+from dateutil.parser import parse
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_VIEW_ASSET,
@@ -27,6 +29,9 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
+from kpi.utils.project_views import (
+    get_region_for_view,
+)
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -249,6 +254,251 @@ class AssetListApiTests(BaseAssetTestCase):
             'ordering': 'name',
         })
         assert expected_order_by_name_collections_first == uids
+
+
+class AssetProjectViewListApiTests(BaseAssetTestCase):
+    fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
+        self.region_views_url = reverse(self._get_endpoint('projectview-list'))
+        asset_country_settings = [
+            [
+                {'value': 'ZAF', 'label': 'South Africa'},
+            ],
+            [
+                {'value': 'CAN', 'label': 'Canada'},
+            ],
+        ]
+        for i, asset in enumerate(Asset.objects.all()[:2]):
+            asset.settings.update({'country': asset_country_settings[i]})
+            asset.content = {
+                'survey': [
+                    {
+                        'type': 'text',
+                        'name': 'q1',
+                        'label': 'q1',
+                    },
+                ],
+            }
+            asset.save()
+            asset.deploy(backend='mock', active=True)
+
+        regional_assignments = [
+            {
+                'name': 'Overview',
+                'countries': '*',
+                'permissions': [
+                    'view_asset',
+                    'view_permissions',
+                ],
+                'users': ['someuser'],
+            },
+            {
+                'name': 'Test view 1',
+                'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
+                'permissions': [
+                    'view_asset',
+                    'view_submissions',
+                    'change_metadata',
+                ],
+                'users': ['someuser', 'anotheruser'],
+            },
+            {
+                'name': 'Test view 2',
+                'countries': 'USA, CAN',
+                'permissions': [
+                    'view_asset',
+                    'view_permissions',
+                ],
+                'users': ['anotheruser'],
+            },
+        ]
+        for region in regional_assignments:
+            usernames = region.pop('users')
+            users = [self._get_user_obj(u) for u in usernames]
+            r = ProjectView.objects.create(**region)
+            r.users.set(users)
+            r.save()
+
+    def _login_as_anotheruser(self) -> None:
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+
+    @staticmethod
+    def _get_user_obj(username: str) -> User:
+        return User.objects.get(username=username)
+
+    def test_regional_views_list(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        # someuser should only see view Overview and 1
+        assert data['count'] == 2
+        assert sorted(r['name'] for r in data['results']) == sorted(
+            ['Overview', 'Test view 1']
+        )
+
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        # anotheruser should only see view 1 and 2
+        assert data['count'] == 2
+        assert sorted(r['name'] for r in data['results']) == sorted(
+            ['Test view 1', 'Test view 2']
+        )
+
+    def test_regional_asset_views_for_someuser(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        view_0_url = results[0]['assets']
+        regional_res = self.client.get(
+            view_0_url, HTTP_ACCEPT='application/json'
+        )
+        assert regional_res.json()['count'] == 2
+
+        view_1_url = results[1]['assets']
+        regional_res = self.client.get(
+            view_1_url, HTTP_ACCEPT='application/json'
+        )
+        regional_data = regional_res.json()
+        assert regional_data['count'] == 1
+        asset_countries = set(
+            c['value']
+            for c in regional_data['results'][0]['settings']['country']
+        )
+        region_for_view = set(get_region_for_view(results[1]['uid']))
+        assert asset_countries & region_for_view
+
+    def test_regional_asset_views_for_anotheruser(self):
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        expected_vals = [
+            {'name': 'Test view 1', 'count': 1},
+            {'name': 'Test view 2', 'count': 1},
+        ]
+
+        for i, item in enumerate(expected_vals):
+            regional_res = self.client.get(
+                results[i]['assets'], HTTP_ACCEPT='application/json'
+            )
+            regional_data = regional_res.json()
+            assert regional_data['count'] == item['count']
+            asset_countries = set(
+                c['value']
+                for c in regional_data['results'][0]['settings']['country']
+            )
+            region_for_view = set(get_region_for_view(results[i]['uid']))
+            assert asset_countries & region_for_view
+
+    def test_regional_asset_views_for_someuser_can_view_submissions(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        # someuser can see data for view 1
+        regional_res = self.client.get(
+            results[1]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        assert asset_data['data']
+        data_res = self.client.get(
+            asset_data['data'], HTTP_ACCEPT='application/json'
+        )
+        assert data_res.status_code == status.HTTP_200_OK
+
+    def test_regional_asset_views_for_anotheruser_can_view_permissions(self):
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        # anotheruser cannot see permissions for view 1
+        regional_res = self.client.get(
+            results[0]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        assert not asset_data['permissions']
+
+        # anotheruser can see permissions for view 2
+        regional_res = self.client.get(
+            results[1]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        assert asset_data['permissions']
+
+    def test_regional_asset_views_for_anotheruser_can_change_metadata(self):
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        # anotheruser can change metadata for view 1
+        regional_res = self.client.get(
+            results[0]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        change_metadata_res = self.client.patch(
+            asset_data['url'], data={'name': 'A new name'}
+        )
+        assert change_metadata_res.status_code == status.HTTP_200_OK
+
+        # anotheruser cannot change metadata for view 2
+        regional_res = self.client.get(
+            results[1]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        change_metadata_res = self.client.patch(
+            asset_data['url'], data={'name': 'A new name'}
+        )
+        assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_regional_asset_views_trivial_ordering(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        assets_url = results[0]['assets']
+        regional_res_asc = self.client.get(
+            f'{assets_url}?ordering=name', HTTP_ACCEPT='application/json'
+        )
+        regional_res_desc = self.client.get(
+            f'{assets_url}?ordering=-name', HTTP_ACCEPT='application/json'
+        )
+        results_asc = regional_res_asc.json()['results']
+        results_desc = regional_res_desc.json()['results']
+        assert results_desc[0]['name'] == 'fixture asset with translations'
+        assert results_asc[0]['name'] == 'fixture asset'
+
+    def test_regional_asset_views_special_ordering(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        assets_url = results[0]['assets']
+        regional_res_asc = self.client.get(
+            f'{assets_url}?ordering=date_deployed', HTTP_ACCEPT='application/json'
+        )
+        regional_res_desc = self.client.get(
+            f'{assets_url}?ordering=-date_deployed', HTTP_ACCEPT='application/json'
+        )
+        results_asc = regional_res_asc.json()['results']
+        results_desc = regional_res_desc.json()['results']
+        assets = Asset.objects.all().order_by('date_modified')[:2]
+
+        response_dt_desc = parse(results_desc[0]['date_latest_deployment'])
+        assert assets[1].latest_deployed_version.date_modified == response_dt_desc
+
+        response_dt_asc = parse(results_asc[0]['date_latest_deployment'])
+        assert assets[0].latest_deployed_version.date_modified == response_dt_asc
+        assert response_dt_desc > response_dt_asc
 
 
 class AssetVersionApiTests(BaseTestCase):

@@ -1,4 +1,7 @@
 # coding: utf-8
+import json
+
+import constance
 from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
@@ -11,6 +14,10 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.project_views import (
+    get_regional_user_permissions_for_asset,
+    user_has_regional_asset_perm,
+)
 
 
 # FIXME: Move to `object_permissions` module.
@@ -241,6 +248,14 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
 
+    def has_object_permission(self, request, view, obj):
+        user = get_database_user(request.user)
+        if user_has_regional_asset_perm(
+            obj, user, 'change_metadata'
+        ):
+            return True
+        return super().has_object_permission(request, view, obj)
+
 
 class PostMappedToChangePermission(IsOwnerOrReadOnly):
     """
@@ -289,6 +304,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         Overrides parent method to include partial permissions (which are
         specific to submissions)
         """
+
         user_permissions = super()._get_user_permissions(
             asset, user)
 
@@ -302,7 +318,12 @@ class SubmissionPermission(AssetNestedObjectPermission):
                     user_permissions + partial_perms
                 ))
 
-        return user_permissions
+        return list(
+            set(
+                user_permissions
+                + get_regional_user_permissions_for_asset(asset, user)
+            )
+        )
 
 
 class AssetExportSettingsPermission(SubmissionPermission):

@@ -15,6 +15,11 @@
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
+
+# Use a fork of django-request-cache until https://github.com/anexia/django-request-cache/pull/7
+# is merged
+-e git+https://github.com/kobotoolbox/django-request-cache@6a4c2615d661382ceac80a161f4dfdeac0a3bc40#egg=django_request_cache
+
 # Regular PyPI packages
 Django>=3.2,<3.3
 Markdown
@@ -54,7 +59,7 @@ django-private-storage
 djangorestframework
 djangorestframework-xml
 django-redis-sessions
-django-request-cache
+# django-request-cache
 drf-extensions
 future
 geojson-rewind

@@ -68,6 +68,7 @@ from kpi.utils.rename_xls_sheet import (
     NoFromSheetError,
     ConflictSheetError,
 )
+from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
 
@@ -164,6 +165,60 @@ class ImportExportTask(models.Model):
                                                      repr(e)),
                           exc_info=True)
             self.save(update_fields=['status'])
+
+        return self
+
+    def get_absolute_filepath(self, filename: str) -> str:
+        """
+        Get absolute filepath related to storage root.
+        """
+
+        storage_class = self.result.storage
+        filename = self.result.field.generate_filename(
+            self, storage_class.get_valid_name(filename)
+        )
+        # We cannot call `self.result.save()` before reopening the file
+        # in write mode (i.e. open(filename, 'wb')). because it does not work
+        # with AzureStorage.
+        # Unfortunately, `self.result.save()` does few things that we need to
+        # reimplement here:
+        # - Create parent folders (if they do not exist) for local storage
+        # - Get a unique filename if filename already exists on storage
+
+        # Copied from `FileSystemStorage._save()` 😢
+        # TODO avoid duplicating Django FileSystemStorage class code and find
+        #   a way to use `self.result.save()`
+        if isinstance(storage_class, FileSystemStorage):
+            full_path = storage_class.path(filename)
+
+            # Create any intermediate directories that do not exist.
+            directory = os.path.dirname(full_path)
+            if not os.path.exists(directory):
+                try:
+                    if storage_class.directory_permissions_mode is not None:
+                        # os.makedirs applies the global umask, so we reset it,
+                        # for consistency with file_permissions_mode behavior.
+                        old_umask = os.umask(0)
+                        try:
+                            os.makedirs(
+                                directory, storage_class.directory_permissions_mode
+                            )
+                        finally:
+                            os.umask(old_umask)
+                    else:
+                        os.makedirs(directory)
+                except FileExistsError:
+                    # There's a race between os.path.exists() and os.makedirs().
+                    # If os.makedirs() fails with FileExistsError, the directory
+                    # was created concurrently.
+                    pass
+            if not os.path.isdir(directory):
+                raise IOError("%s exists and is not a directory." % directory)
+
+            # Store filenames with forward slashes, even on Windows.
+            filename = filename.replace('\\', '/')
+
+        return storage_class.get_available_name(filename)
 
 
 class ImportTask(ImportExportTask):
@@ -405,6 +460,39 @@ def export_upload_to(self, filename):
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
     return posixpath.join(self.user.username, 'exports', filename)
+
+
+class ProjectViewExportTask(ImportExportTask):
+    uid = KpiUidField(uid_prefix='pve')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    def _build_export_filename(
+        self, export_type: str, username: str, view: str
+    ) -> str:
+        time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        return f'{export_type}-{username}-view_{view}-{time}.csv'
+
+    def _run_task(self, messages: list) -> None:
+        export_type = self.data['type']
+        view = self.data['view']
+
+        filename = self._build_export_filename(
+            export_type, self.user.username, view
+        )
+        absolute_filepath = self.get_absolute_filepath(filename)
+
+        buff = create_project_view_export(export_type, self.user.username, view)
+
+        with self.result.storage.open(absolute_filepath, 'wb') as output_file:
+            output_file.write(buff.read().encode())
+
+        self.result = absolute_filepath
+        self.save()
+
+    def delete(self, *args, **kwargs) -> None:
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 class ExportTaskBase(ImportExportTask):
@@ -702,58 +790,6 @@ class ExportTaskBase(ImportExportTask):
         # removing exported file from storage
         self.result.delete(save=False)
         super().delete(*args, **kwargs)
-
-    def get_absolute_filepath(self, filename: str) -> str:
-        """
-        Get absolute filepath related to storage root.
-        """
-
-        storage_class = self.result.storage
-        filename = self.result.field.generate_filename(
-            self, storage_class.get_valid_name(filename)
-        )
-        # We cannot call `self.result.save()` before reopening the file
-        # in write mode (i.e. open(filename, 'wb')). because it does not work
-        # with AzureStorage.
-        # Unfortunately, `self.result.save()` does few things that we need to
-        # reimplement here:
-        # - Create parent folders (if they do not exist) for local storage
-        # - Get a unique filename if filename already exists on storage
-
-        # Copied from `FileSystemStorage._save()` 😢
-        # TODO avoid duplicating Django FileSystemStorage class code and find
-        #   a way to use `self.result.save()`
-        if isinstance(storage_class, FileSystemStorage):
-            full_path = storage_class.path(filename)
-
-            # Create any intermediate directories that do not exist.
-            directory = os.path.dirname(full_path)
-            if not os.path.exists(directory):
-                try:
-                    if storage_class.directory_permissions_mode is not None:
-                        # os.makedirs applies the global umask, so we reset it,
-                        # for consistency with file_permissions_mode behavior.
-                        old_umask = os.umask(0)
-                        try:
-                            os.makedirs(
-                                directory, storage_class.directory_permissions_mode
-                            )
-                        finally:
-                            os.umask(old_umask)
-                    else:
-                        os.makedirs(directory)
-                except FileExistsError:
-                    # There's a race between os.path.exists() and os.makedirs().
-                    # If os.makedirs() fails with FileExistsError, the directory
-                    # was created concurrently.
-                    pass
-            if not os.path.isdir(directory):
-                raise IOError("%s exists and is not a directory." % directory)
-
-            # Store filenames with forward slashes, even on Windows.
-            filename = filename.replace('\\', '/')
-
-        return storage_class.get_available_name(filename)
 
     def get_export_object(
         self, source: Optional[Asset] = None
