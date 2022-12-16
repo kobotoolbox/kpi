@@ -68,10 +68,6 @@
     <script>
       jQuery(function () {
         // {# TODO: Implement these changes using Django template logic instead of CSS/JS, here and in signup.html #}
-        // {# Cosmetic: Remove colons from Username, Password #}
-        document.querySelectorAll('label[for="id_login"],label[for="id_password"]'
-          ).forEach((el)=>{ el.innerText = el.innerText.replaceAll(':', '')})
-
 
         // {# HACK: Setup SSO section with JS - see also signup.html #}
         var providers = document.querySelectorAll('a.socialaccount_provider')

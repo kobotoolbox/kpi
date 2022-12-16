@@ -56,6 +56,24 @@ $kobo-light-mid-blue: #c0e3ff;
       border-top: 1px solid $kobo-storm;
     }
 
+    // accounts/social/signup variant
+    &.registration--social {
+      max-width: 500px; // to be revised
+      padding-bottom: 60px;
+
+      h1 {
+        font-weight: bold;
+      }
+
+      ul#id_gender {
+        margin-top: -12px;
+        & > li {
+          display: inline-block;
+          padding: 4px 12px 4px 4px;
+        }
+      }
+    }
+
     // HACK: Hide the SocialAccount Providers list
     // TODO: Modify the Django templates instead
     .socialaccount_ballot {
@@ -92,8 +110,6 @@ $kobo-light-mid-blue: #c0e3ff;
           font-size: 0.8em;
         }
       }
-
-
 
       // Special button variant only used here
       a.kobo-button--sso {
@@ -189,6 +205,26 @@ $kobo-light-mid-blue: #c0e3ff;
   &:focus {
     border-bottom-color: $kobo-blue;
     background-color: $kobo-white;
+  }
+  &[readonly] {
+    // Dim readonly fields
+    background-color: rgba($kobo-cloud, 0.7);
+  }
+}
+.registration select {
+  &:focus {
+    // emulate border-bottom for select inputs
+    box-shadow: inset 0 -3px $kobo-blue;
+  }
+}
+.registration ul#id_gender {
+  // temporary :focus style, til this becomes a dropdown
+  border-radius: 6px;
+  transition: background-color 0.5s, box-shadow 0.5s;
+  &:focus-within {
+    background-color: rgba($kobo-cloud, 0.05);
+    box-shadow: inset 0 -3px $kobo-blue;
+    transition: background-color 0.5s, box-shadow 0.5s;
   }
 }
 

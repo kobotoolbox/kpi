@@ -31,11 +31,12 @@ class LoginForm(BaseLoginForm):
         super().__init__(*args, **kwargs)
         self.fields["login"].widget.attrs["placeholder"] = ""
         self.fields["password"].widget.attrs["placeholder"] = ""
+        self.label_suffix = ""
 
 
 class KoboSignupMixin(forms.Form):
     name = forms.CharField(
-        label=t('Name'),
+        label=t('Full name'),
         required=False,
     )
     organization = forms.CharField(
@@ -132,6 +133,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget.attrs['readonly'] = True
+        self.label_suffix = ""
 
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
