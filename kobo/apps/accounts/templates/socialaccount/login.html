@@ -4,19 +4,22 @@
 
 {% block content %}
 
-<form class="registration registration--login" method="post">
+<form class="registration registration--provider-login" method="post">
   {% if process == "connect" %}
     {# "Connect" #}
-    <h1>{% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}</h1>
-    <p>{% blocktrans with provider.name as provider %}You are about to connect a new third party account from {{ provider }}.{% endblocktrans %}</p>
+    <h1>{% trans "Set up Single Sign On" %}</h1>
+                   {# "Connect with SSO" #}
+    <p>{% blocktrans with provider.name as provider %}Click the button below to connect your KoboToolbox account with your {{ provider }} account.{% endblocktrans %}
+    </p>
+    <p>{% trans "This will allow you to use single sign-on (SSO) in the future." %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--blue kobo-button--fullwidth"
     >
       {% blocktrans with provider.name as provider %}Connect with {{provider}}{% endblocktrans %}
     </button>
-
-
+    <p class="or-go-back">
+    {% trans "or" %} <a href="javascript:history.back()">{% trans "go back" %}</a>
   {% else %}
     {# "Log in" #}
     <h1>{% blocktrans with provider.name as provider %}Log in via {{ provider }}{% endblocktrans %}</h1>

@@ -56,6 +56,22 @@ $kobo-light-mid-blue: #c0e3ff;
       border-top: 1px solid $kobo-storm;
     }
 
+    // accounts/{{provider}}/login variant
+    // For "Connect" and "Log in" with SSO provider
+    &.registration--provider-login {
+      max-width: 480px;
+
+      h1 {
+        text-align: center;
+      }
+
+      .or-go-back {
+        margin-top: 32px;
+        margin-bottom: 0;
+        padding-left: 48px;
+      }
+    }
+
     // accounts/social/signup variant
     &.registration--social {
       max-width: 500px; // to be revised
