@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
-import {notify, downloadUrl} from 'js/utils';
+import {notify} from 'js/utils';
+import $ from 'jquery';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
@@ -16,6 +17,7 @@ import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 import styles from './customViewRoute.module.scss';
 import {toJS} from 'mobx';
+import type {FailResponse} from 'js/dataInterface';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -47,14 +49,30 @@ function CustomViewRoute() {
   };
 
   const exportAllData = () => {
-    notify.warning(
-      t("Export is being generated, you will receive an email when it's done")
-    );
     const foundView = projectViews.getView(viewUid);
     if (foundView) {
-      // TODO verify if this is how we want to use that url
-      downloadUrl(foundView.assets_export);
-      console.log('download', foundView.assets_export);
+      $.ajax({
+        dataType: 'json',
+        method: 'POST',
+        url: foundView.assets_export,
+        data: {uid: viewUid},
+      })
+        .done(() => {
+          notify.warning(
+            t(
+              "Export is being generated, you will receive an email when it's done"
+            )
+          );
+        })
+        .fail((response: FailResponse) => {
+          notify.error(response.responseText);
+        });
+    } else {
+      notify.error(
+        t(
+          "We couldn't create the export, please try again later or contact support"
+        )
+      );
     }
   };
 

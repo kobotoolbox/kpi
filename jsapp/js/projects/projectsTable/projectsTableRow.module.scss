@@ -25,6 +25,10 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   // ensures the table columns are same width for all rows
   width: 10%;
 
+  > * {
+    cursor: inherit;
+  }
+
   &[disabled] {
     pointer-events: none;
   }
@@ -96,8 +100,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     color: colors.$kobo-gray-40;
     border-top: 0;
     cursor: pointer;
-    font-weight: 700;
-    font-size: sizes.$x13;
     height: sizes.$x36;
     line-height: sizes.$x16;
     padding-top: sizes.$x12;
@@ -129,7 +131,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 }
 
 .headerLabel {
-  cursor: inherit;
+  font-weight: 700;
+  font-size: sizes.$x13;
 }
 
 // Highlighted columns:
