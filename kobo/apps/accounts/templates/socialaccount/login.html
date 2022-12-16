@@ -1,32 +1,37 @@
 {% extends "socialaccount/base.html" %}
 {% load static %}
 {% load i18n %}
+{% load get_provider_appname %}
 
 {% block content %}
 
 <form class="registration registration--provider-login" method="post">
+  {# This template handles both "connect" and "log in" #}
+
+  {% get_provider_appname as appname %}
   {% if process == "connect" %}
     {# "Connect" #}
     <h1>{% trans "Set up Single Sign On" %}</h1>
                    {# "Connect with SSO" #}
-    <p>{% blocktrans with provider.name as provider %}Click the button below to connect your KoboToolbox account with your {{ provider }} account.{% endblocktrans %}
+    <p>{% blocktrans %}Click the button below to connect your KoboToolbox account with your {{ appname }} account.{% endblocktrans %}
     </p>
     <p>{% trans "This will allow you to use single sign-on (SSO) in the future." %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--blue kobo-button--fullwidth"
     >
-      {% blocktrans with provider.name as provider %}Connect with {{provider}}{% endblocktrans %}
+      {% blocktrans %}Connect with {{ appname }}{% endblocktrans %}
     </button>
   {% else %}
     {# "Log in" #}
     <h1>{% trans "Log in with Single Sign On" %}</h1>
-    <p>{% blocktrans with provider.name as provider %}Click the button below to log in to KoboToolbox with your {{ provider }} account.{% endblocktrans %}</p>
+
+    <p>{% blocktrans %}Click the button below to log in to KoboToolbox with your {{ appname }} account.{% endblocktrans %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--blue kobo-button--fullwidth"
     >
-      {% blocktrans with provider.name as provider %}Log in with {{provider}}{% endblocktrans %}
+      {% blocktrans %}Log in with {{ appname }}{% endblocktrans %}
     </button>
   {% endif %}
   {% csrf_token %}
