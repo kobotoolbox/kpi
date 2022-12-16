@@ -121,22 +121,22 @@ $kobo-light-mid-blue: #c0e3ff;
         }
       }
 
-      // Special button variant only used here
-      a.kobo-button--sso {
-        background-color: $kobo-light-mid-blue;
-        color: $kobo-dark-blue;
-
-        &:focus {
-          // outline: 2px solid $kobo-dark-blue;
-          outline-offset: 0;
-        }
-      }
-
       ul.socialaccount_providers {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         gap: 8px;
+      }
+    }
+
+    // Special button variant only used for SSO
+    .kobo-button.kobo-button--sso {
+      background-color: $kobo-light-mid-blue;
+      color: $kobo-dark-blue;
+
+      &:focus {
+        // outline: 2px solid $kobo-dark-blue;
+        outline-offset: 0;
       }
     }
   }
