@@ -11,7 +11,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from kpi.filters import SearchFilter
+from kpi.filters import (
+    AssetOrderingFilter,
+    SearchFilter,
+)
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
 from kpi.paginators import AssetPagination
@@ -39,13 +42,29 @@ class ProjectViewViewSet(
         'name__icontains',
     ]
     min_search_characters = 2
+    ordering_fields = [
+        'date_modified',
+        'date_deployed',
+        'name',
+        'settings__sector__value',
+        'settings__description',
+        '_deployment_data__active',
+        'owner__username',
+        'owner__extra_details__data__name',
+        'owner__extra_details__data__organization',
+        'owner__email',
+    ]
     queryset = ProjectView.objects.all()
 
     def get_queryset(self, *args, **kwargs):
         user = get_database_user(self.request.user)
         return self.queryset.filter(users=user)
 
-    @action(detail=True, methods=['GET'])
+    @action(
+        detail=True,
+        methods=['GET'],
+        filter_backends=[SearchFilter, AssetOrderingFilter],
+    )
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
