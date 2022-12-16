@@ -16,6 +16,7 @@ from rest_framework import serializers
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
+    PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -880,3 +881,26 @@ class ObjectPermissionMixin:
             values_list('pk', 'codename')
 
         return permissions
+
+
+class ObjectPermissionViewSetMixin:
+
+    def cache_all_assets_perms(self, asset_ids: list) -> dict:
+
+        object_permissions = ObjectPermission.objects.filter(
+            asset_id__in=asset_ids,
+            deny=False,
+        ).exclude(
+            permission__codename=PERM_FROM_KC_ONLY
+        ).select_related(
+            'user', 'permission'
+        ).order_by(
+            'user__username', 'permission__codename'
+        )
+
+        object_permissions_per_asset = defaultdict(list)
+
+        for op in object_permissions:
+            object_permissions_per_asset[op.asset_id].append(op)
+
+        return object_permissions_per_asset

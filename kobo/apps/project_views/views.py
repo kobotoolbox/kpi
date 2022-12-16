@@ -1,10 +1,12 @@
 # coding: utf-8
+from typing import Union
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import Http404
-from rest_framework import viewsets, serializers
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,7 +15,9 @@ from kpi.filters import (
     AssetOrderingFilter,
     SearchFilter,
 )
+from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
+from kpi.paginators import AssetPagination
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.object_permission import get_database_user
@@ -26,7 +30,9 @@ from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
 
-class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
+class ProjectViewViewSet(
+    ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
+):
 
     serializer_class = ProjectViewSerializer
     permission_classes = (IsAuthenticated,)
@@ -51,7 +57,7 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ProjectView.objects.all()
 
     def get_queryset(self, *args, **kwargs):
-        user= get_database_user(self.request.user)
+        user = get_database_user(self.request.user)
         return self.queryset.filter(users=user)
 
     @action(
@@ -62,11 +68,13 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
-        assets = Asset.objects.defer('content').all()
+        assets = Asset.optimize_queryset_for_list(Asset.objects)
         queryset = self.filter_queryset(
             self._get_regional_queryset(assets, uid, obj_type='asset')
+        ).select_related('owner', 'owner__extra_details')
+        return self._get_regional_response(
+            queryset, serializer_class=AssetMetadataListSerializer
         )
-        return self._get_regional_response(queryset, obj_type='asset')
 
     @action(
         detail=True,
@@ -118,33 +126,71 @@ class ProjectViewViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.filter_queryset(
             self._get_regional_queryset(users, uid, obj_type='user')
             .exclude(pk=settings.ANONYMOUS_USER_ID)
+            .select_related('extra_details')
             .distinct()
             .order_by('id')
         )
-        return self._get_regional_response(queryset, obj_type='user')
+
+        return self._get_regional_response(
+            queryset, serializer_class=UserListSerializer
+        )
 
     def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
         return context_
 
-    def _get_regional_response(self, queryset, obj_type):
+    def get_serializer_class_context(
+        self,
+        queryset: Union[QuerySet, list],
+        serializer_class: Union[
+            AssetMetadataListSerializer, UserListSerializer
+        ],
+    ) -> dict:
+        context_ = self.get_serializer_context()
+        if serializer_class is AssetMetadataListSerializer:
+            # 1) Retrieve all asset IDs of current list
+            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
+                queryset
+            )
+
+            # 2) Get object permissions per asset
+            context_[
+                'object_permissions_per_asset'
+            ] = self.cache_all_assets_perms(asset_ids)
+
+        return context_
+
+    def _get_regional_response(self, queryset, serializer_class):
+        self.__filtered_queryset = queryset
+
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self._get_regional_serializer(page, obj_type=obj_type)
+            serializer = self._get_regional_serializer(
+                page, serializer_class=serializer_class
+            )
             return self.get_paginated_response(serializer.data)
-        serializer = self._get_regional_serializer(queryset, obj_type=obj_type)
+
+        serializer = self._get_regional_serializer(
+            queryset, serializer_class=serializer_class
+        )
         return Response(serializer.data)
 
-    def _get_regional_serializer(self, queryset, obj_type):
-        serializer = AssetMetadataListSerializer
-        if obj_type == 'user':
-            serializer = UserListSerializer
-        return serializer(
+    def _get_regional_serializer(
+        self,
+        queryset: QuerySet,
+        serializer_class: Union[
+            AssetMetadataListSerializer, UserListSerializer
+        ],
+    ):
+        context_ = self.get_serializer_class_context(
+            queryset, serializer_class
+        )
+        return serializer_class(
             queryset,
             many=True,
             read_only=True,
-            context=self.get_serializer_context(),
+            context=context_,
         )
 
     @staticmethod
