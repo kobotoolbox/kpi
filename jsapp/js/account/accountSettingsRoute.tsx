@@ -240,17 +240,6 @@ function AccountSettings() {
             <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(t('Email'))}
-                type='email'
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'email')}
-                value={form.fields.email}
-                errors={form.fieldsWithErrors.email}
-              />
-            </bem.AccountSettings__item>
-
-            <bem.AccountSettings__item>
-              <TextBox
-                customModifiers='on-white'
                 label={addRequiredToLabel(t('Organization'))}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
