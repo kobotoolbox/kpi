@@ -44,9 +44,9 @@
 }
 
 .optionsSection {
-  // TODO: Not sure why this is needed for right align
-  display: ruby;
   text-align: right;
+  // FIXME: Why does text-align do nothing?
+  display: ruby;
   flex: 3;
 }
 
