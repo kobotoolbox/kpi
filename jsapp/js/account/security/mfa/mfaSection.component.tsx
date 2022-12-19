@@ -200,7 +200,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                   type='frame'
                   color='storm'
                   label={t('Reconfigure')}
-                  size='l'
+                  size='m'
                   onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                     this.showEditModal(evt, 'reconfigure');
                   }}
@@ -218,7 +218,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                   type='frame'
                   color='storm'
                   label={t('Generate new')}
-                  size='l'
+                  size='m'
                   onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                     this.showEditModal(evt, 'regenerate');
                   }}

@@ -30,7 +30,7 @@ export default function PasswordSection() {
         <NavLink to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`} className={styles.passwordLink}>
           <Button
             label='Update'
-            size='l'
+            size='m'
             color='blue'
             type='frame'
             onClick={() => {/*TODO: Handle NavLink and Button*/}}

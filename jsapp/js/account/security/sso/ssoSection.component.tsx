@@ -50,7 +50,7 @@ const SsoSection = observer(() => {
               '?process=connect&next=%2F%23%2Faccount%2Fsecurity'} className={styles.passwordLink}>
             <Button
               label='Set up'
-              size='l'
+              size='m'
               color='blue'
               type='frame'
               onClick={() => {/*TODO: Handle NavLink and Button*/}}
@@ -61,7 +61,7 @@ const SsoSection = observer(() => {
         <div className={styles.optionsSection}>
           <Button
             label='Disable'
-            size='l'
+            size='m'
             color='blue'
             type='frame'
             onClick={disconnectSocialAccount}

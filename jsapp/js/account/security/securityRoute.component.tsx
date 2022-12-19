@@ -11,9 +11,9 @@ export default function securityRoute() {
     <div className={style['security-section']}>
       <h1>Security</h1>
       <PasswordSection />
+      <EmailSection />
       <ApiTokenSection />
       <MfaSection />
-      <EmailSection />
       <SsoSection />
     </div>
   );

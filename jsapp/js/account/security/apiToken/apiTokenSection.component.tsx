@@ -60,7 +60,7 @@ export default function ApiTokenDisplay() {
     <div className={styles.optionsSection}>
       <Button
         label='Display'
-        size='l'
+        size='m'
         color='blue'
         type='frame'
         onClick={toggleTokenVisibility}

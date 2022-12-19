@@ -92,7 +92,7 @@ export default function EmailSection() {
 
         <Button
           label='Change'
-          size='l'
+          size='m'
           color='blue'
           type='frame'
           onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
