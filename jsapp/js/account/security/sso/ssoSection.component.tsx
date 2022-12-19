@@ -4,7 +4,6 @@ import sessionStore from 'js/stores/session';
 import {PATHS} from 'js/router/routerConstants';
 import styles from './ssoSection.module.scss';
 import {deleteSocialAccount} from './sso.api';
-import {NavLink} from 'react-router-dom';
 import Button from 'jsapp/js/components/common/button';
 
 const SsoSection = observer(() => {
@@ -47,7 +46,7 @@ const SsoSection = observer(() => {
 
       {socialAccounts.length === 0 ? (
         <div className={styles.optionsSection}>
-          <NavLink to={PATHS.MS_SSO +
+          <a href={PATHS.MS_SSO +
               '?process=connect&next=%2F%23%2Faccount%2Fsecurity'} className={styles.passwordLink}>
             <Button
               label='Set up'
@@ -56,7 +55,7 @@ const SsoSection = observer(() => {
               type='frame'
               onClick={() => {/*TODO: Handle NavLink and Button*/}}
             />
-          </NavLink>
+          </a>
         </div>
       ) : (
         <div className={styles.optionsSection}>
