@@ -3,17 +3,29 @@
 @use 'scss/sizes';
 
 .security-row {
+  margin-bottom: sizes.$x60;
   .security-row__header {
+    margin-top: sizes.$x20;
+    padding-top: sizes.$x14;
     display: flex;
-    justify-content: space-between;
-    margin-bottom: sizes.$x14;
-    border-bottom: sizes.$x1 solid;
-    border-color: colors.$kobo-gray-85;
+    border-top: sizes.$x1 solid;
+    border-color: colors.$kobo-gray-92;
   }
 
   .security-row__title {
+    flex: 2;
+    line-height: sizes.$x32;
     color: colors.$kobo-gray-40;
     font-weight: 600;
+  }
+
+  .security-row__description {
+    flex: 4;
+  }
+
+  .security-row__switch {
+    flex: 3;
+    text-align: right;
   }
 
   .security-row__buttons {
