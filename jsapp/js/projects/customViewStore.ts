@@ -4,7 +4,7 @@ import type {
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
-import {notify} from 'js/utils';
+import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import {PROJECT_FIELDS} from './projectViews/constants';
 import type {ProjectsFilterDefinition} from './projectViews/constants';
@@ -109,7 +109,7 @@ class CustomViewStore {
 
   private onAnyFail(response: FailResponse) {
     this.isLoading = false;
-    notify.error(response.responseText);
+    handleApiFail(response);
   }
 }
 
