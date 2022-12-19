@@ -2,46 +2,54 @@
 @use 'scss/sizes';
 @use 'scss/libs/_mdl';
 
-.securityRowHeader {
+.root {
+  margin-top: sizes.$x20;
+  margin-bottom: sizes.$x60;
+  padding-top: sizes.$x14;
   display: flex;
-  justify-content: space-between;
-  margin-bottom: sizes.$x14;
-  border-bottom: sizes.$x1 solid;
-  border-color: colors.$kobo-gray-85;
+  border-top: sizes.$x1 solid;
+  border-color: colors.$kobo-gray-92;
+}
+
+.titleSection {
+  flex: 2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .title {
+  margin: 0;
   color: colors.$kobo-gray-40;
   font-weight: 600;
 }
 
-.root {
-  margin-top: sizes.$x20;
-  margin-bottom: sizes.$x20;
+.bodySection {
+  flex: 4;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
 
-  // Override styles for <ApiTokenDisplay>
-  :global {
-    .form-modal__item--api-token {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      flex-wrap: wrap;
+  label {
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
 
-      .text-box {
-        display: inline-block;
-        vertical-align: top;
-        width: 50%;
-        margin-right: sizes.$x5;
-
-        .text-box__input {
-          font-family: mdl.$font_mono;
-        }
-      }
-
-      // hide label redundant with section name
-      label:first-of-type {
-        display: none;
-      }
+    input {
+      font-family: mdl.$font_mono;
     }
   }
+}
+
+.optionsSection {
+  // TODO: Not sure why this is needed for right align
+  display: ruby;
+  text-align: right;
+  flex: 3;
+}
+
+.optionsSection > * {
+  margin-left: 12px;
 }
