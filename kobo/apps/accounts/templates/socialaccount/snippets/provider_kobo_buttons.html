@@ -1,5 +1,5 @@
 {% load socialaccount %}
-
+{% load get_provider_appname %}
 
 {% comment "Usage" %}
 
@@ -9,8 +9,6 @@ Variables
   - Default: kobo-button, kobo-button--sso, kobo-button--fullwidth
 - label_text: If present, overrides brand/provider name in the label
 - label_prefix: If present, adds string before label_text or provider.name
-
-TODO: Change default label_text to the SocialApplication.name, since it can be customized in the Django Admin interface.
 
 {% endcomment %}
 
@@ -31,9 +29,9 @@ TODO: Change default label_text to the SocialApplication.name, since it can be c
       </li>
     {% endfor %}
   {% endif %}
-  
   <li>
-    {% with default_label=provider.name %}
+    {% get_provider_appname as appname %}
+    {% with default_label=appname %}
     <a title="{{default_label}}"
        class="socialaccount_provider {{provider.id}} {{css_classes|default:default_css_classes}}"
        href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"

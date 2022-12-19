@@ -20,7 +20,6 @@ interface Form {
   isPristine: boolean;
   fields: {
     name: string;
-    email: string;
     organization: string;
     organizationWebsite: string;
     sector: string;
@@ -34,7 +33,6 @@ interface Form {
     instagram: string;
   };
   fieldsWithErrors: {
-    email?: string[];
     extra_details?: {
       name?: string;
       organization?: string;
@@ -62,7 +60,6 @@ function AccountSettings() {
     isPristine: true,
     fields: {
       name: '',
-      email: '',
       organization: '',
       organizationWebsite: '',
       sector: '',
@@ -113,7 +110,6 @@ function AccountSettings() {
         ...form,
         fields: {
           name: currentAccount.extra_details.name,
-          email: currentAccount.email,
           organization: currentAccount.extra_details.organization,
           organizationWebsite:
             currentAccount.extra_details.organization_website,
@@ -137,7 +133,6 @@ function AccountSettings() {
   const updateProfile = () => {
     dataInterface
       .patchProfile({
-        email: form.fields.email,
         extra_details: JSON.stringify({
           name: form.fields.name,
           organization: form.fields.organization,
