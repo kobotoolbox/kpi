@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from allauth.socialaccount.models import SocialApp
 
 from kobo.static_lists import COUNTRIES
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
@@ -108,6 +109,12 @@ class EnvironmentView(APIView):
                     continue
 
             data[key.lower()] = value
+        
+        # django-allauth social apps are configured in both settings and the database
+        # Optimize by avoiding extra DB call when unnecessary
+        social_apps = []
+        if settings.SOCIALACCOUNT_PROVIDERS:
+            social_apps = SocialApp.objects.values('provider', 'name', 'client_id')
 
         asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
 
@@ -120,4 +127,5 @@ class EnvironmentView(APIView):
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         data['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
         data['stripe_pricing_table_id'] = settings.STRIPE_PRICING_TABLE_ID
+        data['social_apps'] = social_apps
         return Response(data)

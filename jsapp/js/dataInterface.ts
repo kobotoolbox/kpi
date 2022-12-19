@@ -10,7 +10,7 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
-import type {EnvStoreFieldItem} from 'js/envStore';
+import type {EnvStoreFieldItem, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
@@ -675,6 +675,7 @@ export interface EnvironmentResponse {
   mfa_code_length: number;
   stripe_public_key: string | null;
   stripe_pricing_table_id: string | null;
+  social_apps: SocialApp[];
 }
 
 export interface AssetSubscriptionsResponse {
