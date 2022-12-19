@@ -4,6 +4,8 @@ import sessionStore from 'js/stores/session';
 import {PATHS} from 'js/router/routerConstants';
 import styles from './ssoSection.module.scss';
 import {deleteSocialAccount} from './sso.api';
+import {NavLink} from 'react-router-dom';
+import Button from 'jsapp/js/components/common/button';
 
 const SsoSection = observer(() => {
   const socialAccounts =
@@ -24,12 +26,11 @@ const SsoSection = observer(() => {
 
   return (
     <div className={styles.root}>
-      <div className={styles.securityRowHeader}>
+      <div className={styles.titleSection}>
         <h2 className={styles.title}>{t('Single-Sign On')}</h2>
       </div>
       {socialAccounts.length === 0 ? (
-        <>
-          <div className={styles.ssoSectionBody}>
+          <div className={styles.bodySection}>
             <div className={styles.securityDescription}>
               {t(
                 "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
@@ -37,23 +38,35 @@ const SsoSection = observer(() => {
                   'address is different.'
               )}
             </div>
-            <div className={styles.securityButton}>
-              <a
-                href={
-                  PATHS.MS_SSO +
-                  '?process=connect&next=%2F%23%2Faccount%2Fsecurity'
-                }
-                className='kobo-button kobo-button--blue'
-              >
-                {t('Set up')}
-              </a>
-            </div>
           </div>
-        </>
       ) : (
-        <div>
+        <div className={styles.bodySection}>
           Already connected{' '}
-          <button onClick={disconnectSocialAccount}>Disable</button>
+        </div>
+      )}
+
+      {socialAccounts.length === 0 ? (
+        <div className={styles.optionsSection}>
+          <NavLink to={PATHS.MS_SSO +
+              '?process=connect&next=%2F%23%2Faccount%2Fsecurity'} className={styles.passwordLink}>
+            <Button
+              label='Set up'
+              size='l'
+              color='blue'
+              type='frame'
+              onClick={() => {/*TODO: Handle NavLink and Button*/}}
+            />
+          </NavLink>
+        </div>
+      ) : (
+        <div className={styles.optionsSection}>
+          <Button
+            label='Disable'
+            size='l'
+            color='blue'
+            type='frame'
+            onClick={disconnectSocialAccount}
+          />
         </div>
       )}
     </div>
