@@ -66,19 +66,22 @@ export default function EmailSection() {
           session.isInitialLoadComplete &&
           'email' in currentAccount && <p>{currentAccount.email}</p>}
 
-        {unverifiedEmail?.email && (
-          <div className={style.unverifiedEmail}>
-            <Icon name='alert' />
+        {unverifiedEmail?.email &&
+          !session.isPending &&
+          session.isInitialLoadComplete &&
+          'email' in currentAccount && (
+            <div className={style.unverifiedEmail}>
+              <Icon name='alert' />
 
-            <p className={style['blurb']}>
-              <strong>
-                {t('Check your email ##UNVERIFIED_EMAIL##. ').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
-              </strong>
+              <p className={style['blurb']}>
+                <strong>
+                  {t('Check your email ##UNVERIFIED_EMAIL##. ').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
+                </strong>
 
-              {t('A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
-            </p>
-          </div>
-        )}
+                {t('A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##').replace('##UNVERIFIED_EMAIL##', currentAccount.email)}
+              </p>
+            </div>
+          )}
       </div>
 
       <div className={style.optionsSection}>
