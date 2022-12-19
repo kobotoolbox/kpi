@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
-import {notify} from 'js/utils';
+import {notify, handleApiFail} from 'js/utils';
 import $ from 'jquery';
 import type {
   ProjectsFilterDefinition,
@@ -17,7 +17,6 @@ import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 import styles from './customViewRoute.module.scss';
 import {toJS} from 'mobx';
-import type {FailResponse} from 'js/dataInterface';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -64,9 +63,7 @@ function CustomViewRoute() {
             )
           );
         })
-        .fail((response: FailResponse) => {
-          notify.error(response.responseText);
-        });
+        .fail(handleApiFail);
     } else {
       notify.error(
         t(

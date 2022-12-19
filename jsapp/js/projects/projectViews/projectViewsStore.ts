@@ -1,7 +1,7 @@
 import {makeAutoObservable} from 'mobx';
-import {notify} from 'js/utils';
+import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
+import type {PaginatedResponse} from 'js/dataInterface';
 
 export interface ProjectView {
   uid: string;
@@ -38,16 +38,12 @@ class ProjectViewsStore {
       url: `${ROOT_URL}/api/v2/project-views/`,
     })
       .done(this.onFetchDataDone.bind(this))
-      .fail(this.onFetchDataFail.bind(this));
+      .fail(handleApiFail);
   }
 
   private onFetchDataDone(response: PaginatedResponse<ProjectView>) {
     this.views = response.results;
     this.isInitialised = true;
-  }
-
-  private onFetchDataFail(response: FailResponse) {
-    notify.error(response.responseText);
   }
 }
 
