@@ -50,7 +50,12 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     return projectViews.getView(props.selectedViewUid)?.assets_count;
   };
 
-  if (!projectViews.isInitialised) {
+  // We don't want to display anything before the API call is done. If there are
+  // no custom views defined, there's no point in displaying it either.
+  if (
+    !projectViews.isInitialised ||
+    projectViews.views.length === 0
+  ) {
     return null;
   }
 
