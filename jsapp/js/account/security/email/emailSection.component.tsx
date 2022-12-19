@@ -56,21 +56,40 @@ export default function EmailSection() {
   const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary);
 
   return (
-    <div className={style['email-section']}>
-      <div className={style['email-header']}>
-        <h2 className={style['email-title']}>Email</h2>
+    <div className={style.root}>
+      <div className={style.titleSection}>
+        <h2 className={style.title}>Email</h2>
       </div>
 
-      <div className={style['email-body']}>
+      <div className={style.bodySection}>
         {!session.isPending &&
           session.isInitialLoadComplete &&
           'email' in currentAccount && <p>{currentAccount.email}</p>}
+
+        {unverifiedEmail?.email && (
+          <div className={style.unverifiedEmail}>
+            <Icon name='alert' />
+
+            <p className={style['blurb']}>
+              <strong>
+                {t('Check your email ##UNVERIFIED_EMAIL##. ').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
+              </strong>
+
+              {t('A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className={style.optionsSection}>
+        {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
         <TextBox
           customModifiers='on-white'
           value={email.newEmail}
           placeholder={t('Type new email address')}
           onChange={onTextFieldChange.bind(onTextFieldChange)}
         />
+
         <Button
           label='Change'
           size='l'
@@ -79,20 +98,6 @@ export default function EmailSection() {
           onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
         />
       </div>
-
-      {unverifiedEmail?.email && (
-        <div className={style['email-unverified']}>
-          <Icon name='alert' />
-
-          <p className={style['blurb']}>
-            <strong>
-              {t('Check your email ##UNVERIFIED_EMAIL##. ').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
-            </strong>
-
-            {t('A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##').replace('##UNVERIFIED_EMAIL##', unverifiedEmail.email)}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
