@@ -1,7 +1,7 @@
 {% extends "account/base.html" %}
 {% load static %}
 {% load i18n %}
-{% load account socialaccount %}
+{% load account get_provider_appname socialaccount %}
 {% block content %}
 
 
@@ -43,8 +43,8 @@
     </div>
 
     {# SSO section #}
-    {% get_providers as socialaccount_providers %}
-    {% if socialaccount_providers %}
+    {% get_social_apps as social_apps %}
+    {% if social_apps %}
       <div class="registration__sso registration__sso--login">
         <hr></hr>
         <h2>{% trans "Log in using SSO" %}</h2>
@@ -56,13 +56,14 @@
         <div class="registration__sso-buttons">
           {# SSO Provider buttons #}
           <ul class="socialaccount_providers">
-            {% if socialaccount_providers|length == 1 %}
-              {% trans "SSO Login" as label_text %}
-              {% include "socialaccount/snippets/provider_kobo_buttons.html" with process="login" %}
-            {% else %}
-              {% trans "Log in with" as label_prefix %}
-              {% include "socialaccount/snippets/provider_kobo_buttons.html" with process="login" %}
-            {% endif %}
+            {% for social_app in social_apps %}
+            <li>
+              <a title="{{ social_app.name }}"
+                class="socialaccount_provider {{ social_app.provider.id }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
+                >SSO Login</a>
+            </li>
+            {% endfor %}
           </ul>
           {% include "socialaccount/snippets/login_extra.html" %}
         </div>

@@ -1,4 +1,4 @@
-import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
+import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet, fetchPost} from 'jsapp/js/api';
 
 export interface EmailResponse {

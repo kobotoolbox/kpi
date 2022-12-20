@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import bem from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
