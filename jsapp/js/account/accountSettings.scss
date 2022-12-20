@@ -8,7 +8,7 @@
   background: colors.$kobo-white;
   overflow-y: auto;
   position: relative;
-  padding: sizes.$x50;
+  padding-top: sizes.$x50;
 
   h4 {
     margin: 0;
@@ -29,6 +29,8 @@
     .form-modal__item--fields {
       height: calc(100% - #{sizes.$x50});
       padding-right: 40px;
+      padding-left: sizes.$x50;
+      padding-bottom: sizes.$x30;
       overflow: auto;
 
       > *:last-child {margin-bottom: 20px;}
@@ -36,6 +38,7 @@
 
     .form-modal__item--username {
       min-height: 32px;
+      padding-left: sizes.$x50;
 
       .account-box__initials {
         display: inline-block;
