@@ -59,12 +59,14 @@
             {% for social_app in social_apps %}
             <li>
               <a title="{{ social_app.name }}"
-                class="socialaccount_provider {{ social_app.provider.id }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
                 href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
-                >SSO Login</a>
+                >{% trans "SSO Login" %}</a>
+                {# "Log in with {{social_app.name}}" when supporting social_apps|length>1 #}
             </li>
             {% endfor %}
           </ul>
+          {# for stability with upstream #}
           {% include "socialaccount/snippets/login_extra.html" %}
         </div>
       </div>

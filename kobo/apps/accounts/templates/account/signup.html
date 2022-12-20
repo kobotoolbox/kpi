@@ -1,6 +1,6 @@
 {% extends "account/base.html" %} {% load static %}
 {% load i18n %}
-{% load account socialaccount %}
+{% load account get_provider_appname socialaccount %}
 
 {% block content %}
 <form action="{% url 'set_language' %}" method="post" class="language-switcher">
@@ -62,8 +62,9 @@
 
   <div class="registration__second-half">
       {# SSO section #}
-      {% get_providers as socialaccount_providers %}
-      {% if socialaccount_providers %}
+
+      {% get_social_apps as social_apps %}
+      {% if social_apps %}
       <div class="registration__sso registration__sso--signup">
         <h2>{% trans "Register using SSO" %}</h2>
         <p>
@@ -74,14 +75,17 @@
         <div class="registration__sso-buttons">
           {# SSO Provider buttons #}
           <ul class="socialaccount_providers">
-            {% if socialaccount_providers|length == 1 %}
-              {% trans "Register with SSO" as label_text %}
-              {% include "socialaccount/snippets/provider_kobo_buttons.html" with process="login" %}
-            {% else %}
-              {% trans "Register with" as label_prefix %}
-              {% include "socialaccount/snippets/provider_kobo_buttons.html" with process="login" %}
-            {% endif %}
+            {% for social_app in social_apps %}
+              <li>
+                <a title="{{ social_app.name }}"
+                  class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                  href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
+                  >{% trans "Register with SSO" %}</a>
+                  {# "Register with {{social_app.name}}" when supporting social_apps|length>1 #}
+              </li>
+            {% endfor %}
           </ul>
+          {# for stability with upstream #}
           {% include "socialaccount/snippets/login_extra.html" %}
         </div>
       </div>
