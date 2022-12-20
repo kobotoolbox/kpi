@@ -6,7 +6,8 @@ import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
-import envStore, {EnvStoreDataItem} from '../envStore';
+import type {EnvStoreDataItem, EnvStoreFieldItem} from '../envStore';
+import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
 
@@ -96,8 +97,9 @@ function AccountSettings() {
       !session.isPending &&
       session.isInitialLoadComplete &&
       !session.isInitialRoute
-    )
+    ) {
       session.refreshAccount();
+    }
   }, []);
   useEffect(() => {
     const currentAccount = session.currentAccount;
@@ -105,7 +107,7 @@ function AccountSettings() {
       !session.isPending &&
       session.isInitialLoadComplete &&
       'email' in currentAccount
-    )
+    ) {
       setForm({
         ...form,
         fields: {
@@ -125,6 +127,7 @@ function AccountSettings() {
         },
         fieldsWithErrors: {},
       });
+    }
   }, [session.isInitialLoadComplete, session.isPending]);
   usePrompt(
     t('You have unsaved changes. Leave settings without saving?'),
@@ -181,6 +184,10 @@ function AccountSettings() {
   const initialsStyle = {
     background: `#${stringToColor(accountName)}`,
   };
+  const isFieldRequired = (fieldName: string): boolean => {
+    const field = environment.getUserMetadataField(fieldName);
+    return field && (field as EnvStoreFieldItem).required;
+  };
   return (
     <bem.AccountSettings>
       <bem.AccountSettings__actions>
@@ -235,7 +242,10 @@ function AccountSettings() {
             <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
-                label={addRequiredToLabel(t('Organization'))}
+                label={addRequiredToLabel(
+                  t('Organization'),
+                  isFieldRequired('organization')
+                )}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
                   'organization'
@@ -248,7 +258,10 @@ function AccountSettings() {
             <bem.AccountSettings__item>
               <TextBox
                 customModifiers='on-white'
-                label={t('Organization Website')}
+                label={addRequiredToLabel(
+                  t('Organization Website'),
+                  isFieldRequired('organization_website')
+                )}
                 value={form.fields.organizationWebsite}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
@@ -262,7 +275,10 @@ function AccountSettings() {
 
             <bem.AccountSettings__item m='primary-sector'>
               <WrappedSelect
-                label={addRequiredToLabel(t('Primary Sector'))}
+                label={addRequiredToLabel(
+                  t('Primary Sector'),
+                  isFieldRequired('sector')
+                )}
                 value={form.fields.sector}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'sector')}
                 options={form.sectorChoices}
@@ -272,7 +288,10 @@ function AccountSettings() {
 
             <bem.AccountSettings__item m='gender'>
               <WrappedSelect
-                label={t('Gender')}
+                label={addRequiredToLabel(
+                  t('Gender'),
+                  isFieldRequired('gender')
+                )}
                 value={form.fields.gender}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'gender')}
                 options={form.genderChoices}
@@ -283,7 +302,7 @@ function AccountSettings() {
             <bem.AccountSettings__item m='bio'>
               <TextBox
                 customModifiers='on-white'
-                label={t('Bio')}
+                label={addRequiredToLabel(t('Bio'), isFieldRequired('bio'))}
                 value={form.fields.bio}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
                 errors={form.fieldsWithErrors.extra_details?.bio}
@@ -292,7 +311,10 @@ function AccountSettings() {
 
             <bem.AccountSettings__item m='country'>
               <WrappedSelect
-                label={t('Country')}
+                label={addRequiredToLabel(
+                  t('Country'),
+                  isFieldRequired('country')
+                )}
                 value={form.fields.country}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'country')}
                 options={form.countryChoices}
@@ -303,7 +325,7 @@ function AccountSettings() {
             <bem.AccountSettings__item m='city'>
               <TextBox
                 customModifiers='on-white'
-                label={t('City')}
+                label={addRequiredToLabel(t('City'), isFieldRequired('city'))}
                 value={form.fields.city}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
                 errors={form.fieldsWithErrors.extra_details?.city}
