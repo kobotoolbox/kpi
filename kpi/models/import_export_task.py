@@ -17,6 +17,7 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.db import models, transaction
@@ -203,7 +204,9 @@ class ImportTask(ImportExportTask):
             # TODO: merge with `url` handling above; currently kept separate
             # because `_load_assets_from_url()` uses complex logic to deal with
             # multiple XLS files in a directory structure within a ZIP archive
-            headers = {"Authorization": f"Token {self.user.auth_token.key}"}
+            username = self.user.username
+            token = User.objects.using("kobocat").select_related("auth_token").get(username=username).auth_token.key
+            headers = {"Authorization": f"Token {token}"}
             response = requests.get(
                 self.data['single_xls_url'], headers=headers)
             response.raise_for_status()
