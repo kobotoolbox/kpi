@@ -19,7 +19,7 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
-    remove_applicable_kc_permissions,
+    # remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
 )
 from kpi.models.object_permission import ObjectPermission
@@ -114,10 +114,10 @@ class ObjectPermissionMixin:
                     )
                 )
             )
-            for user_codename in user_codenames:
-                remove_applicable_kc_permissions(
-                    self, user_codename['user_id'], user_codename['all_codenames']
-                )
+            # for user_codename in user_codenames:
+            #     remove_applicable_kc_permissions(
+            #         self, user_codename['user_id'], user_codename['all_codenames']
+            #     )
 
             # Remove all permissions from the asset (except the owner's)
             perm_queryset.delete()
@@ -502,9 +502,9 @@ class ObjectPermissionMixin:
 
         contradictory_perms.delete()
         # Check if any KC permissions should be removed as well
-        if deny and not skip_kc:
-            remove_applicable_kc_permissions(
-                self, user_obj, contradictory_codenames)
+        # if deny and not skip_kc:
+        #     remove_applicable_kc_permissions(
+        #         self, user_obj, contradictory_codenames)
         # Create the new permission
         new_permission = ObjectPermission.objects.create(
             asset=self,
@@ -514,8 +514,8 @@ class ObjectPermissionMixin:
             inherited=False
         )
         # Assign any applicable KC permissions
-        if not deny and not skip_kc:
-            assign_applicable_kc_permissions(self, user_obj, codename)
+        #if not deny and not skip_kc:
+        #    assign_applicable_kc_permissions(self, user_obj, codename)
         # Resolve implied permissions, e.g. granting change implies granting
         # view
         implied_perms = self.get_implied_perms(
@@ -670,8 +670,8 @@ class ObjectPermissionMixin:
             # Add a deny permission to block future inheritance
             self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
         # Remove any applicable KC permissions
-        if not skip_kc:
-            remove_applicable_kc_permissions(self, user_obj, codename)
+        # if not skip_kc:
+        #     remove_applicable_kc_permissions(self, user_obj, codename)
 
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
