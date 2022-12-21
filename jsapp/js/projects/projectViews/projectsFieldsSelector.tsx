@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
@@ -29,7 +28,7 @@ export default function ProjectsFieldsSelector(
     if (!props.selectedFields || props.selectedFields.length === 0) {
       return DEFAULT_PROJECT_FIELDS;
     } else {
-      return clonedeep(props.selectedFields);
+      return Array.from(props.selectedFields);
     }
   };
 

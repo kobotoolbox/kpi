@@ -6,7 +6,6 @@ import type {
   ProjectFieldName,
   OrderDirection,
 } from 'js/projects/projectViews/constants';
-import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import ProjectsTableHeader from './projectsTableHeader';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import styles from './projectsTable.module.scss';
@@ -31,6 +30,7 @@ interface ProjectsTableProps {
   order: ProjectsTableOrder;
   /** Called when user selects a column for odering. */
   onChangeOrderRequested: (order: ProjectsTableOrder) => void;
+  onHideFieldRequested: (fieldName: ProjectFieldName) => void;
   /** Used for infinite scroll. */
   onRequestLoadNextPage: () => void;
   /** If there are more results to be loaded. */
@@ -41,29 +41,8 @@ interface ProjectsTableProps {
  * Displays a table of assets.
  */
 export default function ProjectsTable(props: ProjectsTableProps) {
-  /**
-   * Sends a request to change order. If same field was sent, it means we want
-   * to change order. If different field, it means default order for that field.
-   */
-  const onChangeOrderRequested = (fieldName: ProjectFieldName) => {
-    if (props.order.fieldName === fieldName) {
-      // clicking already selected column results in switching the order direction
-      let newVal: OrderDirection = 'ascending';
-      if (props.order.direction === 'ascending') {
-        newVal = 'descending';
-      }
-      props.onChangeOrderRequested({
-        fieldName: props.order.fieldName,
-        direction: newVal,
-      });
-    } else {
-      // change column and revert order direction to default
-      props.onChangeOrderRequested({
-        fieldName: fieldName,
-        direction: PROJECT_FIELDS[fieldName].defaultDirection || 'ascending',
-      });
-    }
-  };
+  // We ensure name is always visible:
+  const safeVisibleFields = Array.from((new Set(props.visibleFields)).add('name'));
 
   return (
     // NOTE: react-infinite-scroller wants us to use refs, but there seems to
@@ -72,9 +51,10 @@ export default function ProjectsTable(props: ProjectsTableProps) {
     <div className={styles.root} id={SCROLL_PARENT_ID}>
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
-        visibleFields={props.visibleFields}
+        visibleFields={safeVisibleFields}
         order={props.order}
-        onChangeOrderRequested={onChangeOrderRequested}
+        onChangeOrderRequested={props.onChangeOrderRequested}
+        onHideFieldRequested={props.onHideFieldRequested}
       />
 
       <div className={styles.body}>
@@ -103,7 +83,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
             <ProjectsTableRow
               asset={asset}
               highlightedFields={props.highlightedFields}
-              visibleFields={props.visibleFields}
+              visibleFields={safeVisibleFields}
               key={asset.uid}
             />
           ))}

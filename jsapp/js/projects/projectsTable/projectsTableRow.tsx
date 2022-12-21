@@ -86,11 +86,16 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return assetUtils.getSectorDisplayString(props.asset);
       case 'countries':
         if (Array.isArray(props.asset.settings.country)) {
-          return props.asset.settings.country.map((country) =>
-            <Badge color='cloud' size='m' label={country.label} />
-          );
+          return props.asset.settings.country.map((country) => (
+            <Badge
+              key={country.value}
+              color='cloud'
+              size='m'
+              label={country.label}
+            />
+          ));
         } else if (typeof props.asset.settings.country === 'string') {
-          (<Badge color='cloud' size='m' label={props.asset.settings.country} />);
+          <Badge color='cloud' size='m' label={props.asset.settings.country} />;
         }
         return null;
       case 'languages':
@@ -110,10 +115,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
 
   return (
     <div
-      className={classNames(
-        styles.row,
-        styles.rowTypeProject
-      )}
+      className={classNames(styles.row, styles.rowTypeProject)}
       onClick={onRowClick}
     >
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {

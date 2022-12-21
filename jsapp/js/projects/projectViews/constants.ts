@@ -120,8 +120,6 @@ export interface ProjectFieldDefinition {
   label: string;
   /** Backend property name used for ordering and filtering. */
   apiPropertyName: string;
-  /** The default order direction for this field. */
-  defaultDirection: OrderDirection;
   /** Some of the fields (submission) doesn't allow any filtering yet. */
   allowsFiltering: boolean;
 }
@@ -141,91 +139,78 @@ export const PROJECT_FIELDS: ProjectFields = {
     name: 'name',
     label: t('Project name'),
     apiPropertyName: 'name',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   description: {
     name: 'description',
     label: t('Description'),
     apiPropertyName: 'settings__description',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
     apiPropertyName: '_deployment_data',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
     apiPropertyName: 'owner__username',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
     apiPropertyName: 'owner__extra_details__data__name',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
     apiPropertyName: 'owner__email',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
     apiPropertyName: 'owner__extra_details__data__organization',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
     apiPropertyName: 'date_modified__date',
-    defaultDirection: 'descending',
     allowsFiltering: true,
   },
   dateDeployed: {
     name: 'dateDeployed',
     label: t('Date deployed'),
     apiPropertyName: 'date_deployed__date',
-    defaultDirection: 'descending',
     allowsFiltering: false,
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
     apiPropertyName: 'settings__sector',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
     apiPropertyName: 'settings__country_codes[]',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
     apiPropertyName: 'summary__languages[]',
-    defaultDirection: 'ascending',
     allowsFiltering: true,
   },
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
     apiPropertyName: 'deployment__submission_count',
-    defaultDirection: 'ascending',
     allowsFiltering: false,
   },
 };

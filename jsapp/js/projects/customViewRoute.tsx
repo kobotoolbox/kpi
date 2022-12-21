@@ -73,6 +73,14 @@ function CustomViewRoute() {
     }
   };
 
+  const hideField = (fieldName: ProjectFieldName) => {
+    let newFields = Array.isArray(fields)
+      ? Array.from(fields)
+      : DEFAULT_PROJECT_FIELDS;
+    newFields = newFields.filter((item) => item !== fieldName);
+    setFields(newFields);
+  };
+
   return (
     <section className={styles.root}>
       <header className={styles.header}>
@@ -105,6 +113,7 @@ function CustomViewRoute() {
         visibleFields={fields || DEFAULT_PROJECT_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
+        onHideFieldRequested={hideField}
         onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
       />

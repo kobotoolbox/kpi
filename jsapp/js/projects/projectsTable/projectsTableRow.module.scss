@@ -96,7 +96,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
 .row.rowTypeHeader {
   .cell {
-    @include mixins.textEllipsis;
     @include mixins.centerRowFlex;
     color: colors.$kobo-gray-40;
     border-top: 0;
@@ -109,12 +108,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     &:hover {
       color: colors.$kobo-gray-14 !important;
-    }
-
-    :global {
-      .k-icon:not(:first-child) {
-        margin-left: sizes.$x10;
-      }
     }
   }
 }

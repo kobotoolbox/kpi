@@ -13,7 +13,7 @@ import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 
 const DEFAULT_ORDER: ProjectsTableOrder = {
   fieldName: PROJECT_FIELDS.name.name,
-  direction: PROJECT_FIELDS.name.defaultDirection,
+  direction: 'ascending',
 };
 
 class CustomViewStore {
