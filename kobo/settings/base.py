@@ -686,10 +686,10 @@ CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
 ''' Django allauth configuration '''
-ACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.AccountAdapter"
-ACCOUNT_USERNAME_VALIDATORS = "kobo.apps.accounts.validators.username_validators"
+ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
+ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.mfa.forms.MfaLoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
@@ -698,7 +698,7 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_SESSION_REMEMBER = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
