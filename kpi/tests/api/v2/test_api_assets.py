@@ -434,6 +434,28 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         asset_data = regional_res.json()['results'][0]
         assert asset_data['permissions']
 
+    def test_regional_asset_views_for_anotheruser_can_view_asset_detail(self):
+        self._login_as_anotheruser()
+        user = User.objects.get(username='anotheruser')
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        regional_res = self.client.get(
+            results[0]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        # check that anotheruser isn't the asset's owner
+        assert asset_data['owner__username'] != user.username
+        asset_obj = Asset.objects.get(uid=asset_data['uid'])
+        # check that anotheruser doesn't have explitly assigned `view_asset`
+        # perms
+        assert not asset_obj.has_perm(user, 'view_asset')
+        asset_res = self.client.get(asset_data['url'])
+        # ensure that anotheruser can still see asset detail since has
+        # `view_asset` perm assigned to view
+        assert asset_res.status_code == status.HTTP_200_OK
+
     def test_regional_asset_views_for_anotheruser_can_change_metadata(self):
         self._login_as_anotheruser()
         res = self.client.get(self.region_views_url)
