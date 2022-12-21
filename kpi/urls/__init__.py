@@ -1,29 +1,23 @@
 # coding: utf-8
 import private_storage.urls
 from django.conf import settings
-from django.urls import include, re_path, path
+from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-from kobo.apps.superuser_stats.views import (
-    user_report,
-    country_report,
-    retrieve_reports,
-)
+from kobo.apps.mfa.views import MfaLoginView, MfaTokenView
+from kobo.apps.superuser_stats.views import (country_report, retrieve_reports,
+                                             user_report)
 from kpi.forms.registration import RegistrationForm
-from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
-from kpi.views.environment import EnvironmentView
+from kpi.views import (authorized_application_authenticate_user, browser_tests,
+                       design_system, home, modern_browsers, one_time_login)
 from kpi.views.current_user import CurrentUserViewSet
-from kobo.apps.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
-)
+from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
-from .router_api_v2 import router_api_v2, URL_NAMESPACE
+from .router_api_v2 import URL_NAMESPACE, router_api_v2
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -37,6 +31,9 @@ urlpatterns = [
         'get': 'retrieve',
         'patch': 'partial_update',
     }), name='currentuser-detail'),
+    path('grant-default-model-level-perms', CurrentUserViewSet.as_view({
+        'post': 'grant_default_model_level_perms',
+    }), name='currentuser-default-perms'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/auth/', include('kobo.apps.mfa.urls')),
