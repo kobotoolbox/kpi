@@ -22,10 +22,16 @@ def migrate_email_and_extra_user_detail(apps, schema_editor):
                 )
                 for user in users
             ],
+            ignore_conflicts=True
         )
-        ImportedVerification.objects.bulk_create(
-            [ImportedVerification(email=email) for email in emails]
-        )
+        try:
+            ImportedVerification.objects.bulk_create(
+                [ImportedVerification(email=email) for email in emails]
+            )
+        # Necessary when EmailAddress bulk_create contains conflicts
+        # This only happens when migrating backwards and forwards again
+        except ValueError:
+            pass
 
     paginator = Paginator(
         ExtraUserDetail.objects.exclude(data={}).order_by('pk'), 2000
