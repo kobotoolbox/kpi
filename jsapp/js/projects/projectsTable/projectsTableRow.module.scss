@@ -82,6 +82,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 .row.rowTypeProject {
   .cell {
     @include mixins.textEllipsis;
+    @include mixins.centerRowFlex;
   }
 
   &:hover .cell {
