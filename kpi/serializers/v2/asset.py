@@ -803,13 +803,13 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def get_date_first_deployment(
         self, obj: Asset
     ) -> Optional[datetime]:
-        if first_version := self._get_asset_deployed_versions(obj)[-1]:
+        if first_version := self._get_asset_deployed_versions(obj, -1):
             return first_version.date_modified
 
     def get_date_latest_deployment(
         self, obj: Asset
     ) -> Optional[datetime]:
-        if latest_version := self._get_asset_deployed_versions(obj)[0]:
+        if latest_version := self._get_asset_deployed_versions(obj, 0):
             return latest_version.date_modified
 
     def get_languages(self, obj: Asset) -> list[str]:
@@ -843,7 +843,9 @@ class AssetMetadataListSerializer(AssetListSerializer):
         return request.parser_context['kwargs']['uid']
 
     @cache_for_request
-    def _get_asset_deployed_versions(self, obj: Asset) -> list:
+    def _get_asset_deployed_versions(
+        self, obj: Asset, pos: int
+    ) -> Optional[list]:
         try:
             versions = obj.prefetched_latest_versions
         except AttributeError:
@@ -851,7 +853,8 @@ class AssetMetadataListSerializer(AssetListSerializer):
                 'date_modified', 'deployed'
             ).order_by('-date_modified')
 
-        return [v for v in versions if v.deployed is True]
+        if version_list := [v for v in versions if v.deployed is True]:
+            return version_list[pos]
 
     @cache_for_request
     def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
