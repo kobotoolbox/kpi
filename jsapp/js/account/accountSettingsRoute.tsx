@@ -51,8 +51,24 @@ interface Form {
   };
   sectorChoices: EnvStoreDataItem[];
   countryChoices: EnvStoreDataItem[];
-  genderChoices: EnvStoreDataItem[];
 }
+const genderChoices: {[key: string]: string} = {
+  male: t('Male'),
+  female: t('Female'),
+  other: t('Other'),
+};
+
+const choiceToSelectOptions = (
+  value: string,
+  choices: {[key: string]: string}
+) => ({
+  value,
+  label: choices[value],
+});
+
+const genderSelectOptions = Object.keys(genderChoices).map((key) =>
+  choiceToSelectOptions(key, genderChoices)
+);
 
 function AccountSettings() {
   const [session] = useState(() => sessionStore);
@@ -76,20 +92,6 @@ function AccountSettings() {
     fieldsWithErrors: {},
     sectorChoices: environment.sector_choices,
     countryChoices: environment.country_choices,
-    genderChoices: [
-      {
-        value: 'male',
-        label: t('Male'),
-      },
-      {
-        value: 'female',
-        label: t('Female'),
-      },
-      {
-        value: 'other',
-        label: t('Other'),
-      },
-    ],
   });
 
   useEffect(() => {
@@ -159,6 +161,11 @@ function AccountSettings() {
       });
   };
   const onAnyFieldChange = (name: string, value: any) => {
+    // Convert Selection option to just its value
+    // Improvement idea: move this logic to wrappedSelect
+    if (typeof value === 'object') {
+      value = value['value'];
+    }
     setForm({
       ...form,
       fields: {...form.fields, [name]: value},
@@ -180,6 +187,7 @@ function AccountSettings() {
       fieldsWithErrors: data[0].responseJSON,
     });
   };
+
   const accountName = sessionStore.currentAccount.username;
   const initialsStyle = {
     background: `#${stringToColor(accountName)}`,
@@ -188,6 +196,13 @@ function AccountSettings() {
     const field = environment.getUserMetadataField(fieldName);
     return field && (field as EnvStoreFieldItem).required;
   };
+  const sectorValue = form.sectorChoices.find(
+    (sectorChoice) => sectorChoice.value === form.fields.sector
+  );
+  const countryValue = form.countryChoices.find(
+    (countryChoice) => countryChoice.value === form.fields.country
+  );
+
   return (
     <bem.AccountSettings>
       <bem.AccountSettings__actions>
@@ -279,7 +294,7 @@ function AccountSettings() {
                   t('Primary Sector'),
                   isFieldRequired('sector')
                 )}
-                value={form.fields.sector}
+                value={sectorValue}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'sector')}
                 options={form.sectorChoices}
                 error={form.fieldsWithErrors.extra_details?.sector}
@@ -292,9 +307,9 @@ function AccountSettings() {
                   t('Gender'),
                   isFieldRequired('gender')
                 )}
-                value={form.fields.gender}
+                value={choiceToSelectOptions(form.fields.gender, genderChoices)}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'gender')}
-                options={form.genderChoices}
+                options={genderSelectOptions}
                 error={form.fieldsWithErrors.extra_details?.gender}
               />
             </bem.AccountSettings__item>
@@ -315,7 +330,7 @@ function AccountSettings() {
                   t('Country'),
                   isFieldRequired('country')
                 )}
-                value={form.fields.country}
+                value={countryValue}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'country')}
                 options={form.countryChoices}
                 error={form.fieldsWithErrors.extra_details?.country}

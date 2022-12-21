@@ -107,17 +107,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        # the registration form records only the value, but the front end
-        # expects an object with both the label and the value.
-        # TODO: store and load the value *only*
-        for field in 'sector', 'country':
-            val = extra_details.get(field)
-            if isinstance(val, str) and val:
-                extra_details[field] = {
-                    'label': val,
-                    'value': val,
-                }
-
         # `require_auth` needs to be read from KC every time
         # except during testing, when KC's database is not available
         if (
