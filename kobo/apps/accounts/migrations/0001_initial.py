@@ -6,12 +6,12 @@ from django.db import migrations, models
 
 
 def migrate_email_and_extra_user_detail(apps, schema_editor):
-    # Effecient bulk data mover - 3 queries per 2k users
     User = apps.get_model('auth', 'User')
     ImportedVerification = apps.get_model('accounts', 'ImportedVerification')
     EmailAddress = apps.get_model('account', 'EmailAddress')
     ExtraUserDetail = apps.get_model('hub', "ExtraUserDetail")
 
+    # Effecient bulk data mover - 3 queries per 2k users
     paginator = Paginator(User.objects.exclude(email='').order_by('pk'), 2000)
     for page in paginator.page_range:
         users = paginator.page(page).object_list
@@ -21,18 +21,23 @@ def migrate_email_and_extra_user_detail(apps, schema_editor):
                     user=user, email=user.email, verified=True, primary=True
                 )
                 for user in users
-            ]
+            ],
         )
         ImportedVerification.objects.bulk_create(
             [ImportedVerification(email=email) for email in emails]
         )
 
-    paginator = Paginator(ExtraUserDetail.objects.exclude(data={}).order_by('pk'), 2000)
+    paginator = Paginator(
+        ExtraUserDetail.objects.exclude(data={}).order_by('pk'), 2000
+    )
     for page in paginator.page_range:
         user_details = paginator.page(page).object_list
         for user_detail in user_details:
             for key in ['gender', 'sector']:
-                if key in user_detail.data and type(user_detail.data[key]) is dict:
+                if (
+                    key in user_detail.data
+                    and type(user_detail.data[key]) is dict
+                ):
                     user_detail.data[key] = user_detail.data[key].get('value')
             # Unnest array with possible value
             key = 'country'
