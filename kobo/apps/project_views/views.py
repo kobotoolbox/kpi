@@ -94,13 +94,10 @@ class ProjectViewViewSet(
             if not export:
                 return Response({})
 
-            file_location = export.result.url
-            return Response(
-                {
-                    'status': export.status,
-                    'result': request.build_absolute_uri(file_location),
-                }
-            )
+            res = {'status': export.status}
+            if export.result:
+                res['result'] = request.build_absolute_uri(export.result.url)
+            return Response(res)
         elif request.method == 'POST':
             export_task = ProjectViewExportTask.objects.create(
                 user=user,
