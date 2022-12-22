@@ -114,7 +114,13 @@ class EnvironmentView(APIView):
         # Optimize by avoiding extra DB call when unnecessary
         social_apps = []
         if settings.SOCIALACCOUNT_PROVIDERS:
-            social_apps = SocialApp.objects.values('provider', 'name', 'client_id')
+            social_apps = list(
+                SocialApp.objects.values(
+                    'provider',
+                    'name',
+                    'client_id'
+                )
+            )
 
         asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
 
