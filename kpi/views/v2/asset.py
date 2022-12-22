@@ -21,6 +21,7 @@ from kpi.constants import (
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
     PERM_CHANGE_METADATA,
+    PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import (
@@ -341,15 +342,19 @@ class AssetViewSet(
     ]
 
     def get_object(self):
-        if self.request.method == 'PATCH':
+        if self.request.method in ['PATCH', 'GET']:
             try:
                 asset = Asset.objects.get(uid=self.kwargs['uid'])
             except Asset.DoesNotExist:
                 raise Http404
 
+            user = get_database_user(self.request.user)
+
+            # Bypass the usual permissions checks since project view-level
+            # permissions are not assigned on a per-asset basis as it expects
             if user_has_regional_asset_perm(
-                asset, self.request.user, PERM_CHANGE_METADATA
-            ):
+                asset, user, PERM_CHANGE_METADATA
+            ) or user_has_regional_asset_perm(asset, user, PERM_VIEW_ASSET):
                 return asset
 
         return super().get_object()
