@@ -83,9 +83,17 @@ CONFIG = {
 def flatten_settings_inplace(settings: dict) -> None:
     for k, v in settings.items():
         if isinstance(v, list) and v:
-            settings[k] = ', '.join([item['value'] for item in v])
+            items = []
+            for item in v:
+                if isinstance(item, dict) and 'value' in item:
+                    items.append(item['value'])
+                    continue
+                items.append(item)
+            settings[k] = ', '.join(items)
         if isinstance(v, dict) and 'value' in v:
             settings[k] = v['value']
+        if not v:
+            settings[k] = ''
 
 
 def get_row_value(row: dict, col: str) -> Union[str, int, float, bool, None]:
