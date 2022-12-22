@@ -252,9 +252,16 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
 
     def has_object_permission(self, request, view, obj):
         user = get_database_user(request.user)
-        if user_has_regional_asset_perm(
-            obj, user, PERM_CHANGE_METADATA
-        ) or user_has_regional_asset_perm(obj, user, PERM_VIEW_ASSET):
+        method = request._request.method
+        if (
+            user_has_regional_asset_perm(obj, user, PERM_CHANGE_METADATA)
+            and method == 'PATCH'
+        ):
+            return True
+        if (
+            user_has_regional_asset_perm(obj, user, PERM_VIEW_ASSET)
+            and method == 'GET'
+        ):
             return True
         return super().has_object_permission(request, view, obj)
 
