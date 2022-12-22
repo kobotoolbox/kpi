@@ -7,10 +7,11 @@ import type {
   ProjectFieldDefinition,
 } from 'js/projects/projectViews/constants';
 import Badge from 'js/components/common/badge';
+import Avatar from 'js/components/common/avatar';
 import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'js/utils';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
-import assetUtils from 'js/assetUtils';
+import assetUtils, {isSelfOwned} from 'js/assetUtils';
 import styles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
@@ -63,7 +64,11 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           );
         }
       case 'ownerUsername':
-        return assetUtils.getAssetOwnerDisplayName(props.asset.owner__username);
+        if (isSelfOwned(props.asset)) {
+          return t('me');
+        } else {
+          return <Avatar username={props.asset.owner__username} />;
+        }
       case 'ownerFullName':
         return 'owner__name' in props.asset ? props.asset.owner__name : null;
       case 'ownerEmail':

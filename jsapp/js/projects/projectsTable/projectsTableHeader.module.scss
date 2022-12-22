@@ -7,6 +7,14 @@
 // `ProjectsTableHeader` component. Most of styles it is using are coming
 // from `projectsTableRow.module.scss` file.
 
+.columnRoot {
+  // We need this to truncate long column names
+  :global .kobo-dropdown,
+  :global .kobo-dropdown__trigger {
+    max-width: 100%;
+  }
+}
+
 .trigger {
   @include mixins.centerRowFlex;
   cursor: pointer;

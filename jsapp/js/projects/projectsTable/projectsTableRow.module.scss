@@ -28,6 +28,10 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     cursor: inherit;
   }
 
+  :global label {
+    cursor: inherit;
+  }
+
   &[disabled] {
     pointer-events: none;
   }

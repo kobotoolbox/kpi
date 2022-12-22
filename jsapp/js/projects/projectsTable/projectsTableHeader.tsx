@@ -38,6 +38,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     return (
       <div
         className={classNames({
+          [styles.columnRoot]: true,
           [styles.isMenuVisible]: isMenuVisible,
           [rowStyles.cell]: true,
           [rowStyles.cellHighlighted]: props.highlightedFields.includes(
@@ -112,7 +113,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                 }}
               />
               {/* The `name` field is always visible, no need for the button */}
-              {field.name !== 'name' &&
+              {field.name !== 'name' && (
                 <Button
                   type='bare'
                   color='storm'
@@ -123,7 +124,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                     props.onHideFieldRequested(field.name);
                   }}
                 />
-              }
+              )}
             </div>
           }
         />

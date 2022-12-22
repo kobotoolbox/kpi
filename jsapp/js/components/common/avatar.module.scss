@@ -1,0 +1,25 @@
+@use 'scss/sizes';
+@use 'scss/colors';
+@use 'scss/mixins';
+
+.root {
+  @include mixins.centerRowFlex;
+}
+
+.initials {
+  width: sizes.$x20;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 0 sizes.$x6;
+  border-radius: sizes.$x20;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: sizes.$x20;
+  font-size: sizes.$x12;
+  color: colors.$kobo-white;
+  // background color is provided by JS
+
+  &:not(:last-child) {
+    margin-right: sizes.$x5;
+  }
+}

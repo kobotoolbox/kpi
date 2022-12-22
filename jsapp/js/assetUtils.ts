@@ -734,7 +734,7 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
   return errors;
 }
 
-export function isSelfOwned(asset: AssetResponse) {
+export function isSelfOwned(asset: AssetResponse | ProjectViewAsset) {
   return (
     asset &&
     sessionStore.currentAccount &&
