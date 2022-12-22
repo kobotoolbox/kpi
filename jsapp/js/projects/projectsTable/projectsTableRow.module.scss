@@ -18,9 +18,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
 .cell {
   border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x24 sizes.$x16;
+  padding: sizes.$x18;
   color: colors.$kobo-gray-40;
-  line-height: sizes.$x20;
   flex: 1 0 auto;
   // ensures the table columns are same width for all rows
   width: 10%;
@@ -82,7 +81,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 .row.rowTypeProject {
   .cell {
     @include mixins.textEllipsis;
-    @include mixins.centerRowFlex;
+    line-height: sizes.$x36;
   }
 
   &:hover .cell {
