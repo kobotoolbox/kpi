@@ -287,6 +287,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             asset.save()
             asset.deploy(backend='mock', active=True)
 
+
         regional_assignments = [
             {
                 'name': 'Overview',
@@ -373,6 +374,30 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         region_for_view = set(get_region_for_view(results[1]['uid']))
         assert asset_countries & region_for_view
+
+    def test_regional_asset_views_anotheruser_submission_count(self):
+        self._login_as_anotheruser()
+        for asset in Asset.objects.all():
+            if asset.has_deployment:
+                submissions = [
+                    {
+                        '__version__': asset.latest_deployed_version.uid,
+                        'q1': 'a1',
+                    },
+                ]
+                asset.deployment.mock_submissions(submissions)
+
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        view_1_url = results[0]['assets']
+        regional_res = self.client.get(
+            view_1_url, HTTP_ACCEPT='application/json'
+        )
+        regional_data = regional_res.json()
+        asset = regional_data['results'][0]
+        assert asset['deployment__submission_count'] == 1
 
     def test_regional_asset_views_for_anotheruser(self):
         self._login_as_anotheruser()

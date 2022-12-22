@@ -812,6 +812,13 @@ class AssetMetadataListSerializer(AssetListSerializer):
         if latest_version := self._get_asset_deployed_versions(obj, 0):
             return latest_version.date_modified
 
+    def get_deployment__submission_count(self, obj: Asset) -> int:
+        if obj.has_deployment and view_has_perm(
+            self._get_view(), PERM_VIEW_SUBMISSIONS
+        ):
+            return obj.deployment.submission_count
+        return super().get_deployment__submission_count(obj)
+
     def get_languages(self, obj: Asset) -> list[str]:
         return obj.summary.get('languages', [])
 
@@ -839,7 +846,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
         return ''
 
     def _get_view(self) -> str:
-        request = self.context.get('request')
+        request = self.context['request']
         return request.parser_context['kwargs']['uid']
 
     @cache_for_request
