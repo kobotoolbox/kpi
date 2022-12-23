@@ -251,14 +251,13 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['HEAD'] = perms_map['GET']
 
     def has_object_permission(self, request, view, obj):
+        #TODO: revisit this with kpi#4194
         user = get_database_user(request.user)
         method = request._request.method
         if (
             user_has_regional_asset_perm(obj, user, PERM_CHANGE_METADATA)
             and method == 'PATCH'
-        ):
-            return True
-        if (
+        ) or (
             user_has_regional_asset_perm(obj, user, PERM_VIEW_ASSET)
             and method == 'GET'
         ):
