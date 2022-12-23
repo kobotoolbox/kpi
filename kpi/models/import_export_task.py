@@ -312,9 +312,11 @@ class ImportTask(ImportExportTask):
 
     def _retrieve_form_payload(self, form_id):
         url = f"{settings.KOBOCAT_INTERNAL_URL}/api/v1/forms/{form_id}"
-        token = Token.objects.get(user=self.user)
+        username = self.user.username
+        token = User.objects.using("kobocat").select_related("auth_token").get(
+            username=username).auth_token
 
-        response = requests.get(url, headers={"Authorization": f"Token {token.key}"})
+        response = requests.get(url, headers={"Authorization": f"Token {token}"})
         if response.status_code == 200:
             return response.json()
 
