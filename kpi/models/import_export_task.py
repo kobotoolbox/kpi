@@ -333,16 +333,16 @@ class ImportTask(ImportExportTask):
         survey_dict_keys = survey_dict.keys()
 
         form_payload = None
-        destination_kls = kwargs.get('destination_kls')
-        if destination_kls == 'asset':
-            asset = kwargs.get('destination')
-            form_id = asset.settings.get('form_id')
-            form_payload = self._retrieve_form_payload(form_id)
-            if form_payload:
-                form_payload['has_id_string_changed'] = False
 
         destination = kwargs.get('destination', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
+        if destination and hasattr(destination, "settings"):
+            form_id = destination.settings.get('form_id')
+            if form_id:
+                form_payload = self._retrieve_form_payload(form_id)
+                if form_payload:
+                    form_payload['has_id_string_changed'] = False
+
 
         if destination and not has_necessary_perm:
             # redundant check
