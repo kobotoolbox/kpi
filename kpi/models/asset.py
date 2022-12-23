@@ -776,8 +776,7 @@ class Asset(ObjectPermissionMixin,
         try:
             stored_data_key = self._deployment_data['_stored_data_key']
         except KeyError:
-            if self._deployment_data != self.__deployment_data_copy:
-                raise DeploymentDataException
+            pass
         else:
             if stored_data_key != self.deployment.stored_data_key:
                 raise DeploymentDataException
