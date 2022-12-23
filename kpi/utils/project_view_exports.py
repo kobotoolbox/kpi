@@ -8,6 +8,9 @@ from django.contrib.auth.models import User
 from django.db.models import Count, F, Max, Min, OuterRef, Q
 from django.db.models.query import QuerySet
 
+from kpi.deployment_backends.kc_access.shadow_models import (
+    ReadOnlyKobocatInstance,
+)
 from kpi.models import Asset, AssetVersion
 from kpi.utils.project_views import get_region_for_view
 
@@ -27,7 +30,7 @@ ASSET_FIELDS = (
     'owner__name',
     'owner__organization',
     'deployment__active',
-    'deployment__submission_count',
+    'form_id',
 )
 SETTINGS = 'settings'
 SETTINGS_FIELDS = (
@@ -35,6 +38,7 @@ SETTINGS_FIELDS = (
     'sector',
     'description',
 )
+ASSET_FIELDS_EXTRA = ('submission_count',)
 
 USER_FIELDS = (
     'username',
@@ -69,7 +73,7 @@ CONFIG = {
         'queryset': Asset.objects.all(),
         'q_term': 'settings__country',
         'key': SETTINGS,
-        'columns': ASSET_FIELDS + SETTINGS_FIELDS,
+        'columns': ASSET_FIELDS + ASSET_FIELDS_EXTRA + SETTINGS_FIELDS,
     },
     'users': {
         'queryset': User.objects.all(),
@@ -117,6 +121,14 @@ def get_q(countries: list[str], export_type: str) -> QuerySet:
     return q
 
 
+def get_submission_count(xform_id: int) -> int:
+    return (
+        ReadOnlyKobocatInstance.objects.values('xform_id')
+        .filter(xform_id=xform_id)
+        .count()
+    )
+
+
 def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
     if export_type == 'assets':
         vals = ASSET_FIELDS + (SETTINGS,)
@@ -136,9 +148,7 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
             owner__name=F('owner__extra_details__data__name'),
             owner__organization=F('owner__extra_details__data__organization'),
             deployment__active=F('_deployment_data__active'),
-            deployment__submission_count=F(
-                '_deployment_data__num_of_submissions'
-            ),
+            form_id=F('_deployment_data__backend_response__formid'),
             date_latest_deployment=subquery_latest_deployed,
             date_first_deployment=subquery_first_deployed,
         )
@@ -172,6 +182,10 @@ def create_project_view_export(
         items = row.pop(config['key'], {}) or {}
         flatten_settings_inplace(items)
         row.update(items)
+        # submission counts come from kobocat database and therefore need to be
+        # appended manually rather than through queries
+        if export_type == 'assets':
+            row['submission_count'] = get_submission_count(row['form_id'])
         flat_row = [get_row_value(row, col) for col in config['columns']]
         writer.writerow(flat_row)
 
