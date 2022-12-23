@@ -1,15 +1,11 @@
 # coding: utf-8
 # 😬
-from __future__ import annotations
-
 import copy
-import re
 from collections import OrderedDict
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 
-from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kpi.utils.asset_translation_utils import (
     compare_translations,
     # TRANSLATIONS_EQUAL,
@@ -54,9 +50,6 @@ FLATTEN_OPTS = {
 
 
 class FormpackXLSFormUtilsMixin:
-
-    WORKING_SHEET = 'survey'
-
     def _standardize(self, content):
         if needs_standardization(content):
             standardize_content_in_place(content)
@@ -92,31 +85,12 @@ class FormpackXLSFormUtilsMixin:
 
     def _append(self, content, **sheet_data):
         settings = sheet_data.pop('settings', None)
-        is_content_versioned = self._contains_version(
-            content.get(self.WORKING_SHEET, [])
-        )
         if settings:
             self._ensure_settings(content)
             content['settings'].update(settings)
-        for sht, rows in sheet_data.items():
-            if (
-                sht == self.WORKING_SHEET
-                and is_content_versioned
-                and self._contains_version(rows)
-            ):
-                self._remove_version(content)
+        for (sht, rows) in sheet_data.items():
             if sht in content:
                 content[sht] += rows
-
-    def _contains_version(self, fields: list[str]) -> bool:
-        for field in fields:
-            try:
-                if field['name'] == '__version__':
-                    return True
-            except KeyError:
-                pass
-
-        return False
 
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
         opts = copy.deepcopy(FLATTEN_OPTS)
@@ -168,18 +142,6 @@ class FormpackXLSFormUtilsMixin:
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
-
-    def _remove_version(self, content):
-        # Because we may remove some elements from `content[self.WORKING_SHEET]`,
-        # we loop on this list reversely to be sure indexes do not change when
-        # elements are removed from it.
-        for idx in range(len(content[self.WORKING_SHEET]) - 1, 0, -1):
-            field = content[self.WORKING_SHEET][idx]
-            try:
-                if re.match(FUZZY_VERSION_PATTERN, field['name']):
-                    del content[self.WORKING_SHEET][idx]
-            except KeyError:
-                pass
 
     def _make_default_translation_first(self, content):
         # The form builder only shows the first language, so make sure the
