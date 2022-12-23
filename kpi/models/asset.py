@@ -491,6 +491,7 @@ class Asset(ObjectPermissionMixin,
         self._insert_qpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
+        self._remove_version(self.content)
 
         settings = self.content['settings']
         _title = settings.pop('form_title', None)
