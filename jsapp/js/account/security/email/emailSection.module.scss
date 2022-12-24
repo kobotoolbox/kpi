@@ -33,13 +33,7 @@
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: sizes.$x14;
   padding-left: sizes.$x16;
-
-  p {
-    // Email address
-    font-weight: bold;
-  }
 }
 
 .optionsSection {
@@ -58,17 +52,21 @@
   }
 }
 
+.currentEmail {
+  font-weight: bold;
+  margin-top: 0;
+}
+
 .unverifiedEmail {
   display: flex;
-  width: 80%;
+  column-gap: sizes.$x12;
+  padding-right: sizes.$x24;
 
   p.blurb {
-    flex: 14;
     margin: 0;
   }
 
   > i {
-    flex: 1;
     color: colors.$kobo-amber;
   }
 }

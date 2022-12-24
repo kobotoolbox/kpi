@@ -8,7 +8,6 @@ import TextBox from 'jsapp/js/components/common/textBox';
 import Icon from 'jsapp/js/components/common/icon';
 
 interface EmailState {
-  isLoading: boolean;
   emails: EmailResponse[];
   newEmail: string;
 }
@@ -17,22 +16,18 @@ export default function EmailSection() {
   const [session] = useState(() => sessionStore);
 
   const [email, setEmail] = useState<EmailState>({
-    isLoading: true,
     emails: [],
     newEmail: '',
   });
 
   useEffect(() => {
-    if (email.isLoading) {
-      getUserEmails().then((data) => {
-        setEmail({
-          ...email,
-          isLoading: false,
-          emails: data.results,
-        });
+    getUserEmails().then((data) => {
+      setEmail({
+        ...email,
+        emails: data.results,
       });
-    }
-  });
+    });
+  }, []);
 
   function setNewUserEmail(newEmail: string) {
     setUserEmail(newEmail).then(() => {
@@ -65,7 +60,7 @@ export default function EmailSection() {
       <div className={style.bodySection}>
         {!session.isPending &&
           session.isInitialLoadComplete &&
-          'email' in currentAccount && <p>{currentAccount.email}</p>}
+          'email' in currentAccount && <p className={style.currentEmail}>{currentAccount.email}</p>}
 
         {unverifiedEmail?.email &&
           !session.isPending &&
