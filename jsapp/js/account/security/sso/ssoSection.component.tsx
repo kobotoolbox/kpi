@@ -18,9 +18,7 @@ const SsoSection = observer(() => {
     if (socialAccounts.length) {
       const socialAccount = socialAccounts[0];
       deleteSocialAccount(socialAccount.provider, socialAccount.uid).then(
-        () => {
-          sessionStore.refreshAccount();
-        }
+        sessionStore.refreshAccount.bind(sessionStore)
       );
     }
   };

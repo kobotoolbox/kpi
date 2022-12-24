@@ -1,6 +1,5 @@
 import React from 'react';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
-import TextBox from 'js/components/common/textBox';
 import {PATHS} from 'js/router/routerConstants';
 import Button from 'jsapp/js/components/common/button';
 import styles from './passwordSection.module.scss';
