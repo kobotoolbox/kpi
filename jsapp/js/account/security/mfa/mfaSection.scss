@@ -8,28 +8,39 @@
     margin-top: sizes.$x20;
     padding-top: sizes.$x14;
     display: flex;
+    align-items: baseline;
+    column-gap: sizes.$x16;
     border-top: sizes.$x1 solid;
     border-color: colors.$kobo-gray-92;
+
+    > * {
+      margin: 0;
+    }
   }
 
   .security-row__title {
     flex: 2;
-    line-height: sizes.$x32;
     color: colors.$kobo-gray-40;
     font-weight: 600;
+    line-height: 1.6;
   }
 
   .security-row__description {
-    flex: 4;
+    flex: 6;
+    padding-left: sizes.$x16;
   }
 
   .security-row__switch {
-    flex: 3;
+    flex: 2;
     text-align: right;
   }
 
   .security-row__buttons {
-    margin: sizes.$x20 sizes.$x20 sizes.$x14 0;
+    margin-right: sizes.$x20;
+
+    .toggle-switch__wrapper {
+      display: flex;
+    }
 
     .toggle-switch__label {
       font-weight: 600;

@@ -7,6 +7,8 @@
   margin-bottom: sizes.$x60;
   padding-top: sizes.$x14;
   display: flex;
+  align-items: baseline;
+  column-gap: sizes.$x16;
   border-top: sizes.$x1 solid;
   border-color: colors.$kobo-gray-92;
 }
@@ -23,19 +25,23 @@
   margin: 0;
   color: colors.$kobo-gray-40;
   font-weight: 600;
+  line-height: 1.6;
 }
 
 .bodySection {
-  flex: 4;
+  flex: 6;
   display: flex;
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
+  padding-left: sizes.$x16;
 }
 
 .optionsSection {
   text-align: right;
-  // FIXME: Why does text-align do nothing?
-  display: ruby;
-  flex: 3;
+  flex: 2;
+
+  a {
+    display: inline-block;
+  }
 }

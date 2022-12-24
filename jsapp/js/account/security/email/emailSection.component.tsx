@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import sessionStore from 'js/stores/session';
-import {EmailResponse, getUserEmails, setUserEmail} from './emailSection.api';
+import type {EmailResponse} from './emailSection.api';
+import {getUserEmails, setUserEmail} from './emailSection.api';
 import style from './emailSection.module.scss';
 import Button from 'jsapp/js/components/common/button';
 import TextBox from 'jsapp/js/components/common/textBox';
@@ -58,7 +59,7 @@ export default function EmailSection() {
   return (
     <div className={style.root}>
       <div className={style.titleSection}>
-        <h2 className={style.title}>Email</h2>
+        <h2 className={style.title}>{t('Email address')}</h2>
       </div>
 
       <div className={style.bodySection}>
