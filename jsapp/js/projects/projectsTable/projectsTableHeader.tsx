@@ -86,32 +86,36 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
           }
           menuContent={
             <div className={styles.dropdownContent}>
-              <Button
-                type='bare'
-                color='storm'
-                size='m'
-                label={t('Sort A→Z')}
-                startIcon='sort-down'
-                onClick={() => {
-                  props.onChangeOrderRequested({
-                    fieldName: field.name,
-                    direction: 'descending',
-                  });
-                }}
-              />
-              <Button
-                type='bare'
-                color='storm'
-                size='m'
-                label={t('Sort Z→A')}
-                startIcon='sort-up'
-                onClick={() => {
-                  props.onChangeOrderRequested({
-                    fieldName: field.name,
-                    direction: 'ascending',
-                  });
-                }}
-              />
+              {field.orderable &&
+                <Button
+                  type='bare'
+                  color='storm'
+                  size='m'
+                  label={t('Sort A→Z')}
+                  startIcon='sort-down'
+                  onClick={() => {
+                    props.onChangeOrderRequested({
+                      fieldName: field.name,
+                      direction: 'descending',
+                    });
+                  }}
+                />
+              }
+              {field.orderable &&
+                <Button
+                  type='bare'
+                  color='storm'
+                  size='m'
+                  label={t('Sort Z→A')}
+                  startIcon='sort-up'
+                  onClick={() => {
+                    props.onChangeOrderRequested({
+                      fieldName: field.name,
+                      direction: 'ascending',
+                    });
+                  }}
+                />
+              }
               {/* The `name` field is always visible, no need for the button */}
               {field.name !== 'name' && (
                 <Button

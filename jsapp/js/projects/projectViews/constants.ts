@@ -120,8 +120,10 @@ export interface ProjectFieldDefinition {
   label: string;
   /** Backend property name used for ordering and filtering. */
   apiPropertyName: string;
-  /** Some of the fields (submission) doesn't allow any filtering yet. */
-  allowsFiltering: boolean;
+  /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
+  filterable: boolean;
+  /** Some of the fields (e.g. `submission`) doesn't allow being ordered by. */
+  orderable: boolean;
 }
 
 type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
@@ -139,79 +141,92 @@ export const PROJECT_FIELDS: ProjectFields = {
     name: 'name',
     label: t('Project name'),
     apiPropertyName: 'name',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   description: {
     name: 'description',
     label: t('Description'),
     apiPropertyName: 'settings__description',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
     apiPropertyName: '_deployment_data',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
     apiPropertyName: 'owner__username',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
     apiPropertyName: 'owner__extra_details__data__name',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
     apiPropertyName: 'owner__email',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
     apiPropertyName: 'owner__extra_details__data__organization',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
     apiPropertyName: 'date_modified__date',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   dateDeployed: {
     name: 'dateDeployed',
     label: t('Date deployed'),
     apiPropertyName: 'date_deployed__date',
-    allowsFiltering: false,
+    filterable: false,
+    orderable: false,
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
     apiPropertyName: 'settings__sector',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
     apiPropertyName: 'settings__country_codes[]',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
     apiPropertyName: 'summary__languages[]',
-    allowsFiltering: true,
+    filterable: true,
+    orderable: true,
   },
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
     apiPropertyName: 'deployment__submission_count',
-    allowsFiltering: false,
+    filterable: false,
+    orderable: false,
   },
 };
 

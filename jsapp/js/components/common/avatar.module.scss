@@ -17,7 +17,8 @@
   line-height: sizes.$x20;
   font-size: sizes.$x12;
   color: colors.$kobo-white;
-  // background color is provided by JS
+  // actual background color is provided by JS, this is just safeguard
+  background-color: colors.$kobo-storm;
 
   &:not(:last-child) {
     margin-right: sizes.$x5;
