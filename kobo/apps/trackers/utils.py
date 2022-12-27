@@ -1,16 +1,17 @@
 from datetime import datetime
 from typing import Optional
 
-from django.db.models.expressions import RawSQL
+from django.apps import apps
 
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kpi.utils.jsonbfield_helper import IncrementValue
 
 
 def update_nlp_counter(
         service: str,
         amount: int,
         user_id: int,
-        asset_id: Optional[int] = None
+        asset_id: Optional[int] = None,
+        counter_id: Optional[int] = None,
 ):
     """
     Update the NLP ASR and MT tracker for various services
@@ -23,25 +24,22 @@ def update_nlp_counter(
             user_id (int): id of the asset owner
             asset_id (int) or None: Primary key for Asset Model
     """
-    date = datetime.today()
-    criteria = dict(
-        year=date.year,
-        month=date.month,
-        user_id=user_id,
-        asset_id=asset_id,
-    )
-    # Ensure the counter for the month exists first
-    MonthlyNLPUsageCounter.objects.get_or_create(**criteria)
+    # Avoid circular import
+    MonthlyNLPUsageCounter = apps.get_model('trackers', 'MonthlyNLPUsageCounter')  # noqa
 
-    # Updating this way because other methods were messy and less reliable
-    # than using the rawSQL method
-    sql = f"""
-        jsonb_set(
-            counters,
-            '{{{service}}}',
-            (COALESCE(counters->>'{service}','0')::int + {amount})::text::jsonb
+    if not counter_id:
+        date = datetime.today()
+        criteria = dict(
+            year=date.year,
+            month=date.month,
+            user_id=user_id,
+            asset_id=asset_id,
         )
-    """
-    MonthlyNLPUsageCounter.objects.filter(**criteria).update(
-        counters=RawSQL(sql, [])
+
+        # Ensure the counter for the month exists first
+        counter, _ = MonthlyNLPUsageCounter.objects.get_or_create(**criteria)
+        counter_id = counter.pk
+
+    MonthlyNLPUsageCounter.objects.filter(pk=counter_id).update(
+        counters=IncrementValue('counters', keyname=service, increment=amount)
     )

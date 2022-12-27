@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.contrib.auth.models import User
 
@@ -19,7 +19,7 @@ class TrackersTestCases(KpiTestCase):
             'optimus_transcribers',
             'wonka_stenographers',
         ]
-        self.today = datetime.datetime.today()
+        self.today = datetime.today()
 
     def _create_asset(self):
         asset = Asset.objects.create(
@@ -44,9 +44,13 @@ class TrackersTestCases(KpiTestCase):
             counters={'some_key': 4504},
         )
         assert MonthlyNLPUsageCounter.objects.all().count() == 1
+        assert MonthlyNLPUsageCounter.objects.filter(asset=None).count() == 0
         a_id = asset.id
         asset.delete()
+        # test a counter still exists after the asset is deleted
         assert MonthlyNLPUsageCounter.objects.all().count() == 1
+
+        # test that the counter remaining does not have an asset
         tracker_no_asset = MonthlyNLPUsageCounter.objects.filter(
             user=self.user,
             asset_id=None,
@@ -84,6 +88,7 @@ class TrackersTestCases(KpiTestCase):
         assert tracker_updated_service_amount.counters[service] == expected_amount
 
         # ensure original tracker stays with new service added
+        assert new_service not in tracker_updated_service_amount.counters
         update_nlp_counter(new_service, initial_amount, self.user.id, asset.id)
         tracker_two_services = MonthlyNLPUsageCounter.objects.get(
             user_id=self.user.id,

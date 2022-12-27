@@ -111,7 +111,7 @@ class SubmissionExtras(models.Model):
                 update_nlp_counter(
                     'google_mt_characters',
                     len(content),
-                    self.asset.owner.id,
+                    self.asset.owner_id,
                     self.asset.id
                 )
                 if tx_engine.translation_must_be_async(content):
