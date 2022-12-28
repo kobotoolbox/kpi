@@ -236,7 +236,10 @@ class ProjectSettings extends React.Component {
     this.setState(newStateObj);
 
     if (typeof this.props.onProjectDetailsChange === 'function') {
-      this.props.onProjectDetailsChange({fieldName, newFieldValue});
+      this.props.onProjectDetailsChange({
+        fieldName: fieldName,
+        fieldValue: newFieldValue,
+      });
     }
   }
 
