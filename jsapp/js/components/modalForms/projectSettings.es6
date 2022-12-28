@@ -132,7 +132,8 @@ class ProjectSettings extends React.Component {
 
     fields.name = asset ? asset.name : '';
     fields.description = asset?.settings ? asset.settings.description : '';
-    fields.sector = asset?.settings ? asset.settings.sector : null;
+
+    fields.sector = asset?.settings?.sector?.value ? asset.settings.sector : null;
     fields.country = asset?.settings ? asset.settings.country : null;
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null;
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null;

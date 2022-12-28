@@ -48,6 +48,7 @@ import type {
   Permission,
   SubmissionResponse,
 } from 'js/dataInterface';
+import {getRouteAssetUid} from 'js/router/routerUtils';
 import { routerGetAssetId, routerIsActive } from './router/legacy';
 import { history } from "./router/historyRouter";
 
@@ -329,7 +330,7 @@ mixins.dmix = {
       // that includes `content`).
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid;
+      return this.props.uid || getRouteAssetUid();
     }
   },
   // TODO 1/2
