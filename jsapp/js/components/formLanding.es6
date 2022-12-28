@@ -493,7 +493,16 @@ class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
+          {/*
+            So the `view_asset` might not make sense here, but it's needed
+            for the Regional Manager user type. It can access the landing page,
+            but doesn't have any actual permissions.
+          */}
+          {(
+            isLoggedIn &&
+            !assetUtils.isSelfOwned(this.state) &&
+            this.userCan('view_asset', this.state)
+          ) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >

@@ -232,10 +232,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                 <Route
                   path={ROUTES.FORM_LANDING}
                   element={
-                    <PermProtectedRoute
-                      requiredPermission={PERMISSIONS_CODENAMES.view_asset}
-                      protectedComponent={FormLanding}
-                    />
+                    <RequireAuth>
+                      <FormLanding/>
+                    </RequireAuth>
                   }
                 />
 
