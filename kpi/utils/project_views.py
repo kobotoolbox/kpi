@@ -7,7 +7,8 @@ from django_request_cache import cache_for_request
 from kobo.apps.project_views.models import ProjectView
 
 
-def get_regional_user_permissions_for_asset(
+@cache_for_request
+def get_project_view_user_permissions_for_asset(
     asset: 'models.Asset', user: 'auth.User'
 ) -> list[str]:
     """
@@ -36,7 +37,7 @@ def user_has_regional_asset_perm(
     Returns True if user has specified permission for asset within region if
     not explicitly granted through Asset.assign_perm()
     """
-    return perm in get_regional_user_permissions_for_asset(asset, user)
+    return perm in get_project_view_user_permissions_for_asset(asset, user)
 
 
 @cache_for_request

@@ -44,6 +44,7 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments_queryset,
 )
 from kpi.utils.project_views import (
+    get_project_view_user_permissions_for_asset,
     user_has_regional_asset_perm,
     view_has_perm,
 )
@@ -85,6 +86,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    user_asset_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
     export_settings = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
@@ -158,6 +160,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'name',
                   'assignable_permissions',
                   'permissions',
+                  'user_asset_permissions',
                   'exports',
                   'export_settings',
                   'settings',
@@ -226,6 +229,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_analysis_form_json(self, obj):
         return obj.analysis_form_json()
+
+    def get_user_asset_permissions(self, obj: Asset) -> list[str]:
+        user = get_database_user(self.context['request'].user)
+        project_view_perms = get_project_view_user_permissions_for_asset(
+            obj, user
+        )
+        asset_perms = list(obj.get_perms(user))
+        return list(set(project_view_perms + asset_perms))
 
     def get_version_count(self, obj):
         try:

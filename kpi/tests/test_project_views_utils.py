@@ -5,7 +5,7 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.project_views import (
-    get_regional_user_permissions_for_asset,
+    get_project_view_user_permissions_for_asset,
     user_has_regional_asset_perm,
     user_has_view_perms,
     view_has_perm,
@@ -76,7 +76,7 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
                 'change_metadata',
             ]
         )
-        regional_asset_perms = get_regional_user_permissions_for_asset(
+        regional_asset_perms = get_project_view_user_permissions_for_asset(
             self.asset, self.user
         )
         assert sorted(regional_asset_perms) == actual_perms
