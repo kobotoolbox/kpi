@@ -223,18 +223,24 @@ const AllRoutes = class AllRoutes extends React.Component {
                 <Route
                   path={ROUTES.FORM_SUMMARY}
                   element={
-                    <RequireAuth>
-                      <FormSummary/>
-                    </RequireAuth>
+                    <PermProtectedRoute
+                      requiredPermission={
+                        PERMISSIONS_CODENAMES.view_submissions
+                      }
+                      protectedComponent={FormSummary}
+                    />
                   }
                 />
 
                 <Route
                   path={ROUTES.FORM_LANDING}
                   element={
-                    <RequireAuth>
-                      <FormLanding/>
-                    </RequireAuth>
+                    <PermProtectedRoute
+                      requiredPermission={
+                        PERMISSIONS_CODENAMES.view_submissions
+                      }
+                      protectedComponent={FormLanding}
+                    />
                   }
                 />
 
