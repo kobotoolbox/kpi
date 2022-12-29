@@ -64,7 +64,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.utils.project_views import user_has_regional_asset_perm
+from kpi.utils.project_views import user_has_project_view_asset_perm
 
 
 class AssetViewSet(
@@ -352,9 +352,9 @@ class AssetViewSet(
 
             # Bypass the usual permissions checks since project view-level
             # permissions are not assigned on a per-asset basis as it expects
-            if user_has_regional_asset_perm(
+            if user_has_project_view_asset_perm(
                 asset, user, PERM_CHANGE_METADATA
-            ) or user_has_regional_asset_perm(asset, user, PERM_VIEW_ASSET):
+            ) or user_has_project_view_asset_perm(asset, user, PERM_VIEW_ASSET):
                 return asset
 
         return super().get_object()

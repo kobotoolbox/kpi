@@ -17,8 +17,8 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
-    get_regional_user_permissions_for_asset,
-    user_has_regional_asset_perm,
+    get_project_view_user_permissions_for_asset,
+    user_has_project_view_asset_perm,
 )
 
 
@@ -255,10 +255,10 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
         user = get_database_user(request.user)
         method = request._request.method
         if (
-            user_has_regional_asset_perm(obj, user, PERM_CHANGE_METADATA)
+            user_has_project_view_asset_perm(obj, user, PERM_CHANGE_METADATA)
             and method == 'PATCH'
         ) or (
-            user_has_regional_asset_perm(obj, user, PERM_VIEW_ASSET)
+            user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
             and method == 'GET'
         ):
             return True
@@ -329,7 +329,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         return list(
             set(
                 user_permissions
-                + get_regional_user_permissions_for_asset(asset, user)
+                + get_project_view_user_permissions_for_asset(asset, user)
             )
         )
 

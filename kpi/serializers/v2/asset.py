@@ -28,7 +28,6 @@ from kpi.constants import (
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
-    PERM_VIEW_PERMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import (
@@ -44,7 +43,8 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments_queryset,
 )
 from kpi.utils.project_views import (
-    user_has_regional_asset_perm,
+    get_project_view_user_permissions_for_asset,
+    user_has_project_view_asset_perm,
     view_has_perm,
 )
 from .asset_version import AssetVersionListSerializer
@@ -85,6 +85,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    effective_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
     export_settings = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
@@ -158,6 +159,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'name',
                   'assignable_permissions',
                   'permissions',
+                  'effective_permissions',
                   'exports',
                   'export_settings',
                   'settings',
@@ -183,7 +185,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         user = request.user
         if (
             not asset.has_perm(user, PERM_CHANGE_ASSET)
-            and user_has_regional_asset_perm(asset, user, PERM_CHANGE_METADATA)
+            and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA)
         ):
             _validated_data = {}
             if settings := validated_data.get('settings'):
@@ -226,6 +228,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_analysis_form_json(self, obj):
         return obj.analysis_form_json()
+
+    def get_effective_permissions(self, obj: Asset) -> list[dict[str, str]]:
+        """
+        Return a list of combined asset and project view permissions that the
+        requesting user has for the asset.
+        """
+        user = get_database_user(self.context['request'].user)
+        project_view_perms = get_project_view_user_permissions_for_asset(
+            obj, user
+        )
+        asset_perms = list(obj.get_perms(user))
+        return [
+            {'codename': perm} for perm in set(project_view_perms + asset_perms)
+        ]
 
     def get_version_count(self, obj):
         try:
@@ -830,13 +846,6 @@ class AssetMetadataListSerializer(AssetListSerializer):
 
     def get_owner__organization(self, obj: Asset) -> str:
         return self._get_user_detail(obj, 'organization')
-
-    def get_permissions(self, obj: Asset) -> list:
-        if view_has_perm(
-            self._get_view(), PERM_VIEW_PERMISSIONS
-        ) or self._user_has_asset_perms(obj, PERM_MANAGE_ASSET):
-            return super().get_permissions(obj)
-        return []
 
     @staticmethod
     def _get_user_detail(obj, attr: str) -> str:
