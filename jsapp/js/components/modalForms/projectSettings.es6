@@ -1004,7 +1004,7 @@ class ProjectSettings extends React.Component {
             </bem.Modal__footer>
           }
 
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+          {this.userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&

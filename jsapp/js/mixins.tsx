@@ -24,6 +24,7 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
 } from './constants';
+import type {PermissionCodename} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
@@ -961,7 +962,19 @@ mixins.permissions = {
     return allowedUsers.includes(submittedBy);
   },
 
-  userCan(permName: string, asset: AssetResponse, partialPermName = null) {
+  // NOTE: be aware of the fact that some of non-TypeScript code is passing
+  // things that are not AssetResponse (probably due to how dmix mixin is used
+  // - merging asset response directly into component state object)
+  userCan(permName: PermissionCodename, asset: AssetResponse, partialPermName = null) {
+    // TODO: check out whether any other checks are really needed at this point.
+    // Pay attention if partial permissions work.
+    const hasEffectiveAccess = asset.effective_permissions?.some((effectivePerm) =>
+      effectivePerm.codename === permName
+    );
+    if (hasEffectiveAccess) {
+      return true;
+    }
+
     if (!asset.permissions) {
       return false;
     }

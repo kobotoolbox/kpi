@@ -343,7 +343,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermission={PERMISSIONS_CODENAMES.change_metadata}
                       />
                     }
                   />

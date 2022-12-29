@@ -10,6 +10,7 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
+import type {PermissionCodename} from 'js/constants';
 import type {EnvStoreFieldItem} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
@@ -528,6 +529,12 @@ export interface AssetResponse extends AssetRequestObject {
   kind: string;
   xls_link?: string;
   assignable_permissions?: Array<AssignablePermission|AssignablePermissionPartial>;
+  /**
+   * A list of all permissions (their codenames) that current user has in
+   * regards to this asset. It is a sum of permissions assigned directly for
+   * that user and ones coming from the Project View definition.
+   */
+  effective_permissions: Array<{codename: PermissionCodename}>;
   exports?: string;
   data: string;
   children: {
