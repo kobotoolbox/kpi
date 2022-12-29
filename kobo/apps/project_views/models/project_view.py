@@ -8,7 +8,6 @@ from django.db import models
 from kpi.constants import (
     PERM_CHANGE_METADATA,
     PERM_VIEW_ASSET,
-    PERM_VIEW_PERMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
@@ -23,7 +22,6 @@ def _get_permission_choices() -> list[tuple(str, str)]:
     allowed_perms = [
         PERM_CHANGE_METADATA,
         PERM_VIEW_ASSET,
-        PERM_VIEW_PERMISSIONS,
         PERM_VIEW_SUBMISSIONS,
     ]
     return [(p, p) for p in allowed_perms]

@@ -5,12 +5,11 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.project_views import (
-    get_regional_user_permissions_for_asset,
-    user_has_regional_asset_perm,
+    get_project_view_user_permissions_for_asset,
+    user_has_project_view_asset_perm,
     user_has_view_perms,
     view_has_perm,
     get_region_for_view,
-    get_regional_views_for_user,
 )
 
 
@@ -24,7 +23,6 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
                 'countries': '*',
                 'permissions': [
                     'view_asset',
-                    'view_permissions',
                 ],
                 'users': ['someuser'],
             },
@@ -43,7 +41,6 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
                 'countries': 'USA, CAN',
                 'permissions': [
                     'view_asset',
-                    'view_permissions',
                 ],
                 'users': ['anotheruser'],
             },
@@ -71,20 +68,18 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
         actual_perms = sorted(
             [
                 'view_asset',
-                'view_permissions',
                 'view_submissions',
                 'change_metadata',
             ]
         )
-        regional_asset_perms = get_regional_user_permissions_for_asset(
+        regional_asset_perms = get_project_view_user_permissions_for_asset(
             self.asset, self.user
         )
         assert sorted(regional_asset_perms) == actual_perms
 
-    def test_user_has_regional_asset_perm(self):
+    def test_user_has_project_view_asset_perm(self):
         assigned_perms = [
             'view_asset',
-            'view_permissions',
             'view_submissions',
             'change_metadata',
         ]
@@ -94,9 +89,9 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
         ]
 
         for perm in assigned_perms:
-            assert user_has_regional_asset_perm(self.asset, self.user, perm)
+            assert user_has_project_view_asset_perm(self.asset, self.user, perm)
         for perm in unassigned_perms:
-            assert not user_has_regional_asset_perm(self.asset, self.user, perm)
+            assert not user_has_project_view_asset_perm(self.asset, self.user, perm)
 
     def test_user_has_view_perms(self):
         views = ProjectView.objects.filter(
@@ -122,12 +117,3 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
         assert sorted(['BWA', 'LSO', 'MOZ', 'NAM', 'ZAF', 'ZWE']) == sorted(
             get_region_for_view(ProjectView.objects.get(name='Test view 1').uid)
         )
-
-    def test_get_regional_views_for_user(self):
-        assert sorted(
-            list(
-                ProjectView.objects.filter(
-                    name__in=['Overview', 'Test view 1']
-                ).values_list('uid', flat=True)
-            )
-        ) == sorted([v.uid for v in get_regional_views_for_user(self.user)])
