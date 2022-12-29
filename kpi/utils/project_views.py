@@ -13,7 +13,7 @@ def get_project_view_user_permissions_for_asset(
 ) -> list[str]:
     """
     Returns a flat list of permissions the user has available for a specified
-    asset within a region
+    asset within a project view
     """
 
     asset_countries = asset.settings.get('country_codes', [])
@@ -30,12 +30,12 @@ def get_project_view_user_permissions_for_asset(
 
 
 @cache_for_request
-def user_has_regional_asset_perm(
+def user_has_project_view_asset_perm(
     asset: 'models.Asset', user: 'auth.User', perm: str
 ) -> bool:
     """
-    Returns True if user has specified permission for asset within region if
-    not explicitly granted through Asset.assign_perm()
+    Returns True if user has specified permission for asset within project view
+    if not explicitly granted through Asset.assign_perm()
     """
     return perm in get_project_view_user_permissions_for_asset(asset, user)
 
@@ -64,11 +64,3 @@ def get_region_for_view(view: str) -> list[str]:
     Returns list of county codes for a specified view id
     """
     return ProjectView.objects.get(uid=view).get_countries()
-
-
-@cache_for_request
-def get_regional_views_for_user(user: 'auth.User') -> list[ProjectView]:
-    """
-    Returns a list of all available regional views for a user
-    """
-    return list(ProjectView.objects.filter(users=user))

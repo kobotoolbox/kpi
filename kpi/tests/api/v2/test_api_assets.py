@@ -294,7 +294,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 'countries': '*',
                 'permissions': [
                     'view_asset',
-                    'view_permissions',
                 ],
                 'users': ['someuser'],
             },
@@ -313,7 +312,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 'countries': 'USA, CAN',
                 'permissions': [
                     'view_asset',
-                    'view_permissions',
                 ],
                 'users': ['anotheruser'],
             },
@@ -438,26 +436,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             asset_data['data'], HTTP_ACCEPT='application/json'
         )
         assert data_res.status_code == status.HTTP_200_OK
-
-    def test_regional_asset_views_for_anotheruser_can_view_permissions(self):
-        self._login_as_anotheruser()
-        res = self.client.get(self.region_views_url)
-        data = res.json()
-        results = data['results']
-
-        # anotheruser cannot see permissions for view 1
-        regional_res = self.client.get(
-            results[0]['assets'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert not asset_data['permissions']
-
-        # anotheruser can see permissions for view 2
-        regional_res = self.client.get(
-            results[1]['assets'], HTTP_ACCEPT='application/json'
-        )
-        asset_data = regional_res.json()['results'][0]
-        assert asset_data['permissions']
 
     def test_regional_asset_views_for_anotheruser_can_view_asset_detail(self):
         self._login_as_anotheruser()

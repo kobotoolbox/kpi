@@ -28,7 +28,6 @@ from kpi.constants import (
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
-    PERM_VIEW_PERMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import (
@@ -45,7 +44,7 @@ from kpi.utils.object_permission import (
 )
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
-    user_has_regional_asset_perm,
+    user_has_project_view_asset_perm,
     view_has_perm,
 )
 from .asset_version import AssetVersionListSerializer
@@ -186,7 +185,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         user = request.user
         if (
             not asset.has_perm(user, PERM_CHANGE_ASSET)
-            and user_has_regional_asset_perm(asset, user, PERM_CHANGE_METADATA)
+            and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA)
         ):
             _validated_data = {}
             if settings := validated_data.get('settings'):
@@ -841,13 +840,6 @@ class AssetMetadataListSerializer(AssetListSerializer):
 
     def get_owner__organization(self, obj: Asset) -> str:
         return self._get_user_detail(obj, 'organization')
-
-    def get_permissions(self, obj: Asset) -> list:
-        if view_has_perm(
-            self._get_view(), PERM_VIEW_PERMISSIONS
-        ) or self._user_has_asset_perms(obj, PERM_MANAGE_ASSET):
-            return super().get_permissions(obj)
-        return []
 
     @staticmethod
     def _get_user_detail(obj, attr: str) -> str:
