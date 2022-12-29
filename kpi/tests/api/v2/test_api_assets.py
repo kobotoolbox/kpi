@@ -349,7 +349,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             ['Test view 1', 'Test view 2']
         )
 
-    def test_regional_asset_views_for_someuser(self):
+    def test_project_views_for_someuser(self):
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -373,7 +373,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         region_for_view = set(get_region_for_view(results[1]['uid']))
         assert asset_countries & region_for_view
 
-    def test_regional_asset_views_anotheruser_submission_count(self):
+    def test_project_views_anotheruser_submission_count(self):
         self._login_as_anotheruser()
         for asset in Asset.objects.all():
             if asset.has_deployment:
@@ -397,7 +397,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         asset = regional_data['results'][0]
         assert asset['deployment__submission_count'] == 1
 
-    def test_regional_asset_views_for_anotheruser(self):
+    def test_project_views_for_anotheruser(self):
         self._login_as_anotheruser()
         res = self.client.get(self.region_views_url)
         data = res.json()
@@ -421,7 +421,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             region_for_view = set(get_region_for_view(results[i]['uid']))
             assert asset_countries & region_for_view
 
-    def test_regional_asset_views_for_someuser_can_view_submissions(self):
+    def test_project_views_for_someuser_can_view_submissions(self):
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -437,7 +437,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         assert data_res.status_code == status.HTTP_200_OK
 
-    def test_regional_asset_views_for_anotheruser_can_view_asset_detail(self):
+    def test_project_views_for_anotheruser_can_view_asset_detail(self):
         self._login_as_anotheruser()
         user = User.objects.get(username='anotheruser')
         res = self.client.get(self.region_views_url)
@@ -459,7 +459,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
 
-    def test_regional_asset_views_for_anotheruser_can_change_metadata(self):
+    def test_project_views_for_anotheruser_can_change_metadata(self):
         self._login_as_anotheruser()
         res = self.client.get(self.region_views_url)
         data = res.json()
@@ -485,7 +485,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_regional_asset_views_trivial_ordering(self):
+    def test_project_views_trivial_ordering(self):
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -502,7 +502,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert results_desc[0]['name'] == 'fixture asset with translations'
         assert results_asc[0]['name'] == 'fixture asset'
 
-    def test_regional_asset_views_special_ordering(self):
+    def test_project_views_special_ordering(self):
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']

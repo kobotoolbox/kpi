@@ -85,7 +85,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
-    user_asset_permissions = serializers.SerializerMethodField()
+    effective_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
     export_settings = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
@@ -159,7 +159,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'name',
                   'assignable_permissions',
                   'permissions',
-                  'user_asset_permissions',
+                  'effective_permissions',
                   'exports',
                   'export_settings',
                   'settings',
@@ -229,13 +229,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_analysis_form_json(self, obj):
         return obj.analysis_form_json()
 
-    def get_user_asset_permissions(self, obj: Asset) -> list[str]:
+    def get_effective_permissions(self, obj: Asset) -> list[dict[str, str]]:
+        """
+        Return a list of combined asset and project view permissions that the
+        requesting user has for the asset.
+        """
         user = get_database_user(self.context['request'].user)
         project_view_perms = get_project_view_user_permissions_for_asset(
             obj, user
         )
         asset_perms = list(obj.get_perms(user))
-        return list(set(project_view_perms + asset_perms))
+        return [
+            {'codename': perm} for perm in set(project_view_perms + asset_perms)
+        ]
 
     def get_version_count(self, obj):
         try:
