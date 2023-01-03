@@ -17,6 +17,17 @@ import session from 'js/stores/session';
 
 const SAVE_DATA_NAME = 'project_views_settings';
 
+const DEFAULT_VIEW_SETTINGS: ViewSettings = {
+  filters: [],
+  order: {
+    fieldName: PROJECT_FIELDS.name.name,
+    direction: 'ascending',
+  },
+  // When fields are `undefined`, it means the deafult fields (from
+  // `DEFAULT_PROJECT_FIELDS`) are being used.
+  fields: undefined,
+};
+
 /** Settings of a different views to be stored on backend. */
 export interface ProjectViewsSettings {
   [viewUid: string]: ViewSettings;
@@ -30,10 +41,9 @@ interface ViewSettings {
 
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];
-  // NOTE: Both `filters` and `order` are defined via `resetSettings`.
-  public filters!: ProjectsFilterDefinition[];
-  public order!: ProjectsTableOrder;
-  public fields?: ProjectFieldName[];
+  public filters: ProjectsFilterDefinition[] = DEFAULT_VIEW_SETTINGS.filters;
+  public order: ProjectsTableOrder = DEFAULT_VIEW_SETTINGS.order;
+  public fields?: ProjectFieldName[] = DEFAULT_VIEW_SETTINGS.fields;
   /** Whether the first call was made. */
   public isInitialised = false;
   public isLoading = false;
@@ -42,7 +52,6 @@ class CustomViewStore {
   private nextPageUrl: string | null = null;
 
   constructor() {
-    this.resetSettings();
     makeAutoObservable(this);
   }
 
@@ -172,15 +181,9 @@ class CustomViewStore {
   }
 
   private resetSettings() {
-    // There are no initial filters
-    this.filters = [];
-    // Default order is by name
-    this.order = {
-      fieldName: PROJECT_FIELDS.name.name,
-      direction: 'ascending',
-    };
-    // When fields are undefined, it means the deafult fields are selected.
-    this.fields = undefined;
+    this.filters = DEFAULT_VIEW_SETTINGS.filters;
+    this.order = DEFAULT_VIEW_SETTINGS.order;
+    this.fields = DEFAULT_VIEW_SETTINGS.fields;
   }
 
   /**
