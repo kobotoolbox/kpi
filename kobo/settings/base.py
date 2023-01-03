@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 import string
 import subprocess
 from mimetypes import add_type
@@ -89,6 +90,7 @@ INSTALLED_APPS = (
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.openid_connect',
     'hub',
     'loginas',
     'webpack_loader',
@@ -704,9 +706,34 @@ SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
 
+# See https://django-allauth.readthedocs.io/en/latest/configuration.html
+# Map env vars to upstream dict values, include exact case. Underscores for delimiter.
+# Example: SOCIALACCOUNT_PROVIDERS_provider_SETTING
+# Use numbers for arrays such as _1_FOO, _1_BAR, _2_FOO, _2_BAR
 SOCIALACCOUNT_PROVIDERS = {}
 if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
     SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
+# Parse oidc settings as nested dict in array. Example:
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google-kobo" # Must be unique
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
+# Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
+# OIDC and assign them a different server number. Do not use the allauth google provider.
+oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
+oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
+oidc_servers = {}
+for key, value in {
+    key.replace(oidc_prefix, ""): val
+    for key, val in os.environ.items()
+    if oidc_pattern.match(key)
+}.items():
+    number, setting = key.split("_", 1)
+    if number in oidc_servers:
+        oidc_servers[number][setting] = value
+    else:
+        oidc_servers[number] = {setting: value}
+oidc_servers = [x for x in oidc_servers.values()]
+SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
 WEBPACK_LOADER = {
     'DEFAULT': {
