@@ -6,20 +6,38 @@ import type {
 } from 'js/dataInterface';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-import {PROJECT_FIELDS} from './projectViews/constants';
-import type {ProjectsFilterDefinition} from './projectViews/constants';
+import {DEFAULT_PROJECT_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
+import type {
+  ProjectFieldName,
+  ProjectsFilterDefinition,
+} from './projectViews/constants';
 import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
+import session from 'js/stores/session';
+
+const SAVE_DATA_NAME = 'project_views_settings';
 
 const DEFAULT_ORDER: ProjectsTableOrder = {
   fieldName: PROJECT_FIELDS.name.name,
   direction: 'ascending',
 };
 
+/** Settings of a different views to be stored on backend. */
+export interface ProjectViewsSettings {
+  [viewUid: string]: ViewSettings;
+}
+
+interface ViewSettings {
+  filters: ProjectsFilterDefinition[];
+  order: ProjectsTableOrder;
+  fields?: ProjectFieldName[];
+}
+
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];
   public filters: ProjectsFilterDefinition[] = [];
   public order: ProjectsTableOrder = DEFAULT_ORDER;
+  public fields?: ProjectFieldName[];
   /** Whether the first call was made. */
   public isInitialised = false;
   public isLoading = false;
@@ -38,6 +56,7 @@ class CustomViewStore {
     this.isInitialised = false;
     this.isLoading = false;
     this.nextPageUrl = null;
+    this.loadSettings();
   }
 
   /** If next page of results is available. */
@@ -48,13 +67,29 @@ class CustomViewStore {
   /** Stores the new filters and fetches completely new list of assets. */
   public setFilters(filters: ProjectsFilterDefinition[]) {
     this.filters = filters;
+    this.saveSettings();
     this.fetchAssets();
   }
 
   /** Stores the new ordering and fetches completely new list of assets. */
   public setOrder(order: ProjectsTableOrder) {
     this.order = order;
+    this.saveSettings();
     this.fetchAssets();
+  }
+
+  public setFields(fields: ProjectFieldName[] | undefined) {
+    this.fields = fields;
+    this.saveSettings();
+    // NOTE: we don't need to fetch assets again, fields are UI only
+  }
+
+  public hideField(fieldName: ProjectFieldName) {
+    let newFields = Array.isArray(this.fields)
+      ? Array.from(this.fields)
+      : DEFAULT_PROJECT_FIELDS;
+    newFields = newFields.filter((item) => item !== fieldName);
+    this.setFields(newFields);
   }
 
   /**
@@ -110,6 +145,51 @@ class CustomViewStore {
   private onAnyFail(response: FailResponse) {
     this.isLoading = false;
     handleApiFail(response);
+  }
+
+  /**
+   * Stores settings for current view in `/me/` endpoint, so user will not lose
+   * the configuration of the view after leaving the route.
+   */
+  private saveSettings() {
+    if (!this.viewUid) {
+      return;
+    }
+
+    let newData: ProjectViewsSettings = {};
+    // Get saved data
+    if (
+      'email' in session.currentAccount &&
+      session.currentAccount.extra_details.project_views_settings
+    ) {
+      newData = session.currentAccount.extra_details.project_views_settings;
+    }
+
+    newData[this.viewUid] = {
+      filters: this.filters,
+      order: this.order,
+      fields: this.fields,
+    };
+
+    session.setDetail(SAVE_DATA_NAME, newData);
+  }
+
+  /** Gets the settings for current view from session store (if they exists). */
+  private loadSettings() {
+    if (!this.viewUid) {
+      return;
+    }
+
+    if (
+      'email' in session.currentAccount &&
+      session.currentAccount.extra_details[SAVE_DATA_NAME] &&
+      session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
+    ) {
+      const savedViewData = session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid];
+      this.filters = savedViewData.filters || [];
+      this.order = savedViewData.order || DEFAULT_ORDER;
+      this.fields = savedViewData.fields;
+    }
   }
 }
 

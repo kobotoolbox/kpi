@@ -27,9 +27,6 @@ function CustomViewRoute() {
 
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
-  const [fields, setFields] = useState<ProjectFieldName[] | undefined>(
-    undefined
-  );
 
   useEffect(() => {
     customView.setUp(viewUid);
@@ -73,14 +70,6 @@ function CustomViewRoute() {
     }
   };
 
-  const hideField = (fieldName: ProjectFieldName) => {
-    let newFields = Array.isArray(fields)
-      ? Array.from(fields)
-      : DEFAULT_PROJECT_FIELDS;
-    newFields = newFields.filter((item) => item !== fieldName);
-    setFields(newFields);
-  };
-
   return (
     <section className={styles.root}>
       <header className={styles.header}>
@@ -92,8 +81,8 @@ function CustomViewRoute() {
         />
 
         <ProjectsFieldsSelector
-          onFieldsChange={setFields}
-          selectedFields={fields}
+          onFieldsChange={customView.setFields.bind(customView)}
+          selectedFields={toJS(customView.fields)}
         />
 
         <Button
@@ -110,10 +99,10 @@ function CustomViewRoute() {
         assets={customView.assets}
         isLoading={!customView.isInitialised}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={fields || DEFAULT_PROJECT_FIELDS}
+        visibleFields={toJS(customView.fields) || DEFAULT_PROJECT_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
-        onHideFieldRequested={hideField}
+        onHideFieldRequested={customView.hideField.bind(customView)}
         onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
       />

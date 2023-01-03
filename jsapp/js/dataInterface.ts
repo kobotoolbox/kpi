@@ -10,15 +10,16 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
-import type {PermissionCodename} from 'js/constants';
 import type {EnvStoreFieldItem} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
+  PermissionCodename,
 } from 'js/constants';
-import { Json } from './components/common/common.interfaces';
+import type {Json} from './components/common/common.interfaces';
+import type {ProjectViewsSettings} from './projects/customViewStore';
 
 interface AssetsRequestData {
   q?: string;
@@ -645,8 +646,9 @@ export interface AccountResponse {
     twitter: string;
     linkedin: string;
     instagram: string;
-    // JSON values are the backend reality, but we make make assumptions
-    [key: string]: Json;
+    project_views_settings: ProjectViewsSettings;
+    // JSON values are the backend reality, but we make assumptions
+    [key: string]: Json | ProjectViewsSettings;
   };
   git_rev: {
     short: string;
@@ -813,7 +815,9 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/me/`,
       method: 'PATCH',
-      data: data,
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
     });
   },
 
