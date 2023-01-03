@@ -17,11 +17,6 @@ import session from 'js/stores/session';
 
 const SAVE_DATA_NAME = 'project_views_settings';
 
-const DEFAULT_ORDER: ProjectsTableOrder = {
-  fieldName: PROJECT_FIELDS.name.name,
-  direction: 'ascending',
-};
-
 /** Settings of a different views to be stored on backend. */
 export interface ProjectViewsSettings {
   [viewUid: string]: ViewSettings;
@@ -35,8 +30,9 @@ interface ViewSettings {
 
 class CustomViewStore {
   public assets: ProjectViewAsset[] = [];
-  public filters: ProjectsFilterDefinition[] = [];
-  public order: ProjectsTableOrder = DEFAULT_ORDER;
+  // NOTE: Both `filters` and `order` are defined via `resetSettings`.
+  public filters!: ProjectsFilterDefinition[];
+  public order!: ProjectsTableOrder;
   public fields?: ProjectFieldName[];
   /** Whether the first call was made. */
   public isInitialised = false;
@@ -46,6 +42,7 @@ class CustomViewStore {
   private nextPageUrl: string | null = null;
 
   constructor() {
+    this.resetSettings();
     makeAutoObservable(this);
   }
 
@@ -174,21 +171,46 @@ class CustomViewStore {
     session.setDetail(SAVE_DATA_NAME, newData);
   }
 
-  /** Gets the settings for current view from session store (if they exists). */
+  private resetSettings() {
+    // There are no initial filters
+    this.filters = [];
+    // Default order is by name
+    this.order = {
+      fieldName: PROJECT_FIELDS.name.name,
+      direction: 'ascending',
+    };
+    // When fields are undefined, it means the deafult fields are selected.
+    this.fields = undefined;
+  }
+
+  /**
+   * Gets the settings for current view from session store (if they exists) with
+   * fall back to defaults.
+   */
   private loadSettings() {
     if (!this.viewUid) {
       return;
     }
 
+    // First we load the default values
+    this.resetSettings();
+
+    // Then we load the saved settings (if they exist)
     if (
       'email' in session.currentAccount &&
       session.currentAccount.extra_details[SAVE_DATA_NAME] &&
       session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
     ) {
       const savedViewData = session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid];
-      this.filters = savedViewData.filters || [];
-      this.order = savedViewData.order || DEFAULT_ORDER;
-      this.fields = savedViewData.fields;
+      if (savedViewData.filters) {
+        this.filters = savedViewData.filters;
+      }
+      if (savedViewData.order) {
+        this.order = savedViewData.order;
+      }
+      if (savedViewData.fields) {
+        this.fields = savedViewData.fields;
+      }
     }
   }
 }
