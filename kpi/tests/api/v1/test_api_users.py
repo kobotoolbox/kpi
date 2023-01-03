@@ -15,7 +15,7 @@ class UserListTests(test_api_users.UserListTests):
         self.client.login(username='someuser', password='someuser')
         user = User.objects.get(username='someuser')
         xtradata = user.extra_details.data
-        assert xtradata == {}
+        assert xtradata == {'name': '', 'organization': ''}
 
         # `primarySector` should be renamed to `sector`
         xtradata['primarySector'] = 'camelCase Administration'
