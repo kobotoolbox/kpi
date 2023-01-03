@@ -1,4 +1,5 @@
 # coding: utf-8
+from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -45,4 +46,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         user.save()
+        EmailAddress.objects.create(
+            user_id=user.id,
+            email=user.email,
+            verified=True,
+        )
         return user
