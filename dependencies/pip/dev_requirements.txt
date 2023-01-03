@@ -145,7 +145,7 @@ django==3.2.15
     #   jsonfield
     #   kobo-service-account
     #   model-bakery
-django-allauth==0.51.0
+django-allauth==0.52.0
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
