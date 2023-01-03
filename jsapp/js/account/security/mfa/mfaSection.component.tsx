@@ -76,11 +76,13 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   onGetUserMethodsCompleted(response: MfaUserMethodsResponse) {
-    this.setState({
-      isMfaActive: response[0].is_active,
-      dateDisabled: response[0].date_disabled,
-      dateModified: response[0].date_modified,
-    });
+    if (response.length) {
+      this.setState({
+        isMfaActive: response[0].is_active,
+        dateDisabled: response[0].date_disabled,
+        dateModified: response[0].date_modified,
+      });
+    }
   }
 
   mfaActivating(response: MfaActivatedResponse) {

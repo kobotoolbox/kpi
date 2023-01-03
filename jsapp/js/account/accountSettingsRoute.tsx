@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {observer} from 'mobx-react';
 import bem, {makeBem} from 'js/bem';
 import {usePrompt} from 'js/router/promptBlocker';
 import sessionStore from 'js/stores/session';
@@ -70,8 +71,7 @@ const genderSelectOptions = Object.keys(genderChoices).map((key) =>
   choiceToSelectOptions(key, genderChoices)
 );
 
-function AccountSettings() {
-  const [session] = useState(() => sessionStore);
+const AccountSettings = observer(() => {
   const environment = envStore.data;
   const [form, setForm] = useState<Form>({
     isPristine: true,
@@ -96,18 +96,18 @@ function AccountSettings() {
 
   useEffect(() => {
     if (
-      !session.isPending &&
-      session.isInitialLoadComplete &&
-      !session.isInitialRoute
+      !sessionStore.isPending &&
+      sessionStore.isInitialLoadComplete &&
+      !sessionStore.isInitialRoute
     ) {
-      session.refreshAccount();
+      sessionStore.refreshAccount();
     }
   }, []);
   useEffect(() => {
-    const currentAccount = session.currentAccount;
+    const currentAccount = sessionStore.currentAccount;
     if (
-      !session.isPending &&
-      session.isInitialLoadComplete &&
+      !sessionStore.isPending &&
+      sessionStore.isInitialLoadComplete &&
       'email' in currentAccount
     ) {
       setForm({
@@ -130,7 +130,7 @@ function AccountSettings() {
         fieldsWithErrors: {},
       });
     }
-  }, [session.isInitialLoadComplete, session.isPending]);
+  }, [sessionStore.isPending]);
   usePrompt(
     t('You have unsaved changes. Leave settings without saving?'),
     !form.isPristine
@@ -388,6 +388,6 @@ function AccountSettings() {
       </bem.AccountSettings__item>
     </bem.AccountSettings>
   );
-}
+});
 
 export default AccountSettings;
