@@ -1,6 +1,6 @@
 @use 'sass:color';
 @use 'scss/sizes';
-@use 'scss/colors';
+@use '~kobo-common/src/styles/colors';
 @use 'scss/mixins';
 @use 'js/components/common/button';
 

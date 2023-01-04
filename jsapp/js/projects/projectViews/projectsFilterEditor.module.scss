@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use 'scss/colors';
+@use '~kobo-common/src/styles/colors';
 
 .root {
   display: flex;

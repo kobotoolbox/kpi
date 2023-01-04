@@ -1,7 +1,7 @@
 @use 'sass:color';
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use 'scss/colors';
+@use '~kobo-common/src/styles/colors';
 @use 'scss/variables';
 @use 'scss/z-indexes';
 
