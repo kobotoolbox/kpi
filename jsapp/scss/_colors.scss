@@ -1,7 +1,19 @@
-// This is our current pallete of colors.
-//
-// It should be the only source of colors in styles (i.e. no one-shot colors,
-// all `color`, `background-color` etc. should use variables defined here).
+/* DEPRECAED
+
+THIS FILE SHOULD NO LONGER BE USED. If you need to set a color, please go with:
+
+```scss
+@use '~kobo-common/src/styles/colors';
+
+.foo {
+  color: colors.$kobo-black;
+}
+```
+
+When refactoring existing styles that don't use `@use`, but are taking these
+variables defined below from global context, please go with the same solution.
+Just remember all variable names need `colors.` prefix after that.
+*/
 
 /*
  * The Kobo gray scale

@@ -1,7 +1,10 @@
 import {action, makeAutoObservable} from 'mobx';
 import {ANON_USERNAME} from 'js/constants';
-import {AccountResponse, dataInterface} from 'js/dataInterface';
+import {dataInterface} from 'js/dataInterface';
+import type {AccountResponse} from 'js/dataInterface';
 import {log} from 'js/utils';
+import type {Json} from 'js/components/common/common.interfaces';
+import type {ProjectViewsSettings} from 'js/projects/customViewStore';
 
 class SessionStore {
   currentAccount: AccountResponse | {username: string} = {
@@ -20,7 +23,7 @@ class SessionStore {
     setTimeout(() => (this.isInitialRoute = false), 1000);
   }
 
-  verifyLogin() {
+  private verifyLogin() {
     this.isPending = true;
     dataInterface.getProfile().then(
       action(
@@ -42,11 +45,25 @@ class SessionStore {
     );
   }
 
-  refreshAccount() {
+  public refreshAccount() {
     dataInterface.getProfile().then(
       action(
         'refreshSuccess',
         (account: AccountResponse | {message: string}) => {
+          if ('email' in account) {
+            this.currentAccount = account;
+          }
+        }
+      )
+    );
+  }
+
+  /** Updates one of the `extra_details`. */
+  public setDetail(detailName: string, value: Json | ProjectViewsSettings) {
+    dataInterface.patchProfile({extra_details: {[detailName]: value}}).then(
+      action(
+        'setDetailSuccess',
+        (account: AccountResponse) => {
           if ('email' in account) {
             this.currentAccount = account;
           }
