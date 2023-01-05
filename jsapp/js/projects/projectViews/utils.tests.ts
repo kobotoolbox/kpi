@@ -7,9 +7,9 @@ describe('projectViewsUtils', () => {
     it('should return only correct filters', () => {
       const dirty: ProjectsFilterDefinition[] = [
         {fieldName: 'name', condition: 'is', value: 'Foo'},
-        {fieldName: 'sector', condition: 'isEmpty'},
+        {fieldName: 'sector', condition: 'isEmptyObject'},
         // this one is ok, just the value should be dropped
-        {fieldName: 'countries', condition: 'isNotEmpty', value: 'Bar'},
+        {fieldName: 'countries', condition: 'isNotEmptyObject', value: 'Bar'},
         // all bad below
         {fieldName: 'languages', condition: 'contains', value: ''},
         {condition: 'isNot', value: 'Fum'},
