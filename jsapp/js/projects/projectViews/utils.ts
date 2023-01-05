@@ -1,4 +1,8 @@
-import type {FilterConditionName, ProjectsFilterDefinition} from './constants';
+import type {
+  FilterConditionName,
+  ProjectFieldName,
+  ProjectsFilterDefinition,
+} from './constants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
 
 /**
@@ -19,6 +23,14 @@ export function isFilterConditionValueRequired(
   return true;
 }
 
+export function isConditionAvailableForFilter(
+  conditionName: FilterConditionName,
+  fieldName: ProjectFieldName
+) {
+  const fieldDefinition = PROJECT_FIELDS[fieldName];
+  return fieldDefinition.availableConditions.includes(conditionName);
+}
+
 /**
  * Returns a list of only correct filters (e.g. no missing properties allowed).
  */
@@ -29,6 +41,7 @@ export function removeIncorrectFilters(filters: ProjectsFilterDefinition[]) {
     if (
       filter.fieldName &&
       filter.condition &&
+      isConditionAvailableForFilter(filter.condition, filter.fieldName) &&
       (!isValueRequired || (isValueRequired && filter.value))
     ) {
       // We rewrite filter object to avoid including value if a non-value

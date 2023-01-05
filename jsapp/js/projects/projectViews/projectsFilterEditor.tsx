@@ -61,7 +61,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     Object.values(PROJECT_FIELDS)
       // We don't want to display fields with zero filters available.
       .filter(
-        (filterDefinition) => filterDefinition.availableFilters.length >= 1
+        (filterDefinition) => filterDefinition.availableConditions.length >= 1
       )
       .map((filterDefinition) => {
         return {label: filterDefinition.label, id: filterDefinition.name};
@@ -72,7 +72,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       return [];
     }
     const fieldDefinition = PROJECT_FIELDS[props.filter.fieldName];
-    return fieldDefinition.availableFilters.map(
+    return fieldDefinition.availableConditions.map(
       (condition: FilterConditionName) => {
         const conditionDefinition = FILTER_CONDITIONS[condition];
         return {label: conditionDefinition.label, id: conditionDefinition.name};

@@ -14,6 +14,7 @@ describe('projectViewsUtils', () => {
         {fieldName: 'languages', condition: 'contains', value: ''},
         {condition: 'isNot', value: 'Fum'},
         {fieldName: 'ownerUsername', value: 'Baz'},
+        {fieldName: 'ownerUsername', condition: 'isEmpty'},
         {condition: 'isEmpty'},
         {condition: 'endsWith'},
         {value: 'Asd'},
@@ -95,8 +96,8 @@ describe('projectViewsUtils', () => {
           out: 'NOT date_modified__date__iexact:"foo"',
         },
         {
-          in: {fieldName: 'sector', condition: 'isNotEmpty'},
-          out: 'NOT settings__sector:""',
+          in: {fieldName: 'sector', condition: 'isNotEmptyObject'},
+          out: 'NOT settings__sector__iexact:{}',
         },
         {
           in: {fieldName: 'countries', condition: 'startsWith', value: 'foo'},
