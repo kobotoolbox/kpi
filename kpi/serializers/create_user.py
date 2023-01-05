@@ -46,9 +46,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         user.save()
-        EmailAddress.objects.create(
-            user_id=user.id,
+        user.emailaddress_set.create(
             email=user.email,
             verified=True,
+            primary=True,
         )
         return user
