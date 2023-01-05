@@ -42,7 +42,9 @@ interface ProjectsTableProps {
  */
 export default function ProjectsTable(props: ProjectsTableProps) {
   // We ensure name is always visible:
-  const safeVisibleFields = Array.from((new Set(props.visibleFields)).add('name'));
+  const safeVisibleFields = Array.from(
+    new Set(props.visibleFields).add('name')
+  );
 
   return (
     // NOTE: react-infinite-scroller wants us to use refs, but there seems to

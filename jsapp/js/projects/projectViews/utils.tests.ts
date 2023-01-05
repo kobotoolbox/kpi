@@ -71,7 +71,11 @@ describe('projectViewsUtils', () => {
           out: '_deployment_data__icontains:"foo bar"',
         },
         {
-          in: {fieldName: 'ownerUsername', condition: 'doesNotContain', value: 'foo'},
+          in: {
+            fieldName: 'ownerUsername',
+            condition: 'doesNotContain',
+            value: 'foo',
+          },
           out: 'NOT owner__username__icontains:"foo"',
         },
         {
@@ -102,7 +106,6 @@ describe('projectViewsUtils', () => {
           in: {fieldName: 'languages', condition: 'is', value: 'foo'},
           out: 'summary__languages[]__iexact:"foo"',
         },
-
       ];
       cases.forEach((testCase) => {
         it(`should build "${testCase.out}" query from filter`, () => {

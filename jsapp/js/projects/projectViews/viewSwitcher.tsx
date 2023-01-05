@@ -52,10 +52,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
   // We don't want to display anything before the API call is done. If there are
   // no custom views defined, there's no point in displaying it either.
-  if (
-    !projectViews.isInitialised ||
-    projectViews.views.length === 0
-  ) {
+  if (!projectViews.isFirstLoadComplete || projectViews.views.length === 0) {
     return null;
   }
 
@@ -75,9 +72,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
           <button className={styles.trigger}>
             {getTriggerLabel()}
             {getTriggerCount() !== null && (
-              <span className={styles.triggerBadge}>
-                {getTriggerCount()}
-              </span>
+              <span className={styles.triggerBadge}>{getTriggerCount()}</span>
             )}
             <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>

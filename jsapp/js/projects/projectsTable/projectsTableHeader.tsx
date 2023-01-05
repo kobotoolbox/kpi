@@ -86,7 +86,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
           }
           menuContent={
             <div className={styles.dropdownContent}>
-              {field.orderable &&
+              {field.orderable && (
                 <Button
                   type='bare'
                   color='storm'
@@ -100,8 +100,8 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                     });
                   }}
                 />
-              }
-              {field.orderable &&
+              )}
+              {field.orderable && (
                 <Button
                   type='bare'
                   color='storm'
@@ -115,7 +115,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                     });
                   }}
                 />
-              }
+              )}
               {/* The `name` field is always visible, no need for the button */}
               {field.name !== 'name' && (
                 <Button

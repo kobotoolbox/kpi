@@ -1,7 +1,4 @@
-import type {
-  FilterConditionName,
-  ProjectsFilterDefinition,
-} from './constants';
+import type {FilterConditionName, ProjectsFilterDefinition} from './constants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
 
 /**

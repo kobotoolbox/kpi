@@ -97,7 +97,7 @@ function CustomViewRoute() {
 
       <ProjectsTable
         assets={customView.assets}
-        isLoading={!customView.isInitialised}
+        isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
         visibleFields={toJS(customView.fields) || DEFAULT_PROJECT_FIELDS}
         order={customView.order}

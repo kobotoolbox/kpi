@@ -20,7 +20,7 @@ export interface ProjectView {
 
 class ProjectViewsStore {
   public views: ProjectView[] = [];
-  public isInitialised = false;
+  public isFirstLoadComplete = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -43,7 +43,7 @@ class ProjectViewsStore {
 
   private onFetchDataDone(response: PaginatedResponse<ProjectView>) {
     this.views = response.results;
-    this.isInitialised = true;
+    this.isFirstLoadComplete = true;
   }
 }
 

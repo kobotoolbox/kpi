@@ -45,7 +45,7 @@ class CustomViewStore {
   public order: ProjectsTableOrder = DEFAULT_VIEW_SETTINGS.order;
   public fields?: ProjectFieldName[] = DEFAULT_VIEW_SETTINGS.fields;
   /** Whether the first call was made. */
-  public isInitialised = false;
+  public isFirstLoadComplete = false;
   public isLoading = false;
   private viewUid?: string;
   /** We use `null` here because the endpoint uses it. */
@@ -59,7 +59,7 @@ class CustomViewStore {
   public setUp(viewUid: string) {
     this.viewUid = viewUid;
     this.assets = [];
-    this.isInitialised = false;
+    this.isFirstLoadComplete = false;
     this.isLoading = false;
     this.nextPageUrl = null;
     this.loadSettings();
@@ -103,7 +103,7 @@ class CustomViewStore {
    * already.
    */
   public fetchAssets() {
-    this.isInitialised = false;
+    this.isFirstLoadComplete = false;
     this.isLoading = true;
     this.assets = [];
     const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
@@ -134,7 +134,7 @@ class CustomViewStore {
   }
 
   private onFetchAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {
-    this.isInitialised = true;
+    this.isFirstLoadComplete = true;
     this.isLoading = false;
     this.assets = response.results;
     this.nextPageUrl = response.next;
@@ -204,7 +204,8 @@ class CustomViewStore {
       session.currentAccount.extra_details[SAVE_DATA_NAME] &&
       session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
     ) {
-      const savedViewData = session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid];
+      const savedViewData =
+        session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid];
       if (savedViewData.filters) {
         this.filters = savedViewData.filters;
       }

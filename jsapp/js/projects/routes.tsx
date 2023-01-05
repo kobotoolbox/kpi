@@ -27,7 +27,7 @@ export default function routes() {
         path={PROJECTS_ROUTES.MY_PROJECTS}
         element={
           <RequireAuth>
-            <MyProjectsRoute/>
+            <MyProjectsRoute />
           </RequireAuth>
         }
       />
@@ -35,7 +35,7 @@ export default function routes() {
         path={PROJECTS_ROUTES.CUSTOM_VIEW}
         element={
           <RequireAuth>
-            <CustomViewRoute/>
+            <CustomViewRoute />
           </RequireAuth>
         }
       />
