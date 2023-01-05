@@ -1004,7 +1004,6 @@ mixins.permissions = {
    * @param {Object} asset
    */
   userCanPartially(permName: string, asset: AssetResponse) {
-
     const currentUsername = sessionStore.currentAccount.username;
 
     // Owners cannot have partial permissions because they have full permissions.
@@ -1014,6 +1013,26 @@ mixins.permissions = {
     }
 
     return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  },
+
+  /**
+   * This checks if current user can remove themselves from a project that was
+   * shared with them. If `view_asset` comes from `asset.effective_permissions`,
+   * but doesn't exist in `asset.permissions` it means that `view_asset` comes
+   * from Project View access, not from project being shared with user directly.
+   */
+  userCanRemoveSharedProject(asset: AssetResponse) {
+    const currentUsername = sessionStore.currentAccount.username;
+    const userHasDirectViewAsset = asset.permissions.some((perm) => (
+      perm.user === buildUserUrl(currentUsername) &&
+      this._doesPermMatch(perm, 'view_asset')
+    ));
+
+    return (
+      !assetUtils.isSelfOwned(asset) &&
+      this.userCan('view_asset', asset) &&
+      userHasDirectViewAsset
+    );
   },
 };
 
