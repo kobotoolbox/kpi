@@ -11,14 +11,19 @@ export interface ProjectsFilterDefinition {
   value?: string;
 }
 
+// NOTE: if you plan to add a condition, make sure to re-check
+// `availableFilters` for each field definition.
 export type FilterConditionName =
   | 'contains'
   | 'doesNotContain'
   | 'endsWith'
   | 'is'
   | 'isEmpty'
+  // *Object conditions are for sector, language, and countries fields
+  | 'isEmptyObject'
   | 'isNot'
   | 'isNotEmpty'
+  | 'isNotEmptyObject'
   | 'startsWith';
 interface FilterConditionDefinition {
   name: FilterConditionName;
@@ -70,11 +75,23 @@ export const FILTER_CONDITIONS: FilterConditions = {
     requiresValue: false,
     filterQuery: '<field>:""',
   },
+  isEmptyObject: {
+    name: 'isEmptyObject',
+    label: t('Is empty'),
+    requiresValue: false,
+    filterQuery: '<field>__iexact:{}',
+  },
   isNotEmpty: {
     name: 'isNotEmpty',
     label: t('Is not empty'),
     requiresValue: false,
     filterQuery: 'NOT <field>:""',
+  },
+  isNotEmptyObject: {
+    name: 'isNotEmptyObject',
+    label: t('Is not empty'),
+    requiresValue: false,
+    filterQuery: 'NOT <field>__iexact:{}',
   },
 };
 
@@ -121,7 +138,7 @@ export interface ProjectFieldDefinition {
   /** Backend property name used for ordering and filtering. */
   apiPropertyName: string;
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
-  filterable: boolean;
+  availableFilters: FilterConditionName[];
   /** Some of the fields (e.g. `submission`) doesn't allow being ordered by. */
   orderable: boolean;
 }
@@ -141,91 +158,160 @@ export const PROJECT_FIELDS: ProjectFields = {
     name: 'name',
     label: t('Project name'),
     apiPropertyName: 'name',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isNot',
+      'startsWith',
+    ],
     orderable: true,
   },
   description: {
     name: 'description',
     label: t('Description'),
     apiPropertyName: 'settings__description',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
     orderable: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
     apiPropertyName: '_deployment_data',
-    filterable: true,
-    orderable: true,
+    availableFilters: [],
+    orderable: false,
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
     apiPropertyName: 'owner__username',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isNot',
+      'startsWith',
+    ],
     orderable: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
     apiPropertyName: 'owner__extra_details__data__name',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
     orderable: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
     apiPropertyName: 'owner__email',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
     orderable: true,
   },
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
     apiPropertyName: 'owner__extra_details__data__organization',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
     orderable: true,
   },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
     apiPropertyName: 'date_modified__date',
-    filterable: true,
+    availableFilters: ['contains', 'doesNotContain', 'endsWith', 'startsWith'],
     orderable: true,
   },
   dateDeployed: {
     name: 'dateDeployed',
     label: t('Date deployed'),
     apiPropertyName: 'date_deployed__date',
-    filterable: false,
+    availableFilters: [],
     orderable: false,
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
     apiPropertyName: 'settings__sector',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'isEmptyObject',
+      'isNotEmptyObject',
+    ],
     orderable: true,
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
     apiPropertyName: 'settings__country_codes[]',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'is',
+      'isEmptyObject',
+      'isNot',
+      'isNotEmptyObject',
+    ],
     orderable: true,
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
     apiPropertyName: 'summary__languages[]',
-    filterable: true,
+    availableFilters: [
+      'contains',
+      'doesNotContain',
+      'is',
+      'isEmptyObject',
+      'isNot',
+      'isNotEmptyObject',
+    ],
     orderable: true,
   },
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
     apiPropertyName: 'deployment__submission_count',
-    filterable: false,
+    availableFilters: [],
     orderable: false,
   },
 };
