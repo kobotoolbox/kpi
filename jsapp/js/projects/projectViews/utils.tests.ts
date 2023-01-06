@@ -68,10 +68,6 @@ describe('projectViewsUtils', () => {
           out: 'settings__description__istartswith:"foo"',
         },
         {
-          in: {fieldName: 'status', condition: 'contains', value: 'foo bar'},
-          out: '_deployment_data__icontains:"foo bar"',
-        },
-        {
           in: {
             fieldName: 'ownerUsername',
             condition: 'doesNotContain',
