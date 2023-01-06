@@ -92,8 +92,8 @@ describe('projectViewsUtils', () => {
           out: 'owner__extra_details__data__organization:""',
         },
         {
-          in: {fieldName: 'dateModified', condition: 'isNot', value: 'foo'},
-          out: 'NOT date_modified__date__iexact:"foo"',
+          in: {fieldName: 'description', condition: 'isNot', value: 'foo'},
+          out: 'NOT settings__description__iexact:"foo"',
         },
         {
           in: {fieldName: 'sector', condition: 'isNotEmptyObject'},
