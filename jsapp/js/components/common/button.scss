@@ -33,7 +33,7 @@ $button-border-radius: sizes.$x6;
   &:hover,
   &.k-button--pending {
     background-color: colors.$kobo-gray-92;
-    color: color.adjust($mainColor, $lightness: -5);
+    color: color.adjust($mainColor, $lightness: -5%);
 
     .k-icon.k-icon-spinner {
       color: $mainColor;
@@ -67,8 +67,8 @@ $button-border-radius: sizes.$x6;
   // We use the same style for hover and pending states.
   &:hover,
   &.k-button--pending {
-    background-color: color.adjust($mainColor, $lightness: -5);
-    border-color: color.adjust($mainColor, $lightness: -5);
+    background-color: color.adjust($mainColor, $lightness: -5%);
+    border-color: color.adjust($mainColor, $lightness: -5%);
 
     .k-icon.k-icon-spinner {
       color: $textColor;
