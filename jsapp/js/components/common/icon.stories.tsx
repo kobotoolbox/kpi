@@ -4,7 +4,7 @@ import Icon from 'js/components/common/icon';
 import {IconNames} from 'jsapp/fonts/k-icons';
 
 export default {
-  title: 'common/icon',
+  title: 'common/Icon',
   component: Icon,
   argTypes: {},
 } as ComponentMeta<typeof Icon>;

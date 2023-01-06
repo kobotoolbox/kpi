@@ -129,13 +129,13 @@ export default class KoboDropdown extends React.Component<
   }
 
   onAnyKeyWhileOpen(evt: KeyboardEvent) {
-    if (
-      evt.key === 'Escape' ||
-      evt.keyCode === KEY_CODES.ESC ||
-      evt.which === KEY_CODES.ESC
-    ) {
-      this.hideMenu();
-    }
+    // if (
+    //   evt.key === 'Escape' ||
+    //   evt.keyCode === KEY_CODES.ESC ||
+    //   evt.which === KEY_CODES.ESC
+    // ) {
+    //   this.hideMenu();
+    // }
   }
 
   registerOutsideClickListener() {
