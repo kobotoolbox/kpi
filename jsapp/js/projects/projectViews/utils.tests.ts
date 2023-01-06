@@ -36,7 +36,7 @@ describe('projectViewsUtils', () => {
         {fieldName: 'name', condition: 'isNot', value: 'Foo'},
         {fieldName: 'name', condition: 'isNot', value: 'Bar'},
         {fieldName: 'name', condition: 'isNot', value: 'Fum'},
-        {fieldName: 'name', condition: 'isNotEmpty'},
+        {fieldName: 'description', condition: 'isNotEmpty'},
       ];
       const test = buildQueriesFromFilters(filters);
       chai.expect(test.length).to.equal(filters.length);
