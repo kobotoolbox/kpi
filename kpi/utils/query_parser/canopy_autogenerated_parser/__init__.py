@@ -13,10 +13,10 @@ Canopy to generate this Python code.
 
 
 class TreeNode(object):
-    def __init__(self, text, offset, elements=None):
+    def __init__(self, text, offset, elements):
         self.text = text
         self.offset = offset
-        self.elements = elements or []
+        self.elements = elements
 
     def __iter__(self):
         for el in self.elements:
@@ -74,10 +74,6 @@ class TreeNode8(TreeNode):
         self.name = elements[0]
 
 
-class ParseError(SyntaxError):
-    pass
-
-
 FAILURE = object()
 
 
@@ -85,9 +81,9 @@ class Grammar(object):
     REGEX_1 = re.compile('^[^\\s():]')
     REGEX_2 = re.compile('^[^"]')
     REGEX_3 = re.compile('^[^\']')
-    REGEX_4 = re.compile('^[a-zA-Z_]')
-    REGEX_5 = re.compile(r'[\w\-\[\]]')
-    REGEX_6 = re.compile(r'^\s')
+    REGEX_4 = re.compile('^[a-zA-Z_\\[\\]]')
+    REGEX_5 = re.compile('^[a-zA-Z0-9\\-_\\[\\]]')
+    REGEX_6 = re.compile('^[\\s]')
 
     def _read_query(self):
         address0, index0 = FAILURE, self._offset
@@ -97,13 +93,14 @@ class Grammar(object):
             return cached[0]
         index1, elements0 = self._offset, []
         address1 = FAILURE
-        remaining0, index2, elements1, address2 = 0, self._offset, [], True
-        while address2 is not FAILURE:
+        index2, elements1, address2 = self._offset, [], None
+        while True:
             address2 = self._read__()
             if address2 is not FAILURE:
                 elements1.append(address2)
-                remaining0 -= 1
-        if remaining0 <= 0:
+            else:
+                break
+        if len(elements1) >= 0:
             address1 = TreeNode(self._input[index2:self._offset], index2, elements1)
             self._offset = self._offset
         else:
@@ -114,18 +111,19 @@ class Grammar(object):
             index3 = self._offset
             address3 = self._read_exp()
             if address3 is FAILURE:
-                address3 = TreeNode(self._input[index3:index3], index3)
+                address3 = TreeNode(self._input[index3:index3], index3, [])
                 self._offset = index3
             if address3 is not FAILURE:
                 elements0.append(address3)
                 address4 = FAILURE
-                remaining1, index4, elements2, address5 = 0, self._offset, [], True
-                while address5 is not FAILURE:
+                index4, elements2, address5 = self._offset, [], None
+                while True:
                     address5 = self._read__()
                     if address5 is not FAILURE:
                         elements2.append(address5)
-                        remaining1 -= 1
-                if remaining1 <= 0:
+                    else:
+                        break
+                if len(elements2) >= 0:
                     address4 = TreeNode(self._input[index4:self._offset], index4, elements2)
                     self._offset = self._offset
                 else:
@@ -161,17 +159,18 @@ class Grammar(object):
         if address1 is not FAILURE:
             elements0.append(address1)
             address2 = FAILURE
-            remaining0, index2, elements1, address3 = 0, self._offset, [], True
-            while address3 is not FAILURE:
+            index2, elements1, address3 = self._offset, [], None
+            while True:
                 index3, elements2 = self._offset, []
                 address4 = FAILURE
-                remaining1, index4, elements3, address5 = 1, self._offset, [], True
-                while address5 is not FAILURE:
+                index4, elements3, address5 = self._offset, [], None
+                while True:
                     address5 = self._read__()
                     if address5 is not FAILURE:
                         elements3.append(address5)
-                        remaining1 -= 1
-                if remaining1 <= 0:
+                    else:
+                        break
+                if len(elements3) >= 1:
                     address4 = TreeNode(self._input[index4:self._offset], index4, elements3)
                     self._offset = self._offset
                 else:
@@ -179,11 +178,11 @@ class Grammar(object):
                 if address4 is not FAILURE:
                     elements2.append(address4)
                     address6 = FAILURE
-                    chunk0 = None
-                    if self._offset < self._input_size:
-                        chunk0 = self._input[self._offset:self._offset + 2]
+                    chunk0, max0 = None, self._offset + 2
+                    if max0 <= self._input_size:
+                        chunk0 = self._input[self._offset:max0]
                     if chunk0 == 'OR':
-                        address6 = TreeNode(self._input[self._offset:self._offset + 2], self._offset)
+                        address6 = TreeNode(self._input[self._offset:self._offset + 2], self._offset, [])
                         self._offset = self._offset + 2
                     else:
                         address6 = FAILURE
@@ -191,17 +190,18 @@ class Grammar(object):
                             self._failure = self._offset
                             self._expected = []
                         if self._offset == self._failure:
-                            self._expected.append('"OR"')
+                            self._expected.append(('Kobo.Query::exp', '"OR"'))
                     if address6 is not FAILURE:
                         elements2.append(address6)
                         address7 = FAILURE
-                        remaining2, index5, elements4, address8 = 1, self._offset, [], True
-                        while address8 is not FAILURE:
+                        index5, elements4, address8 = self._offset, [], None
+                        while True:
                             address8 = self._read__()
                             if address8 is not FAILURE:
                                 elements4.append(address8)
-                                remaining2 -= 1
-                        if remaining2 <= 0:
+                            else:
+                                break
+                        if len(elements4) >= 1:
                             address7 = TreeNode(self._input[index5:self._offset], index5, elements4)
                             self._offset = self._offset
                         else:
@@ -231,8 +231,9 @@ class Grammar(object):
                     self._offset = self._offset
                 if address3 is not FAILURE:
                     elements1.append(address3)
-                    remaining0 -= 1
-            if remaining0 <= 0:
+                else:
+                    break
+            if len(elements1) >= 0:
                 address2 = TreeNode(self._input[index2:self._offset], index2, elements1)
                 self._offset = self._offset
             else:
@@ -265,20 +266,21 @@ class Grammar(object):
         if address1 is not FAILURE:
             elements0.append(address1)
             address2 = FAILURE
-            remaining0, index2, elements1, address3 = 0, self._offset, [], True
-            while address3 is not FAILURE:
+            index2, elements1, address3 = self._offset, [], None
+            while True:
                 index3, elements2 = self._offset, []
                 address4 = FAILURE
                 index4 = self._offset
                 index5, elements3 = self._offset, []
                 address5 = FAILURE
-                remaining1, index6, elements4, address6 = 1, self._offset, [], True
-                while address6 is not FAILURE:
+                index6, elements4, address6 = self._offset, [], None
+                while True:
                     address6 = self._read__()
                     if address6 is not FAILURE:
                         elements4.append(address6)
-                        remaining1 -= 1
-                if remaining1 <= 0:
+                    else:
+                        break
+                if len(elements4) >= 1:
                     address5 = TreeNode(self._input[index6:self._offset], index6, elements4)
                     self._offset = self._offset
                 else:
@@ -286,11 +288,11 @@ class Grammar(object):
                 if address5 is not FAILURE:
                     elements3.append(address5)
                     address7 = FAILURE
-                    chunk0 = None
-                    if self._offset < self._input_size:
-                        chunk0 = self._input[self._offset:self._offset + 3]
+                    chunk0, max0 = None, self._offset + 3
+                    if max0 <= self._input_size:
+                        chunk0 = self._input[self._offset:max0]
                     if chunk0 == 'AND':
-                        address7 = TreeNode(self._input[self._offset:self._offset + 3], self._offset)
+                        address7 = TreeNode(self._input[self._offset:self._offset + 3], self._offset, [])
                         self._offset = self._offset + 3
                     else:
                         address7 = FAILURE
@@ -298,7 +300,7 @@ class Grammar(object):
                             self._failure = self._offset
                             self._expected = []
                         if self._offset == self._failure:
-                            self._expected.append('"AND"')
+                            self._expected.append(('Kobo.Query::andexp', '"AND"'))
                     if address7 is not FAILURE:
                         elements3.append(address7)
                     else:
@@ -313,18 +315,19 @@ class Grammar(object):
                     address4 = TreeNode(self._input[index5:self._offset], index5, elements3)
                     self._offset = self._offset
                 if address4 is FAILURE:
-                    address4 = TreeNode(self._input[index4:index4], index4)
+                    address4 = TreeNode(self._input[index4:index4], index4, [])
                     self._offset = index4
                 if address4 is not FAILURE:
                     elements2.append(address4)
                     address8 = FAILURE
-                    remaining2, index7, elements5, address9 = 1, self._offset, [], True
-                    while address9 is not FAILURE:
+                    index7, elements5, address9 = self._offset, [], None
+                    while True:
                         address9 = self._read__()
                         if address9 is not FAILURE:
                             elements5.append(address9)
-                            remaining2 -= 1
-                    if remaining2 <= 0:
+                        else:
+                            break
+                    if len(elements5) >= 1:
                         address8 = TreeNode(self._input[index7:self._offset], index7, elements5)
                         self._offset = self._offset
                     else:
@@ -333,11 +336,11 @@ class Grammar(object):
                         elements2.append(address8)
                         address10 = FAILURE
                         index8 = self._offset
-                        chunk1 = None
-                        if self._offset < self._input_size:
-                            chunk1 = self._input[self._offset:self._offset + 2]
+                        chunk1, max1 = None, self._offset + 2
+                        if max1 <= self._input_size:
+                            chunk1 = self._input[self._offset:max1]
                         if chunk1 == 'OR':
-                            address10 = TreeNode(self._input[self._offset:self._offset + 2], self._offset)
+                            address10 = TreeNode(self._input[self._offset:self._offset + 2], self._offset, [])
                             self._offset = self._offset + 2
                         else:
                             address10 = FAILURE
@@ -345,10 +348,10 @@ class Grammar(object):
                                 self._failure = self._offset
                                 self._expected = []
                             if self._offset == self._failure:
-                                self._expected.append('"OR"')
+                                self._expected.append(('Kobo.Query::andexp', '"OR"'))
                         self._offset = index8
                         if address10 is FAILURE:
-                            address10 = TreeNode(self._input[self._offset:self._offset], self._offset)
+                            address10 = TreeNode(self._input[self._offset:self._offset], self._offset, [])
                             self._offset = self._offset
                         else:
                             address10 = FAILURE
@@ -377,8 +380,9 @@ class Grammar(object):
                     self._offset = self._offset
                 if address3 is not FAILURE:
                     elements1.append(address3)
-                    remaining0 -= 1
-            if remaining0 <= 0:
+                else:
+                    break
+            if len(elements1) >= 0:
                 address2 = TreeNode(self._input[index2:self._offset], index2, elements1)
                 self._offset = self._offset
             else:
@@ -408,11 +412,11 @@ class Grammar(object):
         index1 = self._offset
         index2, elements0 = self._offset, []
         address1 = FAILURE
-        chunk0 = None
-        if self._offset < self._input_size:
-            chunk0 = self._input[self._offset:self._offset + 3]
+        chunk0, max0 = None, self._offset + 3
+        if max0 <= self._input_size:
+            chunk0 = self._input[self._offset:max0]
         if chunk0 == 'NOT':
-            address1 = TreeNode(self._input[self._offset:self._offset + 3], self._offset)
+            address1 = TreeNode(self._input[self._offset:self._offset + 3], self._offset, [])
             self._offset = self._offset + 3
         else:
             address1 = FAILURE
@@ -420,17 +424,18 @@ class Grammar(object):
                 self._failure = self._offset
                 self._expected = []
             if self._offset == self._failure:
-                self._expected.append('"NOT"')
+                self._expected.append(('Kobo.Query::groupexp', '"NOT"'))
         if address1 is not FAILURE:
             elements0.append(address1)
             address2 = FAILURE
-            remaining0, index3, elements1, address3 = 1, self._offset, [], True
-            while address3 is not FAILURE:
+            index3, elements1, address3 = self._offset, [], None
+            while True:
                 address3 = self._read__()
                 if address3 is not FAILURE:
                     elements1.append(address3)
-                    remaining0 -= 1
-            if remaining0 <= 0:
+                else:
+                    break
+            if len(elements1) >= 1:
                 address2 = TreeNode(self._input[index3:self._offset], index3, elements1)
                 self._offset = self._offset
             else:
@@ -459,11 +464,11 @@ class Grammar(object):
             self._offset = index1
             index4, elements2 = self._offset, []
             address5 = FAILURE
-            chunk1 = None
-            if self._offset < self._input_size:
-                chunk1 = self._input[self._offset:self._offset + 1]
+            chunk1, max1 = None, self._offset + 1
+            if max1 <= self._input_size:
+                chunk1 = self._input[self._offset:max1]
             if chunk1 == '(':
-                address5 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                address5 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                 self._offset = self._offset + 1
             else:
                 address5 = FAILURE
@@ -471,17 +476,18 @@ class Grammar(object):
                     self._failure = self._offset
                     self._expected = []
                 if self._offset == self._failure:
-                    self._expected.append('"("')
+                    self._expected.append(('Kobo.Query::groupexp', '"("'))
             if address5 is not FAILURE:
                 elements2.append(address5)
                 address6 = FAILURE
-                remaining1, index5, elements3, address7 = 0, self._offset, [], True
-                while address7 is not FAILURE:
+                index5, elements3, address7 = self._offset, [], None
+                while True:
                     address7 = self._read__()
                     if address7 is not FAILURE:
                         elements3.append(address7)
-                        remaining1 -= 1
-                if remaining1 <= 0:
+                    else:
+                        break
+                if len(elements3) >= 0:
                     address6 = TreeNode(self._input[index5:self._offset], index5, elements3)
                     self._offset = self._offset
                 else:
@@ -493,13 +499,14 @@ class Grammar(object):
                     if address8 is not FAILURE:
                         elements2.append(address8)
                         address9 = FAILURE
-                        remaining2, index6, elements4, address10 = 0, self._offset, [], True
-                        while address10 is not FAILURE:
+                        index6, elements4, address10 = self._offset, [], None
+                        while True:
                             address10 = self._read__()
                             if address10 is not FAILURE:
                                 elements4.append(address10)
-                                remaining2 -= 1
-                        if remaining2 <= 0:
+                            else:
+                                break
+                        if len(elements4) >= 0:
                             address9 = TreeNode(self._input[index6:self._offset], index6, elements4)
                             self._offset = self._offset
                         else:
@@ -507,11 +514,11 @@ class Grammar(object):
                         if address9 is not FAILURE:
                             elements2.append(address9)
                             address11 = FAILURE
-                            chunk2 = None
-                            if self._offset < self._input_size:
-                                chunk2 = self._input[self._offset:self._offset + 1]
+                            chunk2, max2 = None, self._offset + 1
+                            if max2 <= self._input_size:
+                                chunk2 = self._input[self._offset:max2]
                             if chunk2 == ')':
-                                address11 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                                address11 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                                 self._offset = self._offset + 1
                             else:
                                 address11 = FAILURE
@@ -519,7 +526,7 @@ class Grammar(object):
                                     self._failure = self._offset
                                     self._expected = []
                                 if self._offset == self._failure:
-                                    self._expected.append('")"')
+                                    self._expected.append(('Kobo.Query::groupexp', '")"'))
                             if address11 is not FAILURE:
                                 elements2.append(address11)
                             else:
@@ -565,11 +572,11 @@ class Grammar(object):
         if address2 is not FAILURE:
             elements1.append(address2)
             address3 = FAILURE
-            chunk0 = None
-            if self._offset < self._input_size:
-                chunk0 = self._input[self._offset:self._offset + 1]
+            chunk0, max0 = None, self._offset + 1
+            if max0 <= self._input_size:
+                chunk0 = self._input[self._offset:max0]
             if chunk0 == ':':
-                address3 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                address3 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                 self._offset = self._offset + 1
             else:
                 address3 = FAILURE
@@ -577,7 +584,7 @@ class Grammar(object):
                     self._failure = self._offset
                     self._expected = []
                 if self._offset == self._failure:
-                    self._expected.append('":"')
+                    self._expected.append(('Kobo.Query::term', '":"'))
             if address3 is not FAILURE:
                 elements1.append(address3)
             else:
@@ -592,7 +599,7 @@ class Grammar(object):
             address1 = TreeNode8(self._input[index3:self._offset], index3, elements1)
             self._offset = self._offset
         if address1 is FAILURE:
-            address1 = TreeNode(self._input[index2:index2], index2)
+            address1 = TreeNode(self._input[index2:index2], index2, [])
             self._offset = index2
         if address1 is not FAILURE:
             elements0.append(address1)
@@ -636,13 +643,13 @@ class Grammar(object):
         if cached:
             self._offset = cached[1]
             return cached[0]
-        remaining0, index1, elements0, address1 = 1, self._offset, [], True
-        while address1 is not FAILURE:
-            chunk0 = None
-            if self._offset < self._input_size:
-                chunk0 = self._input[self._offset:self._offset + 1]
+        index1, elements0, address1 = self._offset, [], None
+        while True:
+            chunk0, max0 = None, self._offset + 1
+            if max0 <= self._input_size:
+                chunk0 = self._input[self._offset:max0]
             if chunk0 is not None and Grammar.REGEX_1.search(chunk0):
-                address1 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                address1 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                 self._offset = self._offset + 1
             else:
                 address1 = FAILURE
@@ -650,11 +657,12 @@ class Grammar(object):
                     self._failure = self._offset
                     self._expected = []
                 if self._offset == self._failure:
-                    self._expected.append('[^\\s():]')
+                    self._expected.append(('Kobo.Query::word', '[^\\s():]'))
             if address1 is not FAILURE:
                 elements0.append(address1)
-                remaining0 -= 1
-        if remaining0 <= 0:
+            else:
+                break
+        if len(elements0) >= 1:
             address0 = self._actions.word(self._input, index1, self._offset, elements0)
             self._offset = self._offset
         else:
@@ -671,11 +679,11 @@ class Grammar(object):
         index1 = self._offset
         index2, elements0 = self._offset, []
         address1 = FAILURE
-        chunk0 = None
-        if self._offset < self._input_size:
-            chunk0 = self._input[self._offset:self._offset + 1]
+        chunk0, max0 = None, self._offset + 1
+        if max0 <= self._input_size:
+            chunk0 = self._input[self._offset:max0]
         if chunk0 == '"':
-            address1 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+            address1 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
             self._offset = self._offset + 1
         else:
             address1 = FAILURE
@@ -683,20 +691,20 @@ class Grammar(object):
                 self._failure = self._offset
                 self._expected = []
             if self._offset == self._failure:
-                self._expected.append('\'"\'')
+                self._expected.append(('Kobo.Query::string', '\'"\''))
         if address1 is not FAILURE:
             elements0.append(address1)
             address2 = FAILURE
-            remaining0, index3, elements1, address3 = 0, self._offset, [], True
-            while address3 is not FAILURE:
+            index3, elements1, address3 = self._offset, [], None
+            while True:
                 index4 = self._offset
                 index5, elements2 = self._offset, []
                 address4 = FAILURE
-                chunk1 = None
-                if self._offset < self._input_size:
-                    chunk1 = self._input[self._offset:self._offset + 1]
+                chunk1, max1 = None, self._offset + 1
+                if max1 <= self._input_size:
+                    chunk1 = self._input[self._offset:max1]
                 if chunk1 == '\\':
-                    address4 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                    address4 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                     self._offset = self._offset + 1
                 else:
                     address4 = FAILURE
@@ -704,12 +712,12 @@ class Grammar(object):
                         self._failure = self._offset
                         self._expected = []
                     if self._offset == self._failure:
-                        self._expected.append('"\\\\"')
+                        self._expected.append(('Kobo.Query::string', '"\\\\"'))
                 if address4 is not FAILURE:
                     elements2.append(address4)
                     address5 = FAILURE
                     if self._offset < self._input_size:
-                        address5 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                        address5 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                         self._offset = self._offset + 1
                     else:
                         address5 = FAILURE
@@ -717,7 +725,7 @@ class Grammar(object):
                             self._failure = self._offset
                             self._expected = []
                         if self._offset == self._failure:
-                            self._expected.append('<any char>')
+                            self._expected.append(('Kobo.Query::string', '<any char>'))
                     if address5 is not FAILURE:
                         elements2.append(address5)
                     else:
@@ -733,11 +741,11 @@ class Grammar(object):
                     self._offset = self._offset
                 if address3 is FAILURE:
                     self._offset = index4
-                    chunk2 = None
-                    if self._offset < self._input_size:
-                        chunk2 = self._input[self._offset:self._offset + 1]
+                    chunk2, max2 = None, self._offset + 1
+                    if max2 <= self._input_size:
+                        chunk2 = self._input[self._offset:max2]
                     if chunk2 is not None and Grammar.REGEX_2.search(chunk2):
-                        address3 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                        address3 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                         self._offset = self._offset + 1
                     else:
                         address3 = FAILURE
@@ -745,13 +753,14 @@ class Grammar(object):
                             self._failure = self._offset
                             self._expected = []
                         if self._offset == self._failure:
-                            self._expected.append('[^"]')
+                            self._expected.append(('Kobo.Query::string', '[^"]'))
                     if address3 is FAILURE:
                         self._offset = index4
                 if address3 is not FAILURE:
                     elements1.append(address3)
-                    remaining0 -= 1
-            if remaining0 <= 0:
+                else:
+                    break
+            if len(elements1) >= 0:
                 address2 = TreeNode(self._input[index3:self._offset], index3, elements1)
                 self._offset = self._offset
             else:
@@ -759,11 +768,11 @@ class Grammar(object):
             if address2 is not FAILURE:
                 elements0.append(address2)
                 address6 = FAILURE
-                chunk3 = None
-                if self._offset < self._input_size:
-                    chunk3 = self._input[self._offset:self._offset + 1]
+                chunk3, max3 = None, self._offset + 1
+                if max3 <= self._input_size:
+                    chunk3 = self._input[self._offset:max3]
                 if chunk3 == '"':
-                    address6 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                    address6 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                     self._offset = self._offset + 1
                 else:
                     address6 = FAILURE
@@ -771,7 +780,7 @@ class Grammar(object):
                         self._failure = self._offset
                         self._expected = []
                     if self._offset == self._failure:
-                        self._expected.append('\'"\'')
+                        self._expected.append(('Kobo.Query::string', '\'"\''))
                 if address6 is not FAILURE:
                     elements0.append(address6)
                 else:
@@ -792,11 +801,11 @@ class Grammar(object):
             self._offset = index1
             index6, elements3 = self._offset, []
             address7 = FAILURE
-            chunk4 = None
-            if self._offset < self._input_size:
-                chunk4 = self._input[self._offset:self._offset + 1]
+            chunk4, max4 = None, self._offset + 1
+            if max4 <= self._input_size:
+                chunk4 = self._input[self._offset:max4]
             if chunk4 == '\'':
-                address7 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                address7 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                 self._offset = self._offset + 1
             else:
                 address7 = FAILURE
@@ -804,20 +813,20 @@ class Grammar(object):
                     self._failure = self._offset
                     self._expected = []
                 if self._offset == self._failure:
-                    self._expected.append('"\'"')
+                    self._expected.append(('Kobo.Query::string', '"\'"'))
             if address7 is not FAILURE:
                 elements3.append(address7)
                 address8 = FAILURE
-                remaining1, index7, elements4, address9 = 0, self._offset, [], True
-                while address9 is not FAILURE:
+                index7, elements4, address9 = self._offset, [], None
+                while True:
                     index8 = self._offset
                     index9, elements5 = self._offset, []
                     address10 = FAILURE
-                    chunk5 = None
-                    if self._offset < self._input_size:
-                        chunk5 = self._input[self._offset:self._offset + 1]
+                    chunk5, max5 = None, self._offset + 1
+                    if max5 <= self._input_size:
+                        chunk5 = self._input[self._offset:max5]
                     if chunk5 == '\\':
-                        address10 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                        address10 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                         self._offset = self._offset + 1
                     else:
                         address10 = FAILURE
@@ -825,12 +834,12 @@ class Grammar(object):
                             self._failure = self._offset
                             self._expected = []
                         if self._offset == self._failure:
-                            self._expected.append('"\\\\"')
+                            self._expected.append(('Kobo.Query::string', '"\\\\"'))
                     if address10 is not FAILURE:
                         elements5.append(address10)
                         address11 = FAILURE
                         if self._offset < self._input_size:
-                            address11 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                            address11 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                             self._offset = self._offset + 1
                         else:
                             address11 = FAILURE
@@ -838,7 +847,7 @@ class Grammar(object):
                                 self._failure = self._offset
                                 self._expected = []
                             if self._offset == self._failure:
-                                self._expected.append('<any char>')
+                                self._expected.append(('Kobo.Query::string', '<any char>'))
                         if address11 is not FAILURE:
                             elements5.append(address11)
                         else:
@@ -854,11 +863,11 @@ class Grammar(object):
                         self._offset = self._offset
                     if address9 is FAILURE:
                         self._offset = index8
-                        chunk6 = None
-                        if self._offset < self._input_size:
-                            chunk6 = self._input[self._offset:self._offset + 1]
+                        chunk6, max6 = None, self._offset + 1
+                        if max6 <= self._input_size:
+                            chunk6 = self._input[self._offset:max6]
                         if chunk6 is not None and Grammar.REGEX_3.search(chunk6):
-                            address9 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                            address9 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                             self._offset = self._offset + 1
                         else:
                             address9 = FAILURE
@@ -866,13 +875,14 @@ class Grammar(object):
                                 self._failure = self._offset
                                 self._expected = []
                             if self._offset == self._failure:
-                                self._expected.append('[^\']')
+                                self._expected.append(('Kobo.Query::string', '[^\']'))
                         if address9 is FAILURE:
                             self._offset = index8
                     if address9 is not FAILURE:
                         elements4.append(address9)
-                        remaining1 -= 1
-                if remaining1 <= 0:
+                    else:
+                        break
+                if len(elements4) >= 0:
                     address8 = TreeNode(self._input[index7:self._offset], index7, elements4)
                     self._offset = self._offset
                 else:
@@ -880,11 +890,11 @@ class Grammar(object):
                 if address8 is not FAILURE:
                     elements3.append(address8)
                     address12 = FAILURE
-                    chunk7 = None
-                    if self._offset < self._input_size:
-                        chunk7 = self._input[self._offset:self._offset + 1]
+                    chunk7, max7 = None, self._offset + 1
+                    if max7 <= self._input_size:
+                        chunk7 = self._input[self._offset:max7]
                     if chunk7 == '\'':
-                        address12 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                        address12 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                         self._offset = self._offset + 1
                     else:
                         address12 = FAILURE
@@ -892,7 +902,7 @@ class Grammar(object):
                             self._failure = self._offset
                             self._expected = []
                         if self._offset == self._failure:
-                            self._expected.append('"\'"')
+                            self._expected.append(('Kobo.Query::string', '"\'"'))
                     if address12 is not FAILURE:
                         elements3.append(address12)
                     else:
@@ -922,11 +932,11 @@ class Grammar(object):
             return cached[0]
         index1, elements0 = self._offset, []
         address1 = FAILURE
-        chunk0 = None
-        if self._offset < self._input_size:
-            chunk0 = self._input[self._offset:self._offset + 1]
+        chunk0, max0 = None, self._offset + 1
+        if max0 <= self._input_size:
+            chunk0 = self._input[self._offset:max0]
         if chunk0 is not None and Grammar.REGEX_4.search(chunk0):
-            address1 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+            address1 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
             self._offset = self._offset + 1
         else:
             address1 = FAILURE
@@ -934,17 +944,17 @@ class Grammar(object):
                 self._failure = self._offset
                 self._expected = []
             if self._offset == self._failure:
-                self._expected.append('[a-zA-Z_]')
+                self._expected.append(('Kobo.Query::name', '[a-zA-Z_\\[\\]]'))
         if address1 is not FAILURE:
             elements0.append(address1)
             address2 = FAILURE
-            remaining0, index2, elements1, address3 = 0, self._offset, [], True
-            while address3 is not FAILURE:
-                chunk1 = None
-                if self._offset < self._input_size:
-                    chunk1 = self._input[self._offset:self._offset + 1]
+            index2, elements1, address3 = self._offset, [], None
+            while True:
+                chunk1, max1 = None, self._offset + 1
+                if max1 <= self._input_size:
+                    chunk1 = self._input[self._offset:max1]
                 if chunk1 is not None and Grammar.REGEX_5.search(chunk1):
-                    address3 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+                    address3 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
                     self._offset = self._offset + 1
                 else:
                     address3 = FAILURE
@@ -952,11 +962,12 @@ class Grammar(object):
                         self._failure = self._offset
                         self._expected = []
                     if self._offset == self._failure:
-                        self._expected.append(r'[\w\-\[\]]')
+                        self._expected.append(('Kobo.Query::name', '[a-zA-Z0-9\\-_\\[\\]]'))
                 if address3 is not FAILURE:
                     elements1.append(address3)
-                    remaining0 -= 1
-            if remaining0 <= 0:
+                else:
+                    break
+            if len(elements1) >= 0:
                 address2 = TreeNode(self._input[index2:self._offset], index2, elements1)
                 self._offset = self._offset
             else:
@@ -983,11 +994,11 @@ class Grammar(object):
         if cached:
             self._offset = cached[1]
             return cached[0]
-        chunk0 = None
-        if self._offset < self._input_size:
-            chunk0 = self._input[self._offset:self._offset + 1]
+        chunk0, max0 = None, self._offset + 1
+        if max0 <= self._input_size:
+            chunk0 = self._input[self._offset:max0]
         if chunk0 is not None and Grammar.REGEX_6.search(chunk0):
-            address0 = TreeNode(self._input[self._offset:self._offset + 1], self._offset)
+            address0 = TreeNode(self._input[self._offset:self._offset + 1], self._offset, [])
             self._offset = self._offset + 1
         else:
             address0 = FAILURE
@@ -995,7 +1006,7 @@ class Grammar(object):
                 self._failure = self._offset
                 self._expected = []
             if self._offset == self._failure:
-                self._expected.append('[\\s]')
+                self._expected.append(('Kobo.Query::_', '[\\s]'))
         self._cache['_'][index0] = (address0, self._offset)
         return address0
 
@@ -1017,22 +1028,36 @@ class Parser(Grammar):
             return tree
         if not self._expected:
             self._failure = self._offset
-            self._expected.append('<EOF>')
+            self._expected.append(('Kobo.Query', '<EOF>'))
         raise ParseError(format_error(self._input, self._failure, self._expected))
 
 
-def format_error(input, offset, expected):
-    lines, line_no, position = input.split('\n'), 0, 0
-    while position <= offset:
-        position += len(lines[line_no]) + 1
-        line_no += 1
-    message, line = 'Line ' + str(line_no) + ': expected ' + ', '.join(expected) + '\n', lines[line_no - 1]
-    message += line + '\n'
-    position -= len(line) + 1
-    message += ' ' * (offset - position)
-    return message + '^'
+class ParseError(SyntaxError):
+    pass
 
 
 def parse(input, actions=None, types=None):
     parser = Parser(input, actions, types)
     return parser.parse()
+
+def format_error(input, offset, expected):
+    lines = input.split('\n')
+    line_no, position = 0, 0
+
+    while position <= offset:
+        position += len(lines[line_no]) + 1
+        line_no += 1
+
+    line = lines[line_no - 1]
+    message = 'Line ' + str(line_no) + ': expected one of:\n\n'
+
+    for pair in expected:
+        message += '    - ' + pair[1] + ' from ' + pair[0] + '\n'
+
+    number = str(line_no)
+    while len(number) < 6:
+        number = ' ' + number
+
+    message += '\n' + number + ' | ' + line + '\n'
+    message += ' ' * (len(line) + 10 + offset - position)
+    return message + '^'
