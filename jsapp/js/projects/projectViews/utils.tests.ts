@@ -22,8 +22,8 @@ describe('projectViewsUtils', () => {
       ];
       const clean: ProjectsFilterDefinition[] = [
         {fieldName: 'name', condition: 'is', value: 'Foo'},
-        {fieldName: 'sector', condition: 'isEmpty'},
-        {fieldName: 'countries', condition: 'isNotEmpty'},
+        {fieldName: 'sector', condition: 'isEmptyObject'},
+        {fieldName: 'countries', condition: 'isNotEmptyObject'},
       ];
       const test = removeIncorrectFilters(dirty);
       chai.expect(test).to.deep.equal(clean);
