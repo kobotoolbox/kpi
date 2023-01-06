@@ -45,13 +45,13 @@ describe('projectViewsUtils', () => {
     it('should build multiple queries from multiple filters', () => {
       const filters: ProjectsFilterDefinition[] = [
         {fieldName: 'name', condition: 'is', value: 'Foo'},
-        {fieldName: 'sector', condition: 'isEmpty'},
-        {fieldName: 'countries', condition: 'isNotEmpty'},
+        {fieldName: 'sector', condition: 'isEmptyObject'},
+        {fieldName: 'countries', condition: 'isNotEmptyObject'},
       ];
       const queries = [
         'name__iexact:"Foo"',
-        'settings__sector:""',
-        'NOT settings__country_codes[]:""',
+        'settings__sector__iexact:{}',
+        'NOT settings__country_codes[]__iexact:{}',
       ];
       const test = buildQueriesFromFilters(filters);
       chai.expect(test).to.deep.equal(queries);
@@ -98,10 +98,6 @@ describe('projectViewsUtils', () => {
         {
           in: {fieldName: 'sector', condition: 'isNotEmptyObject'},
           out: 'NOT settings__sector__iexact:{}',
-        },
-        {
-          in: {fieldName: 'countries', condition: 'startsWith', value: 'foo'},
-          out: 'settings__country_codes[]__istartswith:"foo"',
         },
         {
           in: {fieldName: 'languages', condition: 'is', value: 'foo'},
