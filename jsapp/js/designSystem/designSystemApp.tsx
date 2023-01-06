@@ -1,6 +1,4 @@
 import React from 'react';
-import CheckboxDemo from 'js/designSystem/checkboxDemo';
-import IconDemo from 'js/designSystem/iconDemo';
 import InlineMessageDemo from 'js/designSystem/inlineMessageDemo';
 import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo';
 import KoboModalDemo from 'js/designSystem/koboModalDemo';
@@ -16,8 +14,6 @@ import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
 const designSystemComponents = [
-  ['Checkbox', <CheckboxDemo/>],
-  ['Icon', <IconDemo/>],
   ['InlineMessage', <InlineMessageDemo/>],
   ['KoboDropdown', <KoboDropdownDemo/>],
   ['KoboModal', <KoboModalDemo/>],

@@ -1,17 +1,5 @@
 const path = require('path');
 
-const postCssLoader = {
-  loader: 'postcss-loader',
-  options: {
-    sourceMap: true,
-    postcssOptions: {
-      plugins: [
-        'autoprefixer',
-      ],
-    },
-  },
-};
-
 module.exports = {
   stories: [
     '../jsapp/**/*.stories.@(js|jsx|ts|tsx)',
@@ -42,7 +30,7 @@ module.exports = {
       {
         test: /\.scss$/,
         exclude: /\.module\.scss$/,
-        use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader'],
+        use: ['style-loader', 'css-loader', 'sass-loader'],
       },
       {
         test: /\.module\.scss$/,
@@ -54,7 +42,7 @@ module.exports = {
             },
             sourceMap: true
           }
-        }, postCssLoader, 'sass-loader'],
+        }, 'sass-loader'],
       },
     );
     return config;

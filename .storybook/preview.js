@@ -1,4 +1,5 @@
 import 'jsapp/scss/main.scss';
+import 'js/bemComponents';
 
 export const parameters = {
   actions: { argTypesRegex: "^on[A-Z].*" },
