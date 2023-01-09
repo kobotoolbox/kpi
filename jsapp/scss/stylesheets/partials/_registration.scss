@@ -1,7 +1,5 @@
 @use "scss/_variables";
-
-// A rare light mid-blue
-$kobo-light-mid-blue: #c0e3ff;
+@use "sass:color";
 
 // ==========================================================================
 // Registration Forms
@@ -41,14 +39,15 @@ $kobo-light-mid-blue: #c0e3ff;
     }
 
     a {
-      color: $kobo-light-mid-blue;
+      color: $kobo-mid-blue;
       text-decoration: underline;
       text-decoration-skip-ink: none;
-      text-decoration-color: rgba($kobo-light-mid-blue, 0.5);
+      text-decoration-color: rgba($kobo-mid-blue, 0.5);
 
       &:hover {
-        color: $kobo-mid-blue;
-        text-decoration-color: rgba($kobo-mid-blue, 0.5);
+        // Darken by 6%, like kobo-button hover
+        color: color.scale($kobo-mid-blue, $lightness: -6%);
+        text-decoration-color: rgba(color.scale($kobo-mid-blue, $lightness: -6%), 0.5);
       }
     }
 
@@ -131,11 +130,10 @@ $kobo-light-mid-blue: #c0e3ff;
 
     // Special button variant only used for SSO
     .kobo-button.kobo-button--sso {
-      background-color: $kobo-light-mid-blue;
+      background-color: $kobo-mid-blue;
       color: $kobo-dark-blue;
 
       &:focus {
-        // outline: 2px solid $kobo-dark-blue;
         outline-offset: 0;
       }
     }
