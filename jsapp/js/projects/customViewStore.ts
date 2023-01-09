@@ -16,6 +16,7 @@ import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
 
 const SAVE_DATA_NAME = 'project_views_settings';
+const PAGE_SIZE = 50;
 
 const DEFAULT_VIEW_SETTINGS: ViewSettings = {
   filters: [],
@@ -114,7 +115,7 @@ class CustomViewStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&q=${queriesString}`,
+      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&q=${queriesString}&limit=${PAGE_SIZE}`,
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));
