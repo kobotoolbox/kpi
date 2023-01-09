@@ -1,19 +1,10 @@
 import React from 'react';
 import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
-import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo';
-import MultiCheckboxDemo from 'js/designSystem/multiCheckboxDemo';
-import RadioDemo from 'js/designSystem/radioDemo';
-import RegionSelectorDemo from 'js/designSystem/regionSelectorDemo';
-import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
 const designSystemComponents = [
+  // Contains reflux, cannot easily port to Storybook
   ['LanguageSelector', <LanguageSelectorDemo/>],
-  ['MiniAudioPlayer', <MiniAudioPlayerDemo/>],
-  ['MultiCheckboxDemo', <MultiCheckboxDemo/>],
-  ['Radio', <RadioDemo/>],
-  ['RegionSelector', <RegionSelectorDemo/>],
-  ['TextBox', <TextBoxDemo/>],
 ];
 
 /**
