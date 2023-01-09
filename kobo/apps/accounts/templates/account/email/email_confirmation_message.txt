@@ -1,0 +1,11 @@
+{% load i18n %}
+{% load url_creation %}
+{% trans "Please confirm your email address associated with your Kobo account by clicking this link:" %}
+
+{{ activate_url }}
+
+{% trans "This link expires in 1 hour. If you need to request a new link to verify your email address change, visit your account page." %}
+{% accounts_settings %}
+
+{% trans "Best," %}
+KoboToolbox

@@ -1,0 +1,43 @@
+{% extends "socialaccount/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load get_provider_appname %}
+
+{% block content %}
+
+<form class="registration registration--social" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+  {# Friendly welcome message #}
+  <h1>{% blocktrans with username=form.username.value %}Welcome to KoboToolbox, {{username}}!{% endblocktrans %}</h1>
+
+  {# Helptext #}
+  {% get_provider_appname account.get_provider as appname %}
+  <p>{% blocktrans %}You are about to use your {{ appname }} account to login to KoboToolbox.{% endblocktrans %} {% trans "As a final step, please complete the following form" %}:</p>
+
+  {% csrf_token %}
+
+  {% for field in form %}
+    <p class="field-social--{{ field.name }}">
+      {{ field.label_tag }}
+      {% if field.field.required %}
+        <span class="required">*</span>
+      {% endif %}
+      {{ field }}
+      {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+      {% endif %}
+      {{ field.errors }}
+    </p>
+  {% endfor %}  
+
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <button
+    type="submit"
+    class="kobo-button kobo-button--blue kobo-button--fullwidth"
+  >
+    {% trans "Save and Access" %}
+  </button>
+</form>
+
+{% endblock %}

@@ -25,6 +25,12 @@ export interface EnvStoreFieldItem {
   required: boolean;
 }
 
+export interface SocialApp {
+  name: string;
+  provider: string;
+  client_id: string;
+}
+
 class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
@@ -49,6 +55,7 @@ class EnvStoreData {
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
   public stripe_pricing_table_id: string | null = null;
+  public social_apps: SocialApp[] = [];
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -108,6 +115,7 @@ class EnvStore {
     this.data.mfa_code_length = response.mfa_code_length;
     this.data.stripe_public_key = response.stripe_public_key;
     this.data.stripe_pricing_table_id = response.stripe_pricing_table_id;
+    this.data.social_apps = response.social_apps;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);
