@@ -201,11 +201,17 @@ class ProjectViewViewSet(
             return queryset
 
         q_terms = {
-            'asset': 'settings__country',
+            'asset': 'settings__country_codes',
             'user': 'extra_details__data__country',
         }
 
-        q = Q(**{f'{q_terms[obj_type]}__in': region})
+        q = Q()
         for country in region:
-            q |= Q(**{f'{q_terms[obj_type]}__contains': [{'value': country}]})
+            if obj_type == 'user':
+                q |= Q(
+                    **{f'{q_terms[obj_type]}__contains': [{'value': country}]}
+                )
+            else:
+                q |= Q(**{f'{q_terms[obj_type]}__contains': country})
+
         return queryset.filter(q)
