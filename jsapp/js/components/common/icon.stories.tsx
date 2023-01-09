@@ -1,6 +1,6 @@
 import React from 'react';
-import {ComponentStory, ComponentMeta} from '@storybook/react';
-import Icon from 'js/components/common/icon';
+import type {ComponentStory, ComponentMeta} from '@storybook/react';
+import Icon from './icon';
 import {IconNames} from 'jsapp/fonts/k-icons';
 
 export default {
@@ -18,7 +18,7 @@ export const AllIcons = () => (
   <div style={{display: 'flex', flexWrap: 'wrap'}}>
     {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((icon) => (
       <div style={{flex: '1 1 200px'}}>
-        <Icon name={icon} size='l'></Icon>
+        <Icon name={icon} size='l' />
         {icon}
       </div>
     ))}

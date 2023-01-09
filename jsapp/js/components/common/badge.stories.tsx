@@ -1,8 +1,9 @@
 import React from 'react';
-import {ComponentStory, ComponentMeta} from '@storybook/react';
+import type {ComponentStory, ComponentMeta} from '@storybook/react';
 
 import {IconNames} from 'jsapp/fonts/k-icons';
-import Badge, {BadgeColor, BadgeSize} from './badge';
+import Badge from './badge';
+import type {BadgeColor, BadgeSize} from './badge';
 
 const badgeColors: BadgeColor[] = [
   'cloud',

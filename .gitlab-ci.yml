@@ -41,7 +41,7 @@ pages:
   script:
     - apt-get update && apt-get install python-is-python3
     - npm i --force
-    - npm run build-storybook -o public
+    - npm run build-storybook -- -o public
   artifacts:
     paths:
       - public

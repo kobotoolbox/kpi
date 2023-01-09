@@ -1,6 +1,4 @@
 import React from 'react';
-import KoboRangeDemo from 'js/designSystem/koboRangeDemo';
-import KoboSelectDemo from 'js/designSystem/koboSelectDemo';
 import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
 import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo';
 import MultiCheckboxDemo from 'js/designSystem/multiCheckboxDemo';
@@ -10,8 +8,6 @@ import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
 const designSystemComponents = [
-  ['KoboRange', <KoboRangeDemo/>],
-  ['KoboSelect', <KoboSelectDemo/>],
   ['LanguageSelector', <LanguageSelectorDemo/>],
   ['MiniAudioPlayer', <MiniAudioPlayerDemo/>],
   ['MultiCheckboxDemo', <MultiCheckboxDemo/>],
