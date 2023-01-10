@@ -965,7 +965,13 @@ mixins.permissions = {
   // NOTE: be aware of the fact that some of non-TypeScript code is passing
   // things that are not AssetResponse (probably due to how dmix mixin is used
   // - merging asset response directly into component state object)
-  userCan(permName: PermissionCodename, asset: AssetResponse, partialPermName = null) {
+  userCan(permName: PermissionCodename, asset?: AssetResponse, partialPermName = null) {
+    // Sometimes asset data is not ready yet and we still call the function
+    // through some rendering function. We have to be prepared
+    if (!asset) {
+      return false;
+    }
+
     // TODO: check out whether any other checks are really needed at this point.
     // Pay attention if partial permissions work.
     const hasEffectiveAccess = asset.effective_permissions?.some((effectivePerm) =>
