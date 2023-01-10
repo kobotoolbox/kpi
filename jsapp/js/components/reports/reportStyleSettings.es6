@@ -47,13 +47,13 @@ export default class ReportStyleSettings extends React.Component {
     }
   }
 
-  translationIndexChange(name, value) {
+  translationIndexChange(value) {
     let styles = this.state.reportStyle;
     styles.translationIndex = parseInt(value);
     this.setState({reportStyle: styles});
   }
 
-  onGroupByChange(name, value) {
+  onGroupByChange(value) {
     let styles = this.state.reportStyle;
     styles.groupDataBy = value;
     this.setState({reportStyle: styles});

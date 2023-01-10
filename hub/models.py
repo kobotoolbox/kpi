@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from markitup.fields import MarkupField
 
 from kpi.utils.object_permission import get_database_user
+from kpi.mixins import StandardizeSearchableFieldMixin
 
 
 class SitewideMessage(models.Model):
@@ -70,7 +71,7 @@ class PerUserSetting(models.Model):
                   'the queries in the list.'
     )
     name = models.CharField(max_length=255, unique=True,
-                            default='INTERCOM_APP_ID')  # The only one for now!
+                            default='INTERCOM_APP_ID')  # Not used
     value_when_matched = models.CharField(max_length=2048, blank=True)
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
@@ -110,7 +111,7 @@ class PerUserSetting(models.Model):
         return self.name
 
 
-class ExtraUserDetail(models.Model):
+class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
@@ -118,6 +119,23 @@ class ExtraUserDetail(models.Model):
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
+
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        self.standardize_json_field('data', 'organization', str)
+        self.standardize_json_field('data', 'name', str)
+
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):

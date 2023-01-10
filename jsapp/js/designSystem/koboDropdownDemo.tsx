@@ -11,7 +11,7 @@ type KoboDropdownDemoState = {
 }
 
 interface Option {
-  value: string
+  value: KoboDropdownPlacements
   label: string
 }
 
@@ -35,8 +35,9 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
     }
   }
 
-  onPlacementChange({}: any, newPlacement: KoboDropdownPlacements) {
-    this.setState({demoPlacement: newPlacement})
+  onPlacementChange(newPlacement: string) {
+    const newPlacementCasted = newPlacement as KoboDropdownPlacements;
+    this.setState({demoPlacement: newPlacementCasted});
   }
 
   onIsDisabledChange(isChecked: boolean) {
@@ -61,7 +62,7 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -94,7 +95,7 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <KoboDropdown
                     name='kobo-dropdown-demo'

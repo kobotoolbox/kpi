@@ -1,9 +1,6 @@
 # coding: utf-8
 from collections import defaultdict
 
-from rest_framework import viewsets
-
-from kpi.filters import SearchFilter
 from .base import BaseViewSet
 from ..models.language import Language
 from ..serializers import (

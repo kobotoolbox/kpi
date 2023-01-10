@@ -3,7 +3,7 @@ import constance
 import markdown
 from django.conf import settings
 
-from hub.models import ConfigurationFile, PerUserSetting
+from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
 
 
@@ -13,12 +13,6 @@ def external_service_tokens(request):
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     if settings.RAVEN_JS_DSN:
         out['raven_js_dsn'] = settings.RAVEN_JS_DSN
-    try:
-        intercom_setting = PerUserSetting.objects.get(name='INTERCOM_APP_ID')
-    except PerUserSetting.DoesNotExist:
-        pass
-    else:
-        out['intercom_app_id'] = intercom_setting.get_for_user(request.user)
     return out
 
 
@@ -30,19 +24,23 @@ def email(request):
 
 
 def mfa(request):
+    def get_mfa_help_text():
+        return markdown.markdown(I18nUtils.get_mfa_help_text())
+
+    def get_mfa_enabled():
+        return ('true' if constance.config.MFA_ENABLED else 'false',)
+
     return {
         # Use (the strings) 'true' or 'false' to generate a true boolean if
         # used in Javascript
-        'mfa_enabled': 'true' if constance.config.MFA_ENABLED else 'false',
+        'mfa_enabled': get_mfa_enabled,
         # Allow markdown to emphasize part of the text and/or activate hyperlink
-        'mfa_help_text': markdown.markdown(I18nUtils.get_mfa_help_text()),
+        'mfa_help_text': get_mfa_help_text,
     }
 
 
 def django_settings(request):
-    return {
-        "stripe_enabled": settings.STRIPE_ENABLED
-    }
+    return {"stripe_enabled": settings.STRIPE_ENABLED}
 
 
 def sitewide_messages(request):

@@ -114,6 +114,10 @@ class HelpBubbleStore {
 
   public markMessageAcknowledged(messageUid: string) {
     this.patchMessage(messageUid);
+
+    // This is needed for `always_display_as_new` messages, so they disappear
+    // until user loads the app again.
+    this.locallyAcknowledgedMessageUids.add(messageUid);
   }
 
   private patchMessage(

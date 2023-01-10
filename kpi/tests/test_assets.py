@@ -1,4 +1,5 @@
 # coding: utf-8
+import base64
 import datetime
 import json
 from collections import OrderedDict
@@ -7,15 +8,17 @@ from copy import deepcopy
 import openpyxl
 from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
+from django.urls import reverse
 from rest_framework import serializers
 
 from kpi.constants import (
+    ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.utils.object_permission import get_all_objects_for_user
 
 # move this into a fixture file?
@@ -66,6 +69,21 @@ class AssetsTestCase(TestCase):
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
+    def _content(self, form_title='some form title'):
+        return {
+            'survey': [
+                {'type': 'text', 'label': 'Question 1',
+                 'name': 'q1', 'kuid': 'abc'},
+                {'type': 'text', 'label': 'Question 2',
+                 'name': 'q2', 'kuid': 'def'}
+            ],
+            # settingslist
+            'settings': [
+                {'form_title': form_title,
+                 'id_string': 'xid_stringx'},
+            ]
+        }
+
 
 class CreateAssetVersions(AssetsTestCase):
 
@@ -98,7 +116,7 @@ class CreateAssetVersions(AssetsTestCase):
         # _kuid1 = _content['survey'][0]['$kuid']
         _content_copy = deepcopy(_content)
         # remove this next line when todo is fixed
-        self.asset._strip_kuids(_content_copy)
+        self.asset._strip_dollar_fields(_content_copy)
         _c1 = json.dumps(_content_copy, sort_keys=True)
         surv_l = len(_content['survey'])
         self.assertEqual(surv_l, 2)
@@ -116,7 +134,7 @@ class CreateAssetVersions(AssetsTestCase):
         aa = Asset.objects.get(uid=self.asset.uid)
         _content_copy2 = deepcopy(aa.content)
         # remove this next line when todo is fixed
-        self.asset._strip_kuids(_content_copy2)
+        self.asset._strip_dollar_fields(_content_copy2)
         _c3 = json.dumps(_content_copy2, sort_keys=True)
         # _kuid3 = aa.content['survey'][0]['$kuid']
         surv_l_3 = len(aa.content['survey'])
@@ -324,7 +342,7 @@ class AssetContentTests(AssetsTestCase):
         workbook = openpyxl.load_workbook(xlsx_io)
 
         survey_sheet = workbook['survey']
-        # `versioned=True` should add a calculate question to the the last row.
+        # `versioned=True` should add a calculate question to the last row.
         # The calculation (version uid) changes on each run, so don't look past
         # the first two columns (type and name)
         xls_version_row = [
@@ -362,22 +380,63 @@ class AssetContentTests(AssetsTestCase):
         version_string = settings_sheet[version_col][1].value
         assert version_string == f'1 ({date_string})'
 
+    def test_unique__version__field_on_import_with_version(self):
+            xlsx_io = self.asset.to_xlsx_io(versioned=True)
+            workbook = openpyxl.load_workbook(xlsx_io)
+            survey_sheet = workbook['survey']
+            xls_version_row = [
+                cell.value for cell in survey_sheet[survey_sheet.max_row]]
+            expected_row = [
+                'calculate',
+                '__version__',
+                None,
+                f"'{self.asset.latest_version.uid}'"
+            ]
+            current_version_id = self.asset.latest_version.uid
+            assert xls_version_row == expected_row
+
+            xlsx_io.seek(0)
+            # Replace XLSForm with new one which contains a row with the '__version__'
+            import_task = self._create_import_task(xlsx_io)
+            self.asset.refresh_from_db()
+
+            xlsx_io = self.asset.to_xlsx_io(versioned=True)
+            workbook = openpyxl.load_workbook(xlsx_io)
+            survey_sheet = workbook['survey']
+            xls_new_version_row = [
+                cell.value for cell in survey_sheet[survey_sheet.max_row]]
+            new_version_expected_row = [
+                'calculate',
+                '__version__',
+                None,
+                f"'{self.asset.latest_version.uid}'"
+            ]
+            # Ensure last row is '__version__' (not '_version_' or '_version_001_')
+            # and it equals the asset's latest version
+            assert current_version_id != self.asset.latest_version.uid
+            assert xls_new_version_row == new_version_expected_row
+            # clean-up
+            import_task.delete()
+
+    def _create_import_task(self, xlsx_file: bytes) -> ImportTask:
+        encoded_xls = base64.b64encode(xlsx_file.read()).decode('utf-8')
+        import_task = ImportTask.objects.create(
+            user=self.user,
+            data={
+                'base64Encoded': encoded_xls,
+                'destination': reverse(
+                    'api_v2:asset-detail',
+                    kwargs={'uid': self.asset.uid},
+                ),
+                'filename': f'{self.asset.uid}.xlsx',
+                'assetUid': self.asset.uid,
+            },
+        )
+        import_task.run()
+        return import_task
+
 
 class AssetSettingsTests(AssetsTestCase):
-    def _content(self, form_title='some form title'):
-        return {
-            'survey': [
-                {'type': 'text', 'label': 'Question 1',
-                 'name': 'q1', 'kuid': 'abc'},
-                {'type': 'text', 'label': 'Question 2',
-                 'name': 'q2', 'kuid': 'def'}
-            ],
-            # settingslist
-            'settings': [
-                {'form_title': form_title,
-                 'id_string': 'xid_stringx'},
-            ]
-        }
 
     def test_asset_type_changes_based_on_row_count(self):
         # we are inferring the asset_type from the content so that
@@ -447,6 +506,24 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 
+    def test_standardize_searchable_fields(self):
+        asset = Asset.objects.create(
+            content=self._content('abcxyz'),
+            settings={
+                'country': {'value': 'CAN', 'label': 'Canada'},
+                'sector': [None],
+            },
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        expected_settings = {
+            'country': [{'value': 'CAN', 'label': 'Canada'}],
+            'country_codes': ['CAN'],
+            'description': '',
+            'sector': {}
+        }
+        assert asset.settings == expected_settings
+
 
 class AssetScoreTestCase(TestCase):
     fixtures = ['test_data']
@@ -479,7 +556,7 @@ class AssetScoreTestCase(TestCase):
         self.assertNotEqual(_snapshot.details['status'], 'failure')
 
 
-class AssetSnapshotXmlTestCase(AssetSettingsTests):
+class AssetSnapshotXmlTestCase(AssetsTestCase):
     def test_cascading_select_xform(self):
         asset = Asset.objects.create(asset_type='survey',
                                      content=CASCADE_CONTENT)
@@ -508,25 +585,6 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
         self.assertTrue(f'<{a1.uid} id="xid_stringx">' in export.xml)
 
-
-# TODO: test values of "valid_xlsform_content"
-
-# class ReadAssetsTests(AssetsTestCase):
-#     def test_strip_kuids(self):
-#         sans_kuid = self.sa.to_ss_structure(content_tag='survey', strip_kuids=True)['survey']
-#         self.assertEqual(len(sans_kuid), 2)
-#         self.assertTrue('kuid' not in sans_kuid[0].keys())
-
-# class UpdateAssetsTest(AssetsTestCase):
-#     def test_add_settings(self):
-#         self.assertEqual(self.asset.settings, None)
-#         self.asset.settings = {'style':'grid-theme'}
-# self.assertEqual(self.asset.settings, {'style':'grid-theme'})
-#         ss_struct = self.asset.to_ss_structure()['settings']
-#         self.assertEqual(len(ss_struct), 1)
-#         self.assertEqual(ss_struct[0], {
-#                 'style': 'grid-theme',
-#             })
 
 class ShareAssetsTest(AssetsTestCase):
 

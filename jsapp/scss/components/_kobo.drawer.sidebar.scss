@@ -2,6 +2,11 @@
   padding: 20px 14px;
 }
 
+
+.form-sidebar__navlink {
+  color: inherit;
+}
+
 .form-sidebar {
   margin-top: 10px;
   overflow-y: auto;
@@ -25,6 +30,14 @@
   .form-sidebar__label,
   .form-sidebar__item {
     cursor: pointer;
+  }
+
+  .form-sidebar__navlink {
+    color: $kobo-gray-40;
+  }
+
+  .active {
+    color: $kobo-gray-24;
   }
 
   .form-sidebar__label {
@@ -72,6 +85,13 @@
       margin: 0;
       height: 0;
       overflow: hidden;
+    }
+
+    // Makes the list scrollable if there are a lot of items.
+    &.form-sidebar__grouping--visible {
+      max-height: 30vh;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
   }
 

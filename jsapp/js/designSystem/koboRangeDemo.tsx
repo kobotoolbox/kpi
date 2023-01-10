@@ -52,8 +52,9 @@ export default class KoboRangeDemo extends React.Component<{}, KoboRangeDemoStat
     this.setState({demoCurrentLabel: newLabel})
   }
 
-  onColorChange({}: any, newColor: KoboRangeColors) {
-    this.setState({demoColor: newColor})
+  onColorChange(newColor: string) {
+    const newColorCasted = newColor as KoboRangeColors;
+    this.setState({demoColor: newColorCasted});
   }
 
   onMaxChange(newMax: number) {
@@ -86,7 +87,7 @@ export default class KoboRangeDemo extends React.Component<{}, KoboRangeDemoStat
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -149,7 +150,7 @@ export default class KoboRangeDemo extends React.Component<{}, KoboRangeDemoStat
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <KoboRange
                     max={this.state.demoMax}

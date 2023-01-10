@@ -654,9 +654,9 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        absolute_filename = self.get_absolute_filename(filename)
+        absolute_filepath = self.get_absolute_filepath(filename)
 
-        with self.result.storage.open(absolute_filename, 'wb') as output_file:
+        with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
@@ -689,7 +689,7 @@ class ExportTaskBase(ImportExportTask):
             elif export_type == 'spss_labels':
                 export.to_spss_labels(output_file)
 
-        self.result = absolute_filename
+        self.result = absolute_filepath
 
         if not self.pk:
             # In tests, exports are not saved into the DB before calling this
@@ -703,14 +703,15 @@ class ExportTaskBase(ImportExportTask):
         self.result.delete(save=False)
         super().delete(*args, **kwargs)
 
-    def get_absolute_filename(self, filename: str) -> str:
+    def get_absolute_filepath(self, filename: str) -> str:
         """
-        Get absolute filename related to storage root.
+        Get absolute filepath related to storage root.
         """
 
         storage_class = self.result.storage
-        filename = self.result.field.generate_filename(self, filename)
-
+        filename = self.result.field.generate_filename(
+            self, storage_class.get_valid_name(filename)
+        )
         # We cannot call `self.result.save()` before reopening the file
         # in write mode (i.e. open(filename, 'wb')). because it does not work
         # with AzureStorage.

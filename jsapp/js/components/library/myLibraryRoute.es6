@@ -10,12 +10,10 @@ import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {validFileTypes} from 'utils';
 import myLibraryStore from './myLibraryStore';
-import AssetsTable from './assetsTable';
+import AssetsTable from 'js/components/assetsTable/assetsTable';
 import {MODAL_TYPES} from 'js/constants';
-import {
-  ROOT_BREADCRUMBS,
-  ASSETS_TABLE_CONTEXTS,
-} from 'js/components/library/libraryConstants';
+import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
+import {ASSETS_TABLE_CONTEXTS} from 'js/components/assetsTable/assetsTableConstants';
 
 class MyLibraryRoute extends React.Component {
   constructor(props) {

@@ -136,9 +136,6 @@ bem.CollectionNav__link = makeBem(bem.CollectionNav, 'link', 'a');
 bem.CollectionNav__searchcancel = makeBem(bem.CollectionNav, 'searchcancel', 'i');
 bem.CollectionNav__searchicon = makeBem(bem.CollectionNav, 'searchicon', 'i');
 
-bem.Library = makeBem(null, 'library');
-bem.Library__typeFilter = makeBem(bem.Library, 'type-filter', 'label');
-
 bem.List = makeBem(null, 'list');
 bem.List__heading = makeBem(bem.List, 'heading');
 bem.List__subheading = makeBem(bem.List, 'subheading');
@@ -254,7 +251,7 @@ bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper');
 bem.FormSidebar = makeBem(null, 'form-sidebar');
 bem.FormSidebar__item = makeBem(bem.FormSidebar, 'item', 'a');
 bem.FormSidebar__itemText = makeBem(bem.FormSidebar, 'item-text');
-bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label', 'a');
+bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label');
 bem.FormSidebar__labelText = makeBem(bem.FormSidebar, 'label-text');
 bem.FormSidebar__labelCount = makeBem(bem.FormSidebar, 'label-count');
 bem.FormSidebar__grouping = makeBem(bem.FormSidebar, 'grouping');
@@ -273,25 +270,6 @@ bem.SimpleTable__row = makeBem(bem.SimpleTable, 'row', 'tr');
 bem.SimpleTable__messageRow = makeBem(bem.SimpleTable, 'message-row', 'tr');
 bem.SimpleTable__cell = makeBem(bem.SimpleTable, 'cell', 'td');
 
-bem.AssetsTable = makeBem(null, 'assets-table');
-bem.AssetsTable__header = makeBem(bem.AssetsTable, 'header');
-bem.AssetsTable__body = makeBem(bem.AssetsTable, 'body');
-bem.AssetsTable__footer = makeBem(bem.AssetsTable, 'footer');
-bem.AssetsTableRow = makeBem(null, 'assets-table-row');
-bem.AssetsTableRow__link = makeBem(bem.AssetsTableRow, 'link', 'a');
-bem.AssetsTableRow__buttons = makeBem(bem.AssetsTableRow, 'buttons');
-bem.AssetsTableRow__column = makeBem(bem.AssetsTableRow, 'column');
-bem.AssetsTableRow__headerLabel = makeBem(bem.AssetsTableRow, 'header-label', 'span');
-bem.AssetsTableRow__tags = makeBem(bem.AssetsTableRow, 'tags', 'div');
-bem.AssetsTableRow__tag = makeBem(bem.AssetsTableRow, 'tag', 'span');
-bem.AssetsTablePagination = makeBem(null, 'assets-table-pagination');
-bem.AssetsTablePagination__button = makeBem(bem.AssetsTablePagination, 'button', 'button');
-bem.AssetsTablePagination__index = makeBem(bem.AssetsTablePagination, 'index');
-
-bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
-bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
-bem.AssetActionButtons__iconButton = makeBem(bem.AssetActionButtons, 'icon-button', 'a');
-
 bem.tagSelect = makeBem(null, 'tag-select');
 bem.collectionFilter = makeBem(null, 'collection-filter');
 
@@ -306,9 +284,6 @@ bem.Checkbox = makeBem(null, 'checkbox');
 bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
 bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
 bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
-
-bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul');
-bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li');
 
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');

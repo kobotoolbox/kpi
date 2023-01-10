@@ -13,10 +13,10 @@ build:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
   script:
-    - docker pull $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
+    - docker pull $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-} || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-} --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-} .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker push $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-}
 
 deploy-beta:
   stage: deploy

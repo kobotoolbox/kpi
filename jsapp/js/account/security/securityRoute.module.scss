@@ -1,0 +1,20 @@
+@use 'scss/sizes';
+
+.security-section {
+  padding: sizes.$x50;
+  overflow-y: auto;
+  height: 100%;
+
+  h1 {
+    margin-bottom: sizes.$x36;
+  }
+
+  :global {
+    // Harmonize button widths
+    .k-button__label {
+      display: inline-block;
+      min-width: 6em;
+      text-align: center;
+    }
+  }
+}

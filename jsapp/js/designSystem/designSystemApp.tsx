@@ -1,4 +1,5 @@
 import React from 'react';
+import BadgeDemo from 'js/designSystem/badgeDemo';
 import ButtonDemo from 'js/designSystem/buttonDemo';
 import CheckboxDemo from 'js/designSystem/checkboxDemo';
 import IconDemo from 'js/designSystem/iconDemo';
@@ -10,12 +11,14 @@ import KoboRangeDemo from 'js/designSystem/koboRangeDemo';
 import KoboSelectDemo from 'js/designSystem/koboSelectDemo';
 import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo';
 import MiniAudioPlayerDemo from 'js/designSystem/miniAudioPlayerDemo';
+import MultiCheckboxDemo from 'js/designSystem/multiCheckboxDemo';
 import RadioDemo from 'js/designSystem/radioDemo';
 import RegionSelectorDemo from 'js/designSystem/regionSelectorDemo';
 import TextBoxDemo from 'js/designSystem/textboxDemo';
 import './demo.scss';
 
 const designSystemComponents = [
+  ['Badge', <BadgeDemo/>],
   ['Button', <ButtonDemo/>],
   ['Checkbox', <CheckboxDemo/>],
   ['Icon', <IconDemo/>],
@@ -27,6 +30,7 @@ const designSystemComponents = [
   ['KoboSelect', <KoboSelectDemo/>],
   ['LanguageSelector', <LanguageSelectorDemo/>],
   ['MiniAudioPlayer', <MiniAudioPlayerDemo/>],
+  ['MultiCheckboxDemo', <MultiCheckboxDemo/>],
   ['Radio', <RadioDemo/>],
   ['RegionSelector', <RegionSelectorDemo/>],
   ['TextBox', <TextBoxDemo/>],

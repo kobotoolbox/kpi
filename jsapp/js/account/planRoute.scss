@@ -1,0 +1,42 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+
+/**
+ * TODO: Most probably all different Account routes will use very similar design,
+ * so it would only make sense to define a very generic and reusable BEMs.
+ *
+ * See: https://www.figma.com/file/dyA3ivXUxmSjjFruqmW4T4/Data-storage-and-billing-options
+ */
+
+.account-plan {
+  padding: sizes.$x30 sizes.$x40;
+}
+
+.account-plan__info {
+  display: flex;
+}
+
+.account-plan__description {
+  flex: 1;
+  padding-left: sizes.$x14;
+}
+
+.account-plan__description-header {
+  font-size: sizes.$x20;
+  color: colors.$kobo-blue;
+  padding-bottom: sizes.$x12;
+}
+
+.account-plan__description-blurb {
+  font-size: sizes.$x16;
+  line-height: sizes.$x24;
+}
+
+.account-plan__data {
+  flex: 1;
+  padding-right: sizes.$x14;
+}
+
+.plan-usage-row__data {
+  display: flex;
+}

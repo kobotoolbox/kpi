@@ -63,11 +63,12 @@ export default class TextBoxDemo extends React.Component<{}, TextBoxDemoState> {
     }
   }
 
-  onTypeChange({}: any, newType: AvailableType) {
-    this.setState({demoType: newType})
+  onTypeChange(newType: string) {
+    const newTypeCasted = newType as AvailableType;
+    this.setState({demoType: newTypeCasted})
   }
 
-  onErrorsChange({}: any, newErrors: string) {
+  onErrorsChange(newErrors: string) {
     this.setState({demoErrors: newErrors})
   }
 
@@ -115,7 +116,7 @@ export default class TextBoxDemo extends React.Component<{}, TextBoxDemoState> {
           </bem.SimpleTable__header>
           <bem.SimpleTable__body>
             <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <form>
                   <div className='demo__form-row'>
                     <div className='demo__form-config'>
@@ -199,7 +200,7 @@ export default class TextBoxDemo extends React.Component<{}, TextBoxDemoState> {
                   </div>
                 </form>
               </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
+              <bem.SimpleTable__cell m='align-top'>
                 <div className='demo__preview'>
                   <TextBox
                     type={this.state.demoType}

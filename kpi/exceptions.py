@@ -74,6 +74,10 @@ class InvalidSearchException(exceptions.APIException):
     default_code = 'invalid_search'
 
 
+class InvalidXFormException(Exception):
+    pass
+
+
 class InvalidXPathException(Exception):
     pass
 
@@ -131,6 +135,16 @@ class ObjectDeploymentDoesNotExist(exceptions.APIException):
 
 class PairedDataException(Exception):
     pass
+
+
+class QueryParserBadSyntax(InvalidSearchException):
+    default_detail = t('Bad syntax')
+    default_code = 'query_parser_bad_syntax'
+
+
+class QueryParserNotSupportedFieldLookup(InvalidSearchException):
+    default_detail = t('Not supported field lookup')
+    default_code = 'not_supported_field_lookup'
 
 
 class ReadOnlyModelError(Exception):

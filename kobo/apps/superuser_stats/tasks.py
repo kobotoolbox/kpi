@@ -1,9 +1,15 @@
 # coding: utf-8
-import datetime
+from __future__ import annotations
+
 import csv
 from celery import shared_task
 from collections import Counter
+from datetime import datetime
 from typing import Union
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -31,7 +37,7 @@ from kpi.models.asset import Asset
 
 @shared_task
 def generate_country_report(
-        output_filename: str, start_date: str, end_date: str
+    output_filename: str, start_date: str, end_date: str
 ):
 
     def get_row_for_country(code_: str, label_: str):
@@ -50,7 +56,7 @@ def generate_country_report(
         # very specific time frames
         instances_count = ReadOnlyKobocatInstance.objects.filter(
             xform_id__in=list(xform_ids),
-            date_created__range=(start_date, end_date),
+            date_created__date__range=(start_date, end_date),
         ).count()
 
         row_.append(label_)
@@ -78,27 +84,24 @@ def generate_country_report(
 
 
 @shared_task
-def generate_continued_usage_report(
-        output_filename: str,
-        end_date: Union[str, datetime.datetime]
-):
+def generate_continued_usage_report(output_filename: str, end_date: str):
     data = []
 
-    if isinstance(end_date, str):
-        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    # We need to work with UTC timezone-aware datetime objects
+    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-    twelve_months_time = end_date - relativedelta(years=1)
-    six_months_time = end_date - relativedelta(months=6)
-    three_months_time = end_date - relativedelta(months=3)
+    twelve_months_time = end_date_obj - relativedelta(years=1)
+    six_months_time = end_date_obj - relativedelta(months=6)
+    three_months_time = end_date_obj - relativedelta(months=3)
 
     users = User.objects.filter(
-        last_login__range=(twelve_months_time, end_date),
+        last_login__date__range=(twelve_months_time, end_date),
     )
 
     for user in users:
         # twelve months
         assets = user.assets.values('pk', 'date_created').filter(
-            date_created__range=(twelve_months_time, end_date),
+            date_created__date__range=(twelve_months_time, end_date),
         )
         submissions_count = (
             ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.annotate(
@@ -168,8 +171,9 @@ def generate_continued_usage_report(
 
 @shared_task
 def generate_domain_report(output_filename: str, start_date: str, end_date: str):
+
     emails = User.objects.filter(
-        date_joined__range=(start_date, end_date),
+        date_joined__date__range=(start_date, end_date),
     ).values_list('email', flat=True)
 
     # get a list of the domains
@@ -184,7 +188,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
         domain:
             Asset.objects.filter(
                 owner__email__endswith='@' + domain,
-                date_created__range=(start_date, end_date),
+                date_created__date__range=(start_date, end_date),
             ).count()
         for domain in domain_users.keys()
     }
@@ -230,39 +234,50 @@ def generate_forms_count_by_submission_range(output_filename: str):
     ranges = [
         {
             'label': '0',
-            'orm_criteria': {'num_of_submissions': 0}
+            'orm_criteria': {'count': 0}
         },
         {
             'label': '1 - 500',
-            'orm_criteria': {'num_of_submissions__range': (1, 500)}
+            'orm_criteria': {'count__range': (1, 500)}
         },
         {
             'label': '501 - 1000',
-            'orm_criteria': {'num_of_submissions__range': (501, 1000)}
+            'orm_criteria': {'count__range': (501, 1000)}
         },
         {
             'label': '1001 - 10000',
-            'orm_criteria': {'num_of_submissions__range': (1001, 10000)}
+            'orm_criteria': {'count__range': (1001, 10000)}
         },
         {
             'label': '10001 - 50000',
-            'orm_criteria': {'num_of_submissions__range': (10001, 50000)}
+            'orm_criteria': {'count__range': (10001, 50000)}
         },
         {
             'label': '50001 and more',
-            'orm_criteria': {'num_of_submissions__gte': 50001}
+            'orm_criteria': {'count__gte': 50001}
         },
     ]
 
     # store data for csv
     data = []
 
-    today = datetime.datetime.today()
-    date = today - relativedelta(years=1)
-    queryset = KobocatXForm.objects.filter(date_created__gte=date)
+    today = datetime.today()
+    date_ = today - relativedelta(years=1)
+    no_submissions = KobocatXForm.objects.filter(
+        date_created__date__gte=date_,
+        num_of_submissions=0
+    )
+    queryset = ReadOnlyKobocatInstance.objects.values(
+        'xform_id'
+    ).filter(
+        date_created__date__gte=date_,
+    ).annotate(count=Count('xform_id'))
 
     for r in ranges:
-        forms_count = queryset.filter(**r['orm_criteria']).count()
+        if r['label'] == '0':
+            forms_count = no_submissions.count()
+        else:
+            forms_count = queryset.filter(**r['orm_criteria']).count()
         data.append([r['label'], forms_count])
 
     headers = ['Range', 'Count']
@@ -431,16 +446,16 @@ def generate_user_report(output_filename: str):
 
 @shared_task
 def generate_user_statistics_report(
-        output_filename: str,
-        start_date: str,
-        end_date: str
+    output_filename: str,
+    start_date: str,
+    end_date: str
 ):
     data = []
 
     asset_queryset = Asset.objects.values(
         'owner_id', 'owner__extra_details'
     ).filter(
-        asset_type=ASSET_TYPE_SURVEY, date_created__range=(start_date, end_date)
+        asset_type=ASSET_TYPE_SURVEY, date_created__date__range=(start_date, end_date)
     )
     records = asset_queryset.annotate(form_count=Count('pk')).order_by()
     forms_count = {
@@ -576,7 +591,7 @@ def generate_user_details_report(output_filename: str):
         writer = csv.writer(f)
         writer.writerow(columns)
         for row in data:
-            metadata = row.pop('metadata', {})
+            metadata = row.pop('metadata', {}) or {}
             flatten_metadata_inplace(metadata)
             row.update(metadata)
             flat_row = [get_row_value(row, col) for col in columns]

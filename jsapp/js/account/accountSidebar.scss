@@ -1,0 +1,28 @@
+@use 'scss/_colors';
+@use 'scss/sizes';
+
+.form-sidebar.form-sidebar--account {
+  padding: sizes.$x14 sizes.$x20 sizes.$x20 0;
+
+  .form-sidebar__label {
+    padding: 0 0 0 sizes.$x18 !important;
+    border-left: sizes.$x3 solid transparent;
+    margin-bottom: sizes.$x18;
+  }
+
+  .form-sidebar__label[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  a.active {
+    .form-sidebar__label {
+      border-left: sizes.$x3 solid colors.$kobo-teal;
+
+    }
+  }
+
+  i.k-icon {
+    margin: 0 sizes.$x6 0 sizes.$x1 !important;
+  }
+}
