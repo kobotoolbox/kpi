@@ -1,9 +1,8 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
-  stories: [
-    '../jsapp/**/*.stories.@(js|jsx|ts|tsx)',
-  ],
+  stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
     '@storybook/addon-links',
     '@storybook/addon-essentials',
@@ -15,17 +14,27 @@ module.exports = {
     builder: '@storybook/builder-webpack5',
   },
   webpackFinal: async (config, {configType}) => {
-    config.module.rules.push({
-      resolve: {
-        extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx', '.scss'],
-        alias: {
-          app: path.join(__dirname, '../app'),
-          jsapp: path.join(__dirname, '../jsapp'),
-          js: path.join(__dirname, '../jsapp/js'),
-          scss: path.join(__dirname, '../jsapp/scss'),
+    config.plugins.push(new webpack.ProvidePlugin({$: 'jquery'})),
+      config.module.rules.push({
+        resolve: {
+          extensions: [
+            '.jsx',
+            '.js',
+            '.es6',
+            '.coffee',
+            '.ts',
+            '.tsx',
+            '.scss',
+          ],
+          alias: {
+            app: path.join(__dirname, '../app'),
+            jsapp: path.join(__dirname, '../jsapp'),
+            js: path.join(__dirname, '../jsapp/js'),
+            scss: path.join(__dirname, '../jsapp/scss'),
+            utils: path.join(__dirname, '../jsapp/js/utils'),
+          },
         },
-      },
-    });
+      });
     config.module.rules.push(
       {
         test: /\.scss$/,
@@ -34,16 +43,20 @@ module.exports = {
       },
       {
         test: /\.module\.scss$/,
-        use: ['style-loader', {
-          loader: 'css-loader',
-          options: {
-            modules: {
-              localIdentName:'[name]__[local]--[hash:base64:5]',
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
+              sourceMap: true,
             },
-            sourceMap: true
-          }
-        }, 'sass-loader'],
-      },
+          },
+          'sass-loader',
+        ],
+      }
     );
     return config;
   },

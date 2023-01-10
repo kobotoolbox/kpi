@@ -7,7 +7,6 @@ require('jquery-ui/ui/widgets/sortable');
 import moment from 'moment';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
-import DesignSystemApp from 'js/designSystem/designSystemApp';
 import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
@@ -76,20 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <RegistrationPasswordApp />
       </AppContainer>,
       registrationPasswordAppEl
-    );
-  }
-});
-
-// Handles rendering a dev app with design system.
-document.addEventListener('DOMContentLoaded', () => {
-  const designSystemAppEl = document.getElementById('design-system-app');
-  if (designSystemAppEl) {
-    Modal.setAppElement('#design-system-app');
-    render(
-      <AppContainer>
-        <DesignSystemApp />
-      </AppContainer>,
-      designSystemAppEl
     );
   }
 });
