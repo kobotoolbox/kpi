@@ -4,7 +4,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0040_synchronous_export'),
+        ('kpi', '0044_standardize_searchable_fields'),
+
     ]
 
     operations = [
