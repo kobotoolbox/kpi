@@ -10,7 +10,7 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
-import type {EnvStoreFieldItem} from 'js/envStore';
+import type {EnvStoreFieldItem, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
@@ -583,6 +583,15 @@ export interface PermissionDefinition {
 
 export interface PermissionsConfigResponse extends PaginatedResponse<PermissionDefinition> {}
 
+interface SocialAccount {
+  provider: string;
+  uid: string;
+  last_login: string;
+  date_joined: string;
+  email: string | null;
+  username: string | null;
+}
+
 export interface AccountResponse {
   username: string;
   first_name: string;
@@ -617,6 +626,7 @@ export interface AccountResponse {
     branch: string;
     tag: boolean;
   };
+  social_accounts: SocialAccount[];
 }
 
 interface UserNotLoggedInResponse {
@@ -665,6 +675,7 @@ export interface EnvironmentResponse {
   mfa_code_length: number;
   stripe_public_key: string | null;
   stripe_pricing_table_id: string | null;
+  social_apps: SocialApp[];
 }
 
 export interface AssetSubscriptionsResponse {
@@ -740,7 +751,7 @@ export const dataInterface: DataInterface = {
 
   logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();
-    $ajax({url: `${ROOT_URL}/accounts/logout/`}).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
+    $ajax({url: `${ROOT_URL}/accounts/logout/`, method: 'POST'}).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
       // logout request wasn't successful, but may have logged the user out
       // querying '/me/' can confirm if we have logged out.
       dataInterface.selfProfile().done(function (data: {message?: string}){

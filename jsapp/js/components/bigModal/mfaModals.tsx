@@ -228,8 +228,8 @@ const MFAModals = class MFAModals extends React.Component<
     return (
       <bem.MFAModal__p>
         {t(
-          'Two-factor authenication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
-          + 'We recommend enabling two-factor authenication for an additional layer of protection.'
+          'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
+          + 'We recommend enabling two-factor authentication for an additional layer of protection.'
         )}
       </bem.MFAModal__p>
     )

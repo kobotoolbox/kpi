@@ -86,6 +86,13 @@
       height: 0;
       overflow: hidden;
     }
+
+    // Makes the list scrollable if there are a lot of items.
+    &.form-sidebar__grouping--visible {
+      max-height: 30vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
   }
 
   .form-sidebar__item {
