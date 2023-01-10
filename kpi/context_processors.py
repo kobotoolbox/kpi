@@ -24,19 +24,23 @@ def email(request):
 
 
 def mfa(request):
+    def get_mfa_help_text():
+        return markdown.markdown(I18nUtils.get_mfa_help_text())
+
+    def get_mfa_enabled():
+        return ('true' if constance.config.MFA_ENABLED else 'false',)
+
     return {
         # Use (the strings) 'true' or 'false' to generate a true boolean if
         # used in Javascript
-        'mfa_enabled': 'true' if constance.config.MFA_ENABLED else 'false',
+        'mfa_enabled': get_mfa_enabled,
         # Allow markdown to emphasize part of the text and/or activate hyperlink
-        'mfa_help_text': markdown.markdown(I18nUtils.get_mfa_help_text()),
+        'mfa_help_text': get_mfa_help_text,
     }
 
 
 def django_settings(request):
-    return {
-        "stripe_enabled": settings.STRIPE_ENABLED
-    }
+    return {"stripe_enabled": settings.STRIPE_ENABLED}
 
 
 def sitewide_messages(request):
