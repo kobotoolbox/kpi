@@ -6,19 +6,20 @@ from functools import reduce
 from operator import add
 from typing import Optional, Union
 
-from jsonschema import validate as jsonschema_validate
-
 from django.conf import settings
 from django.contrib.auth.models import Permission
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch, Q
+from django.db.models import Exists, OuterRef, Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from jsonschema import validate as jsonschema_validate
+
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
@@ -204,6 +205,12 @@ class Asset(ObjectPermissionMixin,
         return 'asset'
 
     class Meta:
+
+        indexes = [
+            GinIndex(
+                F('settings__country_codes'), name='settings__country_codes_idx'
+            )
+        ]
 
         # Example in Django documentation  represents `ordering` as a list
         # (even if it can be a list or a tuple). We enforce the type to `list`
