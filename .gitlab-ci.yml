@@ -34,3 +34,18 @@ deploy-beta:
       - public-beta
     variables:
       - $CI_COMMIT_REF_PROTECTED
+
+pages:
+  stage: deploy
+  image: node:18
+  script:
+    - apt-get update && apt-get install python-is-python3
+    - npm i --force
+    - npm run build-storybook -- -o public
+  artifacts:
+    paths:
+      - public
+  only:
+    refs:
+      - beta
+      - storybook
