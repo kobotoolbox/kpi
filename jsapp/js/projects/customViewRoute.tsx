@@ -15,8 +15,9 @@ import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
-import styles from './customViewRoute.module.scss';
+import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
+import {ROOT_URL} from 'js/constants';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -29,7 +30,10 @@ function CustomViewRoute() {
   const [customView] = useState(customViewStore);
 
   useEffect(() => {
-    customView.setUp(viewUid);
+    customView.setUp(
+      viewUid,
+      `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/?`
+    );
     customView.fetchAssets();
   }, [viewUid]);
 

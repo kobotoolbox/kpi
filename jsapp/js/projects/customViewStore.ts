@@ -5,7 +5,6 @@ import type {
   FailResponse,
 } from 'js/dataInterface';
 import {handleApiFail} from 'js/utils';
-import {ROOT_URL} from 'js/constants';
 import {DEFAULT_PROJECT_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
 import type {
   ProjectFieldName,
@@ -48,6 +47,14 @@ class CustomViewStore {
   /** Whether the first call was made. */
   public isFirstLoadComplete = false;
   public isLoading = false;
+  /**
+   * Please pass url with query parameters included, or simply ending with `?`.
+   * This is the API url we want to call for given view. We have it here, so
+   * that store would be able to handling both Project Views and My Projects
+   * routes (as both of them use different APIs with same functionalities
+   * available)
+   */
+  private baseUrl?: string;
   private viewUid?: string;
   /** We use `null` here because the endpoint uses it. */
   private nextPageUrl: string | null = null;
@@ -57,8 +64,9 @@ class CustomViewStore {
   }
 
   /** Use this whenever you need to change the view */
-  public setUp(viewUid: string) {
+  public setUp(viewUid: string, baseUrl: string) {
     this.viewUid = viewUid;
+    this.baseUrl = baseUrl;
     this.assets = [];
     this.isFirstLoadComplete = false;
     this.isLoading = false;
@@ -115,7 +123,7 @@ class CustomViewStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&q=${queriesString}&limit=${PAGE_SIZE}`,
+      url: `${this.baseUrl}&ordering=${orderingString}&q=${queriesString}&limit=${PAGE_SIZE}`,
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));
