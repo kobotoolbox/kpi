@@ -179,9 +179,8 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_class_context(
-            queryset, serializer_class
-        )
+        context_ = self.get_serializer_context()
+
         return serializer_class(
             queryset,
             many=True,
