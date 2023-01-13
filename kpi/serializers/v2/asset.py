@@ -792,21 +792,14 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'owner__name',
             'owner__organization',
             'uid',
-            'kind',
             'name',
             'settings',
             'languages',
-            'asset_type',
             'version_id',
-            'version_count',
             'has_deployment',
             'deployed_version_id',
             'deployment__active',
             'deployment__submission_count',
-            'permissions',
-            'status',
-            'data_sharing',
-            'data',
         )
 
     def get_data(self, obj: Asset) -> str:
