@@ -115,7 +115,7 @@ class CustomViewStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&q=${queriesString}&limit=${PAGE_SIZE}`,
+      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&limit=${PAGE_SIZE}` + (queriesString ? `&q=${queriesString}` : ''),
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));
