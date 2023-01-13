@@ -54,9 +54,9 @@ class ProjectViewSerializer(serializers.ModelSerializer):
         if '*' in region:
             return queryset.count()
 
-        q = Q(settings__country__in=region)
+        q = Q()
         for country in region:
-            q |= Q(settings__country__contains=[{'value': country}])
+            q |= Q(settings__country_codes__contains=country)
         return queryset.filter(q).count()
 
     def get_assets_export(self, obj: ProjectView) -> str:
