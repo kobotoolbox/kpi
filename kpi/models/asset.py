@@ -162,7 +162,8 @@ class Asset(ObjectPermissionMixin,
     advanced_features = LazyDefaultJSONBField(default=dict)
     known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
+        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY, db_index=True
+    )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
