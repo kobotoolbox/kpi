@@ -198,18 +198,14 @@ class ProjectViewViewSet(
         if '*' in region:
             return queryset
 
-        q_terms = {
-            'asset': 'settings__country_codes',
-            'user': 'extra_details__data__country',
-        }
-
-        q = Q()
-        for country in region:
-            if obj_type == 'user':
+        if obj_type == 'user':
+            # FIXME, lines below are probably broken with SSO changes
+            #   see kobo.apps.accounts.migrations.0001_initial.py
+            q = Q()
+            for country in region:
                 q |= Q(
-                    **{f'{q_terms[obj_type]}__contains': [{'value': country}]}
+                    extra_details__data__country__contains=[{'value': country}]
                 )
-            else:
-                q |= Q(**{f'{q_terms[obj_type]}__contains': country})
-
-        return queryset.filter(q)
+            return queryset.filter(q)
+        else:
+            return queryset.filter(settings__country_codes__in_array=region)
