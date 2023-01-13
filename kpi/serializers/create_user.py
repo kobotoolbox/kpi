@@ -1,11 +1,12 @@
 # coding: utf-8
+from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kpi.forms.registration import (
-    USERNAME_INVALID_MESSAGE,
-    USERNAME_MAX_LENGTH,
+from kobo.apps.accounts.validators import (
     USERNAME_REGEX,
+    USERNAME_MAX_LENGTH,
+    USERNAME_INVALID_MESSAGE,
 )
 
 
@@ -13,7 +14,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=USERNAME_REGEX,
         max_length=USERNAME_MAX_LENGTH,
-        error_messages={'invalid': USERNAME_INVALID_MESSAGE}
+        error_messages={'invalid': USERNAME_INVALID_MESSAGE},
     )
     email = serializers.EmailField()
 
@@ -28,7 +29,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'required': True}
+            'email': {'required': True},
         }
 
     def create(self, validated_data):
@@ -45,4 +46,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         user.save()
+        user.emailaddress_set.create(
+            email=user.email,
+            verified=True,
+            primary=True,
+        )
         return user

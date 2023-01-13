@@ -46,10 +46,12 @@ class SessionStore {
   }
 
   public refreshAccount() {
+    this.isPending = true;
     dataInterface.getProfile().then(
       action(
         'refreshSuccess',
         (account: AccountResponse | {message: string}) => {
+          this.isPending = false;
           if ('email' in account) {
             this.currentAccount = account;
           }
