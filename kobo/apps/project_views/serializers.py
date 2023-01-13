@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.static_lists import COUNTRIES
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models import Asset
 from kpi.utils.project_views import (
     get_region_for_view,
@@ -49,7 +50,9 @@ class ProjectViewSerializer(serializers.ModelSerializer):
 
     def get_assets_count(self, obj: ProjectView) -> int:
         region = get_region_for_view(obj.uid)
-        queryset = Asset.objects.defer('content').all()
+        queryset = Asset.objects.defer('content').filter(
+            asset_type=ASSET_TYPE_SURVEY
+        )
 
         if '*' in region:
             return queryset.count()
