@@ -12,7 +12,10 @@ def migrate_email_and_extra_user_detail(apps, schema_editor):
     ExtraUserDetail = apps.get_model('hub', "ExtraUserDetail")
 
     # Effecient bulk data mover - 3 queries per 2k users
-    paginator = Paginator(User.objects.exclude(email='').order_by('pk'), 2000)
+    page_size = 10000
+    paginator = Paginator(
+        User.objects.exclude(email='').order_by('pk'), page_size
+    )
     for page in paginator.page_range:
         users = paginator.page(page).object_list
         emails = EmailAddress.objects.bulk_create(
@@ -22,19 +25,20 @@ def migrate_email_and_extra_user_detail(apps, schema_editor):
                 )
                 for user in users
             ],
-            ignore_conflicts=True
+            ignore_conflicts=True,
         )
         try:
             ImportedVerification.objects.bulk_create(
-                [ImportedVerification(email=email) for email in emails]
+                [ImportedVerification(email=email) for email in emails],
             )
         # Necessary when EmailAddress bulk_create contains conflicts
         # This only happens when migrating backwards and forwards again
+        # because the previous email may not exist (as it was itself a conflict)
         except ValueError:
             pass
 
     paginator = Paginator(
-        ExtraUserDetail.objects.exclude(data={}).order_by('pk'), 2000
+        ExtraUserDetail.objects.exclude(data={}).order_by('pk'), page_size
     )
     for page in paginator.page_range:
         user_details = paginator.page(page).object_list
@@ -49,7 +53,7 @@ def migrate_email_and_extra_user_detail(apps, schema_editor):
             key = 'country'
             if (
                 key in user_detail.data
-                and len(user_detail.data[key]) > 0
+                and user_detail.data[key]
                 and type(user_detail.data[key]) is list
             ):
                 user_detail.data[key] = user_detail.data[key][0]
