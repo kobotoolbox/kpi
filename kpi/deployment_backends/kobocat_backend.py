@@ -72,6 +72,7 @@ from ..exceptions import (
 )
 
 from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 
 
 
@@ -244,6 +245,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return 0
         else:
             return monthly_counter.counter
+
+    @property
+    def current_month_nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        today = datetime.today()
+        try:
+            monthly_nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('counters').get(
+                    asset_id=self.asset.id,
+                    year=today.year,
+                    month=today.month,
+                ).counters
+            )
+        # return data as JSON because the fields can change depending on the engines
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            return {}
+        else:
+            return monthly_nlp_tracking
 
     def connect(self, identifier=None, active=False):
         """
@@ -826,6 +847,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+
+    @property
+    def nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        try:
+            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+                asset_id=self.asset.id
+            )
+            total_counters = {}
+            for nlp_counters in nlp_usage_counters:
+                counters = nlp_counters.counters
+                for key in counters.keys():
+                    if key not in total_counters:
+                        total_counters[key] = 0
+                    total_counters[key] += counters[key]
+        # return data as JSON because the fields can change depending on the engines
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            return {}
+        else:
+            return total_counters
 
     def redeploy(self, active=None):
         """

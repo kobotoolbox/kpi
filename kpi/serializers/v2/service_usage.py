@@ -12,9 +12,11 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         view_name='asset-detail',
     )
     asset__name = serializers.ReadOnlyField(source='name')
+    nlp_usage_current_month = serializers.SerializerMethodField()
+    nlp_usage_all_time = serializers.SerializerMethodField()
+    storage_bytes = serializers.SerializerMethodField()
     submission_count_current_month = serializers.SerializerMethodField()
     submission_count_all_time = serializers.SerializerMethodField()
-    storage_bytes = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -22,10 +24,24 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'asset',
             'asset__name',
+            'nlp_usage_current_month',
+            'nlp_usage_all_time',
+            'storage_bytes',
             'submission_count_current_month',
             'submission_count_all_time',
-            'storage_bytes',
         )
+
+    def get_nlp_usage_current_month(self, asset):
+        if not asset.has_deployment:
+            return 0
+
+        return asset.deployment.current_month_nlp_tracking
+
+    def get_nlp_usage_all_time(self, asset):
+        if not asset.has_deployment:
+            return 0
+
+        return asset.deployment.nlp_tracking
 
     def get_submission_count_current_month(self, asset):
         if not asset.has_deployment:
@@ -50,13 +66,17 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
 class ServiceUsageSerializer(serializers.Serializer):
 
     per_asset_usage = serializers.SerializerMethodField()
+    total_nlp_asr_seconds = serializers.SerializerMethodField()
+    total_nlp_mt_characters = serializers.SerializerMethodField()
+    total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count_current_month = serializers.SerializerMethodField()
     total_submission_count_all_time = serializers.SerializerMethodField()
-    total_storage_bytes = serializers.SerializerMethodField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
 
+        self._total_nlp_asr_seconds = 0
+        self._total_nlp_mt_characters = 0
         self._total_storage_bytes = 0
         self._total_submission_count_all_time = 0
         self._total_submission_count_current_month = 0
@@ -65,6 +85,12 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_per_asset_usage(self, user):
         return self._per_asset_usage
+
+    def get_total_nlp_asr_seconds(self, user):
+        return self._total_nlp_asr_seconds
+
+    def get_total_nlp_mt_characters(self, user):
+        return self._total_nlp_mt_characters
 
     def get_total_submission_count_all_time(self, user):
         return self._total_submission_count_all_time
@@ -96,5 +122,12 @@ class ServiceUsageSerializer(serializers.Serializer):
                 self._total_submission_count_all_time += asset[
                     'submission_count_all_time'
                 ]
+                nlp_usage = asset['nlp_usage_all_time']
+                nlp_keys = nlp_usage.keys()
+                for key in nlp_keys:
+                    if 'asr_seconds' in key:
+                        self._total_nlp_asr_seconds += nlp_usage[key]
+                    if 'mt_characters' in key:
+                        self._total_nlp_mt_characters += nlp_usage[key]
 
         return self._per_asset_usage

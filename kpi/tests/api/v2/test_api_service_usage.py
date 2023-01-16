@@ -1,12 +1,15 @@
 # coding: utf-8
 import os.path
 import uuid
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -68,6 +71,35 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         }
         submissions.append(submission)
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
+
+    def __add_nlp_trackers(self):
+        # this month
+        today = datetime.today()
+        counter_1 = {
+            'google_asr_seconds': 4586,
+            'google_mt_characters': 5473,
+        }
+        MonthlyNLPUsageCounter.objects.create(
+            user_id=self.anotheruser.id,
+            asset_id=self.asset.id,
+            year=today.year,
+            month=today.month,
+            counters=counter_1
+        )
+
+        # last month
+        last_month = today - relativedelta(months=1)
+        counter_2 = {
+            'google_asr_seconds': 142,
+            'google_mt_characters': 1253,
+        }
+        MonthlyNLPUsageCounter.objects.create(
+            user_id=self.anotheruser.id,
+            asset_id=self.asset.id,
+            year=last_month.year,
+            month=last_month.month,
+            counters=counter_2,
+        )
 
     def __add_submissions(self):
         submissions = []
@@ -135,6 +167,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
     def test_check_api_response(self):
         self.__create_asset()
+        self.__add_nlp_trackers()
         self.__add_submission()
 
         url = reverse(self._get_endpoint('service-usage-list'))
@@ -142,6 +175,8 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total_submission_count_current_month'] == 1
+        assert response.data['total_nlp_asr_seconds'] == 4728
+        assert response.data['total_nlp_mt_characters'] == 6726
         assert response.data['total_submission_count_all_time'] == 1
         assert response.data['total_storage_bytes'] == self.__expected_file_size()
         assert len(response.data['per_asset_usage']) == 1
