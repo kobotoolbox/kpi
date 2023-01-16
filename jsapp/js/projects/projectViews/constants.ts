@@ -95,28 +95,6 @@ export const FILTER_CONDITIONS: FilterConditions = {
   },
 };
 
-/**
- * EXCEPTION: the `status` field is combined from different pieces of data thus
- * it needs these queries :sadface:
- */
-export const STATUS_FILTER_QUERIES = {
-  draft: '_deployment_data__iexact:{}',
-  deployed: '_deployment_data__active:true',
-  archived: '_deployment_data__active:false',
-};
-
-/**
- * EXCEPTION: Dates are special pieces of data and they can be filtered in
- * a meaningful way by using these queries.
- */
-export const DATE_FILTER_QUERIES = {
-  greaterThan: '<field>__gt:<YYYY-MM-DD>',
-  greaterOrEqualThan: '<field>__gte:<YYYY-MM-DD>',
-  lessThan: '<field>__lt:<YYYY-MM-DD>',
-  lessOrEqualThan: '<field>__lte:<YYYY-MM-DD>',
-  partOf: '<field>__regex:<YYYY-MM>',
-};
-
 export type ProjectFieldName =
   | 'countries'
   | 'dateDeployed'
