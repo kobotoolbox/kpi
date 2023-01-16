@@ -9,7 +9,6 @@ export interface ProjectView {
   name: string;
   url: string;
   assets: string;
-  assets_count: number;
   assets_export: string;
   users: string;
   users_export: string;
