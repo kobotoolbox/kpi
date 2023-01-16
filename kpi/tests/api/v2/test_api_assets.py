@@ -431,10 +431,12 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             results[1]['assets'], HTTP_ACCEPT='application/json'
         )
         asset_data = regional_res.json()['results'][0]
-        assert asset_data['data']
-        data_res = self.client.get(
-            asset_data['data'], HTTP_ACCEPT='application/json'
+        assert asset_data['uid']
+
+        url = reverse(
+            self._get_endpoint('submission-list'), args=(asset_data['uid'],)
         )
+        data_res = self.client.get(url, HTTP_ACCEPT='application/json')
         assert data_res.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_view_asset_detail(self):
