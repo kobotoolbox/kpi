@@ -40,7 +40,7 @@ export default class LanguagesListStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/languages/` + searchPhrase ? `?q=${searchPhrase}` : '',
+      url: `${ROOT_URL}/api/v2/languages/` + (searchPhrase ? `?q=${searchPhrase}` : ''),
     })
       .done(this.onFetchLanguagesDone.bind(this))
       .fail(this.onAnyFail.bind(this));
