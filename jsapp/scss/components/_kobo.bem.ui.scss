@@ -1,5 +1,6 @@
 @use "scss/_variables";
 @use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
 
 #kpiapp,
 .mdl-wrapper,
@@ -101,12 +102,12 @@
   margin: 0;
   padding: 0;
   cursor: pointer;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   display: inline-block;
   vertical-align: middle;
 
   &:hover {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 
   i {
@@ -123,7 +124,7 @@
   min-width: 160px;
   max-width: 300px;
   text-align: left;
-  background: $kobo-white;
+  background: colors.$kobo-white;
   z-index: z-indexes.$z-dropdown;
   right: -10px;
   transition: opacity 0.35s;
@@ -160,11 +161,11 @@
 
 .popover-menu__link,
 .popover-menu__item {
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
   display: block;
   padding: 6px 12px 6px 6px;
   position: relative;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -182,16 +183,16 @@
   }
 
   &:hover {
-    background-color: $kobo-gray-96;
-    color: $kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
+    color: colors.$kobo-gray-24;
   }
 
   &.active {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 
   &.divider {
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
   }
 }
 
@@ -208,12 +209,12 @@
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: $kobo-gray-96;
-  border-bottom: 1px solid $kobo-gray-92;
+  background-color: colors.$kobo-gray-96;
+  border-bottom: 1px solid colors.$kobo-gray-92;
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: $kobo-gray-96;
+  background-color: colors.$kobo-gray-96;
   position: relative;
   text-align: left;
   padding: 3px 8px 3px 5px;
@@ -229,15 +230,15 @@
   &.popover-menu__item--move-coll-item-parent {
     pointer-events: none;
     font-weight: 700;
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
   }
 }
 
 .popover-menu__heading {
   padding: 8px 15px;
-  color: $kobo-gray-40;
-  border-top: 1px solid $kobo-gray-92;
-  background-color: $kobo-gray-96;
+  color: colors.$kobo-gray-40;
+  border-top: 1px solid colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-96;
   margin: 0px;
 }
 
@@ -279,10 +280,10 @@
 
 .popover-menu--bulkUpdate-menu {
   .popover-menu__toggle {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
 
     &:hover {
-      color: lighten($kobo-blue, 10%);
+      color: lighten(colors.$kobo-blue, 10%);
     }
 
     &::after {
@@ -332,14 +333,14 @@
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    color: $kobo-gray-40;
-    background: $kobo-gray-96;
+    color: colors.$kobo-gray-40;
+    background: colors.$kobo-gray-96;
     position: relative;
 
     @include box-shadow;
 
     &:hover {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &::after {
@@ -365,7 +366,7 @@
       max-width: 100%;
       white-space: normal;
       padding: 12px;
-      border-bottom: 1px solid $kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-92;
       border-left: 2px solid transparent;
 
       &:last-child {
@@ -374,7 +375,7 @@
 
       .collect-data-label {
         font-weight: 600;
-        color: $kobo-gray-24;
+        color: colors.$kobo-gray-24;
       }
 
       .collect-data-desc {
@@ -383,7 +384,7 @@
       }
 
       &:hover {
-        border-left: 2px solid $kobo-teal;
+        border-left: 2px solid colors.$kobo-teal;
       }
     }
   }
@@ -445,7 +446,7 @@ iframe {
   label {
     font-weight: normal;
     font-size: 12px;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 
     &.long {
       padding-top: 5px;
@@ -475,12 +476,12 @@ iframe {
     padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
-    border-bottom-color: $kobo-gray-92;
+    border-bottom-color: colors.$kobo-gray-92;
     transition: border-color 0.3s;
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $kobo-blue;
+      border-bottom-color: colors.$kobo-blue;
     }
   }
 
@@ -501,7 +502,7 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: $kobo-gray-65;
+      background: colors.$kobo-gray-65;
     }
   }
 }
@@ -512,12 +513,12 @@ iframe {
   padding: 6px 0px;
   font-size: 15px;
   border: 1px solid transparent;
-  border-bottom-color: $kobo-gray-92;
+  border-bottom-color: colors.$kobo-gray-92;
   transition: border-color 0.3s;
 
   &:focus {
     transition: border-color 0.3s;
-    border-bottom-color: $kobo-blue;
+    border-bottom-color: colors.$kobo-blue;
   }
 }
 
@@ -556,13 +557,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: $kobo-gray-65;
+  background-color: colors.$kobo-gray-65;
   background-color: transparent;
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: $kobo-gray-65;
+  background-color: colors.$kobo-gray-65;
   outline: none;
   border-radius: 6px;
 }
@@ -585,7 +586,7 @@ span.svg-icon {
     display: block;
     margin: 0 auto;
     margin-bottom: 10px;
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 }
 
@@ -600,8 +601,8 @@ span.svg-icon {
     bottom: 0;
     left: 0;
     content: '';
-    background: rgba($kobo-white, 0.7);
-    border: 2px solid $kobo-blue;
+    background: rgba(colors.$kobo-white, 0.7);
+    border: 2px solid colors.$kobo-blue;
     z-index: 1;
     opacity: 0;
     visibility: hidden;
