@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import {notify, handleApiFail} from 'js/utils';
+import $ from 'jquery';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
@@ -16,7 +17,6 @@ import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 import styles from './customViewRoute.module.scss';
 import {toJS} from 'mobx';
-import {fetchPost} from 'js/api';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -44,16 +44,23 @@ function CustomViewRoute() {
     return outcome;
   };
 
-  const exportAllData = async () => {
+  const exportAllData = () => {
     const foundView = projectViews.getView(viewUid);
     if (foundView) {
-      fetchPost(foundView.assets_export, {uid: viewUid}).then(() => {
-        notify.warning(
-          t(
-            "Export is being generated, you will receive an email when it's done"
-          )
-        );
-      }, handleApiFail);
+      $.ajax({
+        dataType: 'json',
+        method: 'POST',
+        url: foundView.assets_export,
+        data: {uid: viewUid},
+      })
+        .done(() => {
+          notify.warning(
+            t(
+              "Export is being generated, you will receive an email when it's done"
+            )
+          );
+        })
+        .fail(handleApiFail);
     } else {
       notify.error(
         t(
