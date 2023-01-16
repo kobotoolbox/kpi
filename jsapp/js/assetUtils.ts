@@ -94,15 +94,16 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
 
 export function getLanguagesDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (
+    asset &&
     'summary' in asset &&
-    asset?.summary?.languages &&
-    asset.summary.languages.length >= 1
+    asset.summary.languages &&
+    asset.summary.languages.length > 0
   ) {
     return asset?.summary?.languages?.join(', ');
   } else if (
     asset &&
     'languages' in asset &&
-    asset.languages.length >= 1
+    asset.languages.length > 0
   ) {
     return asset.languages.join(', ');
   } else {
@@ -169,7 +170,7 @@ interface DisplayNameObj {
  * containing final name and all useful data. Most of the times you should use
  * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset: AssetResponse | ProjectViewAsset): DisplayNameObj {
+export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): DisplayNameObj {
   const emptyName = t('untitled');
 
   const output: DisplayNameObj = {
@@ -177,12 +178,13 @@ export function getAssetDisplayName(asset: AssetResponse | ProjectViewAsset): Di
     final: emptyName,
   };
 
-  if (asset.name) {
+  if (asset?.name) {
     output.original = asset.name;
   }
   if (
+    asset &&
     'summary' in asset &&
-    asset?.summary?.labels &&
+    asset.summary.labels &&
     asset.summary.labels.length > 0
   ) {
     // for unnamed assets, we try to display first question name
