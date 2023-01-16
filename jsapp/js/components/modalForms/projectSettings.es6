@@ -932,6 +932,7 @@ class ProjectSettings extends React.Component {
                 onChange={this.onAnyFieldChange.bind(this, 'sector')}
                 options={sectors}
                 isLimitedHeight
+                menuPlacement='top'
                 isClearable
                 error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
                 data-cy='sector'
@@ -948,6 +949,7 @@ class ProjectSettings extends React.Component {
                 onChange={this.onAnyFieldChange.bind(this, 'country')}
                 options={countries}
                 isLimitedHeight
+                menuPlacement='top'
                 isClearable
                 error={this.hasFieldError('country') ? t('Please select at least one country') : false}
                 data-cy='country'
