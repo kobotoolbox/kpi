@@ -12,7 +12,7 @@ import styles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
 
-const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-succesfully';
+const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-successfully';
 
 export interface ProjectsTableOrder {
   fieldName: ProjectFieldName;

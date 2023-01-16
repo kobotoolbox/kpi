@@ -834,7 +834,7 @@ export const dataInterface: DataInterface = {
 
   listTemplates(): JQuery.jqXHR<AssetsResponse> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/` + COMMON_QUERIES.t ? `?q=${COMMON_QUERIES.t}`: '',
+      url: `${ROOT_URL}/api/v2/assets/` + (COMMON_QUERIES.t ? `?q=${COMMON_QUERIES.t}`: ''),
     });
   },
 
