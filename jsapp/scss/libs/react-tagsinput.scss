@@ -1,24 +1,24 @@
-@import "../colors";
+@use '~kobo-common/src/styles/colors';
 
 .react-tagsinput {
   &.react-tagsinput-invalid {
     .react-tagsinput-input {
-      color: $kobo-red;
-      border-bottom-color: $kobo-red;
+      color: colors.$kobo-red;
+      border-bottom-color: colors.$kobo-red;
     }
   }
 
   &.react-tagsinput-validating {
     .react-tagsinput-input {
-      color: $kobo-teal;
-      border-bottom-color: $kobo-teal;
+      color: colors.$kobo-teal;
+      border-bottom-color: colors.$kobo-teal;
     }
   }
 }
 
 .react-tagsinput-tag {
-  background-color: $kobo-gray-40;
-  color: $kobo-white;
+  background-color: colors.$kobo-gray-40;
+  color: colors.$kobo-white;
   font-weight: 400;
   margin-bottom: 4px;
   margin-right: 4px;
@@ -34,7 +34,7 @@
   @extend .k-icon, .k-icon-close;
 
   cursor: pointer;
-  color: $kobo-white !important;
+  color: colors.$kobo-white !important;
   opacity: 0.6;
   margin-left: 3px;
   vertical-align: middle;
@@ -47,7 +47,7 @@
 .react-tagsinput-input {
   background: transparent;
   border: 0 none;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   font-family: sans-serif;
   font-size: 13px;
   font-weight: 400;

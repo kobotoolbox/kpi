@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 /*
  * Use as:
  * <bem.SimpleTable>
@@ -21,7 +23,7 @@
 
 .simple-table__cell {
   padding: 10px;
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
 
   &.simple-table__cell--align-top {
     vertical-align: top;
@@ -38,7 +40,7 @@
 
 .simple-table__body {
   .simple-table__cell {
-    border-bottom: 1px solid $kobo-gray-96;
+    border-bottom: 1px solid colors.$kobo-gray-96;
   }
 }
 
@@ -52,8 +54,8 @@
 .simple-table__header {
   .simple-table__row:nth-child(1) {
     .simple-table__cell {
-      background-color: $kobo-gray-96;
-      border-bottom: 2px solid $kobo-gray-92;
+      background-color: colors.$kobo-gray-96;
+      border-bottom: 2px solid colors.$kobo-gray-92;
       font-weight: 600;
     }
   }

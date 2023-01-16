@@ -36,7 +36,6 @@ webfontsGenerator(
     css: true,
     cssTemplate: './jsapp/k-icons-css-template.hbs',
     html: true,
-    htmlTemplate: './jsapp/k-icons-html-template.hbs',
     types: ['eot', 'svg', 'ttf', 'woff2', 'woff'],
     order: ['woff2', 'woff', 'ttf', 'eot', 'svg'],
     templateOptions: {
@@ -80,7 +79,7 @@ webfontsGenerator(
           const newName = `k-icons.${timestamp}.${ext}`;
           fs.renameSync(`${destDir}${oldName}`, `${destDir}${newName}`);
           replaceInFile.sync({
-            files: [`${destDir}k-icons.css`, `${destDir}k-icons.html`],
+            files: [`${destDir}k-icons.css`],
             // Use additional "?" to differentiate woff and woff2
             from: [`${oldName}?`],
             to: [`${newName}?`],
