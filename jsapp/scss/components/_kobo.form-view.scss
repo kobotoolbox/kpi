@@ -1,5 +1,6 @@
 @use "scss/_variables";
 @use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
@@ -34,7 +35,7 @@ $side-tabs-width-mobile: 70px;
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-gray-96;
+  background: colors.$kobo-gray-96;
 
   &.form-view--fullscreen {
     // We force the position to avoid problems with stronger specificity
@@ -75,8 +76,8 @@ $side-tabs-width-mobile: 70px;
   overflow-x: hidden;
   overflow-y: auto;
   float: left;
-  background: $kobo-white;
-  border-right: 1px solid $kobo-gray-92;
+  background: colors.$kobo-white;
+  border-right: 1px solid colors.$kobo-gray-92;
 
   & + .form-view,
   & + .report-view,
@@ -107,7 +108,7 @@ $side-tabs-width-mobile: 70px;
     font-size: variables.$base-font-size;
     cursor: pointer;
     position: relative;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
     display: flex;
@@ -116,7 +117,7 @@ $side-tabs-width-mobile: 70px;
 
     &:hover,
     &.active {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &.active {
@@ -131,7 +132,7 @@ $side-tabs-width-mobile: 70px;
         height: 100%;
         top: 0;
         left: -10px;
-        background-color: $kobo-teal;
+        background-color: colors.$kobo-teal;
       }
     }
 
@@ -155,8 +156,8 @@ $side-tabs-width-mobile: 70px;
 
 // The main tabs on top
 .form-view__toptabs {
-  background: $kobo-white;
-  border-bottom: 1px solid $kobo-gray-92;
+  background: colors.$kobo-white;
+  border-bottom: 1px solid colors.$kobo-gray-92;
   text-align: center;
   height: 48px;
   position: relative;
@@ -175,17 +176,17 @@ $side-tabs-width-mobile: 70px;
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     font-weight: normal;
 
     &:hover,
     &.active {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &.active {
       font-weight: 700;
-      border-bottom: 4px solid $kobo-teal;
+      border-bottom: 4px solid colors.$kobo-teal;
     }
 
     &.form-view__tab--disabled {
@@ -251,11 +252,11 @@ $side-tabs-width-mobile: 70px;
 
 .form-view__cell {
   &.form-view__cell--box {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   &.form-view__cell--bordered {
-    border: 1px solid $kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-92;
   }
 
   &.form-view__cell--page-title {
@@ -300,7 +301,7 @@ $side-tabs-width-mobile: 70px;
     width: 30px;
     margin-right: 10px;
     text-align: center;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 
     .k-icon {
       font-size: 24px;
@@ -310,14 +311,14 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--toggle-details button {
     cursor: pointer;
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
     background: transparent;
     border: 0;
     padding: 5px;
     text-align: center;
 
     &:hover {
-      color: $kobo-dark-blue;
+      color: colors.$kobo-dark-blue;
     }
 
     &:active {
@@ -335,7 +336,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
   }
 
   &.form-view__cell--padding {
@@ -349,12 +350,12 @@ $side-tabs-width-mobile: 70px;
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: variables.$base-font-size;
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
     font-weight: 500;
 
     span {
       display: block;
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
       font-size: 12px;
     }
 
@@ -414,7 +415,7 @@ $side-tabs-width-mobile: 70px;
       font-size: 24px;
       margin: 0 3px;
       vertical-align: top;
-      color: $kobo-teal;
+      color: colors.$kobo-teal;
     }
   }
 
@@ -449,7 +450,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--thin-label {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -468,7 +469,7 @@ $side-tabs-width-mobile: 70px;
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    background-color: $kobo-green;
+    background-color: colors.$kobo-green;
     border-radius: 2px;
   }
 }
@@ -492,32 +493,32 @@ $side-tabs-width-mobile: 70px;
   font-size: 26px;
   line-height: 18px;
   padding: 0 5px;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   cursor: pointer;
   vertical-align: middle;
   display: inline-block;
 
   &:hover {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 
   &--disabled,
   &--disabled:hover {
-    color: $kobo-gray-65;
+    color: colors.$kobo-gray-65;
   }
 }
 
 @keyframes recent {
   0% {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   10% {
-    background-color: lighten($kobo-blue, 20%);
+    background-color: lighten(colors.$kobo-blue, 20%);
   }
 
   100% {
-    background-color: lighten($kobo-blue, 40%);
+    background-color: lighten(colors.$kobo-blue, 40%);
   }
 }
 
@@ -528,7 +529,7 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
     display: flex;
     align-items: center;
 
@@ -560,17 +561,17 @@ $side-tabs-width-mobile: 70px;
     .form-view__link--export-delete {
       opacity: 0.9;
       vertical-align: middle;
-      color: lighten($kobo-red, 10%);
+      color: lighten(colors.$kobo-red, 10%);
       font-size: 24px;
 
       &:hover {
-        color: $kobo-red;
+        color: colors.$kobo-red;
         opacity: 1;
       }
     }
 
     &.recent {
-      background-color: lighten($kobo-blue, 40%);
+      background-color: lighten(colors.$kobo-blue, 40%);
       animation: recent 5s 1;
     }
 
@@ -595,7 +596,7 @@ $side-tabs-width-mobile: 70px;
 
 .form-view--form-settings,
 .form-view--settings-sharing {
-  background: $kobo-white;
+  background: colors.$kobo-white;
   padding: 40px;
 }
 
@@ -608,7 +609,7 @@ $side-tabs-width-mobile: 70px;
 
 .form-view.form-view--form-settings-sharing {
   .form-modal {
-    background: $kobo-white;
+    background: colors.$kobo-white;
     padding: 40px;
     height: 100%;
     overflow: auto;
@@ -699,7 +700,7 @@ $side-tabs-width-mobile: 70px;
 
 .form-view__cell--collect-header {
   .collect-link-missing {
-    color: $kobo-dark-amber;
+    color: colors.$kobo-dark-amber;
     display: block;
     line-height: 24px;
 
@@ -715,8 +716,8 @@ $side-tabs-width-mobile: 70px;
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $kobo-gray-92;
-    background: $kobo-gray-96;
+    border: 1px solid colors.$kobo-gray-92;
+    background: colors.$kobo-gray-96;
     font-size: 13px;
     white-space: normal;
   }
@@ -741,8 +742,8 @@ $side-tabs-width-mobile: 70px;
 
   code {
     padding: 4px;
-    border: 1px solid $kobo-gray-92;
-    background: $kobo-gray-96;
+    border: 1px solid colors.$kobo-gray-92;
+    background: colors.$kobo-gray-96;
     margin-left: 5px;
     margin-right: 5px;
   }
@@ -844,7 +845,7 @@ $side-tabs-width-mobile: 70px;
     height: 6px;
     display: inline-block;
     vertical-align: middle;
-    background: $kobo-blue;
+    background: colors.$kobo-blue;
     border-radius: 100%;
     margin-right: 6px;
   }
@@ -877,5 +878,5 @@ $side-tabs-width-mobile: 70px;
 }
 
 .form-view--library-asset {
-  background: $kobo-white;
+  background: colors.$kobo-white;
 }

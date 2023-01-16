@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 /* ==========================================================================
  * Main
  * ========================================================================== */
@@ -25,7 +27,7 @@
     position: relative;
     &.empty {
       text-align: center;
-      background: $kobo-white;
+      background: colors.$kobo-white;
       padding: 20px;
     }
 }

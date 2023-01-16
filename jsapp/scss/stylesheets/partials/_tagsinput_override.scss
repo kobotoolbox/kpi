@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 /*
 Overrides to jquery tags input CSS
 */
@@ -14,9 +16,9 @@ Overrides to jquery tags input CSS
 }
 
 div.tagsinput span.tag {
-  background: $kobo-alt-blue;
+  background: colors.$kobo-alt-blue;
   border: none;
-  color: $kobo-white;
+  color: colors.$kobo-white;
   font-family: $font;
   font-size: 12px;
   margin: 0px 4px;
@@ -30,7 +32,7 @@ div.tagsinput span.tag {
 
 div.tagsinput input {
   border: none;
-  color: $kobo-gray-24;
+  color: colors.$kobo-gray-24;
   font-family: $font;
   font-size: 12px;
   margin: 0 5px;
@@ -39,7 +41,7 @@ div.tagsinput input {
 }
 
 div.tagsinput span.tag a {
-  color: $kobo-alt-blue;
+  color: colors.$kobo-alt-blue;
   font-size: 1px;
   font-weight: normal;
   text-decoration: none;
@@ -51,20 +53,20 @@ div.tagsinput span.tag a:before {
   content: "x";
   opacity: 0.6;
   font-size: 12px;
-  color: $kobo-white;
+  color: colors.$kobo-white;
 }
 
 ul.ui-autocomplete.ui-widget-content.ui-widget {
   max-width: 680px !important;
-  border: 1px solid $kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-92;
   li {
     padding: 5px;
-    background: $kobo-white;
+    background: colors.$kobo-white;
     font-size: 12px;
     &:hover {
-      background: $kobo-blue;
+      background: colors.$kobo-blue;
       a {
-        color: $kobo-white !important;
+        color: colors.$kobo-white !important;
         border: none !important;
         background: none !important;
         font-weight: normal !important;
@@ -72,7 +74,7 @@ ul.ui-autocomplete.ui-widget-content.ui-widget {
     }
     a {
       font-weight: normal;
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
   }
 }

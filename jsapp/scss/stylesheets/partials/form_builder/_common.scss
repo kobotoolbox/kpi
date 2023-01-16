@@ -1,7 +1,9 @@
+@use '~kobo-common/src/styles/colors';
+
 %card-content {
   border: $cardBorderStyle;
   border-top-width: 1px;
-  background: $kobo-white;
+  background: colors.$kobo-white;
   margin-top:-2px;
   position: relative;
 }
@@ -9,7 +11,7 @@
 %card-expansion {
     border: $cardBorderStyle;
     border-top-width: 1px;
-    background: $kobo-white;
+    background: colors.$kobo-white;
     margin-top:-2px;
     position: relative;
 
@@ -24,14 +26,14 @@
         pointer-events: none;
     }
     &:after {
-        border-color: rgba($kobo-white, 0);
-        border-bottom-color: $kobo-white;
+        border-color: rgba(colors.$kobo-white, 0);
+        border-bottom-color: colors.$kobo-white;
         border-width: 8px;
         margin-left: -8px;
     }
     &:before {
-        border-color: rgba($kobo-gray-65, 0);
-        border-bottom-color: $kobo-gray-65;
+        border-color: rgba(colors.$kobo-gray-65, 0);
+        border-bottom-color: colors.$kobo-gray-65;
         border-width: 9px;
         margin-left: -9px;
     }
