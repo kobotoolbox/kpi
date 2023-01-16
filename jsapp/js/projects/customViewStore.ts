@@ -5,7 +5,6 @@ import type {
   FailResponse,
 } from 'js/dataInterface';
 import {handleApiFail} from 'js/utils';
-import {ROOT_URL} from 'js/constants';
 import {DEFAULT_PROJECT_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
 import type {
   ProjectFieldName,
@@ -114,7 +113,7 @@ class CustomViewStore {
         ? `-${this.order.fieldName}`
         : this.order.fieldName;
     fetchGet<PaginatedResponse<ProjectViewAsset>>(
-      `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&limit=${PAGE_SIZE}` +
+      `/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&limit=${PAGE_SIZE}` +
         (queriesString ? `&q=${queriesString}` : '')
     ).then(this.onFetchAssetsDone.bind(this), this.onAnyFail.bind(this));
   }
