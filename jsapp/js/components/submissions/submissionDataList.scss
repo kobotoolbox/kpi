@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use '~kobo-common/src/styles/colors';
 
 .submission-data-list {
   list-style: none;
@@ -18,12 +18,12 @@
 .submission-data-list-question__label {
   font-weight: 600;
   font-size: 14px;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   margin: 0;
 }
 
 .submission-data-list-question__response {
   font-weight: 400;
   font-size: 16px;
-  color: $kobo-gray-24;
+  color: colors.$kobo-gray-24;
 }

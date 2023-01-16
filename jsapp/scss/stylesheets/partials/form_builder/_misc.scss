@@ -1,10 +1,12 @@
+@use '~kobo-common/src/styles/colors';
+
 // form_builder miscellaneous rules
 
 .survey-editor__message {
   border: $cardBorderStyle;
   padding: 20px;
-  background: $kobo-white;
-  color: $kobo-gray-40;
+  background: colors.$kobo-white;
+  color: colors.$kobo-gray-40;
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
@@ -57,8 +59,8 @@ code input[type="text"] {
 
 .survey-warnings {
   @extend .container;
-  background-color: $kobo-light-amber;
-  color: $kobo-dark-amber;
+  background-color: colors.$kobo-light-amber;
+  color: colors.$kobo-dark-amber;
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 4px;
@@ -69,7 +71,7 @@ code input[type="text"] {
 }
 
 .survey-warnings__close-button {
-  color: $kobo-dark-amber;
+  color: colors.$kobo-dark-amber;
   position: absolute;
   top: 24px;
   margin-top: -12px;
@@ -109,5 +111,5 @@ code input[type="text"] {
 
 .survey-editor__message {
   text-align: center;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
 }

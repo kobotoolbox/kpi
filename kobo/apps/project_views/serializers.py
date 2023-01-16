@@ -49,18 +49,8 @@ class ProjectViewSerializer(serializers.ModelSerializer):
         )
 
     def get_assets_count(self, obj: ProjectView) -> int:
-        region = get_region_for_view(obj.uid)
-        queryset = Asset.objects.defer('content').filter(
-            asset_type=ASSET_TYPE_SURVEY
-        )
-
-        if '*' in region:
-            return queryset.count()
-
-        q = Q()
-        for country in region:
-            q |= Q(settings__country_codes__contains=country)
-        return queryset.filter(q).count()
+        # TODO - To be removed as soon as front end uses asset detail endpoint
+        return 0
 
     def get_assets_export(self, obj: ProjectView) -> str:
         return reverse(
