@@ -18,10 +18,11 @@ class Command(BaseCommand):
             sys.exit()
 
         try:
-            User.objects.create_superuser(
+            user = User.objects.create_superuser(
                 os.getenv('KOBO_SUPERUSER_USERNAME', 'kobo'),
                 os.getenv('KOBO_SUPERUSER_EMAIL', 'kobo@example.com'),
                 os.getenv('KOBO_SUPERUSER_PASSWORD', 'kobo'))
+            user.emailaddress_set.create(email=user.email, verified=True, primary=True)
         except ProgrammingError:  # Signals fail when `kc` database
             pass                  # doesn't exist yet.
         except Exception as e:

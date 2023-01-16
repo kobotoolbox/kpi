@@ -6,14 +6,16 @@ import constance
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.urls import reverse
 from django.http import HttpRequest
-from django.template import Template, RequestContext
+from django.template import RequestContext, Template
+from django.test import override_settings
+from django.urls import reverse
 from markdown import markdown
+from model_bakery import baker
 from rest_framework import status
 
+from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.apps.mfa.models import MfaAvailableToUser
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -80,6 +82,7 @@ class EnvironmentTests(BaseTestCase):
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             'stripe_public_key': settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None,
             'stripe_pricing_table_id': settings.STRIPE_PRICING_TABLE_ID,
+            'social_apps': [],
         }
 
     def _check_response_dict(self, response_dict):
@@ -161,3 +164,17 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS={})
+    def test_social_apps(self):
+        # GET mutates state, call it first to test num queries later
+        self.client.get(self.url, format='json')
+        queries = 17
+        with self.assertNumQueries(queries):
+            response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        app = baker.make('socialaccount.SocialApp')
+        with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
+            with self.assertNumQueries(queries + 1):
+                response = self.client.get(self.url, format='json')
+        self.assertContains(response, app.name)
