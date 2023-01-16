@@ -14,6 +14,7 @@ import type {
 import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
+import {fetchGet} from 'js/api';
 
 const SAVE_DATA_NAME = 'project_views_settings';
 const PAGE_SIZE = 50;
@@ -112,25 +113,19 @@ class CustomViewStore {
       this.order.direction === 'descending'
         ? `-${this.order.fieldName}`
         : this.order.fieldName;
-    $.ajax({
-      dataType: 'json',
-      method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&limit=${PAGE_SIZE}` + (queriesString ? `&q=${queriesString}` : ''),
-    })
-      .done(this.onFetchAssetsDone.bind(this))
-      .fail(this.onAnyFail.bind(this));
+    fetchGet<PaginatedResponse<ProjectViewAsset>>(
+      `${ROOT_URL}/api/v2/project-views/${this.viewUid}/assets/?ordering=${orderingString}&limit=${PAGE_SIZE}` +
+        (queriesString ? `&q=${queriesString}` : '')
+    ).then(this.onFetchAssetsDone.bind(this), this.onAnyFail.bind(this));
   }
 
   /** Gets the next page of results (if available). */
   public fetchMoreAssets() {
     if (this.nextPageUrl !== null) {
-      $.ajax({
-        dataType: 'json',
-        method: 'GET',
-        url: this.nextPageUrl,
-      })
-        .done(this.onFetchMoreAssetsDone.bind(this))
-        .fail(this.onAnyFail.bind(this));
+      fetchGet<PaginatedResponse<ProjectViewAsset>>(this.nextPageUrl).then(
+        this.onFetchMoreAssetsDone.bind(this),
+        this.onAnyFail.bind(this)
+      );
     }
   }
 

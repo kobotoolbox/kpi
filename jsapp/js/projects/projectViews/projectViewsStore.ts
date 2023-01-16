@@ -2,6 +2,7 @@ import {makeAutoObservable} from 'mobx';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
+import {fetchGet} from 'js/api';
 
 export interface ProjectView {
   uid: string;
@@ -32,13 +33,9 @@ class ProjectViewsStore {
   }
 
   public fetchData() {
-    $.ajax({
-      dataType: 'json',
-      method: 'GET',
-      url: `${ROOT_URL}/api/v2/project-views/`,
-    })
-      .done(this.onFetchDataDone.bind(this))
-      .fail(handleApiFail);
+    fetchGet<PaginatedResponse<ProjectView>>(
+      `${ROOT_URL}/api/v2/project-views/`
+    ).then(this.onFetchDataDone.bind(this), handleApiFail);
   }
 
   private onFetchDataDone(response: PaginatedResponse<ProjectView>) {
