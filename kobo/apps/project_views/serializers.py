@@ -1,16 +1,10 @@
 # coding: utf-8
 from __future__ import annotations
 
-from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.static_lists import COUNTRIES
-from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.models import Asset
-from kpi.utils.project_views import (
-    get_region_for_view,
-)
 from .models.project_view import ProjectView
 
 

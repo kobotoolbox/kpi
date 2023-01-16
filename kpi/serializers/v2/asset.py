@@ -802,13 +802,6 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'deployment__submission_count',
         )
 
-    def get_data(self, obj: Asset) -> str:
-        if view_has_perm(
-            self._get_view(), PERM_VIEW_SUBMISSIONS
-        ) or self._user_has_asset_perms(obj, PERM_VIEW_SUBMISSIONS):
-            return super().get_data(obj)
-        return ''
-
     def get_date_first_deployment(
         self, obj: Asset
     ) -> Optional[datetime]:
