@@ -165,7 +165,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   status: {
     name: 'status',
     label: t('Status'),
-    apiPropertyName: '_deployment_data',
+    apiPropertyName: '_deployment_data__active',
     availableConditions: [],
     orderable: true,
   },
