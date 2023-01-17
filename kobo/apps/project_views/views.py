@@ -144,7 +144,6 @@ class ProjectViewViewSet(
             self._get_regional_queryset(users, uid, obj_type='user')
             .exclude(pk=settings.ANONYMOUS_USER_ID)
             .select_related('extra_details')
-            .distinct()
             .order_by('id')
         )
 
