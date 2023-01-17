@@ -13,7 +13,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
     assets = serializers.SerializerMethodField()
-    assets_count = serializers.SerializerMethodField()
     assets_export = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     users_export = serializers.SerializerMethodField()
@@ -26,7 +25,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             'name',
             'url',
             'assets',
-            'assets_count',
             'assets_export',
             'users',
             'users_export',
@@ -41,10 +39,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
-
-    def get_assets_count(self, obj: ProjectView) -> int:
-        # TODO - To be removed as soon as front end uses asset detail endpoint
-        return 0
 
     def get_assets_export(self, obj: ProjectView) -> str:
         return reverse(

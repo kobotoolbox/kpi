@@ -593,6 +593,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
             'country_codes': [],
             'description': '',
             'mysetting': 'value',
+            'organization': '',
             'sector': {},
         }
         self.assertEqual(resp.data['settings'], expected)

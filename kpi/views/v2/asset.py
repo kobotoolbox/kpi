@@ -516,17 +516,12 @@ class AssetViewSet(
             'organizations': set(),
         }
 
-        records = queryset.values('summary', 'settings').\
-            exclude(
-                Q(
-                    Q(summary__languages=[]) | Q(summary__languages=[None])
-                ),
-                Q(
-                    Q(settings__country=None) | Q(settings__country__exact=''),
-                    Q(settings__sector=None) | Q(settings__sector__exact=''),
-                    Q(settings__organization=None) | Q(settings__organization='')
-                )
-            )
+        records = queryset.values('summary', 'settings').exclude(
+            summary__languages=[],
+            settings__country_codes=[],
+            settings__sector={},
+            settings__organization='',
+        )
 
         # Languages
         records = records.order_by()

@@ -46,8 +46,7 @@ def generate_country_report(
         xform_ids = Asset.objects.values_list(
             '_deployment_data__backend_response__formid', flat=True
         ).filter(
-            Q(settings__country__contains=[{'value': code_}])
-            | Q(settings__country__value=code_),
+            settings__country_codes__in_array=[code_],
             _deployment_data__active=True,
             _deployment_data__has_key='backend',
             asset_type=ASSET_TYPE_SURVEY,

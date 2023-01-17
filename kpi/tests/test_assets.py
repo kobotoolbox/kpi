@@ -520,7 +520,8 @@ class AssetSettingsTests(AssetsTestCase):
             'country': [{'value': 'CAN', 'label': 'Canada'}],
             'country_codes': ['CAN'],
             'description': '',
-            'sector': {}
+            'sector': {},
+            'organization': ''
         }
         assert asset.settings == expected_settings
 
