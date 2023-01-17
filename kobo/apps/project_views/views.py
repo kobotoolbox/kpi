@@ -45,6 +45,8 @@ class ProjectViewViewSet(
     ordering_fields = [
         'date_modified',
         'date_deployed',
+        'date_modified__date',
+        'date_deployed__date',
         'name',
         'settings__sector__value',
         'settings__description',
