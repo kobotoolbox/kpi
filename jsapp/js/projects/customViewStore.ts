@@ -100,6 +100,14 @@ class CustomViewStore {
     this.setFields(newFields);
   }
 
+  private getOrderQuery() {
+    const fieldDefinition = PROJECT_FIELDS[this.order.fieldName];
+    if (this.order.direction === 'descending') {
+      return `-${fieldDefinition.apiPropertyName}`;
+    }
+    return fieldDefinition.apiPropertyName;
+  }
+
   /**
    * Gets the first page of results. It will replace whatever assets are loaded
    * already.
@@ -109,10 +117,7 @@ class CustomViewStore {
     this.isLoading = true;
     this.assets = [];
     const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
-    const orderingString =
-      this.order.direction === 'descending'
-        ? `-${this.order.fieldName}`
-        : this.order.fieldName;
+    const orderingString = this.getOrderQuery();
     $.ajax({
       dataType: 'json',
       method: 'GET',
