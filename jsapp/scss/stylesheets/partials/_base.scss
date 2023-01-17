@@ -82,7 +82,7 @@ textarea {
 }
 
 :focus {
-  outline: none;
+  outline: 1px solid colors.$kobo-blue;
 }
 
 i {
