@@ -11,7 +11,7 @@ def migrate_email_and_extra_user_detail(apps, schema_editor):
     EmailAddress = apps.get_model('account', 'EmailAddress')
     ExtraUserDetail = apps.get_model('hub', "ExtraUserDetail")
 
-    # Effecient bulk data mover - 3 queries per 2k users
+    # Efficient bulk data mover - 3 queries per many users
     page_size = 10000
     paginator = Paginator(
         User.objects.exclude(email='').order_by('pk'), page_size
