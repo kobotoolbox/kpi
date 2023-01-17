@@ -868,6 +868,7 @@ class Asset(ObjectPermissionMixin,
             )
             self.standardize_json_field('settings', 'sector', dict)
             self.standardize_json_field('settings', 'description', str)
+            self.standardize_json_field('settings', 'organization', str)
 
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:

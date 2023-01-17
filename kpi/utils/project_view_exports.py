@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models import Count, F, Max, Min, OuterRef, Q
 from django.db.models.query import QuerySet
 
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
 )
@@ -70,14 +71,14 @@ METADATA_FIELDS = (
 )
 CONFIG = {
     'assets': {
-        'queryset': Asset.objects.all(),
-        'q_term': 'settings__country',
+        'queryset': Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
+        'q_term': 'settings__country_codes__in_array',
         'key': SETTINGS,
         'columns': ASSET_FIELDS + ASSET_FIELDS_EXTRA + SETTINGS_FIELDS,
     },
     'users': {
         'queryset': User.objects.all(),
-        'q_term': 'extra_details__data__country',
+        'q_term': 'extra_details__data__country__in',
         'key': METADATA,
         'columns': USER_FIELDS + METADATA_FIELDS,
     },
@@ -114,11 +115,7 @@ def get_q(countries: list[str], export_type: str) -> QuerySet:
     if '*' in countries:
         return Q()
 
-    q = Q(**{f'{q_term}_in': countries})
-    for country in countries:
-        q |= Q(**{f'{q_term}__contains': [{'value': country}]})
-
-    return q
+    return Q(**{q_term: countries})
 
 
 def get_submission_count(xform_id: int) -> int:

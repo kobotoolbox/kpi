@@ -199,13 +199,6 @@ class ProjectViewViewSet(
             return queryset
 
         if obj_type == 'user':
-            # FIXME, lines below are probably broken with SSO changes
-            #   see kobo.apps.accounts.migrations.0001_initial.py
-            q = Q()
-            for country in region:
-                q |= Q(
-                    extra_details__data__country__contains=[{'value': country}]
-                )
-            return queryset.filter(q)
+            return queryset.filter(extra_details__data__country__in=region)
         else:
             return queryset.filter(settings__country_codes__in_array=region)
