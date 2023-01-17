@@ -165,9 +165,9 @@ export const PROJECT_FIELDS: ProjectFields = {
   status: {
     name: 'status',
     label: t('Status'),
-    apiPropertyName: '_deployment_data',
+    apiPropertyName: '_deployment_data__active',
     availableConditions: [],
-    orderable: false,
+    orderable: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
@@ -248,7 +248,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Date deployed'),
     apiPropertyName: 'date_deployed__date',
     availableConditions: [],
-    orderable: false,
+    orderable: true,
   },
   sector: {
     name: 'sector',
