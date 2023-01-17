@@ -274,7 +274,7 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'isNotEmptyObject',
     ],
-    orderable: true,
+    orderable: false,
   },
   languages: {
     name: 'languages',
@@ -288,7 +288,7 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'isNotEmptyObject',
     ],
-    orderable: true,
+    orderable: false,
   },
   submissions: {
     name: 'submissions',
