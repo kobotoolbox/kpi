@@ -102,7 +102,7 @@ class CustomViewStore {
 
   private getOrderQuery() {
     const fieldDefinition = PROJECT_FIELDS[this.order.fieldName];
-    if (this.order.direction === 'descending') {
+    if (this.order.direction === 'ascending') {
       return `-${fieldDefinition.apiPropertyName}`;
     }
     return fieldDefinition.apiPropertyName;
