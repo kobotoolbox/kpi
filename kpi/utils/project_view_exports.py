@@ -23,8 +23,7 @@ ASSET_FIELDS = (
     'asset_type',
     'date_modified',
     'date_created',
-    'date_latest_deployment',
-    'date_first_deployment',
+    'date_deployed',
     'owner',
     'owner__username',
     'owner__email',
@@ -129,25 +128,11 @@ def get_submission_count(xform_id: int) -> int:
 def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
     if export_type == 'assets':
         vals = ASSET_FIELDS + (SETTINGS,)
-        subquery_latest_deployed = (
-            AssetVersion.objects.values('asset_id')
-            .annotate(last_deployed=Max('date_modified'))
-            .filter(asset_id=OuterRef('pk'))
-            .values('last_deployed')
-        )
-        subquery_first_deployed = (
-            AssetVersion.objects.values('asset_id')
-            .annotate(first_deployed=Min('date_modified'))
-            .filter(asset_id=OuterRef('pk'))
-            .values('first_deployed')
-        )
         data = filtered_queryset.annotate(
             owner__name=F('owner__extra_details__data__name'),
             owner__organization=F('owner__extra_details__data__organization'),
             deployment__active=F('_deployment_data__active'),
             form_id=F('_deployment_data__backend_response__formid'),
-            date_latest_deployment=subquery_latest_deployed,
-            date_first_deployment=subquery_first_deployed,
         )
     else:
         vals = USER_FIELDS + (METADATA,)
