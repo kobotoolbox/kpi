@@ -153,6 +153,7 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+    date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
     report_styles = models.JSONField(default=dict)
@@ -210,7 +211,7 @@ class Asset(ObjectPermissionMixin,
         indexes = [
             GinIndex(
                 F('settings__country_codes'), name='settings__country_codes_idx'
-            )
+            ),
         ]
 
         # Example in Django documentation  represents `ordering` as a list
