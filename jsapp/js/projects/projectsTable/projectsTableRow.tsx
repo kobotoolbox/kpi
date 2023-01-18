@@ -81,10 +81,10 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         return formatTime(props.asset.date_modified);
       case 'dateDeployed':
         if (
-          'date_latest_deployment' in props.asset &&
-          props.asset.date_latest_deployment !== null
+          'date_deployed' in props.asset &&
+          props.asset.date_deployed !== null
         ) {
-          return formatTime(props.asset.date_latest_deployment);
+          return formatTime(props.asset.date_deployed);
         }
         return null;
       case 'sector':
