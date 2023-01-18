@@ -7,7 +7,6 @@ import KoboDropdown, {
   KoboDropdownPlacements,
 } from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
-import {ROUTES} from 'js/router/routerConstants';
 import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
 import {HOME_VIEW} from './constants';
@@ -24,8 +23,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
   const onOptionClick = (viewUid: string) => {
     if (viewUid === HOME_VIEW.uid || viewUid === null) {
-      // TODO change this to PROJECTS_ROUTES.MY_PROJECTS
-      navigate(ROUTES.FORMS);
+      navigate(PROJECTS_ROUTES.MY_PROJECTS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
       // The store keeps a number of assets of each view, and that number
