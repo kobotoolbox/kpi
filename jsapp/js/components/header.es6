@@ -1,4 +1,4 @@
-;import React from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import { observer } from 'mobx-react';
