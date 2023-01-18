@@ -100,9 +100,13 @@ class CustomViewStore {
     this.setFields(newFields);
   }
 
+  /**
+   * Returns an ordering value for current order property. Olivier said it best:
+   * > `-name` is descending and `name` is ascending
+   */
   private getOrderQuery() {
     const fieldDefinition = PROJECT_FIELDS[this.order.fieldName];
-    if (this.order.direction === 'ascending') {
+    if (this.order.direction === 'descending') {
       return `-${fieldDefinition.apiPropertyName}`;
     }
     return fieldDefinition.apiPropertyName;
