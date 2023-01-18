@@ -1,14 +1,14 @@
 {% load i18n %}
 
-{% block content %}{% autoescape off %}{% blocktrans %}You are receiving this e-mail because you or someone else has requested a
-password for your user account. However, we do not have any record of a user
-with email {{ email }} in our database.
+{% block content %}{% autoescape off %}
+{% blocktrans %}You are receiving this e-mail because you or someone else has requested a password for your user account. {% endblocktrans %}
+{% blocktrans %}However, we do not have any record of a user with the email {{ email }} in our database.{% endblocktrans %}
 
-This mail can be safely ignored if you did not request a password reset.
+{% blocktrans %}This mail can be safely ignored if you did not request a password reset.{% endblocktrans %}
 
-If it was you, you can sign up for an account using the link below.{% endblocktrans %}
+{% blocktrans %}If it was you, you can sign up for an account using the link below.{% endblocktrans %}
 
 {{ signup_url }}{% endautoescape %}{% endblock %}
 
-{% trans "Best," %}
+{% blocktrans %}Best,{% endblocktrans %}
 KoboToolbox
