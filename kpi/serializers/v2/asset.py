@@ -792,29 +792,15 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'owner__name',
             'owner__organization',
             'uid',
-            'kind',
             'name',
             'settings',
             'languages',
-            'asset_type',
             'version_id',
-            'version_count',
             'has_deployment',
             'deployed_version_id',
             'deployment__active',
             'deployment__submission_count',
-            'permissions',
-            'status',
-            'data_sharing',
-            'data',
         )
-
-    def get_data(self, obj: Asset) -> str:
-        if view_has_perm(
-            self._get_view(), PERM_VIEW_SUBMISSIONS
-        ) or self._user_has_asset_perms(obj, PERM_VIEW_SUBMISSIONS):
-            return super().get_data(obj)
-        return ''
 
     def get_date_first_deployment(
         self, obj: Asset

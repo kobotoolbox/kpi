@@ -20,7 +20,8 @@ bem.SecurityRow = makeBem(null, 'security-row');
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header');
 bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title', 'h2');
 bem.SecurityRow__buttons = makeBem(bem.SecurityRow, 'buttons');
-bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description');
+bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description', 'p');
+bem.SecurityRow__switch = makeBem(bem.SecurityRow, 'switch');
 
 bem.MFAOptions = makeBem(null, 'mfa-options');
 bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row');
@@ -75,11 +76,13 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   onGetUserMethodsCompleted(response: MfaUserMethodsResponse) {
-    this.setState({
-      isMfaActive: response[0].is_active,
-      dateDisabled: response[0].date_disabled,
-      dateModified: response[0].date_modified,
-    });
+    if (response.length) {
+      this.setState({
+        isMfaActive: response[0].is_active,
+        dateDisabled: response[0].date_disabled,
+        dateModified: response[0].date_modified,
+      });
+    }
   }
 
   mfaActivating(response: MfaActivatedResponse) {
@@ -163,21 +166,23 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
             {t('Two-factor authentication')}
           </bem.SecurityRow__title>
 
-          <bem.SecurityRow__buttons>
-            <ToggleSwitch
-              label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
-              checked={this.state.isMfaActive}
-              onChange={this.onToggleChange.bind(this)}
-            />
-          </bem.SecurityRow__buttons>
-        </bem.SecurityRow__header>
+          <bem.SecurityRow__description>
+            {t(
+              'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
+                'We recommend enabling two-factor authentication for an additional layer of protection.'
+            )}
+          </bem.SecurityRow__description>
 
-        <bem.SecurityRow__description>
-          {t(
-            'Two-factor authenication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
-              'We recommend enabling two-factor authenication for an additional layer of protection.'
-          )}
-        </bem.SecurityRow__description>
+          <bem.SecurityRow__switch>
+            <bem.SecurityRow__buttons>
+              <ToggleSwitch
+                label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
+                checked={this.state.isMfaActive}
+                onChange={this.onToggleChange.bind(this)}
+              />
+            </bem.SecurityRow__buttons>
+          </bem.SecurityRow__switch>
+      </bem.SecurityRow__header>
 
         {this.state.isMfaActive && (
           <bem.MFAOptions>
@@ -197,7 +202,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                   type='frame'
                   color='storm'
                   label={t('Reconfigure')}
-                  size='l'
+                  size='m'
                   onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                     this.showEditModal(evt, 'reconfigure');
                   }}
@@ -215,7 +220,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                   type='frame'
                   color='storm'
                   label={t('Generate new')}
-                  size='l'
+                  size='m'
                   onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                     this.showEditModal(evt, 'regenerate');
                   }}

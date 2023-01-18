@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import {makeAutoObservable} from 'mobx';
 import type {
   ProjectViewAsset,
@@ -13,6 +14,7 @@ import type {
 import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
+import {ROOT_URL} from 'js/constants';
 
 const SAVE_DATA_NAME = 'project_views_settings';
 const PAGE_SIZE = 50;
@@ -107,6 +109,14 @@ class CustomViewStore {
     this.setFields(newFields);
   }
 
+  private getOrderQuery() {
+    const fieldDefinition = PROJECT_FIELDS[this.order.fieldName];
+    if (this.order.direction === 'descending') {
+      return `-${fieldDefinition.apiPropertyName}`;
+    }
+    return fieldDefinition.apiPropertyName;
+  }
+
   /**
    * Gets the first page of results. It will replace whatever assets are loaded
    * already.
@@ -116,14 +126,13 @@ class CustomViewStore {
     this.isLoading = true;
     this.assets = [];
     const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
-    const orderingString =
-      this.order.direction === 'descending'
-        ? `-${this.order.fieldName}`
-        : this.order.fieldName;
+    const orderingString = this.getOrderQuery();
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${this.baseUrl}&ordering=${orderingString}&q=${queriesString}&limit=${PAGE_SIZE}`,
+      url:
+        `${this.baseUrl}&ordering=${orderingString}&limit=${PAGE_SIZE}` +
+        (queriesString ? `&q=${queriesString}` : ''),
     })
       .done(this.onFetchAssetsDone.bind(this))
       .fail(this.onAnyFail.bind(this));

@@ -1,6 +1,8 @@
 // List of server routes
 export const PATHS = Object.freeze({
   LOGIN: '/accounts/login',
+  RESET: '/accounts/password/reset/',
+  MS_SSO: '/accounts/microsoft/login/',
 });
 
 /** Needed for easier detecting if a processing route. */

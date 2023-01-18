@@ -1,4 +1,5 @@
 # coding: utf-8
+import base64
 import datetime
 import json
 from collections import OrderedDict
@@ -7,6 +8,7 @@ from copy import deepcopy
 import openpyxl
 from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
+from django.urls import reverse
 from rest_framework import serializers
 
 from kpi.constants import (
@@ -16,7 +18,7 @@ from kpi.constants import (
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.utils.object_permission import get_all_objects_for_user
 
 # move this into a fixture file?
@@ -340,7 +342,7 @@ class AssetContentTests(AssetsTestCase):
         workbook = openpyxl.load_workbook(xlsx_io)
 
         survey_sheet = workbook['survey']
-        # `versioned=True` should add a calculate question to the the last row.
+        # `versioned=True` should add a calculate question to the last row.
         # The calculation (version uid) changes on each run, so don't look past
         # the first two columns (type and name)
         xls_version_row = [
@@ -377,6 +379,61 @@ class AssetContentTests(AssetsTestCase):
         ) + 1
         version_string = settings_sheet[version_col][1].value
         assert version_string == f'1 ({date_string})'
+
+    def test_unique__version__field_on_import_with_version(self):
+            xlsx_io = self.asset.to_xlsx_io(versioned=True)
+            workbook = openpyxl.load_workbook(xlsx_io)
+            survey_sheet = workbook['survey']
+            xls_version_row = [
+                cell.value for cell in survey_sheet[survey_sheet.max_row]]
+            expected_row = [
+                'calculate',
+                '__version__',
+                None,
+                f"'{self.asset.latest_version.uid}'"
+            ]
+            current_version_id = self.asset.latest_version.uid
+            assert xls_version_row == expected_row
+
+            xlsx_io.seek(0)
+            # Replace XLSForm with new one which contains a row with the '__version__'
+            import_task = self._create_import_task(xlsx_io)
+            self.asset.refresh_from_db()
+
+            xlsx_io = self.asset.to_xlsx_io(versioned=True)
+            workbook = openpyxl.load_workbook(xlsx_io)
+            survey_sheet = workbook['survey']
+            xls_new_version_row = [
+                cell.value for cell in survey_sheet[survey_sheet.max_row]]
+            new_version_expected_row = [
+                'calculate',
+                '__version__',
+                None,
+                f"'{self.asset.latest_version.uid}'"
+            ]
+            # Ensure last row is '__version__' (not '_version_' or '_version_001_')
+            # and it equals the asset's latest version
+            assert current_version_id != self.asset.latest_version.uid
+            assert xls_new_version_row == new_version_expected_row
+            # clean-up
+            import_task.delete()
+
+    def _create_import_task(self, xlsx_file: bytes) -> ImportTask:
+        encoded_xls = base64.b64encode(xlsx_file.read()).decode('utf-8')
+        import_task = ImportTask.objects.create(
+            user=self.user,
+            data={
+                'base64Encoded': encoded_xls,
+                'destination': reverse(
+                    'api_v2:asset-detail',
+                    kwargs={'uid': self.asset.uid},
+                ),
+                'filename': f'{self.asset.uid}.xlsx',
+                'assetUid': self.asset.uid,
+            },
+        )
+        import_task.run()
+        return import_task
 
 
 class AssetSettingsTests(AssetsTestCase):
@@ -463,7 +520,8 @@ class AssetSettingsTests(AssetsTestCase):
             'country': [{'value': 'CAN', 'label': 'Canada'}],
             'country_codes': ['CAN'],
             'description': '',
-            'sector': {}
+            'sector': {},
+            'organization': ''
         }
         assert asset.settings == expected_settings
 

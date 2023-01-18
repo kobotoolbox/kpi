@@ -98,7 +98,11 @@ class FormSummary extends React.Component {
       dataInterface.getSubmissionsQuery(assetid, q2).done((d) => {
         if (subsCurrentPeriod > 0) {
           let subsPerDay;
-          if (this.state.chartPeriod === 'week') {subsPerDay = [0, 0, 0, 0, 0, 0, 0];} else {subsPerDay = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];}
+          if (this.state.chartPeriod === 'week') {
+            subsPerDay = Array(7).fill(0); // [0, 0, 0, 0, 0, 0, 0]
+          } else {
+            subsPerDay = Array(31).fill(0); // [31 zeroes]
+          }
 
           thisWeekSubs.results.forEach(function(s) {
             // As submission times are in UTC,

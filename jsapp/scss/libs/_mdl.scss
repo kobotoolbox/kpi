@@ -1,39 +1,39 @@
-@import "../colors";
+@use '~kobo-common/src/styles/colors';
 // Theming variables, mixins and includes
 
-$root-background: $kobo-white;
+$root-background: colors.$kobo-white;
 
 $font: "Roboto", sans-serif !default;
 $font_mono: "Roboto Mono", monospace !default;
-$layout-text-color: $kobo-gray-24 !default;
-$layout-nav-color: $kobo-white !default;
-$layout-header-bg-color: $kobo-gray-24 !default;
+$layout-text-color: colors.$kobo-gray-24 !default;
+$layout-nav-color: colors.$kobo-white !default;
+$layout-header-bg-color: colors.$kobo-gray-24 !default;
 $layout-desktop-header-height: 64px;
 
 @mixin box-shadow {
-  box-shadow: 0 0 2px 0 rgba($kobo-gray-24, 0.06), 0 2px 2px 0 rgba($kobo-gray-24, 0.12);
+  box-shadow: 0 0 2px 0 rgba(colors.$kobo-gray-24, 0.06), 0 2px 2px 0 rgba(colors.$kobo-gray-24, 0.12);
   border-radius: 2px;
 }
 
 @mixin box-shadow-big {
-  box-shadow: 0 0 3px 1px rgba($kobo-gray-24, 0.06), 0 1px 3px 0 rgba($kobo-gray-24, 0.12);
+  box-shadow: 0 0 3px 1px rgba(colors.$kobo-gray-24, 0.06), 0 1px 3px 0 rgba(colors.$kobo-gray-24, 0.12);
   border-radius: 2px;
 }
 
 // element appears to be above regular box-shadow elements
 @mixin box-shadow-mid {
-  box-shadow: 0 0 8px 0 rgba($kobo-gray-24, 0.06), 0 8px 8px 0 rgba($kobo-gray-24, 0.12);
+  box-shadow: 0 0 8px 0 rgba(colors.$kobo-gray-24, 0.06), 0 8px 8px 0 rgba(colors.$kobo-gray-24, 0.12);
   border-radius: 2px;
 }
 
 // element appears to be above mid box-shadow elements
 @mixin box-shadow-top {
-  box-shadow: 0 0 12px 0 rgba($kobo-gray-24, 0.06), 0 12px 12px 0 rgba($kobo-gray-24, 0.12);
+  box-shadow: 0 0 12px 0 rgba(colors.$kobo-gray-24, 0.06), 0 12px 12px 0 rgba(colors.$kobo-gray-24, 0.12);
   border-radius: 2px;
 }
 
 @mixin form-builder-focus {
-  outline-color: $kobo-blue;
+  outline-color: colors.$kobo-blue;
   outline-offset: -2px;
   outline-style: auto;
   outline-width: 5px;

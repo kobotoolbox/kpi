@@ -179,45 +179,6 @@ stores.snapshots = Reflux.createStore({
   },
 });
 
-stores.session = Reflux.createStore({
-  // start up with "fake" current account
-  currentAccount: {
-    username: ANON_USERNAME,
-  },
-  isAuthStateKnown: false,
-  isLoggedIn: false,
-
-  init() {
-    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
-    this.listenTo(actions.auth.verifyLogin.loggedin, this.onLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.anonymous, this.onNotLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.failed, this.onVerifyLoginFailed);
-    actions.auth.verifyLogin();
-  },
-
-  onUpdateProfileCompleted(response) {
-    this.currentAccount = response;
-    this.trigger({currentAccount: this.currentAccount});
-  },
-
-  onLoggedIn(account) {
-    this.isAuthStateKnown = true;
-    this.isLoggedIn = true;
-    this.currentAccount = account;
-    this.trigger();
-  },
-
-  onNotLoggedIn(data) {
-    log('login confirmed anonymous', data.message);
-    this.isAuthStateKnown = true;
-    this.trigger();
-  },
-
-  onVerifyLoginFailed(xhr) {
-    log('login not verified', xhr.status, xhr.statusText);
-  },
-});
-
 /**
  * This store keeps data of assets, both complete (i.e. with `content` property)
  * and incomplete (e.g. from asset lists).

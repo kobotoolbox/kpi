@@ -1,14 +1,14 @@
+import $ from 'jquery';
 import {makeAutoObservable} from 'mobx';
 import {handleApiFail} from 'js/utils';
-import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
+import {ROOT_URL} from 'js/constants';
 
 export interface ProjectView {
   uid: string;
   name: string;
   url: string;
   assets: string;
-  assets_count: number;
   assets_export: string;
   users: string;
   users_export: string;

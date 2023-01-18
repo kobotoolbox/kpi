@@ -44,6 +44,7 @@ class Command(BaseCommand):
                 )
                 asset.standardize_json_field('settings', 'sector', dict)
                 asset.standardize_json_field('settings', 'description', str)
+                asset.standardize_json_field('settings', 'organization', str)
 
             # No need to call `Asset._populate_summary` since `asset` is not
             # a new one.

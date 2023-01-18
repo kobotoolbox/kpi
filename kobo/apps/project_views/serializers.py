@@ -1,15 +1,10 @@
 # coding: utf-8
 from __future__ import annotations
 
-from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.static_lists import COUNTRIES
-from kpi.models import Asset
-from kpi.utils.project_views import (
-    get_region_for_view,
-)
 from .models.project_view import ProjectView
 
 
@@ -18,7 +13,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
     assets = serializers.SerializerMethodField()
-    assets_count = serializers.SerializerMethodField()
     assets_export = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     users_export = serializers.SerializerMethodField()
@@ -31,7 +25,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             'name',
             'url',
             'assets',
-            'assets_count',
             'assets_export',
             'users',
             'users_export',
@@ -46,18 +39,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
-
-    def get_assets_count(self, obj: ProjectView) -> int:
-        region = get_region_for_view(obj.uid)
-        queryset = Asset.objects.defer('content').all()
-
-        if '*' in region:
-            return queryset.count()
-
-        q = Q()
-        for country in region:
-            q |= Q(settings__country_codes__contains=country)
-        return queryset.filter(q).count()
 
     def get_assets_export(self, obj: ProjectView) -> str:
         return reverse(

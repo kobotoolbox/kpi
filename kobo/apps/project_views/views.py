@@ -3,7 +3,7 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
@@ -11,13 +11,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import (
     AssetOrderingFilter,
     SearchFilter,
 )
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
-from kpi.models import Asset, ProjectViewExportTask
-from kpi.paginators import AssetPagination
+from kpi.models import Asset, ProjectViewExportTask, AssetVersion
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.object_permission import get_database_user
@@ -45,6 +45,8 @@ class ProjectViewViewSet(
     ordering_fields = [
         'date_modified',
         'date_deployed',
+        'date_modified__date',
+        'date_deployed__date',
         'name',
         'settings__sector__value',
         'settings__description',
@@ -68,10 +70,30 @@ class ProjectViewViewSet(
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
             raise Http404
-        assets = Asset.optimize_queryset_for_list(Asset.objects)
+        assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).defer(
+            'content',
+            'report_styles',
+            'report_custom',
+            'map_styles',
+            'map_custom',
+            'advanced_features',
+            'known_cols',
+            'data_sharing',
+            'paired_data',
+        )
         queryset = self.filter_queryset(
             self._get_regional_queryset(assets, uid, obj_type='asset')
-        ).select_related('owner', 'owner__extra_details')
+        ).select_related(
+            'owner', 'owner__extra_details'
+        ).prefetch_related(
+            Prefetch(
+                'asset_versions',
+                queryset=AssetVersion.objects.order_by(
+                    '-date_modified'
+                ).only('uid', 'asset', 'date_modified', 'deployed'),
+                to_attr='prefetched_latest_versions',
+            ),
+        )
         return self._get_regional_response(
             queryset, serializer_class=AssetMetadataListSerializer
         )
@@ -124,7 +146,6 @@ class ProjectViewViewSet(
             self._get_regional_queryset(users, uid, obj_type='user')
             .exclude(pk=settings.ANONYMOUS_USER_ID)
             .select_related('extra_details')
-            .distinct()
             .order_by('id')
         )
 
@@ -135,27 +156,6 @@ class ProjectViewViewSet(
     def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
-        return context_
-
-    def get_serializer_class_context(
-        self,
-        queryset: Union[QuerySet, list],
-        serializer_class: Union[
-            AssetMetadataListSerializer, UserListSerializer
-        ],
-    ) -> dict:
-        context_ = self.get_serializer_context()
-        if serializer_class is AssetMetadataListSerializer:
-            # 1) Retrieve all asset IDs of current list
-            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
-                queryset
-            )
-
-            # 2) Get object permissions per asset
-            context_[
-                'object_permissions_per_asset'
-            ] = self.cache_all_assets_perms(asset_ids)
-
         return context_
 
     def _get_regional_response(self, queryset, serializer_class):
@@ -180,9 +180,8 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_class_context(
-            queryset, serializer_class
-        )
+        context_ = self.get_serializer_context()
+
         return serializer_class(
             queryset,
             many=True,
@@ -200,18 +199,7 @@ class ProjectViewViewSet(
         if '*' in region:
             return queryset
 
-        q_terms = {
-            'asset': 'settings__country_codes',
-            'user': 'extra_details__data__country',
-        }
-
-        q = Q()
-        for country in region:
-            if obj_type == 'user':
-                q |= Q(
-                    **{f'{q_terms[obj_type]}__contains': [{'value': country}]}
-                )
-            else:
-                q |= Q(**{f'{q_terms[obj_type]}__contains': country})
-
-        return queryset.filter(q)
+        if obj_type == 'user':
+            return queryset.filter(extra_details__data__country__in=region)
+        else:
+            return queryset.filter(settings__country_codes__in_array=region)

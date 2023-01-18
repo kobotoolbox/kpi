@@ -101,10 +101,23 @@ class AssetOrderingFilter(filters.OrderingFilter):
                 subquery_last_deployed = (
                     AssetVersion.objects.values('asset_id')
                     .annotate(last_deployed=Max('date_modified'))
-                    .filter(asset_id=OuterRef('pk'))
+                    .filter(asset_id=OuterRef('pk'), deployed=True)
                     .values('last_deployed')
                 )
                 queryset = queryset.annotate(date_deployed=subquery_last_deployed)
+
+            # Add support to lookup `__date` for `date_deployed` field.
+            if (
+                'date_deployed__date' in ordering
+                or '-date_deployed__date' in ordering
+            ):
+                subquery_last_deployed = (
+                    AssetVersion.objects.values('asset_id')
+                    .annotate(last_deployed=Max('date_modified__date'))
+                    .filter(asset_id=OuterRef('pk'), deployed=True)
+                    .values('last_deployed')
+                )
+                queryset = queryset.annotate(date_deployed__date=subquery_last_deployed)
 
             return queryset.order_by(*ordering)
 

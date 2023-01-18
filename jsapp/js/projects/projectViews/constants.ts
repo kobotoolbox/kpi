@@ -95,28 +95,6 @@ export const FILTER_CONDITIONS: FilterConditions = {
   },
 };
 
-/**
- * EXCEPTION: the `status` field is combined from different pieces of data thus
- * it needs these queries :sadface:
- */
-export const STATUS_FILTER_QUERIES = {
-  draft: '_deployment_data__iexact:{}',
-  deployed: '_deployment_data__active:true',
-  archived: '_deployment_data__active:false',
-};
-
-/**
- * EXCEPTION: Dates are special pieces of data and they can be filtered in
- * a meaningful way by using these queries.
- */
-export const DATE_FILTER_QUERIES = {
-  greaterThan: '<field>__gt:<YYYY-MM-DD>',
-  greaterOrEqualThan: '<field>__gte:<YYYY-MM-DD>',
-  lessThan: '<field>__lt:<YYYY-MM-DD>',
-  lessOrEqualThan: '<field>__lte:<YYYY-MM-DD>',
-  partOf: '<field>__regex:<YYYY-MM>',
-};
-
 export type ProjectFieldName =
   | 'countries'
   | 'dateDeployed'
@@ -187,9 +165,9 @@ export const PROJECT_FIELDS: ProjectFields = {
   status: {
     name: 'status',
     label: t('Status'),
-    apiPropertyName: '_deployment_data',
+    apiPropertyName: '_deployment_data__active',
     availableConditions: [],
-    orderable: false,
+    orderable: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
@@ -270,7 +248,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Date deployed'),
     apiPropertyName: 'date_deployed__date',
     availableConditions: [],
-    orderable: false,
+    orderable: true,
   },
   sector: {
     name: 'sector',
@@ -296,7 +274,7 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'isNotEmptyObject',
     ],
-    orderable: true,
+    orderable: false,
   },
   languages: {
     name: 'languages',
@@ -310,7 +288,7 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'isNotEmptyObject',
     ],
-    orderable: true,
+    orderable: false,
   },
   submissions: {
     name: 'submissions',

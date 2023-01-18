@@ -1,6 +1,6 @@
 @use "scss/mixins";
 @use "scss/sizes";
-@use "scss/_colors";
+@use '~kobo-common/src/styles/colors';
 @use "scss/libs/_mdl";
 
 // nested selector needed for specificity
