@@ -9,7 +9,10 @@ import type {
 } from './projectViews/constants';
 import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
-import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
+import {
+  DEFAULT_VISIBLE_FIELDS,
+  DEFAULT_ORDERABLE_FIELDS,
+} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
@@ -103,7 +106,8 @@ function CustomViewRoute() {
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={toJS(customView.fields) || DEFAULT_PROJECT_FIELDS}
+        visibleFields={toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS}
+        orderableFields={DEFAULT_ORDERABLE_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
         onHideFieldRequested={customView.hideField.bind(customView)}

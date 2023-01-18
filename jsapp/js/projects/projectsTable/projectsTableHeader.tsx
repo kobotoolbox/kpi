@@ -18,6 +18,7 @@ import Button from 'jsapp/js/components/common/button';
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
+  orderableFields: ProjectFieldName[];
   order: ProjectsTableOrder;
   onChangeOrderRequested: (order: ProjectsTableOrder) => void;
   onHideFieldRequested: (fieldName: ProjectFieldName) => void;
@@ -86,7 +87,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
           }
           menuContent={
             <div className={styles.dropdownContent}>
-              {field.orderable && (
+              {props.orderableFields.includes(field.name) && (
                 <Button
                   type='bare'
                   color='storm'
@@ -101,7 +102,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                   }}
                 />
               )}
-              {field.orderable && (
+              {props.orderableFields.includes(field.name) && (
                 <Button
                   type='bare'
                   color='storm'

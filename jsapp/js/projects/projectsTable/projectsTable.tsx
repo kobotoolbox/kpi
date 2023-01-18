@@ -27,6 +27,8 @@ interface ProjectsTableProps {
   /** Renders the columns for highlighted fields in some fancy way. */
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
+  /** The fields that have ability to change the order of data. */
+  orderableFields: ProjectFieldName[];
   order: ProjectsTableOrder;
   /** Called when user selects a column for odering. */
   onChangeOrderRequested: (order: ProjectsTableOrder) => void;
@@ -54,6 +56,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
       <ProjectsTableHeader
         highlightedFields={props.highlightedFields}
         visibleFields={safeVisibleFields}
+        orderableFields={props.orderableFields}
         order={props.order}
         onChangeOrderRequested={props.onChangeOrderRequested}
         onHideFieldRequested={props.onHideFieldRequested}

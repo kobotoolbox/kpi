@@ -6,7 +6,7 @@ import type {
   FailResponse,
 } from 'js/dataInterface';
 import {handleApiFail} from 'js/utils';
-import {DEFAULT_PROJECT_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
+import {DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
 import type {
   ProjectFieldName,
   ProjectsFilterDefinition,
@@ -14,8 +14,6 @@ import type {
 import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
-import {ROOT_URL} from 'js/constants';
-
 const SAVE_DATA_NAME = 'project_views_settings';
 const PAGE_SIZE = 50;
 
@@ -104,7 +102,7 @@ class CustomViewStore {
   public hideField(fieldName: ProjectFieldName) {
     let newFields = Array.isArray(this.fields)
       ? Array.from(this.fields)
-      : DEFAULT_PROJECT_FIELDS;
+      : DEFAULT_VISIBLE_FIELDS;
     newFields = newFields.filter((item) => item !== fieldName);
     this.setFields(newFields);
   }
