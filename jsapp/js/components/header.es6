@@ -7,7 +7,7 @@ import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
-import { withRouter } from "js/router/legacy";
+import { withRouter } from 'js/router/legacy';
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {actions} from '../actions';
@@ -20,10 +20,7 @@ import {
 } from 'utils';
 import {getLoginUrl} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
-import {COMMON_QUERIES} from 'js/constants';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
-import {searches} from '../searches';
-import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
@@ -35,12 +32,6 @@ const MainHeader = class MainHeader extends Reflux.Component {
     this.state = assign({
       asset: false,
       isLanguageSelectorVisible: false,
-      formFiltersContext: searches.getSearchContext('forms', {
-        filterParams: {
-          assetType: COMMON_QUERIES.s,
-        },
-        filterTags: COMMON_QUERIES.s,
-      }),
     }, stores.pageState.state);
     this.stores = [
       stores.pageState,
@@ -302,11 +293,6 @@ const MainHeader = class MainHeader extends Reflux.Component {
                 <bem.Header__logo />
               </a>
             </span>
-            { isLoggedIn && this.isFormList() &&
-              <div className='mdl-layout__header-searchers'>
-                <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
-              </div>
-            }
             { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox

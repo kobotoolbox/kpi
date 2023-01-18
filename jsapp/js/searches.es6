@@ -139,7 +139,7 @@ function SearchContext(opts={}) {
       if (typeof assetOrUid === 'object') {
         asset = assetOrUid;
       } else {
-        asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        asset = stores.allAssets.byUid[assetOrUid];
       }
       // non-owner self permission removal only gives an assetUid string, not
       // an object; for consistency we make it an object here

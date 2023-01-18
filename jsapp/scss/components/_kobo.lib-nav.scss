@@ -1,29 +1,5 @@
 @use '~kobo-common/src/styles/colors';
 
-.library-asset-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0 -10px;
-  margin: 0;
-}
-
-.library-asset-list__item {
-  border-bottom: 1px solid colors.$kobo-gray-92;
-  padding-left: 20px;
-  position: relative;
-}
-
-.l-a__item__draggable {
-  position: absolute;
-  top: 50%;
-  left: 3px;
-  width: 12px;
-  height: 12px;
-  margin-top: -8px;
-  background-color: colors.$kobo-gray-92;
-  border-radius: 6px;
-}
-
 .lib-nav__header {
   display: flex;
   flex-wrap: wrap;
