@@ -1,5 +1,5 @@
 @use 'scss/sizes';
-@use 'scss/colors';
+@use '~kobo-common/src/styles/colors';
 @use 'scss/variables';
 @use 'scss/libs/mdl';
 @use 'scss/z-indexes';
@@ -8,6 +8,7 @@ $projects-table-min-width: 820px;
 
 .root {
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: colors.$kobo-white;
@@ -40,8 +41,16 @@ $projects-table-min-width: 820px;
 
 .body {
   flex: 1;
-}
 
-.body > .loading {
-  margin: sizes.$x40 auto;
+  :global {
+    // The loading message of the ProjectsTable component
+    .loading:first-of-type {
+      margin: sizes.$x40 auto;
+    }
+
+    // The loading spinner of the react-infinite-scroller plugin
+    .loading:last-of-type {
+      padding: sizes.$x10 0 sizes.$x20;
+    }
+  }
 }

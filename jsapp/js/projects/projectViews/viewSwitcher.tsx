@@ -1,82 +1,94 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {observer} from 'mobx-react-lite';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
-import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
+import KoboDropdown, {
+  KoboDropdownPlacements,
+} from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
+import {ROUTES} from 'js/router/routerConstants';
+import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
-
-// TODO get this list from backend:
-const DEFINED_VIEWS = [
-  {
-    uid: 'kobo_my_projects',
-    label: t('My Projects'),
-  },
-  {
-    uid: '1',
-    label: 'Custom View 1',
-  },
-];
+import {HOME_VIEW} from './constants';
 
 interface ViewSwitcherProps {
-  viewUid: string;
-  /** Total number of asset of current view. */
-  viewCount?: number;
-  disabled?: boolean;
+  selectedViewUid: string;
 }
 
-export default function ViewSwitcher(props: ViewSwitcherProps) {
+function ViewSwitcher(props: ViewSwitcherProps) {
   // We track the menu visibility for the trigger icon.
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [projectViews] = useState(() => projectViewsStore);
   const navigate = useNavigate();
 
   const onOptionClick = (viewUid: string) => {
-    console.log(viewUid);
-    if (viewUid === 'kobo_my_projects' || viewUid === null) {
-      navigate(PROJECTS_ROUTES.MY_PROJECTS);
+    if (viewUid === HOME_VIEW.uid || viewUid === null) {
+      // TODO change this to PROJECTS_ROUTES.MY_PROJECTS
+      navigate(ROUTES.FORMS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
+      // The store keeps a number of assets of each view, and that number
+      // might change after changing projects, so we make sure we get fresh data
+      projectViews.fetchData();
     }
   };
 
+  const getTriggerLabel = () => {
+    if (props.selectedViewUid === HOME_VIEW.uid) {
+      return HOME_VIEW.name;
+    }
+
+    return projectViews.getView(props.selectedViewUid)?.name;
+  };
+
+  // We don't want to display anything before the API call is done. If there are
+  // no custom views defined, there's no point in displaying it either.
+  if (!projectViews.isFirstLoadComplete || projectViews.views.length === 0) {
+    return null;
+  }
+
   return (
-    <div className={classNames({
-      [styles.root]: true,
-      [styles['is-menu-visible']]: isMenuVisible,
-    })}>
+    <div
+      className={classNames({
+        [styles.root]: true,
+        [styles.isMenuVisible]: isMenuVisible,
+      })}
+    >
       <KoboDropdown
         name='projects_view_switcher'
         placement={KoboDropdownPlacements['down-left']}
-        isDisabled={props.disabled || false}
         hideOnMenuClick
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
           <button className={styles.trigger}>
-            {DEFINED_VIEWS.find((view) => view.uid === props.viewUid)?.label}
-            {props.viewCount !== undefined &&
-              <span className={styles['trigger-badge']}>{props.viewCount}</span>
-            }
-            <Icon
-              classNames={[styles['trigger-icon']]}
-              size='xxs'
-              name={isMenuVisible ? 'caret-up' : 'caret-down'}
-            />
+            {getTriggerLabel()}
+            <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>
         }
         menuContent={
           <div className={styles.menu}>
-            {DEFINED_VIEWS.map((view) =>
+            <button
+              key={HOME_VIEW.uid}
+              className={styles.menuOption}
+              onClick={() => onOptionClick(HOME_VIEW.uid)}
+            >
+              {HOME_VIEW.name}
+            </button>
+            {projectViews.views.map((view) => (
               <button
                 key={view.uid}
-                className={styles['menu-option']}
+                className={styles.menuOption}
                 onClick={() => onOptionClick(view.uid)}
               >
-                {view.label}
+                {view.name}
               </button>
-            )}
+            ))}
           </div>
         }
       />
     </div>
   );
 }
+
+export default observer(ViewSwitcher);

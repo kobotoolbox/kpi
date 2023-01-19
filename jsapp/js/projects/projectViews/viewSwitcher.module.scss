@@ -1,6 +1,6 @@
 @use 'sass:color';
 @use 'scss/sizes';
-@use 'scss/colors';
+@use '~kobo-common/src/styles/colors';
 @use 'scss/mixins';
 @use 'js/components/common/button';
 
@@ -9,12 +9,12 @@
   vertical-align: top;
 }
 
-.trigger-icon {
-  margin-left: sizes.$x5;
-}
-
-.root.is-menu-visible .trigger-icon {
-  color: colors.$kobo-blue;
+.root.isMenuVisible .trigger {
+  :global {
+    .k-icon {
+      color: colors.$kobo-blue;
+    }
+  }
 }
 
 .trigger {
@@ -24,15 +24,16 @@
   font-weight: 800;
   color: colors.$kobo-gray-24;
   padding: sizes.$x6 sizes.$x16;
-}
 
-.trigger-badge {
-  margin-left: sizes.$x14;
-  font-size: sizes.$x13;
-  line-height: sizes.$x16;
-  background-color: colors.$kobo-cloud;
-  border-radius: sizes.$x14;
-  padding: sizes.$x6 sizes.$x14;
+  :global {
+    .k-icon {
+      margin-left: sizes.$x5;
+    }
+  }
+
+  &:active {
+    transform: none;
+  }
 }
 
 .menu {
@@ -48,7 +49,7 @@
   box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
 }
 
-.menu-option {
+.menuOption {
   @include mixins.buttonReset;
   @include mixins.textEllipsis;
   font-size: sizes.$x16;

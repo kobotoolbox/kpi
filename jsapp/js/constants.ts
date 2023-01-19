@@ -35,6 +35,19 @@ export const ROOT_URL = (() => {
 
 export const ANON_USERNAME = 'AnonymousUser';
 
+export type PermissionCodename =
+  | 'add_submissions'
+  | 'change_asset'
+  | 'change_metadata'
+  | 'change_submissions'
+  | 'delete_submissions'
+  | 'discover_asset'
+  | 'manage_asset'
+  | 'partial_submissions'
+  | 'validate_submissions'
+  | 'view_asset'
+  | 'view_submissions';
+
 /**
  * BAD CODE™ A hardcoded list of permissions codenames.
  *
@@ -45,41 +58,44 @@ export const ANON_USERNAME = 'AnonymousUser';
  * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
  * where you have to match the classes with endpoints and their HTTP methods.
  */
-export const PERMISSIONS_CODENAMES = createEnum([
+type PermissionsCodenames = {[P in PermissionCodename]: PermissionCodename};
+export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
   // Is user able to view asset - mostly handled by Backend just not returning
   // asset in the results or direct endpoint.
-  'view_asset',
+  view_asset: 'view_asset',
 
   // Is user able to edit asset, i.e. to change anything in the asset endpoint,
   // so: editing in Form Builder, changing tags, changing settings, replace XLS,
   // change translations, move between collection, archive, unarchive, delete…
-  'change_asset',
+  change_asset: 'change_asset',
 
   // Is asset discoverable in public lists.
-  'discover_asset',
+  discover_asset: 'discover_asset',
 
   // Is user able to manage some aspects of asset (it is different from editing)
   // such as: saving export settings, sharing asset (in future)…
-  'manage_asset',
+  manage_asset: 'manage_asset',
 
   // Is user able to add submissions - handled by Backend submissions endpoint.
-  'add_submissions',
+  add_submissions: 'add_submissions',
 
   // Is user able to see submissions, i.e. the Table View.
-  'view_submissions',
+  view_submissions: 'view_submissions',
 
   // Used for partially permissing user actions on submissions.
-  'partial_submissions',
+  partial_submissions: 'partial_submissions',
 
   // Is user able to edit existing submissions.
-  'change_submissions',
+  change_submissions: 'change_submissions',
 
   // Is user able to delete submissions.
-  'delete_submissions',
+  delete_submissions: 'delete_submissions',
 
   // Is user able to change the validation status of submissions.
-  'validate_submissions',
-]);
+  validate_submissions: 'validate_submissions',
+
+  change_metadata: 'change_metadata',
+};
 
 export const ENKETO_ACTIONS = createEnum([
   'edit',

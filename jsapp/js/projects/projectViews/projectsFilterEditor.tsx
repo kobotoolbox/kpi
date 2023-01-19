@@ -36,8 +36,12 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     }
     props.onFilterChange({
       fieldName: fieldValue,
-      condition: props.filter.condition,
-      value: props.filter.value,
+      // Switching field causes the condition to be dropped - this ensures
+      // we don't end up with unsupported field x condition pair :heart:.
+      condition: undefined,
+      // We also drop the value (if any) as it doesn't make sense to keep it
+      // without condition :shrug:.
+      value: undefined,
     });
   };
 
@@ -53,27 +57,36 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     });
   };
 
-  const getFieldSelectorOptions = () => (
-    Object.values(PROJECT_FIELDS).map((filterDefinition) => {
-      return {label: filterDefinition.label, id: filterDefinition.name};
-    })
-  );
+  const getFieldSelectorOptions = () =>
+    Object.values(PROJECT_FIELDS)
+      // We don't want to display fields with zero filters available.
+      .filter(
+        (filterDefinition) => filterDefinition.availableConditions.length >= 1
+      )
+      .map((filterDefinition) => {
+        return {label: filterDefinition.label, id: filterDefinition.name};
+      });
 
-  const getConditionSelectorOptions = () => (
-    Object.values(FILTER_CONDITIONS).map((conditionDefinition) => {
-      return {label: conditionDefinition.label, id: conditionDefinition.name};
-    })
-  );
+  const getConditionSelectorOptions = () => {
+    if (!props.filter.fieldName) {
+      return [];
+    }
+    const fieldDefinition = PROJECT_FIELDS[props.filter.fieldName];
+    return fieldDefinition.availableConditions.map(
+      (condition: FilterConditionName) => {
+        const conditionDefinition = FILTER_CONDITIONS[condition];
+        return {label: conditionDefinition.label, id: conditionDefinition.name};
+      }
+    );
+  };
 
   return (
     <div className={styles.root}>
       {/* Filter field selector */}
       <div className={styles.column}>
-        {!props.hideLabels &&
-          <span className={styles.label}>
-            {t('Filter by')}
-          </span>
-        }
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Filter by')}</span>
+        )}
         <KoboSelect
           name={generateUid()}
           type='outline'
@@ -89,11 +102,9 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter condition selector */}
       <div className={styles.column}>
-        {!props.hideLabels &&
-          <span className={styles.label}>
-            {t('Condition')}
-          </span>
-        }
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Condition')}</span>
+        )}
         <KoboSelect
           name={generateUid()}
           type='outline'
@@ -104,27 +115,27 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           selectedOption={props.filter.condition || null}
           onChange={onConditionSelectorChange}
           placeholder={t('Select condition')}
+          // Requires field to be selected first
+          isDisabled={!props.filter.fieldName}
         />
       </div>
 
       {/* Filter value */}
       <div className={styles.column}>
-        {!props.hideLabels &&
-          <span className={styles.label}>
-            {t('Value')}
-          </span>
-        }
-        {!isFilterConditionValueRequired(props.filter.condition) &&
-          <div/>
-        }
-        {isFilterConditionValueRequired(props.filter.condition) &&
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Value')}</span>
+        )}
+        {!isFilterConditionValueRequired(props.filter.condition) && <div />}
+        {isFilterConditionValueRequired(props.filter.condition) && (
           <TextBox
             customModifiers='on-white'
             value={props.filter.value || ''}
             onChange={onFilterValueChange}
             placeholder={t('Enter value')}
+            // Requires field to be selected first
+            disabled={!props.filter.fieldName}
           />
-        }
+        )}
       </div>
 
       <div className={styles.column}>

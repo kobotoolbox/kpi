@@ -11,6 +11,7 @@ const CustomViewRoute = React.lazy(
 );
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
+  // TODO move current ROUTES.FORMS to this one:
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
   CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
 };
@@ -26,7 +27,7 @@ export default function routes() {
         path={PROJECTS_ROUTES.MY_PROJECTS}
         element={
           <RequireAuth>
-            <MyProjectsRoute/>
+            <MyProjectsRoute />
           </RequireAuth>
         }
       />
@@ -34,7 +35,7 @@ export default function routes() {
         path={PROJECTS_ROUTES.CUSTOM_VIEW}
         element={
           <RequireAuth>
-            <CustomViewRoute/>
+            <CustomViewRoute />
           </RequireAuth>
         }
       />

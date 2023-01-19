@@ -1,0 +1,5 @@
+@use 'scss/sizes';
+
+.myProjectsHeader:not(:empty) {
+  padding: sizes.$x30 sizes.$x30 0;
+}
