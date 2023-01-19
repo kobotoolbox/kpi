@@ -2,11 +2,9 @@ import json
 
 import constance
 from allauth.account.forms import LoginForm as BaseLoginForm
-from allauth.account.forms import PasswordField
 from allauth.account.forms import SignupForm as BaseSignupForm
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
-from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
