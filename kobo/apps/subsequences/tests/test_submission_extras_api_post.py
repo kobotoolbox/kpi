@@ -302,10 +302,10 @@ class GoogleTranscriptionSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(47):
+        with self.assertNumQueries(52):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
-        with self.assertNumQueries(19):
+        with self.assertNumQueries(21):
             self.client.post(url, data, format='json')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})

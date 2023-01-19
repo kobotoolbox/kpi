@@ -18,6 +18,26 @@ class InArray(Lookup):
         return '%s ?| %s' % (lhs, rhs), params
 
 
+class IncrementValue(Func):
+
+    function = 'jsonb_set'
+    template = (
+        "%(function)s(%(expressions)s,"
+        "'{\"%(keyname)s\"}',"
+        "(COALESCE(%(expressions)s ->> '%(keyname)s', '0')::int "
+        "+ %(increment)s)::text::jsonb)"
+    )
+    arity = 1
+
+    def __init__(self, expression: str, keyname: str, increment: int, **extra):
+        super().__init__(
+            expression,
+            keyname=keyname,
+            increment=increment,
+            **extra,
+        )
+
+
 class ReplaceValues(Func):
     """
     Updates several properties at once of a models.JSONField without overwriting the
