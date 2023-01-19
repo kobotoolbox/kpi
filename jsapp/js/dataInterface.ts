@@ -310,6 +310,7 @@ export interface AssetContent {
   choices?: SurveyChoice[];
   settings?: AssetContentSettings | AssetContentSettings[];
   translated?: string[];
+  /** A list of languages. */
   translations?: Array<string|null>;
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[];
 }
