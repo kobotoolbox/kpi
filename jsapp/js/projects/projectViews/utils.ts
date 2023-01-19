@@ -72,14 +72,14 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     if (conditionDefinition.requiresValue && filter.value) {
       return (
         conditionDefinition.filterQuery
-          .replace('<field>', fieldDefinition.apiPropertyName)
+          .replace('<field>', fieldDefinition.apiFilteringName)
           // wrapping term in quotes to make it work with spaces
           .replace('<term>', `"${filter.value}"`)
       );
     } else if (!conditionDefinition.requiresValue) {
       return conditionDefinition.filterQuery.replace(
         '<field>',
-        fieldDefinition.apiPropertyName
+        fieldDefinition.apiFilteringName
       );
     }
 

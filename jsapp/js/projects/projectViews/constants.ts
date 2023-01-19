@@ -113,8 +113,10 @@ export type ProjectFieldName =
 export interface ProjectFieldDefinition {
   name: ProjectFieldName;
   label: string;
-  /** Backend property name used for ordering and filtering. */
-  apiPropertyName: string;
+  /** Backend property name used for filtering. */
+  apiFilteringName: string;
+  /** Backend property name used for ordering. */
+  apiOrderingName: string;
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
   availableConditions: FilterConditionName[];
 }
@@ -133,7 +135,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   name: {
     name: 'name',
     label: t('Project name'),
-    apiPropertyName: 'name',
+    apiFilteringName: 'name',
+    apiOrderingName: 'name',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -146,7 +149,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   description: {
     name: 'description',
     label: t('Description'),
-    apiPropertyName: 'settings__description',
+    apiFilteringName: 'settings__description',
+    apiOrderingName: 'settings__description',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -161,13 +165,15 @@ export const PROJECT_FIELDS: ProjectFields = {
   status: {
     name: 'status',
     label: t('Status'),
-    apiPropertyName: '_deployment_data__active',
+    apiFilteringName: '_deployment_data__active',
+    apiOrderingName: '_deployment_data__active',
     availableConditions: [],
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
-    apiPropertyName: 'owner__username',
+    apiFilteringName: 'owner__username',
+    apiOrderingName: 'owner__username',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -180,7 +186,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
-    apiPropertyName: 'owner__extra_details__data__name',
+    apiFilteringName: 'owner__extra_details__data__name',
+    apiOrderingName: 'owner__extra_details__data__name',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -195,7 +202,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
-    apiPropertyName: 'owner__email',
+    apiFilteringName: 'owner__email',
+    apiOrderingName: 'owner__email',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -210,7 +218,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
-    apiPropertyName: 'owner__extra_details__data__organization',
+    apiFilteringName: 'owner__extra_details__data__organization',
+    apiOrderingName: 'owner__extra_details__data__organization',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -225,7 +234,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
-    apiPropertyName: 'date_modified__date',
+    apiFilteringName: 'date_modified__date',
+    apiOrderingName: 'date_modified',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -236,13 +246,20 @@ export const PROJECT_FIELDS: ProjectFields = {
   dateDeployed: {
     name: 'dateDeployed',
     label: t('Date deployed'),
-    apiPropertyName: 'date_deployed__date',
-    availableConditions: [],
+    apiFilteringName: 'date_deployed__date',
+    apiOrderingName: 'date_deployed',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'startsWith',
+    ],
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
-    apiPropertyName: 'settings__sector',
+    apiFilteringName: 'settings__sector',
+    apiOrderingName: 'settings__sector',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -253,7 +270,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   countries: {
     name: 'countries',
     label: t('Countries'),
-    apiPropertyName: 'settings__country_codes[]',
+    apiFilteringName: 'settings__country_codes[]',
+    apiOrderingName: 'settings__country_codes[]',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -266,7 +284,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   languages: {
     name: 'languages',
     label: t('Languages'),
-    apiPropertyName: 'summary__languages[]',
+    apiFilteringName: 'summary__languages[]',
+    apiOrderingName: 'summary__languages[]',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -279,7 +298,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
-    apiPropertyName: 'deployment__submission_count',
+    apiFilteringName: 'deployment__submission_count',
+    apiOrderingName: 'deployment__submission_count',
     availableConditions: [],
   },
 };

@@ -772,8 +772,6 @@ class AssetUrlListSerializer(AssetSerializer):
 
 class AssetMetadataListSerializer(AssetListSerializer):
 
-    date_latest_deployment = serializers.SerializerMethodField()
-    date_first_deployment = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     owner__name = serializers.SerializerMethodField()
     owner__email = serializers.SerializerMethodField()
@@ -784,8 +782,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'url',
             'date_modified',
             'date_created',
-            'date_latest_deployment',
-            'date_first_deployment',
+            'date_deployed',
             'owner',
             'owner__username',
             'owner__email',
@@ -795,24 +792,10 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'name',
             'settings',
             'languages',
-            'version_id',
             'has_deployment',
-            'deployed_version_id',
             'deployment__active',
             'deployment__submission_count',
         )
-
-    def get_date_first_deployment(
-        self, obj: Asset
-    ) -> Optional[datetime]:
-        if first_version := self._get_asset_deployed_versions(obj, -1):
-            return first_version.date_modified
-
-    def get_date_latest_deployment(
-        self, obj: Asset
-    ) -> Optional[datetime]:
-        if latest_version := self._get_asset_deployed_versions(obj, 0):
-            return latest_version.date_modified
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
         if obj.has_deployment and view_has_perm(
@@ -843,20 +826,6 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid']
-
-    @cache_for_request
-    def _get_asset_deployed_versions(
-        self, obj: Asset, pos: int
-    ) -> Optional[list]:
-        try:
-            versions = obj.prefetched_latest_versions
-        except AttributeError:
-            versions = self.asset_versions.only(
-                'date_modified', 'deployed'
-            ).order_by('-date_modified')
-
-        if version_list := [v for v in versions if v.deployed is True]:
-            return version_list[pos]
 
     @cache_for_request
     def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:

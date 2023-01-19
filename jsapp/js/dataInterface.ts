@@ -561,8 +561,7 @@ export interface ProjectViewAsset {
   url: string;
   date_modified: string;
   date_created: string;
-  date_latest_deployment: string | null;
-  date_first_deployment: string | null;
+  date_deployed: string | null;
   owner: string;
   owner__username: string;
   owner__email: string;
