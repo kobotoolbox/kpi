@@ -1,5 +1,4 @@
 # coding: utf-8
-
 import copy
 import io
 import json
@@ -11,7 +10,6 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -22,6 +20,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -39,6 +38,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    InvalidXFormException,
     InvalidXPathException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -75,7 +75,6 @@ from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 
 
-
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
     Used to deploy a project into KoBoCAT. Stores the project identifiers in the
@@ -98,8 +97,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     )
 
     @property
+    def all_time_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
+        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform_id=xform_id
+        ).aggregate(Sum('counter'))
+
+        if count := result['counter__sum']:
+            return count
+
+        return 0
+
+    @property
     def attachment_storage_bytes(self):
-        return self.xform.attachment_storage_bytes
+        try:
+            return self.xform.attachment_storage_bytes
+        except InvalidXFormException:
+            return 0
 
     def bulk_assign_mapped_perms(self):
         """
@@ -230,13 +248,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
         today = timezone.now().date()
         try:
             monthly_counter = (
                 ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
                     'counter'
                 ).get(
-                    xform_id=self.xform_id,
+                    xform_id=xform_id,
                     year=today.year,
                     month=today.month,
                 )
@@ -1092,7 +1115,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        return self.xform.num_of_submissions
+        try:
+            return self.xform.num_of_submissions
+        except InvalidXFormException:
+            return 0
 
     @property
     def submission_list_url(self):
@@ -1210,9 +1236,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )  # Avoid extra query to validate username below
                 .first()
             )
-            if not (xform.user.username == self.asset.owner.username and
-                    xform.id_string == self.xform_id_string):
-                raise Exception(
+            if not (
+                xform
+                and xform.user.username == self.asset.owner.username
+                and xform.id_string == self.xform_id_string
+            ):
+                raise InvalidXFormException(
                     'Deployment links to an unexpected KoBoCAT XForm')
             setattr(self, '_xform', xform)
 

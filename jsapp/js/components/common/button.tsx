@@ -1,4 +1,3 @@
-import type {ReactElement} from 'react';
 import React from 'react';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import type {IconSize} from 'js/components/common/icon';
@@ -17,7 +16,7 @@ import './button.scss';
  * 3. full - no border, background, hover dims background
  */
 export type ButtonType = 'bare' | 'frame' | 'full';
-export type ButtonColor = 'blue' | 'red' | 'storm';
+export type ButtonColor = 'blue' | 'light-blue' | 'red' | 'storm';
 /**
  * The size is the height of the button, but it also influences the paddings.
  * Check out `button.scss` file for exact pixel values.
@@ -63,7 +62,7 @@ interface ButtonProps {
   isFullWidth?: boolean;
   /** Additional class names. */
   classNames?: string[];
-  onClick: Function;
+  onClick: (event: any) => void;
   'data-cy'?: string;
 }
 
@@ -75,96 +74,86 @@ interface AdditionalButtonAttributes {
 /**
  * A button component.
  */
-class Button extends React.Component<ButtonProps, {}> {
-  render() {
-    // Note: both icon(s) and label are optional, but in reality the button
-    // needs at least one of them to work.
-    if (
-      !this.props.startIcon &&
-      !this.props.endIcon &&
-      !this.props.label
-    ) {
-      throw new Error('Button is missing a required properties: icon or label!');
-    }
-
-    let classNames: string[] = [];
-
-    // Additional class names.
-    if (this.props.classNames) {
-      classNames = this.props.classNames;
-    }
-
-    // Base class with mandatory ones.
-    classNames.push('k-button');
-    classNames.push(`k-button--type-${this.props.type}`);
-    classNames.push(`k-button--color-${this.props.color}`);
-
-    if (this.props.isPending) {
-      classNames.push('k-button--pending');
-    }
-
-    if (this.props.startIcon) {
-      classNames.push('k-button--has-start-icon');
-    }
-
-    // Ensures only one icon is being displayed.
-    if (!this.props.startIcon && this.props.endIcon) {
-      classNames.push('k-button--has-end-icon');
-    }
-
-    if (this.props.label) {
-      classNames.push('k-button--has-label');
-    }
-
-    if (this.props.isFullWidth) {
-      classNames.push('k-button--full-width');
-    }
-
-    const size = this.props.size;
-    classNames.push(`k-button--size-${size}`);
-
-    // Size depends on label being there or not
-    let iconSize = ButtonToIconAloneMap.get(size);
-    if (this.props.label) {
-      iconSize = ButtonToIconMap.get(size);
-    }
-
-    // For the attributes that don't have a falsy value.
-    const additionalButtonAttributes: AdditionalButtonAttributes = {};
-    if (this.props.tooltip) {
-      additionalButtonAttributes['data-tip'] = this.props.tooltip;
-    }
-    if (this.props['data-cy']) {
-      additionalButtonAttributes['data-cy'] = this.props['data-cy'];
-    }
-
-    return (
-      <button
-        className={classNames.join(' ')}
-        type={this.props.isSubmit ? 'submit' : 'button'}
-        disabled={this.props.isDisabled}
-        onClick={this.props.onClick.bind(this)}
-        {...additionalButtonAttributes}
-      >
-        {this.props.startIcon &&
-          <Icon name={this.props.startIcon} size={iconSize}/>
-        }
-
-        {this.props.label &&
-          <span className='k-button__label'>{this.props.label}</span>
-        }
-
-        {/* Ensures only one icon is being displayed.*/}
-        {!this.props.startIcon && this.props.endIcon &&
-          <Icon name={this.props.endIcon} size={iconSize}/>
-        }
-
-        {this.props.isPending &&
-          <Icon name='spinner' size={iconSize } classNames={['k-spin']}/>
-        }
-      </button>
-    );
+const Button = (props: ButtonProps) => {
+  // Note: both icon(s) and label are optional, but in reality the button
+  // needs at least one of them to work.
+  if (!props.startIcon && !props.endIcon && !props.label) {
+    throw new Error('Button is missing a required properties: icon or label!');
   }
-}
+
+  let classNames: string[] = [];
+
+  // Additional class names.
+  if (props.classNames) {
+    classNames = props.classNames;
+  }
+
+  // Base class with mandatory ones.
+  classNames.push('k-button');
+  classNames.push(`k-button--type-${props.type}`);
+  classNames.push(`k-button--color-${props.color}`);
+
+  if (props.isPending) {
+    classNames.push('k-button--pending');
+  }
+
+  if (props.startIcon) {
+    classNames.push('k-button--has-start-icon');
+  }
+
+  // Ensures only one icon is being displayed.
+  if (!props.startIcon && props.endIcon) {
+    classNames.push('k-button--has-end-icon');
+  }
+
+  if (props.label) {
+    classNames.push('k-button--has-label');
+  }
+
+  if (props.isFullWidth) {
+    classNames.push('k-button--full-width');
+  }
+
+  const size = props.size;
+  classNames.push(`k-button--size-${size}`);
+
+  // Size depends on label being there or not
+  let iconSize = ButtonToIconAloneMap.get(size);
+  if (props.label) {
+    iconSize = ButtonToIconMap.get(size);
+  }
+
+  // For the attributes that don't have a falsy value.
+  const additionalButtonAttributes: AdditionalButtonAttributes = {};
+  if (props.tooltip) {
+    additionalButtonAttributes['data-tip'] = props.tooltip;
+  }
+  if (props['data-cy']) {
+    additionalButtonAttributes['data-cy'] = props['data-cy'];
+  }
+
+  return (
+    <button
+      className={classNames.join(' ')}
+      type={props.isSubmit ? 'submit' : 'button'}
+      disabled={props.isDisabled}
+      onClick={props.onClick}
+      {...additionalButtonAttributes}
+    >
+      {props.startIcon && <Icon name={props.startIcon} size={iconSize} />}
+
+      {props.label && <span className='k-button__label'>{props.label}</span>}
+
+      {/* Ensures only one icon is being displayed.*/}
+      {!props.startIcon && props.endIcon && (
+        <Icon name={props.endIcon} size={iconSize} />
+      )}
+
+      {props.isPending && (
+        <Icon name='spinner' size={iconSize} classNames={['k-spin']} />
+      )}
+    </button>
+  );
+};
 
 export default Button;

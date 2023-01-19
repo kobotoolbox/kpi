@@ -131,7 +131,7 @@ export default class KoboDropdown extends React.Component<
   onAnyKeyWhileOpen(evt: KeyboardEvent) {
     if (
       evt.key === 'Escape' ||
-      evt.keyCode === KEY_CODES.ESC ||
+      evt.keyCode === 1 ||
       evt.which === KEY_CODES.ESC
     ) {
       this.hideMenu();

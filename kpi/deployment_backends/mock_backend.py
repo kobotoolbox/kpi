@@ -56,6 +56,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     ]
 
     @property
+    def all_time_submission_count(self):
+        # FIXME, does not reproduce KoBoCAT behaviour.
+        #   Deleted submissions are not taken into account but they should be
+        monthly_counter = len(
+            self.get_submissions(self.asset.owner)
+        )
+        return monthly_counter
+
+    @property
     def attachment_storage_bytes(self):
         submissions = self.get_submissions(self.asset.owner)
         storage_bytes = 0
@@ -147,6 +156,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_count(self):
+        # FIXME, does not reproduce KoBoCAT behaviour.
+        #   Deleted submissions are not taken into account but they should be
         monthly_counter = len(
             self.get_submissions(self.asset.owner)
         )

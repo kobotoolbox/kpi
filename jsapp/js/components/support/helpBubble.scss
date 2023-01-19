@@ -1,8 +1,8 @@
-@use 'scss/_colors';
+@use '~kobo-common/src/styles/colors';
 @use 'scss/_variables';
+@use 'scss/z-indexes';
 @use 'scss/libs/_mdl';
 
-$z-help-bubble-popup: 801;
 $s-help-bubble-row-spacing: 20px;
 
 .help-bubble {
@@ -104,11 +104,6 @@ $s-help-bubble-row-spacing: 20px;
 // bubble styles
 // -----------------------------------------------------------------------------
 
-.help-bubble--intercom .help-bubble__popup {
-  bottom: 5px + 43px * 3;
-  max-height: calc(90vh - #{43px * 4});
-}
-
 .help-bubble--support .help-bubble__popup {
   bottom: 5px + 43px * 2;
   max-height: calc(90vh - #{43px * 3});
@@ -120,7 +115,7 @@ $s-help-bubble-row-spacing: 20px;
   display: flex;
   flex-direction: row;
   position: fixed;
-  z-index: $z-help-bubble-popup;
+  z-index: z-indexes.$z-help-bubble-popup;
   left: variables.$drawer-icons-width - 1px;
   background: colors.$kobo-white;
   width: 360px;

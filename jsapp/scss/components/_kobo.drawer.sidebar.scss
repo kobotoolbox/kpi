@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 .form-sidebar-wrapper {
   padding: 20px 14px;
 }
@@ -12,7 +14,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
 
   &.form-sidebar--loading {
     pointer-events: none;
@@ -33,11 +35,11 @@
   }
 
   .form-sidebar__navlink {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   .active {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
   }
 
   .form-sidebar__label {
@@ -49,11 +51,11 @@
     color: inherit;
 
     &:hover {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &.form-sidebar__label--selected {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     i {
@@ -72,7 +74,7 @@
       line-height: 20px;
       min-width: 20px;
       border-radius: 20px;
-      background-color: $kobo-gray-92;
+      background-color: colors.$kobo-gray-92;
       text-align: center;
       margin-right: 4px;
     }
@@ -86,6 +88,13 @@
       height: 0;
       overflow: hidden;
     }
+
+    // Makes the list scrollable if there are a lot of items.
+    &.form-sidebar__grouping--visible {
+      max-height: 30vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
   }
 
   .form-sidebar__item {
@@ -93,13 +102,13 @@
     flex-direction: row;
     align-items: flex-start;
     line-height: 15px;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     font-weight: normal;
     font-size: 12px;
     padding: 5px;
 
     &:hover {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &.form-sidebar__item--active {

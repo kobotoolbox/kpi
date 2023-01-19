@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 /*
 Overrides to Select2 CSS Defaults
 */
@@ -12,12 +14,12 @@ Overrides to Select2 CSS Defaults
 }
 
 .select2-container-multi .select2-choices .select2-search-choice {
-  background-color: $kobo-alt-blue;
+  background-color: colors.$kobo-alt-blue;
   background-image: none;
   border: none;
   border-radius: 2px;
   box-shadow: none;
-  color: $kobo-white;
+  color: colors.$kobo-white;
   cursor: default;
   line-height: 13px;
   font-size: 12px;
@@ -25,7 +27,7 @@ Overrides to Select2 CSS Defaults
 }
 
 .select2-container-multi .select2-choices .select2-search-choice-focus {
-  background: $kobo-alt-blue;
+  background: colors.$kobo-alt-blue;
 }
 
 .select2-search-choice-close {
@@ -33,7 +35,7 @@ Overrides to Select2 CSS Defaults
   display: block;
   font-size: 12px;
   height: 12px;
-  color: $kobo-white;
+  color: colors.$kobo-white;
   width: 12px;
 }
 

@@ -1,4 +1,6 @@
 @use "scss/_variables";
+@use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
 
 // header and navigation styling
 
@@ -70,7 +72,7 @@
   }
 
   .header__link {
-    color: $kobo-white;
+    color: colors.$kobo-white;
     cursor: pointer;
 
     &:hover {
@@ -88,16 +90,16 @@
 
   .search {
     ::placeholder {
-      color: $kobo-white;
+      color: colors.$kobo-white;
     }
 
     .search-input {
-      color: $kobo-white;
+      color: colors.$kobo-white;
       border: none;
       border-radius: 0px;
       padding: 10px 12px;
       padding-left: 42px;
-      background-color: rgba($kobo-white, 0.1);
+      background-color: rgba(colors.$kobo-white, 0.1);
       font-size: 16px;
       position: relative;
       width: 99%;
@@ -107,7 +109,7 @@
     .search__cancel {
       position: absolute;
       top: 9px;
-      color: $kobo-white;
+      color: colors.$kobo-white;
       font-size: 24px;
     }
 
@@ -125,7 +127,7 @@
 .popover-menu--account-menu {
   .popover-menu__content {
     min-width: 240px;
-    z-index: 1101;
+    z-index: z-indexes.$z-account-menu;
   }
 }
 
@@ -141,7 +143,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -170,7 +172,7 @@
     padding-bottom: 15px;
 
     a {
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -186,7 +188,7 @@
       }
 
       &:hover {
-        color: $kobo-blue;
+        color: colors.$kobo-blue;
       }
     }
 
@@ -203,23 +205,23 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
     padding-bottom: 5px;
 
     ul {
       margin-top: 5px;
-      background-color: $kobo-white;
-      color: $kobo-gray-40;
+      background-color: colors.$kobo-white;
+      color: colors.$kobo-gray-40;
       min-width: 140px;
       padding: 0;
-      border: 1px solid $kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-92;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid $kobo-gray-92;
+          border-bottom: 1px solid colors.$kobo-gray-92;
         }
 
         a {
@@ -244,7 +246,7 @@
       display: block;
       margin-right: 8px;
       padding: 0px;
-      color: $kobo-white;
+      color: colors.$kobo-white;
 
       &:active {
         transform: translateX(1px);
@@ -287,7 +289,7 @@
 .main-header {
   .main-header__icon {
     font-size: 38px;
-    color: $kobo-gray-65;
+    color: colors.$kobo-gray-65;
     vertical-align: middle;
     width: 38px;
   }
@@ -297,7 +299,7 @@
     margin-right: 20px;
     flex: 1;
     align-items: center;
-    color: $kobo-white;
+    color: colors.$kobo-white;
     font-size: 18px;
 
     &.main-header__title--long input {
@@ -310,7 +312,7 @@
       border-right: none;
       border-bottom: 1px solid transparent;
       border-top: 1px solid transparent;
-      color: $kobo-white;
+      color: colors.$kobo-white;
       font-size: 18px;
       margin: 0;
       overflow: hidden;
@@ -321,16 +323,16 @@
 
       // keep these pseudo-states separate
       &::placeholder {
-        color: $kobo-gray-40;
+        color: colors.$kobo-gray-40;
       }
 
       &:hover {
-        border-bottom: 1px solid $kobo-blue;
+        border-bottom: 1px solid colors.$kobo-blue;
       }
 
       &:focus {
-        background: rgba($kobo-white, 0.05);
-        border-bottom: 1px solid $kobo-blue;
+        background: rgba(colors.$kobo-white, 0.05);
+        border-bottom: 1px solid colors.$kobo-blue;
       }
     }
   }
@@ -338,7 +340,7 @@
   .main-header__counter {
     font-size: variables.$base-font-size;
     margin-right: 20px;
-    color: $kobo-gray-65;
+    color: colors.$kobo-gray-65;
   }
 }
 
@@ -377,7 +379,7 @@
   vertical-align: middle;
   line-height: 20px;
   font-size: 16px;
-  color: $kobo-white;
+  color: colors.$kobo-white;
 }
 
 .account-box__menu-item--avatar {
@@ -403,9 +405,9 @@
     z-index: 100;
 
     .git-rev__item {
-      color: $kobo-white;
+      color: colors.$kobo-white;
       opacity: 0.85;
-      background: darken($kobo-teal, 10%);
+      background: darken(colors.$kobo-teal, 10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;
@@ -420,7 +422,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-92;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

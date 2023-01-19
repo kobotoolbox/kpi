@@ -1,6 +1,7 @@
 # coding: utf-8
 # 😬
 import copy
+import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
@@ -9,7 +10,6 @@ from jsonschema import validate as jsonschema_validate
 
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
@@ -71,6 +71,7 @@ from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     ObjectPermissionMixin,
     XlsExportableMixin,
+    StandardizeSearchableFieldMixin,
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
@@ -146,6 +147,7 @@ class Asset(ObjectPermissionMixin,
             DeployableMixin,
             XlsExportableMixin,
             FormpackXLSFormUtilsMixin,
+            StandardizeSearchableFieldMixin,
             models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
@@ -489,6 +491,7 @@ class Asset(ObjectPermissionMixin,
         self._insert_qpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
+        self._remove_version(self.content)
 
         settings = self.content['settings']
         _title = settings.pop('form_title', None)
@@ -508,7 +511,8 @@ class Asset(ObjectPermissionMixin,
             strip_kobo_locking_profile(self.content)
 
         if _title is not None:
-            self.name = _title
+            # Remove newlines and tabs (they are stripped in front end anyway)
+            self.name = re.sub(r'[\n\t]+', '', _title)
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -841,9 +845,26 @@ class Asset(ObjectPermissionMixin,
         ):
             self.validate_advanced_features()
 
+        # standardize settings (only when required)
+        if (
+            (not update_fields or update_fields and 'settings' in update_fields)
+            and self.asset_type in [ASSET_TYPE_COLLECTION, ASSET_TYPE_SURVEY]
+        ):
+            self.standardize_json_field('settings', 'country', list)
+            self.standardize_json_field(
+                'settings',
+                'country_codes',
+                list,
+                [c['value'] for c in self.settings['country']],
+                force_default=True
+            )
+            self.standardize_json_field('settings', 'sector', dict)
+            self.standardize_json_field('settings', 'description', str)
+
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
             self._populate_summary()
+            self.standardize_json_field('summary', 'languages', list)
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:

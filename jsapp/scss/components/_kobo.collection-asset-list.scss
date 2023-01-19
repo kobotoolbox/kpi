@@ -1,7 +1,9 @@
+@use '~kobo-common/src/styles/colors';
+
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
-  border-bottom: 1px solid $kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-92;
   overflow: hidden;
 
   > .asset-list-sorts__item {
@@ -24,7 +26,7 @@
 }
 
 .search__summary {
-  background-color: $kobo-gray-92;
+  background-color: colors.$kobo-gray-92;
   height: 50px;
   width: 100%;
   flex-grow: 0;
@@ -53,7 +55,7 @@
 
   span.parent {
     font-weight: normal;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   i {
@@ -65,31 +67,6 @@
   margin-top: 20px;
   margin-bottom: 10px;
   font-weight: 600;
-}
-
-// regular, non-grouped list for library
-.library {
-  height: 100%;
-  overflow: hidden;
-
-  > .dropzone {
-    height: calc(100% - 50px);
-    min-height: calc(100% - 50px);
-  }
-
-  .library__type-filter {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-
-    .kobo-select {
-      display: inline-block;
-      vertical-align: middle;
-      min-width: 120px;
-      margin-left: 5px;
-    }
-  }
 }
 
 .list--regular {
@@ -107,7 +84,7 @@
   }
 
   .asset-list, .asset-list-sorts {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   .asset-list-sorts {
@@ -160,7 +137,7 @@
       display: flex;
       position: fixed;
       top: $layout-desktop-header-height;
-      background: $kobo-white;
+      background: colors.$kobo-white;
       z-index: 99;
       overflow: hidden;
 
