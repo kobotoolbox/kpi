@@ -33,13 +33,13 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_nlp_usage_current_month(self, asset):
         if not asset.has_deployment:
-            return 0
+            return {}
 
         return asset.deployment.current_month_nlp_tracking
 
     def get_nlp_usage_all_time(self, asset):
         if not asset.has_deployment:
-            return 0
+            return {}
 
         return asset.deployment.nlp_tracking
 

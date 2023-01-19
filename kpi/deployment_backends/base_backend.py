@@ -76,13 +76,13 @@ class BaseDeploymentBackend(abc.ABC):
     def current_month_submission_count(self):
         pass
 
+    @abc.abstractmethod
+    def connect(self, active=False):
+        pass
+
     @property
     @abc.abstractmethod
     def current_month_nlp_tracking(self):
-        pass
-
-    @abc.abstractmethod
-    def connect(self, active=False):
         pass
 
     def delete(self):

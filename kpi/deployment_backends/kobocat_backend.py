@@ -269,26 +269,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             return monthly_counter.counter
 
-    @property
-    def current_month_nlp_tracking(self):
-        """
-        Get the current month's NLP tracking data
-        """
-        today = datetime.today()
-        try:
-            monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').get(
-                    asset_id=self.asset.id,
-                    year=today.year,
-                    month=today.month,
-                ).counters
-            )
-        # return data as JSON because the fields can change depending on the engines
-        except MonthlyNLPUsageCounter.DoesNotExist:
-            return {}
-        else:
-            return monthly_nlp_tracking
-
     def connect(self, identifier=None, active=False):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
@@ -361,6 +341,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    @property
+    def current_month_nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        today = datetime.today()
+        try:
+            monthly_nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('counters').get(
+                    asset_id=self.asset.id,
+                    year=today.year,
+                    month=today.month,
+                ).counters
+            )
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `monthly_nlp_tracking` type
+            return {}
+        else:
+            return monthly_nlp_tracking
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -887,8 +887,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     if key not in total_counters:
                         total_counters[key] = 0
                     total_counters[key] += counters[key]
-        # return data as JSON because the fields can change depending on the engines
         except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict match `total_counters` type
             return {}
         else:
             return total_counters

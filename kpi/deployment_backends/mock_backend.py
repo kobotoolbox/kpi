@@ -177,8 +177,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     month=today.month,
                 ).counters
             )
-        # return data as JSON because the fields can change depending on the engines
         except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `monthly_nlp_tracking`
             return {}
         else:
             return monthly_nlp_tracking
@@ -499,8 +499,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     if key not in total_counters:
                         total_counters[key] = 0
                     total_counters[key] += counters[key]
-        # return data as JSON because the fields can change depending on the engines
         except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `total_counters`
             return {}
         else:
             return total_counters
