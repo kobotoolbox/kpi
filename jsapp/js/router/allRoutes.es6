@@ -225,7 +225,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                   element={
                     <PermProtectedRoute
                       requiredPermission={
-                        PERMISSIONS_CODENAMES.view_submissions
+                        PERMISSIONS_CODENAMES.view_asset
                       }
                       protectedComponent={FormSummary}
                     />
@@ -236,7 +236,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                   path={ROUTES.FORM_LANDING}
                   element={
                     <PermProtectedRoute
-                      requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                      requiredPermission={
+                        PERMISSIONS_CODENAMES.view_asset
+                      }
                       protectedComponent={FormLanding}
                     />
                   }
@@ -341,7 +343,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermission={PERMISSIONS_CODENAMES.change_metadata}
                       />
                     }
                   />

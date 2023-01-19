@@ -3,7 +3,6 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Prefetch, Q
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
@@ -17,7 +16,7 @@ from kpi.filters import (
     SearchFilter,
 )
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
-from kpi.models import Asset, ProjectViewExportTask, AssetVersion
+from kpi.models import Asset, ProjectViewExportTask
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.object_permission import get_database_user
@@ -48,6 +47,7 @@ class ProjectViewViewSet(
         'date_modified__date',
         'date_deployed__date',
         'name',
+        'settings__sector',
         'settings__sector__value',
         'settings__description',
         '_deployment_data__active',
@@ -85,14 +85,6 @@ class ProjectViewViewSet(
             self._get_regional_queryset(assets, uid, obj_type='asset')
         ).select_related(
             'owner', 'owner__extra_details'
-        ).prefetch_related(
-            Prefetch(
-                'asset_versions',
-                queryset=AssetVersion.objects.order_by(
-                    '-date_modified'
-                ).only('uid', 'asset', 'date_modified', 'deployed'),
-                to_attr='prefetched_latest_versions',
-            ),
         )
         return self._get_regional_response(
             queryset, serializer_class=AssetMetadataListSerializer

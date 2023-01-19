@@ -504,29 +504,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert results_desc[0]['name'] == 'fixture asset with translations'
         assert results_asc[0]['name'] == 'fixture asset'
 
-    def test_project_views_special_ordering(self):
-        res = self.client.get(self.region_views_url)
-        data = res.json()
-        results = data['results']
-
-        assets_url = results[0]['assets']
-        regional_res_asc = self.client.get(
-            f'{assets_url}?ordering=date_deployed', HTTP_ACCEPT='application/json'
-        )
-        regional_res_desc = self.client.get(
-            f'{assets_url}?ordering=-date_deployed', HTTP_ACCEPT='application/json'
-        )
-        results_asc = regional_res_asc.json()['results']
-        results_desc = regional_res_desc.json()['results']
-        assets = Asset.objects.all().order_by('date_modified')[:2]
-
-        response_dt_desc = parse(results_desc[0]['date_latest_deployment'])
-        assert assets[1].latest_deployed_version.date_modified == response_dt_desc
-
-        response_dt_asc = parse(results_asc[0]['date_latest_deployment'])
-        assert assets[0].latest_deployed_version.date_modified == response_dt_asc
-        assert response_dt_desc > response_dt_asc
-
 
 class AssetVersionApiTests(BaseTestCase):
     fixtures = ['test_data']

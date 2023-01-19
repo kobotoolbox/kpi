@@ -1,19 +1,35 @@
 export type OrderDirection = 'ascending' | 'descending';
 
+export const HOME_VIEW = {
+  uid: 'kobo_my_projects',
+  name: t('My Projects'),
+};
+
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName;
   condition?: FilterConditionName;
   value?: string;
 }
 
-export type FilterConditionName = 'contains' | 'doesNotContain' | 'endsWith' |
-'is' | 'isEmpty' | 'isNot' | 'isNotEmpty' | 'startsWith';
+// NOTE: if you plan to add a condition, make sure to re-check
+// `availableFilters` for each field definition.
+export type FilterConditionName =
+  | 'contains'
+  | 'doesNotContain'
+  | 'endsWith'
+  | 'is'
+  | 'isEmpty'
+  // *Object conditions are for sector, language, and countries fields
+  | 'isEmptyObject'
+  | 'isNot'
+  | 'isNotEmpty'
+  | 'isNotEmptyObject'
+  | 'startsWith';
 interface FilterConditionDefinition {
   name: FilterConditionName;
   label: string;
   requiresValue: boolean;
-  // TODO: this is supposed to be used with the new endpoints to filter out fields
-  filterRegex: string;
+  filterQuery: string;
 }
 type FilterConditions = {[P in FilterConditionName]: FilterConditionDefinition};
 export const FILTER_CONDITIONS: FilterConditions = {
@@ -21,65 +37,90 @@ export const FILTER_CONDITIONS: FilterConditions = {
     name: 'is',
     label: t('Is'),
     requiresValue: true,
-    filterRegex: '^phrase$',
+    filterQuery: '<field>__iexact:<term>',
   },
   isNot: {
     name: 'isNot',
     label: t('Is not'),
     requiresValue: true,
-    filterRegex: '^(?!phrase$).*$',
+    filterQuery: 'NOT <field>__iexact:<term>',
   },
   contains: {
     name: 'contains',
     label: t('Contains'),
     requiresValue: true,
-    filterRegex: '^.*phrase.*$',
+    filterQuery: '<field>__icontains:<term>',
   },
   doesNotContain: {
     name: 'doesNotContain',
     label: t('Does not contain'),
     requiresValue: true,
-    filterRegex: '^(?!.*phrase).*$',
+    filterQuery: 'NOT <field>__icontains:<term>',
   },
   startsWith: {
     name: 'startsWith',
     label: t('Starts with'),
     requiresValue: true,
-    filterRegex: '^phrase.*',
+    filterQuery: '<field>__istartswith:<term>',
   },
   endsWith: {
     name: 'endsWith',
     label: t('Ends with'),
     requiresValue: true,
-    filterRegex: '^.*phrase$',
+    filterQuery: '<field>__iendswith:<term>',
   },
   isEmpty: {
     name: 'isEmpty',
     label: t('Is empty'),
     requiresValue: false,
-    filterRegex: '^$',
+    filterQuery: '<field>:""',
+  },
+  isEmptyObject: {
+    name: 'isEmptyObject',
+    label: t('Is empty'),
+    requiresValue: false,
+    filterQuery: '<field>__iexact:{}',
   },
   isNotEmpty: {
     name: 'isNotEmpty',
     label: t('Is not empty'),
     requiresValue: false,
-    filterRegex: '^.+$',
+    filterQuery: 'NOT <field>:""',
+  },
+  isNotEmptyObject: {
+    name: 'isNotEmptyObject',
+    label: t('Is not empty'),
+    requiresValue: false,
+    filterQuery: 'NOT <field>__iexact:{}',
   },
 };
 
-export type ProjectFieldName = 'countries' | 'dateDeployed' | 'dateModified' |
-'description' | 'languages' | 'name' | 'ownerEmail' | 'ownerFullName' |
-'ownerOrganisation' | 'ownerUsername' | 'sector' | 'status' | 'submissions';
+export type ProjectFieldName =
+  | 'countries'
+  | 'dateDeployed'
+  | 'dateModified'
+  | 'description'
+  | 'languages'
+  | 'name'
+  | 'ownerEmail'
+  | 'ownerFullName'
+  | 'ownerOrganization'
+  | 'ownerUsername'
+  | 'sector'
+  | 'status'
+  | 'submissions';
 
 export interface ProjectFieldDefinition {
   name: ProjectFieldName;
   label: string;
-  /** Backend property name used for ordering and filtering. */
-  propertyName?: string;
-  /** The default order direction for this field. */
-  orderDefaultValue?: OrderDirection;
-  /** A path to asset property that holds the data. */
-  filterPropertyPath?: string[];
+  /** Backend property name used for filtering. */
+  apiFilteringName: string;
+  /** Backend property name used for ordering. */
+  apiOrderingName: string;
+  /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
+  availableConditions: FilterConditionName[];
+  /** Some of the fields (e.g. `submission`) doesn't allow being ordered by. */
+  orderable: boolean;
 }
 
 type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
@@ -88,104 +129,200 @@ type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
  * influences the order these will be displayed in UI.
  */
 export const PROJECT_FIELDS: ProjectFields = {
-  /** NOTE: Regardless of user settings, name is always visible. */
+  /**
+   * NOTE: Regardless of user settings, we should keep the name field column
+   * always visible. We keep this comment here, as multiple places are ensuring
+   * this condition is met.
+   */
   name: {
     name: 'name',
     label: t('Project name'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'name',
+    apiOrderingName: 'name',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isNot',
+      'startsWith',
+    ],
+    orderable: true,
   },
   description: {
     name: 'description',
     label: t('Description'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'settings__description',
+    apiOrderingName: 'settings__description',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
+    orderable: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: '_deployment_data__active',
+    apiOrderingName: '_deployment_data__active',
+    availableConditions: [],
+    orderable: true,
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner username'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'owner__username',
+    apiOrderingName: 'owner__username',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isNot',
+      'startsWith',
+    ],
+    orderable: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
     label: t('Owner full name'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'owner__extra_details__data__name',
+    apiOrderingName: 'owner__extra_details__data__name',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
+    orderable: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
     label: t('Owner email'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'owner__email',
+    apiOrderingName: 'owner__email',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
+    orderable: true,
   },
-  ownerOrganisation: {
-    name: 'ownerOrganisation',
-    label: t('Owner organisation'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
-  },
-  dateDeployed: {
-    name: 'dateDeployed',
-    label: t('Date deployed'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+  ownerOrganization: {
+    name: 'ownerOrganization',
+    label: t('Owner organization'),
+    apiFilteringName: 'owner__extra_details__data__organization',
+    apiOrderingName: 'owner__extra_details__data__organization',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'is',
+      'isEmpty',
+      'isNot',
+      'isNotEmpty',
+      'startsWith',
+    ],
+    orderable: true,
   },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
-    propertyName: 'date_modified',
-    orderDefaultValue: 'descending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'date_modified__date',
+    apiOrderingName: 'date_modified',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'startsWith',
+    ],
+    orderable: true,
+  },
+  dateDeployed: {
+    name: 'dateDeployed',
+    label: t('Date deployed'),
+    apiFilteringName: 'date_deployed__date',
+    apiOrderingName: 'date_deployed',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'endsWith',
+      'startsWith',
+    ],
+    orderable: true,
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'settings__sector',
+    apiOrderingName: 'settings__sector',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'isEmptyObject',
+      'isNotEmptyObject',
+    ],
+    orderable: true,
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'settings__country_codes[]',
+    apiOrderingName: 'settings__country_codes[]',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'is',
+      'isEmptyObject',
+      'isNot',
+      'isNotEmptyObject',
+    ],
+    orderable: false,
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'summary__languages[]',
+    apiOrderingName: 'summary__languages[]',
+    availableConditions: [
+      'contains',
+      'doesNotContain',
+      'is',
+      'isEmptyObject',
+      'isNot',
+      'isNotEmptyObject',
+    ],
+    orderable: false,
   },
   submissions: {
     name: 'submissions',
     label: t('Submissions'),
-    propertyName: 'xxxx',
-    orderDefaultValue: 'ascending',
-    filterPropertyPath: ['xxxxxx','yyyyy'],
+    apiFilteringName: 'deployment__submission_count',
+    apiOrderingName: 'deployment__submission_count',
+    availableConditions: [],
+    orderable: false,
   },
 };
 
 export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
   'countries',
-  'dateDeployed',
   'dateModified',
+  'dateDeployed',
   'name',
   'ownerUsername',
   'status',

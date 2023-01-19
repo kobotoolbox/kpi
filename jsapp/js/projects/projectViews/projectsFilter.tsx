@@ -60,7 +60,10 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
     toggleModal();
   };
 
-  const onFilterEditorChange = (filterIndex: number, filter: ProjectsFilterDefinition) => {
+  const onFilterEditorChange = (
+    filterIndex: number,
+    filter: ProjectsFilterDefinition
+  ) => {
     const newFilters = clonedeep(filters);
     newFilters[filterIndex] = filter;
     setFilters(newFilters);
@@ -75,7 +78,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
   return (
     <div className={styles.root}>
       {/* Trigger button */}
-      {props.filters.length === 0 &&
+      {props.filters.length === 0 && (
         <Button
           type='bare'
           size='s'
@@ -84,19 +87,23 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           startIcon='filter'
           label={t('filter')}
         />
-      }
+      )}
       {/* With any filters active, we want to highlight the button - the same
       color will be used for all columns that filters apply to. */}
-      {props.filters.length >= 1 &&
+      {props.filters.length >= 1 && (
         <Button
           type='full'
           size='s'
           color='light-blue'
           onClick={toggleModal}
           startIcon='filter'
-          label={<span>{t('filter')} <strong>{props.filters.length}</strong></span>}
+          label={
+            <span>
+              {t('filter')} <strong>{props.filters.length}</strong>
+            </span>
+          }
         />
-      }
+      )}
 
       <KoboModal
         isOpen={isModalOpen}
@@ -111,24 +118,30 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           {'Table filter'}
         </KoboModalHeader>
 
-        <section className={classNames({
-          [styles.content]: true,
-          [styles['has-many-filters']]: filters.length >= MANY_FILTERS_AMOUNT,
-        })}>
+        <section
+          className={classNames({
+            [styles.content]: true,
+            [styles.hasManyFilters]: filters.length >= MANY_FILTERS_AMOUNT,
+          })}
+        >
           {filters.map((filter, filterIndex) => (
             <ProjectsFilterEditor
               key={filterIndex}
               filter={filter}
               // We want the labels only for first editor.
               hideLabels={filterIndex !== 0}
-              onFilterChange={(newFilter) => {onFilterEditorChange(filterIndex, newFilter);}}
-              onDelete={() => {onFilterEditorDelete(filterIndex);}}
+              onFilterChange={(newFilter) => {
+                onFilterEditorChange(filterIndex, newFilter);
+              }}
+              onDelete={() => {
+                onFilterEditorDelete(filterIndex);
+              }}
             />
           ))}
 
-          {filters.length === 0 &&
+          {filters.length === 0 && (
             <p>{t('There are no filters, you can add one below')}</p>
-          }
+          )}
         </section>
 
         <footer className={styles.footer}>

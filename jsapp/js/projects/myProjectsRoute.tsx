@@ -1,10 +1,11 @@
 import React from 'react';
+import {HOME_VIEW} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 
 export default function MyProjectsRoute() {
   return (
     <div>
-      <ViewSwitcher viewUid='kobo_my_projects' viewCount={999}/>
+      <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
       TBD My Projects
     </div>
   );

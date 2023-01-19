@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
@@ -8,10 +7,7 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import type {ProjectFieldName} from './constants';
-import {
-  PROJECT_FIELDS,
-  DEFAULT_PROJECT_FIELDS,
-} from './constants';
+import {PROJECT_FIELDS, DEFAULT_PROJECT_FIELDS} from './constants';
 import styles from './projectsFieldsSelector.module.scss';
 
 interface ProjectsFieldsSelectorProps {
@@ -25,17 +21,21 @@ interface ProjectsFieldsSelectorProps {
   onFieldsChange: (fields: ProjectFieldName[] | undefined) => void;
 }
 
-export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProps) {
+export default function ProjectsFieldsSelector(
+  props: ProjectsFieldsSelectorProps
+) {
   const getInitialSelectedFields = () => {
     if (!props.selectedFields || props.selectedFields.length === 0) {
       return DEFAULT_PROJECT_FIELDS;
     } else {
-      return clonedeep(props.selectedFields);
+      return Array.from(props.selectedFields);
     }
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedFields, setSelectedFields] = useState(getInitialSelectedFields());
+  const [selectedFields, setSelectedFields] = useState(
+    getInitialSelectedFields()
+  );
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -62,7 +62,9 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
   };
 
   const onCheckboxesChange = (items: MultiCheckboxItem[]) => {
-    const newFields = items.filter((item) => item.checked).map((item) => item.name);
+    const newFields = items
+      .filter((item) => item.checked)
+      .map((item) => item.name);
     setSelectedFields(newFields);
   };
 
