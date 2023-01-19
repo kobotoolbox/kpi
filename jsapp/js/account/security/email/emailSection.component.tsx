@@ -53,6 +53,14 @@ export default function EmailSection() {
     });
   }
 
+  function resendNewUserEmail(unverfiedEmail: string) {
+    deleteUnverifiedUserEmails().then(() => {
+      setUserEmail(unverfiedEmail).then(() => {
+        // TODO: Add a toast here
+      });
+    });
+  }
+
   function onTextFieldChange(value: string) {
     setEmail({
       ...email,
@@ -98,18 +106,16 @@ export default function EmailSection() {
               </div>
 
               <div className={style.editEmail}>
-                {/*
                 <Button
                   label='Resend'
                   size='m'
                   color='blue'
                   type='frame'
-                  onClick={setNewUserEmail.bind(
-                    setNewUserEmail,
-                    email.newEmail
+                  onClick={resendNewUserEmail.bind(
+                    resendNewUserEmail,
+                    unverifiedEmail.email
                   )}
                 />
-                */}
                 <Button
                   label='Remove'
                   size='m'
