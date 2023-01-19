@@ -130,7 +130,10 @@ export default function EmailSection() {
 
       <form
         className={style.optionsSection}
-        onSubmit={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setNewUserEmail(email.newEmail);
+        }}
       >
         {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
         <TextBox
