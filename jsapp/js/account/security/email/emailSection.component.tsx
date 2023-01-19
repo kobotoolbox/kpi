@@ -80,7 +80,10 @@ export default function EmailSection() {
           )}
       </div>
 
-      <div className={style.optionsSection}>
+      <form
+        className={style.optionsSection}
+        onSubmit={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
+      >
         {/*TODO: Move TextBox into a modal--it messes up the flow of the row right now*/}
         <TextBox
           customModifiers='on-white'
@@ -96,7 +99,7 @@ export default function EmailSection() {
           type='frame'
           onClick={setNewUserEmail.bind(setNewUserEmail, email.newEmail)}
         />
-      </div>
+      </form>
     </div>
   );
 }
