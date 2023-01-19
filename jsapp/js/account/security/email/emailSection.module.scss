@@ -70,3 +70,10 @@
     color: colors.$kobo-amber;
   }
 }
+
+.editEmail {
+  display: flex;
+  column-gap: sizes.$x12;
+  padding-top: sizes.$x12;
+  padding-bottom: sizes.$x12;
+}

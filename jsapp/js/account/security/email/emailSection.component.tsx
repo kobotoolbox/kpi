@@ -6,10 +6,13 @@ import style from './emailSection.module.scss';
 import Button from 'jsapp/js/components/common/button';
 import TextBox from 'jsapp/js/components/common/textBox';
 import Icon from 'jsapp/js/components/common/icon';
+import {formatTime} from 'jsapp/js/utils';
 
 interface EmailState {
   emails: EmailResponse[];
   newEmail: string;
+  refreshedEmail: boolean;
+  refreshedEmailDate: string;
 }
 
 export default function EmailSection() {
@@ -18,6 +21,8 @@ export default function EmailSection() {
   const [email, setEmail] = useState<EmailState>({
     emails: [],
     newEmail: '',
+    refreshedEmail: false,
+    refreshedEmailDate: '',
   });
 
   useEffect(() => {
@@ -48,15 +53,25 @@ export default function EmailSection() {
           ...email,
           emails: data.results,
           newEmail: '',
+          refreshedEmail: false,
         });
       });
     });
   }
 
   function resendNewUserEmail(unverfiedEmail: string) {
+    setEmail({
+      ...email,
+      refreshedEmail: false,
+    });
+
     deleteUnverifiedUserEmails().then(() => {
       setUserEmail(unverfiedEmail).then(() => {
-        // TODO: Add a toast here
+        setEmail({
+          ...email,
+          refreshedEmail: true,
+          refreshedEmailDate: formatTime(new Date().toUTCString()),
+        });
       });
     });
   }
@@ -124,6 +139,12 @@ export default function EmailSection() {
                   onClick={deleteNewUserEmail}
                 />
               </div>
+
+              {email.refreshedEmail &&
+                <label>
+                  {t('Email was sent again: ##TIMESTAMP##').replace('##TIMESTAMP##', email.refreshedEmailDate)}
+                </label>
+              }
             </>
           )}
       </div>
