@@ -2,8 +2,6 @@
 from __future__ import annotations
 import json
 import re
-from typing import Optional
-from datetime import datetime
 
 from django.conf import settings
 from django.utils.translation import gettext as t
@@ -23,9 +21,8 @@ from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
-    PERM_CHANGE_METADATA,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_DISCOVER_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -185,7 +182,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         user = request.user
         if (
             not asset.has_perm(user, PERM_CHANGE_ASSET)
-            and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA)
+            and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA_ASSET)
         ):
             _validated_data = {}
             if settings := validated_data.get('settings'):

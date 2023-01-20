@@ -85,7 +85,7 @@ PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 
 # CUSTOM PROJECT PERMISSIONS
-PERM_CHANGE_METADATA = 'change_metadata'
+PERM_CHANGE_METADATA_ASSET = 'change_metadata_asset'
 
 # CALCULATED_PERMISSIONS
 PERM_DELETE_ASSET = 'delete_asset'

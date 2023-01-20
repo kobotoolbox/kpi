@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('uid', kpi.fields.kpi_uid.KpiUidField(uid_prefix='pv')),
                 ('name', models.CharField(max_length=200)),
                 ('countries', models.CharField(max_length=1000)),
-                ('permissions', kobo.apps.project_views.fields.ChoiceArrayField(base_field=models.CharField(choices=[('change_metadata', 'change_metadata'), ('view_asset', 'view_asset'), ('view_submissions', 'view_submissions')], max_length=20), default=list, size=None)),
+                ('permissions', kobo.apps.project_views.fields.ChoiceArrayField(base_field=models.CharField(choices=[('change_metadata_asset', 'change_metadata_asset'), ('view_asset', 'view_asset'), ('view_submissions', 'view_submissions')], max_length=25), default=list, size=None)),
                 ('users', models.ManyToManyField(related_name='project_views', through='project_views.AssignmentProjectViewM2M', to=settings.AUTH_USER_MODEL)),
             ],
             options={

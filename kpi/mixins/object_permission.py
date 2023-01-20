@@ -16,7 +16,10 @@ from rest_framework import serializers
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_FROM_KC_ONLY,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -29,6 +32,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     perm_parse,
 )
+from kpi.utils.project_views import user_has_project_view_asset_perm
 from kpi.utils.permissions import is_user_anonymous
 
 
@@ -603,8 +607,17 @@ class ObjectPermissionMixin:
             codename=codename
         )) == 1
         if not result and not is_anonymous:
-            # The user-specific test failed, but does the public have access?
-            result = self.has_perm(AnonymousUser(), perm)
+            if perm in [
+                PERM_CHANGE_METADATA_ASSET,
+                PERM_VIEW_ASSET,
+                PERM_VIEW_SUBMISSIONS,
+            ]:
+                result = user_has_project_view_asset_perm(self, user_obj, perm)
+
+            if not result:
+                # The user-specific test failed, but does the public have access?
+                result = self.has_perm(AnonymousUser(), perm)
+
         if result and is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
@@ -762,7 +775,7 @@ class ObjectPermissionMixin:
         are needed several times in a row (within the same request).
 
         It will hit the DB once for this user. If object permissions are needed
-        for an another object (i.e. `Asset`), in subsequent calls,
+        for another object (i.e. `Asset`), in subsequent calls,
         they can be easily retrieved by the returned dict keys.
 
         Args:

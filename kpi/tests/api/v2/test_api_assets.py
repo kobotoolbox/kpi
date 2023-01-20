@@ -5,7 +5,6 @@ import json
 import os
 from io import StringIO
 
-from dateutil.parser import parse
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -13,6 +12,7 @@ from rest_framework import status
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -287,13 +287,12 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             asset.save()
             asset.deploy(backend='mock', active=True)
 
-
         regional_assignments = [
             {
                 'name': 'Overview',
                 'countries': '*',
                 'permissions': [
-                    'view_asset',
+                    PERM_VIEW_ASSET,
                 ],
                 'users': ['someuser'],
             },
@@ -301,9 +300,9 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 'name': 'Test view 1',
                 'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
                 'permissions': [
-                    'view_asset',
-                    'view_submissions',
-                    'change_metadata',
+                    PERM_VIEW_ASSET,
+                    PERM_VIEW_SUBMISSIONS,
+                    PERM_CHANGE_METADATA_ASSET,
                 ],
                 'users': ['someuser', 'anotheruser'],
             },
@@ -311,7 +310,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 'name': 'Test view 2',
                 'countries': 'USA, CAN',
                 'permissions': [
-                    'view_asset',
+                    PERM_VIEW_ASSET,
                 ],
                 'users': ['anotheruser'],
             },
@@ -397,6 +396,12 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         asset = regional_data['results'][0]
         assert asset['deployment__submission_count'] == 1
 
+        # Ensure user can see submissions count from the asset detail endpoint too
+        asset_detail_response = self.client.get(
+            asset['url'], HTTP_ACCEPT='application/json'
+        )
+        assert asset_detail_response.data['deployment__submission_count'] == 1
+
     def test_project_views_for_anotheruser(self):
         self._login_as_anotheruser()
         res = self.client.get(self.region_views_url)
@@ -453,10 +458,10 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # check that anotheruser isn't the asset's owner
         assert asset_data['owner__username'] != user.username
         asset_obj = Asset.objects.get(uid=asset_data['uid'])
-        # check that anotheruser doesn't have explitly assigned `view_asset`
+        # check that anotheruser does have explicitly assigned `view_asset`
         # perms
-        assert not asset_obj.has_perm(user, 'view_asset')
-        asset_res = self.client.get(asset_data['url'])
+        assert asset_obj.has_perm(user, PERM_VIEW_ASSET)
+        asset_res = self.client.get(asset_data['url'], HTTP_ACCEPT='application/json')
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK

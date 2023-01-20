@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.db import models
 
 from kpi.constants import (
-    PERM_CHANGE_METADATA,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -20,7 +20,7 @@ def _get_permission_choices() -> list[tuple(str, str)]:
     'choices' must be an iterable (e.g., a list or tuple)
     """
     allowed_perms = [
-        PERM_CHANGE_METADATA,
+        PERM_CHANGE_METADATA_ASSET,
         PERM_VIEW_ASSET,
         PERM_VIEW_SUBMISSIONS,
     ]
@@ -34,7 +34,7 @@ class ProjectView(models.Model):
     countries = models.CharField(max_length=1000)
     permissions = ChoiceArrayField(
         base_field=models.CharField(
-            max_length=20, choices=_get_permission_choices()
+            max_length=25, choices=_get_permission_choices()
         ),
         default=list,
     )
