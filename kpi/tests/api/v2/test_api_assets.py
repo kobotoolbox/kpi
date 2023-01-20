@@ -26,6 +26,7 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -262,6 +263,10 @@ class AssetVersionApiTests(BaseTestCase):
         self.version = self.asset.asset_versions.first()
         self.version_list_url = reverse(self._get_endpoint('asset-version-list'),
                                         args=(self.asset.uid,))
+        self._version_detail_url = reverse(
+            self._get_endpoint('asset-version-detail'),
+            args=(self.asset.uid, self.version.uid)
+        )
 
     def test_asset_version(self):
         self.assertEqual(Asset.objects.count(), 2)
@@ -303,15 +308,46 @@ class AssetVersionApiTests(BaseTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         user = User.objects.get(username='anotheruser')
-        self.asset.assign_perm(user, PERM_VIEW_SUBMISSIONS)
+        self.asset.assign_perm(user, PERM_VIEW_ASSET)
+        # test list endpoint
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data['count'], 1)
-        _version_detail_url = reverse(self._get_endpoint('asset-version-detail'),
-                                      args=(self.asset.uid, self.version.uid))
-        resp2 = self.client.get(_version_detail_url)
+        # test detailed endpoint
+        resp2 = self.client.get(self._version_detail_url)
         self.assertEqual(resp2.status_code, status.HTTP_200_OK)
         self.assertEqual(resp2.data.get('uid'), self.version.uid)
+        # anonymous user
+        self.client.logout()
+        resp3 = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp3.status_code, status.HTTP_404_NOT_FOUND)
+        resp4 = self.client.get(self._version_detail_url)
+        self.assertEqual(resp4.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_versions_readonly(self):
+        # patch request
+        response1 = self.client.patch(self._version_detail_url, data={'content': ''})
+        self.assertEqual(response1.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # delete request
+        response2 = self.client.delete(self._version_detail_url)
+        self.assertEqual(response2.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_versions_public_access(self):
+        user = User.objects.get(username='anotheruser')
+        # public access anonymous user
+        anonymous_user = get_anonymous_user()
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        response1 = self.client.get(self.version_list_url)
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        response2 = self.client.get(self._version_detail_url)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        # public access regular user
+        self.asset.remove_perm(user, PERM_VIEW_ASSET)
+        self.client.login(username='anotheruser', password='anotheruser')
+        response3 = self.client.get(self.version_list_url)
+        self.assertEqual(response3.status_code, status.HTTP_200_OK)
+        response4 = self.client.get(self._version_detail_url)
+        self.assertEqual(response4.status_code, status.HTTP_200_OK)
 
 
 class AssetDetailApiTests(BaseAssetDetailTestCase):
