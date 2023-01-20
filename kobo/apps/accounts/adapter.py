@@ -27,9 +27,12 @@ class AccountAdapter(DefaultAccountAdapter):
             mfa_token_form = MfaTokenForm(
                 initial={'ephemeral_token': ephemeral_token_cache}
             )
+            next_url = kwargs.get(
+                'redirect_url', resolve_url(settings.LOGIN_REDIRECT_URL)
+            )
             current_site = get_current_site(request)
             context = {
-                REDIRECT_FIELD_NAME: resolve_url(settings.LOGIN_REDIRECT_URL),
+                REDIRECT_FIELD_NAME: next_url,
                 'site': current_site,
                 'site_name': current_site.name,
                 'view': MfaTokenView,
