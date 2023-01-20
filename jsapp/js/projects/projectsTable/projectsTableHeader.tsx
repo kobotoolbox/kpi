@@ -71,8 +71,8 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                 <Icon
                   name={
                     props.order.direction === 'descending'
-                      ? 'sort-down'
-                      : 'sort-up'
+                      ? 'sort-descending'
+                      : 'sort-ascending'
                   }
                   size='s'
                 />
@@ -92,11 +92,11 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                   color='storm'
                   size='m'
                   label={t('Sort A→Z')}
-                  startIcon='sort-down'
+                  startIcon='sort-ascending'
                   onClick={() => {
                     props.onChangeOrderRequested({
                       fieldName: field.name,
-                      direction: 'descending',
+                      direction: 'ascending',
                     });
                   }}
                 />
@@ -107,11 +107,11 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                   color='storm'
                   size='m'
                   label={t('Sort Z→A')}
-                  startIcon='sort-up'
+                  startIcon='sort-descending'
                   onClick={() => {
                     props.onChangeOrderRequested({
                       fieldName: field.name,
-                      direction: 'ascending',
+                      direction: 'descending',
                     });
                   }}
                 />
