@@ -78,7 +78,7 @@ class DeployableMixin:
         if save:
             self.save(
                 update_fields=['date_deployed'],
-                reate_version=False,
+                create_version=False,
                 adjust_content=False,
             )
 

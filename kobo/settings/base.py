@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'kobo.apps.languages.LanguageAppConfig',
     'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
+    'kobo.apps.trackers.TrackersConfig',
 )
 
 MIDDLEWARE = [

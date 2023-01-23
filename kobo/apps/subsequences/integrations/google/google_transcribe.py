@@ -5,16 +5,16 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
-
 from google.cloud import speech, storage
 from googleapiclient import discovery
 
+from kobo.apps.trackers.utils import update_nlp_counter
+from .utils import google_credentials_from_constance_config
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_async_cache_key
 from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
-from .utils import google_credentials_from_constance_config
 
 GS_BUCKET_PREFIX = 'speech_tmp'
-REQUEST_TIMEOUT = 5 # seconds
+REQUEST_TIMEOUT = 5  # seconds
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
 SYNC_MAX_LENGTH = timedelta(seconds=59)
@@ -123,6 +123,12 @@ class GoogleTranscribeEngine(AutoTranscription):
 
             speech_results = speech_client.long_running_recognize(audio=audio, config=config)
             cache.set(cache_key, speech_results.operation.name, GOOGLE_CACHE_TIMEOUT)
+            update_nlp_counter(
+                'google_asr_seconds',
+                int(duration.total_seconds()),
+                self.asset.owner_id,
+                self.asset.id,
+            )
             try:
                 result = speech_results.result(timeout=REQUEST_TIMEOUT)
             except TimeoutError as err:
