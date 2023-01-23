@@ -22,6 +22,7 @@ import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
 import { routerIsActive, withRouter } from '../router/legacy';
+import {PROJECTS_ROUTES} from 'js/projects/routes';
 
 const AccountSidebar = lazy(() => import("js/account/accountSidebar"));
 
@@ -152,7 +153,7 @@ const Drawer = observer(class Drawer extends Reflux.Component {
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} k-icon='projects' />
+          <DrawerLink label={t('Projects')} linkto={PROJECTS_ROUTES.MY_PROJECTS} k-icon='projects' />
           <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} k-icon='library' />
         </bem.KDrawer__primaryIcons>
 
