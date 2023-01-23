@@ -57,6 +57,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             asset_snapshot.asset = asset_snapshot.asset.__class__.objects.defer(
                 'content'
             ).get(pk=asset_snapshot.asset_id)
+            setattr(self, '_asset', asset_snapshot.asset)
         return self._asset
 
     def filter_queryset(self, queryset):
