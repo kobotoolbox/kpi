@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
@@ -32,8 +33,8 @@ from kpi.utils.object_permission import (
     get_database_user,
     perm_parse,
 )
-from kpi.utils.project_views import user_has_project_view_asset_perm
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.project_views import user_has_project_view_asset_perm
 
 
 class ObjectPermissionMixin:
@@ -607,11 +608,7 @@ class ObjectPermissionMixin:
             codename=codename
         )) == 1
         if not result and not is_anonymous:
-            if perm in [
-                PERM_CHANGE_METADATA_ASSET,
-                PERM_VIEW_ASSET,
-                PERM_VIEW_SUBMISSIONS,
-            ]:
+            if perm in ProjectView.ALLOWED_PERMISSIONS:
                 result = user_has_project_view_asset_perm(self, user_obj, perm)
 
             if not result:
