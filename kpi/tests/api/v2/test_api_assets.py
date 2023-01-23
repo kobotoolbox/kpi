@@ -289,6 +289,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         regional_assignments = [
             {
+                'pk': 1,
                 'name': 'Overview',
                 'countries': '*',
                 'permissions': [
@@ -297,6 +298,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 'users': ['someuser'],
             },
             {
+                'pk': 2,
                 'name': 'Test view 1',
                 'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
                 'permissions': [
@@ -307,6 +309,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 'users': ['someuser', 'anotheruser'],
             },
             {
+                'pk': 3,
                 'name': 'Test view 2',
                 'countries': 'USA, CAN',
                 'permissions': [
@@ -465,6 +468,60 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_preview_form(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        asset = Asset.objects.create(
+            owner=someuser,
+            content={
+                'survey': [
+                    {
+                        'type': 'text',
+                        'name': 'q1',
+                        'label': 'q1',
+                    },
+                ],
+            }
+        )
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+
+        # anotheruser should not have access to `asset` yet
+        assert asset.has_perm(anotheruser, PERM_VIEW_ASSET) is False
+        detail_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(detail_url)
+
+        # anotheruser should not see the preview of `asset` yet, thus no access
+        # to snapshots of `asset` either.
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        snapshot = asset.snapshot()
+        snapshot_detail_url = reverse(
+            self._get_endpoint('assetsnapshot-detail'),
+            args=(snapshot.uid,),
+        )
+        snap_response = self.client.get(snapshot_detail_url)
+        assert snap_response.status_code == status.HTTP_404_NOT_FOUND
+
+        # Add Canada to `asset` countries.
+        asset.settings['country'] = [{'value': 'CAN', 'label': 'Canada'}]
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+
+        # anotheruser is assigned to one project view (pk=3) which gives them
+        # 'view_asset' on all Canadian assets. Retrying previous requests should
+        # be successful now.
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        snapshot_detail_url = reverse(
+            self._get_endpoint('assetsnapshot-detail'),
+            args=(snapshot.uid,),
+        )
+        snap_response = self.client.get(snapshot_detail_url)
+        assert snap_response.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_change_metadata(self):
         self._login_as_anotheruser()
