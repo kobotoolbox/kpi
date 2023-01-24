@@ -1,7 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import sessionStore from 'js/stores/session';
-import {deleteUnverifiedUserEmails, EmailResponse} from './emailSection.api';
-import {getUserEmails, setUserEmail} from './emailSection.api';
+import {
+  getUserEmails,
+  setUserEmail,
+  deleteUnverifiedUserEmails,
+} from './emailSection.api';
+import type {EmailResponse} from './emailSection.api';
 import style from './emailSection.module.scss';
 import Button from 'jsapp/js/components/common/button';
 import TextBox from 'jsapp/js/components/common/textBox';
@@ -84,7 +88,9 @@ export default function EmailSection() {
   }
 
   const currentAccount = session.currentAccount;
-  const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary);
+  const unverifiedEmail = email.emails.find(
+    (userEmail) => !userEmail.verified && !userEmail.primary
+  );
 
   return (
     <div className={style.root}>
@@ -140,11 +146,14 @@ export default function EmailSection() {
                 />
               </div>
 
-              {email.refreshedEmail &&
+              {email.refreshedEmail && (
                 <label>
-                  {t('Email was sent again: ##TIMESTAMP##').replace('##TIMESTAMP##', email.refreshedEmailDate)}
+                  {t('Email was sent again: ##TIMESTAMP##').replace(
+                    '##TIMESTAMP##',
+                    email.refreshedEmailDate
+                  )}
                 </label>
-              }
+              )}
             </>
           )}
       </div>
