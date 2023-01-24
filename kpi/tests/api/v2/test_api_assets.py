@@ -529,11 +529,57 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         regional_res = self.client.get(
             results[0]['assets'], HTTP_ACCEPT='application/json'
         )
-        asset_data = regional_res.json()['results'][0]
+        asset_detail_url = regional_res.json()['results'][0]['url']
+        asset_detail_response = self.client.get(asset_detail_url)
+        asset_data = asset_detail_response.data
+
+        # Copy asset properties to test update
+        settings = copy.deepcopy(asset_data['settings'])
+        settings['country'].append(
+            {'value': 'MEX', 'label': 'Mexico'}
+        )
+        summary = copy.deepcopy(asset_data['summary'])
+        summary['languages'].append('Español (es)')
+
+        content = copy.deepcopy(asset_data['content'])
+        content['survey'].append(
+            {
+                'type': 'text',
+                'name': 'q2',
+                'label': 'q2',
+            },
+        )
+
+        data = {
+            'name': 'A new name',
+            'settings': json.dumps(settings),
+            'summary': json.dumps(summary),
+            'content': json.dumps(content),
+        }
+
         change_metadata_res = self.client.patch(
-            asset_data['url'], data={'name': 'A new name'}
+            asset_detail_url, data=data
         )
         assert change_metadata_res.status_code == status.HTTP_200_OK
+
+        # Validate anotheruser can update only `name` and `settings`
+        asset_detail_response = self.client.get(asset_detail_url)
+        asset_data = asset_detail_response.data
+        # `name` and `settings` should have changed
+        assert asset_data['name'] == data['name']
+        # Remove calculated field `country_codes`
+        asset_data['settings'].pop('country_codes')
+        settings.pop('country_codes')
+        assert asset_detail_response.data['settings'] == settings
+        # `summary` and `content` should have not
+        assert asset_data['summary'] != summary
+        assert asset_data['content'] != content
+        assert self._sorted_dict(asset_data['summary']) == self._sorted_dict(
+            asset_data['summary']
+        )
+        assert self._sorted_dict(asset_data['content']) == self._sorted_dict(
+            asset_data['content']
+        )
 
         # anotheruser cannot change metadata for view 2
         regional_res = self.client.get(
@@ -561,6 +607,19 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         results_desc = regional_res_desc.json()['results']
         assert results_desc[0]['name'] == 'fixture asset with translations'
         assert results_asc[0]['name'] == 'fixture asset'
+
+    def _sorted_dict(self, dict_):
+        """
+        Ensure that nested lists inside a dictionary are always sorted
+        Useful to compare 2 identical dictionaries with different sort
+        """
+        for key, value in dict_.items():
+            if isinstance(value, list):
+                dict_[key] = sorted(value)
+            elif isinstance(value, dict):
+                dict_[key] = self._sorted_dict(dict_[key])
+
+        return dict_
 
 
 class AssetVersionApiTests(BaseTestCase):
