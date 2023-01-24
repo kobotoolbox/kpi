@@ -1,5 +1,18 @@
 @use 'scss/sizes';
 
+// NOTE: this whole wrapper is only a TEMP quick and imperfect fix. We need it
+// here so the UI behaves as it was supposed to. In upcoming work the whole
+// section would be rewritten, so there is no need to be fancy.
+.myProjectsWrapper {
+  height: calc(100% - 64px);
+  :global .dropzone {
+    height: 100%;
+  }
+  :global .asset-list--fixed-headings .asset-list-sorts {
+    margin-top: 62px;
+  }
+}
+
 .myProjectsHeader:not(:empty) {
   padding: sizes.$x30 sizes.$x30 0;
 }

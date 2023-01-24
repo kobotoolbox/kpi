@@ -27,12 +27,12 @@ class FormsSearchableList extends React.Component {
   }
   render () {
     return (
-      <>
+      <div className={styles.myProjectsWrapper}>
         <div className={styles.myProjectsHeader}>
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid}/>
         </div>
         <SearchCollectionList searchContext={this.state.searchContext} />
-      </>
+      </div>
     );
   }
 }
