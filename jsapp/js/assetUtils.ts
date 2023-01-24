@@ -63,7 +63,7 @@ export function getAssetOwnerDisplayName(username: string) {
   }
 }
 
-export function getOrganizationDisplayString(asset: AssetResponse) {
+export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (asset.settings.organization) {
     return asset.settings.organization;
   } else {
@@ -240,9 +240,9 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions: Permission[]) {
+export function isAssetPublic(permissions?: Permission[]) {
   let isDiscoverableByAnonymous = false;
-  permissions.forEach((perm) => {
+  permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
@@ -262,7 +262,7 @@ export function isAssetPublic(permissions: Permission[]) {
 export function getAssetIcon(asset: AssetResponse) {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
-      if (asset.summary?.lock_any) {
+      if ('summary' in asset && asset.summary?.lock_any) {
         return 'k-icon k-icon-template-locked';
       } else {
         return 'k-icon k-icon-template';
@@ -272,7 +272,7 @@ export function getAssetIcon(asset: AssetResponse) {
     case ASSET_TYPES.block.id:
       return 'k-icon k-icon-block';
     case ASSET_TYPES.survey.id:
-      if (asset.summary?.lock_any) {
+      if ('summary' in asset && asset.summary?.lock_any) {
         return 'k-icon k-icon-project-locked';
       } else if (asset.has_deployment && !asset.deployment__active) {
         return 'k-icon k-icon-project-archived';
@@ -282,7 +282,7 @@ export function getAssetIcon(asset: AssetResponse) {
         return 'k-icon k-icon-project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
+      if ('access_types' in asset && asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
         return 'k-icon k-icon-folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
         return 'k-icon k-icon-folder-public';
@@ -299,7 +299,7 @@ export function getAssetIcon(asset: AssetResponse) {
 /**
  * Opens a modal for editing asset details.
  */
-export function modifyDetails(asset: AssetResponse) {
+export function modifyDetails(asset: AssetResponse | ProjectViewAsset) {
   let modalType;
   if (asset.asset_type === ASSET_TYPES.template.id) {
     modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
@@ -319,7 +319,7 @@ export function modifyDetails(asset: AssetResponse) {
 /**
  * Opens a modal for sharing asset.
  */
-export function share(asset: AssetResponse) {
+export function share(asset: AssetResponse | ProjectViewAsset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.SHARING,
     assetid: asset.uid,
@@ -329,7 +329,7 @@ export function share(asset: AssetResponse) {
 /**
  * Opens a modal for modifying asset languages and translation strings.
  */
-export function editLanguages(asset: AssetResponse) {
+export function editLanguages(asset: AssetResponse | ProjectViewAsset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
     asset: asset,
@@ -339,7 +339,7 @@ export function editLanguages(asset: AssetResponse) {
 /**
  * Opens a modal for modifying asset tags (also editable in Details Modal).
  */
-export function editTags(asset: AssetResponse) {
+export function editTags(asset: AssetResponse | ProjectViewAsset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.ASSET_TAGS,
     asset: asset,
@@ -349,7 +349,7 @@ export function editTags(asset: AssetResponse) {
 /**
  * Opens a modal for replacing an asset using a file.
  */
-export function replaceForm(asset: AssetResponse) {
+export function replaceForm(asset: AssetResponse | ProjectViewAsset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.REPLACE_PROJECT,
     asset: asset,

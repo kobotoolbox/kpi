@@ -21,6 +21,7 @@ import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
+import ProjectsActionButtons from './projectsTable/projectsActionButtons';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -94,6 +95,8 @@ function CustomViewRoute() {
           label={t('Export all data')}
           onClick={exportAllData}
         />
+
+        <ProjectsActionButtons asset={customView.assets[0]}/>
       </header>
 
       <ProjectsTable
