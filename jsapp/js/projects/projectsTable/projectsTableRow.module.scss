@@ -36,6 +36,11 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     pointer-events: none;
   }
 
+  &[data-field='checkbox'] {
+    min-width: sizes.$x18 + sizes.$x20 + sizes.$x18;
+    width: sizes.$x18 + sizes.$x20 + sizes.$x18;
+  }
+
   &[data-field='countries'],
   &[data-field='description'],
   &[data-field='ownerEmail'],

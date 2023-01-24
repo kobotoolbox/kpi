@@ -37,6 +37,10 @@ interface ProjectsTableProps {
   onRequestLoadNextPage: () => void;
   /** If there are more results to be loaded. */
   hasMorePages: boolean;
+  /** A list of uids */
+  selectedRows: string[];
+  /** Called when user selects a row (by clicking its checkbox) */
+  onRowsSelected: (uids: string[]) => void;
 }
 
 /**
@@ -47,6 +51,16 @@ export default function ProjectsTable(props: ProjectsTableProps) {
   const safeVisibleFields = Array.from(
     new Set(props.visibleFields).add('name')
   );
+
+  const onRowSelectionChange = (rowUid: string, isSelected: boolean) => {
+    const uidsSet = new Set(props.selectedRows);
+    if (isSelected) {
+      uidsSet.add(rowUid);
+    } else {
+      uidsSet.delete(rowUid);
+    }
+    props.onRowsSelected(Array.from(uidsSet));
+  };
 
   return (
     // NOTE: react-infinite-scroller wants us to use refs, but there seems to
@@ -89,6 +103,10 @@ export default function ProjectsTable(props: ProjectsTableProps) {
               asset={asset}
               highlightedFields={props.highlightedFields}
               visibleFields={safeVisibleFields}
+              isSelected={props.selectedRows.includes(asset.uid)}
+              onSelectRequested={(isSelected: boolean) =>
+                onRowSelectionChange(asset.uid, isSelected)
+              }
               key={asset.uid}
             />
           ))}

@@ -20,6 +20,7 @@ import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   useEffect(() => {
     customView.setUp(
@@ -67,6 +68,8 @@ function MyProjectsRoute() {
         onHideFieldRequested={customView.hideField.bind(customView)}
         onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
+        selectedRows={selectedRows}
+        onRowsSelected={setSelectedRows}
       />
     </section>
   );

@@ -31,6 +31,7 @@ function CustomViewRoute() {
 
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   useEffect(() => {
     customView.setUp(
@@ -106,6 +107,8 @@ function CustomViewRoute() {
         onHideFieldRequested={customView.hideField.bind(customView)}
         onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
+        selectedRows={selectedRows}
+        onRowsSelected={setSelectedRows}
       />
     </section>
   );
