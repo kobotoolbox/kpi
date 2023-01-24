@@ -461,8 +461,9 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # check that anotheruser isn't the asset's owner
         assert asset_data['owner__username'] != user.username
         asset_obj = Asset.objects.get(uid=asset_data['uid'])
-        # check that anotheruser does have explicitly assigned `view_asset`
-        # perms
+        # check that `has_perm()` returns true even though anotheruser does not
+        # have explicitly assigned `view_asset` permission (their permission
+        # comes from their assignment to the project view)
         assert asset_obj.has_perm(user, PERM_VIEW_ASSET)
         asset_res = self.client.get(asset_data['url'], HTTP_ACCEPT='application/json')
         # ensure that anotheruser can still see asset detail since has
@@ -508,7 +509,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # Add Canada to `asset` countries.
         asset.settings['country'] = [{'value': 'CAN', 'label': 'Canada'}]
         asset.save()
-        asset.deploy(backend='mock', active=True)
 
         # anotheruser is assigned to one project view (pk=3) which gives them
         # 'view_asset' on all Canadian assets. Retrying previous requests should
@@ -516,10 +516,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         response = self.client.get(detail_url)
         assert response.status_code == status.HTTP_200_OK
 
-        snapshot_detail_url = reverse(
-            self._get_endpoint('assetsnapshot-detail'),
-            args=(snapshot.uid,),
-        )
         snap_response = self.client.get(snapshot_detail_url)
         assert snap_response.status_code == status.HTTP_200_OK
 
