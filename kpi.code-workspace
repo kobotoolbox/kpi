@@ -17,6 +17,9 @@
 
       // Status Bar Toggle for Format and AutoFix on Save
       "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
+
+      // Syntax Support
+      "almahdi.code-django", // Django templates
     ]
   },
   "settings": {
