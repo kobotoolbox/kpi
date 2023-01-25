@@ -441,53 +441,47 @@ class SubmissionModal extends React.Component {
 
           <bem.FormModal__group>
 
-            {this.state.isEditingDuplicate &&
-              <div className='preserveFlexCSS'/>
-            }
+            <div className='submission-pager'>
+              {/* don't display previous button if `previous` is -1 */}
+              {this.state.previous > -1 &&
+                <a
+                  onClick={this.switchSubmission.bind(this, this.state.previous)}
+                  className='mdl-button mdl-button--colored'
+                >
+                  <i className='k-icon k-icon-angle-left' />
+                  {t('Previous')}
+                </a>
+              }
+              {this.state.previous === -2 &&
+                <a
+                  onClick={this.prevTablePage}
+                  className='mdl-button mdl-button--colored'
+                >
+                  <i className='k-icon k-icon-angle-left' />
+                  {t('Previous')}
+                </a>
+              }
 
-            {!this.state.isEditingDuplicate &&
-              <div className='submission-pager'>
-                {/* don't display previous button if `previous` is -1 */}
-                {this.state.previous > -1 &&
-                  <a
-                    onClick={this.switchSubmission.bind(this, this.state.previous)}
-                    className='mdl-button mdl-button--colored'
-                  >
-                    <i className='k-icon k-icon-angle-left' />
-                    {t('Previous')}
-                  </a>
-                }
-                {this.state.previous === -2 &&
-                  <a
-                    onClick={this.prevTablePage}
-                    className='mdl-button mdl-button--colored'
-                  >
-                    <i className='k-icon k-icon-angle-left' />
-                    {t('Previous')}
-                  </a>
-                }
-
-                {/* don't display next button if `next` is -1 */}
-                {this.state.next > -1 &&
-                  <a
-                    onClick={this.switchSubmission.bind(this, this.state.next)}
-                    className='mdl-button mdl-button--colored'
-                  >
-                    {t('Next')}
-                    <i className='k-icon k-icon-angle-right' />
-                  </a>
-                }
-                {this.state.next === -2 &&
-                  <a
-                    onClick={this.nextTablePage}
-                    className='mdl-button mdl-button--colored'
-                  >
-                    {t('Next')}
-                    <i className='k-icon k-icon-angle-right' />
-                  </a>
-                }
-              </div>
-            }
+              {/* don't display next button if `next` is -1 */}
+              {this.state.next > -1 &&
+                <a
+                  onClick={this.switchSubmission.bind(this, this.state.next)}
+                  className='mdl-button mdl-button--colored'
+                >
+                  {t('Next')}
+                  <i className='k-icon k-icon-angle-right' />
+                </a>
+              }
+              {this.state.next === -2 &&
+                <a
+                  onClick={this.nextTablePage}
+                  className='mdl-button mdl-button--colored'
+                >
+                  {t('Next')}
+                  <i className='k-icon k-icon-angle-right' />
+                </a>
+              }
+            </div>
 
             <div className='submission-actions'>
               <Checkbox
