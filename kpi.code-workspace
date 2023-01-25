@@ -15,18 +15,31 @@
       "stylelint.vscode-stylelint",     // Stylelint
       "freewil.vscode-coffeelint2",     // Coffeelint
 
-      // Status Bar Toggles/Indicators for Format on Save
-      "Lwlzinc.autofix",                            // AutoFix Toggle V2
+      // Status Bar Toggle for Format and AutoFix on Save
       "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
     ]
   },
   "settings": {
+    // Black
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
     },
+
+    // Prettier
     "[typescript][typescriptreact][javascript][javascriptreact]": {
       "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
     },
-    "formattingToggle.affects": ["editor.formatOnSave"],
+
+    // Stylelint
+    "stylelint.validate": ["css", "scss"],
+    "css.validate": false,
+    "scss.validate": false,
+
+    // Formatting Toggle
+    "formattingToggle.affects": [
+      "editor.formatOnSave",
+      "editor.codeActionsOnSave.source.fixAll.eslint",
+      "editor.codeActionsOnSave.source.fixAll.stylelint",
+    ],
   },
 }
