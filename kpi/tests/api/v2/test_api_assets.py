@@ -564,22 +564,23 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         # Validate anotheruser can update only `name` and `settings`
         asset_detail_response = self.client.get(asset_detail_url)
-        asset_data = asset_detail_response.data
+        asset_detail_data = asset_detail_response.data
         # `name` and `settings` should have changed
-        assert asset_data['name'] == data['name']
+        assert asset_detail_data['name'] == data['name']
         # Remove calculated field `country_codes`
-        asset_data['settings'].pop('country_codes')
+        asset_detail_data['settings'].pop('country_codes')
         settings.pop('country_codes')
-        assert asset_detail_response.data['settings'] == settings
+        assert asset_detail_data['settings'] == settings
         # `summary` and `content` should have not
-        assert asset_data['summary'] != summary
-        assert asset_data['content'] != content
-        assert self._sorted_dict(asset_data['summary']) == self._sorted_dict(
-            asset_data['summary']
-        )
-        assert self._sorted_dict(asset_data['content']) == self._sorted_dict(
-            asset_data['content']
-        )
+        assert asset_detail_data['summary'] != summary
+        assert asset_detail_data['content'] != content
+        assert self._sorted_dict(
+            asset_detail_data['summary']
+        ) == self._sorted_dict(asset_data['summary'])
+
+        assert self._sorted_dict(
+            asset_detail_data['content']
+        ) == self._sorted_dict(asset_data['content'])
 
         # anotheruser cannot change metadata for view 2
         regional_res = self.client.get(
