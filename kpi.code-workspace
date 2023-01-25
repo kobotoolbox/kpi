@@ -1,0 +1,32 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      "editorconfig.editorconfig",      // EditorConfig
+
+      // Linters and Formatters
+      "ms-python.black-formatter",      // Black (also installs MS Pylance)*
+      "dbaeumer.vscode-eslint",         // ESLint
+      "rvest.vs-code-prettier-eslint",  // Prettier
+      "stylelint.vscode-stylelint",     // Stylelint
+      "freewil.vscode-coffeelint2",     // Coffeelint
+
+      // Status Bar Toggles/Indicators for Format on Save
+      "Lwlzinc.autofix",                            // AutoFix Toggle V2
+      "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
+    ]
+  },
+  "settings": {
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "[typescript][typescriptreact][javascript][javascriptreact]": {
+      "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    },
+    "formattingToggle.affects": ["editor.formatOnSave"],
+  },
+}
