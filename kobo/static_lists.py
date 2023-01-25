@@ -173,6 +173,10 @@ COUNTRIES = (
     ('KIR', 'Kiribati'),
     ('PRK', "Korea, Democratic People's Republic of"),
     ('KOR', 'Korea, Republic of'),
+    # Note that the addition of Kosovo is a divergence from ISO:3166 and the API
+    # output from
+    # https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0
+    ('XKX', 'Kosovo'),
     ('KWT', 'Kuwait'),
     ('KGZ', 'Kyrgyzstan'),
     ('LAO', "Lao People's Democratic Republic"),
