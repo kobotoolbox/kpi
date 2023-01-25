@@ -2,6 +2,13 @@
 from django.contrib.auth.models import User
 
 from kobo.apps.project_views.models.project_view import ProjectView
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_METADATA_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.project_views import (
@@ -22,7 +29,7 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
                 'name': 'Overview',
                 'countries': '*',
                 'permissions': [
-                    'view_asset',
+                    PERM_VIEW_ASSET,
                 ],
                 'users': ['someuser'],
             },
@@ -30,9 +37,9 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
                 'name': 'Test view 1',
                 'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
                 'permissions': [
-                    'view_asset',
-                    'view_submissions',
-                    'change_metadata',
+                    PERM_VIEW_ASSET,
+                    PERM_VIEW_SUBMISSIONS,
+                    PERM_CHANGE_METADATA_ASSET,
                 ],
                 'users': ['someuser', 'anotheruser'],
             },
@@ -40,7 +47,7 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
                 'name': 'Test view 2',
                 'countries': 'USA, CAN',
                 'permissions': [
-                    'view_asset',
+                    PERM_VIEW_ASSET,
                 ],
                 'users': ['anotheruser'],
             },
@@ -67,9 +74,9 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
     def test_regional_user_perms_for_asset(self):
         actual_perms = sorted(
             [
-                'view_asset',
-                'view_submissions',
-                'change_metadata',
+                PERM_VIEW_ASSET,
+                PERM_VIEW_SUBMISSIONS,
+                PERM_CHANGE_METADATA_ASSET,
             ]
         )
         regional_asset_perms = get_project_view_user_permissions_for_asset(
@@ -79,13 +86,13 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
 
     def test_user_has_project_view_asset_perm(self):
         assigned_perms = [
-            'view_asset',
-            'view_submissions',
-            'change_metadata',
+            PERM_VIEW_ASSET,
+            PERM_VIEW_SUBMISSIONS,
+            PERM_CHANGE_METADATA_ASSET,
         ]
         unassigned_perms = [
-            'change_asset',
-            'change_submissions',
+            PERM_CHANGE_ASSET,
+            PERM_CHANGE_SUBMISSIONS,
         ]
 
         for perm in assigned_perms:
@@ -103,9 +110,9 @@ class ProjectViewsUtilsTestCase(BaseTestCase):
     def test_view_has_perm(self):
         view = ProjectView.objects.get(name='Test view 1').uid
         assigned_perms = [
-            'view_asset',
-            'view_submissions',
-            'change_metadata',
+            PERM_VIEW_ASSET,
+            PERM_VIEW_SUBMISSIONS,
+            PERM_CHANGE_METADATA_ASSET,
         ]
         for perm in assigned_perms:
             assert view_has_perm(view, perm)

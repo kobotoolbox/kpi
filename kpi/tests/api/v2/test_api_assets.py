@@ -5,7 +5,6 @@ import json
 import os
 from io import StringIO
 
-from dateutil.parser import parse
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -13,6 +12,7 @@ from rest_framework import status
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -287,31 +287,33 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             asset.save()
             asset.deploy(backend='mock', active=True)
 
-
         regional_assignments = [
             {
+                'pk': 1,
                 'name': 'Overview',
                 'countries': '*',
                 'permissions': [
-                    'view_asset',
+                    PERM_VIEW_ASSET,
                 ],
                 'users': ['someuser'],
             },
             {
+                'pk': 2,
                 'name': 'Test view 1',
                 'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
                 'permissions': [
-                    'view_asset',
-                    'view_submissions',
-                    'change_metadata',
+                    PERM_VIEW_ASSET,
+                    PERM_VIEW_SUBMISSIONS,
+                    PERM_CHANGE_METADATA_ASSET,
                 ],
                 'users': ['someuser', 'anotheruser'],
             },
             {
+                'pk': 3,
                 'name': 'Test view 2',
                 'countries': 'USA, CAN',
                 'permissions': [
-                    'view_asset',
+                    PERM_VIEW_ASSET,
                 ],
                 'users': ['anotheruser'],
             },
@@ -397,6 +399,12 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         asset = regional_data['results'][0]
         assert asset['deployment__submission_count'] == 1
 
+        # Ensure user can see submissions count from the asset detail endpoint too
+        asset_detail_response = self.client.get(
+            asset['url'], HTTP_ACCEPT='application/json'
+        )
+        assert asset_detail_response.data['deployment__submission_count'] == 1
+
     def test_project_views_for_anotheruser(self):
         self._login_as_anotheruser()
         res = self.client.get(self.region_views_url)
@@ -453,13 +461,63 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # check that anotheruser isn't the asset's owner
         assert asset_data['owner__username'] != user.username
         asset_obj = Asset.objects.get(uid=asset_data['uid'])
-        # check that anotheruser doesn't have explitly assigned `view_asset`
-        # perms
-        assert not asset_obj.has_perm(user, 'view_asset')
-        asset_res = self.client.get(asset_data['url'])
+        # check that `has_perm()` returns true even though anotheruser does not
+        # have explicitly assigned `view_asset` permission (their permission
+        # comes from their assignment to the project view)
+        assert asset_obj.has_perm(user, PERM_VIEW_ASSET)
+        asset_res = self.client.get(asset_data['url'], HTTP_ACCEPT='application/json')
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_preview_form(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        asset = Asset.objects.create(
+            owner=someuser,
+            content={
+                'survey': [
+                    {
+                        'type': 'text',
+                        'name': 'q1',
+                        'label': 'q1',
+                    },
+                ],
+            }
+        )
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+
+        # anotheruser should not have access to `asset` yet
+        assert asset.has_perm(anotheruser, PERM_VIEW_ASSET) is False
+        detail_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(detail_url)
+
+        # anotheruser should not see the preview of `asset` yet, thus no access
+        # to snapshots of `asset` either.
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        snapshot = asset.snapshot()
+        snapshot_detail_url = reverse(
+            self._get_endpoint('assetsnapshot-detail'),
+            args=(snapshot.uid,),
+        )
+        snap_response = self.client.get(snapshot_detail_url)
+        assert snap_response.status_code == status.HTTP_404_NOT_FOUND
+
+        # Add Canada to `asset` countries.
+        asset.settings['country'] = [{'value': 'CAN', 'label': 'Canada'}]
+        asset.save()
+
+        # anotheruser is assigned to one project view (pk=3) which gives them
+        # 'view_asset' on all Canadian assets. Retrying previous requests should
+        # be successful now.
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        snap_response = self.client.get(snapshot_detail_url)
+        assert snap_response.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_change_metadata(self):
         self._login_as_anotheruser()
@@ -471,11 +529,58 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         regional_res = self.client.get(
             results[0]['assets'], HTTP_ACCEPT='application/json'
         )
-        asset_data = regional_res.json()['results'][0]
+        asset_detail_url = regional_res.json()['results'][0]['url']
+        asset_detail_response = self.client.get(asset_detail_url)
+        asset_data = asset_detail_response.data
+
+        # Copy asset properties to test update
+        settings = copy.deepcopy(asset_data['settings'])
+        settings['country'].append(
+            {'value': 'MEX', 'label': 'Mexico'}
+        )
+        summary = copy.deepcopy(asset_data['summary'])
+        summary['languages'].append('Español (es)')
+
+        content = copy.deepcopy(asset_data['content'])
+        content['survey'].append(
+            {
+                'type': 'text',
+                'name': 'q2',
+                'label': 'q2',
+            },
+        )
+
+        data = {
+            'name': 'A new name',
+            'settings': json.dumps(settings),
+            'summary': json.dumps(summary),
+            'content': json.dumps(content),
+        }
+
         change_metadata_res = self.client.patch(
-            asset_data['url'], data={'name': 'A new name'}
+            asset_detail_url, data=data
         )
         assert change_metadata_res.status_code == status.HTTP_200_OK
+
+        # Validate anotheruser can update only `name` and `settings`
+        asset_detail_response = self.client.get(asset_detail_url)
+        asset_detail_data = asset_detail_response.data
+        # `name` and `settings` should have changed
+        assert asset_detail_data['name'] == data['name']
+        # Remove calculated field `country_codes`
+        asset_detail_data['settings'].pop('country_codes')
+        settings.pop('country_codes')
+        assert asset_detail_data['settings'] == settings
+        # `summary` and `content` should have not
+        assert asset_detail_data['summary'] != summary
+        assert asset_detail_data['content'] != content
+        assert self._sorted_dict(
+            asset_detail_data['summary']
+        ) == self._sorted_dict(asset_data['summary'])
+
+        assert self._sorted_dict(
+            asset_detail_data['content']
+        ) == self._sorted_dict(asset_data['content'])
 
         # anotheruser cannot change metadata for view 2
         regional_res = self.client.get(
@@ -503,6 +608,19 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         results_desc = regional_res_desc.json()['results']
         assert results_desc[0]['name'] == 'fixture asset with translations'
         assert results_asc[0]['name'] == 'fixture asset'
+
+    def _sorted_dict(self, dict_):
+        """
+        Ensure that nested lists inside a dictionary are always sorted
+        Useful to compare 2 identical dictionaries with different sort
+        """
+        for key, value in dict_.items():
+            if isinstance(value, list):
+                dict_[key] = sorted(value)
+            elif isinstance(value, dict):
+                dict_[key] = self._sorted_dict(dict_[key])
+
+        return dict_
 
 
 class AssetVersionApiTests(BaseTestCase):
