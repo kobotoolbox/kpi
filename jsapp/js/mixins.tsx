@@ -24,6 +24,7 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
 } from './constants';
+import type {PermissionCodename} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
@@ -48,6 +49,7 @@ import type {
   Permission,
   SubmissionResponse,
 } from 'js/dataInterface';
+import {getRouteAssetUid} from 'js/router/routerUtils';
 import { routerGetAssetId, routerIsActive } from './router/legacy';
 import { history } from "./router/historyRouter";
 
@@ -329,7 +331,7 @@ mixins.dmix = {
       // that includes `content`).
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid;
+      return this.props.uid || getRouteAssetUid();
     }
   },
   // TODO 1/2
@@ -960,7 +962,25 @@ mixins.permissions = {
     return allowedUsers.includes(submittedBy);
   },
 
-  userCan(permName: string, asset: AssetResponse, partialPermName = null) {
+  // NOTE: be aware of the fact that some of non-TypeScript code is passing
+  // things that are not AssetResponse (probably due to how dmix mixin is used
+  // - merging asset response directly into component state object)
+  userCan(permName: PermissionCodename, asset?: AssetResponse, partialPermName = null) {
+    // Sometimes asset data is not ready yet and we still call the function
+    // through some rendering function. We have to be prepared
+    if (!asset) {
+      return false;
+    }
+
+    // TODO: check out whether any other checks are really needed at this point.
+    // Pay attention if partial permissions work.
+    const hasEffectiveAccess = asset.effective_permissions?.some((effectivePerm) =>
+      effectivePerm.codename === permName
+    );
+    if (hasEffectiveAccess) {
+      return true;
+    }
+
     if (!asset.permissions) {
       return false;
     }
@@ -990,7 +1010,6 @@ mixins.permissions = {
    * @param {Object} asset
    */
   userCanPartially(permName: string, asset: AssetResponse) {
-
     const currentUsername = sessionStore.currentAccount.username;
 
     // Owners cannot have partial permissions because they have full permissions.
@@ -1000,6 +1019,26 @@ mixins.permissions = {
     }
 
     return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  },
+
+  /**
+   * This checks if current user can remove themselves from a project that was
+   * shared with them. If `view_asset` comes from `asset.effective_permissions`,
+   * but doesn't exist in `asset.permissions` it means that `view_asset` comes
+   * from Project View access, not from project being shared with user directly.
+   */
+  userCanRemoveSharedProject(asset: AssetResponse) {
+    const currentUsername = sessionStore.currentAccount.username;
+    const userHasDirectViewAsset = asset.permissions.some((perm) => (
+      perm.user === buildUserUrl(currentUsername) &&
+      this._doesPermMatch(perm, 'view_asset')
+    ));
+
+    return (
+      !assetUtils.isSelfOwned(asset) &&
+      this.userCan('view_asset', asset) &&
+      userHasDirectViewAsset
+    );
   },
 };
 

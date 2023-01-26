@@ -1,7 +1,9 @@
 # coding: utf-8
 from collections import OrderedDict
+from typing import Union
 
 from django.conf import settings
+from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
 from rest_framework.pagination import (
     LimitOffsetPagination,
@@ -46,7 +48,7 @@ class AssetPagination(Paginated):
 
     @staticmethod
     @cache_for_request
-    def get_all_asset_ids_from_queryset(queryset):
+    def get_all_asset_ids_from_queryset(queryset: Union[QuerySet, list]):
         # Micro optimization, coerce `asset_ids` as a list to force the query
         # to be processed right now. Otherwise, because queryset is a lazy query,
         # it creates (left) joins on tables when queryset is interpreted
@@ -55,7 +57,10 @@ class AssetPagination(Paginated):
         # `AssetPagination.get_count()` and `AssetViewSet.get_serializer_context()`
         # use the same query base. So use it here to retrieve `asset_ids`
         # and cache them.
-        asset_ids = list(queryset.values_list('id', flat=True).distinct().order_by())
+        if isinstance(queryset, list):
+            asset_ids = [a.pk for a in queryset]
+        else:
+            asset_ids = list(queryset.values_list('id', flat=True).distinct().order_by())
         return asset_ids
 
     def get_count(self, queryset):

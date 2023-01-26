@@ -80,4 +80,3 @@ def grant_all_model_level_perms(
 def is_user_anonymous(user):
     return user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID
 
-

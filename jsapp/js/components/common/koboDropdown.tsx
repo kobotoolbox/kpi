@@ -19,7 +19,7 @@ export enum KoboDropdownPlacements {
 interface KoboDropdownProps {
   placement: KoboDropdownPlacements;
   /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
-  isDisabled: boolean;
+  isDisabled?: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
   hideOnMenuClick: boolean;
   triggerContent: React.ReactNode;
@@ -31,6 +31,8 @@ interface KoboDropdownProps {
    */
   name: string;
   'data-cy'?: string;
+  /** Alternative way of getting the opened status of the menu. */
+  onMenuVisibilityChange?: (isOpened: boolean) => void;
 }
 
 interface KoboDropdownState {
@@ -107,6 +109,9 @@ export default class KoboDropdown extends React.Component<
   showMenu() {
     this.setState({isMenuVisible: true});
     koboDropdownActions.menuVisibilityChange(this.props.name, true);
+    if (this.props.onMenuVisibilityChange) {
+      this.props.onMenuVisibilityChange(true);
+    }
     // Hides menu when user clicks outside it.
     this.registerEscKeyListener();
     // Hides menu when opened and user uses Escape key.
@@ -116,6 +121,9 @@ export default class KoboDropdown extends React.Component<
   hideMenu() {
     this.setState({isMenuVisible: false});
     koboDropdownActions.menuVisibilityChange(this.props.name, false);
+    if (this.props.onMenuVisibilityChange) {
+      this.props.onMenuVisibilityChange(false);
+    }
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }

@@ -1,7 +1,21 @@
 # coding: utf-8
 import json
 
+from django.db.models import Lookup, Field
 from django.db.models.expressions import Func, Value
+
+
+@Field.register_lookup
+class InArray(Lookup):
+
+    lookup_name = 'in_array'
+    prepare_rhs = False
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + tuple(rhs_params)
+        return '%s ?| %s' % (lhs, rhs), params
 
 
 class IncrementValue(Func):

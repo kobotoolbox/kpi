@@ -5,9 +5,9 @@ import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
 import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
 import type {ServiceUsage} from './dataUsageStore';
-import {notify} from 'js/utils';
+import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
+import type {PaginatedResponse} from 'js/dataInterface';
 import './planRoute.scss';
 
 /**
@@ -91,7 +91,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
     })
       .done(this.onFetchSubscriptionInfoDone.bind(this))
-      .fail(this.onFetchSubscriptionInfoFail.bind(this));
+      .fail(handleApiFail);
   }
 
   private onFetchSubscriptionInfoDone(
@@ -100,10 +100,6 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     this.setState({
       subscribedProduct: response.results[0].plan.product,
     });
-  }
-
-  private onFetchSubscriptionInfoFail(response: FailResponse) {
-    notify.error(response.responseText);
   }
 
   private getOneDecimalDisplay(x: number): number {
@@ -117,7 +113,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       url: `${ROOT_URL}/api/v2/service_usage/`,
     })
       .done(this.onFetchDataUsageDone.bind(this))
-      .fail(this.onFetchDataUsageFail.bind(this));
+      .fail(handleApiFail);
   }
 
   private onFetchDataUsageDone(response: ServiceUsage) {
@@ -125,10 +121,6 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       dataUsageBytes: response.total_storage_bytes,
       dataUsageMonthly: response.total_submission_count_current_month,
     });
-  }
-
-  private onFetchDataUsageFail(response: FailResponse) {
-    notify.error(response.responseText);
   }
 
   private getUsageColor(): KoboRangeColors {

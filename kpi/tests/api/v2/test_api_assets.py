@@ -9,8 +9,10 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -27,6 +29,9 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
+from kpi.utils.project_views import (
+    get_region_for_view,
+)
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -251,6 +256,373 @@ class AssetListApiTests(BaseAssetTestCase):
         assert expected_order_by_name_collections_first == uids
 
 
+class AssetProjectViewListApiTests(BaseAssetTestCase):
+    fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
+        self.region_views_url = reverse(self._get_endpoint('projectview-list'))
+        asset_country_settings = [
+            [
+                {'value': 'ZAF', 'label': 'South Africa'},
+            ],
+            [
+                {'value': 'CAN', 'label': 'Canada'},
+            ],
+        ]
+        for i, asset in enumerate(Asset.objects.all()[:2]):
+            asset.settings.update({'country': asset_country_settings[i]})
+            asset.content = {
+                'survey': [
+                    {
+                        'type': 'text',
+                        'name': 'q1',
+                        'label': 'q1',
+                    },
+                ],
+            }
+            asset.save()
+            asset.deploy(backend='mock', active=True)
+
+        regional_assignments = [
+            {
+                'pk': 1,
+                'name': 'Overview',
+                'countries': '*',
+                'permissions': [
+                    PERM_VIEW_ASSET,
+                ],
+                'users': ['someuser'],
+            },
+            {
+                'pk': 2,
+                'name': 'Test view 1',
+                'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
+                'permissions': [
+                    PERM_VIEW_ASSET,
+                    PERM_VIEW_SUBMISSIONS,
+                    PERM_CHANGE_METADATA_ASSET,
+                ],
+                'users': ['someuser', 'anotheruser'],
+            },
+            {
+                'pk': 3,
+                'name': 'Test view 2',
+                'countries': 'USA, CAN',
+                'permissions': [
+                    PERM_VIEW_ASSET,
+                ],
+                'users': ['anotheruser'],
+            },
+        ]
+        for region in regional_assignments:
+            usernames = region.pop('users')
+            users = [self._get_user_obj(u) for u in usernames]
+            r = ProjectView.objects.create(**region)
+            r.users.set(users)
+            r.save()
+
+    def _login_as_anotheruser(self) -> None:
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+
+    @staticmethod
+    def _get_user_obj(username: str) -> User:
+        return User.objects.get(username=username)
+
+    def test_regional_views_list(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        # someuser should only see view Overview and 1
+        assert data['count'] == 2
+        assert sorted(r['name'] for r in data['results']) == sorted(
+            ['Overview', 'Test view 1']
+        )
+
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        # anotheruser should only see view 1 and 2
+        assert data['count'] == 2
+        assert sorted(r['name'] for r in data['results']) == sorted(
+            ['Test view 1', 'Test view 2']
+        )
+
+    def test_project_views_for_someuser(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        view_0_url = results[0]['assets']
+        regional_res = self.client.get(
+            view_0_url, HTTP_ACCEPT='application/json'
+        )
+        assert regional_res.json()['count'] == 2
+
+        view_1_url = results[1]['assets']
+        regional_res = self.client.get(
+            view_1_url, HTTP_ACCEPT='application/json'
+        )
+        regional_data = regional_res.json()
+        assert regional_data['count'] == 1
+        asset_countries = set(
+            c['value']
+            for c in regional_data['results'][0]['settings']['country']
+        )
+        region_for_view = set(get_region_for_view(results[1]['uid']))
+        assert asset_countries & region_for_view
+
+    def test_project_views_anotheruser_submission_count(self):
+        self._login_as_anotheruser()
+        for asset in Asset.objects.all():
+            if asset.has_deployment:
+                submissions = [
+                    {
+                        '__version__': asset.latest_deployed_version.uid,
+                        'q1': 'a1',
+                    },
+                ]
+                asset.deployment.mock_submissions(submissions)
+
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        view_1_url = results[0]['assets']
+        regional_res = self.client.get(
+            view_1_url, HTTP_ACCEPT='application/json'
+        )
+        regional_data = regional_res.json()
+        asset = regional_data['results'][0]
+        assert asset['deployment__submission_count'] == 1
+
+        # Ensure user can see submissions count from the asset detail endpoint too
+        asset_detail_response = self.client.get(
+            asset['url'], HTTP_ACCEPT='application/json'
+        )
+        assert asset_detail_response.data['deployment__submission_count'] == 1
+
+    def test_project_views_for_anotheruser(self):
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        expected_vals = [
+            {'name': 'Test view 1', 'count': 1},
+            {'name': 'Test view 2', 'count': 1},
+        ]
+
+        for i, item in enumerate(expected_vals):
+            regional_res = self.client.get(
+                results[i]['assets'], HTTP_ACCEPT='application/json'
+            )
+            regional_data = regional_res.json()
+            assert regional_data['count'] == item['count']
+            asset_countries = set(
+                c['value']
+                for c in regional_data['results'][0]['settings']['country']
+            )
+            region_for_view = set(get_region_for_view(results[i]['uid']))
+            assert asset_countries & region_for_view
+
+    def test_project_views_for_someuser_can_view_submissions(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        # someuser can see data for view 1
+        regional_res = self.client.get(
+            results[1]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        assert asset_data['uid']
+
+        url = reverse(
+            self._get_endpoint('submission-list'), args=(asset_data['uid'],)
+        )
+        data_res = self.client.get(url, HTTP_ACCEPT='application/json')
+        assert data_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_view_asset_detail(self):
+        self._login_as_anotheruser()
+        user = User.objects.get(username='anotheruser')
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        regional_res = self.client.get(
+            results[0]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        # check that anotheruser isn't the asset's owner
+        assert asset_data['owner__username'] != user.username
+        asset_obj = Asset.objects.get(uid=asset_data['uid'])
+        # check that `has_perm()` returns true even though anotheruser does not
+        # have explicitly assigned `view_asset` permission (their permission
+        # comes from their assignment to the project view)
+        assert asset_obj.has_perm(user, PERM_VIEW_ASSET)
+        asset_res = self.client.get(asset_data['url'], HTTP_ACCEPT='application/json')
+        # ensure that anotheruser can still see asset detail since has
+        # `view_asset` perm assigned to view
+        assert asset_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_preview_form(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        asset = Asset.objects.create(
+            owner=someuser,
+            content={
+                'survey': [
+                    {
+                        'type': 'text',
+                        'name': 'q1',
+                        'label': 'q1',
+                    },
+                ],
+            }
+        )
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+
+        # anotheruser should not have access to `asset` yet
+        assert asset.has_perm(anotheruser, PERM_VIEW_ASSET) is False
+        detail_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(detail_url)
+
+        # anotheruser should not see the preview of `asset` yet, thus no access
+        # to snapshots of `asset` either.
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        snapshot = asset.snapshot()
+        snapshot_detail_url = reverse(
+            self._get_endpoint('assetsnapshot-detail'),
+            args=(snapshot.uid,),
+        )
+        snap_response = self.client.get(snapshot_detail_url)
+        assert snap_response.status_code == status.HTTP_404_NOT_FOUND
+
+        # Add Canada to `asset` countries.
+        asset.settings['country'] = [{'value': 'CAN', 'label': 'Canada'}]
+        asset.save()
+
+        # anotheruser is assigned to one project view (pk=3) which gives them
+        # 'view_asset' on all Canadian assets. Retrying previous requests should
+        # be successful now.
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        snap_response = self.client.get(snapshot_detail_url)
+        assert snap_response.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_change_metadata(self):
+        self._login_as_anotheruser()
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        # anotheruser can change metadata for view 1
+        regional_res = self.client.get(
+            results[0]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_detail_url = regional_res.json()['results'][0]['url']
+        asset_detail_response = self.client.get(asset_detail_url)
+        asset_data = asset_detail_response.data
+
+        # Copy asset properties to test update
+        settings = copy.deepcopy(asset_data['settings'])
+        settings['country'].append(
+            {'value': 'MEX', 'label': 'Mexico'}
+        )
+        summary = copy.deepcopy(asset_data['summary'])
+        summary['languages'].append('Español (es)')
+
+        content = copy.deepcopy(asset_data['content'])
+        content['survey'].append(
+            {
+                'type': 'text',
+                'name': 'q2',
+                'label': 'q2',
+            },
+        )
+
+        data = {
+            'name': 'A new name',
+            'settings': json.dumps(settings),
+            'summary': json.dumps(summary),
+            'content': json.dumps(content),
+        }
+
+        change_metadata_res = self.client.patch(
+            asset_detail_url, data=data
+        )
+        assert change_metadata_res.status_code == status.HTTP_200_OK
+
+        # Validate anotheruser can update only `name` and `settings`
+        asset_detail_response = self.client.get(asset_detail_url)
+        asset_detail_data = asset_detail_response.data
+        # `name` and `settings` should have changed
+        assert asset_detail_data['name'] == data['name']
+        # Remove calculated field `country_codes`
+        asset_detail_data['settings'].pop('country_codes')
+        settings.pop('country_codes')
+        assert asset_detail_data['settings'] == settings
+        # `summary` and `content` should have not
+        assert asset_detail_data['summary'] != summary
+        assert asset_detail_data['content'] != content
+        assert self._sorted_dict(
+            asset_detail_data['summary']
+        ) == self._sorted_dict(asset_data['summary'])
+
+        assert self._sorted_dict(
+            asset_detail_data['content']
+        ) == self._sorted_dict(asset_data['content'])
+
+        # anotheruser cannot change metadata for view 2
+        regional_res = self.client.get(
+            results[1]['assets'], HTTP_ACCEPT='application/json'
+        )
+        asset_data = regional_res.json()['results'][0]
+        change_metadata_res = self.client.patch(
+            asset_data['url'], data={'name': 'A new name'}
+        )
+        assert change_metadata_res.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_project_views_trivial_ordering(self):
+        res = self.client.get(self.region_views_url)
+        data = res.json()
+        results = data['results']
+
+        assets_url = results[0]['assets']
+        regional_res_asc = self.client.get(
+            f'{assets_url}?ordering=name', HTTP_ACCEPT='application/json'
+        )
+        regional_res_desc = self.client.get(
+            f'{assets_url}?ordering=-name', HTTP_ACCEPT='application/json'
+        )
+        results_asc = regional_res_asc.json()['results']
+        results_desc = regional_res_desc.json()['results']
+        assert results_desc[0]['name'] == 'fixture asset with translations'
+        assert results_asc[0]['name'] == 'fixture asset'
+
+    def _sorted_dict(self, dict_):
+        """
+        Ensure that nested lists inside a dictionary are always sorted
+        Useful to compare 2 identical dictionaries with different sort
+        """
+        for key, value in dict_.items():
+            if isinstance(value, list):
+                dict_[key] = sorted(value)
+            elif isinstance(value, dict):
+                dict_[key] = self._sorted_dict(dict_[key])
+
+        return dict_
+
+
 class AssetVersionApiTests(BaseTestCase):
     fixtures = ['test_data']
 
@@ -316,6 +688,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
             'country_codes': [],
             'description': '',
             'mysetting': 'value',
+            'organization': '',
             'sector': {},
         }
         self.assertEqual(resp.data['settings'], expected)

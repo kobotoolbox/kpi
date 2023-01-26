@@ -132,9 +132,9 @@ class ProjectSettings extends React.Component {
 
     fields.name = asset ? asset.name : '';
     fields.description = asset?.settings ? asset.settings.description : '';
-    fields.sector = asset?.settings ? asset.settings.sector : null;
+
+    fields.sector = asset?.settings?.sector?.value ? asset.settings.sector : null;
     fields.country = asset?.settings ? asset.settings.country : null;
-    fields['share-metadata'] = asset?.settings ? asset.settings['share-metadata'] : false;
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null;
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null;
 
@@ -500,7 +500,6 @@ class ProjectSettings extends React.Component {
       description: this.state.fields.description,
       sector: this.state.fields.sector,
       country: this.state.fields.country,
-      'share-metadata': this.state.fields['share-metadata'],
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
     });
@@ -990,14 +989,6 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
-          <bem.FormModal__item m='metadata-share'>
-            <Checkbox
-              checked={this.state.fields['share-metadata']}
-              onChange={this.onAnyFieldChange.bind(this, 'share-metadata')}
-              label={t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
-            />
-          </bem.FormModal__item>
-
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.Modal__footer>
               {/* Don't allow going back if asset already exist */}
@@ -1018,7 +1009,7 @@ class ProjectSettings extends React.Component {
             </bem.Modal__footer>
           }
 
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+          {this.userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
