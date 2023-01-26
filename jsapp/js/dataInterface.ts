@@ -16,8 +16,10 @@ import type {
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
+  PermissionCodename,
 } from 'js/constants';
-import { Json } from './components/common/common.interfaces';
+import type {Json} from './components/common/common.interfaces';
+import type {ProjectViewsSettings} from './projects/customViewStore';
 
 interface AssetsRequestData {
   q?: string;
@@ -409,7 +411,6 @@ export interface AssetSettings {
   } | null;
   country?: SelectChoice | SelectChoice[] | null;
   description?: string;
-  'share-metadata'?: boolean;
   'data-table'?: AssetTableSettings;
   organization?: string;
   collects_pii?: {
@@ -529,6 +530,12 @@ export interface AssetResponse extends AssetRequestObject {
   kind: string;
   xls_link?: string;
   assignable_permissions?: Array<AssignablePermission|AssignablePermissionPartial>;
+  /**
+   * A list of all permissions (their codenames) that current user has in
+   * regards to this asset. It is a sum of permissions assigned directly for
+   * that user and ones coming from the Project View definition.
+   */
+  effective_permissions: Array<{codename: PermissionCodename}>;
   exports?: string;
   data: string;
   children: {
@@ -547,6 +554,36 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
+}
+
+/** This is the asset object returned by project-views endpoint. */
+export interface ProjectViewAsset {
+  url: string;
+  date_modified: string;
+  date_created: string;
+  date_deployed: string | null;
+  owner: string;
+  owner__username: string;
+  owner__email: string;
+  /** Full name */
+  owner__name: string;
+  owner__organization: string;
+  uid: string;
+  kind: string;
+  name: string;
+  settings: AssetSettings;
+  languages: Array<string | null>;
+  asset_type: string;
+  version_id: string;
+  version_count: number;
+  has_deployment: boolean;
+  deployed_version_id: string | null;
+  deployment__active: boolean;
+  deployment__submission_count: number;
+  permissions: string[];
+  status: string;
+  data_sharing: {};
+  data: string;
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
@@ -617,8 +654,9 @@ export interface AccountResponse {
     twitter: string;
     linkedin: string;
     instagram: string;
-    // JSON values are the backend reality, but we make make assumptions
-    [key: string]: Json;
+    project_views_settings: ProjectViewsSettings;
+    // JSON values are the backend reality, but we make assumptions
+    [key: string]: Json | ProjectViewsSettings;
   };
   git_rev: {
     short: string;
@@ -787,13 +825,15 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/me/`,
       method: 'PATCH',
-      data: data,
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
     });
   },
 
   listTemplates(): JQuery.jqXHR<AssetsResponse> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.t}`,
+      url: `${ROOT_URL}/api/v2/assets/` + (COMMON_QUERIES.t ? `?q=${COMMON_QUERIES.t}`: ''),
     });
   },
 

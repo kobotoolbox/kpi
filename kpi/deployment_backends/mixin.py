@@ -62,13 +62,25 @@ class DeployableMixin:
     def set_deployment(self, deployment: BaseDeploymentBackend):
         setattr(self, '__deployment_backend', deployment)
 
-    def _mark_latest_version_as_deployed(self):
-        """ `sync_kobocat_xforms` calls this, since it manipulates
+    def _mark_latest_version_as_deployed(self, save: bool = False):
+        """
+        `sync_kobocat_xforms` calls this, since it manipulates
         `_deployment_data` directly. Everything else should probably call
-        `deploy()` above """
+        `deploy()` above.
+
+        If `self.save()` is called after this method, it can be forced
+        to persist `date_deployed` in DB by settings the parameter `save`to True.
+        """
         latest_version = self.latest_version
         latest_version.deployed = True
         latest_version.save()
+        self.date_deployed = latest_version.date_modified
+        if save:
+            self.save(
+                update_fields=['date_deployed'],
+                create_version=False,
+                adjust_content=False,
+            )
 
     def __get_deployment_backend(self, backend: str) -> BaseDeploymentBackend:
         try:

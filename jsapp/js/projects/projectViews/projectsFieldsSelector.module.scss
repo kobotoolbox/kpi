@@ -1,0 +1,10 @@
+@use 'scss/sizes';
+
+.root {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.fields {
+  max-height: sizes.$x200;
+}

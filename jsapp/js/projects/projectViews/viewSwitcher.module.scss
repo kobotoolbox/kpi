@@ -1,0 +1,64 @@
+@use 'sass:color';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
+@use 'js/components/common/button';
+
+.root {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.root.isMenuVisible .trigger {
+  :global {
+    .k-icon {
+      color: colors.$kobo-blue;
+    }
+  }
+}
+
+.trigger {
+  @include mixins.buttonReset;
+  @include mixins.centerRowFlex;
+  font-size: sizes.$x20;
+  font-weight: 800;
+  color: colors.$kobo-gray-24;
+  padding: sizes.$x6 sizes.$x16;
+
+  :global {
+    .k-icon {
+      margin-left: sizes.$x5;
+    }
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+.menu {
+  display: block;
+  width: 100%;
+  min-width: sizes.$x300;
+  max-height: sizes.$x200;
+  max-width: sizes.$x300;
+  overflow-x: auto;
+  padding: sizes.$x20 0;
+  border-radius: button.$button-border-radius;
+  background-color: colors.$kobo-white;
+  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
+}
+
+.menuOption {
+  @include mixins.buttonReset;
+  @include mixins.textEllipsis;
+  font-size: sizes.$x16;
+  font-weight: 500;
+  padding: sizes.$x10 sizes.$x30;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    color: colors.$kobo-blue;
+  }
+}

@@ -1,6 +1,5 @@
 # coding: utf-8
 import csv
-import io
 import codecs
 from distutils import util
 from typing import Dict
@@ -9,7 +8,7 @@ from django.contrib import admin
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models, transaction
 from django.template.response import TemplateResponse
-from django.urls import path, include
+from django.urls import path
 
 
 from .transcription import (

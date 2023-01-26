@@ -169,7 +169,6 @@ class TestAssetSnapshotList(KpiTestCase):
             assert 'X-OpenRosa-Accept-Content-Length' in response
             assert 'X-OpenRosa-Version' in response
 
-
     def test_xml_renderer(self):
         """
         Make sure the API endpoint returns the same XML as the ORM

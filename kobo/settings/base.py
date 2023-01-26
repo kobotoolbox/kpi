@@ -118,6 +118,7 @@ INSTALLED_APPS = (
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',
+    'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
 )
