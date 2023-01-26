@@ -38,7 +38,7 @@ export const ANON_USERNAME = 'AnonymousUser';
 export type PermissionCodename =
   | 'add_submissions'
   | 'change_asset'
-  | 'change_metadata'
+  | 'change_metadata_asset'
   | 'change_submissions'
   | 'delete_submissions'
   | 'discover_asset'
@@ -94,7 +94,7 @@ export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
   // Is user able to change the validation status of submissions.
   validate_submissions: 'validate_submissions',
 
-  change_metadata: 'change_metadata',
+  change_metadata_asset: 'change_metadata_asset',
 };
 
 export const ENKETO_ACTIONS = createEnum([
