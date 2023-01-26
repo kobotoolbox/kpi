@@ -1,15 +1,18 @@
 # coding: utf-8
 from __future__ import annotations
 
+from typing import Union
+
 from django.db.models import Q
 from django_request_cache import cache_for_request
 
 from kobo.apps.project_views.models import ProjectView
+from kpi.utils.object_permission import get_database_user
 
 
 @cache_for_request
 def get_project_view_user_permissions_for_asset(
-    asset: 'models.Asset', user: 'auth.User'
+    asset: 'models.Asset', user: Union['auth.User', 'auth.AnonymousUser']
 ) -> list[str]:
     """
     Returns a flat list of permissions the user has available for a specified
@@ -17,6 +20,7 @@ def get_project_view_user_permissions_for_asset(
     """
 
     asset_countries = asset.settings.get('country_codes', [])
+    user = get_database_user(user)
 
     q = Q(countries__contains='*')
     for country in asset_countries:
@@ -31,7 +35,9 @@ def get_project_view_user_permissions_for_asset(
 
 @cache_for_request
 def user_has_project_view_asset_perm(
-    asset: 'models.Asset', user: 'auth.User', perm: str
+    asset: 'models.Asset',
+    user: Union['auth.User', 'auth.AnonymousUser'],
+    perm: str,
 ) -> bool:
     """
     Returns True if user has specified permission for asset within project view

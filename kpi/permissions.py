@@ -331,8 +331,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         specific to submissions)
         """
 
-        user_permissions = super()._get_user_permissions(
-            asset, user)
+        user_permissions = super()._get_user_permissions(asset, user)
 
         if PERM_PARTIAL_SUBMISSIONS in user_permissions:
             # Merge partial permissions with permissions to find out if there
@@ -344,12 +343,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
                     user_permissions + partial_perms
                 ))
 
-        return list(
-            set(
-                user_permissions
-                + get_project_view_user_permissions_for_asset(asset, user)
-            )
-        )
+        return user_permissions
 
 
 class AssetExportSettingsPermission(SubmissionPermission):
