@@ -1151,7 +1151,7 @@ class AssetFileTest(BaseTestCase):
         # verify the result
         self.asset.save()
         self.assertListEqual(
-            sorted(list(self.asset.get_perms(self.asset.owner))),
+            sorted(self.asset.get_perms(self.asset.owner)),
             sorted(
                 list(
                     self.asset.get_assignable_permissions(with_partial=False)
@@ -1289,7 +1289,7 @@ class AssetFileTest(BaseTestCase):
 
     def test_editor_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
@@ -1297,7 +1297,7 @@ class AssetFileTest(BaseTestCase):
 
     def test_editor_can_delete_file(self):
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
@@ -1312,7 +1312,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
@@ -1326,7 +1326,7 @@ class AssetFileTest(BaseTestCase):
 
         self.switch_user(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         response = self.client.post(self.list_url, self.asset_file_payload)
@@ -1347,7 +1347,7 @@ class AssetFileTest(BaseTestCase):
 
         self.switch_user(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         response = self.client.delete(detail_url)
@@ -1363,7 +1363,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
