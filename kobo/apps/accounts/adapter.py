@@ -3,7 +3,6 @@ from allauth.account.forms import SignupForm
 from constance import config
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
@@ -17,35 +16,29 @@ class AccountAdapter(DefaultAccountAdapter):
 
     def pre_login(self, request, user, **kwargs):
 
-        auth_method = (
-            get_mfa_model()
-            .objects.filter(is_active=True, user=user)
-            .first()
+        if not get_mfa_model().objects.filter(is_active=True, user=user).exists():
+            return super().pre_login(request, user, **kwargs)
+
+        ephemeral_token_cache = user_token_generator.make_token(user)
+        mfa_token_form = MfaTokenForm(
+            initial={'ephemeral_token': ephemeral_token_cache}
         )
-        if auth_method:
-            ephemeral_token_cache = user_token_generator.make_token(user)
-            mfa_token_form = MfaTokenForm(
-                initial={'ephemeral_token': ephemeral_token_cache}
-            )
-            next_url = kwargs.get(
-                'redirect_url', resolve_url(settings.LOGIN_REDIRECT_URL)
-            )
-            current_site = get_current_site(request)
-            context = {
-                REDIRECT_FIELD_NAME: next_url,
-                'site': current_site,
-                'site_name': current_site.name,
-                'view': MfaTokenView,
-                'form': mfa_token_form,
-            }
 
-            return TemplateResponse(
-                request=request,
-                template='mfa_token.html',
-                context=context,
-            )
+        next_url = (
+            kwargs.get('redirect_url')
+            or resolve_url(settings.LOGIN_REDIRECT_URL)
+        )
+        context = {
+            REDIRECT_FIELD_NAME: next_url,
+            'view': MfaTokenView,
+            'form': mfa_token_form,
+        }
 
-        return super().pre_login(request, user, **kwargs)
+        return TemplateResponse(
+            request=request,
+            template='mfa_token.html',
+            context=context,
+        )
 
     def is_open_for_signup(self, request):
         return config.REGISTRATION_OPEN

@@ -26,16 +26,11 @@ class MfaLoginForm(LoginForm):
         cleaned_data = super().clean(*args, **kwargs)
         # `super().clean()` initialize the object `self.user` with
         # the user object retrieved from authentication (if any)
-        auth_method = (
-            get_mfa_model()
-            .objects.filter(is_active=True, user=self.user)
-            .first()
-        )
         # Because we only support one 2FA method, we do not filter on
         # `is_primary` too (as django_trench does).
         # ToDo Figure out why `is_primary` is False sometimes after reactivating
         #  2FA
-        if auth_method:
+        if get_mfa_model().objects.filter(is_active=True, user=self.user).exists():
             self.ephemeral_token_cache = user_token_generator.make_token(
                 self.user
             )
