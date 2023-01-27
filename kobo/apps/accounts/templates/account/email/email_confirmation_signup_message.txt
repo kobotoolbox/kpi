@@ -1,13 +1,15 @@
 {% load i18n %}
-{% trans "Thanks for signing up with KoboToolbox!" %}
+{% blocktrans %}Thanks for signing up with KoboToolbox!{% endblocktrans %}
 
-{% trans "Confirming your account will give you access to KoboToolbox applications. Please visit the following URL to finish activation of your new account." %}
+{% blocktrans %}Confirming your account will give you access to KoboToolbox applications. Please visit the following URL to finish activation of your new account.{% endblocktrans %}
 
 {{ activate_url }}
 
-{% trans "Your username is: " %} {{ user }}
+{% blocktrans %}Your username is: {% endblocktrans %} {{ user }}
 
-{% trans "Please visit https://community.kobotoolbox.org/ to find information on how to get started. There you can also post questions to the community (recommended) or to us directly." %}
+{% blocktrans %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com" {% endblocktrans %}
 
-{% trans "Best," %}
+{% blocktrans %}You can also join the KoboToolbox community forum to ask questions, share solutions, and chat with thousands of users: https://community.kobotoolbox.org{% endblocktrans %}
+
+{% blocktrans %}Best,{% endblocktrans %}
 KoboToolbox
