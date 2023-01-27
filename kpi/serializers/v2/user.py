@@ -69,7 +69,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserListSerializer(UserSerializer):
-    mfa_is_active = serializers.SerializerMethodField()
     metadata = serializers.SerializerMethodField()
     asset_count = serializers.SerializerMethodField()
 
@@ -78,12 +77,10 @@ class UserListSerializer(UserSerializer):
             'id',
             'username',
             'is_superuser',
-            'is_staff',
             'date_joined',
             'last_login',
             'is_active',
             'email',
-            'mfa_is_active',
             'asset_count',
             'metadata',
         )
@@ -95,9 +92,3 @@ class UserListSerializer(UserSerializer):
         if not hasattr(user, 'extra_details'):
             return {}
         return user.extra_details.data
-
-    def get_mfa_is_active(self, user):
-        mfa_methods = user.mfa_methods.first()
-        if mfa_methods is None:
-            return False
-        return mfa_methods.is_active

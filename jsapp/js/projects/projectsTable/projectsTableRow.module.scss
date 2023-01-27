@@ -1,0 +1,144 @@
+@use 'sass:color';
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use 'scss/variables';
+@use 'scss/z-indexes';
+
+$projects-table-hover-bg: colors.$kobo-gray-98;
+
+.row {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: stretch;
+  cursor: pointer;
+  margin: 0 sizes.$x30;
+}
+
+.cell {
+  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  padding: sizes.$x18;
+  color: colors.$kobo-gray-40;
+  flex: 1 0 auto;
+  // ensures the table columns are same width for all rows
+  width: 10%;
+
+  > * {
+    cursor: inherit;
+  }
+
+  :global label {
+    cursor: inherit;
+  }
+
+  &[disabled] {
+    pointer-events: none;
+  }
+
+  &[data-field='countries'],
+  &[data-field='description'],
+  &[data-field='ownerEmail'],
+  &[data-field='ownerOrganization'],
+  &[data-field='status'],
+  &[data-field='submissions'] {
+    width: 12.5%;
+  }
+
+  &[data-field='countries'] {
+    width: 15%;
+
+    > *:not(:last-child) {
+      margin-right: sizes.$x5;
+    }
+  }
+
+  &[data-field='ownerFullName'],
+  &[data-field='ownerUsername'] {
+    width: 12.5%;
+    font-weight: 600;
+  }
+
+  &[data-field='dateModified'],
+  &[data-field='dateDeployed'] {
+    width: 18%;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  &[data-field='languages'] {
+    width: 15%;
+  }
+
+  &[data-field='name'] {
+    color: colors.$kobo-dark-blue;
+    font-size: sizes.$x16;
+    font-weight: 600;
+    width: 25%;
+  }
+
+  &[data-field='sector'] {
+    width: 15%;
+  }
+}
+
+.row.rowTypeProject {
+  .cell {
+    @include mixins.textEllipsis;
+    line-height: sizes.$x36;
+  }
+
+  &:hover .cell {
+    background-color: $projects-table-hover-bg;
+
+    &.cellHighlighted {
+      background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
+    }
+  }
+}
+
+.row.rowTypeHeader {
+  .cell {
+    @include mixins.centerRowFlex;
+    color: colors.$kobo-gray-40;
+    border-top: 0;
+    cursor: pointer;
+    height: sizes.$x36;
+    line-height: sizes.$x16;
+    padding-top: sizes.$x12;
+    padding-bottom: sizes.$x12;
+    background-color: colors.$kobo-white;
+
+    &:hover {
+      color: colors.$kobo-gray-14 !important;
+    }
+  }
+}
+
+.row.rowTypeMessage {
+  padding: sizes.$x40;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
+
+  .proTip {
+    font-size: 1rem;
+    margin-top: sizes.$x20;
+  }
+}
+
+.headerLabel {
+  font-weight: 700;
+  font-size: sizes.$x13;
+}
+
+// Highlighted columns:
+
+.row.rowTypeProject .cell.cellHighlighted {
+  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
+}
+
+.row.rowTypeHeader .cell.cellHighlighted {
+  background-color: colors.$kobo-light-blue;
+  color: colors.$kobo-dark-blue;
+}

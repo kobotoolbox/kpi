@@ -72,6 +72,7 @@ from ..exceptions import (
 )
 
 from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -340,6 +341,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    @property
+    def current_month_nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        today = datetime.today()
+        try:
+            monthly_nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('counters').get(
+                    asset_id=self.asset.id,
+                    year=today.year,
+                    month=today.month,
+                ).counters
+            )
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `monthly_nlp_tracking` type
+            return {}
+        else:
+            return monthly_nlp_tracking
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -849,6 +870,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+
+    @property
+    def nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        try:
+            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+                asset_id=self.asset.id
+            )
+            total_counters = {}
+            for nlp_counters in nlp_usage_counters:
+                counters = nlp_counters.counters
+                for key in counters.keys():
+                    if key not in total_counters:
+                        total_counters[key] = 0
+                    total_counters[key] += counters[key]
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict match `total_counters` type
+            return {}
+        else:
+            return total_counters
 
     def redeploy(self, active=None):
         """

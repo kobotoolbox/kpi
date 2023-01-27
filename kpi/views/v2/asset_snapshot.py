@@ -2,14 +2,15 @@
 import copy
 
 import requests
-from django.http import HttpResponseRedirect
 from django.conf import settings
-from rest_framework import renderers, serializers, status
+from django.http import HttpResponseRedirect, Http404
+from rest_framework import renderers, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
+from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -23,6 +24,10 @@ from kpi.renderers import (
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.object_permission import get_database_user
+from kpi.utils.project_views import (
+    user_has_project_view_asset_perm,
+)
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
@@ -45,13 +50,15 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     @property
     def asset(self):
-        asset_snapshot = self.get_object()
-        # Calling `snapshot.asset.__class__` instead of `Asset` to avoid circular
-        # import
-        asset_snapshot.asset = asset_snapshot.asset.__class__.objects.defer(
-            'content'
-        ).get(pk=asset_snapshot.asset_id)
-        return asset_snapshot.asset
+        if not hasattr(self, '_asset'):
+            asset_snapshot = self.get_object()
+            # Calling `snapshot.asset.__class__` instead of `Asset` to avoid circular
+            # import
+            asset_snapshot.asset = asset_snapshot.asset.__class__.objects.defer(
+                'content'
+            ).get(pk=asset_snapshot.asset_id)
+            setattr(self, '_asset', asset_snapshot.asset)
+        return self._asset
 
     def filter_queryset(self, queryset):
         if (
@@ -97,6 +104,34 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         serializer = FormListSerializer([snapshot], many=True, context=context)
 
         return Response(serializer.data, headers=self.get_headers())
+
+    def get_object(self):
+        try:
+            # Trivial case, try access the object with normal flow
+            snapshot = super().get_object()
+        except Http404 as e:
+            # If 404, fall back on project view permissions
+            try:
+                snapshot = self.queryset.select_related('asset').defer(
+                    'asset__content'
+                ).get(uid=self.kwargs[self.lookup_field])
+            except AssetSnapshot.DoesNotExist:
+                raise e
+
+            user = get_database_user(self.request.user)
+
+            if (
+                self.request.method == 'GET'
+                and user_has_project_view_asset_perm(
+                    snapshot.asset, user, PERM_VIEW_ASSET
+                )
+            ):
+                return snapshot
+            else:
+                # Access to user is still denied, raise 404
+                raise Http404
+        else:
+            return snapshot
 
     @action(
         detail=True,

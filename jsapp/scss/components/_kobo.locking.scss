@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 // All custom Locking feature styles gathered in one place
 
 .locking__ui-disabled {
@@ -15,35 +17,35 @@
   .card__settings,
   .card--selectquestion__expansion,
   .params-view__simple-wrapper {
-    background-color: $kobo-gray-96;
+    background-color: colors.$kobo-gray-96;
   }
 
   .question__tags::after,
   .card__settings::after,
   .card--selectquestion__expansion::after {
-    border-bottom-color: $kobo-gray-96;
+    border-bottom-color: colors.$kobo-gray-96;
   }
 
   .card__addoptions__layer {
-    background-color: rgba($kobo-gray-96, 0.5);
+    background-color: rgba(colors.$kobo-gray-96, 0.5);
   }
 }
 
 .locking__level-1 {
   .card__header-icon {
-    color: $kobo-dark-blue;
+    color: colors.$kobo-dark-blue;
   }
 }
 
 .locking__level-2 {
   .card__header-icon {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 }
 
 .locking__level-3-plus {
   .card__header-icon {
-    color: $kobo-teal;
+    color: colors.$kobo-teal;
   }
 }
 
@@ -96,12 +98,12 @@
 
     &.locked-features__list--cans {
       .k-icon {
-        color: $kobo-green;
+        color: colors.$kobo-green;
       }
     }
     &.locked-features__list--cants {
       .k-icon {
-        color: $kobo-red;
+        color: colors.$kobo-red;
       }
     }
   }

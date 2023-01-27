@@ -20,10 +20,14 @@ def standardize_fields(apps, schema_editor):
             """
             This might take a while. If it is too slow, you may want to re-run the
             migration with SKIP_HEAVY_MIGRATIONS=True and run the management command
-            (populate_assetversions) to prepare the versions.
+            (standardize_searchable_fields) to standardize fields.
             """
         )
         call_command('standardize_searchable_fields')
+
+
+def noop(apps, schema_editor):
+    pass
 
 
 class Migration(migrations.Migration):
@@ -33,8 +37,6 @@ class Migration(migrations.Migration):
     ]
 
     # allow this command to be run backwards
-    def noop(apps, schema_editor):
-        pass
 
     operations = [
         migrations.RunPython(
