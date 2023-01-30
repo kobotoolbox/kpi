@@ -20,7 +20,7 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
-    PERM_CHANGE_METADATA,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
@@ -41,7 +41,7 @@ from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     get_perm_name,
-    IsOwnerOrReadOnly,
+    AssetPermission,
     PostMappedToChangePermission,
     ReportPermission,
 )
@@ -310,7 +310,7 @@ class AssetViewSet(
 
     lookup_field = 'uid'
     pagination_class = AssetPagination
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = (AssetPermission,)
     ordering_fields = [
         'asset_type',
         'date_modified',
@@ -348,14 +348,8 @@ class AssetViewSet(
             except Asset.DoesNotExist:
                 raise Http404
 
-            user = get_database_user(self.request.user)
-
-            # Bypass the usual permissions checks since project view-level
-            # permissions are not assigned on a per-asset basis as it expects
-            if user_has_project_view_asset_perm(
-                asset, user, PERM_CHANGE_METADATA
-            ) or user_has_project_view_asset_perm(asset, user, PERM_VIEW_ASSET):
-                return asset
+            self.check_object_permissions(self.request, asset)
+            return asset
 
         return super().get_object()
 

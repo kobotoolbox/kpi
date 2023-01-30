@@ -150,5 +150,3 @@ router_api_v2.register(r'project-views', ProjectViewViewSet)
 # router_api_v2.register(r'authorized_application/users',
 #                        AuthorizedApplicationUserViewSet,
 #                        basename='authorized_applications')
-# router_api_v2.register(r'authorized_application/one_time_authentication_keys',
-#                        OneTimeAuthenticationKeyViewSet)

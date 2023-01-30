@@ -6,10 +6,9 @@ from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
-from hub.models import ExtraUserDetail
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
-    PERM_CHANGE_METADATA,
+    PERM_CHANGE_METADATA_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -119,6 +118,38 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         # Because authentication checks has already executed via
         # `has_permission()`, always return True.
         return True
+
+
+class AssetPermission(permissions.DjangoObjectPermissions):
+
+    # Setting this to False allows real permission checking on AnonymousUser.
+    # With the default of True, anonymous requests are categorically rejected.
+    authenticated_users_only = False
+
+    perms_map = permissions.DjangoObjectPermissions.perms_map.copy()
+    perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+
+    def has_object_permission(self, request, view, obj):
+
+        user = get_database_user(request.user)
+        # When calling the endpoint with the API renderer, it calls this method
+        # for each method declared in `perms_maps`. To detect the real method,
+        # we need to access `request._request.method`
+        method = request._request.method
+        if (
+            method == 'PATCH'
+            and user_has_project_view_asset_perm(
+                obj, user, PERM_CHANGE_METADATA_ASSET
+            )
+        ) or (
+            method == 'GET'
+            and user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
+        ):
+            return True
+
+        return super().has_object_permission(request, view, obj)
 
 
 class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
@@ -236,33 +267,16 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
 
 
 # FIXME: Name is no longer accurate.
-class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
+class IsOwnerOrReadOnly(AssetPermission):
     """
     Custom permission to only allow owners of an object to edit it.
     """
 
-    # Setting this to False allows real permission checking on AnonymousUser.
-    # With the default of True, anonymous requests are categorically rejected.
-    authenticated_users_only = False
-
-    perms_map = permissions.DjangoObjectPermissions.perms_map.copy()
-    perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-
     def has_object_permission(self, request, view, obj):
-        #TODO: revisit this with kpi#4194
-        user = get_database_user(request.user)
-        method = request._request.method
-        if (
-            user_has_project_view_asset_perm(obj, user, PERM_CHANGE_METADATA)
-            and method == 'PATCH'
-        ) or (
-            user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
-            and method == 'GET'
-        ):
-            return True
-        return super().has_object_permission(request, view, obj)
+
+        return super(AssetPermission, self).has_object_permission(
+            request, view, obj
+        )
 
 
 class PostMappedToChangePermission(IsOwnerOrReadOnly):
@@ -277,7 +291,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
 class ReportPermission(IsOwnerOrReadOnly):
     def has_object_permission(self, request, view, obj):
         # Checks if the user has the required permissions
-        # To access the submission data in reports
+        # to access the submission data in reports
         user = get_database_user(request.user)
         if user.is_superuser:
             return True
@@ -286,6 +300,10 @@ class ReportPermission(IsOwnerOrReadOnly):
             PERM_VIEW_SUBMISSIONS,
             PERM_PARTIAL_SUBMISSIONS,
         ]
+
+        if PERM_VIEW_ASSET not in permissions:
+            raise Http404
+
         return any(
             perm in permissions for perm in required_permissions
         )

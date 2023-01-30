@@ -106,7 +106,7 @@ class FormViewTabs extends Reflux.Component {
       !(
         sessionStore.isLoggedIn && (
           this.userCan('change_asset', this.state.asset) ||
-          this.userCan('change_metadata', this.state.asset)
+          this.userCan('change_metadata_asset', this.state.asset)
         )
       )
     ) {

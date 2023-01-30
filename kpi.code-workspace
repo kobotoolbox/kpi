@@ -1,0 +1,48 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      "editorconfig.editorconfig",      // EditorConfig
+
+      // Linters and Formatters
+      "ms-python.black-formatter",      // Black (also installs MS Pylance)*
+      "dbaeumer.vscode-eslint",         // ESLint
+      "rvest.vs-code-prettier-eslint",  // Prettier
+      "stylelint.vscode-stylelint",     // Stylelint
+      "freewil.vscode-coffeelint2",     // Coffeelint
+
+      // Status Bar Toggle for Format and AutoFix on Save
+      "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
+
+      // Syntax Support
+      "almahdi.code-django", // Django templates
+    ]
+  },
+  "settings": {
+    // Black
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+
+    // Prettier
+    "[typescript][typescriptreact][javascript][javascriptreact]": {
+      "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    },
+
+    // Stylelint
+    "stylelint.validate": ["css", "scss"],
+    "css.validate": false,
+    "scss.validate": false,
+
+    // Formatting Toggle
+    "formattingToggle.affects": [
+      "editor.formatOnSave",
+      "editor.codeActionsOnSave.source.fixAll.eslint",
+      "editor.codeActionsOnSave.source.fixAll.stylelint",
+    ],
+  },
+}
