@@ -16,29 +16,35 @@ class AccountAdapter(DefaultAccountAdapter):
 
     def pre_login(self, request, user, **kwargs):
 
-        if not get_mfa_model().objects.filter(is_active=True, user=user).exists():
-            return super().pre_login(request, user, **kwargs)
+        if parent_response := super().pre_login(request, user, **kwargs):
+            # A response from the parent means the login process must be
+            # interrupted, e.g. due to the user being inactive or not having
+            # validated their email address
+            return parent_response
 
-        ephemeral_token_cache = user_token_generator.make_token(user)
-        mfa_token_form = MfaTokenForm(
-            initial={'ephemeral_token': ephemeral_token_cache}
-        )
+        # If MFA is activated, display the token form before let them in
+        if get_mfa_model().objects.filter(is_active=True, user=user).exists():
 
-        next_url = (
-            kwargs.get('redirect_url')
-            or resolve_url(settings.LOGIN_REDIRECT_URL)
-        )
-        context = {
-            REDIRECT_FIELD_NAME: next_url,
-            'view': MfaTokenView,
-            'form': mfa_token_form,
-        }
+            ephemeral_token_cache = user_token_generator.make_token(user)
+            mfa_token_form = MfaTokenForm(
+                initial={'ephemeral_token': ephemeral_token_cache}
+            )
 
-        return TemplateResponse(
-            request=request,
-            template='mfa_token.html',
-            context=context,
-        )
+            next_url = (
+                kwargs.get('redirect_url')
+                or resolve_url(settings.LOGIN_REDIRECT_URL)
+            )
+            context = {
+                REDIRECT_FIELD_NAME: next_url,
+                'view': MfaTokenView,
+                'form': mfa_token_form,
+            }
+
+            return TemplateResponse(
+                request=request,
+                template='mfa_token.html',
+                context=context,
+            )
 
     def is_open_for_signup(self, request):
         return config.REGISTRATION_OPEN
