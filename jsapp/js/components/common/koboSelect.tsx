@@ -8,7 +8,7 @@ import type {IconSize} from 'js/components/common/icon';
 import Icon from 'js/components/common/icon';
 import type {ButtonSize} from 'js/components/common/button';
 import {ButtonToIconMap} from 'js/components/common/button';
-import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './koboSelect.scss';
 
@@ -328,7 +328,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       <bem.KoboSelect m={modifiers}>
         <KoboDropdown
           name={this.props.name}
-          placement={KoboDropdownPlacements['down-center']}
+          placement={'down-center'}
           isDisabled={Boolean(this.props.isDisabled)}
           hideOnMenuClick
           triggerContent={this.renderTrigger()}

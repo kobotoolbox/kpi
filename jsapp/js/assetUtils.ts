@@ -299,7 +299,7 @@ export function getAssetIcon(asset: AssetResponse) {
 /**
  * Opens a modal for editing asset details.
  */
-export function modifyDetails(asset: AssetResponse | ProjectViewAsset) {
+export function modifyDetails(asset: AssetResponse) {
   let modalType;
   if (asset.asset_type === ASSET_TYPES.template.id) {
     modalType = MODAL_TYPES.LIBRARY_TEMPLATE;

@@ -3,9 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
-import KoboDropdown, {
-  KoboDropdownPlacements,
-} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
 import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
@@ -55,7 +53,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     >
       <KoboDropdown
         name='projects_view_switcher'
-        placement={KoboDropdownPlacements['down-left']}
+        placement={'down-left'}
         hideOnMenuClick
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={

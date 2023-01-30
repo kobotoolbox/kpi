@@ -1,15 +1,14 @@
 import React from 'react';
-import {ComponentStory, ComponentMeta} from '@storybook/react';
-import KoboDropdown, {
-  KoboDropdownPlacements,
-} from 'js/components/common/koboDropdown';
+import type {ComponentStory, ComponentMeta} from '@storybook/react';
+import KoboDropdown from 'js/components/common/koboDropdown';
+import type {KoboDropdownPlacement} from 'js/components/common/koboDropdown';
 
 export default {
   title: 'common/KoboDropdown',
   component: KoboDropdown,
   argTypes: {
     placement: {
-      options: KoboDropdownPlacements,
+      options: ['down-center', 'down-left', 'down-right', 'up-center', 'up-left', 'up-right'],
       control: {type: 'select'},
     },
     isDisabled: {
@@ -25,7 +24,7 @@ const Template: ComponentStory<typeof KoboDropdown> = (args) => (
 export const Primary = Template.bind({});
 Primary.args = {
   name: 'kobo-dropdown-demo',
-  placement: KoboDropdownPlacements['down-center'],
+  placement: 'down-center',
   triggerContent: 'click me',
   menuContent: (
     <ol>
