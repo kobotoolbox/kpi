@@ -58,7 +58,7 @@ if SESSION_COOKIE_DOMAIN:
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
-SESSION_COOKIE_AGE = 604800
+SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
