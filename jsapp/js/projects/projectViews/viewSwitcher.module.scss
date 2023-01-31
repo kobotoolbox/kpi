@@ -2,7 +2,6 @@
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 @use 'scss/mixins';
-@use 'js/components/common/button';
 
 .root {
   display: inline-block;
@@ -37,6 +36,7 @@
 }
 
 .menu {
+  @include mixins.floatingRoundedBox;
   display: block;
   width: 100%;
   min-width: sizes.$x300;
@@ -44,9 +44,6 @@
   max-width: sizes.$x300;
   overflow-x: auto;
   padding: sizes.$x20 0;
-  border-radius: button.$button-border-radius;
-  background-color: colors.$kobo-white;
-  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
 }
 
 .menuOption {

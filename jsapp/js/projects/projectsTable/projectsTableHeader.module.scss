@@ -38,9 +38,7 @@
 }
 
 .dropdownContent {
-  background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
-  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
+  @include mixins.floatingRoundedBox;
   padding: sizes.$x10;
   min-width: sizes.$x120;
 
