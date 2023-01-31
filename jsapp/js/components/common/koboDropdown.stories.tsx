@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import KoboDropdown from 'js/components/common/koboDropdown';
-import type {KoboDropdownPlacement} from 'js/components/common/koboDropdown';
 
 export default {
   title: 'common/KoboDropdown',

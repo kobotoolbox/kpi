@@ -10,9 +10,7 @@ import rowStyles from './projectsTableRow.module.scss';
 import styles from './projectsTableHeader.module.scss';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
-import KoboDropdown, {
-  KoboDropdownPlacements,
-} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
 
 interface ProjectsTableHeaderProps {
@@ -51,7 +49,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       >
         <KoboDropdown
           name={field.name}
-          placement={KoboDropdownPlacements['down-center']}
+          placement={'down-center'}
           hideOnMenuClick
           onMenuVisibilityChange={(isVisible: boolean) => {
             let newVisibleMenuNames = Array.from(visibleMenuNames);
