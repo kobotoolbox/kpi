@@ -8,7 +8,6 @@ import Dropzone from 'react-dropzone';
 import Button from 'js/components/common/button';
 import clonedeep from 'lodash.clonedeep';
 import TextBox from 'js/components/common/textBox';
-import Checkbox from 'js/components/common/checkbox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -37,6 +36,7 @@ import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
 import {withRouter} from 'js/router/legacy';
+import {userCan} from 'js/components/permissions/utils';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -1009,7 +1009,7 @@ class ProjectSettings extends React.Component {
             </bem.Modal__footer>
           }
 
-          {this.userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+          {userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
@@ -1115,7 +1115,6 @@ class ProjectSettings extends React.Component {
 }
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
-reactMixin(ProjectSettings.prototype, mixins.permissions);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);

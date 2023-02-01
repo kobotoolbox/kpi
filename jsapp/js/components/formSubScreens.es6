@@ -172,7 +172,6 @@ export class FormSubScreens extends React.Component {
 
 reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
 reactMixin(FormSubScreens.prototype, mixins.dmix);
-reactMixin(FormSubScreens.prototype, mixins.permissions);
 reactMixin(FormSubScreens.prototype, mixins.contextRouter);
 
 FormSubScreens.contextTypes = {
