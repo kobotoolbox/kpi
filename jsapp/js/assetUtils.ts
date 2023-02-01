@@ -1,3 +1,8 @@
+/**
+ * This file contains different methods for filtering and understanding asset's
+ * data. Most of these are helpers for rendering information in UI.
+ */
+
 import React from 'react';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
@@ -294,66 +299,6 @@ export function getAssetIcon(asset: AssetResponse) {
     default:
       return 'k-icon k-icon-project';
   }
-}
-
-/**
- * Opens a modal for editing asset details.
- */
-export function modifyDetails(asset: AssetResponse) {
-  let modalType;
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    modalType = MODAL_TYPES.LIBRARY_COLLECTION;
-  }
-  if (modalType) {
-    stores.pageState.showModal({
-      type: modalType,
-      asset: asset,
-    });
-  } else {
-    throw new Error(`Unsupported asset type: ${asset.asset_type}.`);
-  }
-}
-
-/**
- * Opens a modal for sharing asset.
- */
-export function share(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.SHARING,
-    assetid: asset.uid,
-  });
-}
-
-/**
- * Opens a modal for modifying asset languages and translation strings.
- */
-export function editLanguages(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for modifying asset tags (also editable in Details Modal).
- */
-export function editTags(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for replacing an asset using a file.
- */
-export function replaceForm(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset,
-  });
 }
 
 export type SurveyFlatPaths = {
@@ -807,8 +752,6 @@ export function isAssetProcessingActivated(assetUid: string) {
 export default {
   buildAssetUrl,
   cleanupTags,
-  editLanguages,
-  editTags,
   getAssetDisplayName,
   getAssetIcon,
   getAssetOwnerDisplayName,
@@ -827,10 +770,7 @@ export default {
   isLibraryAsset,
   isRowSpecialLabelHolder,
   isSelfOwned,
-  modifyDetails,
   renderQuestionTypeIcon,
-  replaceForm,
-  share,
   removeInvalidChars,
   getAssetAdvancedFeatures,
   getAssetProcessingUrl,

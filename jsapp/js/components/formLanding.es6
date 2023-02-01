@@ -28,6 +28,7 @@ import {
   Link,
 } from 'react-router-dom';
 import {withRouter} from 'js/router/legacy';
+import {userCanRemoveSharedProject} from 'js/components/permissions/utils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -495,7 +496,7 @@ class FormLanding extends React.Component {
 
           {(
             isLoggedIn &&
-            this.userCanRemoveSharedProject(this.state)
+            userCanRemoveSharedProject(this.state)
           ) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
