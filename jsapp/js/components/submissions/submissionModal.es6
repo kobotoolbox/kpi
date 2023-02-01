@@ -20,6 +20,7 @@ import {
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
+import {isSubmissionWritable} from 'js/components/permissions/utils';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
@@ -305,7 +306,7 @@ class SubmissionModal extends React.Component {
           <bem.FormModal__group>
             <div className='submission-duplicate__actions'>
               {(this.userCan('change_submissions', this.props.asset) ||
-                this.isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)) &&
+                isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.launchEditSubmission.bind(this)}
                   className='kobo-button kobo-button--blue'
@@ -317,7 +318,7 @@ class SubmissionModal extends React.Component {
               }
 
               {(this.userCan('delete_submissions', this.props.asset) ||
-                this.isSubmissionWritable('delete_submissions', this.props.asset, this.state.submission)) &&
+                isSubmissionWritable('delete_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.deleteSubmission}
                   className='kobo-button kobo-button--red submission-duplicate__button'
@@ -350,7 +351,7 @@ class SubmissionModal extends React.Component {
                 <Select
                   isDisabled={!(
                     this.userCan('validate_submissions', this.props.asset) ||
-                    this.isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
+                    isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
                   )}
                   isClearable={false}
                   value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
@@ -423,7 +424,7 @@ class SubmissionModal extends React.Component {
                 <Select
                   isDisabled={!(
                     this.userCan('validate_submissions', this.props.asset) ||
-                    this.isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
+                    isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
                   )}
                   isClearable={false}
                   value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
@@ -497,7 +498,7 @@ class SubmissionModal extends React.Component {
               />
 
               {(this.userCan('change_submissions', this.props.asset) ||
-                this.isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)) &&
+                isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.launchEditSubmission.bind(this)}
                   className='kobo-button kobo-button--blue submission-duplicate__button'
@@ -510,7 +511,7 @@ class SubmissionModal extends React.Component {
 
               {(
                 this.userCan('view_submissions', this.props.asset) ||
-                this.isSubmissionWritable('view_submissions', this.props.asset, this.state.submission)
+                isSubmissionWritable('view_submissions', this.props.asset, this.state.submission)
               ) &&
                 <a
                   onClick={this.launchViewSubmission.bind(this)}
@@ -524,7 +525,7 @@ class SubmissionModal extends React.Component {
 
               {(
                 this.userCan('change_submissions', this.props.asset) ||
-                this.isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)
+                isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)
               ) &&
                 <a
                   onClick={this.duplicateSubmission.bind(this)}
@@ -545,7 +546,7 @@ class SubmissionModal extends React.Component {
               </bem.Button>
 
               {(this.userCan('delete_submissions', this.props.asset) ||
-                this.isSubmissionWritable('delete_submissions', this.props.asset, this.state.submission)) &&
+                isSubmissionWritable('delete_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.deleteSubmission}
                   className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
