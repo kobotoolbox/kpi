@@ -7,7 +7,6 @@ import Select from 'react-select';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
-import mixins from 'js/mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'utils';
@@ -21,6 +20,7 @@ import {
 import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 import {isSubmissionWritable} from 'js/components/permissions/utils';
+import {userCan} from 'js/components/permissions/utils';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
@@ -305,7 +305,7 @@ class SubmissionModal extends React.Component {
           </p>
           <bem.FormModal__group>
             <div className='submission-duplicate__actions'>
-              {(this.userCan('change_submissions', this.props.asset) ||
+              {(userCan('change_submissions', this.props.asset) ||
                 isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.launchEditSubmission.bind(this)}
@@ -317,7 +317,7 @@ class SubmissionModal extends React.Component {
                 </a>
               }
 
-              {(this.userCan('delete_submissions', this.props.asset) ||
+              {(userCan('delete_submissions', this.props.asset) ||
                 isSubmissionWritable('delete_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.deleteSubmission}
@@ -350,7 +350,7 @@ class SubmissionModal extends React.Component {
                 <label>{t('Validation status:')}</label>
                 <Select
                   isDisabled={!(
-                    this.userCan('validate_submissions', this.props.asset) ||
+                    userCan('validate_submissions', this.props.asset) ||
                     isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
                   )}
                   isClearable={false}
@@ -423,7 +423,7 @@ class SubmissionModal extends React.Component {
                 <label>{t('Validation status:')}</label>
                 <Select
                   isDisabled={!(
-                    this.userCan('validate_submissions', this.props.asset) ||
+                    userCan('validate_submissions', this.props.asset) ||
                     isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
                   )}
                   isClearable={false}
@@ -497,7 +497,7 @@ class SubmissionModal extends React.Component {
                 label={t('Display XML names')}
               />
 
-              {(this.userCan('change_submissions', this.props.asset) ||
+              {(userCan('change_submissions', this.props.asset) ||
                 isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.launchEditSubmission.bind(this)}
@@ -510,7 +510,7 @@ class SubmissionModal extends React.Component {
               }
 
               {(
-                this.userCan('view_submissions', this.props.asset) ||
+                userCan('view_submissions', this.props.asset) ||
                 isSubmissionWritable('view_submissions', this.props.asset, this.state.submission)
               ) &&
                 <a
@@ -524,7 +524,7 @@ class SubmissionModal extends React.Component {
               }
 
               {(
-                this.userCan('change_submissions', this.props.asset) ||
+                userCan('change_submissions', this.props.asset) ||
                 isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)
               ) &&
                 <a
@@ -545,7 +545,7 @@ class SubmissionModal extends React.Component {
                 <i className='k-icon k-icon-print' />
               </bem.Button>
 
-              {(this.userCan('delete_submissions', this.props.asset) ||
+              {(userCan('delete_submissions', this.props.asset) ||
                 isSubmissionWritable('delete_submissions', this.props.asset, this.state.submission)) &&
                 <a
                   onClick={this.deleteSubmission}
@@ -571,6 +571,5 @@ class SubmissionModal extends React.Component {
 }
 
 reactMixin(SubmissionModal.prototype, Reflux.ListenerMixin);
-reactMixin(SubmissionModal.prototype, mixins.permissions);
 
 export default SubmissionModal;

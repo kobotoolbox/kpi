@@ -1,7 +1,6 @@
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
 import assetStore from 'js/assetStore';
-import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/router/routerUtils';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
@@ -16,6 +15,7 @@ import type {
   AssetTableSettings,
   AssetSettings,
 } from 'js/dataInterface';
+import {userCan} from 'js/components/permissions/utils';
 
 interface TableStoreData {
   overrides: AssetTableSettings;
@@ -90,7 +90,7 @@ class TableStore extends Reflux.Store {
     }
 
     // Case 1: use can save, so we call the endpoint
-    if (asset && mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
+    if (asset && userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
       // Cleanup all `null` settings, as we don't want to store `null`s and `null`
       // means "delete setting"
       const tableSettings = newSettings['data-table'];

@@ -23,7 +23,6 @@ import {
   ASSET_TYPES,
   PERMISSIONS_CODENAMES,
 } from './constants';
-import type {PermissionCodename} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
@@ -49,7 +48,7 @@ import type {
 import {getRouteAssetUid} from 'js/router/routerUtils';
 import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
 import {history} from 'js/router/historyRouter';
-import {userCan, userCanPartially} from 'js/components/permissions/utils';
+import {userCan} from 'js/components/permissions/utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -57,9 +56,6 @@ interface MixinsObject {
   contextRouter: {
     [functionName: string]: Function;
     context?: any;
-  };
-  permissions: {
-    [functionName: string]: Function;
   };
   clickAssets: {
     onActionButtonClick: Function;
@@ -88,7 +84,6 @@ interface MixinsObject {
 
 const mixins: MixinsObject = {
   contextRouter: {},
-  permissions: {},
   clickAssets: {
     onActionButtonClick: Function.prototype,
     click: {asset: {}},
@@ -623,7 +618,7 @@ mixins.clickAssets = {
               const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
               canAddToParent = (
                 typeof foundParentAsset !== 'undefined' &&
-                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
+                userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
               );
             }
 
@@ -881,18 +876,6 @@ mixins.clickAssets = {
       },
 
     },
-  },
-};
-
-mixins.permissions = {
-  /** DEPRECATED: please use `js/components/permissions/utils.ts` function. */
-  userCan(permName: PermissionCodename, asset?: AssetResponse, partialPermName: PermissionCodename | null = null) {
-    userCan(permName, asset, partialPermName);
-  },
-
-  /** DEPRECATED: please use `js/components/permissions/utils.ts` function. */
-  userCanPartially(permName: PermissionCodename, asset: AssetResponse) {
-    userCanPartially(permName, asset);
   },
 };
 
