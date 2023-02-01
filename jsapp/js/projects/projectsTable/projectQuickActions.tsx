@@ -1,5 +1,4 @@
 import React from 'react';
-import mixins from 'js/mixins';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import {ASSET_TYPES} from 'js/constants';
 import Button from 'js/components/common/button';
@@ -20,6 +19,7 @@ import {
 } from 'jsapp/js/assetQuickActions';
 import {downloadUrl} from 'jsapp/js/utils';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import {userCan} from 'jsapp/js/components/permissions/utils';
 
 interface ProjectQuickActionsProps {
   asset: AssetResponse | ProjectViewAsset;
@@ -28,7 +28,7 @@ interface ProjectQuickActionsProps {
 export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
   console.log('ProjectQuickActions', props);
 
-  const userCanEdit = mixins.permissions.userCan('change_asset', props.asset);
+  const userCanEdit = userCan('change_asset', props.asset);
 
   return (
     <div className={styles.root}>
