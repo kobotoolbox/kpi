@@ -560,6 +560,7 @@ export interface AssetResponse extends AssetRequestObject {
 /** This is the asset object returned by project-views endpoint. */
 export interface ProjectViewAsset {
   url: string;
+  asset_type: AssetTypeName;
   date_modified: string;
   date_created: string;
   date_deployed: string | null;

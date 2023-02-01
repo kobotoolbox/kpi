@@ -26,6 +26,6 @@ export namespace stores {
     isLoggedIn: boolean
   }
   const allAssets: any
-  const selectedAsset: any
+
   const userExists: any
 }

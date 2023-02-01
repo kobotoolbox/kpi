@@ -1,0 +1,12 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+@use 'scss/mixins';
+
+.root {
+  @include mixins.centerRowFlex;
+}
+
+.menu {
+  @include mixins.floatingRoundedBox;
+}
+

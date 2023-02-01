@@ -21,7 +21,8 @@ import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
-import ProjectsActionButtons from './projectsTable/projectsActionButtons';
+import ProjectBulkActions from './projectsTable/projectBulkActions';
+import ProjectQuickActions from './projectsTable/projectQuickActions';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -72,6 +73,8 @@ function CustomViewRoute() {
     }
   };
 
+  const selectedAssets = customView.assets.filter((asset) => selectedRows.includes(asset.uid));
+
   return (
     <section className={styles.root}>
       <header className={styles.header}>
@@ -96,7 +99,12 @@ function CustomViewRoute() {
           onClick={exportAllData}
         />
 
-        <ProjectsActionButtons asset={customView.assets[0]}/>
+        {selectedAssets.length === 1 &&
+          <ProjectQuickActions asset={selectedAssets[0]}/>
+        }
+        {selectedAssets.length > 1 &&
+          <ProjectBulkActions assets={selectedAssets}/>
+        }
       </header>
 
       <ProjectsTable

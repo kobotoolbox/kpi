@@ -17,6 +17,8 @@ import customViewStore from './customViewStore';
 import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
+import ProjectBulkActions from './projectsTable/projectBulkActions';
+import ProjectQuickActions from './projectsTable/projectQuickActions';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
@@ -41,6 +43,8 @@ function MyProjectsRoute() {
     return outcome;
   };
 
+  const selectedAssets = customView.assets.filter((asset) => selectedRows.includes(asset.uid));
+
   return (
     <section className={styles.root}>
       <header className={styles.header}>
@@ -55,6 +59,13 @@ function MyProjectsRoute() {
           onFieldsChange={customView.setFields.bind(customView)}
           selectedFields={toJS(customView.fields)}
         />
+
+        {selectedAssets.length === 1 &&
+          <ProjectQuickActions asset={selectedAssets[0]}/>
+        }
+        {selectedAssets.length > 1 &&
+          <ProjectBulkActions assets={selectedAssets}/>
+        }
       </header>
 
       <ProjectsTable
