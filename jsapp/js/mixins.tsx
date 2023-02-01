@@ -40,7 +40,14 @@ import type {
 import {getRouteAssetUid} from 'js/router/routerUtils';
 import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
 import {history} from 'js/router/historyRouter';
-import {archiveAsset, unarchiveAsset, deleteAsset, cloneAssetAsTemplate, removeAssetSharing, deployAsset} from 'js/assetQuickActions';
+import {
+  archiveAsset,
+  unarchiveAsset,
+  deleteAsset,
+  cloneAssetAsTemplate,
+  removeAssetSharing,
+  deployAsset,
+} from 'js/assetQuickActions';
 import {userCan, userCanPartially} from 'js/components/permissions/utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
