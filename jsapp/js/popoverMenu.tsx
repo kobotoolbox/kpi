@@ -13,9 +13,9 @@ interface PopoverMenuProps {
   type?: string;
   additionalModifiers?: string[];
   /** the element that will be opening the menu, menu will be placed in relation to it */
-  triggerLabel: JSX.Element;
+  triggerLabel: React.ReactNode;
   /** content of the menu, can be anything really */
-  children: JSX.Element[];
+  children?: React.ReactNode;
 }
 
 interface PopoverMenuState {

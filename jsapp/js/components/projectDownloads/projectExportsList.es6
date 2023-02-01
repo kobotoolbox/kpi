@@ -1,7 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
-import mixins from 'js/mixins';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
@@ -15,6 +14,7 @@ import {
 } from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
+import {userCan} from 'js/components/permissions/utils';
 
 /**
  * Component that displays all available downloads (for logged in user only).
@@ -232,7 +232,7 @@ export default class ProjectExportsList extends React.Component {
             <span className='animate-processing'>{t('Processing…')}</span>
           }
 
-          {mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
+          {userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
             <bem.KoboLightButton
               m={['red', 'icon-only']}
               onClick={this.deleteExport.bind(this, exportData.uid)}

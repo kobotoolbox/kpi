@@ -3,11 +3,19 @@ import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'js/utils';
 import {ANON_USERNAME, PERMISSIONS_CODENAMES} from 'js/constants';
 import type {PermissionCodename} from 'js/constants';
-import type {AssetResponse, Permission, SubmissionResponse} from 'js/dataInterface';
+import type {
+  AssetResponse,
+  Permission,
+  SubmissionResponse,
+} from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
 
 /** For `.find`-ing the permissions */
-function _doesPermMatch(perm: Permission, permName: string, partialPermName: string | null = null) {
+function _doesPermMatch(
+  perm: Permission,
+  permName: string,
+  partialPermName: string | null = null
+) {
   // Case 1: permissions don't match, stop looking
   if (perm.permission !== permConfig.getPermissionByCodename(permName)?.url) {
     return false;
@@ -24,7 +32,11 @@ function _doesPermMatch(perm: Permission, permName: string, partialPermName: str
   }
 
   // Case 3b: we are looking for partial permission, check if there are some that match
-  return perm.partial_permissions?.some((partialPerm) => partialPerm.url === permConfig.getPermissionByCodename(partialPermName)?.url);
+  return perm.partial_permissions?.some(
+    (partialPerm) =>
+      partialPerm.url ===
+      permConfig.getPermissionByCodename(partialPermName)?.url
+  );
 }
 
 // NOTE: be aware of the fact that some of non-TypeScript code is passing
@@ -43,8 +55,8 @@ export function userCan(
 
   // TODO: check out whether any other checks are really needed at this point.
   // Pay attention if partial permissions work.
-  const hasEffectiveAccess = asset.effective_permissions?.some((effectivePerm) =>
-    effectivePerm.codename === permName
+  const hasEffectiveAccess = asset.effective_permissions?.some(
+    (effectivePerm) => effectivePerm.codename === permName
   );
   if (hasEffectiveAccess) {
     return true;
@@ -60,25 +72,26 @@ export function userCan(
   }
 
   // if permission is granted publicly, then grant it to current user
-  const anonAccess = asset.permissions.some((perm) => (
-    perm.user === buildUserUrl(ANON_USERNAME) &&
-    perm.permission === permConfig.getPermissionByCodename(permName)?.url
-  ));
+  const anonAccess = asset.permissions.some(
+    (perm) =>
+      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.permission === permConfig.getPermissionByCodename(permName)?.url
+  );
   if (anonAccess) {
     return true;
   }
 
-  return asset.permissions.some((perm) => (
-    perm.user === buildUserUrl(currentUsername) &&
-    _doesPermMatch(perm, permName, partialPermName)
-  ));
+  return asset.permissions.some(
+    (perm) =>
+      perm.user === buildUserUrl(currentUsername) &&
+      _doesPermMatch(perm, permName, partialPermName)
+  );
 }
 
-/**
- * @param {string} permName
- * @param {Object} asset
- */
-export function userCanPartially(permName: PermissionCodename, asset: AssetResponse) {
+export function userCanPartially(
+  permName: PermissionCodename,
+  asset: AssetResponse
+) {
   const currentUsername = sessionStore.currentAccount.username;
 
   // Owners cannot have partial permissions because they have full permissions.
@@ -98,10 +111,11 @@ export function userCanPartially(permName: PermissionCodename, asset: AssetRespo
  */
 export function userCanRemoveSharedProject(asset: AssetResponse) {
   const currentUsername = sessionStore.currentAccount.username;
-  const userHasDirectViewAsset = asset.permissions.some((perm) => (
-    perm.user === buildUserUrl(currentUsername) &&
-    _doesPermMatch(perm, 'view_asset')
-  ));
+  const userHasDirectViewAsset = asset.permissions.some(
+    (perm) =>
+      perm.user === buildUserUrl(currentUsername) &&
+      _doesPermMatch(perm, 'view_asset')
+  );
 
   return (
     !isSelfOwned(asset) &&
@@ -141,12 +155,16 @@ export function isSubmissionWritable(
 
   // Case 3: User has only partial permission, and things are complicated
   const currentUsername = sessionStore.currentAccount.username;
-  const partialPerms = asset.permissions.find((perm) => (
-    perm.user === buildUserUrl(currentUsername) &&
-    _doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
-  ));
+  const partialPerms = asset.permissions.find(
+    (perm) =>
+      perm.user === buildUserUrl(currentUsername) &&
+      _doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
+  );
 
-  const partialPerm = partialPerms?.partial_permissions?.find((nestedPerm) => nestedPerm.url === permConfig.getPermissionByCodename(permName)?.url);
+  const partialPerm = partialPerms?.partial_permissions?.find(
+    (nestedPerm) =>
+      nestedPerm.url === permConfig.getPermissionByCodename(permName)?.url
+  );
 
   const submittedBy = submission._submitted_by;
   // If ther `_submitted_by` was not stored, there is no way of knowing.

@@ -40,6 +40,7 @@ import {
   manageAssetLanguages,
   manageAssetSettings
 } from 'jsapp/js/assetQuickActions';
+import {userCan} from 'js/components/permissions/utils';
 
 bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
 bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
@@ -264,10 +265,7 @@ class AssetActionButtons extends React.Component<
     if (assetType !== ASSET_TYPES.collection.id) {
       downloads = this.props.asset.downloads;
     }
-    const userCanEdit = mixins.permissions.userCan(
-      'change_asset',
-      this.props.asset
-    );
+    const userCanEdit = userCan('change_asset', this.props.asset);
     const isDeployable =
       assetType === ASSET_TYPES.survey.id &&
       this.props.asset.deployed_version_id === null;
@@ -447,10 +445,7 @@ class AssetActionButtons extends React.Component<
     }
 
     const assetType = this.props.asset.asset_type;
-    const userCanEdit = mixins.permissions.userCan(
-      'change_asset',
-      this.props.asset
-    );
+    const userCanEdit = userCan('change_asset', this.props.asset);
     const hasDetailsEditable =
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id;

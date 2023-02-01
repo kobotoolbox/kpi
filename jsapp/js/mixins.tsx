@@ -19,7 +19,6 @@ import {
   MODAL_TYPES,
   ASSET_TYPES,
 } from './constants';
-import type {PermissionCodename} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
@@ -48,7 +47,7 @@ import {
   removeAssetSharing,
   deployAsset,
 } from 'js/assetQuickActions';
-import {userCan, userCanPartially} from 'js/components/permissions/utils';
+import {userCan} from 'js/components/permissions/utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -56,9 +55,6 @@ interface MixinsObject {
   contextRouter: {
     [functionName: string]: Function;
     context?: any;
-  };
-  permissions: {
-    [functionName: string]: Function;
   };
   droppable: {
     [functionName: string]: Function;
@@ -75,7 +71,6 @@ interface MixinsObject {
 
 const mixins: MixinsObject = {
   contextRouter: {},
-  permissions: {},
   droppable: {},
   dmix: {},
 };
@@ -445,18 +440,6 @@ mixins.droppable = {
         break;
       }
     }
-  },
-};
-
-mixins.permissions = {
-  /** DEPRECATED: please use `js/components/permissions/utils.ts` function. */
-  userCan(permName: PermissionCodename, asset?: AssetResponse, partialPermName: PermissionCodename | null = null) {
-    userCan(permName, asset, partialPermName);
-  },
-
-  /** DEPRECATED: please use `js/components/permissions/utils.ts` function. */
-  userCanPartially(permName: PermissionCodename, asset: AssetResponse) {
-    userCanPartially(permName, asset);
   },
 };
 

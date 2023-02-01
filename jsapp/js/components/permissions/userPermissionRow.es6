@@ -3,7 +3,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import mixins from 'js/mixins';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
@@ -11,10 +10,7 @@ import {
   stringToColor,
   escapeHtml,
 } from 'utils';
-import {
-  ASSET_TYPES,
-  PERMISSIONS_CODENAMES
-} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
 import permConfig from './permConfig';
 
@@ -203,7 +199,6 @@ class UserPermissionRow extends React.Component {
   }
 }
 
-reactMixin(UserPermissionRow.prototype, mixins.permissions);
 reactMixin(UserPermissionRow.prototype, Reflux.ListenerMixin);
 
 export default UserPermissionRow;
