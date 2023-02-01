@@ -235,7 +235,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         project_view_perms = get_project_view_user_permissions_for_asset(
             obj, user
         )
-        asset_perms = list(obj.get_perms(user))
+        asset_perms = obj.get_perms(user)
         return [
             {'codename': perm} for perm in set(project_view_perms + asset_perms)
         ]
