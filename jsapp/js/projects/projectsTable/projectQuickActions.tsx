@@ -26,24 +26,29 @@ interface ProjectQuickActionsProps {
 }
 
 export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
-  console.log('ProjectQuickActions', props);
-
-  const userCanEdit = userCan('change_asset', props.asset);
+  // The `userCan` method requires `permissions` property to be present in the
+  // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
+  // that property, and it is fine, as we don't expect Project View to have
+  // a lot of options available.
+  let isEditingPossible = false;
+  if ('permissions' in props.asset) {
+    isEditingPossible = userCan('change_asset', props.asset);
+  }
 
   return (
     <div className={styles.root}>
-      {userCanEdit && props.asset.asset_type !== ASSET_TYPES.collection.id && (
+      {isEditingPossible && props.asset.asset_type !== ASSET_TYPES.collection.id && (
         <Button
           type='bare'
           color='storm'
           size='s'
           startIcon='edit'
           tooltip={t('Edit in Form Builder')}
-          onClick={openInFormBuilder.bind(null, props.asset.uid)}
+          onClick={() => openInFormBuilder(props.asset.uid)}
         />
       )}
 
-      {userCanEdit &&
+      {isEditingPossible &&
         props.asset.asset_type === ASSET_TYPES.survey.id &&
         props.asset.has_deployment &&
         props.asset.deployment__active && (
@@ -53,11 +58,11 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
             size='s'
             startIcon='archived'
             tooltip={t('Archive project')}
-            onClick={archiveAsset.bind(null, props.asset)}
+            onClick={() => archiveAsset(props.asset)}
           />
         )}
 
-      {userCanEdit &&
+      {isEditingPossible &&
         props.asset.asset_type === ASSET_TYPES.survey.id &&
         props.asset.has_deployment &&
         props.asset.deployment__active && (
@@ -67,7 +72,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
             size='s'
             startIcon='archived'
             tooltip={t('Unarchive project')}
-            onClick={unarchiveAsset.bind(null, props.asset)}
+            onClick={() => unarchiveAsset(props.asset)}
           />
         )}
 
@@ -77,7 +82,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         size='s'
         startIcon='user-share'
         tooltip={t('Share project')}
-        onClick={manageAssetSharing.bind(null, props.asset.uid)}
+        onClick={() => manageAssetSharing(props.asset.uid)}
       />
 
       <KoboDropdown
@@ -94,27 +99,31 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
               color='storm'
               size='s'
               startIcon='duplicate'
-              onClick={cloneAsset.bind(null, props.asset)}
+              onClick={() => cloneAsset(props.asset)}
               label={t('Clone')}
             />
 
-            <Button
-              type='bare'
-              color='storm'
-              size='s'
-              startIcon='replace'
-              onClick={replaceAssetForm.bind(null, props.asset)}
-              label={t('Replace form')}
-            />
+            {isEditingPossible &&
+              <Button
+                type='bare'
+                color='storm'
+                size='s'
+                startIcon='replace'
+                onClick={() => replaceAssetForm(props.asset)}
+                label={t('Replace form')}
+              />
+            }
 
-            <Button
-              type='bare'
-              color='storm'
-              size='s'
-              startIcon='language'
-              onClick={manageAssetLanguages.bind(null, props.asset.uid)}
-              label={t('Manage translations')}
-            />
+            {isEditingPossible &&
+              <Button
+                type='bare'
+                color='storm'
+                size='s'
+                startIcon='language'
+                onClick={() => manageAssetLanguages(props.asset.uid)}
+                label={t('Manage translations')}
+              />
+            }
 
             {'downloads' in props.asset &&
               props.asset.downloads.map((file) => {
@@ -132,7 +141,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
                     color='storm'
                     size='s'
                     startIcon={icon}
-                    onClick={downloadUrl.bind(null, file.url)}
+                    onClick={() => downloadUrl(file.url)}
                     label={
                       <span>
                         {t('Download')}&nbsp;
@@ -141,7 +150,8 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
                     }
                   />
                 );
-              })}
+              })
+            }
 
             {props.asset.asset_type === ASSET_TYPES.survey.id && (
               <Button
@@ -173,12 +183,12 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
               />
             )}
 
-            {userCanEdit && (
+            {isEditingPossible && (
               <Button
                 type='bare'
                 color='storm'
                 size='s'
-                startIcon='duplicate'
+                startIcon='trash'
                 onClick={() =>
                   deleteAsset(
                     props.asset,
