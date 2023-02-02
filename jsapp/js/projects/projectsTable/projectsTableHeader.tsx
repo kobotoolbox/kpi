@@ -37,6 +37,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
 
     return (
       <div
+        title={field.label}
         className={classNames({
           [styles.columnRoot]: true,
           [styles.isMenuVisible]: isMenuVisible,
@@ -132,6 +133,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
             </div>
           }
         />
+        <div className={styles.resizer} />
       </div>
     );
   };

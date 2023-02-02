@@ -13,6 +13,10 @@
   :global .kobo-dropdown__trigger {
     max-width: 100%;
   }
+
+  // For column width resizers
+  position: relative; // Be a positioned ancestor for resize handles
+  user-select: none;  // Prevent accidental text selection
 }
 
 .trigger {
@@ -54,4 +58,93 @@
       }
     }
   }
+}
+
+// Resizers
+
+// Mechanics
+$resizer-width: sizes.$x16; // Keep this at least 10px for ease of use
+// Appearance
+$resizer-line-width: sizes.$x1;
+$resizer-line-vertical-offset: sizes.$x4;
+$resizer-area-border-radius: sizes.$x4;
+$cell-line-width: sizes.$x1;
+$cell-line-vertical-offset: sizes.$x6;
+// Theme colors
+$cell-line-color: colors.$kobo-gray-85;
+$resizer-line-color: colors.$kobo-blue;
+$resizer-area-color: colors.$kobo-light-blue;
+
+// Resizer "interactive" area
+.resizer {
+  cursor: col-resize;
+  border-radius: $resizer-area-border-radius;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(-1 * $resizer-width / 2);
+  width: $resizer-width;
+  z-index: 2; // Overlap adjacent column header and cell width indicator
+  background-color: $resizer-area-color;
+
+  // Fade transition opacity
+  opacity: 0;
+  transition: opacity 0.1s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Resizer "line"
+.resizer::after {
+  display: inline-block;
+  content: '';
+  position: absolute;
+  top: $resizer-line-vertical-offset;
+  bottom: $resizer-line-vertical-offset;
+  right: calc(($resizer-width - $resizer-line-width) / 2);
+  width: $resizer-line-width;
+  z-index: 2; // Overlap adjacent column header and cell width indicator
+  background-color: $resizer-line-color;
+  // Fade transition opacity
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+.resizer:hover::after {
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+
+// Cell width indicators on column hover
+.columnRoot,
+.columnRoot:hover {
+  &::before,
+  &::after {
+    top: $cell-line-vertical-offset;
+    bottom: $cell-line-vertical-offset;
+    display: inline-block;
+    position: absolute;
+    background-color: $cell-line-color;
+    width: $cell-line-width;
+    content: '';
+    z-index: 1; // Overlap adjacent headers, but beneath resizer area
+    pointer-events: none;
+    // Fade transition opacity
+    transition: opacity 0.2s;
+  }
+  &::before {
+    left: calc(-1 * $cell-line-width / 2);
+  }
+  &::after {
+    right: calc(-1 * $cell-line-width / 2);
+  }
+}
+.columnRoot::before,
+.columnRoot::after {
+  opacity: 0;
+}
+.columnRoot:hover::before,
+.columnRoot:hover::after {
+  opacity: 1;
 }
