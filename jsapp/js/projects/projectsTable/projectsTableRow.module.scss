@@ -39,6 +39,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &[data-field='checkbox'] {
     min-width: sizes.$x18 + sizes.$x20 + sizes.$x18;
     width: sizes.$x18 + sizes.$x20 + sizes.$x18;
+    @include mixins.centerRowFlex;
   }
 
   &[data-field='countries'],

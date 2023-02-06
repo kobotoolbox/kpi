@@ -1,9 +1,13 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
-@use "scss/sizes";
+@use 'scss/_variables';
+@use 'scss/sizes';
+
+$checkbox-size: sizes.$x20;
 
 .radio,
 .checkbox {
+  line-height: $checkbox-size;
+
   .radio__row,
   .checkbox__wrapper {
     padding: 0;
@@ -91,8 +95,8 @@
     position: relative;
     margin: 0;
     border: sizes.$x1 solid colors.$kobo-gray-40;
-    width: sizes.$x20;
-    height: sizes.$x20;
+    width: $checkbox-size;
+    height: $checkbox-size;
     outline: 0;
     background-color: colors.$kobo-white;
     color: colors.$kobo-gray-40;

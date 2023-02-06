@@ -8,5 +8,13 @@
 
 .menu {
   @include mixins.floatingRoundedBox;
+  padding: sizes.$x6;
+  min-width: sizes.$x180;
+
+  // There is a `isFullWidth` property on Button component, but it also has text
+  // centering styles on it, so we can't use it.
+  :global .k-button {
+    width: 100%;
+  }
 }
 

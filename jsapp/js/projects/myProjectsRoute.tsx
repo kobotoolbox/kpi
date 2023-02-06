@@ -60,11 +60,15 @@ function MyProjectsRoute() {
           selectedFields={toJS(customView.fields)}
         />
 
-        {selectedAssets.length === 1 &&
-          <ProjectQuickActions asset={selectedAssets[0]}/>
-        }
-        {selectedAssets.length > 1 &&
-          <ProjectBulkActions assets={selectedAssets}/>
+        {selectedAssets.length !== 0 &&
+          <div className={styles.quickActions}>
+            {selectedAssets.length === 1 &&
+              <ProjectQuickActions asset={selectedAssets[0]}/>
+            }
+            {selectedAssets.length > 1 &&
+              <ProjectBulkActions assets={selectedAssets}/>
+            }
+          </div>
         }
       </header>
 

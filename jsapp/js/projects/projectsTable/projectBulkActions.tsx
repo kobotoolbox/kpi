@@ -24,7 +24,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
 
       <KoboDropdown
         name='project-bulk-actions'
-        placement='down-left'
+        placement='down-right'
         hideOnMenuClick
         triggerContent={
           <Button type='bare' color='storm' size='s' startIcon='more' />

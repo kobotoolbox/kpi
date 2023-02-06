@@ -6,6 +6,7 @@ import type {PermissionCodename} from 'js/constants';
 import type {
   AssetResponse,
   Permission,
+  ProjectViewAsset,
   SubmissionResponse,
 } from 'js/dataInterface';
 import {isSelfOwned} from 'jsapp/js/assetUtils';
@@ -44,7 +45,7 @@ function _doesPermMatch(
 // - merging asset response directly into component state object)
 export function userCan(
   permName: PermissionCodename,
-  asset?: AssetResponse,
+  asset?: AssetResponse | ProjectViewAsset,
   partialPermName: PermissionCodename | null = null
 ) {
   // Sometimes asset data is not ready yet and we still call the function
@@ -55,37 +56,41 @@ export function userCan(
 
   // TODO: check out whether any other checks are really needed at this point.
   // Pay attention if partial permissions work.
-  const hasEffectiveAccess = asset.effective_permissions?.some(
-    (effectivePerm) => effectivePerm.codename === permName
-  );
-  if (hasEffectiveAccess) {
-    return true;
+  if ('effective_permissions' in asset) {
+    const hasEffectiveAccess = asset.effective_permissions?.some(
+      (effectivePerm) => effectivePerm.codename === permName
+    );
+    if (hasEffectiveAccess) {
+      return true;
+    }
   }
 
-  if (!asset.permissions) {
-    return false;
-  }
   const currentUsername = sessionStore.currentAccount.username;
 
+  // If you own the asset, you can do everything with it
   if (asset.owner__username === currentUsername) {
     return true;
   }
 
-  // if permission is granted publicly, then grant it to current user
-  const anonAccess = asset.permissions.some(
-    (perm) =>
-      perm.user === buildUserUrl(ANON_USERNAME) &&
-      perm.permission === permConfig.getPermissionByCodename(permName)?.url
-  );
-  if (anonAccess) {
-    return true;
+  if ('permissions' in asset) {
+    // if permission is granted publicly, then grant it to current user
+    const anonAccess = asset.permissions.some(
+      (perm) =>
+        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.permission === permConfig.getPermissionByCodename(permName)?.url
+    );
+    if (anonAccess) {
+      return true;
+    }
+
+    return asset.permissions.some(
+      (perm) =>
+        perm.user === buildUserUrl(currentUsername) &&
+        _doesPermMatch(perm, permName, partialPermName)
+    );
   }
 
-  return asset.permissions.some(
-    (perm) =>
-      perm.user === buildUserUrl(currentUsername) &&
-      _doesPermMatch(perm, permName, partialPermName)
-  );
+  return false;
 }
 
 export function userCanPartially(
