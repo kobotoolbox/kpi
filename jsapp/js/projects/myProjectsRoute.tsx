@@ -17,7 +17,6 @@ import customViewStore from './customViewStore';
 import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
-import ProjectBulkActions from './projectsTable/projectBulkActions';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 
 function MyProjectsRoute() {
@@ -60,15 +59,8 @@ function MyProjectsRoute() {
           selectedFields={toJS(customView.fields)}
         />
 
-        {selectedAssets.length !== 0 &&
-          <div className={styles.quickActions}>
-            {selectedAssets.length === 1 &&
-              <ProjectQuickActions asset={selectedAssets[0]}/>
-            }
-            {selectedAssets.length > 1 &&
-              <ProjectBulkActions assets={selectedAssets}/>
-            }
-          </div>
+        {selectedAssets.length === 1 &&
+          <ProjectQuickActions asset={selectedAssets[0]}/>
         }
       </header>
 

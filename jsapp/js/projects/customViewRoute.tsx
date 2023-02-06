@@ -21,7 +21,6 @@ import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
 import {ROOT_URL} from 'js/constants';
 import {fetchPostUrl} from 'js/api';
-import ProjectBulkActions from './projectsTable/projectBulkActions';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 
 function CustomViewRoute() {
@@ -99,15 +98,8 @@ function CustomViewRoute() {
           onClick={exportAllData}
         />
 
-        {selectedAssets.length !== 0 &&
-          <div className={styles.quickActions}>
-            {selectedAssets.length === 1 &&
-              <ProjectQuickActions asset={selectedAssets[0]}/>
-            }
-            {selectedAssets.length > 1 &&
-              <ProjectBulkActions assets={selectedAssets}/>
-            }
-          </div>
+        {selectedAssets.length === 1 &&
+          <ProjectQuickActions asset={selectedAssets[0]}/>
         }
       </header>
 
