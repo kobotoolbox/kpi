@@ -164,10 +164,16 @@ class CustomViewStore {
 
   public handleAssetChanged(asset: AssetResponse) {
     console.log('asset changed', this, asset);
+    // TODO check if
+    // 1. the asset is on current list
+    // 2. anything changed in the asset that we display (or filter by)
+    // 3. do a new fetch (and load all pages? possible?)
   }
 
-  public handleAssetDeleted() {
-    console.log('asset changed', this);
+  public handleAssetDeleted(deletedAssetUid: string) {
+    console.log('asset deleted', this, deletedAssetUid);
+    // When asset is deleted, we simply remove it from loaded assets list
+    this.assets = this.assets.filter((asset: ProjectViewAsset) => asset.uid !== deletedAssetUid);
   }
 
   private onFetchAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {

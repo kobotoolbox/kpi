@@ -40,7 +40,7 @@ export function openInFormBuilder(uid: string) {
 export function deleteAsset(
   assetOrUid: AssetResponse | ProjectViewAsset | string,
   name: string,
-  callback?: () => void
+  callback?: (deletedAssetUid: string) => void
 ) {
   let asset: AssetResponse | ProjectViewAsset;
   if (typeof assetOrUid === 'object') {
@@ -68,7 +68,7 @@ export function deleteAsset(
             )
           );
           if (typeof callback === 'function') {
-            callback();
+            callback(asset.uid);
           }
         },
       }
@@ -176,7 +176,7 @@ export function archiveAsset(
 /** Displays a confirmation popup before unarchiving. */
 export function unarchiveAsset(
   assetOrUid: AssetResponse | ProjectViewAsset | string,
-  callback?: Function
+  callback?: (response: DeploymentResponse) => void
 ) {
   let asset: AssetResponse | ProjectViewAsset;
   if (typeof assetOrUid === 'object') {
@@ -190,13 +190,13 @@ export function unarchiveAsset(
     title: t('Unarchive Project'),
     message: `${t('Are you sure you want to unarchive this project?')}`,
     labels: {ok: t('Unarchive'), cancel: t('Cancel')},
-    onok: () => {
+    onok: (response: DeploymentResponse) => {
       actions.resources.setDeploymentActive({
         asset: asset,
         active: true,
       });
       if (typeof callback === 'function') {
-        callback();
+        callback(response);
       }
     },
     oncancel: () => {
@@ -424,19 +424,19 @@ export function removeAssetSharing(uid: string) {
 
 function _deployAssetFirstTime(
   asset: AssetResponse | ProjectViewAsset,
-  callback?: Function
+  callback?: (response: DeploymentResponse) => void
 ) {
   const deploymentToast = notify.warning(t('deploying to kobocat...'), {
     duration: 60 * 1000,
   });
   actions.resources.deployAsset(asset, false, {
-    onDone: () => {
+    onDone: (response: DeploymentResponse) => {
       notify(t('deployed form'));
       actions.resources.loadAsset({id: asset.uid});
       history.push(`/forms/${asset.uid}`);
       toast.dismiss(deploymentToast);
       if (typeof callback === 'function') {
-        callback();
+        callback(response);
       }
     },
     onFail: () => {
@@ -447,7 +447,7 @@ function _deployAssetFirstTime(
 
 function _redeployAsset(
   asset: AssetResponse | ProjectViewAsset,
-  callback?: Function
+  callback?: (response: DeploymentResponse) => void
 ) {
   const dialog = alertify.dialog('confirm');
   const opts = {
@@ -464,14 +464,17 @@ function _redeployAsset(
       okBtn.setAttribute('disabled', 'true');
       okBtn.innerText = t('Deploying...');
       actions.resources.deployAsset(asset, true, {
-        onDone: () => {
+        onDone: (response: DeploymentResponse) => {
           notify(t('redeployed form'));
+          // TODO: this ensures that after deploying an asset, we get the fresh
+          // data for it. But this also causes duplicated calls in some cases.
+          // It needs some investigation.
           actions.resources.loadAsset({id: asset.uid});
           if (dialog && typeof dialog.destroy === 'function') {
             dialog.destroy();
           }
           if (typeof callback === 'function') {
-            callback();
+            callback(response);
           }
         },
         onFail: () => {
@@ -492,7 +495,7 @@ function _redeployAsset(
 
 export function deployAsset(
   asset: AssetResponse | ProjectViewAsset,
-  callback?: Function
+  callback?: (response: DeploymentResponse) => void
 ) {
   if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
     console.error('Asset not supplied or not of type "survey".');

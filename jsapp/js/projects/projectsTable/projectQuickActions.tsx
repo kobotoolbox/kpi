@@ -87,7 +87,9 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           startIcon='archived'
           tooltip={t('Unarchive project')}
           onClick={() =>
-            unarchiveAsset(props.asset, customViewStore.handleAssetChanged)
+            unarchiveAsset(props.asset, (response: DeploymentResponse) => {
+              customViewStore.handleAssetChanged(response.asset);
+            })
           }
         />
       )}
@@ -113,7 +115,9 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           deleteAsset(
             props.asset,
             getAssetDisplayName(props.asset).final,
-            customViewStore.handleAssetDeleted
+            (deletedAssetUid: string) => {
+              customViewStore.handleAssetDeleted(deletedAssetUid);
+            }
           )
         }
       />
@@ -142,7 +146,9 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
               size='s'
               startIcon='deploy'
               onClick={() =>
-                deployAsset(props.asset, customViewStore.handleAssetChanged)
+                deployAsset(props.asset, (response: DeploymentResponse) => {
+                  customViewStore.handleAssetChanged(response.asset);
+                })
               }
               label={t('Deploy')}
             />

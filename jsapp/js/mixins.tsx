@@ -131,10 +131,10 @@ mixins.dmix = {
     }
     deployAsset(asset);
   },
-  archiveAsset(uid: string, callback: () => DeploymentResponse) {
+  archiveAsset(uid: string, callback: (response: DeploymentResponse) => void) {
     archiveAsset(uid, callback);
   },
-  unarchiveAsset(uid: string | null = null, callback: Function) {
+  unarchiveAsset(uid: string | null = null, callback: (response: DeploymentResponse) => void) {
     if (uid === null) {
       unarchiveAsset(this.state, callback);
     } else {
