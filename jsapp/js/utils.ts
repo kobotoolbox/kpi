@@ -73,6 +73,11 @@ notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => no
  * string as response and uses a generic message instead.
  */
 export function handleApiFail(response: FailResponse) {
+  // Avoid displaying toast when purposefuly aborted a request
+  if (response.status === 0 && response.statusText === 'abort') {
+    return;
+  }
+
   let message = response.responseText;
 
   // Detect if response is HTML code string

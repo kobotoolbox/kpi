@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
+
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
@@ -34,7 +35,10 @@ from kpi.utils.object_permission import (
     perm_parse,
 )
 from kpi.utils.permissions import is_user_anonymous
-from kpi.utils.project_views import user_has_project_view_asset_perm
+from kpi.utils.project_views import (
+    get_project_view_user_permissions_for_asset,
+    user_has_project_view_asset_perm,
+)
 
 
 class ObjectPermissionMixin:
@@ -545,15 +549,20 @@ class ObjectPermissionMixin:
         self.recalculate_descendants_perms()
         return new_permission
 
-    def get_perms(self, user_obj):
+    def get_perms(self, user_obj: 'auth.User') -> list[str]:
         """
         Return a list of codenames of all effective grant permissions that
         user_obj has on this object.
         """
         user_perm_ids = self._get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
-        return Permission.objects.filter(pk__in=perm_ids).values_list(
-            'codename', flat=True)
+        assigned_perms = Permission.objects.filter(pk__in=perm_ids).values_list(
+            'codename', flat=True
+        )
+        project_views_perms = get_project_view_user_permissions_for_asset(
+            self, user_obj
+        )
+        return list(set(list(assigned_perms) + project_views_perms))
 
     def get_partial_perms(self, user_id, with_filters=False):
         """

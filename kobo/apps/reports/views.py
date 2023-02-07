@@ -62,7 +62,7 @@ class ReportsViewSet(mixins.ListModelMixin,
 
         # `ReportsListSerializer` needs only the UID; don't bother retrieving
         # anything else from the database
-        queryset = queryset.only('uid')
+        queryset = queryset.only('uid', 'name')
 
         # Reduce the number of asset versions we have to consider by filtering
         # for accessible assets first
@@ -84,6 +84,6 @@ class ReportsViewSet(mixins.ListModelMixin,
         # Find which of these are deployed, using a custom manager method
         deployed_assets = (
             owned_and_explicitly_shared | subscribed_and_public
-        ) & Asset.objects.deployed().distinct()
+        ) & Asset.objects.deployed().only('uid', 'name').distinct()
 
         return deployed_assets
