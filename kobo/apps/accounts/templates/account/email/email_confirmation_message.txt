@@ -4,7 +4,7 @@
 
 {{ activate_url }}
 
-{% blocktrans %}This link will expire in one hour. To request a new verification link, please go to your account settings and re-enter your new email address:"{% endblocktrans %}
+{% blocktrans %}This link will expire in one hour. To request a new verification link, please go to your account settings and re-enter your new email address:{% endblocktrans %}
 {% accounts_settings %}
 
 {% blocktrans %}Best,{% endblocktrans %}
