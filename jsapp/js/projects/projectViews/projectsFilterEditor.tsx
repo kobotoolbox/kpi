@@ -10,6 +10,8 @@ import type {
 } from './constants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
 import {isFilterConditionValueRequired} from './utils';
+import envStore from 'js/envStore';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {
@@ -19,6 +21,8 @@ interface ProjectsFilterEditorProps {
   onFilterChange: (filter: ProjectsFilterDefinition) => void;
   onDelete: () => void;
 }
+
+const COUNTRIES = envStore.data.country_choices;
 
 export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   const onFilterValueChange = (newValue: string) => {
@@ -80,6 +84,18 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     );
   };
 
+  const codeToCountry = (code: string) => {
+    let matchedCountry = 'Canada'; // Default to just show something
+
+    COUNTRIES.forEach((item) => {
+      if (item.value === code) {
+        matchedCountry = item.label;
+      }
+    });
+
+    return matchedCountry;
+  };
+
   return (
     <div className={styles.root}>
       {/* Filter field selector */}
@@ -122,6 +138,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter value */}
       <div className={styles.column}>
+        {/*
         {!props.hideLabels && (
           <span className={styles.label}>{t('Value')}</span>
         )}
@@ -136,6 +153,19 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             disabled={!props.filter.fieldName}
           />
         )}
+          */}
+        <WrappedSelect
+          label={t('Country')}
+          // Process the corrent string here
+          value={codeToCountry(props.filter.value || '')}
+          // To avoid changes to current types, I want to send the code still
+          onChange={(country: any) => {onFilterValueChange(country.value)}}
+          options={COUNTRIES}
+          isLimitedHeight
+          menuPlacement='top'
+          isClearable
+          data-cy='country'
+        />
       </div>
 
       <div className={styles.column}>
