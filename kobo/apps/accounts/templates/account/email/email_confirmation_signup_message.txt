@@ -1,40 +1,27 @@
 {% load i18n %}
 {% load customize_email_content %}
 
+{% autoescape off %}
 {% with content='email_confirmation_signup_message'|email_template %}
 {% spaceless %}
-{% if content.greeting %}
-{% get_variables content.greeting activate_url user %}
+{% if content.section_one or content.section_one == '' %}
+{% convert_placeholders content.section_one activate_url user %}
 {% else %}
 {% blocktrans %}Thanks for signing up with KoboToolbox!{% endblocktrans %}
-{% endif %}
-{% endspaceless %}
-
-{% spaceless %}
-{% if content.body %}
-{% get_variables content.body activate_url user %}
-{% else %}
 {% blocktrans %}Confirming your account will give you access to KoboToolbox applications. Please visit the following URL to finish activation of your new account.{% endblocktrans %}
 {{ activate_url }}
 {% blocktrans %}Your username is: {% endblocktrans %}{{ user }}
 {% endif %}
 {% endspaceless %}
-
 {% spaceless %}
-{% if content.closing %}
-{% get_variables content.closing activate_url user %}
+{% if content.section_two or content.section_two == '' %}
+{% convert_placeholders content.section_two activate_url user %}
 {% else %}
 {% blocktrans %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com {% endblocktrans %}
 {% blocktrans %}You can also join the KoboToolbox community forum to ask questions, share solutions, and chat with thousands of users: https://community.kobotoolbox.org{% endblocktrans %}
-{% endif %}
-{% endspaceless %}
-
-{% spaceless %}
-{% if content.signature %}
-{% get_variables content.signature activate_url user %}
-{% else %}
 {% blocktrans %}Best,{% endblocktrans %}
 KoboToolbox
 {% endif %}
 {% endspaceless %}
 {% endwith %}
+{% endautoescape %}

@@ -5,9 +5,41 @@ from django.dispatch import receiver
 
 
 class EmailContent(models.Model):
-    email_name = models.CharField(max_length=120)
-    section_name = models.CharField(max_length=120)
-    content = models.TextField(blank=True)
+    """
+    The EmailContent model stores the customized content for the emails.
+
+    Available placeholders:
+    ##activate_url## - The activation URL to activate new accounts
+    ##user## - The username of the user
+    """
+    class EmailOptions(models.TextChoices):
+        ACTIVATION_EMAIL = 'email_confirmation_signup_message', \
+            'Email Confirmation Signup Message'
+
+    class SectionOptions(models.TextChoices):
+        SUBJECT = 'subject', 'Subject'
+        SECTION_ONE = 'section_one', 'Section One'
+        SECTION_TWO = 'section_two', 'Section Two'
+
+    email_name = models.CharField(
+        max_length=120,
+        choices=EmailOptions.choices,
+        default=None,
+    )
+    section_name = models.CharField(
+        max_length=120,
+        choices=SectionOptions.choices,
+        default=None,
+    )
+    content = models.TextField(
+        blank=True,
+        help_text='Available placeholders:<br/> '
+                  '##activate_url## - The activation URL to activate new accounts<br/>'
+                  '##user## - The username of the user,'
+    )
+
+    class Meta:
+        unique_together = ('email_name', 'section_name')
 
 
 class ImportedVerification(models.Model):
@@ -35,4 +67,3 @@ def on_email_confirmed(sender, **kwargs):
     email_address.user.emailaddress_set.filter(primary=False).delete()
 
 
-admin.site.register(EmailContent)

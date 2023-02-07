@@ -1,5 +1,4 @@
 from django import template
-from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.accounts.models import EmailContent
 
@@ -8,6 +7,14 @@ register = template.Library()
 
 @register.filter
 def email_template(email_name):
+    """
+    Fetch the email template from the database and organize the contents into a
+    dict
+    Ex.
+    {
+        "section": "This is some section content",
+    }
+    """
     email_contents = EmailContent.objects.values(
         'section_name', 'content'
     ).filter(email_name=email_name)
@@ -18,8 +25,15 @@ def email_template(email_name):
 
 
 @register.simple_tag
-def get_variables(section_content, activate_url, user):
+def convert_placeholders(section_content, activate_url, user):
+    """
+    Coverts placeholders into desired content
+
+    Supported placeholders:
+    ##activate_url##
+    ##user##
+    """
     return section_content.replace(
         '##activate_url##', activate_url
-    ).replace('##user##', user.username)
+    ).replace('##user##', user.username).replace("&#x27;", "\'")
 

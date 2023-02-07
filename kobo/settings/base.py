@@ -747,6 +747,10 @@ WEBPACK_LOADER = {
 
 
 ''' Email configuration '''
+# This setting sets the prefix in the subject line of the account activation email
+# The default is the URL of the server. Set to blank to fit the email requirements
+ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
                                'django.core.mail.backends.filebased.EmailBackend')
 

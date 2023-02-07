@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load customize_email_content %}
 
+{% autoescape off %}
 {% spaceless %}
 {% with content='email_confirmation_signup_message'|email_template %}
 {% if content.subject %}
@@ -10,3 +11,4 @@
 {% endif %}
 {% endwith %}
 {% endspaceless %}
+{% endautoescape %}
