@@ -1,5 +1,6 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from constance import config
 from django.db import transaction
 
@@ -18,4 +19,12 @@ class AccountAdapter(DefaultAccountAdapter):
             user.extra_details.data.update(extra_data)
             if commit:
                 user.extra_details.save()
+        return user
+
+
+class SocialAccountAdapter(DefaultSocialAccountAdapter):
+    def populate_user(self, request, sociallogin, data):
+        user = super().populate_user(request, sociallogin, data)
+        if sociallogin.email_addresses:
+            user.email = sociallogin.email_addresses[0].email
         return user

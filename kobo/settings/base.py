@@ -707,6 +707,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
+SOCIALACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.SocialAccountAdapter"
 
 # See https://django-allauth.readthedocs.io/en/latest/configuration.html
 # Map env vars to upstream dict values, include exact case. Underscores for delimiter.
