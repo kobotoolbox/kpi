@@ -1,5 +1,9 @@
 import React from 'react';
-import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
+import type {
+  AssetResponse,
+  ProjectViewAsset,
+  DeploymentResponse,
+} from 'js/dataInterface';
 import {ASSET_TYPES} from 'js/constants';
 import Button from 'js/components/common/button';
 import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
@@ -12,6 +16,7 @@ import {
   openInFormBuilder,
   manageAssetSharing,
   cloneAsset,
+  deployAsset,
   replaceAssetForm,
   manageAssetLanguages,
   cloneAssetAsTemplate,
@@ -19,7 +24,8 @@ import {
 } from 'jsapp/js/assetQuickActions';
 import {downloadUrl} from 'jsapp/js/utils';
 import type {IconName} from 'jsapp/fonts/k-icons';
-import {userCan} from 'jsapp/js/components/permissions/utils';
+import {userCan} from 'js/components/permissions/utils';
+import customViewStore from 'js/projects/customViewStore';
 
 interface ProjectQuickActionsProps {
   asset: AssetResponse | ProjectViewAsset;
@@ -30,16 +36,15 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
   // that property, and it is fine, as we don't expect Project View to have
   // a lot of options available.
-  let isChangingPossible = false;
-  isChangingPossible = userCan('change_asset', props.asset);
-  let isManagingPossible = false;
-  isManagingPossible = userCan('manage_asset', props.asset);
+  const isChangingPossible = userCan('change_asset', props.asset);
+  const isManagingPossible = userCan('manage_asset', props.asset);
 
   return (
     <div className={styles.root}>
       <Button
         isDisabled={
-          !isChangingPossible || props.asset.asset_type !== ASSET_TYPES.survey.id
+          !isChangingPossible ||
+          props.asset.asset_type !== ASSET_TYPES.survey.id
         }
         type='bare'
         color='storm'
@@ -61,7 +66,11 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           size='s'
           startIcon='archived'
           tooltip={t('Archive project')}
-          onClick={() => archiveAsset(props.asset)}
+          onClick={() =>
+            archiveAsset(props.asset, (response: DeploymentResponse) => {
+              customViewStore.handleAssetChanged(response.asset);
+            })
+          }
         />
       )}
 
@@ -77,7 +86,9 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           size='s'
           startIcon='archived'
           tooltip={t('Unarchive project')}
-          onClick={() => unarchiveAsset(props.asset)}
+          onClick={() =>
+            unarchiveAsset(props.asset, customViewStore.handleAssetChanged)
+          }
         />
       )}
 
@@ -102,9 +113,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
           deleteAsset(
             props.asset,
             getAssetDisplayName(props.asset).final,
-            () => {
-              console.log('after delete');
-            }
+            customViewStore.handleAssetDeleted
           )
         }
       />
@@ -125,6 +134,17 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
               startIcon='duplicate'
               onClick={() => cloneAsset(props.asset)}
               label={t('Clone')}
+            />
+
+            <Button
+              type='bare'
+              color='storm'
+              size='s'
+              startIcon='deploy'
+              onClick={() =>
+                deployAsset(props.asset, customViewStore.handleAssetChanged)
+              }
+              label={t('Deploy')}
             />
 
             <Button
@@ -174,7 +194,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
                 );
               })}
 
-            {props.asset.asset_type === ASSET_TYPES.survey.id &&
+            {props.asset.asset_type === ASSET_TYPES.survey.id && (
               <Button
                 type='bare'
                 color='storm'
@@ -187,9 +207,9 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
                 )}
                 label={t('Create template')}
               />
-            }
+            )}
 
-            {props.asset.asset_type === ASSET_TYPES.template.id &&
+            {props.asset.asset_type === ASSET_TYPES.template.id && (
               <Button
                 type='bare'
                 color='storm'
@@ -202,7 +222,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
                 )}
                 label={t('Create project')}
               />
-            }
+            )}
           </div>
         }
       />

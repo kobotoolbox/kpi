@@ -35,6 +35,7 @@ import type {
   AssetResponse,
   CreateImportRequest,
   ImportResponse,
+  DeploymentResponse,
 } from 'js/dataInterface';
 import {getRouteAssetUid} from 'js/router/routerUtils';
 import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
@@ -47,7 +48,6 @@ import {
   removeAssetSharing,
   deployAsset,
 } from 'js/assetQuickActions';
-import {userCan} from 'js/components/permissions/utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -131,7 +131,7 @@ mixins.dmix = {
     }
     deployAsset(asset);
   },
-  archiveAsset(uid: string, callback: Function) {
+  archiveAsset(uid: string, callback: () => DeploymentResponse) {
     archiveAsset(uid, callback);
   },
   unarchiveAsset(uid: string | null = null, callback: Function) {
@@ -141,7 +141,11 @@ mixins.dmix = {
       unarchiveAsset(uid, callback);
     }
   },
-  deleteAsset(assetOrUid: AssetResponse | string, name: string, callback: Function) {
+  deleteAsset(
+    assetOrUid: AssetResponse | string,
+    name: string,
+    callback: () => void
+  ) {
     deleteAsset(assetOrUid, name, callback);
   },
   toggleDeploymentHistory() {

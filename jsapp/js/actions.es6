@@ -265,10 +265,13 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
   alertify.alert(t('unable to deploy'), failure_message);
 });
 
-actions.resources.setDeploymentActive.listen(function(details) {
+actions.resources.setDeploymentActive.listen(function(details, onComplete) {
   dataInterface.setDeploymentActive(details)
     .done((data) => {
       actions.resources.setDeploymentActive.completed(data.asset);
+      if (typeof onComplete === 'function') {
+        onComplete(data);
+      }
     })
     .fail(actions.resources.setDeploymentActive.failed);
 });

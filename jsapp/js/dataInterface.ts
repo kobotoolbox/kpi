@@ -754,6 +754,15 @@ interface ExternalServiceRequestData {
   password?: string;
 }
 
+export interface DeploymentResponse {
+  backend: string;
+  /** URL */
+  identifier: string;
+  active: boolean;
+  version_id: string;
+  asset: AssetResponse;
+}
+
 interface DataInterface {
   [key: string]: Function;
 }
@@ -1445,7 +1454,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deployAsset(asset: AssetResponse, redeployment: boolean): JQuery.jqXHR<any> {
+  deployAsset(asset: AssetResponse, redeployment: boolean): JQuery.jqXHR<DeploymentResponse> {
     const data: {
       active: boolean;
       version_id?: string | null;
@@ -1464,7 +1473,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  setDeploymentActive(params: {asset: AssetResponse; active: boolean}): JQuery.jqXHR<any> {
+  setDeploymentActive(params: {asset: AssetResponse; active: boolean}): JQuery.jqXHR<DeploymentResponse> {
     return $ajax({
       method: 'PATCH',
       url: `${params.asset.url}deployment/`,

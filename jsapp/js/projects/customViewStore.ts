@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import {makeAutoObservable} from 'mobx';
 import type {
+  AssetResponse,
   ProjectViewAsset,
   PaginatedResponse,
   FailResponse,
@@ -159,6 +160,14 @@ class CustomViewStore {
         .done(this.onFetchMoreAssetsDone.bind(this))
         .fail(this.onAnyFail.bind(this));
     }
+  }
+
+  public handleAssetChanged(asset: AssetResponse) {
+    console.log('asset changed', this, asset);
+  }
+
+  public handleAssetDeleted() {
+    console.log('asset changed', this);
   }
 
   private onFetchAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {

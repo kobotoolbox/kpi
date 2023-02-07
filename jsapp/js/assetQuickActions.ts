@@ -16,6 +16,7 @@ import type {
   AssetResponse,
   Permission,
   ProjectViewAsset,
+  DeploymentResponse,
 } from './dataInterface';
 import {routerIsActive} from './router/legacy';
 import {history} from './router/historyRouter';
@@ -39,7 +40,7 @@ export function openInFormBuilder(uid: string) {
 export function deleteAsset(
   assetOrUid: AssetResponse | ProjectViewAsset | string,
   name: string,
-  callback?: Function
+  callback?: () => void
 ) {
   let asset: AssetResponse | ProjectViewAsset;
   if (typeof assetOrUid === 'object') {
@@ -142,8 +143,7 @@ export function deleteAsset(
 /** Displays a confirmation popup before archiving. */
 export function archiveAsset(
   assetOrUid: AssetResponse | ProjectViewAsset | string,
-  // TODO: see if callback is used anywhere, possibly should be removed
-  callback?: Function
+  callback?: (response: DeploymentResponse) => void
 ) {
   let asset: AssetResponse | ProjectViewAsset;
   if (typeof assetOrUid === 'object') {
@@ -164,10 +164,7 @@ export function archiveAsset(
       actions.resources.setDeploymentActive({
         asset: asset,
         active: false,
-      });
-      if (typeof callback === 'function') {
-        callback();
-      }
+      }, callback);
     },
     oncancel: () => {
       dialog.destroy();
@@ -179,7 +176,6 @@ export function archiveAsset(
 /** Displays a confirmation popup before unarchiving. */
 export function unarchiveAsset(
   assetOrUid: AssetResponse | ProjectViewAsset | string,
-  // TODO: see if callback is used anywhere, possibly should be removed
   callback?: Function
 ) {
   let asset: AssetResponse | ProjectViewAsset;
@@ -426,7 +422,10 @@ export function removeAssetSharing(uid: string) {
   dialog.set(opts).show();
 }
 
-function _deployAssetFirstTime(asset: AssetResponse | ProjectViewAsset) {
+function _deployAssetFirstTime(
+  asset: AssetResponse | ProjectViewAsset,
+  callback?: Function
+) {
   const deploymentToast = notify.warning(t('deploying to kobocat...'), {
     duration: 60 * 1000,
   });
@@ -436,6 +435,9 @@ function _deployAssetFirstTime(asset: AssetResponse | ProjectViewAsset) {
       actions.resources.loadAsset({id: asset.uid});
       history.push(`/forms/${asset.uid}`);
       toast.dismiss(deploymentToast);
+      if (typeof callback === 'function') {
+        callback();
+      }
     },
     onFail: () => {
       toast.dismiss(deploymentToast);
@@ -443,7 +445,10 @@ function _deployAssetFirstTime(asset: AssetResponse | ProjectViewAsset) {
   });
 }
 
-function _redeployAsset(asset: AssetResponse | ProjectViewAsset) {
+function _redeployAsset(
+  asset: AssetResponse | ProjectViewAsset,
+  callback?: Function
+) {
   const dialog = alertify.dialog('confirm');
   const opts = {
     title: t('Overwrite existing deployment'),
@@ -465,6 +470,9 @@ function _redeployAsset(asset: AssetResponse | ProjectViewAsset) {
           if (dialog && typeof dialog.destroy === 'function') {
             dialog.destroy();
           }
+          if (typeof callback === 'function') {
+            callback();
+          }
         },
         onFail: () => {
           if (dialog && typeof dialog.destroy === 'function') {
@@ -482,15 +490,18 @@ function _redeployAsset(asset: AssetResponse | ProjectViewAsset) {
   dialog.set(opts).show();
 }
 
-export function deployAsset(asset: AssetResponse | ProjectViewAsset) {
+export function deployAsset(
+  asset: AssetResponse | ProjectViewAsset,
+  callback?: Function
+) {
   if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
     console.error('Asset not supplied or not of type "survey".');
     return;
   }
   if (!asset.has_deployment) {
-    _deployAssetFirstTime(asset);
+    _deployAssetFirstTime(asset, callback);
   } else {
-    _redeployAsset(asset);
+    _redeployAsset(asset, callback);
   }
 }
 
