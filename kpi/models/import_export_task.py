@@ -546,6 +546,7 @@ class ExportTaskBase(ImportExportTask):
         # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submitted_by',
+        '__version__',
         TagsCopyField,
     )
 
