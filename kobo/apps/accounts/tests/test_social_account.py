@@ -67,6 +67,9 @@ class ProviderTestCase(APITestCase):
             "v4vfdWEoWMGPeIO",
         )
 
+        self.request = None  # request required but seems not to be used
+        self.provider = OpenIDConnectProvider(self.request)
+
     def tearDown(self):
         self.application.delete()
 
@@ -78,9 +81,14 @@ class ProviderTestCase(APITestCase):
             "family_name": "User",
         }
 
-        request = None  # request required but seems not to be used
-        provider = OpenIDConnectProvider(request=request)
-        sociallogin = provider.sociallogin_from_response(
-            request=request, response=payload
+        sociallogin = self.provider.sociallogin_from_response(
+            request=self.request, response=payload
         )
         assert sociallogin.user.email == "test@example.org"
+
+    def test_user_signup_email_not_populated_if_not_provided(self):
+        payload = {"sub": "60e1123a-3583-4f04-a0ef-1037e97c2276"}
+        sociallogin = self.provider.sociallogin_from_response(
+            request=self.request, response=payload
+        )
+        assert sociallogin.user.email == ""
