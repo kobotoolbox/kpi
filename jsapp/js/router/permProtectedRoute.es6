@@ -77,7 +77,8 @@ class PermProtectedRoute extends React.Component {
       isLoadAssetFinished: true,
       userHasRequiredPermissions: this.getUserHasRequiredPermissions(
         asset,
-        this.props.requiredPermissions
+        this.props.requiredPermissions,
+        this.props.requireAll
       ),
     });
   }
@@ -102,7 +103,7 @@ class PermProtectedRoute extends React.Component {
     );
   }
 
-  getUserHasRequiredPermissions(asset, requiredPermissions, all) {
+  getUserHasRequiredPermissions(asset, requiredPermissions, all = false) {
     if (all) {
       return requiredPermissions.every((perm) => this.getUserHasRequiredPermission(asset, perm));
     } else {
