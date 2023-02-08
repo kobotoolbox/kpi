@@ -154,6 +154,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
               type='outline'
               size='m'
               isClearable
+              isSearchable
               placeholder={t('Country')}
               selectedOption={props.filter.value || ''}
               options={COUNTRIES}
