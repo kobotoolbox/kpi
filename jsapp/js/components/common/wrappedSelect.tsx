@@ -24,9 +24,6 @@ class WrappedSelect extends React.Component<WrappedSelectProps> {
       classNames.push('kobo-select--limited-height');
     }
 
-    console.log('select props');
-    console.log(this.props.value);
-
     return (
       <bem.KoboSelect__wrapper
         m={{'error': Boolean(this.props.error)}}

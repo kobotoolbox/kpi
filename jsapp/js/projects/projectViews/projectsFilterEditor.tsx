@@ -68,7 +68,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
         (filterDefinition) => filterDefinition.availableConditions.length >= 1
       )
       .map((filterDefinition) => {
-        return {label: filterDefinition.label, id: filterDefinition.name};
+        return {label: filterDefinition.label, value: filterDefinition.name};
       });
 
   const getConditionSelectorOptions = () => {
@@ -79,22 +79,13 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     return fieldDefinition.availableConditions.map(
       (condition: FilterConditionName) => {
         const conditionDefinition = FILTER_CONDITIONS[condition];
-        return {label: conditionDefinition.label, id: conditionDefinition.name};
+        return {label: conditionDefinition.label, value: conditionDefinition.name};
       }
     );
   };
 
-  const codeToCountry = (code: string) => {
-    let matchedCountry = 'Canada'; // Default to just show something
-
-    COUNTRIES.forEach((item) => {
-      if (item.value === code) {
-        matchedCountry = item.label;
-      }
-    });
-
-    return matchedCountry;
-  };
+  const isCountryFilterSelected = () =>
+    props.filter.fieldName && props.filter.fieldName === 'countries';
 
   return (
     <div className={styles.root}>
@@ -138,34 +129,40 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter value */}
       <div className={styles.column}>
-        {/*
         {!props.hideLabels && (
-          <span className={styles.label}>{t('Value')}</span>
+          <span className={styles.label}>
+            {isCountryFilterSelected() ? t('Select country') : t('Value')}
+          </span>
         )}
+
         {!isFilterConditionValueRequired(props.filter.condition) && <div />}
-        {isFilterConditionValueRequired(props.filter.condition) && (
-          <TextBox
-            customModifiers='on-white'
-            value={props.filter.value || ''}
-            onChange={onFilterValueChange}
-            placeholder={t('Enter value')}
-            // Requires field to be selected first
-            disabled={!props.filter.fieldName}
-          />
-        )}
-          */}
-        <WrappedSelect
-          label={t('Country')}
-          // Process the corrent string here
-          value={codeToCountry(props.filter.value || '')}
-          // To avoid changes to current types, I want to send the code still
-          onChange={(country: any) => {onFilterValueChange(country.value)}}
-          options={COUNTRIES}
-          isLimitedHeight
-          menuPlacement='top'
-          isClearable
-          data-cy='country'
-        />
+        {isFilterConditionValueRequired(props.filter.condition) &&
+          !isCountryFilterSelected() && (
+            <TextBox
+              customModifiers='on-white'
+              value={props.filter.value || ''}
+              onChange={onFilterValueChange}
+              placeholder={t('Enter value')}
+              // Requires field to be selected first
+              disabled={!props.filter.fieldName}
+            />
+          )}
+        {isFilterConditionValueRequired(props.filter.condition) &&
+          isCountryFilterSelected() && (
+            <KoboSelect
+              name={generateUid()}
+              type='outline'
+              size='m'
+              isClearable
+              placeholder={t('Country')}
+              selectedOption={props.filter.value || ''}
+              options={COUNTRIES}
+              onChange={(code: string | null) => {
+                onFilterValueChange(code || '');
+              }}
+              data-cy='country'
+            />
+          )}
       </div>
 
       <div className={styles.column}>
