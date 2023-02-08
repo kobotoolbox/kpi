@@ -163,7 +163,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                 path={ROUTES.LIBRARY_ITEM}
                 element={
                   <PermProtectedRoute
-                    requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                    requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
                     protectedComponent={AssetRoute}
                   />
                 }
@@ -172,7 +172,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                 path={ROUTES.EDIT_LIBRARY_ITEM}
                 element={
                   <PermProtectedRoute
-                    requiredPermission={PERMISSIONS_CODENAMES.change_asset}
+                    requiredPermissions={[PERMISSIONS_CODENAMES.change_asset]}
                     protectedComponent={LibraryAssetEditor}
                   />
                 }
@@ -181,7 +181,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                 path={ROUTES.NEW_LIBRARY_CHILD}
                 element={
                   <PermProtectedRoute
-                    requiredPermission={PERMISSIONS_CODENAMES.change_asset}
+                    requiredPermissions={[PERMISSIONS_CODENAMES.change_asset]}
                     protectedComponent={LibraryAssetEditor}
                   />
                 }
@@ -190,7 +190,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                 path={ROUTES.LIBRARY_ITEM_JSON}
                 element={
                   <PermProtectedRoute
-                    requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                    requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
                     protectedComponent={FormJson}
                   />
                 }
@@ -199,7 +199,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                 path={ROUTES.LIBRARY_ITEM_XFORM}
                 element={
                   <PermProtectedRoute
-                    requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                    requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
                     protectedComponent={FormXform}
                   />
                 }
@@ -224,9 +224,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                   path={ROUTES.FORM_SUMMARY}
                   element={
                     <PermProtectedRoute
-                      requiredPermission={
+                      requiredPermissions={[
                         PERMISSIONS_CODENAMES.view_asset
-                      }
+                      ]}
                       protectedComponent={FormSummary}
                     />
                   }
@@ -236,9 +236,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                   path={ROUTES.FORM_LANDING}
                   element={
                     <PermProtectedRoute
-                      requiredPermission={
+                      requiredPermissions={[
                         PERMISSIONS_CODENAMES.view_asset
-                      }
+                      ]}
                       protectedComponent={FormLanding}
                     />
                   }
@@ -253,9 +253,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     path={ROUTES.FORM_REPORT}
                     element={
                       <PermProtectedRoute
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                         protectedComponent={Reports}
                       />
                     }
@@ -265,9 +265,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                       />
                     }
                   />
@@ -276,9 +276,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                       />
                     }
                   />
@@ -287,9 +287,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                       />
                     }
                   />
@@ -298,9 +298,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                       />
                     }
                   />
@@ -309,9 +309,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                       />
                     }
                   />
@@ -320,9 +320,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={
+                        requiredPermissions={[
                           PERMISSIONS_CODENAMES.view_submissions
-                        }
+                        ]}
                       />
                     }
                   />
@@ -330,7 +330,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     path={ROUTES.FORM_PROCESSING}
                     element={
                       <PermProtectedRoute
-                      requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+                      requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                         protectedComponent={SingleProcessingRoute}
                       />
                     }
@@ -343,7 +343,10 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.change_metadata_asset}
+                        requiredPermissions={[
+                          PERMISSIONS_CODENAMES.change_metadata_asset,
+                          PERMISSIONS_CODENAMES.change_asset
+                        ]}
                       />
                     }
                   />
@@ -352,7 +355,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermissions={[PERMISSIONS_CODENAMES.change_asset]}
                       />
                     }
                   />
@@ -361,7 +364,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
                       />
                     }
                   />
@@ -370,7 +373,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
                       />
                     }
                   />
@@ -379,7 +382,8 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermissions={[PERMISSIONS_CODENAMES.change_asset, PERMISSIONS_CODENAMES.view_submissions]}
+                        requireAll
                       />
                     }
                   />
@@ -388,7 +392,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
                       />
                     }
                   />
@@ -397,7 +401,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                     element={
                       <PermProtectedRoute
                         protectedComponent={FormSubScreens}
-                        requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+                        requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
                       />
                     }
                   />
@@ -408,7 +412,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                   element={
                     <PermProtectedRoute
                       protectedComponent={FormJson}
-                      requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                      requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
                     />
                   }
                 />
@@ -417,7 +421,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                   element={
                     <PermProtectedRoute
                       protectedComponent={FormXform}
-                      requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                      requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
                     />
                   }
                 />
@@ -426,7 +430,7 @@ const AllRoutes = class AllRoutes extends React.Component {
                   element={
                     <PermProtectedRoute
                       protectedComponent={FormPage}
-                      requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+                      requiredPermissions={[PERMISSIONS_CODENAMES.view_asset]}
                     />
                   }
                 />
@@ -442,9 +446,9 @@ const AllRoutes = class AllRoutes extends React.Component {
                   element={
                     <PermProtectedRoute
                       protectedComponent={FormSubScreens}
-                      requiredPermission={
+                      requiredPermissions={[
                         PERMISSIONS_CODENAMES.view_submissions
-                      }
+                      ]}
                     />
                   }
                 />
