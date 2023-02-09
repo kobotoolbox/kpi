@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import isEqual from 'lodash.isequal';
 import {makeAutoObservable} from 'mobx';
 import type {
   AssetResponse,
@@ -162,17 +163,46 @@ class CustomViewStore {
     }
   }
 
-  public handleAssetChanged(asset: AssetResponse) {
-    console.log('asset changed', this, asset);
-    // TODO check if
-    // 1. the asset is on current list
-    // 2. anything changed in the asset that we display (or filter by)
-    // 3. do a new fetch (and load all pages? possible?)
+  public handleAssetChanged(modifiedAsset: AssetResponse) {
+    const originalAsset = this.assets.find((asset: ProjectViewAsset) => modifiedAsset.uid === asset.uid);
+
+    // Step 1: check if the asset is on the laoded list
+    if (!originalAsset) {
+      return;
+    }
+
+    // Step 2: check if any data that is being used by the table changed
+    if (
+      (originalAsset.name !== modifiedAsset.name) ||
+      (originalAsset.settings.description !== modifiedAsset.settings.description) ||
+      // Asset status consists of two properties
+      (originalAsset.has_deployment !== modifiedAsset.has_deployment) ||
+      (originalAsset.deployment__active !== modifiedAsset.deployment__active) ||
+      // Owner information is also multiple props, but there is no way
+      // of knowing whether `owner__email`, `owner__name` (full name), or
+      // `owner__organization` have changed. Those pieces of information rarely
+      // change, so there is no need to care about them here.
+      (originalAsset.owner !== modifiedAsset.owner) ||
+      (originalAsset.owner__username !== modifiedAsset.owner__username) ||
+      (originalAsset.date_modified !== modifiedAsset.date_modified) ||
+      // Date deployed is calculated for `ProjectViewAsset`, but for
+      // `Asset Response` we need to find the last deployed version
+      (originalAsset.date_deployed !== modifiedAsset.deployed_versions?.results[0].date_modified) ||
+      (originalAsset.settings.sector?.value !== modifiedAsset.settings.sector?.value) ||
+      (!isEqual(originalAsset.settings.country, modifiedAsset.settings.country)) ||
+      (!isEqual(originalAsset.languages, modifiedAsset.summary.languages)) ||
+      (originalAsset.deployment__submission_count !== modifiedAsset.deployment__submission_count)
+    ) {
+      // At this point we know that one of the assets that was being displayed
+      // on the list changed an important piece of data. We need to fetch data
+      // again
+      this.fetchAssets();
+    }
   }
 
   public handleAssetDeleted(deletedAssetUid: string) {
-    console.log('asset deleted', this, deletedAssetUid);
-    // When asset is deleted, we simply remove it from loaded assets list
+    // When asset is deleted, we simply remove it from loaded assets list as it
+    // seems there is no need to fetch all the data again
     this.assets = this.assets.filter((asset: ProjectViewAsset) => asset.uid !== deletedAssetUid);
   }
 
