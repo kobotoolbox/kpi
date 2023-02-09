@@ -22,9 +22,12 @@ class AccountAdapter(DefaultAccountAdapter):
         return user
 
 
+# The following class is a work around for https://github.com/pennersr/django-allauth/issues/3257
+# Also see https://github.com/pennersr/django-allauth/issues/3241
+# PR fix: https://github.com/pennersr/django-allauth/pull/3242
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def populate_user(self, request, sociallogin, data):
         user = super().populate_user(request, sociallogin, data)
-        if sociallogin.email_addresses:
+        if not user.email and sociallogin.email_addresses:
             user.email = sociallogin.email_addresses[0].email
         return user

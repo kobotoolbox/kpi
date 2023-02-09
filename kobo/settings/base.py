@@ -707,6 +707,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
+# work around for https://github.com/pennersr/django-allauth/issues/3257
 SOCIALACCOUNT_ADAPTER = "kobo.apps.accounts.adapter.SocialAccountAdapter"
 
 # See https://django-allauth.readthedocs.io/en/latest/configuration.html

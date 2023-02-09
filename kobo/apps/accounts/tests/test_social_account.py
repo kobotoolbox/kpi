@@ -1,10 +1,10 @@
-import contextlib
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialApp
 from allauth.socialaccount.providers.openid_connect.provider import (
     OpenIDConnectProvider,
 )
 from django.core import mail
+from django.test import override_settings
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework.test import APITestCase
@@ -36,28 +36,21 @@ class AccountsEmailTestCase(APITestCase):
         self.assertFalse(self.user.socialaccount_set.exists())
 
 
+@override_settings(
+    SOCIALACCOUNT_PROVIDERS={
+        "openid_connect": {
+            "SERVERS": [
+                {
+                    "id": "example",
+                    "server_url": "https://example.org/oauth",
+                    "name": "Example",
+                }
+            ]
+        }
+    }
+)
 class ProviderTestCase(APITestCase):
     def setUp(self):
-        # modify settings to add test social account provider
-        with contextlib.ExitStack() as exit_stack:
-            self._updated_settings = exit_stack.enter_context(
-                self.settings(
-                    SOCIALACCOUNT_PROVIDERS={
-                        "openid_connect": {
-                            "SERVERS": [
-                                {
-                                    "id": "example",
-                                    "server_url": "https://example.org/oauth",
-                                    "name": "Example",
-                                }
-                            ]
-                        }
-                    }
-                )
-            )
-            self.addCleanup(exit_stack.pop_all().close)
-
-        # add corresponding SocialApp
         self.application = SocialApp.objects.create(
             provider="Example",
             name="Example",
