@@ -16,7 +16,6 @@ import React from 'react';
 import _ from 'lodash';
 import alertify from 'alertifyjs';
 import toast from 'react-hot-toast';
-import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
@@ -25,10 +24,12 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
 } from './constants';
+import type {PermissionCodename} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
+import sessionStore from 'js/stores/session';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -48,6 +49,9 @@ import type {
   Permission,
   SubmissionResponse,
 } from 'js/dataInterface';
+import {getRouteAssetUid} from 'js/router/routerUtils';
+import { routerGetAssetId, routerIsActive } from './router/legacy';
+import { history } from "./router/historyRouter";
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -126,12 +130,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  history.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  hashHistory.push(ROUTES.LIBRARY);
+                  history.push(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -177,7 +181,7 @@ mixins.dmix = {
         }, {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
-            hashHistory.push(`/forms/${asset.uid}`);
+            history.push(`/forms/${asset.uid}`);
           },
         });
 
@@ -209,7 +213,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        hashHistory.push(`/forms/${asset.uid}`);
+        history.push(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -327,7 +331,7 @@ mixins.dmix = {
       // that includes `content`).
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid;
+      return this.props.uid || getRouteAssetUid();
     }
   },
   // TODO 1/2
@@ -470,13 +474,13 @@ mixins.droppable = {
   _forEachDroppedFile(params: CreateImportRequest = {}) {
     const totalFiles = params.totalFiles || 1;
 
-    const router = this.context.router;
+    const router = this.props.router;
     const isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
-      && router.isActive('forms')
+      && routerIsActive('forms')
       && router.params.uid !== undefined
     );
-    const isLibrary = router.isActive('library');
+    const isLibrary = routerIsActive('library');
     const multipleFiles = (params.totalFiles && totalFiles > 1) ? true : false;
     params = assign({library: isLibrary}, params);
 
@@ -514,13 +518,13 @@ mixins.droppable = {
               // TODO: use a more specific error message here
               notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
-                hashHistory.push(`/forms/${params.assetUid}`);
+                history.push(`/forms/${params.assetUid}`);
               }
             } else {
               if (isProjectReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (!isLibrary) {
-                hashHistory.push(`/forms/${assetUid}`);
+                history.push(`/forms/${assetUid}`);
               }
               notify(t('XLS Import completed'));
             }
@@ -645,7 +649,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              hashHistory.push(goToUrl);
+              history.push(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -677,10 +681,10 @@ mixins.clickAssets = {
         });
       },
       edit: function (uid: string) {
-        if (this.context.router.isActive('library')) {
-          hashHistory.push(`/library/asset/${uid}/edit`);
+        if (routerIsActive('library')) {
+          history.push(`/library/asset/${uid}/edit`);
         } else {
-          hashHistory.push(`/forms/${uid}/edit`);
+          history.push(`/forms/${uid}/edit`);
         }
       },
       delete: function (
@@ -855,7 +859,7 @@ mixins.clickAssets = {
           // Get permissions url related to current user
           const permUserUrl = perm.user.split('/');
           return (
-            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            permUserUrl[permUserUrl.length - 2] === sessionStore.currentAccount.username &&
             perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)?.url
           );
         });
@@ -934,7 +938,7 @@ mixins.permissions = {
     }
 
     // Case 3: User has only partial permission, and things are complicated
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
     const partialPerms = asset.permissions.find((perm) => (
         perm.user === buildUserUrl(currentUsername) &&
         this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
@@ -958,11 +962,29 @@ mixins.permissions = {
     return allowedUsers.includes(submittedBy);
   },
 
-  userCan(permName: string, asset: AssetResponse, partialPermName = null) {
+  // NOTE: be aware of the fact that some of non-TypeScript code is passing
+  // things that are not AssetResponse (probably due to how dmix mixin is used
+  // - merging asset response directly into component state object)
+  userCan(permName: PermissionCodename, asset?: AssetResponse, partialPermName = null) {
+    // Sometimes asset data is not ready yet and we still call the function
+    // through some rendering function. We have to be prepared
+    if (!asset) {
+      return false;
+    }
+
+    // TODO: check out whether any other checks are really needed at this point.
+    // Pay attention if partial permissions work.
+    const hasEffectiveAccess = asset.effective_permissions?.some((effectivePerm) =>
+      effectivePerm.codename === permName
+    );
+    if (hasEffectiveAccess) {
+      return true;
+    }
+
     if (!asset.permissions) {
       return false;
     }
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
 
     if (asset.owner__username === currentUsername) {
       return true;
@@ -988,8 +1010,7 @@ mixins.permissions = {
    * @param {Object} asset
    */
   userCanPartially(permName: string, asset: AssetResponse) {
-
-    const currentUsername = stores.session.currentAccount.username;
+    const currentUsername = sessionStore.currentAccount.username;
 
     // Owners cannot have partial permissions because they have full permissions.
     // Both are contradictory.
@@ -999,59 +1020,67 @@ mixins.permissions = {
 
     return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
   },
+
+  /**
+   * This checks if current user can remove themselves from a project that was
+   * shared with them. If `view_asset` comes from `asset.effective_permissions`,
+   * but doesn't exist in `asset.permissions` it means that `view_asset` comes
+   * from Project View access, not from project being shared with user directly.
+   */
+  userCanRemoveSharedProject(asset: AssetResponse) {
+    const currentUsername = sessionStore.currentAccount.username;
+    const userHasDirectViewAsset = asset.permissions.some((perm) => (
+      perm.user === buildUserUrl(currentUsername) &&
+      this._doesPermMatch(perm, 'view_asset')
+    ));
+
+    return (
+      !assetUtils.isSelfOwned(asset) &&
+      this.userCan('view_asset', asset) &&
+      userHasDirectViewAsset
+    );
+  },
 };
 
 mixins.contextRouter = {
   isFormList() {
-    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
+    return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
   isLibrary() {
-    return this.context.router.isActive(ROUTES.LIBRARY);
+    return routerIsActive(ROUTES.LIBRARY);
   },
   isMyLibrary() {
-    return this.context.router.isActive(ROUTES.MY_LIBRARY);
+    return routerIsActive(ROUTES.MY_LIBRARY);
   },
   isPublicCollections() {
-    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
-  },
-  isLibraryList() {
-    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
+    return routerIsActive(ROUTES.PUBLIC_COLLECTIONS);
   },
   isLibrarySingle() {
-    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
+    return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
   },
   isFormSingle() {
-    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
+    return routerIsActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
   },
   currentAssetID() {
-    return this.context.router.params.assetid || this.context.router.params.uid;
+    return routerGetAssetId();
   },
   currentAsset() {
     return assetStore.data[this.currentAssetID()];
   },
-  isActiveRoute(path: string, indexOnly = false) {
-    return this.context.router.isActive(path, indexOnly);
+  isActiveRoute(path: string) {
+    return routerIsActive(path);
   },
   isFormBuilder() {
-    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
+    if (routerIsActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
     }
 
     const uid = this.currentAssetID();
     return (
       uid !== undefined &&
-      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
-    );
-  },
-  isAccount() {
-    return (
-      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
-      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
-      this.context.router.isActive(ROUTES.SECURITY) ||
-      this.context.router.isActive(ROUTES.PLAN) ||
-      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+      routerIsActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      routerIsActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
 };

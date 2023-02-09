@@ -1,5 +1,8 @@
 import {actions} from 'js/actions';
-import type {EnvironmentResponse} from 'js/dataInterface';
+import type {
+  TransxLanguages,
+  EnvironmentResponse,
+} from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
 
 /*
@@ -22,6 +25,12 @@ export interface EnvStoreFieldItem {
   required: boolean;
 }
 
+export interface SocialApp {
+  name: string;
+  provider: string;
+  client_id: string;
+}
+
 class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
@@ -36,15 +45,17 @@ class EnvStoreData {
   public sector_choices: EnvStoreDataItem[] = [];
   public operational_purpose_choices: EnvStoreDataItem[] = [];
   public country_choices: EnvStoreDataItem[] = [];
-  /** languages come from `kobo/static_lists.py` **/
-  public all_languages: EnvStoreDataItem[] = [];
   public interface_languages: EnvStoreDataItem[] = [];
+  public transcription_languages: TransxLanguages = {};
+  public translation_languages: TransxLanguages = {};
   public submission_placeholder = '';
+  public asr_mt_features_enabled = false;
   public mfa_localized_help_text: {[name: string]: string} = {};
   public mfa_enabled = false;
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
   public stripe_pricing_table_id: string | null = null;
+  public social_apps: SocialApp[] = [];
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -104,6 +115,7 @@ class EnvStore {
     this.data.mfa_code_length = response.mfa_code_length;
     this.data.stripe_public_key = response.stripe_public_key;
     this.data.stripe_pricing_table_id = response.stripe_pricing_table_id;
+    this.data.social_apps = response.social_apps;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);
@@ -117,17 +129,10 @@ class EnvStore {
     if (response.interface_languages) {
       this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs);
     }
-    if (response.all_languages) {
-      this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs);
-    }
+
+    this.data.asr_mt_features_enabled = response.asr_mt_features_enabled;
 
     this.isReady = true;
-  }
-
-  public getLanguage(code: string): EnvStoreDataItem | undefined {
-    return this.data.all_languages.find(
-      (item: EnvStoreDataItem) => item.value === code
-    );
   }
 
   public getSectorLabel(sectorName: string): string | undefined {
@@ -148,23 +153,6 @@ class EnvStore {
       return foundCountry.label;
     }
     return undefined;
-  }
-
-  /** Returns a know language label or the provided code. */
-  public getLanguageDisplayLabel(code: string): string {
-    let displayLabel = code;
-    const envStoreLanguage = this.getLanguage(code);
-    if (envStoreLanguage) {
-      displayLabel = envStoreLanguage.label;
-    }
-    return displayLabel;
-  }
-
-  /** Case-insensitive lookup by localized name */
-  public getLanguageByName(label: string): EnvStoreDataItem | undefined {
-    return this.data.all_languages.find(
-      (item: EnvStoreDataItem) => item.label.toLocaleLowerCase() === label.toLocaleLowerCase()
-    );
   }
 }
 

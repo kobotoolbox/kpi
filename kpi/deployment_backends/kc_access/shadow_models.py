@@ -26,7 +26,7 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
-from kpi.mixins.mp3_converter import MP3ConverterMixin
+from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from kpi.utils.datetime import one_minute_from_now
 from .storage import (
@@ -463,7 +463,7 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
+class ReadOnlyKobocatAttachment(ReadOnlyModel, AudioTranscodingMixin):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
@@ -497,11 +497,11 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         kobocat_storage = get_kobocat_storage()
 
         if not kobocat_storage.exists(self.mp3_storage_path):
-            content = self.get_mp3_content()
+            content = self.get_transcoded_audio('mp3')
             kobocat_storage.save(self.mp3_storage_path, ContentFile(content))
 
         if isinstance(kobocat_storage, KobocatFileSystemStorage):
-            return f'{self.media_file.path}.{self.CONVERSION_AUDIO_FORMAT}'
+            return f'{self.media_file.path}.mp3'
 
         return kobocat_storage.url(self.mp3_storage_path)
 
@@ -523,14 +523,14 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel, MP3ConverterMixin):
         the conversion audio format extension concatenated.
         E.g: file.mp4 and file.mp4.mp3
         """
-        return f'{self.storage_path}.{self.CONVERSION_AUDIO_FORMAT}'
+        return f'{self.storage_path}.mp3'
 
     def protected_path(self, format_: Optional[str] = None):
         """
         Return path to be served as protected file served by NGINX
         """
 
-        if format_ == self.CONVERSION_AUDIO_FORMAT:
+        if format_ == 'mp3':
             attachment_file_path = self.absolute_mp3_path
         else:
             attachment_file_path = self.absolute_path

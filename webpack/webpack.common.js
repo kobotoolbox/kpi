@@ -1,9 +1,14 @@
 const BundleTracker = require('webpack-bundle-tracker');
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const fs = require('fs');
 const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
+
+const outputPath = path.resolve(__dirname, '../jsapp/compiled/');
+// ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
+fs.mkdirSync(outputPath, {recursive: true});
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -73,7 +78,20 @@ const commonOptions = {
       },
       {
         test: /\.scss$/,
+        exclude: /\.module\.scss$/,
         use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader'],
+      },
+      {
+        test: /\.module\.scss$/,
+        use: ['style-loader', {
+          loader: 'css-loader',
+          options: {
+            modules: {
+              localIdentName:'[name]__[local]--[hash:base64:5]',
+            },
+            sourceMap: true
+          }
+        }, postCssLoader, 'sass-loader'],
       },
       {
         test: /\.coffee$/,
@@ -91,7 +109,7 @@ const commonOptions = {
     ],
   },
   resolve: {
-    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx'],
+    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
       app: path.join(__dirname, '../app'),
       jsapp: path.join(__dirname, '../jsapp'),
@@ -105,7 +123,7 @@ const commonOptions = {
     new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
-      output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
+      output: path.join(outputPath, 'extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({'$': 'jquery'}),
     new ESLintPlugin({

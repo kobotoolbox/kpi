@@ -1,0 +1,60 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/sizes';
+@use 'scss/libs/_mdl';
+
+.root {
+  margin-top: sizes.$x20;
+  margin-bottom: sizes.$x60;
+  padding-top: sizes.$x14;
+  display: flex;
+  align-items: baseline;
+  column-gap: sizes.$x16;
+  border-top: sizes.$x1 solid;
+  border-color: colors.$kobo-gray-92;
+}
+
+.titleSection {
+  flex: 2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  color: colors.$kobo-gray-40;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.bodySection {
+  flex: 6;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-left: sizes.$x4;
+
+  label {
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+
+    input {
+      // API token display
+      font-family: mdl.$font_mono;
+      // 40 characters + padding + border
+      max-width: calc(40ch + 22px);
+    }
+  }
+}
+
+.optionsSection {
+  flex: 2;
+  text-align: right;
+
+  button {
+    display: inline-block;
+  }
+}

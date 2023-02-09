@@ -6,8 +6,14 @@ import './checkbox-and-radio.scss';
 interface CheckboxProps {
   checked: boolean;
   disabled?: boolean;
-  onChange: Function;
-  label: string;
+  onChange: (isChecked: boolean) => void;
+  /**
+   * Useful if you need to hijack the event, e.g. checkbox parent is clickable
+   * and clicking the checkbox shouldn't cause that parent click - we can use
+   * `evt.stopPropagation()` and be happy.
+   */
+  onClick?: (evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => void;
+  label?: string;
   /** Only needed if checkbox is in submittable form. */
   name?: string;
   'data-cy'?: string;
@@ -25,6 +31,12 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
 
   onChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.props.onChange(evt.currentTarget.checked);
+  }
+
+  onClick(evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) {
+    if (this.props.onClick) {
+      this.props.onClick(evt);
+    }
   }
 
   render() {
@@ -45,6 +57,7 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
             type='checkbox'
             name={this.props.name}
             onChange={this.onChange}
+            onClick={this.onClick}
             checked={this.props.checked}
             disabled={this.props.disabled}
             data-cy={this.props['data-cy']}

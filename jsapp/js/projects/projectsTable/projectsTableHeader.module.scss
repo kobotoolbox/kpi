@@ -1,0 +1,57 @@
+@use 'sass:color';
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+// This file contains all the styles that are being used exclusively in
+// `ProjectsTableHeader` component. Most of styles it is using are coming
+// from `projectsTableRow.module.scss` file.
+
+.columnRoot {
+  // We need this to truncate long column names
+  :global .kobo-dropdown,
+  :global .kobo-dropdown__trigger {
+    max-width: 100%;
+  }
+}
+
+.trigger {
+  @include mixins.centerRowFlex;
+  cursor: pointer;
+  line-height: sizes.$x30; // ??
+
+  :global {
+    label {
+      @include mixins.textEllipsis;
+      cursor: inherit;
+      flex: 1;
+    }
+
+    .k-icon:not(:first-child) {
+      margin-left: sizes.$x6;
+    }
+  }
+}
+
+.isMenuVisible .trigger {
+  color: colors.$kobo-blue;
+}
+
+.dropdownContent {
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6;
+  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
+  padding: sizes.$x10;
+  min-width: sizes.$x120;
+
+  :global {
+    .k-button {
+      width: 100%;
+      white-space: nowrap;
+
+      &:not(:first-child) {
+        margin-top: sizes.$x6;
+      }
+    }
+  }
+}

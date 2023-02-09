@@ -1,4 +1,6 @@
 # coding: utf-8
+import re
+
 from collections import OrderedDict
 
 from formpack.constants import KOBO_LOCK_ALL, KOBO_LOCK_COLUMN
@@ -16,6 +18,51 @@ class AssetContentAnalyzer:
             self.default_translation = self.translations[0]
         self.summary = self.get_summary()
 
+    def decide_name_quality(self, row):
+        '''
+        for any row from asset.content,
+        this will return a string: 'good', ok', or 'bad'
+
+        ideally, the front end will handle like so:
+         - "bad" => force a fix before deploying
+         - "ok"  => encourage a fix before deploying
+        '''
+        if 'name' in row and re.match(r'^[_\d]+$', row['name']):
+            return 'bad'
+        elif 'name' in row:
+            return 'good'
+        return 'ok'
+
+    def compile_name_qualities(self, sorted_rows):
+        '''
+        given a dictionary of rows, sorted by 'status',
+        this will return a 'name_quality' summary with these
+        attributes:
+
+            - ok: (int) number of ok rows
+            - bad: (int) number of bad rows
+            - good: (int) number of good rows
+            - total: (int) good + bad + ok
+            - firsts.bad: a record of the first row that qualified as "bad"
+            - firsts.ok: a record of the first row that qualified as "ok"
+        '''
+        summary = {'firsts': {}}
+        total = 0
+        for qual in ['bad', 'ok']:
+            count = len(sorted_rows[qual])
+            total += count
+            if count > 0:
+                row = sorted_rows[qual][0]
+                summary['firsts'][qual] = {
+                    'name': row.get('$autoname'),
+                    'index': row['index'],
+                    'label': row.get('label'),
+                }
+            summary[qual] = count
+        summary['good'] = len(sorted_rows['good'])
+        summary['total'] = total + summary['good']
+        return summary
+
     def get_summary(self):
         row_count = 0
         geo = False
@@ -31,6 +78,9 @@ class AssetContentAnalyzer:
             return {}
 
         locks = []
+
+        names_by_quality = {'good': [], 'bad': [], 'ok': []};
+        index = 0
         for row in self.survey:
             if isinstance(row, dict):
                 if '$given_name' in row:
@@ -49,6 +99,10 @@ class AssetContentAnalyzer:
                     metas.add(_type)
                     continue
                 row_count += 1
+                index += 1
+                name_status = self.decide_name_quality(row)
+                names_by_quality[name_status].append({**row, 'index': index})
+
                 types.add(_type)
                 if isinstance(_label, list) and len(_label) > 0:
                     labels.append(_label[0])
@@ -65,14 +119,16 @@ class AssetContentAnalyzer:
         # the column name of `kobo--locking-profile` is present in the "survey"
         # and there is at least one locking profile assigned, then `lock_any`
         # is set to `True`
-        if self.settings.get(KOBO_LOCK_ALL, False):
-            lock_all = True
-        if (
-            lock_all
-            or (KOBO_LOCK_COLUMN in columns and any(locks))
-            or self.settings.get(KOBO_LOCK_COLUMN, False)
-        ):
-            lock_any = True
+        if self.settings and isinstance(self.settings, dict):
+            if self.settings.get(KOBO_LOCK_ALL, False):
+                lock_all = True
+
+            if (
+                lock_all
+                or (KOBO_LOCK_COLUMN in columns and any(locks))
+                or self.settings.get(KOBO_LOCK_COLUMN, False)
+            ):
+                lock_any = True
 
         summary = {
             'row_count': row_count,
@@ -83,7 +139,9 @@ class AssetContentAnalyzer:
             'lock_any': lock_any,
             'labels': labels[0:5],
             'columns': columns,
+            'name_quality': self.compile_name_qualities(names_by_quality),
         }
+
         if len(naming_conflicts) > 0:
             summary['naming_conflicts'] = naming_conflicts
         return summary

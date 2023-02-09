@@ -1,3 +1,6 @@
+@use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
+
 /*
 Kobo Tooltips
 
@@ -7,7 +10,6 @@ Additional class names:
 - `right-tooltip`
 - `left-tooltip`
 */
-$z-tooltip: 2;
 
 // Our own, css-only tooltips
 @media screen and (min-width: 768px) {
@@ -23,15 +25,15 @@ $z-tooltip: 2;
       visibility: hidden;
       transition-duration: 0.2s;
       transition-property: visibility, opacity;
-      z-index: $z-tooltip;
+      z-index: z-indexes.$z-tooltip;
     }
 
     &::after {
       content: attr(data-tip);
       font-size: 13px;
       line-height: 1.35em;
-      color: $kobo-white;
-      background-color: $kobo-gray-40;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-gray-40;
       padding: 6px 12px;
       top: 96%;
       left: 50%;
@@ -42,7 +44,7 @@ $z-tooltip: 2;
 
     &::before {
       content: "";
-      border-bottom: 5px solid $kobo-gray-40;
+      border-bottom: 5px solid colors.$kobo-gray-40;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
       top: calc(96% - 5px);
@@ -71,7 +73,7 @@ $z-tooltip: 2;
       left: calc(95% - 5px);
       top: 50%;
       transform: translate(0, -50%);
-      border-right: 5px solid $kobo-gray-40;
+      border-right: 5px solid colors.$kobo-gray-40;
       border-bottom: 5px solid transparent;
       border-top: 5px solid transparent;
       border-left: none;

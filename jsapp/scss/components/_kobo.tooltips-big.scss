@@ -1,4 +1,5 @@
-$z-tooltip-big: 2;
+@use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
@@ -18,13 +19,13 @@ $z-tooltip-big: 2;
       font-size: 13px;
       font-weight: normal;
       line-height: 1.35em;
-      color: $kobo-white;
-      background-color: $kobo-gray-40;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-gray-40;
       padding: 6px 12px;
       top: calc(100% + 6px);
       left: 50%;
       transform: translate(-50%, 0);
-      z-index: $z-tooltip;
+      z-index: z-indexes.$z-tooltip;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s;
@@ -43,7 +44,7 @@ $z-tooltip-big: 2;
       }
 
       &::before {
-        border-bottom: 5px solid $kobo-gray-40;
+        border-bottom: 5px solid colors.$kobo-gray-40;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
         position: absolute;
@@ -53,7 +54,7 @@ $z-tooltip-big: 2;
         height: 0;
         left: 50%;
         transform: translate(-50%, 0);
-        z-index: $z-tooltip;
+        z-index: z-indexes.$z-tooltip;
       }
     }
 

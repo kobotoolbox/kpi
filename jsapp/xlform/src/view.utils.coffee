@@ -84,7 +84,6 @@ module.exports = do ->
 
     launch = (previewUrl, options={})->
       _loadConfigs(options)
-      console.log options
       $(".enketo-holder").append $("<iframe>", src: buildUrl(previewUrl))
       $(".enketo-holder iframe").load ()->
         # alert "iframe loaded yo!"

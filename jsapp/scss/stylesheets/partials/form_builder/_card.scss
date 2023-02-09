@@ -1,4 +1,6 @@
 @use "sass:color";
+@use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
 
 // ==========================================================================
 // Card (incl. Header and Expanded)
@@ -15,7 +17,7 @@
 
     &.card--error {
         padding: 12px 20px;
-        background-color: rgba($kobo-red, 0.5);
+        background-color: rgba(colors.$kobo-red, 0.5);
     }
 
     .card__header {
@@ -24,7 +26,7 @@
         padding: 20px #{15px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width} 20px 75px;
         min-height: 82px; // to fit all icons in
         display: block;
-        background: $kobo-white;
+        background: colors.$kobo-white;
         position: relative;
 
         // don't show move cursor if not inside an enabled sortable instance
@@ -49,7 +51,7 @@
         position: relative;
 
         &.activated {
-            color: $kobo-gray-40;
+            color: colors.$kobo-gray-40;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -77,16 +79,16 @@
     }
 
     .card__header-title {
-        color: $kobo-gray-40;
+        color: colors.$kobo-gray-40;
 
         &:focus {
-            color: $kobo-gray-24;
+            color: colors.$kobo-gray-24;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
          &::placeholder {
-            color: $kobo-red;
-            background-color: rgba($kobo-red, 0.075);
+            color: colors.$kobo-red;
+            background-color: rgba(colors.$kobo-red, 0.075);
         }
     }
 
@@ -95,7 +97,7 @@
         font-weight: 400;
 
         &::placeholder {
-            color: $kobo-gray-40;
+            color: colors.$kobo-gray-40;
             font-style: italic;
         }
     }
@@ -114,7 +116,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: $kobo-gray-40;
+            color: colors.$kobo-gray-40;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -146,7 +148,7 @@
     }
 }
 .card--error {
-    background-color: rgba($kobo-red, 0.5);
+    background-color: rgba(colors.$kobo-red, 0.5);
 }
 
 // ==========================================================================
@@ -180,7 +182,7 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 }
 
 // ==========================================================================
@@ -195,7 +197,7 @@ $cardIndicatorIconWidth: 21px;
     right: 1px; // needed for settings icon to not cover the right border when active
     width: $s-fb-row-buttons-width;
     height: 100%;
-    z-index: 3;
+    z-index: z-indexes.$z-form-builder-card-buttons;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -216,7 +218,7 @@ $cardIndicatorIconWidth: 21px;
     height: 100%;
     left: 0px;
     top: 0px;
-    z-index: 2;
+    z-index: z-indexes.$z-form-builder-card-shade;
     text-align: center;
     vertical-align: middle;
     display: none;
@@ -235,16 +237,16 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba($kobo-gray-40, 0.5);
+    background: rgba(colors.$kobo-gray-40, 0.5);
 }
 .card__header.delete .card__header--shade {
-    background: rgba($kobo-red, 0.5);
+    background: rgba(colors.$kobo-red, 0.5);
 }
 .card__header.duplicate .card__header--shade {
-    background: rgba($kobo-blue, 0.5);
+    background: rgba(colors.$kobo-blue, 0.5);
 }
 .card__header.add-to-library .card__header--shade {
-    background: rgba($kobo-green, 0.5);
+    background: rgba(colors.$kobo-green, 0.5);
 }
 
 .card--insort {
@@ -262,24 +264,24 @@ $cardIndicatorIconWidth: 21px;
     cursor: pointer;
 
     &.card__buttons__button--gray {
-        color: $kobo-gray-40;
+        color: colors.$kobo-gray-40;
     }
 
     &.card__buttons__button--red {
-        color: $kobo-red;
+        color: colors.$kobo-red;
     }
 
     &.card__buttons__button--blue {
-        color: $kobo-blue;
+        color: colors.$kobo-blue;
     }
 
     &.card__buttons__button--teal {
-        color: $kobo-teal;
+        color: colors.$kobo-teal;
     }
 
     &.card__buttons__button--activated {
-        color: $kobo-gray-40;
-        background-color: $kobo-gray-92;
+        color: colors.$kobo-gray-40;
+        background-color: colors.$kobo-gray-92;
         opacity: 1;
     }
 
@@ -298,7 +300,7 @@ $cardIndicatorIconWidth: 21px;
 
 .card--shaded {
     .card__buttons {
-        z-index: 4;
+        z-index: z-indexes.$z-form-builder-card-buttons + 1;
     }
     .card__header .card__text .bg {
         display: block;

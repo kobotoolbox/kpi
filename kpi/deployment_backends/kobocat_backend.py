@@ -1,5 +1,4 @@
 # coding: utf-8
-
 import copy
 import io
 import json
@@ -11,7 +10,6 @@ from datetime import datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -22,6 +20,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -39,6 +38,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    InvalidXFormException,
     InvalidXPathException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -71,6 +71,9 @@ from ..exceptions import (
     KobocatDuplicateSubmissionException,
 )
 
+from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
@@ -89,9 +92,32 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         AssetFile.PAIRED_DATA: 'paired_data',
     }
 
+    SUBMISSION_UUID_PATTERN = re.compile(
+        r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
+    )
+
+    @property
+    def all_time_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
+        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform_id=xform_id
+        ).aggregate(Sum('counter'))
+
+        if count := result['counter__sum']:
+            return count
+
+        return 0
+
     @property
     def attachment_storage_bytes(self):
-        return self.xform.attachment_storage_bytes
+        try:
+            return self.xform.attachment_storage_bytes
+        except InvalidXFormException:
+            return 0
 
     def bulk_assign_mapped_perms(self):
         """
@@ -222,13 +248,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
         today = timezone.now().date()
         try:
             monthly_counter = (
                 ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
                     'counter'
                 ).get(
-                    xform_id=self.xform_id,
+                    xform_id=xform_id,
                     year=today.year,
                     month=today.month,
                 )
@@ -310,6 +341,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    @property
+    def current_month_nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        today = datetime.today()
+        try:
+            monthly_nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('counters').get(
+                    asset_id=self.asset.id,
+                    year=today.year,
+                    month=today.month,
+                ).counters
+            )
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `monthly_nlp_tracking` type
+            return {}
+        else:
+            return monthly_nlp_tracking
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -568,34 +619,49 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Return an object which can be retrieved by its primary key or by XPath.
         An exception is raised when the submission or the attachment is not found.
         """
+        submission_id = None
+        submission_uuid = None
         try:
-            submission_id_or_uuid = int(submission_id_or_uuid)
+            submission_id = int(submission_id_or_uuid)
         except ValueError:
-            if not re.match(
-                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
-            ):
+            submission_uuid = submission_id_or_uuid
+        if submission_uuid:
+            if not re.match(self.SUBMISSION_UUID_PATTERN, submission_uuid):
+                # not sure how necessary such a sanitization step is,
+                # but it's not hurting anything
                 raise SubmissionNotFoundException
-
-            # Get first occurrence of the `get_submissions()` generator.
-            try:
-                submission_xml = next(
-                    self.get_submissions(
-                        user,
-                        format_type=SUBMISSION_FORMAT_TYPE_XML,
-                        query={'_uuid': submission_id_or_uuid},
-                    )
+            # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
+            # after every edit; `meta/rootUuid` remains consistent across
+            # edits. prefer the latter when fetching by UUID.
+            candidates = list(
+                self.get_submissions(
+                    user,
+                    query={
+                        '$or': [
+                            {'meta/rootUuid': submission_uuid},
+                            {'_uuid': submission_uuid},
+                        ]
+                    },
+                    fields=['_id', 'meta/rootUuid', '_uuid'],
                 )
-            except StopIteration:
-                raise SubmissionNotFoundException
-            django_orm_filter = 'instance__uuid'
-
-        else:
-            submission_xml = self.get_submission(
-                submission_id_or_uuid, user, format_type=SUBMISSION_FORMAT_TYPE_XML
             )
-            django_orm_filter = 'instance_id'
-            if not submission_xml:
+            if not candidates:
                 raise SubmissionNotFoundException
+            for submission in candidates:
+                if submission.get('meta/rootUuid') == submission_uuid:
+                    submission_id = submission['_id']
+                    break
+            else:
+                # no submissions with matching `meta/rootUuid` were found;
+                # get the "first" result, despite there being no order
+                # specified, just for consistency with previous code
+                submission_id = candidates[0]['_id']
+
+        submission_xml = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
+        )
+        if not submission_xml:
+            raise SubmissionNotFoundException
 
         if xpath:
             submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
@@ -614,15 +680,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # TODO: hide attachments that were deleted or replaced; see
                 # kobotoolbox/kobocat#792
                 # 'replaced_at': None,
-                django_orm_filter: submission_id_or_uuid,
                 'media_file_basename': attachment_filename,
             }
         else:
             filters = {
                 # 'replaced_at': None,
-                django_orm_filter: submission_id_or_uuid,
                 'pk': attachment_id,
             }
+
+        filters['instance__id'] = submission_id
+        # Ensure the attachment actually belongs to this project!
+        filters['instance__xform_id'] = self.xform_id
 
         try:
             attachment = ReadOnlyKobocatAttachment.objects.get(**filters)
@@ -802,6 +870,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+
+    @property
+    def nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        try:
+            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+                asset_id=self.asset.id
+            )
+            total_counters = {}
+            for nlp_counters in nlp_usage_counters:
+                counters = nlp_counters.counters
+                for key in counters.keys():
+                    if key not in total_counters:
+                        total_counters[key] = 0
+                    total_counters[key] += counters[key]
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict match `total_counters` type
+            return {}
+        else:
+            return total_counters
 
     def redeploy(self, active=None):
         """
@@ -1025,7 +1115,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        return self.xform.num_of_submissions
+        try:
+            return self.xform.num_of_submissions
+        except InvalidXFormException:
+            return 0
 
     @property
     def submission_list_url(self):
@@ -1143,9 +1236,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )  # Avoid extra query to validate username below
                 .first()
             )
-            if not (xform.user.username == self.asset.owner.username and
-                    xform.id_string == self.xform_id_string):
-                raise Exception(
+            if not (
+                xform
+                and xform.user.username == self.asset.owner.username
+                and xform.id_string == self.xform_id_string
+            ):
+                raise InvalidXFormException(
                     'Deployment links to an unexpected KoBoCAT XForm')
             setattr(self, '_xform', xform)
 
@@ -1275,6 +1371,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submission_count = total_count
+
+        add_supplemental_details_to_query = self.asset.has_advanced_features
+
+        fields = params.get('fields', [])
+        if len(fields) > 0 and '_uuid' not in fields:
+            # skip the query if submission '_uuid' is not even q'd from mongo
+            add_supplemental_details_to_query = False
+
+        if add_supplemental_details_to_query:
+            extras_query = self.asset.submission_extras
+            extras_data = dict(extras_query.values_list('submission_uuid', 'content'))
+            mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
 
         return (
             self.__rewrite_json_attachment_urls(

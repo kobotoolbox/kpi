@@ -28,3 +28,5 @@ jsapp/fonts
 env
 cypress/cypress/videos/*
 cypress/cypress/screenshots/*
+public
+.venv

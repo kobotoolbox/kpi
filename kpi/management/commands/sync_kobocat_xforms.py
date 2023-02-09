@@ -550,7 +550,8 @@ class Command(BaseCommand):
                             # save a new version with standardized content
                             asset.save()
                             if content_changed:
-                                asset._mark_latest_version_as_deployed()
+                                asset._mark_latest_version_as_deployed(save=True)
+
                             self._print_tabular(
                                 ','.join(changes),
                                 user.username,

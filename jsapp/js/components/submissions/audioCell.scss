@@ -1,0 +1,10 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+
+.audio-cell {
+  @include mixins.centerRowFlex;
+
+  > *:not(:first-child) {
+    margin-left: sizes.$x10;
+  }
+}

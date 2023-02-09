@@ -1,5 +1,5 @@
 @use "sass:list";
-@use "scss/_colors";
+@use '~kobo-common/src/styles/colors';
 
 // map marker colors
 .map-marker[class*="map-marker-"] {

@@ -29,7 +29,7 @@ class SubmissionModal extends React.Component {
     let translations = this.props.asset.content.translations;
     let translationOptions = [];
 
-    if (translations.length > 1) {
+    if (translations && translations.length > 1) {
       translationOptions = translations.map((trns) => {
         return {
           value: trns,

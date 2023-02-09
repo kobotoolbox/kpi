@@ -1,5 +1,5 @@
 # coding: utf-8
-import json
+import os
 from collections import defaultdict
 
 from django.contrib.auth.models import User
@@ -453,3 +453,30 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         assert synchronous_export_response.status_code == status.HTTP_200_OK
         first_line = next(synchronous_export_response.streaming_content)
         assert b'Do_you_descend_from_unicellular_organism' in first_line
+
+    def test_export_asset_with_slashes(self):
+        """
+        Ensure that the slashes are stripped from filename
+        """
+        self.asset.name = f'Simplified name - 2022/12/06'
+        self.asset.save()
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'xls',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'false',
+            'fields_from_all_versions': 'false',
+            'multiple_select': 'both',
+        }
+        response = self.client.post(list_url, data=data)
+        assert response.status_code == status.HTTP_201_CREATED
+        export_response = self.client.get(response.data['url'])
+        filepath = export_response.data['result']
+        dirname, filename = os.path.split(filepath)
+        expected_filename_start = 'Simplified_name_-_20221206'
+        assert filename.startswith(expected_filename_start)

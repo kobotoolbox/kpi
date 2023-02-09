@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load account %}
+
+{% block content %}
+
+  {% if confirmation %}
+  <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="registration">
+    <div class="registration--logo">
+      <a href="/">
+        {% block logo %}{{ block.super }}{% endblock %}
+      </a>
+    </div>
+    <h1>{% trans "Confirm E-mail Address" %}</h1>
+
+    {% user_display confirmation.email_address.user as user_display %}
+
+    <p class="registration__message">{% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.{% endblocktrans %}</p>
+
+      {% csrf_token %}
+      <button
+        type="submit"
+        class="kobo-button kobo-button--blue kobo-button--fullwidth"
+      >
+        {% trans "Confirm" %}
+      </button>
+  {% else %}
+  <form class="registration">
+    <h1>{% trans "Activation failed" %}</h1>
+
+    <p class="registration__message">
+      {% trans "Sorry, we couldn't activate your account. The link we sent you has expired." %}
+    </p>
+
+    {% url 'account_email' as email_url %}
+
+    <p class="registration__message">
+      {% blocktrans %}This e-mail confirmation link expired or is invalid.
+      If you need to request a new link to verify your email address change,
+      please go to your account settings page and enter your email address again.{% endblocktrans %}
+    </p>
+
+  {% endif %}
+  </form>
+
+{% endblock %}

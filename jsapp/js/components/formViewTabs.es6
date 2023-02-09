@@ -4,12 +4,13 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import bem from 'js/bem';
-import {stores} from '../stores';
+import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
-import {Link, hashHistory} from 'react-router';
+import {Link, NavLink} from 'react-router-dom';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
+import {withRouter} from 'js/router/legacy';
 import {assign} from 'utils';
 
 export function getFormDataTabs(assetUid) {
@@ -62,11 +63,11 @@ class FormViewTabs extends Reflux.Component {
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
-      hashHistory.push(`/forms/${this.state.asset.uid}/reset`);
+      this.props.router.navigate(`/forms/${this.state.asset.uid}/reset`);
 
       var path = evt.target.getAttribute('data-path');
-      window.setTimeout(function () {
-        hashHistory.push(path);
+      window.setTimeout(() => {
+        this.props.router.navigate(path);
       }, 50);
 
       evt.preventDefault();
@@ -96,53 +97,53 @@ class FormViewTabs extends Reflux.Component {
     }
 
     let summaryTabClassNames = 'form-view__tab';
-    if (!stores.session.isLoggedIn) {
+    if (!sessionStore.isLoggedIn) {
       summaryTabClassNames += ' form-view__tab--disabled';
     }
 
     let settingsTabClassNames = 'form-view__tab';
     if (
-      !stores.session.isLoggedIn ||
-      !this.userCan('change_asset', this.state.asset)
+      !(
+        sessionStore.isLoggedIn && (
+          this.userCan('change_asset', this.state.asset) ||
+          this.userCan('change_metadata_asset', this.state.asset)
+        )
+      )
     ) {
       settingsTabClassNames += ' form-view__tab--disabled';
     }
 
     return (
       <bem.FormView__toptabs>
-        <Link
+        <NavLink
           to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.asset.uid)}
           className={summaryTabClassNames}
-          activeClassName='active'
         >
           {t('Summary')}
-        </Link>
+        </NavLink>
 
-        <Link
+        <NavLink
           to={ROUTES.FORM_LANDING.replace(':uid', this.state.asset.uid)}
           className='form-view__tab'
-          activeClassName='active'
         >
           {t('Form')}
-        </Link>
+        </NavLink>
 
-        <Link
+        <NavLink
           to={ROUTES.FORM_DATA.replace(':uid', this.state.asset.uid)}
           className={dataTabClassNames}
-          activeClassName='active'
         >
           {t('Data')}
-        </Link>
+        </NavLink>
 
-        <Link
+        <NavLink
           to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid)}
           className={settingsTabClassNames}
-          activeClassName='active'
         >
           {t('Settings')}
-        </Link>
+        </NavLink>
 
-        {stores.session.isLoggedIn && (
+        {sessionStore.isLoggedIn && (
           <Link
             to={ROUTES.FORMS}
             className='form-view__link form-view__link--close'
@@ -190,17 +191,31 @@ class FormViewTabs extends Reflux.Component {
         });
       }
 
-      sideTabs.push({
-        label: t('Sharing'),
-        icon: 'k-icon k-icon-user-share',
-        path: ROUTES.FORM_SHARING.replace(':uid', this.state.asset.uid),
-      });
+      if (
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.manage_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t('Sharing'),
+          icon: 'k-icon k-icon-user-share',
+          path: ROUTES.FORM_SHARING.replace(':uid', this.state.asset.uid),
+        });
+      }
 
-      sideTabs.push({
-        label: t('Connect Projects'),
-        icon: 'k-icon k-icon-attach',
-        path: ROUTES.FORM_RECORDS.replace(':uid', this.state.asset.uid),
-      });
+      if (
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.manage_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t('Connect Projects'),
+          icon: 'k-icon k-icon-attach',
+          path: ROUTES.FORM_RECORDS.replace(':uid', this.state.asset.uid),
+        });
+      }
 
       if (
         (
@@ -234,20 +249,19 @@ class FormViewTabs extends Reflux.Component {
               className += ' form-view__tab--disabled';
             }
             return (
-              <Link
+              <NavLink
                 to={item.path}
                 key={ind}
-                activeClassName='active'
-                onlyActiveOnIndex
                 className={className}
                 data-path={item.path}
                 onClick={this.triggerRefresh}
+                end
               >
                 <i className={`k-icon ${item.icon}`} />
                 <span className='form-view__tab-name'>
                   {item.label}
                 </span>
-              </Link>
+              </NavLink>
             );
           })}
         </bem.FormView__sidetabs>
@@ -282,4 +296,4 @@ FormViewTabs.contextTypes = {
   router: PropTypes.object,
 };
 
-export default FormViewTabs;
+export default withRouter(FormViewTabs);
