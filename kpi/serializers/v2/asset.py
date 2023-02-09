@@ -792,6 +792,8 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'asset_type',
+            'downloads',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
