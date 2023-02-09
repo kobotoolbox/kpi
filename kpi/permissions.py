@@ -15,6 +15,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
@@ -263,6 +264,15 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
     # This change allows users with `view_asset` to permissions to
     # remove themselves from an asset that has been shared with them
     perms_map['DELETE'] = perms_map['GET']
+
+
+class AssetVersionReadOnlyPermission(AssetNestedObjectPermission):
+
+    required_permissions = ['%(app_label)s.view_asset']
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_asset'],
+    }
 
 
 # FIXME: Name is no longer accurate.
