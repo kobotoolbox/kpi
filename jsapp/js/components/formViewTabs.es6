@@ -103,8 +103,12 @@ class FormViewTabs extends Reflux.Component {
 
     let settingsTabClassNames = 'form-view__tab';
     if (
-      !sessionStore.isLoggedIn ||
-      !this.userCan('change_asset', this.state.asset)
+      !(
+        sessionStore.isLoggedIn && (
+          this.userCan('change_asset', this.state.asset) ||
+          this.userCan('change_metadata_asset', this.state.asset)
+        )
+      )
     ) {
       settingsTabClassNames += ' form-view__tab--disabled';
     }
@@ -187,17 +191,31 @@ class FormViewTabs extends Reflux.Component {
         });
       }
 
-      sideTabs.push({
-        label: t('Sharing'),
-        icon: 'k-icon k-icon-user-share',
-        path: ROUTES.FORM_SHARING.replace(':uid', this.state.asset.uid),
-      });
+      if (
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.manage_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t('Sharing'),
+          icon: 'k-icon k-icon-user-share',
+          path: ROUTES.FORM_SHARING.replace(':uid', this.state.asset.uid),
+        });
+      }
 
-      sideTabs.push({
-        label: t('Connect Projects'),
-        icon: 'k-icon k-icon-attach',
-        path: ROUTES.FORM_RECORDS.replace(':uid', this.state.asset.uid),
-      });
+      if (
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.manage_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t('Connect Projects'),
+          icon: 'k-icon k-icon-attach',
+          path: ROUTES.FORM_RECORDS.replace(':uid', this.state.asset.uid),
+        });
+      }
 
       if (
         (

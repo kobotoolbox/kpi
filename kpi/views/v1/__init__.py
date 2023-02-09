@@ -7,7 +7,6 @@ from .authorized_application_user import AuthorizedApplicationUserViewSet
 from .export_task import ExportTaskViewSet
 from .import_task import ImportTaskViewSet
 from .object_permission import ObjectPermissionViewSet
-from .one_time_authentication_key import OneTimeAuthenticationKeyViewSet
 from .sitewide_message import SitewideMessageViewSet
 from .submission import SubmissionViewSet
 from .tag import TagViewSet

@@ -1,10 +1,17 @@
 root = true
 
-# only apply to frontend files
-[*.{es6,js,jsx,ts,tsx,coffee,scss,css,html}]
+# defaults
+[*]
 charset = utf-8
 end_of_line = lf
-indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
+
+# 2 spaces - frontend files mostly
+[*.{es6,js,jsx,ts,tsx,coffee,scss,css,html,hbs,json,md,yml}]
+indent_size = 2
+
+# 4 spaces - python and others
+[{*.{py,sh,ini},Dockerfile}]
+indent_size = 4

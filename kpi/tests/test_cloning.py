@@ -287,7 +287,8 @@ class TestCloning(KpiTestCase):
             }],
             "country_codes": ["ALB"],
             "share-metadata": True,
-            "description": "This form can be cloned"
+            "description": "This form can be cloned",
+            'organization': '',
         }
         original_asset = self.create_asset(
             'cloning_asset', settings=json.dumps(settings))
@@ -323,7 +324,8 @@ class TestCloning(KpiTestCase):
             }],
             "country_codes": ["ALB"],
             "share-metadata": True,  # A template should not have this property
-            "description": "This form can be cloned"
+            "description": "This form can be cloned",
+            'organization': '',
         }
         original_asset = self.create_asset(
             'cloning_template', asset_type=ASSET_TYPE_TEMPLATE, settings=json.dumps(settings))

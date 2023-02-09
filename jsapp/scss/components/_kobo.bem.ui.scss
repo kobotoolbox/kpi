@@ -125,7 +125,7 @@
   max-width: 300px;
   text-align: left;
   background: colors.$kobo-white;
-  z-index: z-indexes.$z-popover-menu;
+  z-index: z-indexes.$z-dropdown;
   right: -10px;
   transition: opacity 0.35s;
   opacity: 1;
@@ -436,11 +436,6 @@ iframe {
   &.form-modal__item--country {
     width: 46%;
     float: left;
-  }
-
-  &.form-modal__item--metadata-share {
-    padding-top: 15px;
-    clear: both;
   }
 
   label {

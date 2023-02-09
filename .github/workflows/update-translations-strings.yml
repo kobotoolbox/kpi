@@ -15,14 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-node@v2
+        with:
+          # We need this particular version, as npm 8.5.5 is the last version
+          # that works with our package.json :sadface:.
+          node-version: '16.15.0'
+          cache: 'npm'
+
       - name: Change Directories
         run: cd kpi/
 
       - name: Install KPI requirements
         run: sudo pip install -r dependencies/pip/requirements.txt
-
-      - name: Install NPM packages
-        run: npm install
 
       - name: Install webpack
         run: npm install webpack

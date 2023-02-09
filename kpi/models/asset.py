@@ -6,19 +6,20 @@ from functools import reduce
 from operator import add
 from typing import Optional, Union
 
-from jsonschema import validate as jsonschema_validate
-
 from django.conf import settings
 from django.contrib.auth.models import Permission
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch, Q
+from django.db.models import Exists, OuterRef, Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from jsonschema import validate as jsonschema_validate
+
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
@@ -152,6 +153,7 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+    date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
     report_styles = models.JSONField(default=dict)
@@ -161,7 +163,8 @@ class Asset(ObjectPermissionMixin,
     advanced_features = LazyDefaultJSONBField(default=dict)
     known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
+        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY, db_index=True
+    )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
@@ -204,6 +207,12 @@ class Asset(ObjectPermissionMixin,
         return 'asset'
 
     class Meta:
+
+        indexes = [
+            GinIndex(
+                F('settings__country_codes'), name='settings__country_codes_idx'
+            ),
+        ]
 
         # Example in Django documentation  represents `ordering` as a list
         # (even if it can be a list or a tuple). We enforce the type to `list`
@@ -860,6 +869,7 @@ class Asset(ObjectPermissionMixin,
             )
             self.standardize_json_field('settings', 'sector', dict)
             self.standardize_json_field('settings', 'description', str)
+            self.standardize_json_field('settings', 'organization', str)
 
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:

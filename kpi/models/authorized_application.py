@@ -28,16 +28,6 @@ class AuthorizedApplication(models.Model):
         return self.name
 
 
-class OneTimeAuthenticationKey(models.Model):
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    key = models.CharField(
-        max_length=KEY_LENGTH,
-        validators=[MinLengthValidator(KEY_LENGTH)],
-        default=partial(token_urlsafe, nbytes=NUM_KEY_BYTES)
-    )
-    expiry = models.DateTimeField(default=ten_minutes_from_now)
-
-
 class ApplicationTokenAuthentication(TokenAuthentication):
     model = AuthorizedApplication
 

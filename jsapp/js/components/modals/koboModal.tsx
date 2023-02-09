@@ -37,6 +37,7 @@ export default function KoboModal(props: KoboModalProps) {
       shouldCloseOnOverlayClick={props.isDismissableByDefaultMeans}
       shouldCloseOnEsc={props.isDismissableByDefaultMeans}
       data={{'cy': props['data-cy']}}
+      preventScroll
     >
       {props.children}
     </Modal>

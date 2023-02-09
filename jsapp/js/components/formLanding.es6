@@ -493,7 +493,10 @@ class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
+          {(
+            isLoggedIn &&
+            this.userCanRemoveSharedProject(this.state)
+          ) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >

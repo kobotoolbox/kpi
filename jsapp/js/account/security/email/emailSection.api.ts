@@ -1,5 +1,5 @@
 import type {PaginatedResponse} from 'js/dataInterface';
-import {fetchGet, fetchPost} from 'jsapp/js/api';
+import {fetchGet, fetchPost, fetchDelete} from 'jsapp/js/api';
 
 export interface EmailResponse {
   primary: boolean;
@@ -15,4 +15,9 @@ export async function getUserEmails() {
 
 export async function setUserEmail(newEmail: string) {
   return fetchPost<EmailResponse>(LIST_URL, {email: newEmail});
+}
+
+/** Removes all unverified/non-primary emails (there should only be one anyway)*/
+export async function deleteUnverifiedUserEmails() {
+  return fetchDelete(LIST_URL);
 }

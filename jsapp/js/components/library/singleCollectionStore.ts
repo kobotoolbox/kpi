@@ -11,7 +11,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from 'js/components/assetsTable/assetsTableConstants';
-import type {OrderDirection} from 'js/components/assetsTable/assetsTableConstants';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 import type {
   AssetResponse,
   AssetsResponse,

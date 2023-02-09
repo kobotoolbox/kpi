@@ -24,6 +24,7 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "allowJs": true,
+    "outDir": "out",
     "jsx": "react"
   },
   "include": [

@@ -304,9 +304,6 @@ export default assign({
       if (this.state.settingsNew.collects_pii) {
         settings.collects_pii = this.state.settingsNew.collects_pii;
       }
-      if (this.state.settingsNew['share-metadata']) {
-        settings['share-metadata'] = this.state.settingsNew['share-metadata'];
-      }
       params.settings = JSON.stringify(settings);
     }
 
