@@ -42,7 +42,9 @@ function MyProjectsRoute() {
     return outcome;
   };
 
-  const selectedAssets = customView.assets.filter((asset) => selectedRows.includes(asset.uid));
+  const selectedAssets = customView.assets.filter((asset) =>
+    selectedRows.includes(asset.uid)
+  );
 
   return (
     <section className={styles.root}>
@@ -59,9 +61,9 @@ function MyProjectsRoute() {
           selectedFields={toJS(customView.fields)}
         />
 
-        {selectedAssets.length === 1 &&
-          <ProjectQuickActions asset={selectedAssets[0]}/>
-        }
+        {selectedAssets.length === 1 && (
+          <ProjectQuickActions asset={selectedAssets[0]} />
+        )}
       </header>
 
       <ProjectsTable

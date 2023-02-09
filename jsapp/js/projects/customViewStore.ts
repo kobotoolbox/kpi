@@ -164,7 +164,9 @@ class CustomViewStore {
   }
 
   public handleAssetChanged(modifiedAsset: AssetResponse) {
-    const originalAsset = this.assets.find((asset: ProjectViewAsset) => modifiedAsset.uid === asset.uid);
+    const originalAsset = this.assets.find(
+      (asset: ProjectViewAsset) => modifiedAsset.uid === asset.uid
+    );
 
     // Step 1: check if the asset is on the laoded list
     if (!originalAsset) {
@@ -173,25 +175,32 @@ class CustomViewStore {
 
     // Step 2: check if any data that is being used by the table changed
     if (
-      (originalAsset.name !== modifiedAsset.name) ||
-      (originalAsset.settings.description !== modifiedAsset.settings.description) ||
+      originalAsset.name !== modifiedAsset.name ||
+      originalAsset.settings.description !==
+        modifiedAsset.settings.description ||
       // Asset status consists of two properties
-      (originalAsset.has_deployment !== modifiedAsset.has_deployment) ||
-      (originalAsset.deployment__active !== modifiedAsset.deployment__active) ||
+      originalAsset.has_deployment !== modifiedAsset.has_deployment ||
+      originalAsset.deployment__active !== modifiedAsset.deployment__active ||
       // Owner information is also multiple props, but there is no way
       // of knowing whether `owner__email`, `owner__name` (full name), or
       // `owner__organization` have changed. Those pieces of information rarely
       // change, so there is no need to care about them here.
-      (originalAsset.owner !== modifiedAsset.owner) ||
-      (originalAsset.owner__username !== modifiedAsset.owner__username) ||
-      (originalAsset.date_modified !== modifiedAsset.date_modified) ||
+      originalAsset.owner !== modifiedAsset.owner ||
+      originalAsset.owner__username !== modifiedAsset.owner__username ||
+      originalAsset.date_modified !== modifiedAsset.date_modified ||
       // Date deployed is calculated for `ProjectViewAsset`, but for
       // `Asset Response` we need to find the last deployed version
-      (originalAsset.date_deployed !== modifiedAsset.deployed_versions?.results[0].date_modified) ||
-      (originalAsset.settings.sector?.value !== modifiedAsset.settings.sector?.value) ||
-      (!isEqual(originalAsset.settings.country, modifiedAsset.settings.country)) ||
-      (!isEqual(originalAsset.languages, modifiedAsset.summary.languages)) ||
-      (originalAsset.deployment__submission_count !== modifiedAsset.deployment__submission_count)
+      originalAsset.date_deployed !==
+        modifiedAsset.deployed_versions?.results[0].date_modified ||
+      originalAsset.settings.sector?.value !==
+        modifiedAsset.settings.sector?.value ||
+      !isEqual(
+        originalAsset.settings.country,
+        modifiedAsset.settings.country
+      ) ||
+      !isEqual(originalAsset.languages, modifiedAsset.summary.languages) ||
+      originalAsset.deployment__submission_count !==
+        modifiedAsset.deployment__submission_count
     ) {
       // At this point we know that one of the assets that was being displayed
       // on the list changed an important piece of data. We need to fetch data
@@ -203,7 +212,9 @@ class CustomViewStore {
   public handleAssetDeleted(deletedAssetUid: string) {
     // When asset is deleted, we simply remove it from loaded assets list as it
     // seems there is no need to fetch all the data again
-    this.assets = this.assets.filter((asset: ProjectViewAsset) => asset.uid !== deletedAssetUid);
+    this.assets = this.assets.filter(
+      (asset: ProjectViewAsset) => asset.uid !== deletedAssetUid
+    );
   }
 
   private onFetchAssetsDone(response: PaginatedResponse<ProjectViewAsset>) {

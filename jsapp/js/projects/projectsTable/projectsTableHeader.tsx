@@ -139,7 +139,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     <header className={tableStyles.header}>
       <div className={classNames(rowStyles.row, rowStyles.rowTypeHeader)}>
         {/* First column is always visible and displays a checkbox. */}
-        <div className={rowStyles.cell} data-field='checkbox'/>
+        <div className={rowStyles.cell} data-field='checkbox' />
 
         {Object.values(PROJECT_FIELDS).map(renderColumn)}
       </div>

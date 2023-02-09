@@ -72,7 +72,9 @@ function CustomViewRoute() {
     }
   };
 
-  const selectedAssets = customView.assets.filter((asset) => selectedRows.includes(asset.uid));
+  const selectedAssets = customView.assets.filter((asset) =>
+    selectedRows.includes(asset.uid)
+  );
 
   return (
     <section className={styles.root}>
@@ -98,9 +100,9 @@ function CustomViewRoute() {
           onClick={exportAllData}
         />
 
-        {selectedAssets.length === 1 &&
-          <ProjectQuickActions asset={selectedAssets[0]}/>
-        }
+        {selectedAssets.length === 1 && (
+          <ProjectQuickActions asset={selectedAssets[0]} />
+        )}
       </header>
 
       <ProjectsTable
