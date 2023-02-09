@@ -115,7 +115,7 @@
     "eslint-webpack-plugin": "^2.6.0",
     "less-terrible-coffeelint-loader": "^0.1.5",
     "lodash.isequal": "^4.5.0",
-    "mocha": "^7.1.2",
+    "mocha": "^10.2.0",
     "mocha-chrome": "^2.2.0",
     "moment": "^2.25.3",
     "object-assign": "^4.1.1",
