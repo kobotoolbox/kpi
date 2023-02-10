@@ -1,12 +1,13 @@
 FROM python:3.10 as build-python
 
-ENV VIRTUAL_ENV=/opt/venv
+ENV VIRTUAL_ENV=/opt/venv \
+    TMP_DIR=/srv/tmp
 
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install --quiet pip-tools==6.\*
-COPY ./dependencies/pip/requirements.txt "/tmp/pip_dependencies.txt"
-RUN pip-sync "/tmp/pip_dependencies.txt" 1>/dev/null
+COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
+RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
 
 from python:3.10-slim
@@ -91,10 +92,11 @@ RUN adduser --disabled-password --gecos '' "$UWSGI_USER"
 COPY . "${KPI_SRC_DIR}"
 
 ###########################
-# Install `pip` packages. #
+# Copy virtualenv         #
 ###########################
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 
 ###########################
@@ -106,6 +108,8 @@ WORKDIR ${KPI_SRC_DIR}/
 RUN rm -rf ${KPI_NODE_PATH} && \
     npm install -g npm@8.5.5 && \
     npm install -g check-dependencies && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
     npm install --quiet && \
     npm cache clean --force
 
@@ -115,9 +119,7 @@ ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 # Build client code. #
 ######################
 
-RUN rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
-    npm run copy-fonts && npm run build
+RUN npm run build
 
 ###########################
 # Organize static assets. #
