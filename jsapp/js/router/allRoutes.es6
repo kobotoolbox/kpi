@@ -127,7 +127,7 @@ const AllRoutes = class AllRoutes extends React.Component {
         <Tracking />
         <Routes>
           <Route path={ROUTES.ROOT} element={<App />}>
-            <Route path='' element={<Navigate to={ROUTES.FORMS} replace />} />
+            <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
             <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
             <Route path={ROUTES.PROJECTS_ROOT}>{projectsRoutes()}</Route>
             <Route path={ROUTES.LIBRARY}>
