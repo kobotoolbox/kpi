@@ -34,7 +34,8 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const onCheckboxClick = (
     evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>
   ) => {
-    // To avoid navigation when checkbox was clicked.
+    // When checkbox is clicked, the whole row also receives click event, and it
+    // causes the navigation to happen. We want to avoid that obviously.
     evt.stopPropagation();
   };
 
