@@ -16,8 +16,6 @@ import {
 import AssetName from 'js/components/common/assetName';
 import {userCan} from 'js/components/permissions/utils';
 
-// TODO: make the list appear when opening `/projects/home` or just fucking drop it?
-
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
     super(props);
