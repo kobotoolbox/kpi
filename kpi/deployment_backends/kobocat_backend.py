@@ -54,6 +54,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
@@ -729,19 +730,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self, user: 'auth.User', timeframe: tuple[date, date]
     ) -> dict:
 
-        if not self.asset.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
-            daily_counts = (
-                ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
-                    'date', 'counter'
-                ).filter(
-                    xform_id=self.xform_id,
-                    date__range=timeframe,
-                )
-            )
-            data = {
-                str(count['date']): count['counter'] for count in daily_counts
-            }
-        else:
+        user = get_database_user(user)
+
+        if user != self.asset.owner and self.asset.has_perm(
+            user, PERM_PARTIAL_SUBMISSIONS
+        ):
             # We cannot use cached values from daily counter when user has
             # partial permissions. We need to use MongoDB aggregation engine
             # to retrieve the correct value according to user's permissions.
@@ -785,9 +778,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     }
                 }
             ])
-            data = {doc['_id']: doc['count'] for doc in documents}
+            return {doc['_id']: doc['count'] for doc in documents}
 
-        return data
+        # Trivial case, user has 'view_permissions'
+        daily_counts = (
+            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+                'date', 'counter'
+            ).filter(
+                xform_id=self.xform_id,
+                date__range=timeframe,
+            )
+        )
+        return {
+            str(count['date']): count['counter'] for count in daily_counts
+        }
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((

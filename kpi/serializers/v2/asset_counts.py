@@ -15,7 +15,7 @@ class AssetCountsSerializer(serializers.Serializer):
         fields = ('daily_submission_counts', 'total_submission_count')
 
     def get_daily_submission_counts(self, asset):
-        today = timezone.now().date() + datetime.timedelta(days=1)
+        today = timezone.now().date()
         request = self.context['request']
         try:
             days = int(self.context['days'])
