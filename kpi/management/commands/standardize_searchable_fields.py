@@ -27,7 +27,7 @@ class Command(BaseCommand):
         self.standardize_extra_user_details()
 
     def standardize_assets(self):
-        assets = Asset.objects.only('settings', 'summary')
+        assets = Asset.objects.only('asset_type', 'uid', 'settings', 'summary')
         self.stdout.write(f'Updating assets...')
         for asset in assets.iterator(chunk_size=self._chunks):
             if self._verbosity >= 1:
