@@ -84,8 +84,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     );
   };
 
-  const isCountryFilterSelected = () =>
-    props.filter.fieldName && props.filter.fieldName === 'countries';
+  const isCountryFilterSelected = props.filter.fieldName && props.filter.fieldName === 'countries';
 
   return (
     <div className={styles.root}>
@@ -129,15 +128,11 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter value */}
       <div className={styles.column}>
-        {!props.hideLabels && (
-          <span className={styles.label}>
-            {isCountryFilterSelected() ? t('Select country') : t('Value')}
-          </span>
-        )}
+        <span className={styles.label}>{t('Value')}</span>
 
         {!isFilterConditionValueRequired(props.filter.condition) && <div />}
         {isFilterConditionValueRequired(props.filter.condition) &&
-          !isCountryFilterSelected() && (
+          !isCountryFilterSelected && (
             <TextBox
               customModifiers='on-white'
               value={props.filter.value || ''}
@@ -148,7 +143,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             />
           )}
         {isFilterConditionValueRequired(props.filter.condition) &&
-          isCountryFilterSelected() && (
+          isCountryFilterSelected && (
             <KoboSelect
               name={generateUid()}
               type='outline'
