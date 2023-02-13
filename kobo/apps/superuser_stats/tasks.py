@@ -227,7 +227,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
             writer.writerow(row)
 
 
-@shared_task
+@shared_task(soft_time_limit=4200, time_limit=4260)
 def generate_forms_count_by_submission_range(output_filename: str):
     # List of submissions count ranges
     ranges = [
