@@ -128,7 +128,9 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       {/* Filter value */}
       <div className={styles.column}>
-        <span className={styles.label}>{t('Value')}</span>
+        {!props.hideLabels && (
+          <span className={styles.label}>{t('Value')}</span>
+        )}
 
         {!isFilterConditionValueRequired(props.filter.condition) && <div />}
         {isFilterConditionValueRequired(props.filter.condition) &&
