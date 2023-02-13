@@ -1,14 +1,5 @@
 @use '~kobo-common/src/styles/colors';
 
-.form-view__group.form-view__group--description-cols {
-  padding: 20px;
-  display: flex;
-
-  > .form-view__cell {
-    width: 50%;
-  }
-}
-
 .form-view__group.form-view__group--items {
   > .form-view__cell {
     .form-view__label {
