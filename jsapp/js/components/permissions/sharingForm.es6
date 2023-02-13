@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
@@ -18,8 +19,8 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
 import './sharingForm.scss';
-import {ROUTES} from 'js/router/routerConstants';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
@@ -120,7 +121,7 @@ class SharingForm extends React.Component {
           {this.state.asset.name}
         </bem.Modal__subheader>
 
-        {stores.session.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
+        {sessionStore.currentAccount.extra_details?.require_auth !== true && asset_type == ASSET_TYPES.survey.id &&
           <bem.FormModal__item>
             <InlineMessage
               type='warning'
@@ -132,7 +133,7 @@ class SharingForm extends React.Component {
                       'Anyone can see this blank form and add submissions to it ' +
                       'because you have not set [your account] to require authentication.'
                     ),
-                    `/#${ROUTES.ACCOUNT_SETTINGS}`
+                    `/#${ACCOUNT_ROUTES.ACCOUNT_SETTINGS}`
                   )
                 )}} />
               }

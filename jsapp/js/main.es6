@@ -7,28 +7,17 @@ require('jquery-ui/ui/widgets/sortable');
 import moment from 'moment';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
-import DesignSystemApp from 'js/designSystem/designSystemApp';
 import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
-import {hashHistory} from 'react-router';
 import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
-import {
-  csrfSafeMethod,
-  currentLang,
-} from 'utils';
+import {csrfSafeMethod, currentLang} from 'utils';
 require('../scss/main.scss');
+import Modal from 'react-modal';
 
 // Tell moment library what is the app language
 moment.locale(currentLang());
-
-// Send a pageview to Google Analytics for every change in routes
-hashHistory.listen(() => {
-  if (typeof ga === 'function') {
-    ga('send', 'pageview', window.location.hash);
-  }
-});
 
 // Setup the authentication of AJAX calls
 $.ajaxSetup({
@@ -52,19 +41,20 @@ $.ajaxSetup({
 if (document.head.querySelector('meta[name=kpi-root-path]')) {
   // Create the element for rendering the app into
   const el = (() => {
-    const $d = $('<div>', {class: 'kpiapp'});
+    const $d = $('<div>', {id: 'kpiapp'});
     $('body').prepend($d);
+    Modal.setAppElement('#kpiapp');
     return $d.get(0);
   })();
 
-  render(<AllRoutes/>, el);
+  render(<AllRoutes />, el);
 
   if (module.hot) {
     module.hot.accept('js/app', () => {
       let AllRoutes = require('js/app').default;
       render(
         <AppContainer>
-          <AllRoutes/>
+          <AllRoutes />
         </AppContainer>,
         el
       );
@@ -85,21 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <RegistrationPasswordApp />
       </AppContainer>,
       registrationPasswordAppEl
-    );
-  }
-});
-
-// Handles rendering a dev app with design system.
-document.addEventListener('DOMContentLoaded', () => {
-  const designSystemAppEl = document.getElementById(
-    'design-system-app'
-  );
-  if (designSystemAppEl) {
-    render(
-      <AppContainer>
-        <DesignSystemApp/>
-      </AppContainer>,
-      designSystemAppEl
     );
   }
 });

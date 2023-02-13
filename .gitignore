@@ -26,3 +26,7 @@ deployments.json
 .DS_Store
 jsapp/fonts
 env
+cypress/cypress/videos/*
+cypress/cypress/screenshots/*
+public
+.venv

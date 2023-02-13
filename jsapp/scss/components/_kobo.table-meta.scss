@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 .table-meta {
   flex-grow: 1;
   min-height: 30px;
@@ -10,11 +12,11 @@
     cursor: pointer;
     padding: 0 5px;
     border-radius: 50%;
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
 
     &:hover {
-      color: $kobo-white;
-      background-color: $kobo-red;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-red;
     }
   }
 

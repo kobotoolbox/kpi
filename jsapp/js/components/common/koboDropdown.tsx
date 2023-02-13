@@ -19,7 +19,7 @@ export enum KoboDropdownPlacements {
 interface KoboDropdownProps {
   placement: KoboDropdownPlacements;
   /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
-  isDisabled: boolean;
+  isDisabled?: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
   hideOnMenuClick: boolean;
   triggerContent: React.ReactNode;
@@ -31,6 +31,8 @@ interface KoboDropdownProps {
    */
   name: string;
   'data-cy'?: string;
+  /** Alternative way of getting the opened status of the menu. */
+  onMenuVisibilityChange?: (isOpened: boolean) => void;
 }
 
 interface KoboDropdownState {
@@ -48,16 +50,12 @@ bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
 // caused the `onTriggerClick` to be fired while simply typing inside the input.
 bem.KoboDropdown__trigger = makeBem(bem.KoboDropdown, 'trigger');
 bem.KoboDropdown__menu = makeBem(bem.KoboDropdown, 'menu', 'menu');
-bem.KoboDropdown__menuButton = makeBem(bem.KoboDropdown, 'menu-button', 'button');
 
 /**
  * A generic dropdown component that accepts any content inside the menu and
  * inside the trigger.
  *
- * NOTE: If you need a select-type dropdown, please use `react-select` for now.
- *
- * You can use some existing content elements:
- * - bem.KoboDropdown__menuButton - a generic dropdown row button
+ * Most cases are handled by `KoboSelect` component that is built atop this one.
  *
  * To close dropdown from outside the component use:
  * - koboDropdownActions.hideAnyDropdown
@@ -111,6 +109,9 @@ export default class KoboDropdown extends React.Component<
   showMenu() {
     this.setState({isMenuVisible: true});
     koboDropdownActions.menuVisibilityChange(this.props.name, true);
+    if (this.props.onMenuVisibilityChange) {
+      this.props.onMenuVisibilityChange(true);
+    }
     // Hides menu when user clicks outside it.
     this.registerEscKeyListener();
     // Hides menu when opened and user uses Escape key.
@@ -120,6 +121,9 @@ export default class KoboDropdown extends React.Component<
   hideMenu() {
     this.setState({isMenuVisible: false});
     koboDropdownActions.menuVisibilityChange(this.props.name, false);
+    if (this.props.onMenuVisibilityChange) {
+      this.props.onMenuVisibilityChange(false);
+    }
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }
@@ -135,7 +139,7 @@ export default class KoboDropdown extends React.Component<
   onAnyKeyWhileOpen(evt: KeyboardEvent) {
     if (
       evt.key === 'Escape' ||
-      evt.keyCode === KEY_CODES.ESC ||
+      evt.keyCode === 1 ||
       evt.which === KEY_CODES.ESC
     ) {
       this.hideMenu();

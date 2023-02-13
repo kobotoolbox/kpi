@@ -55,7 +55,7 @@ class ColumnsHideForm extends React.Component {
       allColumns.push({
         fieldId: fieldId,
         label: getColumnLabel(
-          this.props.asset.content.survey,
+          this.props.asset,
           fieldId,
           this.props.showGroupName,
           this.props.translationIndex,

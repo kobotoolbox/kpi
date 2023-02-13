@@ -1,7 +1,9 @@
 # coding: utf-8
 import json
 import re
+from collections.abc import Callable
 from io import StringIO
+
 
 from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
@@ -242,7 +244,10 @@ class XMLRenderer(DRFXMLRenderer):
             # from this relationship.
             # e.g. obj is `Asset`, relationship can be `snapshot`
             if relationship is not None and hasattr(obj, relationship):
-                return getattr(obj, relationship).xml
+                var_or_callable = getattr(obj, relationship)
+                if isinstance(var_or_callable, Callable):
+                    return var_or_callable().xml
+                return var_or_callable.xml
             return add_xml_declaration(obj.xml)
         else:
             return super().render(data=data,
@@ -271,5 +276,7 @@ class XlsRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        return asset.to_xlsx_io(versioned=self.versioned,
-                               kobo_specific_types=self.kobo_specific_types)
+        return asset.to_xlsx_io(
+            versioned=False,
+            kobo_specific_types=self.kobo_specific_types,
+        )

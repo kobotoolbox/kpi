@@ -47,11 +47,13 @@ class AttachmentApiTests(BaseAssetTestCase):
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
 
+        _uuid = str(uuid.uuid4())
         submission = {
             '__version__': v_uid,
             'q1': 'audio_conversion_test_clip.mp4',
             'q2': 'audio_conversion_test_image.jpg',
-            '_uuid': str(uuid.uuid4()),
+            '_uuid': _uuid,
+            'meta/instanceID': f'uuid:{_uuid}',
             '_attachments': [
                 {
                     'id': 1,
@@ -155,6 +157,53 @@ class AttachmentApiTests(BaseAssetTestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'video/mp4'
+
+    def test_duplicate_attachment_with_submission(self):
+        # Grab the original submission and attachment
+        submission = self.submissions[0]
+        url = reverse(
+            self._get_endpoint('attachment-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'parent_lookup_data': submission['_id'],
+                'pk': submission['_attachments'][0]['id'],
+            },
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response['Content-Type'] == 'video/mp4'
+        original_file = response.data
+
+        # Duplicate the submission
+        duplicate_url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(duplicate_url, {'format': 'json'})
+        duplicate_submission = response.data
+
+        # Increment the max attachment id of the original submission to get the
+        # id of the first attachment of the duplicated submission
+        max_attachment_id = max(a['id'] for a in submission['_attachments'])
+        url = reverse(
+            self._get_endpoint('attachment-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'parent_lookup_data': duplicate_submission['_id'],
+                'pk': max_attachment_id + 1,
+            },
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response['Content-Type'] == 'video/mp4'
+        duplicate_file = response.data
+
+        # Ensure that the files are the same
+        assert original_file == duplicate_file
 
     def test_xpath_not_found(self):
         query_dict = QueryDict('', mutable=True)

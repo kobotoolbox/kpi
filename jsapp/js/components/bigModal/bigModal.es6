@@ -28,7 +28,8 @@ import TableSettings from 'js/components/submissions/tableSettings';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
-import MFAModals from 'js/components/account/mfaModals';
+// This should either be more generic or else be it's own component in the account directory.
+import MFAModals from './mfaModals';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');

@@ -10,7 +10,8 @@ const DefaultType: AvailableType = 'text';
 interface TextBoxProps {
   type?: AvailableType;
   value: string;
-  onChange: Function;
+  /** Not needed if `readOnly` */
+  onChange?: Function;
   onBlur?: Function;
   onKeyPress?: Function;
   /**
@@ -38,7 +39,7 @@ class TextBox extends React.Component<TextBoxProps, {}> {
    */
 
   onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
-    if (this.props.readOnly) {
+    if (this.props.readOnly || !this.props.onChange) {
       return;
     }
     this.props.onChange(evt.currentTarget.value);

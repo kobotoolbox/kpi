@@ -1,0 +1,7 @@
+{
+  "testFiles": [
+    "project.spec.js",
+    "question.spec.js",
+    "delete.spec.js"
+  ]
+}

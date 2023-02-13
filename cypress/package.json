@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "kobo-tester",
+  "version": "0.1.0",
+  "description": "Cypress automated browser scripts for running tests on KoboToolbox",
+  "scripts": {
+    "test": "echo \"See ./README.md for instructions.\" && exit 1"
+  },
+  "contributors": [
+    "Ben Alexander (https://github.com/wetbadger)"
+  ],
+  "devDependencies": {
+    "cypress": "^8.7.0"
+  }
+}

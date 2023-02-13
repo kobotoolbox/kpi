@@ -1,5 +1,6 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
+import { observer } from 'mobx-react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
@@ -10,8 +11,8 @@ import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
-import {hashHistory} from 'react-router';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
 import {renderBackButton} from './modalHelpers';
@@ -19,6 +20,7 @@ import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import envStore from 'js/envStore';
+import {withRouter} from 'js/router/legacy';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -30,12 +32,12 @@ import envStore from 'js/envStore';
  *
  * @prop {Object} asset - Modal asset.
  */
-export class LibraryAssetForm extends React.Component {
+export class LibraryAssetFormComponent extends React.Component {
   constructor(props) {
     super(props);
     this.unlisteners = [];
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn,
+      isSessionLoaded: !!sessionStore.isLoggedIn,
       fields: {
         name: '',
         organization: '',
@@ -53,7 +55,7 @@ export class LibraryAssetForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, () => {
+    observer(sessionStore, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(
@@ -94,9 +96,9 @@ export class LibraryAssetForm extends React.Component {
     notify(t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name));
     stores.pageState.hideModal();
     if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
-      hashHistory.push(`/library/asset/${response.uid}`);
+      this.props.router.navigate(`/library/asset/${response.uid}`);
     } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
-      hashHistory.push(`/library/asset/${response.uid}/edit`);
+      this.props.router.navigate(`/library/asset/${response.uid}/edit`);
     }
   }
 
@@ -291,7 +293,8 @@ export class LibraryAssetForm extends React.Component {
   }
 }
 
-reactMixin(LibraryAssetForm.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryAssetForm.prototype, mixins.contextRouter);
+reactMixin(LibraryAssetFormComponent.prototype, Reflux.ListenerMixin);
+reactMixin(LibraryAssetFormComponent.prototype, mixins.contextRouter);
 
-LibraryAssetForm.contextTypes = {router: PropTypes.object};
+LibraryAssetFormComponent.contextTypes = {router: PropTypes.object};
+export const LibraryAssetForm = withRouter(LibraryAssetFormComponent);

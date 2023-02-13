@@ -1,10 +1,11 @@
 @use "sass:math";
+@use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
 
 $s-service-row-action-button: 36px;
 $s-service-row-action-button-icon: 26px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
-$s-service-row-z-link: 10;
 
 .service-row {
   display: flex;
@@ -16,17 +17,17 @@ $s-service-row-z-link: 10;
   position: relative;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid $kobo-gray-92;
+    border-bottom: 1px solid colors.$kobo-gray-92;
   }
 
   &:hover .service-row__action-button {
     position: relative;
-    z-index: $s-service-row-z-link + 1;
+    z-index: z-indexes.$z-service-row-link + 1;
   }
 
   &:not(.service-row--header):hover {
-    background-color: $kobo-gray-96;
-    color: $kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
+    color: colors.$kobo-gray-24;
   }
 
   &.service-row--clickable {
@@ -39,17 +40,17 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row--active {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   &.service-row--inactive {
-    color: $kobo-gray-65;
+    color: colors.$kobo-gray-65;
   }
 }
 
 .service-row__link-overlay {
   position: absolute;
-  z-index: $s-service-row-z-link;
+  z-index: z-indexes.$z-service-row-link;
   top: 0;
   left: 0;
   right: 0;
@@ -89,15 +90,15 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--success {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   &.service-row__column--pending {
-    color: $kobo-teal;
+    color: colors.$kobo-teal;
   }
 
   &.service-row__column--failed {
-    color: $kobo-red;
+    color: colors.$kobo-red;
   }
 }
 
@@ -124,7 +125,7 @@ $s-service-row-z-link: 10;
   }
 
   &:hover {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 }
 
@@ -139,10 +140,10 @@ $s-service-row-z-link: 10;
   padding: 0;
   text-transform: uppercase;
   cursor: pointer;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
 
   &:hover {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
   }
 
   &:active {
@@ -151,6 +152,6 @@ $s-service-row-z-link: 10;
 
   &.service-row-button--loading {
     pointer-events: none;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 }

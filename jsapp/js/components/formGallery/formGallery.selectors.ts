@@ -100,9 +100,15 @@ export const selectFilterQuery = (
     // $and is necessary as repeating a json key is not valid
     const andQuery: Json = [];
     if (startDate) {
+      if (!startDate.includes('T')) {
+        startDate = startDate + 'T00:00Z';
+      }
       andQuery.push({_submission_time: {$gt: startDate}});
     }
     if (endDate) {
+      if (!endDate.includes('T')) {
+        endDate = endDate + 'T23:59:59.999Z';
+      }
       andQuery.push({_submission_time: {$lt: endDate}});
     }
     query['$and'] = andQuery;

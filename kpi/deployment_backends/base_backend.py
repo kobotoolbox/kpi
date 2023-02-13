@@ -43,6 +43,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def all_time_submission_count(self):
+        pass
+
+    @property
+    @abc.abstractmethod
     def attachment_storage_bytes(self):
         pass
 
@@ -75,6 +80,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def connect(self, active=False):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def current_month_nlp_tracking(self):
         pass
 
     def delete(self):
@@ -245,6 +255,11 @@ class BaseDeploymentBackend(abc.ABC):
     def mongo_userform_id(self):
         return None
 
+    @property
+    @abc.abstractmethod
+    def nlp_tracking(self):
+        pass
+
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
         pass
@@ -325,6 +340,11 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     @abc.abstractmethod
     def submission_list_url(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def submission_model(self):
         pass
 
     @abc.abstractmethod

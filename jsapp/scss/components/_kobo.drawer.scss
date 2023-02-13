@@ -1,3 +1,6 @@
+@use 'scss/z-indexes';
+@use '~kobo-common/src/styles/colors';
+
 // drawer (sidebar)
 
 .k-drawer {
@@ -8,7 +11,7 @@
   left: 0;
   display: flex;
   flex-direction: row;
-  border-right: 2px solid $kobo-gray-92;
+  border-right: 2px solid colors.$kobo-gray-92;
 }
 
 // only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
@@ -28,7 +31,7 @@
   font-size: 26px;
   margin: 6px 0;
   text-align: center;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   padding: 0;
   border-left: 3px solid transparent;
 
@@ -37,12 +40,12 @@
   }
 
   &:hover {
-    color: $kobo-teal;
+    color: colors.$kobo-teal;
   }
 
   &.active {
-    color: $kobo-teal;
-    border-left: 3px solid $kobo-teal;
+    color: colors.$kobo-teal;
+    border-left: 3px solid colors.$kobo-teal;
   }
 }
 
@@ -59,10 +62,10 @@
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 
     &:hover {
-      color: $kobo-teal;
+      color: colors.$kobo-teal;
     }
 
     i {
@@ -88,11 +91,11 @@
 @media screen and (max-width: 999px) {
   .k-drawer {
     position: fixed;
-    z-index: 1050; // must be over leaflet
+    z-index: z-indexes.$z-kobo-drawer;
     // We need some pxs more as there is shadow on the drawer.
     left: -1 * $s-drawer-width - 10px;
     transition: left 0.5s;
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
 
     @include box-shadow-mid;
   }

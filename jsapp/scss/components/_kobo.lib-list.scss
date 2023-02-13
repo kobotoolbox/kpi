@@ -1,3 +1,5 @@
+@use '~kobo-common/src/styles/colors';
+
 .lib-list {
   list-style-type: none;
   padding: 0;
@@ -18,11 +20,11 @@
 }
 
 .lib-list__item {
-  border: 1px solid $kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-92;
   padding-left: 20px;
   position: relative;
   margin: 5px 0;
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
 
   &.sortable-active {
     &:after {
@@ -37,7 +39,7 @@
   }
 
   &.ui-sortable-helper {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   ol {
@@ -68,7 +70,7 @@
   width: 12px;
   height: 12px;
   margin-top: -8px;
-  background-color: $kobo-gray-92;
+  background-color: colors.$kobo-gray-92;
   border-radius: 6px;
 }
 

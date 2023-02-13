@@ -1,4 +1,4 @@
- @use "scss/_colors";
+ @use '~kobo-common/src/styles/colors';
 
 .media-cell {
   text-align: center;
@@ -32,7 +32,7 @@
 
   .icon-wrapper {
     .icon-wrapper__icon {
-      font-size: 12px;
+      font-size: 14px;
     }
   }
 }

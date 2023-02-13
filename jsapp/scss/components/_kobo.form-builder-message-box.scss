@@ -1,10 +1,12 @@
+@use '~kobo-common/src/styles/colors';
+
 $message-box-icon-size: 28px;
 
 .form-builder-message-box {
   width: 100%;
   margin: 0 auto 20px;
-  background-color: $kobo-gray-40;
-  color: $kobo-white;
+  background-color: colors.$kobo-gray-40;
+  color: colors.$kobo-white;
   padding: 10px;
   display: flex;
   flex-direction: row;
@@ -12,7 +14,7 @@ $message-box-icon-size: 28px;
   flex-wrap: wrap;
 
   i {
-    color: $kobo-white;
+    color: colors.$kobo-white;
     font-size: $message-box-icon-size;
     margin-right: 5px;
     vertical-align: -11px;
@@ -34,7 +36,7 @@ $message-box-icon-size: 28px;
     padding: 0;
     border: 0;
     background: none;
-    color: $kobo-mid-blue;
+    color: colors.$kobo-mid-blue;
     cursor: pointer;
 
     &:active {
@@ -59,8 +61,8 @@ $message-box-icon-size: 28px;
 }
 
 .form-builder-message-box--warning {
-  background-color: $kobo-light-amber;
-  color: $kobo-dark-amber;
+  background-color: colors.$kobo-light-amber;
+  color: colors.$kobo-dark-amber;
 
   a {
     width: $message-box-icon-size;
@@ -68,7 +70,7 @@ $message-box-icon-size: 28px;
   }
 
   i {
-    color: $kobo-dark-amber;
+    color: colors.$kobo-dark-amber;
   }
 
   p {

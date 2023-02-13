@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import DocumentTitle from 'react-document-title';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
@@ -62,11 +62,11 @@ export default class ProjectDownloads extends React.Component {
               {t('Downloads')}
             </bem.FormView__cell>
 
-            {stores.session.isLoggedIn &&
+            {sessionStore.isLoggedIn &&
               this.renderLoggedInExports()
             }
 
-            {!stores.session.isLoggedIn &&
+            {!sessionStore.isLoggedIn &&
               <AnonymousExports asset={this.props.asset}/>
             }
           </bem.FormView__row>

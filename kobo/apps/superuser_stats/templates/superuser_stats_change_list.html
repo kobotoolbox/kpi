@@ -1,0 +1,59 @@
+{% extends "admin/change_list.html" %}
+{% block extrahead %}
+    <style>
+        #changelist table {
+            width: calc(100% - 250px);
+        }
+    </style>
+{% endblock %}
+{% load i18n %}
+
+{% block content_title %}
+    <h1>Superuser reports</h1>
+{% endblock %}
+
+{% block result_list %}
+    <table>
+        <thead>
+            <tr>
+                <th colspan="8">
+                    <div class="text">
+                        <a href="#">Report</a>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td><a href="{% url 'superuser_stats:continued_usage_report' %}" target="_blank">Continued usage</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:countries_report' %}" target="_blank">Countries</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:domains_report' %}" target="_blank">Domains</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:forms_by_submissions_count' %}" target="_blank">Forms by submissions count</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:media_storage_report' %}" target="_blank">Media storage</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:user_count_by_organization' %}" target="_blank">Users by organization</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:users_report' %}" target="_blank">Users</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:user_statistics_report' %}" target="_blank">Users' statistics</a></td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'superuser_stats:user_details_report' %}" target="_blank">Users' details</a></td>
+        </tr>
+        </tbody>
+
+    </table>
+{% endblock %}
+
+{% block pagination %}{% endblock %}

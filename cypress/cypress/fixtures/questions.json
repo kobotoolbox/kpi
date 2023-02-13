@@ -1,0 +1,22 @@
+{
+    "question_01" : {
+        "text" : "What is your name?",
+        "menu_item" : "text"
+    },
+    "question_02" : {
+        "text" : "What is the airspeed velocity of an unladen swallow?",
+        "menu_item" : "decimal"
+    },
+    "question_03" : {
+        "text" : "What is your favorite color?",
+        "menu_item" : "select_multiple",
+        "options" : [
+            "Blue",
+            "Red",
+            "Yellow",
+            "Green",
+            "Orange",
+            "Purple"
+        ]
+    }
+}

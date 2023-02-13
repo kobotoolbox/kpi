@@ -66,3 +66,29 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             user_id=settings.ANONYMOUS_USER_ID,
             permission__codename=PERM_DISCOVER_ASSET).values_list('asset_id',
                                                                   flat=True)
+
+
+class UserListSerializer(UserSerializer):
+    metadata = serializers.SerializerMethodField()
+    asset_count = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = (
+            'id',
+            'username',
+            'is_superuser',
+            'date_joined',
+            'last_login',
+            'is_active',
+            'email',
+            'asset_count',
+            'metadata',
+        )
+
+    def get_asset_count(self, user):
+        return user.assets.count()
+
+    def get_metadata(self, user):
+        if not hasattr(user, 'extra_details'):
+            return {}
+        return user.extra_details.data
