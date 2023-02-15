@@ -71,3 +71,12 @@ def on_email_confirmed(sender, **kwargs):
     if not email_address.primary:
         email_address.set_as_primary()
     email_address.user.emailaddress_set.filter(primary=False).delete()
+
+
+class SocialAppCustomData(models.Model):
+    """Model for adding custom data fields to a SocialApp. For now, any
+    application with customization is treated as a "private" application."""
+
+    social_app = models.OneToOneField(
+        "socialaccount.SocialApp", on_delete=models.CASCADE, primary_key=True
+    )
