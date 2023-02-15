@@ -351,9 +351,11 @@ class FormSummary extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            <FormSummaryProjectInfo
-              asset={this.state}
-            />
+            {/* We only want to pass an actual asset object, but because this
+            component uses `mixins.dmix`, we have to add this little check. */}
+            {this.state.uid &&
+              <FormSummaryProjectInfo asset={this.state}/>
+            }
 
             {/* Submissions graph */}
             {this.renderSubmissionsGraph()}
