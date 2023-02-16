@@ -16,7 +16,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ## List of imported files
 
-    Lists all files imported by the requesting user. 
+    Lists all files imported by the requesting user.
     An empty json response will be returned if the user anonymous.
 
     <pre class="prettyprint">
@@ -108,4 +108,3 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 request=request),
             'status': ImportTask.PROCESSING,
         }, status.HTTP_201_CREATED)
-

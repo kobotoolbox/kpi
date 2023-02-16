@@ -14,6 +14,7 @@ from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from hub.models import ExtraUserDetail
+from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
 from kpi.deployment_backends.kc_access.utils import set_kc_require_auth
 from kpi.fields import WritableJSONField
@@ -21,7 +22,6 @@ from kpi.utils.gravatar_url import gravatar_url
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
@@ -30,6 +30,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
+    social_accounts = SocialAccountSerializer(
+        source="socialaccount_set", many=True, read_only=True
+    )
+
 
     class Meta:
         model = User
@@ -49,7 +53,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
+            'social_accounts',
         )
+        read_only_fields = ('email',)
 
     def get_server_time(self, obj):
         # Currently unused on the front end
@@ -100,17 +106,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             del extra_details['primarySector']
         except KeyError:
             pass
-
-        # the registration form records only the value, but the front end
-        # expects an object with both the label and the value.
-        # TODO: store and load the value *only*
-        for field in 'sector', 'country':
-            val = extra_details.get(field)
-            if isinstance(val, str) and val:
-                extra_details[field] = {
-                    'label': val,
-                    'value': val,
-                }
 
         # `require_auth` needs to be read from KC every time
         # except during testing, when KC's database is not available

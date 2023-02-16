@@ -36,9 +36,16 @@ class FreeTierThresholdField(JsonSchemaFormField):
             'properties': {
                 'storage': {'type': 'integer'},
                 'data': {'type': 'integer'},
+                'transcription_minutes': {'type': 'integer'},
+                'translation_chars': {'type': 'integer'},
             },
-            'required': ['storage', 'data'],
-            'additionalProperties': True,
+            'required': [
+                'storage',
+                'data',
+                'transcription_minutes',
+                'translation_chars',
+            ],
+            'additionalProperties': False,
         }
         super().__init__(*args, schema=schema, **kwargs)
 

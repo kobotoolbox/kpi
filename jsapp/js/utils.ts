@@ -13,13 +13,13 @@ import {toast} from 'react-hot-toast';
 import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
+import type {FailResponse} from './dataInterface';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
 export const assign = require('object-assign');
 
 const cookies = new Cookies();
-
 
 /**
  * Pop up a notification with react-hot-toast
@@ -67,6 +67,39 @@ export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOpt
 notify.error = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'error', opts);
 notify.warning = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'warning', opts);
 notify.success = (msg: Toast['message'], opts?: ToastOptions): Toast['id'] => notify(msg, 'success', opts);
+
+/**
+ * Useful for handling the fail responses from API. It detects if we got HTML
+ * string as response and uses a generic message instead.
+ */
+export function handleApiFail(response: FailResponse) {
+  // Avoid displaying toast when purposefuly aborted a request
+  if (response.status === 0 && response.statusText === 'abort') {
+    return;
+  }
+
+  let message = response.responseText;
+
+  // Detect if response is HTML code string
+  if (
+    typeof message === 'string' &&
+    message.includes('</html>') &&
+    message.includes('</body>')
+  ) {
+    // Try plucking the useful error message from the HTML string - this works
+    // for Werkzeug Debugger only. It is being used on development environment,
+    // on production this would most probably result in undefined message (and
+    // thus falling back to the generic message below).
+    const htmlDoc = (new DOMParser).parseFromString(message, 'text/html');
+    message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
+  }
+
+  if (!message) {
+    message = `An unexpected error occurred ${response.status} ${response.statusText}`;
+  }
+
+  notify.error(message);
+}
 
 /**
  * Returns a copy of arr with separator inserted in every other place.
@@ -244,7 +277,7 @@ export function addRequiredToLabel(label: string, isRequired = true): string {
   return requiredTemplate.replace('##field_label##', label);
 }
 
-export function stringToColor(str: string, prc: number) {
+export function stringToColor(str: string, prc?: number) {
   // Higher prc = lighter color, lower = darker
   prc = typeof prc === 'number' ? prc : -15;
   const hash = function (word: string) {

@@ -1,4 +1,4 @@
-@use "scss/colors";
+@use '~kobo-common/src/styles/colors';
 @use "scss/mixins";
 @use "scss/sizes";
 @use "js/components/common/button";
@@ -35,7 +35,8 @@ $k-select-menu-padding: sizes.$x6;
 }
 
 .k-select__trigger,
-.k-select__trigger-selected-option {
+.k-select__trigger-selected-option,
+.k-select__option {
   > *:not(:last-child) {
     margin-right: sizes.$x6;
   }

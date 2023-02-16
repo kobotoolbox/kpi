@@ -6,7 +6,9 @@ from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 from kobo.apps.organizations.views import OrganizationViewSet
+from kobo.apps.project_views.views import ProjectViewViewSet
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
@@ -61,6 +63,12 @@ URL_NAMESPACE = 'api_v2'
 
 router_api_v2 = ExtendedDefaultRouterWithPathAliases()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
+
+asset_routes.register(r'counts',
+                      AssetCountsViewSet,
+                      basename='asset-counts',
+                      parents_query_lookups=['asset'],
+                      )
 
 asset_routes.register(r'files',
                       AssetFileViewSet,
@@ -141,6 +149,7 @@ router_api_v2.register(
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'imports', ImportTaskViewSet)
+router_api_v2.register(r'project-views', ProjectViewViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
@@ -148,5 +157,3 @@ router_api_v2.register(r'imports', ImportTaskViewSet)
 # router_api_v2.register(r'authorized_application/users',
 #                        AuthorizedApplicationUserViewSet,
 #                        basename='authorized_applications')
-# router_api_v2.register(r'authorized_application/one_time_authentication_keys',
-#                        OneTimeAuthenticationKeyViewSet)

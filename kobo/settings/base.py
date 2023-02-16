@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import re
 import string
 import subprocess
 from mimetypes import add_type
@@ -57,7 +58,7 @@ if SESSION_COOKIE_DOMAIN:
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
-SESSION_COOKIE_AGE = 604800
+SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
@@ -76,6 +77,7 @@ INSTALLED_APPS = (
     # Always put `contenttypes` before `auth`; see
     # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -83,11 +85,15 @@ INSTALLED_APPS = (
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
+    "kobo.apps.accounts",
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.openid_connect',
     'hub',
     'loginas',
     'webpack_loader',
-    'registration',         # Order is important
-    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
     'django_filters',
     'taggit',
@@ -110,9 +116,11 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
-    'kobo.apps.mfa.apps.MfaAppConfig',
+    'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',
+    'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
+    'kobo.apps.trackers.TrackersConfig',
 )
 
 MIDDLEWARE = [
@@ -362,6 +370,7 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
@@ -536,6 +545,7 @@ TEMPLATES = [
     },
 ]
 
+DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
 RAVEN_JS_DSN = None
@@ -694,11 +704,53 @@ CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
-''' Django Registration configuration '''
-# http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
-ACCOUNT_ACTIVATION_DAYS = 3
-REGISTRATION_AUTO_LOGIN = True
-REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
+''' Django allauth configuration '''
+ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
+ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_FORMS = {
+    'login': 'kobo.apps.accounts.mfa.forms.MfaLoginForm',
+    'signup': 'kobo.apps.accounts.forms.SignupForm',
+}
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_SESSION_REMEMBER = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_FORMS = {
+    'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
+}
+
+# See https://django-allauth.readthedocs.io/en/latest/configuration.html
+# Map env vars to upstream dict values, include exact case. Underscores for delimiter.
+# Example: SOCIALACCOUNT_PROVIDERS_provider_SETTING
+# Use numbers for arrays such as _1_FOO, _1_BAR, _2_FOO, _2_BAR
+SOCIALACCOUNT_PROVIDERS = {}
+if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
+    SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
+# Parse oidc settings as nested dict in array. Example:
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google-kobo" # Must be unique
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
+# Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
+# OIDC and assign them a different server number. Do not use the allauth google provider.
+oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
+oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
+oidc_servers = {}
+for key, value in {
+    key.replace(oidc_prefix, ""): val
+    for key, val in os.environ.items()
+    if oidc_pattern.match(key)
+}.items():
+    number, setting = key.split("_", 1)
+    if number in oidc_servers:
+        oidc_servers[number][setting] = value
+    else:
+        oidc_servers[number] = {setting: value}
+oidc_servers = [x for x in oidc_servers.values()]
+SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -1009,7 +1061,7 @@ TRENCH_AUTH = {
                 'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
             ),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.mfa.backends.application.ApplicationBackend',
+            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
         },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),

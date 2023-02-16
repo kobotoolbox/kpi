@@ -1,14 +1,11 @@
 # coding: utf-8
 from rest_framework import (
-    mixins,
     renderers,
-    serializers,
     viewsets,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from kpi.models import Asset
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
@@ -30,14 +27,26 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     >               {
     >                   "asset": {asset_url},
     >                   "asset_name": {string},
+    >                   "nlp_usage_current_month": {
+    >                       "google_asr_seconds": {integer},
+    >                       "google_mt_characters": {integer},
+    >                       ...
+    >                   }
+    >                   "nlp_usage_all_time": {
+    >                       "google_asr_seconds": {integer},
+    >                       "google_mt_characters": {integer},
+    >                       ...
+    >                   }
+    >                   "storage_bytes": {integer},
     >                   "submission_count_current_month": {integer},
     >                   "submission_count_all_time": {integer},
-    >                   "storage_bytes": {integer},
     >               },
     >           ],
+    >           "total_nlp_asr_seconds": {integer},
+    >           "total_nlp_mt_characters": {integer},
+    >           "total_storage_bytes": {integer},
     >           "total_submission_count_current_month": {integer},
     >           "total_submission_count_all_time": {integer},
-    >           "total_storage_bytes": {integer},
     >       }
 
 

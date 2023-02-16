@@ -1,0 +1,84 @@
+{% extends "account/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load account get_provider_appname socialaccount %}
+{% block content %}
+
+
+  <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
+    {#  KoboToolbox Logo #}
+    <div class="registration--logo"><a href="/">
+    {% block logo %}{{ block.super }}{% endblock %}
+    </a></div>
+
+    {% csrf_token %}
+
+    {# Username and Password #}
+    {{ form.as_p }}
+    
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+
+    {# Login Button #}
+    <button
+      type="submit"
+      name="Login"
+      class="kobo-button kobo-button--blue kobo-button--fullwidth"
+    >
+      {% trans "Login" %}
+    </button>
+
+    {# Create an account, Forgot Password? #}
+    <div class="registration__create-or-forgot">
+      {% if config.REGISTRATION_OPEN %}
+        <a href="{{ signup_url }}" class="registration__create-account">
+          {% trans "Create an account" %}
+        </a>
+      {% endif %}
+
+      <a href="{% url 'account_reset_password' %}" class="registration__forgot-password">
+        {% trans "Forgot password?" %}
+      </a>
+    </div>
+
+    {# SSO section #}
+    {% get_social_apps as social_apps %}
+    {% if social_apps %}
+      <div class="registration__sso registration__sso--login">
+        <hr></hr>
+        <h2>{% trans "Log in using SSO" %}</h2>
+        <p>
+          {% trans "If you set up Single Sign On in your account settings, you will only be able to log in through this method." %}
+          {# TODO: Link to documentation #}
+          {# <a href="#">{% trans "Learn more" %}</a> #}
+        </p>
+        <div class="registration__sso-buttons">
+          {# SSO Provider buttons #}
+          <ul class="socialaccount_providers">
+            {% for social_app in social_apps %}
+            <li>
+              <a title="{{ social_app.name }}"
+                class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
+                >{% trans "SSO Login" %}</a>
+                {# "Log in with {{social_app.name}}" when supporting social_apps|length>1 #}
+            </li>
+            {% endfor %}
+          </ul>
+          {# for stability with upstream #}
+          {% include "socialaccount/snippets/login_extra.html" %}
+        </div>
+      </div>
+      <script>
+        // {# Polish: Make SSO links act more like buttons #}
+        document.addEventListener('keydown', function(e) {
+          if ((e.code === 'Space') && e.target.classList.contains('kobo-button--sso')) {
+            e.target.click()
+          }
+        })
+      </script>
+    {% endif %}
+
+  </form>
+{% endblock %}

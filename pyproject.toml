@@ -7,5 +7,4 @@ skip-string-normalization = true
 [tool.isort]
 default_section = "THIRDPARTY"
 known_first_party = "kobo"
-known_django = "django"
-sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]

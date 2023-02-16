@@ -13,6 +13,7 @@ from kobo.apps.subsequences.tasks import handle_google_translation_operation
 from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
     determine_export_cols_indiv,
 )
+from kobo.apps.trackers.utils import update_nlp_counter
 
 from kpi.models import Asset
 
@@ -107,6 +108,12 @@ class SubmissionExtras(models.Model):
                 tx_engine = GoogleTranslationEngine()
                 # FIXME Code is hardcoded and should be dynamic
                 service = TranslationService.objects.get(code='goog')
+                update_nlp_counter(
+                    'google_mt_characters',
+                    len(content),
+                    self.asset.owner_id,
+                    self.asset.id
+                )
                 if tx_engine.translation_must_be_async(content):
                     # must queue
                     followup_params = tx_engine.translate_async(

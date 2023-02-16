@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 
 import copy
 import io
@@ -7,11 +8,10 @@ import posixpath
 import re
 import uuid
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -22,6 +22,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -35,10 +36,13 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
+    InvalidXFormException,
     InvalidXPathException,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
@@ -50,6 +54,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
@@ -57,6 +62,7 @@ from .kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
@@ -72,7 +78,7 @@ from ..exceptions import (
 )
 
 from kobo.apps.subsequences.utils import stream_with_extras
-
+from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -97,8 +103,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     )
 
     @property
+    def all_time_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
+        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            xform_id=xform_id
+        ).aggregate(Sum('counter'))
+
+        if count := result['counter__sum']:
+            return count
+
+        return 0
+
+    @property
     def attachment_storage_bytes(self):
-        return self.xform.attachment_storage_bytes
+        try:
+            return self.xform.attachment_storage_bytes
+        except InvalidXFormException:
+            return 0
 
     def bulk_assign_mapped_perms(self):
         """
@@ -227,24 +252,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
-    @property
-    def current_month_submission_count(self):
-        today = timezone.now().date()
-        try:
-            monthly_counter = (
-                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
-                    'counter'
-                ).get(
-                    xform_id=self.xform_id,
-                    year=today.year,
-                    month=today.month,
-                )
-            )
-        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
-            return 0
-        else:
-            return monthly_counter.counter
-
     def connect(self, identifier=None, active=False):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
@@ -317,6 +324,49 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    @property
+    def current_month_nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        today = datetime.today()
+        try:
+            monthly_nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('counters').get(
+                    asset_id=self.asset.id,
+                    year=today.year,
+                    month=today.month,
+                ).counters
+            )
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `monthly_nlp_tracking` type
+            return {}
+        else:
+            return monthly_nlp_tracking
+
+    @property
+    def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
+        today = timezone.now().date()
+        try:
+            monthly_counter = (
+                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
+                    'counter'
+                ).get(
+                    xform_id=xform_id,
+                    year=today.year,
+                    month=today.month,
+                )
+            )
+        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            return 0
+        else:
+            return monthly_counter.counter
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -676,6 +726,73 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             instance_id=submission['_id']
         )
 
+    def get_daily_counts(
+        self, user: 'auth.User', timeframe: tuple[date, date]
+    ) -> dict:
+
+        user = get_database_user(user)
+
+        if user != self.asset.owner and self.asset.has_perm(
+            user, PERM_PARTIAL_SUBMISSIONS
+        ):
+            # We cannot use cached values from daily counter when user has
+            # partial permissions. We need to use MongoDB aggregation engine
+            # to retrieve the correct value according to user's permissions.
+            permission_filters = self.asset.get_filters_for_partial_perm(
+                user.pk, perm=PERM_VIEW_SUBMISSIONS
+            )
+
+            if not permission_filters:
+                return {}
+
+            query = {
+                '_userform_id': self.mongo_userform_id,
+                '_submission_time': {
+                    '$gte': f'{timeframe[0]}',
+                    '$lte': f'{timeframe[1]}T23:59:59'
+                }
+            }
+
+            query = MongoHelper.get_permission_filters_query(
+                query, permission_filters
+            )
+
+            documents = settings.MONGO_DB.instances.aggregate([
+                {
+                    '$match': query,
+                },
+                {
+                    '$group': {
+                        '_id': {
+                            '$dateToString': {
+                                'format': '%Y-%m-%d',
+                                'date': {
+                                    '$dateFromString': {
+                                        'format': "%Y-%m-%dT%H:%M:%S",
+                                        'dateString': "$_submission_time"
+                                    }
+                                }
+                            }
+                        },
+                        'count': {'$sum': 1}
+                    }
+                }
+            ])
+            return {doc['_id']: doc['count'] for doc in documents}
+
+        # Trivial case, user has 'view_permissions'
+        daily_counts = (
+            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+                'date', 'counter'
+            ).filter(
+                xform_id=self.xform_id,
+                date__range=timeframe,
+            )
+        )
+        return {
+            str(count['date']): count['counter'] for count in daily_counts
+        }
+
     def get_data_download_links(self):
         exports_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
@@ -826,6 +943,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+
+    @property
+    def nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        try:
+            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+                asset_id=self.asset.id
+            )
+            total_counters = {}
+            for nlp_counters in nlp_usage_counters:
+                counters = nlp_counters.counters
+                for key in counters.keys():
+                    if key not in total_counters:
+                        total_counters[key] = 0
+                    total_counters[key] += counters[key]
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict match `total_counters` type
+            return {}
+        else:
+            return total_counters
 
     def redeploy(self, active=None):
         """
@@ -1049,7 +1188,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def submission_count(self):
-        return self.xform.num_of_submissions
+        try:
+            return self.xform.num_of_submissions
+        except InvalidXFormException:
+            return 0
 
     @property
     def submission_list_url(self):
@@ -1167,9 +1309,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )  # Avoid extra query to validate username below
                 .first()
             )
-            if not (xform.user.username == self.asset.owner.username and
-                    xform.id_string == self.xform_id_string):
-                raise Exception(
+            if not (
+                xform
+                and xform.user.username == self.asset.owner.username
+                and xform.id_string == self.xform_id_string
+            ):
+                raise InvalidXFormException(
                     'Deployment links to an unexpected KoBoCAT XForm')
             setattr(self, '_xform', xform)
 

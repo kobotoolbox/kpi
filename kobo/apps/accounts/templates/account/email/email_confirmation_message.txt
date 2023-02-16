@@ -1,0 +1,11 @@
+{% load i18n %}
+{% load url_creation %}
+{% blocktrans %}To confirm the new email address associated with your KoboToolbox account, please follow the link below.{% endblocktrans %}
+
+{{ activate_url }}
+
+{% blocktrans %}This link will expire in one hour. To request a new verification link, please go to your account settings and re-enter your new email address:{% endblocktrans %}
+{% account_security %}
+
+{% blocktrans %}Best,{% endblocktrans %}
+KoboToolbox

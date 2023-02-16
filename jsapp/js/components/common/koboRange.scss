@@ -1,4 +1,4 @@
-@use "scss/_colors";
+@use '~kobo-common/src/styles/colors';
 
 @mixin rangeTrack() {
   -webkit-appearance: none;
@@ -29,7 +29,7 @@
     color: colors.$kobo-gray-65;
   }
 
-  .kobo-range__unit {
+  .kobo-range__unit:not(:first-child) {
     margin-left: 4px;
   }
 }

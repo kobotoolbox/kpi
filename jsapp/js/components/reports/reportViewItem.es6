@@ -1,11 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
+import { observer } from 'mobx-react';
 import _ from 'underscore';
 import Chart from 'chart.js';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 import ReportTable from './reportTable';
 
@@ -24,7 +25,7 @@ function getPreparedTable(data) {
   return reportTable;
 }
 
-export default class ReportViewItem extends React.Component {
+const ReportViewItem = observer(class ReportViewItem extends React.Component {
   constructor(props) {
     super(props);
     this.state = {reportTable: false};
@@ -286,7 +287,7 @@ export default class ReportViewItem extends React.Component {
               {t('(# were without data.)').replace('#', d.not_provided)}
             </span>
           </bem.ReportView__headingMeta>
-          {d.show_graph && stores.session.isLoggedIn && (
+          {d.show_graph && sessionStore.isLoggedIn && (
             <bem.Button
               m='icon'
               className='report-button__question-settings'
@@ -327,4 +328,6 @@ export default class ReportViewItem extends React.Component {
       </div>
     );
   }
-}
+});
+
+export default ReportViewItem;

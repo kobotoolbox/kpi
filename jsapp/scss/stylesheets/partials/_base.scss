@@ -1,4 +1,5 @@
 @use "scss/_variables";
+@use '~kobo-common/src/styles/colors';
 
 /* ==========================================================================
  * Base
@@ -12,7 +13,7 @@
 
 html {
   height: 100%;
-  color: $kobo-gray-24;
+  color: colors.$kobo-gray-24;
 }
 
 body {
@@ -30,7 +31,7 @@ html, body, input, textarea, select, button {
 }
 
 a {
-  color: $kobo-blue;
+  color: colors.$kobo-blue;
   text-decoration: none;
 }
 
@@ -53,7 +54,7 @@ hr {
   display: block;
   height: 1px;
   border: 0;
-  border-top: 1px solid $kobo-gray-65;
+  border-top: 1px solid colors.$kobo-gray-65;
   margin: 1em 0;
   padding: 0;
 }
@@ -81,7 +82,7 @@ textarea {
 }
 
 :focus {
-  outline: none;
+  outline: 1px solid colors.$kobo-blue;
 }
 
 i {

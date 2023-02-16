@@ -1,0 +1,67 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+$badge-height-s: sizes.$x24;
+$badge-font-s: sizes.$x12;
+
+$badge-height-m: sizes.$x28;
+$badge-font-m: sizes.$x13;
+
+$badge-height-l: sizes.$x32;
+$badge-font-l: sizes.$x14;
+
+.root {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.icon {
+  vertical-align: top;
+}
+
+.color-cloud {
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-cloud;
+}
+
+.color-light-amber {
+  color: colors.$kobo-dark-amber;
+  background-color: colors.$kobo-light-amber;
+}
+
+.color-light-blue {
+  color: colors.$kobo-dark-blue;
+  background-color: colors.$kobo-light-blue;
+}
+
+.color-light-teal {
+  color: colors.$kobo-dark-teal;
+  background-color: colors.$kobo-light-teal;
+}
+
+@mixin badge-size($size, $font) {
+  // NOTE: icon size is already handled by badge.tsx file rendering proper <Icon> component
+  height: $size;
+  min-width: $size;
+  line-height: $size;
+  font-size: $font;
+  border-radius: $size * 0.5;
+  padding: 0 $size * 0.4;
+
+  .icon + .label {
+    margin-left: $size * 0.15;
+  }
+}
+
+.size-s {
+  @include badge-size($badge-height-s, $badge-font-s);
+}
+
+.size-m {
+  @include badge-size($badge-height-m, $badge-font-m);
+}
+
+.size-l {
+  @include badge-size($badge-height-l, $badge-font-l);
+}

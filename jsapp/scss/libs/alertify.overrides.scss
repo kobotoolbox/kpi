@@ -1,14 +1,14 @@
-@import "../colors";
+@use '~kobo-common/src/styles/colors';
 
 // alertify overrides
 
 .alertify .ajs-dimmer {
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
   opacity: 0.55;
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba($kobo-gray-24, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba(colors.$kobo-gray-24, 0.15);
 }
 
 .alertify .ajs-header {
@@ -28,10 +28,10 @@
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
   font-size: 24px;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
 
   &:hover {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
   }
 }
 
@@ -130,8 +130,8 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: $kobo-gray-24;
-    color: $kobo-white;
+    background: colors.$kobo-gray-24;
+    color: colors.$kobo-white;
     padding: 17px 24px;
     padding-right: 44px;
     width: auto;
@@ -140,9 +140,9 @@
     line-height: 1.3em;
   }
 
-  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 $kobo-red inset;}
-  .ajs-message.ajs-success {box-shadow: 0 2px 0 0 $kobo-green inset;}
-  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $kobo-amber inset;}
+  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 colors.$kobo-red inset;}
+  .ajs-message.ajs-success {box-shadow: 0 2px 0 0 colors.$kobo-green inset;}
+  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 colors.$kobo-amber inset;}
 
   .ajs-message .ajs-close {
     background: transparent;
@@ -154,7 +154,7 @@
 
     @extend .k-icon, .k-icon-close;
 
-    color: $kobo-white;
+    color: colors.$kobo-white;
   }
 }
 
@@ -175,7 +175,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
     font-weight: bold;
   }
 }

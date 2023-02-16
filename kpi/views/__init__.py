@@ -1,23 +1,12 @@
 # coding: utf-8
-import datetime
-
-from django.conf import settings
-from django.contrib.auth import login
 from django.contrib.auth.models import User
-from django.db import transaction
-from django.http import HttpResponseBadRequest, HttpResponseRedirect
-from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
-from django.utils.translation import gettext_lazy as t
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 from rest_framework import exceptions
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 
-from kpi.models import AuthorizedApplication, OneTimeAuthenticationKey
+from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
 
@@ -74,45 +63,6 @@ def authorized_application_authenticate_user(request):
     for attribute in user_attributes_to_return:
         response_data[attribute] = getattr(user, attribute)
     return Response(response_data)
-
-
-@require_POST
-@csrf_exempt
-def one_time_login(request):
-    """
-    If the request provides a key that matches a OneTimeAuthenticationKey
-    object, log in the User specified in that object and redirect to the
-    location specified in the 'next' parameter
-    """
-    try:
-        key = request.POST['key']
-    except KeyError:
-        return HttpResponseBadRequest(t('No key provided'))
-    try:
-        next_ = request.GET['next']
-    except KeyError:
-        next_ = None
-    if not next_ or not is_safe_url(url=next_, host=request.get_host()):
-        next_ = resolve_url(settings.LOGIN_REDIRECT_URL)
-    # Clean out all expired keys, just to keep the database tidier
-    OneTimeAuthenticationKey.objects.filter(
-        expiry__lt=datetime.datetime.now()).delete()
-    with transaction.atomic():
-        try:
-            # FIXME: select_for_update!!!
-            otak = OneTimeAuthenticationKey.objects.get(
-                key=key,
-                expiry__gte=datetime.datetime.now()
-            )
-        except OneTimeAuthenticationKey.DoesNotExist:
-            return HttpResponseBadRequest(t('Invalid or expired key'))
-        # Nevermore
-        otak.delete()
-    # The request included a valid one-time key. Log in the associated user
-    user = otak.user
-    user.backend = settings.AUTHENTICATION_BACKENDS[0]
-    login(request, user)
-    return HttpResponseRedirect(next_)
 
 
 # TODO Verify if it's still used

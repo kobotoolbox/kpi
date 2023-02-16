@@ -1,14 +1,16 @@
+@use '~kobo-common/src/styles/colors';
+
 // ==========================================================================
 // Groups
 // ==========================================================================
 
-$formbuilder-group-bg: $kobo-gray-96;
+$formbuilder-group-bg: colors.$kobo-gray-96;
 
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
     background-color: $formbuilder-group-bg;
-    border: 1px solid $kobo-gray-65;
+    border: 1px solid colors.$kobo-gray-65;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
@@ -22,7 +24,7 @@ $formbuilder-group-bg: $kobo-gray-96;
 }
 
 .group__header {
-    border-bottom: 1px solid $kobo-gray-65;
+    border-bottom: 1px solid colors.$kobo-gray-65;
     position: relative;
     margin: -4px -10px 0;
     padding: 20px 12px;
@@ -61,7 +63,7 @@ $formbuilder-group-bg: $kobo-gray-96;
         padding-bottom: 0px;
         > .card__settings {
             display: block;
-            background-color: $kobo-white;
+            background-color: colors.$kobo-white;
             border:none;
             margin-top:1px;
             &:after {
@@ -86,7 +88,7 @@ $formbuilder-group-bg: $kobo-gray-96;
 .group__header__icon,
 .group__header__icon .k-icon,
 .group__caret {
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   display: inline-block;
   vertical-align: middle;
 }
@@ -102,7 +104,7 @@ $formbuilder-group-bg: $kobo-gray-96;
   cursor: pointer;
 
   &:hover {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
   }
 }
 

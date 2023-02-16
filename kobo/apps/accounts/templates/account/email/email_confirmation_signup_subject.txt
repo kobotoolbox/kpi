@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktrans %}Activate your KoboToolbox Account{% endblocktrans %}
