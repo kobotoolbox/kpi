@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import (
@@ -131,6 +132,15 @@ class ExtendedUserAdmin(UserAdmin):
                 'interface and delete them from there.',
                 messages.ERROR
             )
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        # Exclude only for autocomplete
+        if request.path == '/admin/autocomplete/':
+            queryset = queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+
+        return queryset, use_distinct
 
     def monthly_submission_count(self, obj):
         """
