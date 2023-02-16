@@ -1,12 +1,13 @@
 from django.conf import settings
-from djstripe.models import Product, Subscription
+from django.db.models import Prefetch
+from djstripe.models import Plan, Product, Subscription
 from rest_framework import mixins, renderers, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from kobo.apps.stripe.serializers import (
-    SubscriptionSerializer
-)
+from kobo.apps.stripe.serializers import SubscriptionSerializer
+
+from .serializers import ProductSerializer
 
 
 class SubscriptionViewSet(
@@ -25,3 +26,14 @@ class SubscriptionViewSet(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__users=self.request.user,
         )
+
+
+class ProductViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Product.objects.filter(
+        active=True,
+        livemode=settings.STRIPE_LIVE_MODE,
+        plan__active=True,
+    ).prefetch_related(
+        Prefetch("plan_set", queryset=Plan.objects.filter(active=True))
+    )
+    serializer_class = ProductSerializer
