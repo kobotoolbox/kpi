@@ -6,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from kobo.apps.stripe.serializers import SubscriptionSerializer
-
 from .serializers import ProductSerializer
 
 
@@ -29,11 +28,15 @@ class SubscriptionViewSet(
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.filter(
-        active=True,
-        livemode=settings.STRIPE_LIVE_MODE,
-        plan__active=True,
-    ).prefetch_related(
-        Prefetch("plan_set", queryset=Plan.objects.filter(active=True))
-    ).distinct()
+    queryset = (
+        Product.objects.filter(
+            active=True,
+            livemode=settings.STRIPE_LIVE_MODE,
+            plan__active=True,
+        )
+        .prefetch_related(
+            Prefetch("plan_set", queryset=Plan.objects.filter(active=True))
+        )
+        .distinct()
+    )
     serializer_class = ProductSerializer
