@@ -35,5 +35,5 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         plan__active=True,
     ).prefetch_related(
         Prefetch("plan_set", queryset=Plan.objects.filter(active=True))
-    )
+    ).distinct()
     serializer_class = ProductSerializer
