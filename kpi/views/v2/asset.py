@@ -643,11 +643,6 @@ class AssetViewSet(
 
         return context_
 
-    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
-    def koboform(self, request, *args, **kwargs):
-        asset = self.get_object()
-        return Response({'asset': asset, }, template_name='koboform.html')
-
     def list(self, request, *args, **kwargs):
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`

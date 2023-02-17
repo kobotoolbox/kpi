@@ -1,0 +1,3 @@
+These scripts were previously included inline and have been moved to separate
+files here in order to harden CSP. Whenever possible, they should be removed
+altogether.

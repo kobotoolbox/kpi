@@ -604,7 +604,7 @@ CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCA
 if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
-CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
+CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
 CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
 CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
