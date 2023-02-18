@@ -14,7 +14,6 @@ class SubscriptionViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     lookup_field = 'id'
@@ -27,7 +26,7 @@ class SubscriptionViewSet(
         )
 
 
-class ProductViewSet(viewsets.ReadOnlyModelViewSet):
+class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = (
         Product.objects.filter(
             active=True,
