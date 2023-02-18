@@ -23,25 +23,6 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/service_usage/
     >       {
-    >           "per_asset_usage": [
-    >               {
-    >                   "asset": {asset_url},
-    >                   "asset_name": {string},
-    >                   "nlp_usage_current_month": {
-    >                       "google_asr_seconds": {integer},
-    >                       "google_mt_characters": {integer},
-    >                       ...
-    >                   }
-    >                   "nlp_usage_all_time": {
-    >                       "google_asr_seconds": {integer},
-    >                       "google_mt_characters": {integer},
-    >                       ...
-    >                   }
-    >                   "storage_bytes": {integer},
-    >                   "submission_count_current_month": {integer},
-    >                   "submission_count_all_time": {integer},
-    >               },
-    >           ],
     >           "total_nlp_asr_seconds": {integer},
     >           "total_nlp_mt_characters": {integer},
     >           "total_storage_bytes": {integer},
