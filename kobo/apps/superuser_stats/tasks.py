@@ -506,12 +506,10 @@ def generate_user_statistics_report(
             'user_id',
         ).annotate(
             total_google_asr=Sum(
-                Cast(KeyTextTransform('google_asr_seconds',
-                                      'counters'), IntegerField()),
+                Cast(F('counters__google_asr_seconds'), IntegerField()),
             ),
             total_google_mt=Sum(
-                Cast(KeyTextTransform('google_mt_characters',
-                                      'counters'), IntegerField()),
+                Cast(F('counters__google_mt_characters'), IntegerField()),
             ),
         )
     )
