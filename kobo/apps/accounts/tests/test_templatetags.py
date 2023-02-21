@@ -23,16 +23,14 @@ SOCIALACCOUNT_PROVIDERS = {
 
 @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
 class TemplateTagsTestCase(TestCase):
-    def setUp(self):
-        self.social_app = SocialApp.objects.create(
+    @classmethod
+    def setUpTestData(cls):
+        cls.social_app = SocialApp.objects.create(
             client_id="test.service.id",
             secret="test.service.secret",
             name="Test App",
-            provider="openid_connect",
+            provider="Test App",
         )
-
-    def tearDown(self):
-        self.social_app.delete()
 
     def test_has_social_apps_no_public_apps(self):
         custom_data = SocialAppCustomData(social_app=self.social_app)

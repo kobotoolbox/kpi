@@ -1,12 +1,14 @@
 # coding: utf-8
 import datetime
 import json
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import constance
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -30,10 +32,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
-    social_accounts = SocialAccountSerializer(
-        source="socialaccount_set", many=True, read_only=True
-    )
-
+    social_accounts = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -80,6 +79,19 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return settings.GIT_REV
         else:
             return False
+
+    def get_social_accounts(self, user):
+        private_apps = [
+            app["provider"]
+            for app in SocialApp.objects.filter(
+                custom_data__isnull=False
+            ).values("provider")
+        ]
+        qs = SocialAccount.objects.filter(user=user).exclude(
+            provider__in=private_apps
+        )
+        serializer = SocialAccountSerializer(instance=qs, many=True)
+        return serializer.data
 
     def to_representation(self, obj):
         if obj.is_anonymous:
