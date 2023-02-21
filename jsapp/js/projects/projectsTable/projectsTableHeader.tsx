@@ -14,6 +14,7 @@ import KoboDropdown, {
   KoboDropdownPlacements,
 } from 'js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
+import ColumnResizer from './colResize';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
@@ -133,13 +134,17 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
             </div>
           }
         />
-        <div className={styles.resizer} />
+        <div className={styles.resizer} data-resize-fieldname={field.name} />
       </div>
     );
   };
 
+  // Confirms that the resizing doesn't cause extra renders
+  // console.log('Rendered ProjectsTableHeader!');
+
   return (
     <header className={tableStyles.header}>
+      <ColumnResizer />
       <div className={classNames(rowStyles.row, rowStyles.rowTypeHeader)}>
         {Object.values(PROJECT_FIELDS).map(renderColumn)}
       </div>
