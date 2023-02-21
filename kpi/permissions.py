@@ -1,7 +1,8 @@
 # coding: utf-8
-import json
+from __future__ import annotations
 
-import constance
+from typing import Union
+
 from django.contrib.auth.models import User
 from django.http import Http404
 from rest_framework import exceptions, permissions
@@ -14,9 +15,9 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
+from kpi.models.asset_version import AssetVersion
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
-    get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
 )
 
@@ -80,14 +81,13 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         else:
             return cls._get_asset(view)
 
-    def _get_user_permissions(self, object_, user):
+    def _get_user_permissions(
+        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: 'auth.User'
+    ) -> list[str]:
         """
         Returns a list of `user`'s permission for `asset`
-        :param object_: Asset/Collection
-        :param user: auth.User
-        :return: list
         """
-        return list(object_.get_perms(user))
+        return object_.get_perms(user)
 
     def get_required_permissions(self, method):
         """
@@ -266,6 +266,15 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
     perms_map['DELETE'] = perms_map['GET']
 
 
+class AssetVersionReadOnlyPermission(AssetNestedObjectPermission):
+
+    required_permissions = ['%(app_label)s.view_asset']
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_asset'],
+    }
+
+
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(AssetPermission):
     """
@@ -295,7 +304,7 @@ class ReportPermission(IsOwnerOrReadOnly):
         user = get_database_user(request.user)
         if user.is_superuser:
             return True
-        permissions = list(obj.get_perms(user))
+        permissions = obj.get_perms(user)
         required_permissions = [
             PERM_VIEW_SUBMISSIONS,
             PERM_PARTIAL_SUBMISSIONS,
@@ -331,8 +340,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         specific to submissions)
         """
 
-        user_permissions = super()._get_user_permissions(
-            asset, user)
+        user_permissions = super()._get_user_permissions(asset, user)
 
         if PERM_PARTIAL_SUBMISSIONS in user_permissions:
             # Merge partial permissions with permissions to find out if there
@@ -344,12 +352,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
                     user_permissions + partial_perms
                 ))
 
-        return list(
-            set(
-                user_permissions
-                + get_project_view_user_permissions_for_asset(asset, user)
-            )
-        )
+        return user_permissions
 
 
 class AssetExportSettingsPermission(SubmissionPermission):

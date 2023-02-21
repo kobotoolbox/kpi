@@ -1,5 +1,5 @@
+from allauth.account.admin import EmailAddressAdmin as BaseEmailAddressAdmin
 from allauth.account.signals import email_confirmed
-from django.contrib import admin
 from django.db import models
 from django.dispatch import receiver
 
@@ -42,6 +42,12 @@ class EmailContent(models.Model):
         unique_together = ('email_name', 'section_name')
 
 
+class EmailAddressAdmin(BaseEmailAddressAdmin):
+
+    search_fields = ('user__username',)
+    autocomplete_fields = ['user']
+
+
 class ImportedVerification(models.Model):
     """
     Temporary model indicating the email address is imported from django-registration
@@ -65,5 +71,3 @@ def on_email_confirmed(sender, **kwargs):
     if not email_address.primary:
         email_address.set_as_primary()
     email_address.user.emailaddress_set.filter(primary=False).delete()
-
-

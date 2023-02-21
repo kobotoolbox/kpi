@@ -58,7 +58,7 @@ if SESSION_COOKIE_DOMAIN:
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
-SESSION_COOKIE_AGE = 604800
+SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
@@ -318,9 +318,27 @@ CONSTANCE_CONFIG = {
         30,
         "Number of days to keep asset snapshots"
     ),
+    'FREE_TIER_THRESHOLDS': (
+        json.dumps({
+            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
+            'data': 1000,
+            'transcription_minutes': 10,
+            'translation_chars': 6000,
+        }),
+        'Free tier thresholds: storage in kilobytes, '
+        'data (number of submissions), '
+        'minutes of transcription, '
+        'number of translation characters',
+        # Use custom field for schema validation
+        'free_tier_threshold_jsonschema'
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
+    'free_tier_threshold_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
@@ -531,6 +549,7 @@ TEMPLATES = [
     },
 ]
 
+DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
 RAVEN_JS_DSN = None

@@ -7,6 +7,7 @@ from io import StringIO
 
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.project_views.models.project_view import ProjectView
@@ -29,6 +30,7 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import (
     get_region_for_view,
 )
@@ -609,6 +611,51 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert results_desc[0]['name'] == 'fixture asset with translations'
         assert results_asc[0]['name'] == 'fixture asset'
 
+    def test_project_views_for_anotheruser_can_view_reports(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        asset = Asset.objects.create(
+            owner=someuser,
+            content={
+                'survey': [
+                    {
+                        'type': 'text',
+                        'name': 'q1',
+                        'label': 'q1',
+                    },
+                ],
+            },
+            asset_type='survey'
+        )
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+
+        # Ensure anotheruser cannot view the asset
+        perms = asset.get_perms(anotheruser)
+        assert PERM_VIEW_ASSET not in perms
+        assert PERM_VIEW_SUBMISSIONS not in perms
+
+        reports_url = reverse(
+            self._get_endpoint('asset-reports'), args=(asset.uid,)
+        )
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
+        response = self.client.get(reports_url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        # Change `asset` country to South Africa. anotheruser should receive
+        # 'view_asset' and 'view_submissions' thanks to project view #2 "Test view 1"
+        # assignment.
+        asset.settings['country'] = [{'value': 'ZAF', 'label': 'South Africa'}]
+        asset.save()
+
+        # Retry
+        perms = asset.get_perms(anotheruser)
+        assert PERM_VIEW_ASSET in perms
+        assert PERM_VIEW_SUBMISSIONS in perms
+
+        response = self.client.get(reports_url)
+        assert response.status_code == status.HTTP_200_OK
+
     def _sorted_dict(self, dict_):
         """
         Ensure that nested lists inside a dictionary are always sorted
@@ -635,6 +682,10 @@ class AssetVersionApiTests(BaseTestCase):
         self.version = self.asset.asset_versions.first()
         self.version_list_url = reverse(self._get_endpoint('asset-version-list'),
                                         args=(self.asset.uid,))
+        self._version_detail_url = reverse(
+            self._get_endpoint('asset-version-detail'),
+            args=(self.asset.uid, self.version.uid)
+        )
 
     def test_asset_version(self):
         self.assertEqual(Asset.objects.count(), 2)
@@ -662,12 +713,60 @@ class AssetVersionApiTests(BaseTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         resp = self.client.get(self.version_list_url, format='json')
-        self.assertEqual(resp.data['count'], 0)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         _version_detail_url = reverse(self._get_endpoint('asset-version-detail'),
                                       args=(self.asset.uid, self.version.uid))
         resp2 = self.client.get(_version_detail_url)
         self.assertEqual(resp2.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(resp2.data['detail'], 'Not found.')
+
+    def test_view_access_to_version(self):
+        """
+        Test user with submissions permissions can view versions list
+        """
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        user = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(user, PERM_VIEW_ASSET)
+        # test list endpoint
+        resp = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data['count'], 1)
+        # test detailed endpoint
+        resp2 = self.client.get(self._version_detail_url)
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp2.data.get('uid'), self.version.uid)
+        # anonymous user
+        self.client.logout()
+        resp3 = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp3.status_code, status.HTTP_404_NOT_FOUND)
+        resp4 = self.client.get(self._version_detail_url)
+        self.assertEqual(resp4.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_versions_readonly(self):
+        # patch request
+        response1 = self.client.patch(self._version_detail_url, data={'content': ''})
+        self.assertEqual(response1.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # delete request
+        response2 = self.client.delete(self._version_detail_url)
+        self.assertEqual(response2.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_versions_public_access(self):
+        user = User.objects.get(username='anotheruser')
+        # public access anonymous user
+        anonymous_user = get_anonymous_user()
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        response1 = self.client.get(self.version_list_url)
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        response2 = self.client.get(self._version_detail_url)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        # public access regular user
+        self.asset.remove_perm(user, PERM_VIEW_ASSET)
+        self.client.login(username='anotheruser', password='anotheruser')
+        response3 = self.client.get(self.version_list_url)
+        self.assertEqual(response3.status_code, status.HTTP_200_OK)
+        response4 = self.client.get(self._version_detail_url)
+        self.assertEqual(response4.status_code, status.HTTP_200_OK)
 
 
 class AssetDetailApiTests(BaseAssetDetailTestCase):
@@ -1151,7 +1250,7 @@ class AssetFileTest(BaseTestCase):
         # verify the result
         self.asset.save()
         self.assertListEqual(
-            sorted(list(self.asset.get_perms(self.asset.owner))),
+            sorted(self.asset.get_perms(self.asset.owner)),
             sorted(
                 list(
                     self.asset.get_assignable_permissions(with_partial=False)
@@ -1289,7 +1388,7 @@ class AssetFileTest(BaseTestCase):
 
     def test_editor_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
@@ -1297,7 +1396,7 @@ class AssetFileTest(BaseTestCase):
 
     def test_editor_can_delete_file(self):
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
@@ -1312,7 +1411,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
@@ -1326,7 +1425,7 @@ class AssetFileTest(BaseTestCase):
 
         self.switch_user(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         response = self.client.post(self.list_url, self.asset_file_payload)
@@ -1347,7 +1446,7 @@ class AssetFileTest(BaseTestCase):
 
         self.switch_user(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         response = self.client.delete(detail_url)
@@ -1363,7 +1462,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.assertListEqual(self.asset.get_perms(anotheruser), [])
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

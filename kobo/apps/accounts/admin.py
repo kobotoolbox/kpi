@@ -1,5 +1,7 @@
 from django.contrib import admin
+from allauth.account.models import EmailAddress
 
+from .models import EmailAddressAdmin
 from kobo.apps.accounts.models import EmailContent
 
 
@@ -8,3 +10,5 @@ class EmailContentView(admin.ModelAdmin):
 
 
 admin.site.register(EmailContent, EmailContentView)
+admin.site.unregister(EmailAddress)
+admin.site.register(EmailAddress, EmailAddressAdmin)

@@ -1,5 +1,8 @@
 # coding: utf-8
+from __future__ import annotations
+
 import re
+from typing import Union
 
 from django.conf import settings
 
@@ -286,6 +289,29 @@ class MongoHelper:
         return key
 
     @classmethod
+    def get_permission_filters_query(
+        cls, query: dict, permission_filters: Union[dict, list]
+    ) -> dict:
+        if permission_filters is None:
+            return query
+
+        if len(permission_filters) == 1:
+            permission_filters_query = permission_filters[0]
+        else:
+            permission_filters_query = {cls.OR_OPERATOR: []}
+            for permission_filter in permission_filters:
+                if isinstance(permission_filter, list):
+                    permission_filters_query[cls.OR_OPERATOR].append(
+                        {cls.OR_OPERATOR: permission_filter}
+                    )
+                else:
+                    permission_filters_query[cls.OR_OPERATOR].append(
+                        permission_filter
+                    )
+
+        return {cls.AND_OPERATOR: [query, permission_filters_query]}
+
+    @classmethod
     def is_attribute_invalid(cls, key):
         """
         Checks if an attribute can't be passed to Mongo as is.
@@ -317,21 +343,7 @@ class MongoHelper:
 
         # Narrow down query
         if permission_filters is not None:
-            if len(permission_filters) == 1:
-                permission_filters_query = permission_filters[0]
-            else:
-                permission_filters_query = {cls.OR_OPERATOR: []}
-                for permission_filter in permission_filters:
-                    if isinstance(permission_filter, list):
-                        permission_filters_query[cls.OR_OPERATOR].append(
-                            {cls.OR_OPERATOR: permission_filter}
-                        )
-                    else:
-                        permission_filters_query[cls.OR_OPERATOR].append(
-                            permission_filter
-                        )
-
-            query = {cls.AND_OPERATOR: [query, permission_filters_query]}
+            query = cls.get_permission_filters_query(query, permission_filters)
 
         query = cls.to_safe_dict(query, reading=True)
 

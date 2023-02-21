@@ -1,12 +1,15 @@
 # coding: utf-8
+from __future__ import annotations
 import copy
 import os
 import re
 import time
 import uuid
-from datetime import datetime
+from collections import defaultdict
+from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -15,6 +18,7 @@ except ImportError:
 from deepmerge import always_merger
 from dict2xml import dict2xml
 from django.conf import settings
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
@@ -155,15 +159,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         })
 
     @property
-    def current_month_submission_count(self):
-        # FIXME, does not reproduce KoBoCAT behaviour.
-        #   Deleted submissions are not taken into account but they should be
-        monthly_counter = len(
-            self.get_submissions(self.asset.owner)
-        )
-        return monthly_counter
-
-    @property
     def current_month_nlp_tracking(self):
         """
         Get the current month's NLP tracking data
@@ -182,6 +177,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             return {}
         else:
             return monthly_nlp_tracking
+
+    @property
+    def current_month_submission_count(self):
+        # FIXME, does not reproduce KoBoCAT behaviour.
+        #   Deleted submissions are not taken into account but they should be
+        monthly_counter = len(
+            self.get_submissions(self.asset.owner)
+        )
+        return monthly_counter
 
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
@@ -397,6 +401,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
+
+    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
+        submissions = self.get_submissions(user=self.asset.owner)
+        daily_counts = defaultdict(int)
+        for submission in submissions:
+            submission_date = datetime.strptime(
+                submission['_submission_time'],
+                '%Y-%m-%dT%H:%M:%S'
+            )
+            daily_counts[str(submission_date.date())] += 1
+
+        return daily_counts
 
     def get_submissions(
         self,
