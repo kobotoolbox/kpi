@@ -289,9 +289,10 @@ class AssetExportTaskTest(BaseTestCase):
         result_response = self.client.get(detail_response.data['result'])
         result_content = result_response.getvalue().decode('utf-8')
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
+        version_uid = self.asset.latest_deployed_version_uid
         expected_content = ''.join([
-            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"\r\n',
-            '"¿Qué tal?";"1";"";"";"";"";"";"";"";"1"\r\n',
+            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"\r\n',
+            f'"¿Qué tal?";"1";"";"";"";"";"";"";"{version_uid}";"";"1"\r\n',
         ])
 
         self.assertEqual(result_content, expected_content)

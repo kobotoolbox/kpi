@@ -1,13 +1,49 @@
 # coding: utf-8
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import (
+    UserCreationForm as DjangoUserCreationForm,
+    UserChangeForm as DjangoUserChangeForm,
+)
 from django.contrib.auth.models import User
+from django.db.models import Count, Sum
+from django.forms import CharField
+from django.utils import timezone
 
+from kobo.apps.accounts.validators import (
+    USERNAME_MAX_LENGTH,
+    USERNAME_INVALID_MESSAGE,
+    username_validators,
+)
+from kpi.deployment_backends.kc_access.shadow_models import (
+    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
+)
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
 
 
-class UserDeleteAdmin(UserAdmin):
+class UserChangeForm(DjangoUserChangeForm):
+
+    username = CharField(
+        label='username',
+        max_length=USERNAME_MAX_LENGTH,
+        help_text=USERNAME_INVALID_MESSAGE,
+        validators=username_validators,
+    )
+
+
+class UserCreationForm(DjangoUserCreationForm):
+
+    username = CharField(
+        label='username',
+        max_length=USERNAME_MAX_LENGTH,
+        help_text=USERNAME_INVALID_MESSAGE,
+        validators=username_validators,
+    )
+
+
+class ExtendedUserAdmin(UserAdmin):
     """
     Deleting users used to a two-step process since KPI and KoBoCAT
     shared the same database, but it's not the case anymore.
@@ -22,8 +58,33 @@ class UserDeleteAdmin(UserAdmin):
     Then, KoBoCAT objects related to the user (in KoBoCAT database) except
     `XForm` and `Instance`. We do not want to delete data without owner's
     permission
-
     """
+
+    form = UserChangeForm
+    add_form = UserCreationForm
+
+    list_display = UserAdmin.list_display + ('date_joined',)
+    list_filter = UserAdmin.list_filter + ('date_joined',)
+    readonly_fields = UserAdmin.readonly_fields + (
+        'deployed_forms_count',
+        'monthly_submission_count',
+    )
+    fieldsets = UserAdmin.fieldsets + (
+        (
+            'Deployed forms and Submissions Counts',
+            {'fields': ('deployed_forms_count', 'monthly_submission_count')},
+        ),
+    )
+
+    def deployed_forms_count(self, obj):
+        """
+        Gets the count of deployed forms to be displayed on the
+        Django admin user changelist page
+        """
+        assets_count = obj.assets.filter(
+            _deployment_data__active=True
+        ).aggregate(count=Count('pk'))
+        return assets_count['count']
 
     def delete_queryset(self, request, queryset):
         """
@@ -72,9 +133,33 @@ class UserDeleteAdmin(UserAdmin):
                 messages.ERROR
             )
 
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        # Exclude only for autocomplete
+        if request.path == '/admin/autocomplete/':
+            queryset = queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+
+        return queryset, use_distinct
+
+    def monthly_submission_count(self, obj):
+        """
+        Gets the number of this month's submissions a user has to be
+        displayed in the Django admin user changelist page
+        """
+        today = timezone.now().date()
+        instances = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
+            user_id=obj.id,
+            year=today.year,
+            month=today.month,
+        ).aggregate(
+            counter=Sum('counter')
+        )
+        return instances.get('counter')
+
 
 admin.site.register(SitewideMessage)
 admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
 admin.site.unregister(User)
-admin.site.register(User, UserDeleteAdmin)
+admin.site.register(User, ExtendedUserAdmin)

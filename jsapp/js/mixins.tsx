@@ -48,8 +48,63 @@ import {
   removeAssetSharing,
   deployAsset,
 } from 'js/assetQuickActions';
+import type {DropFilesEventHandler} from 'react-dropzone';
 
 const IMPORT_CHECK_INTERVAL = 1000;
+
+interface ApplyImportParams {
+  destination?: string;
+  assetUid: string;
+  name: string;
+  url?: string;
+  base64Encoded?: ArrayBuffer | string | null;
+  lastModified?: number;
+  totalFiles?: number;
+}
+
+/*
+ * helper function for apply*ToAsset droppable mixin methods
+ * returns an interval-driven promise
+ */
+const applyImport = (params: ApplyImportParams) => {
+  const applyPromise = new Promise((resolve, reject) => {
+    actions.resources.createImport(params, (data: ImportResponse) => {
+      const doneCheckInterval = setInterval(() => {
+        dataInterface.getImportDetails({
+          uid: data.uid,
+        }).done((importData: ImportResponse) => {
+          switch (importData.status) {
+            case 'complete': {
+              const finalData = importData.messages?.updated || importData.messages?.created;
+              if (finalData && finalData.length > 0 && finalData[0].uid) {
+                clearInterval(doneCheckInterval);
+                resolve(finalData[0]);
+              } else {
+                clearInterval(doneCheckInterval);
+                reject(importData);
+              }
+              break;
+            }
+            case 'processing':
+            case 'created': {
+              // TODO: notify promise awaiter about delay (after multiple interval rounds)
+              break;
+            }
+            case 'error':
+            default: {
+              clearInterval(doneCheckInterval);
+              reject(importData);
+            }
+          }
+        }).fail((failData: ImportResponse) => {
+          clearInterval(doneCheckInterval);
+          reject(failData);
+        });
+      }, IMPORT_CHECK_INTERVAL);
+    });
+  });
+  return applyPromise;
+};
 
 interface MixinsObject {
   contextRouter: {
@@ -58,6 +113,7 @@ interface MixinsObject {
   };
   droppable: {
     [functionName: string]: Function;
+    dropFiles: DropFilesEventHandler;
     context?: any;
     props?: any;
     state?: any;
@@ -70,12 +126,7 @@ interface MixinsObject {
 }
 
 const mixins: MixinsObject = {
-  contextRouter: {},
-  droppable: {},
-  dmix: {},
-};
-
-mixins.dmix = {
+dmix: {
   afterCopy() {
     notify(t('copied to clipboard'));
   },
@@ -228,63 +279,8 @@ mixins.dmix = {
   removeSharing: function () {
     removeAssetSharing(this.props.params.uid);
   },
-};
-
-interface ApplyImportParams {
-  destination?: string;
-  assetUid: string;
-  name: string;
-  url?: string;
-  base64Encoded?: ArrayBuffer | string | null;
-  lastModified?: number;
-  totalFiles?: number;
-}
-
-/*
- * helper function for apply*ToAsset droppable mixin methods
- * returns an interval-driven promise
- */
-const applyImport = (params: ApplyImportParams) => {
-  const applyPromise = new Promise((resolve, reject) => {
-    actions.resources.createImport(params, (data: ImportResponse) => {
-      const doneCheckInterval = setInterval(() => {
-        dataInterface.getImportDetails({
-          uid: data.uid,
-        }).done((importData: ImportResponse) => {
-          switch (importData.status) {
-            case 'complete': {
-              const finalData = importData.messages?.updated || importData.messages?.created;
-              if (finalData && finalData.length > 0 && finalData[0].uid) {
-                clearInterval(doneCheckInterval);
-                resolve(finalData[0]);
-              } else {
-                clearInterval(doneCheckInterval);
-                reject(importData);
-              }
-              break;
-            }
-            case 'processing':
-            case 'created': {
-              // TODO: notify promise awaiter about delay (after multiple interval rounds)
-              break;
-            }
-            case 'error':
-            default: {
-              clearInterval(doneCheckInterval);
-              reject(importData);
-            }
-          }
-        }).fail((failData: ImportResponse) => {
-          clearInterval(doneCheckInterval);
-          reject(failData);
-        });
-      }, IMPORT_CHECK_INTERVAL);
-    });
-  });
-  return applyPromise;
-};
-
-mixins.droppable = {
+},
+droppable: {
   /*
    * returns an interval-driven promise
    */
@@ -445,9 +441,8 @@ mixins.droppable = {
       }
     }
   },
-};
-
-mixins.contextRouter = {
+},
+contextRouter: {
   isFormList() {
     return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
@@ -488,6 +483,7 @@ mixins.contextRouter = {
       routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
+},
 };
 
 export default mixins;

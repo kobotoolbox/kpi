@@ -20,8 +20,6 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
-    PERM_CHANGE_METADATA_ASSET,
-    PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import (
@@ -52,10 +50,7 @@ from kpi.renderers import (
     XlsRenderer,
 )
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import (
-    AssetListSerializer,
-    AssetSerializer,
-)
+from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -64,7 +59,6 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.utils.project_views import user_has_project_view_asset_perm
 
 
 class AssetViewSet(
@@ -197,6 +191,28 @@ class AssetViewSet(
     In that case, `share-metadata` is not preserved.
 
     When creating a new `block` or `question` asset, settings are not saved either.
+
+    ### Counts
+
+    Retrieves total and daily counts of submissions
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/counts/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/
+
+    uses the `days` query to get the daily counts from the last x amount of days.
+    Default amount is 30 days
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/counts/?days=7
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
+
 
     ### Data
 

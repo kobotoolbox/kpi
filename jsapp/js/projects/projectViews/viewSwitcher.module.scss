@@ -23,8 +23,14 @@
   font-weight: 800;
   color: colors.$kobo-gray-24;
   padding: sizes.$x6 sizes.$x16;
+  max-width: sizes.$x400;
 
   :global {
+    label {
+      @include mixins.textEllipsis;
+      pointer-events: none;
+    }
+
     .k-icon {
       margin-left: sizes.$x5;
     }
@@ -33,6 +39,10 @@
   &:active {
     transform: none;
   }
+}
+
+.triggerSimple {
+  cursor: default;
 }
 
 .menu {

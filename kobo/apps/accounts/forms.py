@@ -10,11 +10,6 @@ from django.utils.translation import gettext_lazy as t
 from kobo.static_lists import COUNTRIES
 
 
-USERNAME_INVALID_MESSAGE = t(
-    'Usernames must be between 2 and 30 characters in length, '
-    'and may only consist of lowercase letters, numbers, '
-    'and underscores, where the first character must be a letter.'
-)
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
     'organization',

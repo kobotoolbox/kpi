@@ -94,7 +94,7 @@ dict2xml==1.7.1
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
-dj-stripe==2.6.2
+dj-stripe==2.7.3
     # via -r dependencies/pip/requirements.in
 django==3.2.15
     # via
@@ -165,8 +165,6 @@ django-private-storage==3.0
 django-redis==5.2.0
     # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.2
-    # via -r dependencies/pip/requirements.in
-django-registration-redux==2.10
     # via -r dependencies/pip/requirements.in
 django-request-cache==1.4.0
     # via -r dependencies/pip/requirements.in
@@ -412,7 +410,6 @@ six==1.16.0
     #   google-auth
     #   google-auth-httplib2
     #   grpcio
-    #   isodate
     #   python-dateutil
 smsapi-client==2.6.0
     # via django-trench
@@ -443,7 +440,7 @@ urllib3==1.26.9
     #   requests
     #   responses
     #   sentry-sdk
-uwsgi==2.0.20
+uwsgi==2.0.21
     # via -r dependencies/pip/requirements.in
 vine==5.0.0
     # via

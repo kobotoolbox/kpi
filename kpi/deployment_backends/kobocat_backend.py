@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import copy
 import io
 import json
@@ -6,7 +8,7 @@ import posixpath
 import re
 import uuid
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
@@ -34,7 +36,9 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -50,6 +54,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
@@ -57,6 +62,7 @@ from .kc_access.shadow_models import (
     KobocatXForm,
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
@@ -246,29 +252,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
-    @property
-    def current_month_submission_count(self):
-        try:
-            xform_id = self.xform_id
-        except InvalidXFormException:
-            return 0
-
-        today = timezone.now().date()
-        try:
-            monthly_counter = (
-                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
-                    'counter'
-                ).get(
-                    xform_id=xform_id,
-                    year=today.year,
-                    month=today.month,
-                )
-            )
-        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
-            return 0
-        else:
-            return monthly_counter.counter
-
     def connect(self, identifier=None, active=False):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
@@ -361,6 +344,29 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return {}
         else:
             return monthly_nlp_tracking
+
+    @property
+    def current_month_submission_count(self):
+        try:
+            xform_id = self.xform_id
+        except InvalidXFormException:
+            return 0
+
+        today = timezone.now().date()
+        try:
+            monthly_counter = (
+                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
+                    'counter'
+                ).get(
+                    xform_id=xform_id,
+                    year=today.year,
+                    month=today.month,
+                )
+            )
+        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            return 0
+        else:
+            return monthly_counter.counter
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
@@ -719,6 +725,73 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return ReadOnlyKobocatAttachment.objects.filter(
             instance_id=submission['_id']
         )
+
+    def get_daily_counts(
+        self, user: 'auth.User', timeframe: tuple[date, date]
+    ) -> dict:
+
+        user = get_database_user(user)
+
+        if user != self.asset.owner and self.asset.has_perm(
+            user, PERM_PARTIAL_SUBMISSIONS
+        ):
+            # We cannot use cached values from daily counter when user has
+            # partial permissions. We need to use MongoDB aggregation engine
+            # to retrieve the correct value according to user's permissions.
+            permission_filters = self.asset.get_filters_for_partial_perm(
+                user.pk, perm=PERM_VIEW_SUBMISSIONS
+            )
+
+            if not permission_filters:
+                return {}
+
+            query = {
+                '_userform_id': self.mongo_userform_id,
+                '_submission_time': {
+                    '$gte': f'{timeframe[0]}',
+                    '$lte': f'{timeframe[1]}T23:59:59'
+                }
+            }
+
+            query = MongoHelper.get_permission_filters_query(
+                query, permission_filters
+            )
+
+            documents = settings.MONGO_DB.instances.aggregate([
+                {
+                    '$match': query,
+                },
+                {
+                    '$group': {
+                        '_id': {
+                            '$dateToString': {
+                                'format': '%Y-%m-%d',
+                                'date': {
+                                    '$dateFromString': {
+                                        'format': "%Y-%m-%dT%H:%M:%S",
+                                        'dateString': "$_submission_time"
+                                    }
+                                }
+                            }
+                        },
+                        'count': {'$sum': 1}
+                    }
+                }
+            ])
+            return {doc['_id']: doc['count'] for doc in documents}
+
+        # Trivial case, user has 'view_permissions'
+        daily_counts = (
+            ReadOnlyKobocatDailyXFormSubmissionCounter.objects.values(
+                'date', 'counter'
+            ).filter(
+                xform_id=self.xform_id,
+                date__range=timeframe,
+            )
+        )
+        return {
+            str(count['date']): count['counter'] for count in daily_counts
+        }
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((

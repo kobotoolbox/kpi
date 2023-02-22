@@ -1,0 +1,40 @@
+@use 'scss/z-indexes';
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use 'sass:color';
+
+.dropzone {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.dropzoneOverlay {
+  display: none;
+}
+
+.dropzoneActive .dropzoneOverlay {
+  @include mixins.centerRowFlex;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+  background-color: color.change(colors.$kobo-white, $alpha: 0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: z-indexes.$z-dropzone;
+  color: colors.$kobo-blue;
+  border: 6px dashed currentcolor;
+
+  :global {
+    h1 {
+      width: 100%;
+      margin: sizes.$x6 0 0;
+      font-size: sizes.$x18;
+      font-weight: normal;
+    }
+  }
+}
