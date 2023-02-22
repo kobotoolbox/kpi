@@ -15,9 +15,14 @@ import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import customViewStore from './customViewStore';
 import styles from './projectViews.module.scss';
+import routeStyles from './myProjectsRoute.module.scss';
 import {toJS} from 'mobx';
 import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
+import mixins from 'js/mixins';
+import Dropzone from 'react-dropzone';
+import {validFileTypes} from 'js/utils';
+import Icon from 'js/components/common/icon';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
@@ -47,40 +52,54 @@ function MyProjectsRoute() {
   );
 
   return (
-    <section className={styles.root}>
-      <header className={styles.header}>
-        <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
+    <Dropzone
+      onDrop={mixins.droppable.dropFiles}
+      disableClick
+      multiple
+      className={routeStyles.dropzone}
+      activeClassName={routeStyles.dropzoneActive}
+      accept={validFileTypes()}
+    >
+      <div className={routeStyles.dropzoneOverlay}>
+        <Icon name='upload' size='xl'/>
+        <h1>{t('Drop files to upload')}</h1>
+      </div>
 
-        <ProjectsFilter
-          onFiltersChange={customView.setFilters.bind(customView)}
-          filters={toJS(customView.filters)}
+      <section className={styles.root}>
+        <header className={styles.header}>
+          <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
+
+          <ProjectsFilter
+            onFiltersChange={customView.setFilters.bind(customView)}
+            filters={toJS(customView.filters)}
+          />
+
+          <ProjectsFieldsSelector
+            onFieldsChange={customView.setFields.bind(customView)}
+            selectedFields={toJS(customView.fields)}
+          />
+
+          {selectedAssets.length === 1 && (
+            <ProjectQuickActions asset={selectedAssets[0]} />
+          )}
+        </header>
+
+        <ProjectsTable
+          assets={customView.assets}
+          isLoading={!customView.isFirstLoadComplete}
+          highlightedFields={getFilteredFieldsNames()}
+          visibleFields={toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS}
+          orderableFields={HOME_ORDERABLE_FIELDS}
+          order={customView.order}
+          onChangeOrderRequested={customView.setOrder.bind(customView)}
+          onHideFieldRequested={customView.hideField.bind(customView)}
+          onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
+          hasMorePages={customView.hasMoreAssets}
+          selectedRows={selectedRows}
+          onRowsSelected={setSelectedRows}
         />
-
-        <ProjectsFieldsSelector
-          onFieldsChange={customView.setFields.bind(customView)}
-          selectedFields={toJS(customView.fields)}
-        />
-
-        {selectedAssets.length === 1 && (
-          <ProjectQuickActions asset={selectedAssets[0]} />
-        )}
-      </header>
-
-      <ProjectsTable
-        assets={customView.assets}
-        isLoading={!customView.isFirstLoadComplete}
-        highlightedFields={getFilteredFieldsNames()}
-        visibleFields={toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS}
-        orderableFields={HOME_ORDERABLE_FIELDS}
-        order={customView.order}
-        onChangeOrderRequested={customView.setOrder.bind(customView)}
-        onHideFieldRequested={customView.hideField.bind(customView)}
-        onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
-        hasMorePages={customView.hasMoreAssets}
-        selectedRows={selectedRows}
-        onRowsSelected={setSelectedRows}
-      />
-    </section>
+      </section>
+    </Dropzone>
   );
 }
 
