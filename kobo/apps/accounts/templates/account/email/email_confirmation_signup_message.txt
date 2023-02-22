@@ -7,7 +7,7 @@
 
 {% blocktrans %}Your username is: {% endblocktrans %} {{ user }}
 
-{% blocktrans %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com" {% endblocktrans %}
+{% blocktrans %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com {% endblocktrans %}
 
 {% blocktrans %}You can also join the KoboToolbox community forum to ask questions, share solutions, and chat with thousands of users: https://community.kobotoolbox.org{% endblocktrans %}
 

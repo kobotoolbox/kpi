@@ -10,7 +10,7 @@ export const FORM_PROCESSING_BASE = '/forms/:uid/data/processing'
 
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
-  ROOT: '/',
+  ROOT: '',
   ACCOUNT_ROOT: '/account',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',

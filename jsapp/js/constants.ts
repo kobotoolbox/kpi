@@ -383,6 +383,7 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_submitted_by',
   '_tags',
   '_index',
+  '__version__',
 ]);
 
 export const SUPPLEMENTAL_DETAILS_PROP = '_supplementalDetails'

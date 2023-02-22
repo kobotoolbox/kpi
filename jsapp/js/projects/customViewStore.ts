@@ -52,6 +52,7 @@ class CustomViewStore {
   private viewUid?: string;
   /** We use `null` here because the endpoint uses it. */
   private nextPageUrl: string | null = null;
+  private ongoingFetch?: JQuery.jqXHR;
 
   constructor() {
     makeAutoObservable(this);
@@ -122,7 +123,11 @@ class CustomViewStore {
     this.assets = [];
     const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
     const orderingString = this.getOrderQuery();
-    $.ajax({
+
+    if (this.ongoingFetch) {
+      this.ongoingFetch.abort();
+    }
+    this.ongoingFetch = $.ajax({
       dataType: 'json',
       method: 'GET',
       url:
@@ -136,7 +141,10 @@ class CustomViewStore {
   /** Gets the next page of results (if available). */
   public fetchMoreAssets() {
     if (this.nextPageUrl !== null) {
-      $.ajax({
+      if (this.ongoingFetch) {
+        this.ongoingFetch.abort();
+      }
+      this.ongoingFetch = $.ajax({
         dataType: 'json',
         method: 'GET',
         url: this.nextPageUrl,

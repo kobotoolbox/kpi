@@ -1,26 +1,49 @@
 # coding: utf-8
 from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from kpi.filters import AssetOwnerFilterBackend
+
 from kpi.models import AssetVersion
-from kpi.serializers.v2.asset_version import AssetVersionListSerializer, AssetVersionSerializer
+from kpi.permissions import AssetVersionReadOnlyPermission
+from kpi.serializers.v2.asset_version import (
+    AssetVersionListSerializer,
+    AssetVersionSerializer,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
-
     """
-    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+    ## GET asset versions
+
+    ### List
+    Lists the versions of forms
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/versions/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/versions/
+
+    ### Detailed
+    Returns the details of an asset version
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/versions/<code>{version_uid}</code>/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/versions/v74yayoFtERWDeRHPaHVhZ/
 
     ### CURRENT ENDPOINT
     """
 
     model = AssetVersion
     lookup_field = 'uid'
-    filter_backends = (
-            AssetOwnerFilterBackend,
-        )
+    permission_classes = (AssetVersionReadOnlyPermission,)
 
     def get_serializer_class(self):
         if self.action == 'list':

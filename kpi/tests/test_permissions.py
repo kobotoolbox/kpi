@@ -269,7 +269,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         for explicit, implied in implications.items():
             # Make sure the slate is clean
-            self.assertListEqual(list(asset.get_perms(grantee)), [])
+            self.assertListEqual(asset.get_perms(grantee), [])
             # Assign the explicit permission
             asset.assign_perm(grantee, explicit)
             # Verify that only the expected permissions have been granted
@@ -291,7 +291,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         """
         asset = self.admin_asset
         grantee = self.someuser
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
+        self.assertListEqual(asset.get_perms(grantee), [])
 
         asset.assign_perm(grantee, PERM_CHANGE_SUBMISSIONS)
         expected_perms = [
@@ -304,7 +304,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             sorted(asset.get_perms(grantee)), sorted(expected_perms)
         )
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
+        self.assertListEqual(asset.get_perms(grantee), [])
 
         asset.assign_perm(grantee, PERM_VALIDATE_SUBMISSIONS)
         expected_perms = [
@@ -316,7 +316,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             sorted(asset.get_perms(grantee)), sorted(expected_perms)
         )
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
+        self.assertListEqual(asset.get_perms(grantee), [])
 
     def test_implied_asset_deny_permissions(self):
         """
@@ -331,8 +331,8 @@ class PermissionsTestCase(BasePermissionsTestCase):
         grantee = self.someuser
 
         collection.children.add(asset)
-        self.assertListEqual(list(collection.get_perms(grantee)), [])
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
+        self.assertListEqual(collection.get_perms(grantee), [])
+        self.assertListEqual(asset.get_perms(grantee), [])
 
         # Granting `change_asset` should grant `change_asset` and
         # `view_asset` on the child asset
@@ -342,7 +342,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         # Removing `view_asset` should deny all child permissions
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
+        self.assertListEqual(asset.get_perms(grantee), [])
 
         # Check that there actually deny permissions
         self.assertListEqual(
@@ -415,7 +415,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         grantee = self.someuser
         collection = self.admin_collection
 
-        self.assertListEqual(list(collection.get_perms(grantee)), [])
+        self.assertListEqual(collection.get_perms(grantee), [])
         collection.assign_perm(grantee, PERM_CHANGE_ASSET)
         self.assertListEqual(
             sorted(collection.get_perms(grantee)), [
@@ -425,7 +425,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         )
         # Now deny view and make sure change is revoked as well
         collection.assign_perm(grantee, PERM_VIEW_ASSET, deny=True)
-        self.assertListEqual(list(collection.get_perms(grantee)), [])
+        self.assertListEqual(collection.get_perms(grantee), [])
 
     def test_calculated_owner_permissions(self):
         asset = self.admin_asset
@@ -851,5 +851,5 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertFalse(anonymous_user.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
         self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
-        self.assertTrue(list(asset.get_perms(grantee)),
-                        list(asset.get_perms(anonymous_user)))
+        self.assertTrue(asset.get_perms(grantee),
+                        asset.get_perms(anonymous_user))
