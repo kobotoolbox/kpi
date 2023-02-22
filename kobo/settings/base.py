@@ -318,9 +318,27 @@ CONSTANCE_CONFIG = {
         30,
         "Number of days to keep asset snapshots"
     ),
+    'FREE_TIER_THRESHOLDS': (
+        json.dumps({
+            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
+            'data': 1000,
+            'transcription_minutes': 10,
+            'translation_chars': 6000,
+        }),
+        'Free tier thresholds: storage in kilobytes, '
+        'data (number of submissions), '
+        'minutes of transcription, '
+        'number of translation characters',
+        # Use custom field for schema validation
+        'free_tier_threshold_jsonschema'
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
+    'free_tier_threshold_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
