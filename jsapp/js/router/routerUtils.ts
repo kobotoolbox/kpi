@@ -12,6 +12,7 @@ import {
   ROUTES,
   PATHS,
 } from 'js/router/routerConstants';
+import {PROJECTS_ROUTES} from 'js/projects/routes';
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -82,8 +83,16 @@ export function isLibraryItemXformRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM_XFORM.replace(':uid', uid);
 }
 
-export function isFormsRoute(): boolean {
-  return getCurrentPath() === ROUTES.FORMS;
+export function isMyProjectsRoute(): boolean {
+  return getCurrentPath() === PROJECTS_ROUTES.MY_PROJECTS;
+}
+
+export function isCustomViewRoute(viewUid: string): boolean {
+  return getCurrentPath() === PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid);
+}
+
+export function isAnyProjectsViewRoute() {
+  return isMyProjectsRoute() || getCurrentPath().startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''));
 }
 
 export function isFormRoute(uid: string): boolean {
