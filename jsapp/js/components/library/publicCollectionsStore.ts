@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import type {Update} from 'history';
 import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
+import type {SearchBoxStoreData} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -25,6 +26,7 @@ import type {
   MetadataResponse,
   AssetSubscriptionsResponse,
 } from 'js/dataInterface';
+import {autorun} from 'mobx';
 
 interface PublicCollectionsStoreData {
   isFetchingData: boolean;
@@ -81,7 +83,7 @@ class PublicCollectionsStore extends Reflux.Store {
     this.setDefaultColumns();
 
     history.listen(this.onRouteChange.bind(this));
-    searchBoxStore.listen(this.searchBoxStoreChanged.bind(this), this);
+    autorun(() => {this.onSearchBoxStoreChanged(searchBoxStore.data)})
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));
     actions.library.searchPublicCollections.failed.listen(this.onSearchFailed.bind(this));
@@ -177,16 +179,16 @@ class PublicCollectionsStore extends Reflux.Store {
     this.previousPath = data.location.pathname;
   }
 
-  searchBoxStoreChanged() {
+  onSearchBoxStoreChanged(data: SearchBoxStoreData) {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.PUBLIC_COLLECTIONS &&
-      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
+      data.context === SEARCH_CONTEXTS.PUBLIC_COLLECTIONS &&
+      data.searchPhrase !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
+      this.previousSearchPhrase = data.searchPhrase;
       this.fetchData(true);
     }
   }

@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
-import type {Location} from 'history';
-import searchBoxStore from '../header/searchBoxStore';
+import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
+import type {SearchBoxStoreData} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -14,7 +14,7 @@ import {
 } from 'js/components/assetsTable/assetsTableConstants';
 import type {OrderDirection} from 'js/projects/projectViews/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import { history } from "js/router/historyRouter";
+import {history} from 'js/router/historyRouter';
 import type {
   AssetResponse,
   AssetsResponse,
@@ -22,6 +22,7 @@ import type {
   SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
 import type {AssetTypeName} from 'js/constants';
+import {autorun} from 'mobx';
 
 interface MyLibraryStoreData {
   isFetchingData: boolean;
@@ -77,7 +78,8 @@ class MyLibraryStore extends Reflux.Store {
     this.setDefaultColumns();
 
     history.listen(this.onRouteChange.bind(this));
-    searchBoxStore.listen(this.searchBoxStoreChanged, this);
+    autorun(() => {this.onSearchBoxStoreChanged(searchBoxStore.data)})
+
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
@@ -180,16 +182,16 @@ class MyLibraryStore extends Reflux.Store {
     this.previousPath = data.location.pathname;
   }
 
-  searchBoxStoreChanged() {
+  onSearchBoxStoreChanged(data: SearchBoxStoreData) {
     if (
-      searchBoxStore.getContext() === 'MY_LIBRARY' &&
-      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
+      data.context === SEARCH_CONTEXTS.MY_LIBRARY &&
+      data.searchPhrase !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
+      this.previousSearchPhrase = data.searchPhrase;
       this.fetchData(true);
     }
   }

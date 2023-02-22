@@ -1,4 +1,4 @@
-import Reflux from 'reflux';
+import {makeAutoObservable} from 'mobx';
 import type {Update} from 'history';
 import {
   getCurrentPath,
@@ -23,14 +23,15 @@ export interface SearchBoxStoreData {
   searchPhrase: string;
 }
 
-class SearchBoxStore extends Reflux.Store {
+class SearchBoxStore {
   previousPath = getCurrentPath();
   data: SearchBoxStoreData = {
     context: null,
     searchPhrase: DEFAULT_SEARCH_PHRASE,
   };
 
-  init() {
+  constructor() {
+    makeAutoObservable(this);
     history.listen(this.onRouteChange.bind(this));
     this.resetContext();
   }
@@ -52,7 +53,6 @@ class SearchBoxStore extends Reflux.Store {
   setSearchPhrase(newVal: string) {
     if (this.data.searchPhrase !== newVal) {
       this.data.searchPhrase = newVal;
-      this.trigger(this.data);
     }
   }
 
@@ -72,7 +72,6 @@ class SearchBoxStore extends Reflux.Store {
     if (this.data.context !== newContext) {
       this.data.context = newContext;
       this.data.searchPhrase = DEFAULT_SEARCH_PHRASE;
-      this.trigger(this.data);
     }
   }
 
@@ -81,7 +80,4 @@ class SearchBoxStore extends Reflux.Store {
   }
 }
 
-const searchBoxStore = new SearchBoxStore();
-searchBoxStore.init();
-
-export default searchBoxStore;
+export default new SearchBoxStore;

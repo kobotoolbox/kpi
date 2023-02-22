@@ -1,9 +1,10 @@
 import debounce from 'lodash.debounce';
 import React from 'react';
+import {observer} from 'mobx-react';
 import bem from 'js/bem';
 import searchBoxStore from './searchBoxStore';
-import type {SearchBoxStoreData} from './searchBoxStore';
 import {KEY_CODES} from 'js/constants';
+import {autorun} from 'mobx';
 
 interface SearchBoxProps {
   /** A text to be displayed in empty input. */
@@ -16,8 +17,9 @@ interface SearchBoxState {
   inputVal: string;
 }
 
-export default class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
+class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
   setSearchPhraseDebounced = debounce(this.setSearchPhrase.bind(this), 500);
+  cancelAutorun?: () => void;
 
   constructor(props: SearchBoxProps) {
     super(props);
@@ -27,11 +29,17 @@ export default class SearchBox extends React.Component<SearchBoxProps, SearchBox
   }
 
   componentDidMount() {
-    searchBoxStore.listen(this.searchBoxStoreChanged.bind(this), this);
+    this.cancelAutorun = autorun(() => {this.searchBoxStoreChanged()});
   }
 
-  searchBoxStoreChanged(newData: SearchBoxStoreData) {
-    this.setState({inputVal: newData.searchPhrase});
+  componentWillUnmount() {
+    if (typeof this.cancelAutorun === 'function') {
+      this.cancelAutorun();
+    }
+  }
+
+  searchBoxStoreChanged() {
+    this.setState({inputVal: searchBoxStore.getSearchPhrase()});
   }
 
   onInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
@@ -75,3 +83,5 @@ export default class SearchBox extends React.Component<SearchBoxProps, SearchBox
     );
   }
 }
+
+export default observer(SearchBox);
