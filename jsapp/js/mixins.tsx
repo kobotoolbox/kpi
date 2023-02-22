@@ -484,6 +484,6 @@ contextRouter: {
     );
   },
 },
-}
+};
 
 export default mixins;

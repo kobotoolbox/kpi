@@ -61,7 +61,7 @@ function MyProjectsRoute() {
       accept={validFileTypes()}
     >
       <div className={routeStyles.dropzoneOverlay}>
-        <Icon name='upload' size='xl'/>
+        <Icon name='upload' size='xl' />
         <h1>{t('Drop files to upload')}</h1>
       </div>
 
