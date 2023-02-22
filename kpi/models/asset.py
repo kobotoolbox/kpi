@@ -20,7 +20,6 @@ from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from jsonschema import validate as jsonschema_validate
 
-
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
     DEFAULT_REPORTS_KEY,
@@ -33,7 +32,6 @@ from kobo.apps.subsequences.utils import (
     advanced_submission_jsonschema,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
-
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
@@ -66,6 +64,7 @@ from kpi.exceptions import (
 )
 from kpi.fields import (
     KpiUidField,
+    LazyDefaultBooleanField,
     LazyDefaultJSONBField,
 )
 from kpi.mixins import (
@@ -123,6 +122,15 @@ class AssetManager(models.Manager):
 
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(pending_delete=True)
+
+
+class AssetMigrationManager(AssetManager):
+
+    def get_queryset(self):
+        return super(AssetManager, self).get_queryset()
 
 
 class KpiTaggableManager(_TaggableManager):
@@ -199,8 +207,10 @@ class Asset(ObjectPermissionMixin,
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
+    pending_delete = LazyDefaultBooleanField(default=False)
 
     objects = AssetManager()
+    objects_in_migration = AssetMigrationManager()
 
     @property
     def kind(self):
