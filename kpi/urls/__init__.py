@@ -65,7 +65,8 @@ urlpatterns = [
 
 if settings.STRIPE_ENABLED:
     urlpatterns = [
-        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls'))
+        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls')),
+        re_path(r'^api/v2/stripe/', include('djstripe.urls', namespace='djstripe')),
     ] + urlpatterns
 
 
