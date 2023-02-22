@@ -25,6 +25,31 @@ class JsonSchemaFormField(CharField):
         return value
 
 
+class FreeTierThresholdField(JsonSchemaFormField):
+    """
+    Validates that the input has required properties with expected types
+    """
+    def __init__(self, *args, **kwargs):
+        schema = {
+            'type': 'object',
+            'uniqueItems': True,
+            'properties': {
+                'storage': {'type': 'integer'},
+                'data': {'type': 'integer'},
+                'transcription_minutes': {'type': 'integer'},
+                'translation_chars': {'type': 'integer'},
+            },
+            'required': [
+                'storage',
+                'data',
+                'transcription_minutes',
+                'translation_chars',
+            ],
+            'additionalProperties': False,
+        }
+        super().__init__(*args, schema=schema, **kwargs)
+
+
 class MetadataFieldsListField(JsonSchemaFormField):
     """
     Validates that the input is an array of objects with "name" and "required"

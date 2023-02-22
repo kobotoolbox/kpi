@@ -95,13 +95,13 @@ export function userCan(
 
 export function userCanPartially(
   permName: PermissionCodename,
-  asset: AssetResponse
+  asset?: AssetResponse
 ) {
   const currentUsername = sessionStore.currentAccount.username;
 
   // Owners cannot have partial permissions because they have full permissions.
   // Both are contradictory.
-  if (asset.owner__username === currentUsername) {
+  if (asset?.owner__username === currentUsername) {
     return false;
   }
 

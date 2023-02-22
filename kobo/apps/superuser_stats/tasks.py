@@ -227,7 +227,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
             writer.writerow(row)
 
 
-@shared_task
+@shared_task(soft_time_limit=4200, time_limit=4260)
 def generate_forms_count_by_submission_range(output_filename: str):
     # List of submissions count ranges
     ranges = [
@@ -479,6 +479,7 @@ def generate_user_statistics_report(
         ).filter(date__range=(start_date, end_date)).values(
             'user_id',
             'user__username',
+            'user__email',
             'user__date_joined',
         ).order_by('user__date_joined').annotate(count_sum=Sum('counter'))
     )
@@ -497,7 +498,9 @@ def generate_user_statistics_report(
         )
         data.append([
             record['user__username'],
+            user_details.data.get('name', ''),
             record['user__date_joined'],
+            record['user__email'],
             user_details.data.get('organization', ''),
             _get_country_value(user_details.data.get('country', '')),
             record['count_sum'],
@@ -507,7 +510,9 @@ def generate_user_statistics_report(
 
     columns = [
         'Username',
+        'Name',
         'Date Joined',
+        'Email',
         'Organization',
         'Country',
         'Submissions Count',

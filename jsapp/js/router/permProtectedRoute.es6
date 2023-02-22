@@ -13,7 +13,8 @@ import {userCan, userCanPartially} from 'js/components/permissions/utils';
  * @prop {string} path - one of PATHS
  * @prop {object} route
  * @prop {object} route.protectedComponent - the target route commponent that should be displayed for authenticateed user
- * @prop {object} route.requiredPermission - the permission needed to be able to see the route
+ * @prop {array} route.requiredPermissions - the list of permissions needed to be able to see the route
+ * @prop {boolean} route.requireAll - toggle whether all permissions of `requiredPermissions` are required or only one of them
  */
 class PermProtectedRoute extends React.Component {
   constructor(props) {
@@ -27,7 +28,7 @@ class PermProtectedRoute extends React.Component {
     return {
       // Whether loadAsset call was made and ended, regardless of success or failure
       isLoadAssetFinished: false,
-      userHasRequiredPermission: null,
+      userHasRequiredPermissions: null,
       errorMessage: null,
       asset: null,
     };
@@ -52,13 +53,15 @@ class PermProtectedRoute extends React.Component {
       this.setState(this.getInitialState());
       actions.resources.loadAsset({id: nextProps.params.uid});
     } else if (
-      this.props.requiredPermission !== nextProps.requiredPermission ||
+      this.props.requiredPermissions !== nextProps.requiredPermissions ||
+      this.props.requireAll !== nextProps.requireAll ||
       this.props.protectedComponent !== nextProps.protectedComponent
     ) {
       this.setState({
-        userHasRequiredPermission: this.getUserHasRequiredPermission(
+        userHasRequiredPermissions: this.getUserHasRequiredPermissions(
           this.state.asset,
-          nextProps.requiredPermission
+          nextProps.requiredPermissions,
+          nextProps.requireAll
         ),
       });
     }
@@ -72,9 +75,10 @@ class PermProtectedRoute extends React.Component {
     this.setState({
       asset: asset,
       isLoadAssetFinished: true,
-      userHasRequiredPermission: this.getUserHasRequiredPermission(
+      userHasRequiredPermissions: this.getUserHasRequiredPermissions(
         asset,
-        this.props.requiredPermission
+        this.props.requiredPermissions,
+        this.props.requireAll
       ),
     });
   }
@@ -83,7 +87,7 @@ class PermProtectedRoute extends React.Component {
     if (response.status >= 400) {
       this.setState({
         isLoadAssetFinished: true,
-        userHasRequiredPermission: false,
+        userHasRequiredPermissions: false,
         errorMessage: `${response.status.toString()}: ${
           response.responseJSON?.detail || response.statusText
         }`,
@@ -99,10 +103,18 @@ class PermProtectedRoute extends React.Component {
     );
   }
 
+  getUserHasRequiredPermissions(asset, requiredPermissions, all = false) {
+    if (all) {
+      return requiredPermissions.every((perm) => this.getUserHasRequiredPermission(asset, perm));
+    } else {
+      return requiredPermissions.some((perm) => this.getUserHasRequiredPermission(asset, perm));
+    }
+  }
+
   render() {
     if (!this.state.isLoadAssetFinished) {
       return <LoadingSpinner />;
-    } else if (this.state.userHasRequiredPermission) {
+    } else if (this.state.userHasRequiredPermissions) {
       return (
         <Suspense fallback={<LoadingSpinner />}>
           <this.props.protectedComponent

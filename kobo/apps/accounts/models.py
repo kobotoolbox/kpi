@@ -1,6 +1,14 @@
+from allauth.account.admin import EmailAddressAdmin as BaseEmailAddressAdmin
 from allauth.account.signals import email_confirmed
+from django.contrib.auth.models import User
 from django.db import models
 from django.dispatch import receiver
+
+
+class EmailAddressAdmin(BaseEmailAddressAdmin):
+
+    search_fields = ('user__username',)
+    autocomplete_fields = ['user']
 
 
 class ImportedVerification(models.Model):
