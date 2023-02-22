@@ -4,6 +4,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -39,6 +40,7 @@ from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     get_perm_name,
+    AssetBookmarkPermission,
     AssetPermission,
     PostMappedToChangePermission,
     ReportPermission,
@@ -368,6 +370,27 @@ class AssetViewSet(
             return asset
 
         return super().get_object()
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        permission_classes=[AssetBookmarkPermission],
+    )
+    def toggle_bookmark(self, request, uid):
+        # FIXME: Tests!
+        asset = self.get_object()
+        with transaction.atomic():
+            (
+                bookmark,
+                created,
+            ) = asset.bookmarked_by.through.objects.get_or_create(
+                asset=asset, user=request.user
+            )
+            if created:
+                return Response(status=status.HTTP_200_OK)
+            else:
+                bookmark.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):

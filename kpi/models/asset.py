@@ -172,6 +172,7 @@ class Asset(ObjectPermissionMixin,
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = models.JSONField(default=dict)
+    bookmarked_by = models.ManyToManyField('auth.User')
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.

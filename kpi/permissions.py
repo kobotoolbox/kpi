@@ -120,6 +120,12 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         return True
 
 
+class AssetBookmarkPermission(permissions.DjangoObjectPermissions):
+    authenticated_users_only = True
+    # Only view access is needed to bookmark an asset; only POST is supported
+    perms_map = {'POST': [f'kpi.{PERM_VIEW_ASSET}']}
+
+
 class AssetPermission(permissions.DjangoObjectPermissions):
 
     # Setting this to False allows real permission checking on AnonymousUser.
