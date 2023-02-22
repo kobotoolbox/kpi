@@ -7,8 +7,14 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 
 interface PopoverMenuProps {
-  popoverSetVisible: () => void;
-  clearPopover: boolean;
+  /** A callback run whenever popover is opened (made visible). */
+  popoverSetVisible?: () => void;
+  /**
+   * This is come weird mechanism for closing the popover from outside. You have
+   * to pass a `true` value here, and the code observes property changes, and
+   * would close popover :ironically_impressed_nod:.
+   */
+  clearPopover?: boolean;
   blurEventDisabled?: boolean;
   type?: string;
   additionalModifiers?: string[];

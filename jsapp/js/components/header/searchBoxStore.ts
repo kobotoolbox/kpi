@@ -1,4 +1,5 @@
 import Reflux from 'reflux';
+import type {Update} from 'history';
 import {
   getCurrentPath,
   isMyLibraryRoute,
@@ -17,7 +18,7 @@ export const SEARCH_CONTEXTS: {
   PUBLIC_COLLECTIONS: 'PUBLIC_COLLECTIONS',
 };
 
-interface SearchBoxStoreData {
+export interface SearchBoxStoreData {
   context: SearchBoxContextName | null;
   searchPhrase: string;
 }
@@ -34,9 +35,9 @@ class SearchBoxStore extends Reflux.Store {
     this.resetContext();
   }
 
-  // manages clearing search when switching main routes
-  onRouteChange(data: any) {
-    if (this.previousPath.split('/')[1] !== data.location.pathname.split('/')[1]) {
+  /** Manages clearing search when switching routes */
+  onRouteChange(data: Update) {
+    if (this.previousPath !== data.location.pathname) {
       this.clear();
     }
     this.previousPath = data.location.pathname;
