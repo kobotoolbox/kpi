@@ -1,12 +1,15 @@
 # coding: utf-8
 from __future__ import annotations
+
 import json
 import re
 
 from django.conf import settings
-from django.utils.translation import gettext as t
+from django.db import transaction
+from django.utils.timezone import now
+from django.utils.translation import ngettext as t
 from django_request_cache import cache_for_request
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
@@ -22,19 +25,32 @@ from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatUser,
+    KobocatXForm,
+)
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import (
     PaginatedApiField,
     RelativePrefixHyperlinkedRelatedField,
     WritableJSONField,
 )
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import (
+    Asset,
+    AssetVersion,
+    AssetExportSettings,
+    ObjectPermission,
+)
 from kpi.models.asset import UserAssetSubscription
+from kpi.utils.jsonbfield_helper import ReplaceValues
 from kpi.utils.object_permission import (
+    get_cached_code_names,
     get_database_user,
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
@@ -47,6 +63,121 @@ from kpi.utils.project_views import (
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+
+
+class AssetBulkActionsSerializer(serializers.Serializer):
+    """
+    The purpose of this class is to benefit from the DRF validation mechanism
+    without reinventing the wheel.
+    It is used to validate the bulk actions payload and to pass a correctly
+    formatted dictionary to the deployment back end.
+    """
+    payload = WritableJSONField()
+
+    def create(self, validated_data):
+        request = self.context['request']
+        if asset_uids := validated_data['payload'].get('asset_uids'):
+            kc_filter_params = {'kpi_asset_uid__in': asset_uids}
+            filter_params = {'uid__in': asset_uids}
+        else:
+            kc_filter_params = {'user': KobocatUser.get_kc_user(request.user)}
+            filter_params = {'owner': request.user}
+
+        nested_value = ReplaceValues(
+            '_deployment_data', updates={'active': False}
+        )
+        if request.method == 'PATCH':
+            kc_update_params = {'downloadable': False}
+            update_params = {
+                '_deployment_data': nested_value,
+                'date_modified': now(),
+            }
+            validated_data['delete'] = False
+        else:
+            kc_update_params = {'downloadable': False, 'pending_delete': True}
+            update_params = {
+                '_deployment_data': nested_value,
+                'pending_delete': True,
+                'date_modified': now(),
+            }
+            validated_data['delete'] = True
+
+        with transaction.atomic():
+            with kc_transaction_atomic():
+                # Deployment back end should be per asset. But, because we need
+                # to do a bulk action, we assume that all Asset objects use the
+                # same back end to avoid looping on each object to update their
+                # back end.
+                updated = Asset.objects.filter(**filter_params).update(**update_params)
+                kc_updated = KobocatXForm.objects.filter(**kc_filter_params).update(
+                    **kc_update_params
+                )
+                assert updated == kc_updated
+                validated_data['project_counts'] = updated
+
+        return validated_data
+
+    def validate_payload(self, payload: dict) -> dict:
+        try:
+            payload['asset_uids']
+        except KeyError:
+            self._validate_confirm(payload)
+
+        self._has_perms(payload)
+
+        return payload
+
+    def to_representation(self, instance):
+        if instance['delete']:
+            message = t(
+                '%(count)d project has been deleted',
+                '%(count)d projects have been deleted',
+                instance['project_counts'],
+            ) % {'count': instance['project_counts']}
+        else:
+            message = t(
+                '%(count)d project has been archived',
+                '%(count)d projects have been archived',
+                instance['project_counts'],
+            ) % {'count': instance['project_counts']}
+
+        return {
+            'detail': message
+        }
+
+    def _has_perms(self, payload: dict):
+
+        asset_uids = payload.get('asset_uids', [])
+        request = self.context['request']
+
+        if request.user.is_anonymous:
+            raise exceptions.PermissionDenied()
+
+        if not asset_uids or request.user.is_superuser:
+            return
+
+        if request.method == 'PATCH':
+            code_names = get_cached_code_names(Asset)
+            perm_dict = code_names[PERM_MANAGE_ASSET]
+            objects_count = ObjectPermission.objects.filter(
+                user=request.user,
+                permission_id=perm_dict['id'],
+                asset__uid__in=asset_uids,
+                deny=False
+            ).count()
+        else:
+            objects_count = Asset.objects.filter(
+                owner=request.user,
+                uid__in=asset_uids,
+            ).count()
+
+        if objects_count != len(asset_uids):
+            raise exceptions.PermissionDenied()
+
+    def _validate_confirm(self, payload: dict):
+
+        if not payload.get('confirm'):
+            raise serializers.ValidationError(t('Confirmation is required'))
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):

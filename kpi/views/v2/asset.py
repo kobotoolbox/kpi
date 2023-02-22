@@ -4,7 +4,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -22,6 +22,7 @@ from kpi.constants import (
     CLONE_FROM_VERSION_ID_ARG_NAME,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
+
 from kpi.exceptions import (
     BadAssetTypeException,
 )
@@ -50,7 +51,11 @@ from kpi.renderers import (
     XlsRenderer,
 )
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.serializers.v2.asset import (
+    AssetBulkActionsSerializer,
+    AssetListSerializer,
+    AssetSerializer,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -368,6 +373,23 @@ class AssetViewSet(
             return asset
 
         return super().get_object()
+
+    @action(
+        detail=False,
+        methods=['PATCH', 'DELETE'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def bulk(self, request, *args, **kwargs):
+        params = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+        }
+
+        bulk_actions_validator = AssetBulkActionsSerializer(**params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        bulk_actions_validator.save()
+
+        return Response(bulk_actions_validator.data)
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
