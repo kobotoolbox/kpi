@@ -30,18 +30,24 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     }
   };
 
-  const getTriggerLabel = () => {
-    if (props.selectedViewUid === HOME_VIEW.uid) {
-      return HOME_VIEW.name;
-    }
+  let triggerLabel = HOME_VIEW.name;
+  if (props.selectedViewUid !== HOME_VIEW.uid) {
+    triggerLabel = projectViews.getView(props.selectedViewUid)?.name || '-';
+  }
 
-    return projectViews.getView(props.selectedViewUid)?.name;
-  };
-
-  // We don't want to display anything before the API call is done. If there are
-  // no custom views defined, there's no point in displaying it either.
-  if (!projectViews.isFirstLoadComplete || projectViews.views.length === 0) {
+  // We don't want to display anything before the API call is done.
+  if (!projectViews.isFirstLoadComplete) {
     return null;
+  }
+
+  // If there are no custom views defined, there's no point in displaying
+  // the dropdown, we will display a "simple" header.
+  if (projectViews.views.length === 0) {
+    return (
+      <button className={classNames(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
+        <label>{triggerLabel}</label>
+      </button>
+    );
   }
 
   return (
@@ -57,8 +63,8 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         hideOnMenuClick
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
-          <button className={styles.trigger}>
-            {getTriggerLabel()}
+          <button className={styles.trigger} title={triggerLabel}>
+            <label>{triggerLabel}</label>
             <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>
         }
