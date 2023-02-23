@@ -37,4 +37,6 @@ urlpatterns = [
 ]
 
 if settings.ENABLE_METRICS:
-    urlpatterns.append(path('', include('django_prometheus.urls')),)
+    urlpatterns.append(
+        path('', include('django_prometheus.urls')),
+    )
