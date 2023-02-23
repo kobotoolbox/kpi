@@ -727,8 +727,8 @@ SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
 # For SSO, the signup form is prepopulated with the account email
-# If set True, users signing up through SSO cannot edit their signup email
-UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = os.environ.get(
+# If set True, the email field in the SSO signup form will be readonly
+UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
     "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
 )
 
