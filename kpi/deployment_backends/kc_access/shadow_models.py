@@ -252,7 +252,7 @@ class KobocatUser(ShadowModel):
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT
-        kc_auth_user = cls.kc_auth_user(auth_user)
+        kc_auth_user = cls.get_kc_user(auth_user)
         kc_auth_user.password = auth_user.password
         kc_auth_user.last_login = auth_user.last_login
         kc_auth_user.is_superuser = auth_user.is_superuser

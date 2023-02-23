@@ -3,16 +3,18 @@ from __future__ import annotations
 
 import json
 import re
+from distutils import util
 
 from django.conf import settings
 from django.db import transaction
 from django.utils.timezone import now
-from django.utils.translation import ngettext as t
+from django.utils.translation import gettext as t, ngettext as nt
 from django_request_cache import cache_for_request
 from rest_framework import serializers, exceptions
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
+
 
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
@@ -76,6 +78,8 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         request = self.context['request']
+        undo = validated_data['payload']['undo']
+
         if asset_uids := validated_data['payload'].get('asset_uids'):
             kc_filter_params = {'kpi_asset_uid__in': asset_uids}
             filter_params = {'uid__in': asset_uids}
@@ -83,29 +87,23 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             kc_filter_params = {'user': KobocatUser.get_kc_user(request.user)}
             filter_params = {'owner': request.user}
 
-        nested_value = ReplaceValues(
-            '_deployment_data', updates={'active': False}
-        )
-        if request.method == 'PATCH':
-            kc_update_params = {'downloadable': False}
-            update_params = {
-                '_deployment_data': nested_value,
-                'date_modified': now(),
-            }
-            validated_data['delete'] = False
-        else:
-            kc_update_params = {'downloadable': False, 'pending_delete': True}
-            update_params = {
-                '_deployment_data': nested_value,
-                'pending_delete': True,
-                'date_modified': now(),
-            }
-            validated_data['delete'] = True
+        kc_update_params = {'downloadable': undo}
+        update_params = {
+            '_deployment_data': ReplaceValues(
+                '_deployment_data',
+                updates={'active': undo},
+            ),
+            'date_modified': now(),
+        }
+
+        if request.method == 'DELETE':
+            kc_update_params['pending_delete'] = not undo
+            update_params['pending_delete'] = not undo
 
         with transaction.atomic():
             with kc_transaction_atomic():
                 # Deployment back end should be per asset. But, because we need
-                # to do a bulk action, we assume that all Asset objects use the
+                # to do a bulk action, we assume that all `Asset` objects use the
                 # same back end to avoid looping on each object to update their
                 # back end.
                 updated = Asset.objects.filter(**filter_params).update(**update_params)
@@ -119,35 +117,50 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def validate_payload(self, payload: dict) -> dict:
         try:
-            payload['asset_uids']
+            asset_uids = payload['asset_uids']
         except KeyError:
             self._validate_confirm(payload)
+            asset_uids = []
 
-        self._has_perms(payload)
+        self._validate_undo(payload)
+        self._has_perms(asset_uids)
 
         return payload
 
     def to_representation(self, instance):
-        if instance['delete']:
-            message = t(
-                '%(count)d project has been deleted',
-                '%(count)d projects have been deleted',
-                instance['project_counts'],
-            ) % {'count': instance['project_counts']}
+        request = self.context['request']
+        undo = instance['payload']['undo']
+        if request.method == 'DELETE':
+            if undo:
+                message = nt(
+                    f'%(count)d project has been undeleted',
+                    f'%(count)d projects have been undeleted',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
+            else:
+                message = nt(
+                    '%(count)d project has been deleted',
+                    '%(count)d projects have been deleted',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
         else:
-            message = t(
-                '%(count)d project has been archived',
-                '%(count)d projects have been archived',
-                instance['project_counts'],
-            ) % {'count': instance['project_counts']}
+            if undo:
+                message = nt(
+                    '%(count)d project has been unarchived',
+                    '%(count)d projects have been unarchived',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
+            else:
+                message = nt(
+                    '%(count)d project has been archived',
+                    '%(count)d projects have been archived',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
 
-        return {
-            'detail': message
-        }
+        return {'detail': message}
 
-    def _has_perms(self, payload: dict):
+    def _has_perms(self, asset_uids: list[str]):
 
-        asset_uids = payload.get('asset_uids', [])
         request = self.context['request']
 
         if request.user.is_anonymous:
@@ -178,6 +191,25 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
         if not payload.get('confirm'):
             raise serializers.ValidationError(t('Confirmation is required'))
+
+    def _validate_undo(self, payload: dict):
+        request = self.context['request']
+        undo = payload.get('undo', 'False')
+        if not isinstance(undo, bool):
+            try:
+                undo = bool(util.strtobool(undo))
+            except ValueError:
+                payload['undo'] = False
+                return
+
+        if (
+            undo
+            and request.method == 'DELETE'
+            and not request.user.is_superuser
+        ):
+            raise exceptions.PermissionDenied()
+
+        payload['undo'] = undo
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
