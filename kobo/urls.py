@@ -35,3 +35,6 @@ urlpatterns = [
         RedirectView.as_view(url=settings.KOBOCAT_URL, permanent=True),
     ),
 ]
+
+if settings.ENABLE_METRICS:
+    urlpatterns.append(path('', include('django_prometheus.urls')),)
