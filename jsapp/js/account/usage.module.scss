@@ -1,0 +1,63 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.root {
+  padding: 40px;
+}
+
+h2 {
+  margin-bottom: 28px;
+}
+
+.header {
+  padding: 14px;
+  margin: 18px;
+  background-color: colors.$kobo-light-blue;
+  display: flex;
+  column-gap: sizes.$x12;
+  padding-right: sizes.$x24;
+
+  i {
+    color: colors.$kobo-blue;
+    margin-left: sizes.$x12;
+    padding-top: sizes.$x10;
+  }
+
+  p {
+    margin: 0 0 0 sizes.$x20;
+  }
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+}
+
+.box {
+  width: sizes.$x300;
+  border: 1px solid;
+  border-color: colors.$kobo-gray-92;
+  border-radius: 5%;
+  margin-right: 12px;
+  padding: 32px;
+  display: inline;
+}
+
+.usage {
+  display: flex;
+  margin-top: 18px;
+}
+
+.title {
+  font-size: sizes.$x18;
+  color: colors.$kobo-gray-40;
+}
+
+.date {
+  font-size: sizes.$x16;
+}
+
+.description {
+  margin-right: 60px;
+  color: colors.$kobo-storm;
+}
