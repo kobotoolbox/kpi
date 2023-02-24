@@ -52,6 +52,11 @@ function AccountSidebar() {
         name={t('Security')}
         to={ACCOUNT_ROUTES.SECURITY}
       />
+      <AccountNavLink
+        iconName='reports'
+        name={t('Usage')}
+        to={ACCOUNT_ROUTES.USAGE}
+      />
       {env.isReady &&
         env.data.stripe_public_key &&
         subscription.subscribedProduct && (
