@@ -4,12 +4,14 @@ import {formatMonth} from '../utils';
 import {getUsage} from './usage.api';
 import Icon from '../components/common/icon';
 import {NavLink} from 'react-router-dom';
+import Button from '../components/common/button';
 
 interface UsageState {
   storage: number;
   monthlySubmissions: number;
   transcriptionMinutes: number;
   translationChars: number;
+  showBanner: boolean;
 }
 
 export default function Usage() {
@@ -18,11 +20,13 @@ export default function Usage() {
     monthlySubmissions: 0,
     transcriptionMinutes: 0,
     translationChars: 0,
+    showBanner: true,
   });
 
   useEffect(() => {
     getUsage().then((data) => {
       setUsage({
+        ...usage,
         storage: data.total_storage_bytes / 1000000, // bytes to GB
         monthlySubmissions: data.total_submission_count_current_month,
         transcriptionMinutes: data.total_nlp_asr_seconds / 60, // seconds to minutes
@@ -31,23 +35,38 @@ export default function Usage() {
     });
   }, []);
 
+  function hideHeader() {
+    setUsage({
+      ...usage,
+      showBanner: false,
+    });
+  }
+
   return (
     <div className={styles.root}>
       <h2>{t('Your account total use')}</h2>
 
-      <div className={styles.header}>
-        <Icon
-          name='alert'
-          size='s'
-        />
-        <div className={styles.article}>
-          <p>
-          {t('Please note these figures are only updated once per day. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the ')}
-          </p>
-          <NavLink to='#'>{t('following article')}</NavLink>
+      {usage.showBanner && (
+        <div className={styles.header}>
+          <Icon name='alert' size='s' />
+          <div className={styles.article}>
+            <p>
+              {t(
+                'Please note these figures are only updated once per day. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the '
+              )}
+            </p>
+            <NavLink to='#'>{t('following article')}</NavLink>
+          </div>
+          <Button
+            type='bare'
+            color='blue'
+            size='m'
+            label={t('OK')}
+            isFullWidth
+            onClick={hideHeader}
+          />
         </div>
-
-      </div>
+      )}
 
       <div className={styles.row}>
         <div className={styles.box}>
@@ -79,7 +98,9 @@ export default function Usage() {
           </div>
         </div>
         <div className={styles.box}>
-          <strong className={styles.title}>{t('Translation characters')}</strong>
+          <strong className={styles.title}>
+            {t('Translation characters')}
+          </strong>
           <div className={styles.date}>
             {formatMonth(new Date().toUTCString())}
           </div>
