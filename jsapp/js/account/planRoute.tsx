@@ -3,12 +3,14 @@ import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
-import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import type {SubscriptionInfo, BaseProduct, Product } from './subscriptionStore';
+import { fetchProducts } from './subscriptionStore';
 import type {ServiceUsage} from './dataUsageStore';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import './planRoute.scss';
+import {fetchGet, fetchPost, fetchDelete} from 'jsapp/js/api';
 
 /**
  * TODO: Most probably all different Account routes will use very similar design,
@@ -48,7 +50,8 @@ const PLACEHOLDER_DESC = t('Free access to all services. 5GB of media attachment
 
 interface PlanRouteState {
   isLoading: boolean;
-  subscribedProduct: ProductInfo;
+  subscribedProduct: BaseProduct;
+  products: Product[];
   dataUsageBytes: number;
   dataUsageMonthly: number;
 }
@@ -65,6 +68,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
         type: '',
         metadata: {}
       },
+      products: [],
       dataUsageBytes: 0,
       dataUsageMonthly: 0,
     };
@@ -77,6 +81,11 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
     if (envStore.data.stripe_public_key) {
       this.fetchSubscriptionInfo();
+      fetchProducts().then((data)=> {
+        this.setState({
+          products: data.results,
+        })
+      })
     }
     this.fetchDataUsage();
   }
@@ -207,11 +216,24 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
             {t('Add ons and upgrades to your plan')}
           </bem.AccountPlan__blurb>
           <bem.AccountPlan__stripe>
-            {envStore.isReady && stripePublicKey && stripePricingTableID && (
-              <stripe-pricing-table
-                pricing-table-id={stripePricingTableID}
-                publishable-key={stripePublicKey}
-              />
+            {envStore.isReady && this.state.products.length !== 0 && (
+            <div className='tiers-container'>
+              <p className='interval-toggle'> 
+                Interval toggle
+              </p> 
+              {console.log('test',this.state.products)}
+              {this.state.products.map((product, i) => {     
+                return (
+                  <div className='plan-container' key={i}>
+                    <h1> {product.name} </h1>
+                    <h2> cost </h2>
+
+                    <p key={i}>{product.description}</p>
+                  </div>
+                ) 
+              })}
+              <p>FETCH DATA FROM API AND ADD HERE</p>
+              </div>
             )}
           </bem.AccountPlan__stripe>
         </bem.AccountPlan>
