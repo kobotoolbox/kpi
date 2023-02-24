@@ -1,14 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import moment from 'moment';
 import styles from './usage.module.scss';
 import {formatMonth} from '../utils';
 import {getUsage} from './usage.api';
 import Icon from '../components/common/icon';
-
-const MAX_MONTHLY_SUBMISSIONS = 2; // TODO change this to 10000 if deploying
-const MAX_GIGABYTES_STORAGE = 4;
-const WARNING_PERCENT = 75;
-const MAX_PERCENTAGE = 100;
+import {NavLink} from 'react-router-dom';
 
 interface UsageState {
   storage: number;
@@ -45,9 +40,12 @@ export default function Usage() {
           name='alert'
           size='s'
         />
-        <p>
-        {t('Please note these figures are only updated once per day. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the following article')}
-        </p>
+        <div className={styles.article}>
+          <p>
+          {t('Please note these figures are only updated once per day. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the ')}
+          </p>
+          <NavLink to='#'>{t('following article')}</NavLink>
+        </div>
 
       </div>
 

@@ -2,62 +2,70 @@
 @use '~kobo-common/src/styles/colors';
 
 .root {
-  padding: 40px;
+  padding: sizes.$x40;
 }
 
 h2 {
-  margin-bottom: 28px;
+  margin-bottom: sizes.$x28;
 }
 
 .header {
-  padding: 14px;
-  margin: 18px;
+  padding: sizes.$x14;
+  margin: sizes.$x18;
   background-color: colors.$kobo-light-blue;
   display: flex;
-  column-gap: sizes.$x12;
+  gap: sizes.$x38;
   padding-right: sizes.$x24;
+  align-items: center;
 
   i {
     color: colors.$kobo-blue;
     margin-left: sizes.$x12;
-    padding-top: sizes.$x10;
   }
+}
 
+.article {
   p {
-    margin: 0 0 0 sizes.$x20;
+    display: inline;
   }
 }
 
 .row {
   display: flex;
   justify-content: center;
+  flex-flow: wrap;
 }
 
 .box {
-  width: sizes.$x300;
-  border: 1px solid;
+  // TODO: Should we add this size or try some flex magic to make the width work?
+  width: 250px;
+  border: sizes.$x1 solid;
   border-color: colors.$kobo-gray-92;
   border-radius: 5%;
-  margin-right: 12px;
-  padding: 32px;
-  display: inline;
+  margin-right: sizes.$x12;
+  padding: sizes.$x24;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: sizes.$x2;
+  overflow-wrap: break-word;
 }
 
 .usage {
   display: flex;
-  margin-top: 18px;
+  margin-top: sizes.$x18;
 }
 
 .title {
-  font-size: sizes.$x18;
+  font-size: sizes.$x16;
   color: colors.$kobo-gray-40;
 }
 
 .date {
-  font-size: sizes.$x16;
+  font-size: sizes.$x14;
 }
 
 .description {
-  margin-right: 60px;
+  margin-right: sizes.$x60;
   color: colors.$kobo-storm;
 }
