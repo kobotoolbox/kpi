@@ -18,6 +18,10 @@ h2 {
   padding-right: sizes.$x24;
   align-items: center;
 
+  button {
+    width: sizes.$x30 !important;
+  }
+
   i {
     color: colors.$kobo-blue;
     margin-left: sizes.$x12;
