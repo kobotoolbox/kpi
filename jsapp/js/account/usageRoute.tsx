@@ -23,9 +23,9 @@ export default function Usage() {
   useEffect(() => {
     getUsage().then((data) => {
       setUsage({
-        storage: data.total_storage_bytes / 1000000,
+        storage: data.total_storage_bytes / 1000000, // bytes to GB
         monthlySubmissions: data.total_submission_count_current_month,
-        transcriptionMinutes: data.total_nlp_asr_seconds / 60,
+        transcriptionMinutes: data.total_nlp_asr_seconds / 60, // seconds to minutes
         translationChars: data.total_nlp_mt_characters,
       });
     });
@@ -65,7 +65,7 @@ export default function Usage() {
           <div className={styles.date}>{t('per account')}</div>
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Current use')}</strong>
-            <strong>{usage.storage}</strong>
+            <strong>{usage.storage}&nbsp;GB</strong>
           </div>
         </div>
         <div className={styles.box}>
