@@ -40,3 +40,43 @@
 .plan-usage-row__data {
   display: flex;
 }
+
+.plans-section {
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  grid-template-columns: repeat(auto, 1fr);
+}
+
+.interval-toggle {
+  grid-column: 1 / 5;
+  grid-row: 1/2;
+  justify-self: center
+}
+
+.filter-button {
+  background-color: colors.$kobo-blue;
+  border:none;
+  color: colors.$kobo-white;
+}
+
+.plan-container { 
+  grid-auto-columns: 1fr;
+  grid-row: 3/4;
+  border: colors.$kobo-gray-85 solid 1px; 
+}
+
+.enterprise-plan {
+  background-color: colors.$kobo-light-blue;
+  grid-column: auto;
+  grid-row: 3/4;
+}
+
+.current-plan {
+  background-color: colors.$kobo-storm;
+  color: colors.$kobo-white;
+  grid-row: 2/3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px 6px 0 0 ;
+}

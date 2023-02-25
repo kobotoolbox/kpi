@@ -54,6 +54,7 @@ interface PlanRouteState {
   products: Product[];
   dataUsageBytes: number;
   dataUsageMonthly: number;
+  intervalFilter: string;
 }
 
 class PlanRoute extends React.Component<{}, PlanRouteState> {
@@ -71,6 +72,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       products: [],
       dataUsageBytes: 0,
       dataUsageMonthly: 0,
+      intervalFilter: 'year',
     };
   }
 
@@ -88,6 +90,23 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       })
     }
     this.fetchDataUsage();
+  }
+
+  private setInterval(interval: string) {
+    this.setState({
+      intervalFilter: interval,
+    })
+  }
+
+  private filterPlans(){
+    const filteredPlans = 
+      this.state.products.map((product) => {
+        return {
+          ...product,
+          plans: product.plans.filter((plan) => plan.interval === this.state.intervalFilter)
+        }
+    })
+    return filteredPlans;
   }
 
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
@@ -217,22 +236,39 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
           </bem.AccountPlan__blurb>
           <bem.AccountPlan__stripe>
             {envStore.isReady && this.state.products.length !== 0 && (
-            <div className='tiers-container'>
+            <div className='plans-section'>
               <p className='interval-toggle'> 
-                Interval toggle
+              <button className='filter-button' onClick={() => this.setInterval("Annual")} value="year">  Annual </button>
+              <button className='filter-button' onClick={() => this.setInterval("Monthly")} value="month"> Monthly </button>
               </p> 
-              {console.log('test',this.state.products)}
-              {this.state.products.map((product, i) => {     
+              <div className='current-plan'>
+                your plan
+              </div>
+              {console.log(this.filterPlans())}
+              {this.filterPlans().map((product, i) => {   
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
-                    <h2> cost </h2>
-
+                    {product.plans.length > 0 && (
+                      <h2> {product.plans[0].amount}</h2>
+                    )}
+                    <ul> <li>features</li></ul>
                     <p key={i}>{product.description}</p>
+                    <p> Support </p>
+                    <p> Advanced Features</p>
+                    <p> Available add-ons </p>
                   </div>
                 ) 
               })}
-              <p>FETCH DATA FROM API AND ADD HERE</p>
+              <div className='enterprise-plan'>
+                <h3> Need More?</h3>
+                <p>
+                We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.</p>
+                <p>If your organization has larger or more specific needs, contact our team to learn about our enterprise options.
+                </p>
+                <div>Get in touch for Enterprise options</div>
+              </div>
+              {/* <div className="">Display Full Comparison /Collapse</div> */}
               </div>
             )}
           </bem.AccountPlan__stripe>
