@@ -63,10 +63,12 @@ const genderChoices: {[key: string]: string} = {
 const choiceToSelectOptions = (
   value: string,
   choices: {[key: string]: string}
-) => ({
-  value,
-  label: choices[value],
-});
+) => {
+  return {
+    value,
+    label: choices[value],
+  };
+};
 
 const genderSelectOptions = Object.keys(genderChoices).map((key) =>
   choiceToSelectOptions(key, genderChoices)
@@ -281,7 +283,7 @@ const AccountSettings = observer(() => {
                 value={form.fields.organizationWebsite}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'organization_website'
+                  'organizationWebsite'
                 )}
                 errors={
                   form.fieldsWithErrors.extra_details?.organizationWebsite
