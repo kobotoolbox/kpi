@@ -15,6 +15,8 @@ import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
 import {ROOT_URL} from 'js/constants';
+import type {EnvStoreFieldItem} from 'js/envStore';
+import envStore from 'js/envStore';
 
 const SAVE_DATA_NAME = 'project_views_settings';
 const PAGE_SIZE = 50;
@@ -179,6 +181,19 @@ class CustomViewStore {
    * the configuration of the view after leaving the route.
    */
   private saveSettings() {
+    // HACKFIX
+    // TEMPORARILY DISABLES SAVING
+    // If any of the fields is set to be required and given user will not have
+    // it filled in - settings saving will not work, because this data is being
+    // currently stored in `/me` endpoint. Working on a fix right now!
+    const isAnyFieldRequired = envStore.data.user_metadata_fields.some(
+      (field: EnvStoreFieldItem) => field.required
+    );
+    if (isAnyFieldRequired) {
+      return;
+    }
+    // ENDHACKFIX
+
     if (!this.viewUid) {
       return;
     }
