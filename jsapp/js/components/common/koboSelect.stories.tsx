@@ -18,17 +18,17 @@ export default {
 const Template: ComponentStory<typeof KoboSelect> = (args: any) => {
   const options = [
     {
-      id: 'one',
+      value: 'one',
       label: 'One',
       icon: args.demoOptionsWithIcons ? 'alert' : undefined,
     },
     {
-      id: 'two',
+      value: 'two',
       label: 'Two',
       icon: args.demoOptionsWithIcons ? 'qt-audio' : undefined,
     },
     {
-      id: 'last',
+      value: 'last',
       label: 'The last one here with a very long label',
       icon: args.demoOptionsWithIcons ? 'globe-alt' : undefined,
     },
