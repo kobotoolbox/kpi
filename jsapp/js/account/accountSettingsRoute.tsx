@@ -139,23 +139,26 @@ const AccountSettings = observer(() => {
     !form.isPristine
   );
   const updateProfile = () => {
+    // To patch correctly with recent changes to the backend,
+    // ensure that we send empty strings if the field is left blank.
+    const profilePatchData = {
+      extra_details: {
+        name: form.fields.name || '',
+        organization: form.fields.organization || '',
+        organization_website: form.fields.organizationWebsite || '',
+        sector: form.fields.sector || '',
+        gender: form.fields.gender || '',
+        bio: form.fields.bio || '',
+        city: form.fields.city || '',
+        country: form.fields.country || '',
+        require_auth: form.fields.requireAuth ? true : false, // false if empty
+        twitter: form.fields.twitter || '',
+        linkedin: form.fields.linkedin || '',
+        instagram: form.fields.instagram || '',
+      },
+    };
     dataInterface
-      .patchProfile({
-        extra_details: {
-          name: form.fields.name,
-          organization: form.fields.organization,
-          organization_website: form.fields.organizationWebsite,
-          sector: form.fields.sector,
-          gender: form.fields.gender,
-          bio: form.fields.bio,
-          city: form.fields.city,
-          country: form.fields.country,
-          require_auth: form.fields.requireAuth,
-          twitter: form.fields.twitter,
-          linkedin: form.fields.linkedin,
-          instagram: form.fields.instagram,
-        },
-      })
+      .patchProfile(profilePatchData)
       .done(() => {
         onUpdateComplete();
       })
