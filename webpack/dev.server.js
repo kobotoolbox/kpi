@@ -6,7 +6,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 var isPublicDomainDefined = process.env.KOBOFORM_PUBLIC_SUBDOMAIN &&
   process.env.PUBLIC_DOMAIN_NAME;
 var publicDomain = isPublicDomainDefined ? process.env.KOBOFORM_PUBLIC_SUBDOMAIN
-  + '.' + process.env.PUBLIC_DOMAIN_NAME : '192.168.1.43';
+  + '.' + process.env.PUBLIC_DOMAIN_NAME : 'localhost';
 var publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
 
 module.exports = WebpackCommon({
