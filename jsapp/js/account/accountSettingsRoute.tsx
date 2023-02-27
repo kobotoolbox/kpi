@@ -11,7 +11,7 @@ import type {EnvStoreFieldItem} from '../envStore';
 import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
-import type {ValueLabelPair} from 'js/dataInterface';
+import type {LabelValuePair} from 'js/dataInterface';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -51,8 +51,8 @@ interface Form {
       instagram?: string;
     };
   };
-  sectorChoices: ValueLabelPair[];
-  countryChoices: ValueLabelPair[];
+  sectorChoices: LabelValuePair[];
+  countryChoices: LabelValuePair[];
 }
 const genderChoices: {[key: string]: string} = {
   male: t('Male'),
