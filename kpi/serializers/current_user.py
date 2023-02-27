@@ -121,27 +121,33 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return rep
 
     def validate(self, attrs):
-        if self.instance:
+        if not self.instance:
+            return attrs
 
-            current_password = attrs.pop('current_password', False)
-            new_password = attrs.get('new_password', False)
+        current_password = attrs.pop('current_password', False)
+        new_password = attrs.get('new_password', False)
 
-            if all((current_password, new_password)):
-                if not self.instance.check_password(current_password):
-                    raise serializers.ValidationError({
-                        'current_password': t('Incorrect current password.')
-                    })
-            elif any((current_password, new_password)):
-                not_empty_field_name = 'current_password' \
-                    if current_password else 'new_password'
-                empty_field_name = 'current_password' \
-                    if new_password else 'new_password'
-                raise serializers.ValidationError({
-                    empty_field_name: t('`current_password` and `new_password` '
-                                        'must both be sent together; '
-                                        f'`{not_empty_field_name}` cannot be '
-                                        'sent individually.')
-                })
+        if all((current_password, new_password)):
+            if not self.instance.check_password(current_password):
+                raise serializers.ValidationError(
+                    {'current_password': t('Incorrect current password.')}
+                )
+        elif any((current_password, new_password)):
+            not_empty_field_name = (
+                'current_password' if current_password else 'new_password'
+            )
+            empty_field_name = (
+                'current_password' if new_password else 'new_password'
+            )
+            raise serializers.ValidationError(
+                {
+                    empty_field_name: t(
+                        '`current_password` and `new_password` must both be'
+                        f' sent together; `{not_empty_field_name}` cannot be'
+                        ' sent individually.'
+                    )
+                }
+            )
 
         return attrs
 
