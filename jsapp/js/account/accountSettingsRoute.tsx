@@ -7,10 +7,11 @@ import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
-import type {EnvStoreDataItem, EnvStoreFieldItem} from '../envStore';
+import type {EnvStoreFieldItem} from '../envStore';
 import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
+import type {ValueLabelPair} from 'js/dataInterface';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -50,8 +51,8 @@ interface Form {
       instagram?: string;
     };
   };
-  sectorChoices: EnvStoreDataItem[];
-  countryChoices: EnvStoreDataItem[];
+  sectorChoices: ValueLabelPair[];
+  countryChoices: ValueLabelPair[];
 }
 const genderChoices: {[key: string]: string} = {
   male: t('Male'),
