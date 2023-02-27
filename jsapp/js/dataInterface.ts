@@ -200,6 +200,7 @@ interface AssignablePermissionPartial {
 }
 
 export interface LabelValuePair {
+  /** Note: the labels are always localized in the current UI language */
   label: string;
   value: string;
 }
