@@ -23,13 +23,17 @@ export default function Usage() {
     showBanner: true,
   });
 
+  function truncate(decimal: number) {
+    return parseFloat(decimal.toFixed(2));
+  }
+
   useEffect(() => {
     getUsage().then((data) => {
       setUsage({
         ...usage,
-        storage: data.total_storage_bytes / 1000000, // bytes to GB
+        storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
         monthlySubmissions: data.total_submission_count_current_month,
-        transcriptionMinutes: data.total_nlp_asr_seconds / 60, // seconds to minutes
+        transcriptionMinutes: truncate(data.total_nlp_asr_seconds / 60), // seconds to minutes
         translationChars: data.total_nlp_mt_characters,
       });
     });
@@ -52,7 +56,7 @@ export default function Usage() {
           <div className={styles.article}>
             <p>
               {t(
-                'Please note these figures are only updated once per day. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the '
+                'Please note these figures are only updated once per refresh. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the '
               )}
             </p>
             <NavLink to='#'>{t('following article')}</NavLink>
@@ -75,7 +79,7 @@ export default function Usage() {
             {formatMonth(new Date().toUTCString())}
           </div>
           <div className={styles.usage}>
-            <strong className={styles.description}>{t('Monthly usage')}</strong>
+            <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.monthlySubmissions}</strong>
           </div>
         </div>
