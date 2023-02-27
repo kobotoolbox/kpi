@@ -138,7 +138,7 @@ const AccountSettings = observer(() => {
   const updateProfile = () => {
     dataInterface
       .patchProfile({
-        extra_details: JSON.stringify({
+        extra_details: {
           name: form.fields.name,
           organization: form.fields.organization,
           organization_website: form.fields.organizationWebsite,
@@ -151,7 +151,7 @@ const AccountSettings = observer(() => {
           twitter: form.fields.twitter,
           linkedin: form.fields.linkedin,
           instagram: form.fields.instagram,
-        }),
+        },
       })
       .done(() => {
         onUpdateComplete();
