@@ -10,7 +10,6 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import IntegrityError, ProgrammingError, transaction
 from django.db.models import Model
-from django.db.transaction import Atomic
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException

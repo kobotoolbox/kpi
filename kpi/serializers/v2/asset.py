@@ -4,18 +4,25 @@ from __future__ import annotations
 import json
 import re
 from distutils import util
+from datetime import timedelta
 
+from constance import config
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction, IntegrityError
+from django.db.models import QuerySet, Q
 from django.utils.timezone import now
 from django.utils.translation import gettext as t, ngettext as nt
+from django_celery_beat.models import PeriodicTask, ClockedSchedule
 from django_request_cache import cache_for_request
 from rest_framework import serializers, exceptions
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
-
+from kobo.apps.project_trash.models.project_trash import (
+    ProjectTrash,
+    ProjectTrashStatus,
+)
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -68,12 +75,6 @@ from .asset_export_settings import AssetExportSettingsSerializer
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
-    """
-    The purpose of this class is to benefit from the DRF validation mechanism
-    without reinventing the wheel.
-    It is used to validate the bulk actions payload and to pass a correctly
-    formatted dictionary to the deployment back end.
-    """
     payload = WritableJSONField()
 
     def create(self, validated_data):
@@ -106,12 +107,17 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 # to do a bulk action, we assume that all `Asset` objects use the
                 # same back end to avoid looping on each object to update their
                 # back end.
-                updated = Asset.objects.filter(**filter_params).update(**update_params)
-                kc_updated = KobocatXForm.objects.filter(**kc_filter_params).update(
-                    **kc_update_params
+                queryset = Asset.all_objects.filter(**filter_params)
+                updated = queryset.update(
+                    **update_params
                 )
+                kc_updated = KobocatXForm.objects.filter(
+                    **kc_filter_params
+                ).update(**kc_update_params)
                 assert updated == kc_updated
                 validated_data['project_counts'] = updated
+
+                self._toggle_trash(queryset, undo)
 
         return validated_data
 
@@ -159,6 +165,68 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
         return {'detail': message}
 
+    def _create_tasks(self, assets: list[dict]):
+        request = self.context['request']
+        clocked_time = now() + timedelta(days=config.PROJECT_TRASH_GRACE_PERIOD)
+        clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
+
+        try:
+            project_trash_objects = ProjectTrash.objects.bulk_create(
+                [
+                    ProjectTrash(
+                        asset_id=asset['pk'],
+                        user=request.user,
+                        # save name and uid for reference when asset is gone
+                        # and to avoid fetching assets again when creating periodic-task
+                        metadata={'name': asset['name'], 'uid': asset['uid']},
+                    )
+                    for asset in assets
+                ]
+            )
+
+            PeriodicTask.objects.bulk_create(
+                [
+                    PeriodicTask(
+                        clocked=clocked,
+                        name=f"Delete project {pto.metadata['name']} ({pto.metadata['uid']})",
+                        task='kobo.apps.project_trash.tasks.empty_trash',
+                        args=json.dumps([pto.id]),
+                        one_off=True,
+                    )
+                    for pto in project_trash_objects
+                ],
+            )
+
+        except IntegrityError:
+            # We do not want to ignore conflicts. If so, something went wrong.
+            # Probably direct API calls no coming from the front end.
+            raise serializers.ValidationError(
+                {'detail': t('One or many projects have been deleted already!')}
+            )
+
+    def _delete_tasks(self, assets: list[dict]):
+        # Delete project trash and periodic task
+        project_trash_qs = ProjectTrash.objects.filter(
+            status=ProjectTrashStatus.PENDING,
+            asset_id__in=[a['pk'] for a in assets]
+        )
+        periodic_task_filter = Q()
+        for pt_id in project_trash_qs.values_list('pk', flat=True):
+            periodic_task_filter |= Q(args=json.dumps([pt_id]))
+        del_ptasks_results = PeriodicTask.objects.filter(
+            periodic_task_filter,
+            clocked__isnull=False,
+            name__startswith='Delete project'
+        ).delete()
+        del_pto_results = project_trash_qs.delete()
+        del_ptasks_count = (
+            del_ptasks_results[1].get('django_celery_beat.PeriodicTask') or 0
+        )
+        del_pto_count = (
+            del_pto_results[1].get('project_trash.ProjectTrash') or 0
+        )
+        assert del_ptasks_count == del_pto_count
+
     def _has_perms(self, asset_uids: list[str]):
 
         request = self.context['request']
@@ -186,6 +254,18 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
         if objects_count != len(asset_uids):
             raise exceptions.PermissionDenied()
+
+    def _toggle_trash(self, queryset: QuerySet, undo: bool):
+        request = self.context['request']
+        if request.method != 'DELETE':
+            return
+
+        assets = queryset.values('pk', 'uid', 'name')
+
+        if undo:
+            self._delete_tasks(assets)
+        else:
+            self._create_tasks(assets)
 
     def _validate_confirm(self, payload: dict):
 

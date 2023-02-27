@@ -27,7 +27,7 @@ class Command(BaseCommand):
         self.standardize_extra_user_details()
 
     def standardize_assets(self):
-        assets = Asset.objects_in_migration.only(
+        assets = Asset.all_objects.only(
             'asset_type', 'uid', 'settings', 'summary'
         )
         self.stdout.write(f'Updating assets...')

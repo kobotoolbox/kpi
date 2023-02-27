@@ -84,7 +84,7 @@ from kpi.tasks import remove_asset_snapshots
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
-class AssetManager(models.Manager):
+class AssetWithoutPendingDeletedManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
         update_parent_languages = kwargs.pop('update_parent_languages', True)
 
@@ -127,10 +127,10 @@ class AssetManager(models.Manager):
         return super().get_queryset().exclude(pending_delete=True)
 
 
-class AssetMigrationManager(AssetManager):
+class AssetAllManager(AssetWithoutPendingDeletedManager):
 
     def get_queryset(self):
-        return super(AssetManager, self).get_queryset()
+        return super(AssetWithoutPendingDeletedManager, self).get_queryset()
 
 
 class KpiTaggableManager(_TaggableManager):
@@ -209,8 +209,8 @@ class Asset(ObjectPermissionMixin,
     paired_data = LazyDefaultJSONBField(default=dict)
     pending_delete = LazyDefaultBooleanField(default=False)
 
-    objects = AssetManager()
-    objects_in_migration = AssetMigrationManager()
+    objects = AssetWithoutPendingDeletedManager()
+    all_objects = AssetAllManager()
 
     @property
     def kind(self):

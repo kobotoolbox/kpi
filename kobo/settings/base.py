@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
+    'kobo.apps.project_trash.ProjectTrashAppConfig',
 )
 
 MIDDLEWARE = [
@@ -331,6 +332,10 @@ CONSTANCE_CONFIG = {
         'number of translation characters',
         # Use custom field for schema validation
         'free_tier_threshold_jsonschema'
+    ),
+    'PROJECT_TRASH_GRACE_PERIOD': (
+        30 * 6,
+        'Number of days to keep projects in trash before really deleting them'
     ),
 }
 

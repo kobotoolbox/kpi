@@ -63,7 +63,7 @@ class ExtendedUserAdmin(UserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = UserAdmin.list_display + ('date_joined',)
+    list_display = UserAdmin.list_display + ('is_active', 'date_joined',)
     list_filter = UserAdmin.list_filter + ('date_joined',)
     readonly_fields = UserAdmin.readonly_fields + (
         'deployed_forms_count',

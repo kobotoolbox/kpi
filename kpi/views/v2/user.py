@@ -1,5 +1,7 @@
 # coding: utf-8
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -46,6 +48,19 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['DELETE'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def delete(self, request, username, **kwargs):
+        if request.user.username != username:
+            raise exceptions.PermissionDenied
+        request.user.is_active = False
+        request.user.save(update_fields=['is_active'])
+        # Delete projects
+        return Response({'detail': 'ok'})
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],

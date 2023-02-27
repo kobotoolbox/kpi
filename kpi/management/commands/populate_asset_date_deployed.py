@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
     def populate_date_deployed(self):
         queryset = (
-            Asset.objects_in_migration.only('uid', 'date_deployed')
+            Asset.all_objects.only('uid', 'date_deployed')
             .filter(asset_type=ASSET_TYPE_SURVEY)
             .prefetch_related(
                 Prefetch(
