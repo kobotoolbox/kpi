@@ -3,18 +3,24 @@ from __future__ import annotations
 
 import json
 import re
-from distutils import util
 from datetime import timedelta
+from distutils import util
 
 from constance import config
 from django.conf import settings
 from django.db import transaction, IntegrityError
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet
+from django.db.models.signals import pre_delete
 from django.utils.timezone import now
 from django.utils.translation import gettext as t, ngettext as nt
-from django_celery_beat.models import PeriodicTask, ClockedSchedule
+from django_celery_beat.models import (
+    ClockedSchedule,
+    PeriodicTask,
+    PeriodicTasks,
+)
 from django_request_cache import cache_for_request
 from rest_framework import serializers, exceptions
+from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
@@ -77,6 +83,14 @@ from .asset_export_settings import AssetExportSettingsSerializer
 class AssetBulkActionsSerializer(serializers.Serializer):
     payload = WritableJSONField()
 
+    def __init__(self, instance=None, data=empty, **kwargs):
+        # Check `method` parameter first to support actions from Django Admin
+        request = kwargs.get('context').get('request')
+        method = kwargs.pop('method', request.method)
+        self.__is_delete = method == 'DELETE'
+
+        super().__init__(instance=instance, data=data, **kwargs)
+
     def create(self, validated_data):
         request = self.context['request']
         undo = validated_data['payload']['undo']
@@ -97,7 +111,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             'date_modified': now(),
         }
 
-        if request.method == 'DELETE':
+        if self.__is_delete:
             kc_update_params['pending_delete'] = not undo
             update_params['pending_delete'] = not undo
 
@@ -134,9 +148,8 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         return payload
 
     def to_representation(self, instance):
-        request = self.context['request']
         undo = instance['payload']['undo']
-        if request.method == 'DELETE':
+        if self.__is_delete:
             if undo:
                 message = nt(
                     f'%(count)d project has been undeleted',
@@ -184,7 +197,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 ]
             )
 
-            PeriodicTask.objects.bulk_create(
+            periodic_tasks = PeriodicTask.objects.bulk_create(
                 [
                     PeriodicTask(
                         clocked=clocked,
@@ -204,28 +217,50 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 {'detail': t('One or many projects have been deleted already!')}
             )
 
+        # Update relationships
+        updated_project_trash_objects = []
+        for idx, pto in enumerate(project_trash_objects):
+            periodic_task = periodic_tasks[idx]
+            assert periodic_task.args == json.dumps([pto.pk])
+            pto.periodic_task = periodic_tasks[idx]
+            updated_project_trash_objects.append(pto)
+
+        ProjectTrash.objects.bulk_update(
+            updated_project_trash_objects, fields=['periodic_task_id']
+        )
+
     def _delete_tasks(self, assets: list[dict]):
         # Delete project trash and periodic task
-        project_trash_qs = ProjectTrash.objects.filter(
+        queryset = ProjectTrash.objects.filter(
             status=ProjectTrashStatus.PENDING,
             asset_id__in=[a['pk'] for a in assets]
         )
-        periodic_task_filter = Q()
-        for pt_id in project_trash_qs.values_list('pk', flat=True):
-            periodic_task_filter |= Q(args=json.dumps([pt_id]))
-        del_ptasks_results = PeriodicTask.objects.filter(
-            periodic_task_filter,
-            clocked__isnull=False,
-            name__startswith='Delete project'
-        ).delete()
-        del_pto_results = project_trash_qs.delete()
-        del_ptasks_count = (
-            del_ptasks_results[1].get('django_celery_beat.PeriodicTask') or 0
+        periodic_task_ids = list(
+            queryset.values_list('periodic_task_id', flat=True)
         )
-        del_pto_count = (
-            del_pto_results[1].get('project_trash.ProjectTrash') or 0
+        del_pto_results = queryset.delete()
+        del_pto_count = del_pto_results[1].get('project_trash.ProjectTrash') or 0
+
+        if del_pto_count != len(assets):
+            raise serializers.ValidationError(
+                {'detail': t('One or many projects have been deleted already!')}
+            )
+
+        # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
+        # delete query finishes to avoid unnecessary DB queries.
+        # see https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
+        pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
+        del_ptasks_results = (
+            PeriodicTask.objects.only('pk')
+            .filter(pk__in=periodic_task_ids)
+            .delete()
         )
+        pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
+
+        del_ptasks_count = del_ptasks_results[1].get('django_celery_beat.PeriodicTask') or 0
         assert del_ptasks_count == del_pto_count
+
+        PeriodicTasks.update_changed()
 
     def _has_perms(self, asset_uids: list[str]):
 
@@ -256,8 +291,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             raise exceptions.PermissionDenied()
 
     def _toggle_trash(self, queryset: QuerySet, undo: bool):
-        request = self.context['request']
-        if request.method != 'DELETE':
+        if not self.__is_delete:
             return
 
         assets = queryset.values('pk', 'uid', 'name')
@@ -284,7 +318,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
         if (
             undo
-            and request.method == 'DELETE'
+            and self.__is_delete
             and not request.user.is_superuser
         ):
             raise exceptions.PermissionDenied()

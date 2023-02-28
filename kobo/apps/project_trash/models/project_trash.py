@@ -11,7 +11,6 @@ class ProjectTrashStatus(models.TextChoices):
     IN_PROGRESS = 'in_progress', 'IN_PROGRESS'
     PENDING = 'pending', 'PENDING'
     FAILED = 'failed', 'FAILED'
-    TRASHED = 'trashed', 'TRASHED'
 
 
 class ProjectTrash(models.Model):
@@ -24,7 +23,10 @@ class ProjectTrash(models.Model):
         db_index=True
     )
     asset = models.OneToOneField(
-        'kpi.Asset', related_name='trash', null=True, on_delete=models.SET_NULL
+        'kpi.Asset', related_name='trash', null=True, on_delete=models.CASCADE
+    )
+    periodic_task = models.OneToOneField(
+        'django_celery_beat.PeriodicTask', null=True, on_delete=models.RESTRICT
     )
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date_created = models.DateTimeField(default=now)
@@ -35,5 +37,5 @@ class ProjectTrash(models.Model):
         verbose_name = 'project'
         verbose_name_plural = 'projects'
 
-    #def __str__(self) -> str:
-    #    return self.asset
+    def __str__(self) -> str:
+        return f'{self.asset} - {self.periodic_task.start_time}'
