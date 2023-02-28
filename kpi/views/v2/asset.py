@@ -4,6 +4,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
+from constance import config
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -383,6 +384,7 @@ class AssetViewSet(
         params = {
             'data': request.data,
             'context': self.get_serializer_context(),
+            'grace_period': config.PROJECT_TRASH_GRACE_PERIOD
         }
 
         bulk_actions_validator = AssetBulkActionsSerializer(**params)

@@ -1,7 +1,6 @@
 # coding: utf-8
-from django.conf import settings
+from constance import config
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,6 +9,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
+from kpi.serializers.v2.asset import AssetBulkActionsSerializer
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 from kpi.tasks import sync_kobocat_xforms
 
@@ -57,9 +57,22 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def delete(self, request, username, **kwargs):
         if request.user.username != username:
             raise exceptions.PermissionDenied
+
+        params = {
+            'data': {
+                'payload': {
+                    'confirm': request.data.get('confirm'),
+                }
+            },
+            'context': {'request': request},
+            'grace_period': config.ACCOUNT_TRASH_GRACE_PERIOD
+        }
+        bulk_actions_validator = AssetBulkActionsSerializer(**params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        bulk_actions_validator.save()
         request.user.is_active = False
         request.user.save(update_fields=['is_active'])
-        # Delete projects
+
         return Response({'detail': 'ok'})
 
     @action(detail=True, methods=['GET'],

@@ -6,7 +6,6 @@ import re
 from datetime import timedelta
 from distutils import util
 
-from constance import config
 from django.conf import settings
 from django.db import transaction, IntegrityError
 from django.db.models import QuerySet
@@ -83,11 +82,20 @@ from .asset_export_settings import AssetExportSettingsSerializer
 class AssetBulkActionsSerializer(serializers.Serializer):
     payload = WritableJSONField()
 
-    def __init__(self, instance=None, data=empty, **kwargs):
+    def __init__(
+        self,
+        instance=None,
+        data=empty,
+        method=None,
+        grace_period=None,
+        **kwargs
+    ):
         # Check `method` parameter first to support actions from Django Admin
         request = kwargs.get('context').get('request')
-        method = kwargs.pop('method', request.method)
+        if not method:
+            method = request.method
         self.__is_delete = method == 'DELETE'
+        self.__grace_period = grace_period
 
         super().__init__(instance=instance, data=data, **kwargs)
 
@@ -180,7 +188,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _create_tasks(self, assets: list[dict]):
         request = self.context['request']
-        clocked_time = now() + timedelta(days=config.PROJECT_TRASH_GRACE_PERIOD)
+        clocked_time = now() + timedelta(days=self.__grace_period)
         clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
 
         try:
