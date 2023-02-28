@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import { observer } from 'mobx-react';
+import {when} from 'mobx';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import Button from 'js/components/common/button';
@@ -106,10 +106,8 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    observer(sessionStore, () => {
-      this.setState({
-        isSessionLoaded: true,
-      });
+    when(() => sessionStore.isInitialLoadComplete, () => {
+      this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(
       actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),

@@ -108,7 +108,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
       <KoboModal
         isOpen={isModalOpen}
         onRequestClose={toggleModal}
-        size='medium'
+        size='large'
       >
         <KoboModalHeader
           icon='filter'

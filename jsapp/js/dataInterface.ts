@@ -199,7 +199,8 @@ interface AssignablePermissionPartial {
   };
 }
 
-interface SelectChoice {
+export interface LabelValuePair {
+  /** Note: the labels are always localized in the current UI language */
   label: string;
   value: string;
 }
@@ -405,22 +406,13 @@ export interface AssetTableSettings {
 }
 
 export interface AssetSettings {
-  sector?: {
-    label: string;
-    value: string;
-  } | null;
-  country?: SelectChoice | SelectChoice[] | null;
+  sector?: LabelValuePair | null;
+  country?: LabelValuePair | LabelValuePair[] | null;
   description?: string;
   'data-table'?: AssetTableSettings;
   organization?: string;
-  collects_pii?: {
-    label: string;
-    value: string;
-  } | null;
-  operational_purpose?: {
-    label: string;
-    value: string;
-  } | null;
+  collects_pii?: LabelValuePair | null;
+  operational_purpose?: LabelValuePair | null;
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
