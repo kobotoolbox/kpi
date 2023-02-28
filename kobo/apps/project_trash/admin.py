@@ -52,7 +52,7 @@ class ProjectTrashAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    @admin.action(description='Put back')
+    @admin.action(description='Put back selected projects')
     def put_back(self, request, queryset, **kwargs):
         asset_uids = list(queryset.values_list('asset__uid', flat=True))
         params = {
