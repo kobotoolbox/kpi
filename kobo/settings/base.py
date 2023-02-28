@@ -187,7 +187,7 @@ CONSTANCE_CONFIG = {
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
-        'A synchronus export request will return the last export generated '
+        'A synchronous export request will return the last export generated '
         'with the same settings unless it is older than this value (seconds)'
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
@@ -317,7 +317,8 @@ CONSTANCE_CONFIG = {
     ),
     'ASSET_SNAPSHOT_DAYS_RETENTION': (
         30,
-        "Number of days to keep asset snapshots"
+        'Number of days to keep asset snapshots',
+        'positive_int'
     ),
     'FREE_TIER_THRESHOLDS': (
         json.dumps({
@@ -334,8 +335,15 @@ CONSTANCE_CONFIG = {
         'free_tier_threshold_jsonschema'
     ),
     'PROJECT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep projects in trash before really deleting them',
+        'positive_int',
+    ),
+    'ACCOUNT_TRASH_GRACE_PERIOD': (
         30 * 6,
-        'Number of days to keep projects in trash before really deleting them'
+        'Number of days to keep accounts in trash before really deleting them. '
+        'Use -1 to deactivate.',
+        'positive_int_minus_one',
     ),
 }
 
@@ -352,6 +360,57 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.MfaHelpTextField',
         {'widget': 'django.forms.Textarea'},
     ],
+    'positive_int': ['django.forms.fields.IntegerField', {
+        'min_value': 0
+    }],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
+        'min_value': -1
+    }],
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    'General Options': (
+        'REGISTRATION_OPEN',
+        'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
+        'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'TERMS_OF_SERVICE_URL',
+        'PRIVACY_POLICY_URL',
+        'SOURCE_CODE_URL',
+        'SUPPORT_EMAIL',
+        'SUPPORT_URL',
+        'COMMUNITY_URL',
+        'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+        'EXPOSE_GIT_REV',
+        'FRONTEND_MIN_RETRY_TIME',
+        'FRONTEND_MAX_RETRY_TIME',
+        'FREE_TIER_THRESHOLDS',
+    ),
+    'Rest Services': (
+        'ALLOW_UNSECURED_HOOK_ENDPOINTS',
+        'HOOK_MAX_RETRIES',
+    ),
+    'Natural language processing': (
+        'ASR_MT_INVITEE_USERNAMES',
+        'ASR_MT_GOOGLE_CREDENTIALS',
+    ),
+    'Security': (
+        'SSRF_ALLOWED_IP_ADDRESS',
+        'SSRF_DENIED_IP_ADDRESS',
+        'MFA_ISSUER_NAME',
+        'MFA_ENABLED',
+        'MFA_LOCALIZED_HELP_TEXT',
+    ),
+    'Metadata options': (
+        'USER_METADATA_FIELDS',
+        'PROJECT_METADATA_FIELDS',
+        'SECTOR_CHOICES',
+        'OPERATIONAL_PURPOSE_CHOICES',
+    ),
+    'Trash bin': (
+        'ASSET_SNAPSHOT_DAYS_RETENTION',
+        'ACCOUNT_TRASH_GRACE_PERIOD',
+        'PROJECT_TRASH_GRACE_PERIOD',
+    ),
 }
 
 # Tell django-constance to use a database model instead of Redis
