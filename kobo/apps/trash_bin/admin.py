@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from rest_framework import serializers
 
 from kpi.serializers.v2.asset import AssetBulkActionsSerializer
-from .models.project_trash import ProjectTrash
+from .models.project import ProjectTrash
 
 
 class ProjectTrashAdmin(admin.ModelAdmin):

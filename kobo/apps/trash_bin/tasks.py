@@ -5,7 +5,7 @@ from django_celery_beat.models import PeriodicTasks
 from celery.signals import task_failure
 
 from kobo.celery import celery_app
-from .models.project_trash import ProjectTrash, ProjectTrashStatus
+from .models.project import ProjectTrash, ProjectTrashStatus
 
 
 @celery_app.task

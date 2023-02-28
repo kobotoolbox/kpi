@@ -24,7 +24,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
-from kobo.apps.project_trash.models.project_trash import (
+from kobo.apps.trash_bin.models.project import (
     ProjectTrash,
     ProjectTrashStatus,
 )
@@ -188,6 +188,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _create_tasks(self, assets: list[dict]):
         request = self.context['request']
+
+        if self.__grace_period == -1:
+            return
+
         clocked_time = now() + timedelta(days=self.__grace_period)
         clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
 
@@ -210,7 +214,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                     PeriodicTask(
                         clocked=clocked,
                         name=f"Delete project {pto.metadata['name']} ({pto.metadata['uid']})",
-                        task='kobo.apps.project_trash.tasks.empty_trash',
+                        task='kobo.apps.trash_bin.tasks.empty_trash',
                         args=json.dumps([pto.id]),
                         one_off=True,
                     )
@@ -247,7 +251,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             queryset.values_list('periodic_task_id', flat=True)
         )
         del_pto_results = queryset.delete()
-        del_pto_count = del_pto_results[1].get('project_trash.ProjectTrash') or 0
+        del_pto_count = del_pto_results[1].get('trash_bin.ProjectTrash') or 0
 
         if del_pto_count != len(assets):
             raise serializers.ValidationError(
