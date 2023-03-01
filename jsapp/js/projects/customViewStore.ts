@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import isEqual from 'lodash.isequal';
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, reaction} from 'mobx';
 import type {
   AssetResponse,
   ProjectViewAsset,
@@ -16,6 +16,8 @@ import type {
 import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
 import session from 'js/stores/session';
+import searchBoxStore from 'js/components/header/searchBoxStore';
+
 const SAVE_DATA_NAME = 'project_views_settings';
 const PAGE_SIZE = 50;
 
@@ -46,7 +48,7 @@ class CustomViewStore {
   public filters: ProjectsFilterDefinition[] = DEFAULT_VIEW_SETTINGS.filters;
   public order: ProjectsTableOrder = DEFAULT_VIEW_SETTINGS.order;
   public fields?: ProjectFieldName[] = DEFAULT_VIEW_SETTINGS.fields;
-  /** Whether the first call was made. */
+  /** Whether the first page call was made after setup. */
   public isFirstLoadComplete = false;
   public isLoading = false;
   /**
@@ -61,12 +63,29 @@ class CustomViewStore {
   /** We use `null` here because the endpoint uses it. */
   private nextPageUrl: string | null = null;
   private ongoingFetch?: JQuery.jqXHR;
+  private searchContext?: string;
 
   constructor() {
     makeAutoObservable(this);
+
+    // This reaction is being called when `context` or `searchPhrase` changes.
+    reaction(
+      () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
+      () => {
+        // We are only interested in changes within current context.
+        if (searchBoxStore.data.context === this.searchContext) {
+          this.fetchAssets();
+        }
+      }
+    );
   }
 
-  /** Use this whenever you need to change the view */
+  /**
+   * NOTE: this causes `fetchAssets` to be called because we set new context for
+   * `searchBoxStore` and it triggers a reaction.
+   *
+   * Use this method whenever you change view.
+   */
   public setUp(viewUid: string, baseUrl: string) {
     this.viewUid = viewUid;
     this.baseUrl = baseUrl;
@@ -75,6 +94,10 @@ class CustomViewStore {
     this.isLoading = false;
     this.nextPageUrl = null;
     this.loadSettings();
+
+    // set up search box and trigger indirect fetch of new assets.
+    searchBoxStore.setContext(viewUid);
+    this.searchContext = viewUid;
   }
 
   /** If next page of results is available. */
@@ -130,7 +153,11 @@ class CustomViewStore {
     this.isFirstLoadComplete = false;
     this.isLoading = true;
     this.assets = [];
-    const queriesString = buildQueriesFromFilters(this.filters).join(' AND ');
+    const queries = buildQueriesFromFilters(this.filters);
+    if (searchBoxStore.data.searchPhrase !== '') {
+      queries.push(`"${searchBoxStore.data.searchPhrase}"`);
+    }
+    const queriesString = queries.join(' AND ');
     const orderingString = this.getOrderQuery();
 
     if (this.ongoingFetch) {

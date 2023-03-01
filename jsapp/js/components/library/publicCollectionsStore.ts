@@ -1,6 +1,6 @@
 import Reflux from 'reflux';
 import type {Update} from 'history';
-import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
+import searchBoxStore from 'js/components/header/searchBoxStore';
 import type {SearchBoxStoreData} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
@@ -25,6 +25,7 @@ import type {
   DeleteAssetResponse,
   MetadataResponse,
   AssetSubscriptionsResponse,
+  SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
 import {autorun} from 'mobx';
 
@@ -41,17 +42,6 @@ interface PublicCollectionsStoreData {
   filterValue?: string | null;
 }
 
-/**  search params shared by all searches */
-interface SearchParams {
-  searchPhrase: string;
-  pageSize: number;
-  page: number;
-  filterProperty?: string | null;
-  filterValue?: string | null;
-  metadata?: boolean;
-  ordering?: string;
-}
-
 class PublicCollectionsStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -59,7 +49,7 @@ class PublicCollectionsStore extends Reflux.Store {
    */
   abortFetchData?: Function;
   previousPath = getCurrentPath();
-  previousSearchPhrase = searchBoxStore.getSearchPhrase();
+  previousSearchPhrase = searchBoxStore.data.searchPhrase;
   PAGE_SIZE = 100;
   DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
 
@@ -121,8 +111,8 @@ class PublicCollectionsStore extends Reflux.Store {
   // methods for handling search and data fetch
 
   getSearchParams() {
-    const params: SearchParams = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
+    const params: SearchAssetsPredefinedParams = {
+      searchPhrase: searchBoxStore.data.searchPhrase,
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
     };
@@ -130,7 +120,7 @@ class PublicCollectionsStore extends Reflux.Store {
     if (this.data.filterColumnId) {
       const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
-      params.filterValue = this.data.filterValue;
+      params.filterValue = this.data.filterValue ? this.data.filterValue : undefined;
     }
 
     // Surrounds `filterValue` with double quotes to avoid filters that have
@@ -181,7 +171,7 @@ class PublicCollectionsStore extends Reflux.Store {
 
   onSearchBoxStoreChanged(data: SearchBoxStoreData) {
     if (
-      data.context === SEARCH_CONTEXTS.PUBLIC_COLLECTIONS &&
+      data.context === 'PUBLIC_COLLECTIONS' &&
       data.searchPhrase !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes

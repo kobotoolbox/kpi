@@ -5,7 +5,7 @@ import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
 import {currentLang, stringToColor} from 'js/utils';
 import envStore from 'js/envStore';
-import type {EnvStoreDataItem} from 'js/envStore';
+import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
@@ -25,7 +25,7 @@ export default function AccountMenu() {
     (typeof envStore.data.privacy_policy_url === 'string' &&
       envStore.data.privacy_policy_url !== '');
 
-  let langs: EnvStoreDataItem[] = [];
+  let langs: LabelValuePair[] = [];
   if (envStore.isReady && envStore.data.interface_languages) {
     langs = envStore.data.interface_languages;
   }
@@ -43,7 +43,7 @@ export default function AccountMenu() {
     }
   };
 
-  const renderLangItem = (lang: EnvStoreDataItem) => {
+  const renderLangItem = (lang: LabelValuePair) => {
     const currentLanguage = currentLang();
     return (
       <bem.AccountBox__menuLI key={lang.value}>

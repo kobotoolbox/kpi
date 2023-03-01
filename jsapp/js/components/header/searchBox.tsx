@@ -24,12 +24,16 @@ class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
   constructor(props: SearchBoxProps) {
     super(props);
     this.state = {
-      inputVal: searchBoxStore.getSearchPhrase(),
+      inputVal: searchBoxStore.data.searchPhrase || '',
     };
   }
 
   componentDidMount() {
-    this.cancelAutorun = autorun(() => {this.searchBoxStoreChanged()});
+    // We use autorun here instead of simply using `observer`, because we can't
+    // use `searchPhrase` directly inside the input.
+    this.cancelAutorun = autorun(() => {
+      this.searchBoxStoreChanged();
+    });
   }
 
   componentWillUnmount() {
@@ -39,7 +43,7 @@ class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
   }
 
   searchBoxStoreChanged() {
-    this.setState({inputVal: searchBoxStore.getSearchPhrase()});
+    this.setState({inputVal: searchBoxStore.data.searchPhrase || ''});
   }
 
   onInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
@@ -61,13 +65,13 @@ class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
   }
 
   clear() {
-    searchBoxStore.clear();
+    searchBoxStore.setSearchPhrase('');
   }
 
   render() {
     return (
       <bem.Search>
-        <bem.Search__icon className='k-icon k-icon-search'/>
+        <bem.Search__icon className='k-icon k-icon-search' />
         <bem.SearchInput
           type='text'
           value={this.state.inputVal}
@@ -76,9 +80,12 @@ class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
           placeholder={this.props.placeholder || t('Search…')}
           disabled={this.props.disabled}
         />
-        {this.state.inputVal !== '' &&
-          <bem.Search__cancel className='k-icon k-icon-close' onClick={this.clear}/>
-        }
+        {this.state.inputVal !== '' && (
+          <bem.Search__cancel
+            className='k-icon k-icon-close'
+            onClick={this.clear}
+          />
+        )}
       </bem.Search>
     );
   }
