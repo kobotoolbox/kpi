@@ -647,8 +647,10 @@ export interface AccountResponse {
     linkedin: string;
     instagram: string;
     project_views_settings: ProjectViewsSettings;
+    /** We store this for usage statistics only. */
+    last_ui_language?: string;
     // JSON values are the backend reality, but we make assumptions
-    [key: string]: Json | ProjectViewsSettings;
+    [key: string]: Json | ProjectViewsSettings | undefined;
   };
   git_rev: {
     short: string;
@@ -657,6 +659,28 @@ export interface AccountResponse {
     tag: boolean;
   };
   social_accounts: SocialAccount[];
+}
+
+export interface AccountRequest {
+  email?: string;
+  extra_details?: {
+    name?: string;
+    organization?: string;
+    organization_website?: string;
+    sector?: string;
+    gender?: string;
+    bio?: string;
+    city?: string;
+    country?: string;
+    require_auth?: boolean;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+    project_views_settings?: ProjectViewsSettings;
+    last_ui_language?: string;
+  };
+  current_password?: string;
+  new_password?: string;
 }
 
 interface UserNotLoggedInResponse {
@@ -754,6 +778,7 @@ interface ExternalServiceRequestData {
 }
 
 interface DataInterface {
+  patchProfile: (data: AccountRequest) => JQuery.jqXHR<AccountResponse>;
   [key: string]: Function;
 }
 
@@ -795,25 +820,7 @@ export const dataInterface: DataInterface = {
     return d.promise();
   },
 
-  patchProfile(data: {
-    email?: string;
-    extra_details?: {
-      name?: string;
-      organization?: string;
-      organization_website?: string;
-      sector?: string;
-      gender?: string;
-      bio?: string;
-      city?: string;
-      country?: string;
-      require_auth?: boolean;
-      twitter?: string;
-      linkedin?: string;
-      instagram?: string;
-    };
-    current_password?: string;
-    new_password?: string;
-  }): JQuery.jqXHR<AccountResponse> {
+  patchProfile(data: AccountRequest): JQuery.jqXHR<AccountResponse> {
     return $ajax({
       url: `${ROOT_URL}/me/`,
       method: 'PATCH',
