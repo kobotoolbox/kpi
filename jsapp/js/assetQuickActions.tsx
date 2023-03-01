@@ -7,6 +7,7 @@
  * quarter of 2024 AKA The Far Future With Flying Cars :fingers_crossed:).
  */
 
+import React from 'react';
 import _ from 'lodash';
 import alertify from 'alertifyjs';
 import {stores} from './stores';
@@ -452,12 +453,18 @@ function _redeployAsset(
   const dialog = alertify.dialog('confirm');
   const opts = {
     title: t('Overwrite existing deployment'),
-    // TODO: Split this into two independent translation strings without HTML
-    message: t(
-      'This form has already been deployed. Are you sure you ' +
-        'want overwrite the existing deployment? ' +
-        '<br/><br/><strong>This action cannot be undone.</strong>'
-    ),
+    // We wrap the JSX code in curly braces inside of backticks to make a string
+    // out of it (alertify requires a string).
+    message: `${(
+      <span>
+        {t(
+          'This form has already been deployed. Are you sure you want overwrite the existing deployment?'
+        )}
+        <br />
+        <br />
+        <strong>{t('This action cannot be undone.')}</strong>
+      </span>
+    )}`,
     labels: {ok: t('Ok'), cancel: t('Cancel')},
     onok: () => {
       const okBtn = dialog.elements.buttons.primary.firstChild as HTMLElement;
