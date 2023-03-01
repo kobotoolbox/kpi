@@ -726,6 +726,11 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
+# For SSO, the signup form is prepopulated with the account email
+# If set True, the email field in the SSO signup form will be readonly
+UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
+    "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
+)
 
 # See https://django-allauth.readthedocs.io/en/latest/configuration.html
 # Map env vars to upstream dict values, include exact case. Underscores for delimiter.

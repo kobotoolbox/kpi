@@ -10,6 +10,8 @@ import type {
 } from './constants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
 import {isFilterConditionValueRequired} from './utils';
+import envStore from 'js/envStore';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {
@@ -19,6 +21,8 @@ interface ProjectsFilterEditorProps {
   onFilterChange: (filter: ProjectsFilterDefinition) => void;
   onDelete: () => void;
 }
+
+const COUNTRIES = envStore.data.country_choices;
 
 export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   const onFilterValueChange = (newValue: string) => {
@@ -64,7 +68,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
         (filterDefinition) => filterDefinition.availableConditions.length >= 1
       )
       .map((filterDefinition) => {
-        return {label: filterDefinition.label, id: filterDefinition.name};
+        return {label: filterDefinition.label, value: filterDefinition.name};
       });
 
   const getConditionSelectorOptions = () => {
@@ -75,10 +79,12 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     return fieldDefinition.availableConditions.map(
       (condition: FilterConditionName) => {
         const conditionDefinition = FILTER_CONDITIONS[condition];
-        return {label: conditionDefinition.label, id: conditionDefinition.name};
+        return {label: conditionDefinition.label, value: conditionDefinition.name};
       }
     );
   };
+
+  const isCountryFilterSelected = props.filter.fieldName && props.filter.fieldName === 'countries';
 
   return (
     <div className={styles.root}>
@@ -125,17 +131,36 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
         {!props.hideLabels && (
           <span className={styles.label}>{t('Value')}</span>
         )}
+
         {!isFilterConditionValueRequired(props.filter.condition) && <div />}
-        {isFilterConditionValueRequired(props.filter.condition) && (
-          <TextBox
-            customModifiers='on-white'
-            value={props.filter.value || ''}
-            onChange={onFilterValueChange}
-            placeholder={t('Enter value')}
-            // Requires field to be selected first
-            disabled={!props.filter.fieldName}
-          />
-        )}
+        {isFilterConditionValueRequired(props.filter.condition) &&
+          !isCountryFilterSelected && (
+            <TextBox
+              customModifiers='on-white'
+              value={props.filter.value || ''}
+              onChange={onFilterValueChange}
+              placeholder={t('Enter value')}
+              // Requires field to be selected first
+              disabled={!props.filter.fieldName}
+            />
+          )}
+        {isFilterConditionValueRequired(props.filter.condition) &&
+          isCountryFilterSelected && (
+            <KoboSelect
+              name={generateUid()}
+              type='outline'
+              size='m'
+              isClearable
+              isSearchable
+              placeholder={t('Country')}
+              selectedOption={props.filter.value || ''}
+              options={COUNTRIES}
+              onChange={(code: string | null) => {
+                onFilterValueChange(code || '');
+              }}
+              data-cy='country'
+            />
+          )}
       </div>
 
       <div className={styles.column}>

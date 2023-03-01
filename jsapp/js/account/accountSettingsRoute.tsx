@@ -7,10 +7,11 @@ import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
-import type {EnvStoreDataItem, EnvStoreFieldItem} from '../envStore';
+import type {EnvStoreFieldItem} from '../envStore';
 import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
+import type {LabelValuePair} from 'js/dataInterface';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -50,8 +51,8 @@ interface Form {
       instagram?: string;
     };
   };
-  sectorChoices: EnvStoreDataItem[];
-  countryChoices: EnvStoreDataItem[];
+  sectorChoices: LabelValuePair[];
+  countryChoices: LabelValuePair[];
 }
 const genderChoices: {[key: string]: string} = {
   male: t('Male'),
@@ -62,10 +63,12 @@ const genderChoices: {[key: string]: string} = {
 const choiceToSelectOptions = (
   value: string,
   choices: {[key: string]: string}
-) => ({
-  value,
-  label: choices[value],
-});
+) => {
+  return {
+    value,
+    label: choices[value],
+  };
+};
 
 const genderSelectOptions = Object.keys(genderChoices).map((key) =>
   choiceToSelectOptions(key, genderChoices)
@@ -136,23 +139,26 @@ const AccountSettings = observer(() => {
     !form.isPristine
   );
   const updateProfile = () => {
+    // To patch correctly with recent changes to the backend,
+    // ensure that we send empty strings if the field is left blank.
+    const profilePatchData = {
+      extra_details: {
+        name: form.fields.name || '',
+        organization: form.fields.organization || '',
+        organization_website: form.fields.organizationWebsite || '',
+        sector: form.fields.sector || '',
+        gender: form.fields.gender || '',
+        bio: form.fields.bio || '',
+        city: form.fields.city || '',
+        country: form.fields.country || '',
+        require_auth: form.fields.requireAuth ? true : false, // false if empty
+        twitter: form.fields.twitter || '',
+        linkedin: form.fields.linkedin || '',
+        instagram: form.fields.instagram || '',
+      },
+    };
     dataInterface
-      .patchProfile({
-        extra_details: JSON.stringify({
-          name: form.fields.name,
-          organization: form.fields.organization,
-          organization_website: form.fields.organizationWebsite,
-          sector: form.fields.sector,
-          gender: form.fields.gender,
-          bio: form.fields.bio,
-          city: form.fields.city,
-          country: form.fields.country,
-          require_auth: form.fields.requireAuth,
-          twitter: form.fields.twitter,
-          linkedin: form.fields.linkedin,
-          instagram: form.fields.instagram,
-        }),
-      })
+      .patchProfile(profilePatchData)
       .done(() => {
         onUpdateComplete();
       })
@@ -280,7 +286,7 @@ const AccountSettings = observer(() => {
                 value={form.fields.organizationWebsite}
                 onChange={onAnyFieldChange.bind(
                   onAnyFieldChange,
-                  'organization_website'
+                  'organizationWebsite'
                 )}
                 errors={
                   form.fieldsWithErrors.extra_details?.organizationWebsite
