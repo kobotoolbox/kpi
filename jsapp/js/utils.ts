@@ -157,7 +157,7 @@ export function formatDate(timeStr: string): string {
  */
 export function formatMonth(timeStr: string): string {
   const myMoment = moment.utc(timeStr).local();
-  return myMoment.format('MMMM, YYYY');
+  return myMoment.format('MMMM YYYY');
 }
 
 /** Returns something like "07:59" */
