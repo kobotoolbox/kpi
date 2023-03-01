@@ -5,8 +5,8 @@ interface AssetUsage {
   asset__name: string;
   submission_count_current_month: number;
   submission_count_all_time: number;
-  nlp_usage_current_month: any,
-  nlp_usage_all_time: any,
+  nlp_usage_current_month: unknown,
+  nlp_usage_all_time: unknown,
   storage_bytes: number;
 }
 

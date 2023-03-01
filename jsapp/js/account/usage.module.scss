@@ -38,6 +38,7 @@ h2 {
   display: flex;
   justify-content: center;
   flex-flow: wrap;
+  gap: sizes.$x12;
 }
 
 .box {
