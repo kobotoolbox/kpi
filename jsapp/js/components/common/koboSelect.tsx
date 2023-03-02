@@ -41,7 +41,7 @@ export interface KoboSelectOption {
   icon?: IconName;
   label: string;
   /** Needs to be unique! */
-  id: string;
+  value: string;
 }
 
 interface KoboSelectProps {
@@ -61,7 +61,7 @@ interface KoboSelectProps {
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
   options: KoboSelectOption[];
-  /** Pass the id or null for no selection. */
+  /** Pass the value or null for no selection. */
   selectedOption: string | null;
   /**
    * Callback function telling which option is selected now. Passes either
@@ -174,7 +174,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   renderTrigger() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
-      option.id === this.props.selectedOption
+      option.value === this.props.selectedOption
     ));
 
     // When one of the options is selected, we display it inside the trigger.
@@ -249,7 +249,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   renderSearchBox() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
-      option.id === this.props.selectedOption
+      option.value === this.props.selectedOption
     ));
 
     return (
@@ -278,13 +278,13 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       <bem.KoboSelect__menu>
         {filteredOptions.map((option) => (
           <bem.KoboSelect__option
-            key={option.id}
-            onClick={this.onOptionClick.bind(this, option.id)}
+            key={option.value}
+            onClick={this.onOptionClick.bind(this, option.value)}
             title={option.label}
             m={{
               'selected': (
                 this.props.selectedOption !== null &&
-                this.props.selectedOption === option.id
+                this.props.selectedOption === option.value
               ),
             }}
           >

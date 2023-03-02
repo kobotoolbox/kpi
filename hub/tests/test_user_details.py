@@ -10,6 +10,11 @@ class UserDetailTestCase(TestCase):
         self.user = User.objects.get(username='someuser')
 
     def test_user_automatically_has_extra_user_details(self):
+        """
+        See the calls to `standardize_json_field()` in `ExtraUserDetail.save()`
+        for an explanation of why `name` and `organization` are present for
+        brand-new users
+        """
         self.assertEqual(
             self.user.extra_details.data, {'name': '', 'organization': ''}
         )
