@@ -1,5 +1,11 @@
 from django.core.exceptions import SuspiciousOperation
-from djstripe.models import Customer, Plan, Product, Subscription
+from djstripe.models import (
+    Customer,
+    Price,
+    Product,
+    Subscription,
+    SubscriptionItem,
+)
 from rest_framework import serializers
 
 
@@ -9,30 +15,53 @@ class BaseProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
 
-class PlanSerializer(serializers.ModelSerializer):
+class BasePriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Price
+        fields = (
+            "id",
+            "nickname",
+            "currency",
+            "type",
+            "unit_amount",
+            "human_readable_price",
+            "metadata",
+        )
 
+
+class PriceSerializer(BasePriceSerializer):
     product = BaseProductSerializer()
 
-    class Meta:
-        model = Plan
-        exclude = ('djstripe_id',)
+    class Meta(BasePriceSerializer.Meta):
+        fields = (
+            "id",
+            "nickname",
+            "currency",
+            "unit_amount",
+            "human_readable_price",
+            "metadata",
+            "product",
+        )
 
 
 class ProductSerializer(BaseProductSerializer):
-    plans = PlanSerializer(many=True, source="plan_set")
+    prices = BasePriceSerializer(many=True)
 
     class Meta(BaseProductSerializer.Meta):
-        fields = ("id", "name", "description", "type", "plans", "metadata")
+        fields = ("id", "name", "description", "type", "prices", "metadata")
+
+
+class SubscriptionItemSerializer(serializers.ModelSerializer):
+    price = PriceSerializer()
+
+    class Meta:
+        model = SubscriptionItem
+        fields = ("id", "price")
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-
-    plan = serializers.SerializerMethodField()
+    items = SubscriptionItemSerializer(many=True)
 
     class Meta:
         model = Subscription
         exclude = ('djstripe_id',)
-
-    def get_plan(self, subscription):
-        plan = Plan.objects.get(id=subscription.plan.id)
-        return PlanSerializer(plan, many=False, context=self.context).data
