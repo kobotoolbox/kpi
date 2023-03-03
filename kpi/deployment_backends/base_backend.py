@@ -243,6 +243,10 @@ class BaseDeploymentBackend(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def get_zombie_submissions(self) -> list[dict]:
+        pass
+
     @property
     def identifier(self):
         return self.get_data('identifier')

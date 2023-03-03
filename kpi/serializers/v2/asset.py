@@ -24,10 +24,8 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
-from kobo.apps.trash_bin.models.project import (
-    ProjectTrash,
-    ProjectTrashStatus,
-)
+from kobo.apps.trash_bin.models import TrashStatus
+from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -200,7 +198,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 [
                     ProjectTrash(
                         asset_id=asset['pk'],
-                        user=request.user,
+                        request_author=request.user,
                         # save name and uid for reference when asset is gone
                         # and to avoid fetching assets again when creating periodic-task
                         metadata={'name': asset['name'], 'uid': asset['uid']},
@@ -214,7 +212,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                     PeriodicTask(
                         clocked=clocked,
                         name=f"Delete project {pto.metadata['name']} ({pto.metadata['uid']})",
-                        task='kobo.apps.trash_bin.tasks.empty_trash',
+                        task='kobo.apps.trash_bin.tasks.empty_project',
                         args=json.dumps([pto.id]),
                         one_off=True,
                     )
@@ -244,7 +242,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
     def _delete_tasks(self, assets: list[dict]):
         # Delete project trash and periodic task
         queryset = ProjectTrash.objects.filter(
-            status=ProjectTrashStatus.PENDING,
+            status=TrashStatus.PENDING,
             asset_id__in=[a['pk'] for a in assets]
         )
         periodic_task_ids = list(

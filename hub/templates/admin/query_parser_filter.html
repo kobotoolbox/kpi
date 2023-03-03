@@ -1,0 +1,38 @@
+<style>
+  pre.pre-inline {
+    display: inline-block;
+    margin: 0;
+    padding-left: 1px;
+    padding-right: 0;
+    overflow-x: inherit;
+  }
+
+  pre.pre-inline:first-child {
+    padding-left: 10px;
+  }
+
+</style>
+<h3>Advanced query search</h3>
+
+<ul>
+  <li>You can use django <a
+    style="display: inline"
+    href="https://docs.djangoproject.com/en/3.2/ref/models/querysets/#field-lookups">
+    field lookups</a> to perform advanced searches
+  </li>
+  <li><b>Some examples:</b></li>
+  <li>logged in after March 1, 2023:
+    <pre>last_login__gte=2023-03-01</pre>
+  </li>
+  <li>emails not from domain.tld:
+    <pre>NOT email__iendswith=@domain.tld</pre>
+  </li>
+  <li><b>Fields:</b></li>
+  <li>
+    <pre class="pre-inline">first_name</pre>,
+    <pre class="pre-inline">last_name</pre>,
+    <pre class="pre-inline">username</pre>,
+    <pre class="pre-inline">email</pre>,
+    <pre class="pre-inline">last_login</pre>
+  </li>
+</ul>

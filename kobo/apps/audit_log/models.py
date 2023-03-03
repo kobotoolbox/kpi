@@ -8,13 +8,15 @@ class AuditMethod(models.TextChoices):
 
     CREATE = 'create', 'CREATE'
     DELETE = 'delete', 'DELETE'
+    SOFT_DELETE = 'soft-delete', 'SOFT_DELETE'
+    UNDELETE = 'undelete', 'UNDELETE'
     UPDATE = 'update', 'UPDATE'
 
 
 class AuditLog(models.Model):
 
     id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
     # We cannot use ContentType FK because we handle models and shadow models.
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
@@ -23,7 +25,7 @@ class AuditLog(models.Model):
     date_created = models.DateTimeField(default=now, db_index=True)
     metadata = models.JSONField(default=dict)
     method = models.CharField(
-        max_length=6,
+        max_length=11,
         choices=AuditMethod.choices,
         default=AuditMethod.DELETE,
         db_index=True

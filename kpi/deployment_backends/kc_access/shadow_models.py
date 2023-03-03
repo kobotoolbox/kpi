@@ -31,6 +31,7 @@ from .storage import (
     KobocatFileSystemStorage,
 )
 
+
 def update_autofield_sequence(model):
     """
     Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
@@ -591,12 +592,20 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     uuid = models.CharField(max_length=249, default='')
 
 
+class ReadOnlyKobocatMetaData(ReadOnlyModel):
+
+    xform = models.ForeignKey(KobocatXForm, on_delete=models.CASCADE)
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'main_metadata'
+
+
 class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
     year = models.IntegerField()
     month = models.IntegerField()
     user = models.ForeignKey(
         'shadow_model.KobocatUser',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
     )
     xform = models.ForeignKey(
         'shadow_model.KobocatXForm',

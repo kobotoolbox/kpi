@@ -390,7 +390,7 @@ def remove_applicable_kc_permissions(
     ).delete()
 
 
-def delete_kc_users(deleted_pks: list) -> bool:
+def delete_kc_users(deleted_pks: list):
     """
 
     Args:
@@ -410,19 +410,14 @@ def delete_kc_users(deleted_pks: list) -> bool:
         KobocatUserObjectPermission,
         KobocatToken,
     ]
-    # We can delete related objects
-    for kc_model in kc_models:
-        kc_model.objects.filter(user_id__in=deleted_pks).delete()
+    with kc_transaction_atomic():
+        # We can delete related objects
+        for kc_model in kc_models:
+            kc_model.objects.filter(user_id__in=deleted_pks).delete()
 
-    try:
-        # If users have projects/submissions, this query should fail with
-        # an `IntegrityError`.
+        # Let's raise IntegrityError (if any) to be caught in the celery
+        # `empty_account` task error handler.
         KobocatUser.objects.filter(id__in=deleted_pks).delete()
-    except IntegrityError as e:
-        logging.error(e)
-        return False
-
-    return True
 
 
 def kc_transaction_atomic(using='kobocat', *args, **kwargs):
@@ -430,7 +425,7 @@ def kc_transaction_atomic(using='kobocat', *args, **kwargs):
     KoBoCAT database does not exist in testing environment.
     `transaction.atomic(using='kobocat') cannot be called without raising errors.
 
-    This utility returns an a context manager which does nothing if environment
+    This utility returns a context manager which does nothing if environment
     is set to `TESTING`. Otherwise, it returns a real context manager which
     provides transactions support.
     """

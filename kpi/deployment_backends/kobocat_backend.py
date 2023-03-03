@@ -22,7 +22,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -911,6 +911,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
+
+    def get_zombie_submissions(self) -> list[dict]:
+        all_submissions = self.get_submissions(
+            user=self.asset.owner,
+            fields=['_id'],
+            skip_count=True,
+        )
+        try:
+            next(all_submissions)
+        except StopIteration:
+            pass
+        else:
+            raise Exception
+
+        return list(
+            ReadOnlyKobocatInstance.objects.filter(
+                xform_id=self.xform_id
+            ).annotate(_id=F('pk'), _uuid=F('uuid')).values('_id', '_uuid')
+        )
 
     @staticmethod
     def internal_to_external_url(url):

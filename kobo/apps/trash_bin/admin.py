@@ -2,31 +2,53 @@ from django.contrib import admin, messages
 from rest_framework import serializers
 
 from kpi.serializers.v2.asset import AssetBulkActionsSerializer
+from .models.account import AccountTrash
 from .models.project import ProjectTrash
+from .mixins.admin import TrashMixin
 
 
-class ProjectTrashAdmin(admin.ModelAdmin):
+class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
 
     list_display = [
-        'get_project_name',
         'user',
+        'request_author',
         'status',
         'get_start_time',
         'get_failure_error',
     ]
-    search_fields = ['asset__name', 'asset__uid', 'user__username']
+    search_fields = ['user__username', 'request_author__username']
+    ordering = ['-date_created', 'user__username']
+    actions = ['reactivate']
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related(
+            'periodic_task'
+        )
+
+    @admin.action(description='Reactivate selected users')
+    def reactivate(self, request, queryset, **kwargs):
+        pass
+
+
+class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
+
+    list_display = [
+        'get_project_name',
+        'request_author',
+        'status',
+        'get_start_time',
+        'get_failure_error',
+    ]
+    search_fields = ['asset__name', 'asset__uid', 'request_author__username']
     ordering = ['-date_created', 'asset__name']
     actions = ['put_back']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.filter(user__is_active=True).select_related(
+        return queryset.filter(asset__owner__is_active=True).select_related(
             'periodic_task'
         )
-
-    @admin.display(description='Error')
-    def get_failure_error(self, obj):
-        return obj.metadata.get('failure_error') or '-'
 
     @admin.display(description='Project')
     def get_project_name(self, obj):
@@ -38,19 +60,6 @@ class ProjectTrashAdmin(admin.ModelAdmin):
             # it.
             return str(obj.asset)
         return f'{asset_name} ({asset_uid})'
-
-    @admin.display(description='Start time')
-    def get_start_time(self, obj):
-        return obj.periodic_task.clocked.clocked_time
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
     @admin.action(description='Put back selected projects')
     def put_back(self, request, queryset, **kwargs):
@@ -85,4 +94,5 @@ class ProjectTrashAdmin(admin.ModelAdmin):
             )
 
 
+admin.site.register(AccountTrash, AccountTrashAdmin)
 admin.site.register(ProjectTrash, ProjectTrashAdmin)
