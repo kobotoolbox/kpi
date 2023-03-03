@@ -85,7 +85,7 @@ INSTALLED_APPS = (
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
-    "kobo.apps.accounts",
+    'kobo.apps.accounts',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -121,7 +121,7 @@ INSTALLED_APPS = (
     'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
-    'kobo.apps.project_trash.ProjectTrashAppConfig',
+    'kobo.apps.trash_bin.TrashBinAppConfig',
 )
 
 MIDDLEWARE = [
@@ -336,13 +336,15 @@ CONSTANCE_CONFIG = {
     ),
     'PROJECT_TRASH_GRACE_PERIOD': (
         7,
-        'Number of days to keep projects in trash before really deleting them',
+        'Number of days to keep projects in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
         'positive_int',
     ),
     'ACCOUNT_TRASH_GRACE_PERIOD': (
         30 * 6,
-        'Number of days to keep accounts in trash before really deleting them. '
-        'Use -1 to deactivate.',
+        'Number of days to keep deactivated accounts in trash before '
+        'automatically hard-deleting their projects/data. '
+        'Use -1 to manually empty trash',
         'positive_int_minus_one',
     ),
 }
