@@ -63,6 +63,11 @@ class EmailContentModelTestCase(TestCase):
             section_name='section_one',
             content=''
         )
+        email_content_closing = EmailContent.objects.create(
+            email_name='email_confirmation_signup_message',
+            section_name='section_two',
+            content=''
+        )
         email_subject = EmailContent.objects.create(
             email_name='email_confirmation_signup_message',
             section_name='subject',
@@ -88,6 +93,7 @@ class EmailContentModelTestCase(TestCase):
         self.client.get(reverse('account_email_verification_sent'))
         assert len(mail.outbox) == 1
         assert mail.outbox[0].subject == 'Activate your KoboToolbox Account'
+        self.assertNumQueries(1)
         assert email_content.content in mail.outbox[0].body
         assert default not in mail.outbox[0].body
 
