@@ -2,7 +2,7 @@ import random
 
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import TestCase
+from django.test import override_settings, TestCase
 from django.urls import reverse
 from rest_framework import status
 
@@ -18,6 +18,11 @@ class EmailContentModelTestCase(TestCase):
     def setUp(self) -> None:
         self.signup_url = reverse('account_signup')
 
+    @override_settings(
+        CACHES={
+            'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+        }
+    )
     def test_custom_activation_email_template(self):
         email_content = EmailContent.objects.create(
             email_name='email_confirmation_signup_message',
@@ -34,7 +39,7 @@ class EmailContentModelTestCase(TestCase):
         # are unique to ensure the tests will pass when run back to back
         # as only one email can be requested per username and email every three
         # minutes
-        username = 'user' + str(random.randint(1, 1000000))
+        username = 'user001'
         email = username + '@example.com'
         data = {
             'email': email,
@@ -51,6 +56,7 @@ class EmailContentModelTestCase(TestCase):
         assert mail.outbox[0].subject == email_subject.content
         assert email_content.content in mail.outbox[0].body
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_custom_activation_email_template_blank_content(self):
         email_content = EmailContent.objects.create(
             email_name='email_confirmation_signup_message',
@@ -66,7 +72,7 @@ class EmailContentModelTestCase(TestCase):
         # are unique to ensure the tests will pass when run back to back
         # as only one email can be requested per username and email every three
         # minutes
-        username = 'user' + str(random.randint(1, 1000000))
+        username = 'user002'
         email = username + '@example.com'
         data = {
             'email': email,
@@ -85,12 +91,13 @@ class EmailContentModelTestCase(TestCase):
         assert email_content.content in mail.outbox[0].body
         assert default not in mail.outbox[0].body
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_default_activation_email_template(self):
         # Using the randomint to make sure that usernames and emails
         # are unique to ensure the tests will pass when run back to back
         # as only one email can be requested per username and email every three
         # minutes
-        username = 'user' + str(random.randint(1, 1000000))
+        username = 'user003'
         email = username + '@example.com'
         data = {
             'email': email,
