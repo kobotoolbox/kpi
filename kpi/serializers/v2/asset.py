@@ -3,17 +3,15 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import timedelta
 from distutils import util
 
 from django.conf import settings
-from django.db import transaction, IntegrityError
-from django.db.models import QuerySet
+from django.db import transaction
+from django.db.models import QuerySet, F
 from django.db.models.signals import pre_delete
 from django.utils.timezone import now
 from django.utils.translation import gettext as t, ngettext as nt
 from django_celery_beat.models import (
-    ClockedSchedule,
     PeriodicTask,
     PeriodicTasks,
 )
@@ -24,8 +22,10 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models import TrashStatus
 from kobo.apps.trash_bin.models.project import ProjectTrash
+from kobo.apps.trash_bin.utils import move_to_trash
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -190,54 +190,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if self.__grace_period == -1:
             return
 
-        clocked_time = now() + timedelta(days=self.__grace_period)
-        clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
-
         try:
-            project_trash_objects = ProjectTrash.objects.bulk_create(
-                [
-                    ProjectTrash(
-                        asset_id=asset['pk'],
-                        request_author=request.user,
-                        # save name and uid for reference when asset is gone
-                        # and to avoid fetching assets again when creating periodic-task
-                        metadata={'name': asset['name'], 'uid': asset['uid']},
-                    )
-                    for asset in assets
-                ]
-            )
-
-            periodic_tasks = PeriodicTask.objects.bulk_create(
-                [
-                    PeriodicTask(
-                        clocked=clocked,
-                        name=f"Delete project {pto.metadata['name']} ({pto.metadata['uid']})",
-                        task='kobo.apps.trash_bin.tasks.empty_project',
-                        args=json.dumps([pto.id]),
-                        one_off=True,
-                    )
-                    for pto in project_trash_objects
-                ],
-            )
-
-        except IntegrityError:
+            move_to_trash(request.user, assets, self.__grace_period, 'user')
+        except TrashIntegrityError:
             # We do not want to ignore conflicts. If so, something went wrong.
-            # Probably direct API calls no coming from the front end.
+            # Probably direct API calls not coming from the front end.
             raise serializers.ValidationError(
                 {'detail': t('One or many projects have been deleted already!')}
             )
-
-        # Update relationships
-        updated_project_trash_objects = []
-        for idx, pto in enumerate(project_trash_objects):
-            periodic_task = periodic_tasks[idx]
-            assert periodic_task.args == json.dumps([pto.pk])
-            pto.periodic_task = periodic_tasks[idx]
-            updated_project_trash_objects.append(pto)
-
-        ProjectTrash.objects.bulk_update(
-            updated_project_trash_objects, fields=['periodic_task_id']
-        )
 
     def _delete_tasks(self, assets: list[dict]):
         # Delete project trash and periodic task
@@ -304,7 +264,9 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if not self.__is_delete:
             return
 
-        assets = queryset.values('pk', 'uid', 'name')
+        assets = queryset.annotate(
+            asset_uid=F('uid'), asset_name=F('name')
+        ).values('pk', 'uid', 'name')
 
         if undo:
             self._delete_tasks(assets)
