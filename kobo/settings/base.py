@@ -575,7 +575,20 @@ STRIPE_ENABLED = False
 if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
     STRIPE_ENABLED = True
 
+
+def organization_request_callback(request):
+    """
+    `DJSTRIPE_SUBSCRIBER_MODEL` needs a custom callback function because we aren't
+    using the default model `auth.user`
+    Gets an organization instance from the user passed through `request`
+    """
+    user = request.user
+    if user:
+        return user.organizations_organization.get()
+
+
 DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = organization_request_callback
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
 STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
