@@ -12,6 +12,7 @@ from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db.models import Subquery
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
@@ -81,12 +82,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return False
 
     def get_social_accounts(self, user):
-        private_apps = [
-            app["provider"]
-            for app in SocialApp.objects.filter(
-                custom_data__isnull=False
-            ).values("provider")
-        ]
+        private_apps = Subquery(
+            SocialApp.objects.filter(custom_data__isnull=False).values(
+                "provider"
+            )
+        )
         qs = SocialAccount.objects.filter(user=user).exclude(
             provider__in=private_apps
         )
