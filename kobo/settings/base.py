@@ -82,6 +82,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_prometheus',
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
@@ -907,8 +908,20 @@ if sentry_dsn:
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.01),
         send_default_pii=True
+    )
+
+
+if ENABLE_METRICS := env.bool('ENABLE_METRICS', False):
+    MIDDLEWARE.insert(0, 'django_prometheus.middleware.PrometheusBeforeMiddleware')
+    MIDDLEWARE.append('django_prometheus.middleware.PrometheusAfterMiddleware')
+# Workaround https://github.com/korfuri/django-prometheus/issues/34
+PROMETHEUS_EXPORT_MIGRATIONS = False
+# https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process
+if start_port := env.int('METRICS_START_PORT', None):
+    PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(
+        start_port, env.int('METRICS_END_PORT', start_port + 10)
     )
 
 
