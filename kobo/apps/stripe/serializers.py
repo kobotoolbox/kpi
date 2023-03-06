@@ -27,7 +27,6 @@ class CheckoutLinkSerializer(CustomerPortalSerializer):
         raise ValidationError('Invalid price ID')
 
 
-
 class PlanSerializer(serializers.ModelSerializer):
 
     product = BaseProductSerializer()

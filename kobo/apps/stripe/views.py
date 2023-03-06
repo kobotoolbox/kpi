@@ -22,7 +22,6 @@ from kobo.apps.organizations.models import (
 )
 
 
-# TODO: rename to Payment Link
 class CheckoutLinkView(
     APIView
 ):
@@ -96,7 +95,7 @@ class CheckoutLinkView(
         except ObjectDoesNotExist:
             return Response({'status': 'Price not found or inactive'}, status=status.HTTP_404_NOT_FOUND)
         session = self.generate_payment_link(price_id, request.user, organization_uid)
-        return Response(session)
+        return Response({'url': session.url})
 
 
 class CustomerPortalView(
@@ -124,7 +123,7 @@ class CustomerPortalView(
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         organization_uid = serializer.validated_data['organization_uid']
         session = self.generate_portal_link(organization_uid)
-        return Response(session.url)
+        return Response({'url': session.url})
 
 
 class SubscriptionViewSet(
