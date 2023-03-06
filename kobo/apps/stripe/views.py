@@ -76,11 +76,11 @@ class CheckoutLinkView(
             },
             mode="subscription",
             payment_method_types=["card"],
-            success_url='http://replace.me.too',
+            success_url=f'{settings.KOBOFORM_URL}/#/plans?checkout_complete=true',
         )
         return session
 
-    def get(self, request):
+    def post(self, request):
         serializer = CheckoutLinkSerializer(data=request.query_params)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -114,11 +114,11 @@ class CustomerPortalView(
         session = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             customer=customer.id,
-            return_url='http://replace.me'
+            return_url=f'{settings.KOBOFORM_URL}/#/plans'
         )
         return session
 
-    def get(self, request):
+    def post(self, request):
         session = self.generate_portal_link(request.user)
         return Response(session.url)
 
