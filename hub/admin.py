@@ -1,4 +1,5 @@
 # coding: utf-8
+from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
@@ -9,7 +10,9 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum
 from django.forms import CharField
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
@@ -104,15 +107,17 @@ class ExtendedUserAdmin(UserAdmin):
             {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
-    actions = ['activate', 'deactivate', 'delete']
+    actions = ['deactivate', 'delete']
 
-    @admin.action(description='Activate selected users')
-    def activate(self, request, queryset, **kwargs):
-        pass
-
-    @admin.action(description='Reactivate selected users')
+    @admin.action(description='Deactivate selected users')
     def deactivate(self, request, queryset, **kwargs):
-        pass
+        if not request.user.is_superuser:
+            return
+
+        users = list(queryset.values('pk', 'username'))
+        self._deactivate_or_delete(
+            request, users=users, grace_period=config.ACCOUNT_TRASH_GRACE_PERIOD
+        )
 
     @admin.action(description='Delete selected users')
     def delete(self, request, queryset, **kwargs):
@@ -120,30 +125,7 @@ class ExtendedUserAdmin(UserAdmin):
             return
 
         users = list(queryset.values('pk', 'username'))
-
-        try:
-            move_to_trash(request.user, users, 0, 'user')
-        except TrashIntegrityError:
-            self.message_user(
-                request,
-                'One or several users are already being deleted',
-                messages.ERROR,
-            )
-            return
-
-        User.objects.filter(pk__in=[u['pk'] for u in users]).update(
-            is_active=False
-        )
-        self.message_user(
-            request,
-            'User has been deactivated and their account deletion is in progress'
-            if len(users) == 1
-            else (
-                'Users have been deactivated and their account deletion is '
-                'in progress'
-            ),
-            messages.SUCCESS,
-        )
+        self._deactivate_or_delete(request, users=users, grace_period=0)
 
     def deployed_forms_count(self, obj):
         """
@@ -154,53 +136,6 @@ class ExtendedUserAdmin(UserAdmin):
             _deployment_data__active=True
         ).aggregate(count=Count('pk'))
         return assets_count['count']
-
-    # def delete_queryset(self, request, queryset):
-    #     """
-    #     Override `ModelAdmin.delete_queryset` to bulk delete users in KPI and KC
-    #     """
-    #     deleted_pks = list(queryset.values_list('pk', flat=True))
-    #     # Delete users in KPI database first
-    #     super().delete_queryset(request, queryset)
-    #
-    #     if not delete_kc_users(deleted_pks):
-    #         # Unfortunately, this message does not supersede Django message
-    #         # when users are successfully deleted.
-    #         # See https://github.com/django/django/blob/b9cf764be62e77b4777b3a75ec256f6209a57671/django/contrib/admin/actions.py#L41-L43
-    #         # Maybe it still makes sense because KPI users are deleted.
-    #         self.message_user(
-    #             request,
-    #             'Could not delete users in KoBoCAT database. They may own '
-    #             'projects and/or submissions. Log into KoBoCAT admin '
-    #             'interface and delete them from there.',
-    #             messages.ERROR
-    #         )
-    #
-    # def delete_model(self, request, obj):
-    #     """
-    #     Override `ModelAdmin.delete_model()` to delete user in KPI and KC
-    #     """
-    #     deleted_pk = obj.pk
-    #     # Delete users in KPI database first.
-    #     super().delete_model(request, obj)
-    #
-    #     # This part could be in a post-delete signal but we would not catch
-    #     # errors if any.
-    #     # Moreover, users can be only deleted from the admin interface or from
-    #     # the shell. We assume that power users who use shell can also call
-    #     # `delete_kc_users()` manually.
-    #     if not delete_kc_users([deleted_pk]):
-    #         # Unfortunately, this message does not supersede Django message
-    #         # when a user is successfully deleted.
-    #         # See https://github.com/django/django/blob/b9cf764be62e77b4777b3a75ec256f6209a57671/django/contrib/admin/options.py#L1444-L1451
-    #         # Maybe it still makes sense because KPI user is deleted.
-    #         self.message_user(
-    #             request,
-    #             'Could not delete user in KoBoCAT database. They may own '
-    #             'projects and/or submissions. Log into KoBoCAT admin '
-    #             'interface and delete them from there.',
-    #             messages.ERROR
-    #         )
 
     def has_delete_permission(self, request, obj=None):
         # Override django admin built-in delete
@@ -248,6 +183,61 @@ class ExtendedUserAdmin(UserAdmin):
             counter=Sum('counter')
         )
         return instances.get('counter')
+
+    def _deactivate_or_delete(self, request, grace_period: int, users: list[dict]):
+        try:
+            move_to_trash(request.user, users, grace_period, 'user')
+        except TrashIntegrityError:
+            self.message_user(
+                request,
+                'One or several users are already in trash',
+                messages.ERROR,
+            )
+            return
+
+        User.objects.filter(pk__in=[u['pk'] for u in users]).update(
+            is_active=False
+        )
+        self.message_user(
+            request,
+            self._get_message(len(users) == 1, grace_period),
+            messages.SUCCESS,
+        )
+
+    def _get_message(self, singular: bool, grace_period: int) -> str:
+
+        url = reverse('admin:trash_bin_accounttrash_changelist')
+
+        if grace_period == -1:
+            message = (
+                'User has been deactivated.'
+                if singular
+                else 'Users have been deactivated.'
+            )
+            message += (
+                f' Their data is in <a href="{url}">trash</a> and must be '
+                f'emptied manually.'
+            )
+            message = mark_safe(message)
+        elif grace_period:
+            message = (
+                'User has been deactivated '
+                if singular
+                else 'Users have been deactivated '
+            )
+            message += (
+                f' and their data deletion is scheduled for {grace_period} days'
+                f' from now. View <a href="{url}">trash.</a>'
+            )
+        else:
+            message = (
+                'User’s account deletion is in progress. '
+                if singular
+                else 'Users’ account deletions are in progress. '
+            )
+            message += f'View <a href="{url}">trash.</a>'
+
+        return message
 
 
 admin.site.register(SitewideMessage)

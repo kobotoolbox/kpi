@@ -89,7 +89,7 @@ def move_to_trash(
             )
 
         trash_model.objects.bulk_create(trash_objects)
-
+        enabled = grace_period != -1
         periodic_tasks = PeriodicTask.objects.bulk_create(
             [
                 PeriodicTask(
@@ -98,6 +98,7 @@ def move_to_trash(
                     task=f'kobo.apps.trash_bin.tasks.{task}',
                     args=json.dumps([ato.id]),
                     one_off=True,
+                    enabled=enabled,
                 )
                 for ato in trash_objects
             ],
