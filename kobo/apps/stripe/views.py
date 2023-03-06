@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from kobo.apps.stripe.serializers import (
     SubscriptionSerializer,
     CheckoutLinkSerializer,
+    CustomerPortalSerializer
 )
 
 from kobo.apps.organizations.models import (
@@ -104,9 +105,8 @@ class CustomerPortalView(
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
-    def generate_portal_link(user):
-        organization_user = OrganizationUser.objects.get(user_id=user.id)
-        organization = Organization.objects.get(id=organization_user.id)
+    def generate_portal_link(organization_uid):
+        organization = Organization.objects.get(uid=organization_uid)
         customer = Customer.objects.get(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
@@ -119,7 +119,11 @@ class CustomerPortalView(
         return session
 
     def post(self, request):
-        session = self.generate_portal_link(request.user)
+        serializer = CustomerPortalSerializer(data=request.query_params)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        organization_uid = serializer.validated_data['organization_uid']
+        session = self.generate_portal_link(organization_uid)
         return Response(session.url)
 
 

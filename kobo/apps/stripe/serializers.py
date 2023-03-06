@@ -9,16 +9,22 @@ class BaseProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
 
-class CheckoutLinkSerializer(serializers.Serializer):
-    price_id = serializers.CharField(required=True)
+class CustomerPortalSerializer(serializers.Serializer):
     organization_uid = serializers.CharField(required=True)
 
-    def validate(self, attrs):
-        price_id = attrs.get('price_id')
-        organization_uid = attrs.get('organization_uid')
-        if price_id.startswith('price_') and organization_uid.startswith('org'):
-            return attrs
-        raise ValidationError('Invalid price/organization ID')
+    def validate_organization_uid(self, organization_uid):
+        if organization_uid.startswith('org'):
+            return organization_uid
+        raise ValidationError('Invalid organization ID')
+
+
+class CheckoutLinkSerializer(CustomerPortalSerializer):
+    price_id = serializers.CharField(required=True)
+
+    def validate_price_id(self, price_id):
+        if price_id.startswith('price_'):
+            return price_id
+        raise ValidationError('Invalid price ID')
 
 
 
