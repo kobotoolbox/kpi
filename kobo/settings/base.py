@@ -610,6 +610,7 @@ CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
+    'https://*.openstreetmap.fr',  # Humanitarian OpenStreetMap Team
     'https://*.opentopomap.org',
     'https://*.arcgisonline.com'
 ]
