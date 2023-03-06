@@ -127,7 +127,7 @@ class ExtendedUserAdmin(UserAdmin):
             self.message_user(
                 request,
                 'One or several users are already being deleted',
-                messages.WARNING,
+                messages.ERROR,
             )
             return
 

@@ -8,6 +8,7 @@ class TrashStatus(models.TextChoices):
 
     IN_PROGRESS = 'in_progress', 'IN_PROGRESS'
     PENDING = 'pending', 'PENDING'
+    RETRY = 'retry', 'RETRY'
     FAILED = 'failed', 'FAILED'
 
 

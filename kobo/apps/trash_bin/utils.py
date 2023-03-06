@@ -39,6 +39,7 @@ def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
         )
 
 
+@transaction.atomic
 def move_to_trash(
     request_author: 'auth.User',
     objects_list: list[dict],
