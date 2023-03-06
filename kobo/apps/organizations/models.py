@@ -15,12 +15,10 @@ class Organization(AbstractOrganization):
     @property
     def email(self):
         """
-        This exists to make dj-stripe happy
+        As organization is our customer model for Stripe, Stripe requires that
+        it has an email address attribute
         """
-        return self.owner.organization_user.user.emailaddress_set.get(
-            primary=True,
-            verified=True
-        )
+        return self.owner.organization_user.user.email
 
 
 class OrganizationUser(AbstractOrganizationUser):
