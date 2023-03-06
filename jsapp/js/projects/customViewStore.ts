@@ -95,9 +95,9 @@ class CustomViewStore {
     this.nextPageUrl = null;
     this.loadSettings();
 
+    this.searchContext = viewUid;
     // set up search box and trigger indirect fetch of new assets.
     searchBoxStore.setContext(viewUid);
-    this.searchContext = viewUid;
   }
 
   /** If next page of results is available. */
