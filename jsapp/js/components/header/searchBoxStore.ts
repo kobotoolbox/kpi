@@ -1,6 +1,6 @@
 import {makeAutoObservable} from 'mobx';
 
-export interface SearchBoxStoreData {
+interface SearchBoxStoreData {
   /** Context ensures that observers will not be triggered unnecessarily. */
   context?: string;
   /**

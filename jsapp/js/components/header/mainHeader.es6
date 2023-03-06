@@ -12,14 +12,13 @@ import bem from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {assign} from 'js/utils';
-import {getLoginUrl} from 'js/router/routerUtils';
+import {getLoginUrl, isAnyProjectsViewRoute} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import {userCan} from 'js/components/permissions/utils';
 import AccountMenu from './accountMenu';
-import {isAnyProjectsViewRoute} from 'js/router/routerUtils';
 
 const MainHeader = class MainHeader extends Reflux.Component {
   constructor(props) {

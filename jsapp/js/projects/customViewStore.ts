@@ -68,7 +68,7 @@ class CustomViewStore {
   constructor() {
     makeAutoObservable(this);
 
-    // This reaction is being called when `context` or `searchPhrase` changes.
+    // Observe changes to searchBoxStore
     reaction(
       () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
       () => {

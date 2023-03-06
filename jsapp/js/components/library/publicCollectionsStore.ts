@@ -1,7 +1,6 @@
 import Reflux from 'reflux';
 import type {Update} from 'history';
 import searchBoxStore from 'js/components/header/searchBoxStore';
-import type {SearchBoxStoreData} from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -27,7 +26,7 @@ import type {
   AssetSubscriptionsResponse,
   SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
-import {autorun} from 'mobx';
+import {reaction} from 'mobx';
 
 interface PublicCollectionsStoreData {
   isFetchingData: boolean;
@@ -49,9 +48,9 @@ class PublicCollectionsStore extends Reflux.Store {
    */
   abortFetchData?: Function;
   previousPath = getCurrentPath();
-  previousSearchPhrase = searchBoxStore.data.searchPhrase;
   PAGE_SIZE = 100;
   DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
+  searchContext = 'PUBLIC_COLLECTIONS';
 
   isInitialised = false;
 
@@ -73,7 +72,12 @@ class PublicCollectionsStore extends Reflux.Store {
     this.setDefaultColumns();
 
     history.listen(this.onRouteChange.bind(this));
-    autorun(() => {this.onSearchBoxStoreChanged(searchBoxStore.data)})
+
+    reaction(
+      () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
+      this.onSearchBoxStoreChanged.bind(this)
+    );
+
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));
     actions.library.searchPublicCollections.failed.listen(this.onSearchFailed.bind(this));
@@ -97,10 +101,12 @@ class PublicCollectionsStore extends Reflux.Store {
    */
   startupStore() {
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
   }
 
+  /** Changes the order column to default and remove filtering. */
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
@@ -157,28 +163,26 @@ class PublicCollectionsStore extends Reflux.Store {
 
   onRouteChange(data: Update) {
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     } else if (
       this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
       isPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
     this.previousPath = data.location.pathname;
   }
 
-  onSearchBoxStoreChanged(data: SearchBoxStoreData) {
-    if (
-      data.context === 'PUBLIC_COLLECTIONS' &&
-      data.searchPhrase !== this.previousSearchPhrase
-    ) {
+  onSearchBoxStoreChanged() {
+    if (searchBoxStore.data.context === this.searchContext) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = data.searchPhrase;
       this.fetchData(true);
     }
   }
