@@ -3,6 +3,19 @@ from django.contrib import admin, messages
 
 class TrashMixin:
 
+    @admin.action(description='Empty trash for selected users')
+    def empty_trash(self, request, queryset, **kwargs):
+        obj_ids = queryset.values_list('pk', flat=True)
+        for obj_id in obj_ids:
+            self.task.delay(obj_id)
+
+        self.message_user(
+            request,
+            'Trash scheduler has been run for selected objects. Reload this page'
+            ' to get an updated list',
+            messages.SUCCESS,
+        )
+
     @admin.display(description='Error')
     def get_failure_error(self, obj):
         return obj.metadata.get('failure_error') or '-'
@@ -21,3 +34,7 @@ class TrashMixin:
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    @admin.action(description='Put back selected users')
+    def put_back(self, request, queryset, **kwargs):
+        pass

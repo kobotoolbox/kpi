@@ -5,6 +5,7 @@ from kpi.serializers.v2.asset import AssetBulkActionsSerializer
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
 from .mixins.admin import TrashMixin
+from .tasks import empty_account
 
 
 class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
@@ -12,23 +13,21 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
     list_display = [
         'user',
         'request_author',
+        'delete_all',
         'status',
         'get_start_time',
         'get_failure_error',
     ]
     search_fields = ['user__username', 'request_author__username']
     ordering = ['-date_created', 'user__username']
-    actions = ['reactivate']
+    actions = ['empty_trash', 'put_back']
+    task = empty_account
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.select_related(
             'periodic_task'
         )
-
-    @admin.action(description='Reactivate selected users')
-    def reactivate(self, request, queryset, **kwargs):
-        pass
 
 
 class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
