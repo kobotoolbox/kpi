@@ -414,9 +414,13 @@ DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
 django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
+DJANGO_LANGUAGE_CODES = [
+    'ar', 'cs', 'de-DE', 'en', 'es', 'fr', 'hi', 'ja',
+    'ku', 'pl', 'pt', 'ru', 'tr', 'uk', 'zh-hans',
+]
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
-        for lang_code in env.str('DJANGO_LANGUAGE_CODES', 'en').split(' ')
+    for lang_code in DJANGO_LANGUAGE_CODES
 ]
 
 LANGUAGE_CODE = 'en-us'
