@@ -1,13 +1,14 @@
 import logging
 
 from celery.signals import task_failure, task_retry
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
-from django_celery_beat.models import PeriodicTasks
+from django_celery_beat.models import PeriodicTasks, PeriodicTask
 from requests.exceptions import HTTPError
 
 from kobo.apps.trackers.models import MonthlyNLPUsageCounter
-from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.models.asset import Asset
@@ -58,7 +59,7 @@ def empty_account(account_trash_id: int):
 
     user = account_trash.user
     user_id = user.pk
-    username = user.username
+    date_deactivated = user.extra_details.date_deactivated
     try:
         # We need to deactivate this post_delete signal because it's triggered
         # on `User` delete cascade and fails to insert into DB within a transaction.
@@ -71,24 +72,36 @@ def empty_account(account_trash_id: int):
             dispatch_uid='update_catch_all_monthly_xform_submission_counters',
         )
         with transaction.atomic():
-            account_trash.user.delete()
+            user.delete()
             try:
-                delete_kc_user(username)
+                delete_kc_user(user.username)
             except HTTPError as e:
                 error = str(e)
                 if error.startswith(('502', '504',)):
                     raise TrashKobocatNotResponsiveError
-                raise e
+                if not error.startswith('404'):
+                    raise e
 
-            AuditLog.objects.create(
-                app_label=user._meta.app_label,
-                model_name=user._meta.model_name,
-                object_id=user_id,
-                user=account_trash.request_author,
-                metadata={
-                    'username': username,
+            audit_log_params = {
+                'app_label': get_user_model()._meta.app_label,
+                'model_name': get_user_model()._meta.model_name,
+                'object_id': user_id,
+                'user': account_trash.request_author,
+                'metadata': {
+                    'username': user.username,
                 }
-            )
+            }
+
+            if not account_trash.delete_all:
+                # Recreate a user with same username to block any future
+                # registration with the same username.
+                user.set_password(get_user_model().objects.make_random_password())
+                user.save()
+                user.extra_details.date_deactivated = date_deactivated
+                user.extra_details.save(update_fields=['date_deactivated'])
+                audit_log_params['method'] = AuditMethod.SOFT_DELETE
+
+            AuditLog.objects.create(**audit_log_params)
 
     finally:
         post_delete.connect(
@@ -97,7 +110,9 @@ def empty_account(account_trash_id: int):
             dispatch_uid='update_catch_all_monthly_xform_submission_counters',
         )
 
-    logging.info(f'User {username} (#{user_id}) has been successfully deleted!')
+    # Delete related periodic task
+    PeriodicTask.objects.get(pk=account_trash.periodic_task_id).delete()
+    logging.info(f'User {user.username} (#{user_id}) has been successfully deleted!')
 
 
 @celery_app.task

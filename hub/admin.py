@@ -254,7 +254,6 @@ class ExtendedUserAdmin(UserAdmin):
                 f' Their data is in <a href="{url}">trash</a> and must be '
                 f'emptied manually.'
             )
-            message = mark_safe(message)
         elif grace_period:
             message = (
                 'User has been deactivated '
@@ -273,7 +272,7 @@ class ExtendedUserAdmin(UserAdmin):
             )
             message += f'View <a href="{url}">trash.</a>'
 
-        return message
+        return mark_safe(message)
 
 
 class ExtraUserDetailAdmin(admin.ModelAdmin):

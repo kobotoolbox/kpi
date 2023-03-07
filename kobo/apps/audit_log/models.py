@@ -8,8 +8,9 @@ class AuditMethod(models.TextChoices):
 
     CREATE = 'create', 'CREATE'
     DELETE = 'delete', 'DELETE'
+    IN_TRASH = 'in-trash', 'IN_TRASH'
+    PUT_BACK = 'put-back', 'PUT_BACK'
     SOFT_DELETE = 'soft-delete', 'SOFT_DELETE'
-    UNDELETE = 'undelete', 'UNDELETE'
     UPDATE = 'update', 'UPDATE'
 
 

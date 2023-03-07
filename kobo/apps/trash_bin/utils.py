@@ -73,7 +73,6 @@ def move_to_trash(
         # Delete any previous trash object if it belongs to this "delete all"
         # list because "delete all" supersedes deactivated status.
         obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
-        print('DELETE ALL', obj_ids, flush=True)
         allowed_statuses = [TrashStatus.PENDING, TrashStatus.FAILED]
         trash_model.objects.filter(
             status__in=allowed_statuses,
@@ -102,7 +101,7 @@ def move_to_trash(
                     model_name=audit_log_ref_model._meta.model_name,
                     object_id=obj_dict['pk'],
                     user=request_author,
-                    method=AuditMethod.SOFT_DELETE,
+                    method=AuditMethod.IN_TRASH,
                     metadata=_get_metadata(obj_dict)
                 )
             )
@@ -124,7 +123,6 @@ def move_to_trash(
         )
 
     except IntegrityError as e:
-        print('E', str(e), flush=True)
         raise TrashIntegrityError
 
     # Update relationships between periodic task and trash objects
