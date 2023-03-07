@@ -9,7 +9,6 @@ from rest_framework import mixins, status, viewsets
 
 from django.db.models import Prefetch
 from djstripe.models import Plan, Product, Subscription
-from rest_framework import mixins, renderers, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -38,9 +37,9 @@ class CheckoutLinkView(
         if organization_uid:
             # Look up the specific organization provided
             try:
-                organization_user = OrganizationUser.objects.get(user=user)
                 organization = Organization.objects.get(
-                    uid=organization_uid
+                    uid=organization_uid,
+                    organization_users__user=user
                 )
             # If we can't find the organization or organization user, bail
             except ObjectDoesNotExist:
@@ -48,12 +47,12 @@ class CheckoutLinkView(
                     {'status': r'Organization does not exist'}, status=status.HTTP_403_FORBIDDEN
                 )
         else:
-            # find the organization the user belongs to, otherwise make a new one
-            organization_user, _ = OrganizationUser.objects.get_or_create(user=user)
-            organization, _ = Organization.objects.get_or_create(users=user)
-        # Make sure the organization owner is the same as the logged-in user
-        if organization.owner.id != organization_user.id:
-            return Response({'status': r'Logged-in user is not organization owner'}, status=status.HTTP_403_FORBIDDEN)
+            # Find the first organization the user belongs to, otherwise make a new one
+            organization = Organization.objects.filter(users=user, organization_user__user_id=user).first()
+            if not organization:
+                organization = create_organization(
+                    user, f"{user.username}'s organization", model=Organization, owner__user=user
+                )
         customer, created = Customer.get_or_create(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
@@ -84,16 +83,12 @@ class CheckoutLinkView(
         )
         return session
 
-    def post(self, request):
+    def get(self, request):
         serializer = CheckoutLinkSerializer(data=request.query_params)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
         serializer_data = serializer.validated_data
         price_id = serializer_data['price_id']
-        try:
-            organization_uid = serializer.validated_data['organization_uid']
-        except KeyError:
-            organization_uid = None
+        organization_uid = serializer.validated_data.get('organization_uid')
         try:
             Price.objects.get(
                 active=True,
