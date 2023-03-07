@@ -6,16 +6,23 @@ from datetime import timedelta
 
 from django.db import IntegrityError, transaction
 from django.contrib.auth import get_user_model
+from django.db.models.signals import pre_delete
 from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
     PeriodicTask,
+    PeriodicTasks,
 )
 from rest_framework import status
 
+from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kpi.models import Asset
-from .exceptions import TrashIntegrityError, TrashNotImplementedError
+from .exceptions import (
+    TrashIntegrityError,
+    TrashNotImplementedError,
+    TrashTaskInProgressError,
+)
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
@@ -63,8 +70,8 @@ def move_to_trash(
 
     (
         trash_model,
-        audit_log_ref_model,
         fk_field_name,
+        related_model,
         task,
         task_name_placeholder
     ) = _get_settings(trash_type, delete_all)
@@ -97,8 +104,8 @@ def move_to_trash(
             )
             audit_logs.append(
                 AuditLog(
-                    app_label=audit_log_ref_model._meta.app_label,
-                    model_name=audit_log_ref_model._meta.model_name,
+                    app_label=related_model._meta.app_label,
+                    model_name=related_model._meta.model_name,
                     object_id=obj_dict['pk'],
                     user=request_author,
                     method=AuditMethod.IN_TRASH,
@@ -140,8 +147,37 @@ def move_to_trash(
     AuditLog.objects.bulk_create(audit_logs)
 
 
-def put_back():
-    pass
+@transaction.atomic()
+def put_back(objects_list: list[dict], trash_type: str):
+
+    trash_model, fk_field_name, *others = _get_settings(trash_type)
+
+    obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
+    queryset = trash_model.objects.filter(
+        status=TrashStatus.PENDING,
+        **{f'{fk_field_name}__in': obj_ids}
+    )
+    periodic_task_ids = list(
+        queryset.values_list('periodic_task_id', flat=True)
+    )
+    del_pto_results = queryset.delete()
+    delete_model_key = f'{trash_model._meta.app_label}.{trash_model.__name__}'
+    del_pto_count = del_pto_results[1].get(delete_model_key) or 0
+
+    if del_pto_count != len(objects_list):
+        raise TrashTaskInProgressError
+
+    # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
+    # delete query finishes to avoid unnecessary DB queries.
+    # see https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
+    pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
+    try:
+        PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
+    finally:
+        pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
+
+    # Force celery beat scheduler to refresh
+    PeriodicTasks.update_changed()
 
 
 def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
@@ -192,12 +228,12 @@ def _get_metadata(trashed_object: dict) -> dict:
     return dict_copy
 
 
-def _get_settings(trash_type: str, delete_all: bool) -> tuple:
+def _get_settings(trash_type: str, delete_all: bool = False) -> tuple:
     if trash_type == 'asset':
         return (
             ProjectTrash,
-            Asset,
             'asset_id',
+            Asset,
             'empty_project',
             'Delete project {name} ({uid})',
         )
@@ -205,8 +241,8 @@ def _get_settings(trash_type: str, delete_all: bool) -> tuple:
     if trash_type == 'user':
         return (
             AccountTrash,
-            get_user_model(),
             'user_id',
+            get_user_model(),
             'empty_account',
             'Delete user’s account ({username})'
             if delete_all

@@ -34,7 +34,3 @@ class TrashMixin:
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-    @admin.action(description='Put back selected users')
-    def put_back(self, request, queryset, **kwargs):
-        pass

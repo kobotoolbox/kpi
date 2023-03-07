@@ -1,11 +1,12 @@
 from django.contrib import admin, messages
-from rest_framework import serializers
+from django.db.models import F
 
-from kpi.serializers.v2.asset import AssetBulkActionsSerializer
+from .exceptions import TrashTaskInProgressError
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
 from .mixins.admin import TrashMixin
-from .tasks import empty_account
+from .tasks import empty_account, empty_project
+from .utils import put_back
 
 
 class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
@@ -22,12 +23,18 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
     ordering = ['-date_created', 'user__username']
     actions = ['empty_trash', 'put_back']
     task = empty_account
+    trash_type = 'user'
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.select_related(
             'periodic_task'
         )
+
+    @admin.action(description='Put back selected users')
+    def put_back(self, request, queryset, **kwargs):
+        objects_list = queryset.values('pk', 'user_id')
+        put_back(objects_list, self.trash_type)
 
 
 class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
@@ -41,7 +48,9 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
     ]
     search_fields = ['asset__name', 'asset__uid', 'request_author__username']
     ordering = ['-date_created', 'asset__name']
-    actions = ['put_back']
+    actions = ['empty_trash', 'put_back']
+    task = empty_project
+    trash_type = 'asset'
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -63,32 +72,26 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
     @admin.action(description='Put back selected projects')
     def put_back(self, request, queryset, **kwargs):
         asset_uids = list(queryset.values_list('asset__uid', flat=True))
-        params = {
-            'data': {
-                'payload': {
-                    'asset_uids': asset_uids,
-                    'undo': True,
-                }
-            },
-            'context': {'request': request},
-            'method': 'DELETE',
-        }
-        bulk_actions_validator = AssetBulkActionsSerializer(**params)
+        assets_queryset, _ = ProjectTrash.toggle_asset_statuses(
+            asset_uids, active=True, toggle_delete=True
+        )
+        assets = assets_queryset.annotate(
+            asset_uid=F('uid'), asset_name=F('name')
+        ).values('pk', 'uid', 'name')
         try:
-            bulk_actions_validator.is_valid(raise_exception=True)
-            bulk_actions_validator.save()
-        except serializers.ValidationError as e:
+            put_back(assets, 'asset')
+        except TrashTaskInProgressError:
             self.message_user(
                 request,
-                str(e.detail['detail']),
+                'One or many projects are already being deleted!',
                 messages.ERROR
             )
         else:
             self.message_user(
                 request,
-                'Project has been successfully put back to user’s account'
+                'Project has been successfully put back to users’ account'
                 if len(asset_uids) == 1
-                else 'Projects have been successfully put back to user’s account',
+                else 'Projects have been successfully put back to users’ account',
                 messages.SUCCESS,
             )
 

@@ -384,7 +384,6 @@ class AssetViewSet(
         params = {
             'data': request.data,
             'context': self.get_serializer_context(),
-            'grace_period': config.PROJECT_TRASH_GRACE_PERIOD
         }
 
         bulk_actions_validator = AssetBulkActionsSerializer(**params)

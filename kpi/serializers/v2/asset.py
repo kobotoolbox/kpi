@@ -5,16 +5,10 @@ import json
 import re
 from distutils import util
 
+from constance import config
 from django.conf import settings
-from django.db import transaction
 from django.db.models import QuerySet, F
-from django.db.models.signals import pre_delete
-from django.utils.timezone import now
 from django.utils.translation import gettext as t, ngettext as nt
-from django_celery_beat.models import (
-    PeriodicTask,
-    PeriodicTasks,
-)
 from django_request_cache import cache_for_request
 from rest_framework import serializers, exceptions
 from rest_framework.fields import empty
@@ -22,10 +16,12 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
-from kobo.apps.trash_bin.exceptions import TrashIntegrityError
-from kobo.apps.trash_bin.models import TrashStatus
+from kobo.apps.trash_bin.exceptions import (
+    TrashIntegrityError,
+    TrashTaskInProgressError,
+)
 from kobo.apps.trash_bin.models.project import ProjectTrash
-from kobo.apps.trash_bin.utils import move_to_trash
+from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -43,11 +39,6 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatUser,
-    KobocatXForm,
-)
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import (
     PaginatedApiField,
     RelativePrefixHyperlinkedRelatedField,
@@ -60,7 +51,6 @@ from kpi.models import (
     ObjectPermission,
 )
 from kpi.models.asset import UserAssetSubscription
-from kpi.utils.jsonbfield_helper import ReplaceValues
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -84,60 +74,27 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         self,
         instance=None,
         data=empty,
-        method=None,
         grace_period=None,
         **kwargs
     ):
         # Check `method` parameter first to support actions from Django Admin
         request = kwargs.get('context').get('request')
-        if not method:
-            method = request.method
-        self.__is_delete = method == 'DELETE'
         self.__grace_period = grace_period
-
+        self.__is_delete = request.method == 'DELETE'
         super().__init__(instance=instance, data=data, **kwargs)
 
     def create(self, validated_data):
         request = self.context['request']
-        undo = validated_data['payload']['undo']
+        put_back = validated_data['payload']['put_back']
 
-        if asset_uids := validated_data['payload'].get('asset_uids'):
-            kc_filter_params = {'kpi_asset_uid__in': asset_uids}
-            filter_params = {'uid__in': asset_uids}
-        else:
-            kc_filter_params = {'user': KobocatUser.get_kc_user(request.user)}
-            filter_params = {'owner': request.user}
-
-        kc_update_params = {'downloadable': undo}
-        update_params = {
-            '_deployment_data': ReplaceValues(
-                '_deployment_data',
-                updates={'active': undo},
-            ),
-            'date_modified': now(),
-        }
-
-        if self.__is_delete:
-            kc_update_params['pending_delete'] = not undo
-            update_params['pending_delete'] = not undo
-
-        with transaction.atomic():
-            with kc_transaction_atomic():
-                # Deployment back end should be per asset. But, because we need
-                # to do a bulk action, we assume that all `Asset` objects use the
-                # same back end to avoid looping on each object to update their
-                # back end.
-                queryset = Asset.all_objects.filter(**filter_params)
-                updated = queryset.update(
-                    **update_params
-                )
-                kc_updated = KobocatXForm.objects.filter(
-                    **kc_filter_params
-                ).update(**kc_update_params)
-                assert updated == kc_updated
-                validated_data['project_counts'] = updated
-
-                self._toggle_trash(queryset, undo)
+        queryset, projects_count = ProjectTrash.toggle_asset_statuses(
+            asset_uids=validated_data['payload'].get('asset_uids'),
+            owner=request.user,
+            active=put_back,
+            toggle_delete=self.__is_delete,
+        )
+        validated_data['project_counts'] = projects_count
+        self._toggle_trash(queryset, put_back)
 
         return validated_data
 
@@ -148,15 +105,15 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             self._validate_confirm(payload)
             asset_uids = []
 
-        self._validate_undo(payload)
+        self._validate_put_back(payload)
         self._has_perms(asset_uids)
 
         return payload
 
     def to_representation(self, instance):
-        undo = instance['payload']['undo']
+        put_back = instance['payload']['put_back']
         if self.__is_delete:
-            if undo:
+            if put_back:
                 message = nt(
                     f'%(count)d project has been undeleted',
                     f'%(count)d projects have been undeleted',
@@ -169,7 +126,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                     instance['project_counts'],
                 ) % {'count': instance['project_counts']}
         else:
-            if undo:
+            if put_back:
                 message = nt(
                     '%(count)d project has been unarchived',
                     '%(count)d projects have been unarchived',
@@ -187,11 +144,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
     def _create_tasks(self, assets: list[dict]):
         request = self.context['request']
 
-        if self.__grace_period == -1:
-            return
-
         try:
-            move_to_trash(request.user, assets, self.__grace_period, 'asset')
+            move_to_trash(
+                request.user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
+            )
         except TrashIntegrityError:
             # We do not want to ignore conflicts. If so, something went wrong.
             # Probably direct API calls not coming from the front end.
@@ -201,36 +157,12 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _delete_tasks(self, assets: list[dict]):
         # Delete project trash and periodic task
-        queryset = ProjectTrash.objects.filter(
-            status=TrashStatus.PENDING,
-            asset_id__in=[a['pk'] for a in assets]
-        )
-        periodic_task_ids = list(
-            queryset.values_list('periodic_task_id', flat=True)
-        )
-        del_pto_results = queryset.delete()
-        del_pto_count = del_pto_results[1].get('trash_bin.ProjectTrash') or 0
-
-        if del_pto_count != len(assets):
+        try:
+            put_back(assets, 'asset')
+        except TrashTaskInProgressError:
             raise serializers.ValidationError(
-                {'detail': t('One or many projects have been deleted already!')}
+                {'detail': t('One or many projects are already being deleted!')}
             )
-
-        # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
-        # delete query finishes to avoid unnecessary DB queries.
-        # see https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
-        pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
-        del_ptasks_results = (
-            PeriodicTask.objects.only('pk')
-            .filter(pk__in=periodic_task_ids)
-            .delete()
-        )
-        pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
-
-        del_ptasks_count = del_ptasks_results[1].get('django_celery_beat.PeriodicTask') or 0
-        assert del_ptasks_count == del_pto_count
-
-        PeriodicTasks.update_changed()
 
     def _has_perms(self, asset_uids: list[str]):
 
@@ -260,15 +192,16 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if objects_count != len(asset_uids):
             raise exceptions.PermissionDenied()
 
-    def _toggle_trash(self, queryset: QuerySet, undo: bool):
-        if not self.__is_delete:
+    def _toggle_trash(self, queryset: QuerySet, put_back: bool):
+        request = self.context['request']
+        if request.method != 'DELETE':
             return
 
         assets = queryset.annotate(
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'uid', 'name')
 
-        if undo:
+        if put_back:
             self._delete_tasks(assets)
         else:
             self._create_tasks(assets)
@@ -278,24 +211,24 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if not payload.get('confirm'):
             raise serializers.ValidationError(t('Confirmation is required'))
 
-    def _validate_undo(self, payload: dict):
+    def _validate_put_back(self, payload: dict):
         request = self.context['request']
-        undo = payload.get('undo', 'False')
-        if not isinstance(undo, bool):
+        put_back = payload.get('put_back', 'False')
+        if not isinstance(put_back, bool):
             try:
-                undo = bool(util.strtobool(undo))
+                put_back = bool(util.strtobool(put_back))
             except ValueError:
-                payload['undo'] = False
+                payload['put_back'] = False
                 return
 
         if (
-            undo
+            put_back
             and self.__is_delete
             and not request.user.is_superuser
         ):
             raise exceptions.PermissionDenied()
 
-        payload['undo'] = undo
+        payload['put_back'] = put_back
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
