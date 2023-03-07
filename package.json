@@ -143,6 +143,7 @@
     "build": "webpack --config webpack/prod.config.js",
     "watch": "npm run generate-icons && webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
+    "test-autobuild": "echo \"hint: open file://$(pwd)/test/tests.html, refresh manually\n\n\" && webpack --config webpack/test.autobuild.js",
     "lint": "eslint \"jsapp/js/**/*\" --ext .es6,.js,.jsx,.ts,.tsx",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
