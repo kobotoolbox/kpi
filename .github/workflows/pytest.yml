@@ -23,7 +23,7 @@ jobs:
         python-version: ['3.8', '3.10']
     services:
       postgres:
-        image: postgis/postgis:9.5-2.5
+        image: postgis/postgis:14-3.2
         env:
           POSTGRES_USER: kobo
           POSTGRES_PASSWORD: kobo
@@ -32,7 +32,7 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis_cache:
-        image: redis:3.2
+        image: redis:6.2
         ports:
           - 6379:6379
     steps:
@@ -56,7 +56,7 @@ jobs:
       run: >-
         sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
         gdal-bin gettext libproj-dev postgresql-client ffmpeg
-        gcc libc-dev
+        gcc libc-dev build-essential
     - name: Install Python dependencies
       run: pip-sync dependencies/pip/dev_requirements.txt
     - name: Install JavaScript dependencies

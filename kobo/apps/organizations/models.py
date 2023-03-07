@@ -15,8 +15,11 @@ class Organization(AbstractOrganization):
 
     @property
     def email(self):
-        billing_contact = self.owner.organization_user.user
-        return billing_contact.email
+        """
+        As organization is our customer model for Stripe, Stripe requires that
+        it has an email address attribute
+        """
+        return self.owner.organization_user.user.email
 
 class OrganizationUser(AbstractOrganizationUser):
     pass

@@ -6,6 +6,10 @@ from djstripe.models import Customer, Product, Subscription, Price
 from djstripe.settings import djstripe_settings
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
+
+from django.db.models import Prefetch
+from djstripe.models import Plan, Product, Subscription
+from rest_framework import mixins, renderers, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,10 +21,10 @@ from kobo.apps.stripe.serializers import (
 )
 
 from kobo.apps.organizations.models import (
+    ProductSerializer,
     OrganizationUser,
     Organization
 )
-
 
 class CheckoutLinkView(
     APIView
@@ -141,3 +145,18 @@ class SubscriptionViewSet(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__users=self.request.user,
         )
+
+
+class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset = (
+        Product.objects.filter(
+            active=True,
+            livemode=settings.STRIPE_LIVE_MODE,
+            plan__active=True,
+        )
+        .prefetch_related(
+            Prefetch("plan_set", queryset=Plan.objects.filter(active=True))
+        )
+        .distinct()
+    )
+    serializer_class = ProductSerializer

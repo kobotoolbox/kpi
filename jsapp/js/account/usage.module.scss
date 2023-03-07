@@ -9,25 +9,6 @@ h2 {
   margin-bottom: sizes.$x28;
 }
 
-.header {
-  padding: sizes.$x14;
-  margin: sizes.$x18;
-  background-color: colors.$kobo-light-blue;
-  display: flex;
-  gap: sizes.$x38;
-  padding-right: sizes.$x24;
-  align-items: center;
-
-  button {
-    width: sizes.$x30 !important;
-  }
-
-  i {
-    color: colors.$kobo-blue;
-    margin-left: sizes.$x12;
-  }
-}
-
 .article {
   p {
     display: inline;
@@ -38,6 +19,7 @@ h2 {
   display: flex;
   justify-content: center;
   flex-flow: wrap;
+  gap: sizes.$x12;
 }
 
 .box {

@@ -11,7 +11,6 @@ interface UsageState {
   monthlySubmissions: number;
   transcriptionMinutes: number;
   translationChars: number;
-  showBanner: boolean;
 }
 
 export default function Usage() {
@@ -20,53 +19,27 @@ export default function Usage() {
     monthlySubmissions: 0,
     transcriptionMinutes: 0,
     translationChars: 0,
-    showBanner: true,
   });
+
+  function truncate(decimal: number) {
+    return parseFloat(decimal.toFixed(2));
+  }
 
   useEffect(() => {
     getUsage().then((data) => {
       setUsage({
         ...usage,
-        storage: data.total_storage_bytes / 1000000, // bytes to GB
+        storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
         monthlySubmissions: data.total_submission_count_current_month,
-        transcriptionMinutes: data.total_nlp_asr_seconds / 60, // seconds to minutes
+        transcriptionMinutes: Math.floor(truncate(data.total_nlp_asr_seconds / 60)), // seconds to minutes
         translationChars: data.total_nlp_mt_characters,
       });
     });
   }, []);
 
-  function hideHeader() {
-    setUsage({
-      ...usage,
-      showBanner: false,
-    });
-  }
-
   return (
     <div className={styles.root}>
       <h2>{t('Your account total use')}</h2>
-
-      {usage.showBanner && (
-        <div className={styles.header}>
-          <Icon name='alert' size='s' />
-          <div className={styles.article}>
-            <p>
-              {t(
-                'Please note these figures are only updated once per day. Numbers may not reflect immediately recent changes in account usage. For any questions concerning usage, please read the '
-              )}
-            </p>
-            <NavLink to='#'>{t('following article')}</NavLink>
-          </div>
-          <Button
-            type='bare'
-            color='blue'
-            size='m'
-            label={t('OK')}
-            isFullWidth
-            onClick={hideHeader}
-          />
-        </div>
-      )}
 
       <div className={styles.row}>
         <div className={styles.box}>
@@ -75,7 +48,7 @@ export default function Usage() {
             {formatMonth(new Date().toUTCString())}
           </div>
           <div className={styles.usage}>
-            <strong className={styles.description}>{t('Monthly usage')}</strong>
+            <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.monthlySubmissions}</strong>
           </div>
         </div>
@@ -93,7 +66,7 @@ export default function Usage() {
             {formatMonth(new Date().toUTCString())}
           </div>
           <div className={styles.usage}>
-            <strong className={styles.description}>{t('Monthly usage')}</strong>
+            <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.transcriptionMinutes}</strong>
           </div>
         </div>
@@ -105,7 +78,7 @@ export default function Usage() {
             {formatMonth(new Date().toUTCString())}
           </div>
           <div className={styles.usage}>
-            <strong className={styles.description}>{t('Monthly usage')}</strong>
+            <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.translationChars}</strong>
           </div>
         </div>
