@@ -34,38 +34,30 @@ class CheckoutLinkView(
     serializer_class = CheckoutLinkSerializer
 
     @staticmethod
-    def generate_payment_link(price_id, user, organization_uid=None):
-        organization_user = OrganizationUser.objects.get(user=user)
+    def generate_payment_link(price_id, user, organization_uid):
         if organization_uid:
-            organization_owner = OrganizationOwner.objects.get(organization_user=organization_user)
+            # Look up the specific organization provided
             try:
+                organization_user = OrganizationUser.objects.get(user=user)
                 organization = Organization.objects.get(
-                    uid=organization_uid, id=organization_owner.organization.id
+                    uid=organization_uid
                 )
+            # If we can't find the organization or organization user, bail
             except ObjectDoesNotExist:
                 return Response(
-                    {'status': r'Logged-in user is not organization owner'}, status=status.HTTP_403_FORBIDDEN
+                    {'status': r'Organization does not exist'}, status=status.HTTP_403_FORBIDDEN
                 )
         else:
-            organization_owner, _ = OrganizationOwner.objects.get_or_create(organization_user=organization_user)
-            organization, _ = Organization.objects.get_or_create(owner=organization_owner.id)
-            if organization.owner.id != organization_user.id:
-                return Response({'status': r'Logged-in user is not organization owner'}, status=status.HTTP_403_FORBIDDEN)
+            # find the organization the user belongs to, otherwise make a new one
+            organization_user, _ = OrganizationUser.objects.get_or_create(user=user)
+            organization, _ = Organization.objects.get_or_create(users=user)
+        # Make sure the organization owner is the same as the logged-in user
+        if organization.owner.id != organization_user.id:
+            return Response({'status': r'Logged-in user is not organization owner'}, status=status.HTTP_403_FORBIDDEN)
         customer, created = Customer.get_or_create(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
         )
-        # dj-stripe doesn't support adding metadata to customer on creation
-        # So we use Stripe API methods to set the organization uid on the meta
-        # See https://github.com/dj-stripe/dj-stripe/issues/399
-        if created:
-            stripe.Customer.modify(
-                customer.id,
-                api_key=djstripe_settings.STRIPE_SECRET_KEY,
-                metadata={
-                    'organization_uid': organization.uid
-                },
-            )
         session = CheckoutLinkView.start_checkout_session(customer.id, price_id, organization.uid)
         return Response({'url': session})
 
@@ -96,8 +88,12 @@ class CheckoutLinkView(
         serializer = CheckoutLinkSerializer(data=request.query_params)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        price_id = serializer.validated_data['price_id']
-        organization_uid = serializer.validated_data['organization_uid']
+        serializer_data = serializer.validated_data
+        price_id = serializer_data['price_id']
+        try:
+            organization_uid = serializer.validated_data['organization_uid']
+        except KeyError:
+            organization_uid = None
         try:
             Price.objects.get(
                 active=True,

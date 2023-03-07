@@ -32,7 +32,6 @@ class CheckoutLinkSerializer(serializers.Serializer):
             return organization_uid
         raise ValidationError('Invalid organization ID')
 
-
 class PlanSerializer(serializers.ModelSerializer):
 
     product = BaseProductSerializer()
