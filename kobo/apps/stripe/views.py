@@ -49,7 +49,7 @@ class CheckoutLinkView(
                 )
         else:
             # Find the first organization the user belongs to, otherwise make a new one
-            organization = Organization.objects.filter(users=user, organization_user__user_id=user).first()
+            organization = Organization.objects.filter(users=user, owner__organization_user__user_id=user).first()
             if not organization:
                 organization = create_organization(
                     user, f"{user.username}'s organization", model=Organization, owner__user=user
@@ -84,7 +84,7 @@ class CheckoutLinkView(
         )
         return session
 
-    def get(self, request):
+    def post(self, request):
         serializer = CheckoutLinkSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         serializer_data = serializer.validated_data
