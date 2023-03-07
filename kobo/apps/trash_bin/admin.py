@@ -33,8 +33,27 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
 
     @admin.action(description='Put back selected users')
     def put_back(self, request, queryset, **kwargs):
-        objects_list = queryset.values('pk', 'user_id')
-        put_back(objects_list, self.trash_type)
+        users = queryset.annotate(pk=F('user_id'), username=F('user__username')).values(
+            'pk', 'username'
+        )
+        AccountTrash.toggle_user_statuses(users, active=True)
+
+        try:
+            put_back(request.user, users, 'user')
+        except TrashTaskInProgressError:
+            self.message_user(
+                request,
+                'One or many users are already being deleted!',
+                messages.ERROR
+            )
+        else:
+            self.message_user(
+                request,
+                'User’s account has been successfully reactivated'
+                if len(users) == 1
+                else 'Users’ account have been successfully reactivated',
+                messages.SUCCESS,
+            )
 
 
 class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
@@ -79,7 +98,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'uid', 'name')
         try:
-            put_back(assets, 'asset')
+            put_back(request.user, assets, 'asset')
         except TrashTaskInProgressError:
             self.message_user(
                 request,

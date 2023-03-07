@@ -8,7 +8,6 @@ from django.contrib.auth.forms import (
     UserChangeForm as DjangoUserChangeForm,
 )
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.db.models import Count, Sum
 from django.forms import CharField
 from django.urls import reverse
@@ -21,6 +20,7 @@ from kobo.apps.accounts.validators import (
     username_validators,
 )
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
+from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
@@ -225,14 +225,7 @@ class ExtendedUserAdmin(UserAdmin):
             )
             return
 
-        with transaction.atomic():
-            user_ids = [u['pk'] for u in users]
-            User.objects.filter(pk__in=user_ids).update(
-                is_active=False
-            )
-            ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
-                date_deactivated=timezone.now()
-            )
+        AccountTrash.toggle_user_statuses(users, active=False)
 
         self.message_user(
             request,

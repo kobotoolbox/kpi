@@ -15,7 +15,6 @@ from django_celery_beat.models import (
 )
 from rest_framework import status
 
-from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kpi.models import Asset
 from .exceptions import (
@@ -148,9 +147,13 @@ def move_to_trash(
 
 
 @transaction.atomic()
-def put_back(objects_list: list[dict], trash_type: str):
+def put_back(
+    request_author: 'auth.User', objects_list: list[dict], trash_type: str
+):
 
-    trash_model, fk_field_name, *others = _get_settings(trash_type)
+    trash_model, fk_field_name, related_model, *others = _get_settings(
+        trash_type
+    )
 
     obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
     queryset = trash_model.objects.filter(
@@ -164,8 +167,22 @@ def put_back(objects_list: list[dict], trash_type: str):
     delete_model_key = f'{trash_model._meta.app_label}.{trash_model.__name__}'
     del_pto_count = del_pto_results[1].get(delete_model_key) or 0
 
-    if del_pto_count != len(objects_list):
+    if del_pto_count != len(obj_ids):
         raise TrashTaskInProgressError
+
+    AuditLog.objects.bulk_create(
+        [
+            AuditLog(
+                app_label=related_model._meta.app_label,
+                model_name=related_model._meta.model_name,
+                object_id=obj_dict['pk'],
+                user=request_author,
+                method=AuditMethod.PUT_BACK,
+                metadata=_get_metadata(obj_dict)
+            )
+            for obj_dict in objects_list
+        ]
+    )
 
     # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
     # delete query finishes to avoid unnecessary DB queries.

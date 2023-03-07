@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.db import models
+from django.contrib.auth import get_user_model
+from django.db import models, transaction
+from django.utils.timezone import now
 
+from hub.models import ExtraUserDetail
 from kpi.fields import KpiUidField
 from . import BaseTrash
 
@@ -20,3 +23,16 @@ class AccountTrash(BaseTrash):
 
     def __str__(self) -> str:
         return f'{self.user.username} - {self.periodic_task.start_time}'
+
+    @classmethod
+    def toggle_user_statuses(cls, users: list[dict], active: bool = False):
+
+        date_deactivated = None if active else now()
+        with transaction.atomic():
+            user_ids = [u['pk'] for u in users]
+            get_user_model().objects.filter(pk__in=user_ids).update(
+                is_active=active
+            )
+            ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
+                date_deactivated=date_deactivated
+            )
