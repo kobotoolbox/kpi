@@ -144,6 +144,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
 def create_extra_user_details(sender, instance, created, **kwargs):
 
     extra_detail, created = ExtraUserDetail.objects.get_or_create(user=instance)
+
     if not instance.is_active and not extra_detail.date_deactivated:
         extra_detail.date_deactivated = now()
         extra_detail.save(update_fields=['date_deactivated'])

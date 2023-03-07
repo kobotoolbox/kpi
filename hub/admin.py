@@ -8,6 +8,7 @@ from django.contrib.auth.forms import (
     UserChangeForm as DjangoUserChangeForm,
 )
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import Count, Sum
 from django.forms import CharField
 from django.urls import reverse
@@ -136,7 +137,9 @@ class ExtendedUserAdmin(UserAdmin):
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._deactivate_or_delete(request, users=users, grace_period=0)
+        self._deactivate_or_delete(
+            request, users=users, grace_period=0, delete_all=True
+        )
 
     def deployed_forms_count(self, obj):
         """
@@ -205,9 +208,15 @@ class ExtendedUserAdmin(UserAdmin):
         )
         return instances.get('counter')
 
-    def _deactivate_or_delete(self, request, grace_period: int, users: list[dict], delete: bool):
+    def _deactivate_or_delete(
+        self,
+        request,
+        grace_period: int,
+        users: list[dict],
+        delete_all: bool = False,
+    ):
         try:
-            move_to_trash(request.user, users, grace_period, 'user')
+            move_to_trash(request.user, users, grace_period, 'user', delete_all)
         except TrashIntegrityError:
             self.message_user(
                 request,
@@ -216,9 +225,15 @@ class ExtendedUserAdmin(UserAdmin):
             )
             return
 
-        User.objects.filter(pk__in=[u['pk'] for u in users]).update(
-            is_active=False
-        )
+        with transaction.atomic():
+            user_ids = [u['pk'] for u in users]
+            User.objects.filter(pk__in=user_ids).update(
+                is_active=False
+            )
+            ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
+                date_deactivated=timezone.now()
+            )
+
         self.message_user(
             request,
             self._get_message(len(users) == 1, grace_period),
