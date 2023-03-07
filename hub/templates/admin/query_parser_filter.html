@@ -27,12 +27,16 @@
   <li>emails not from domain.tld:
     <pre>NOT email__iendswith=@domain.tld</pre>
   </li>
+  <li>deactivated users:
+    <pre>NOT extra_details__date_deactivated__isnull:True</pre>
+  </li>
   <li><b>Fields:</b></li>
   <li>
     <pre class="pre-inline">first_name</pre>,
     <pre class="pre-inline">last_name</pre>,
     <pre class="pre-inline">username</pre>,
     <pre class="pre-inline">email</pre>,
-    <pre class="pre-inline">last_login</pre>
+    <pre class="pre-inline">last_login</pre>,
+    <pre class="pre-inline">extra_details__date_deactivated</pre>
   </li>
 </ul>

@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.timezone import now
 from markitup.fields import MarkupField
 
 from kpi.utils.object_permission import get_database_user
@@ -116,6 +117,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
     data = models.JSONField(default=dict)
+    date_deactivated = models.DateTimeField(null=True)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
@@ -127,8 +129,9 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         using=None,
         update_fields=None,
     ):
-        self.standardize_json_field('data', 'organization', str)
-        self.standardize_json_field('data', 'name', str)
+        if not update_fields or (update_fields and 'data' in update_fields):
+            self.standardize_json_field('data', 'organization', str)
+            self.standardize_json_field('data', 'name', str)
 
         super().save(
             force_insert=force_insert,
@@ -139,8 +142,14 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):
-    if created:
-        ExtraUserDetail.objects.get_or_create(user=instance)
+
+    extra_detail, created = ExtraUserDetail.objects.get_or_create(user=instance)
+    if not instance.is_active and not extra_detail.date_deactivated:
+        extra_detail.date_deactivated = now()
+        extra_detail.save(update_fields=['date_deactivated'])
+    elif instance.is_active and extra_detail.date_deactivated:
+        extra_detail.date_deactivated = None
+        extra_detail.save(update_fields=['date_deactivated'])
 
 
 post_save.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)

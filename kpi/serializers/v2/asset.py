@@ -191,7 +191,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             return
 
         try:
-            move_to_trash(request.user, assets, self.__grace_period, 'user')
+            move_to_trash(request.user, assets, self.__grace_period, 'asset')
         except TrashIntegrityError:
             # We do not want to ignore conflicts. If so, something went wrong.
             # Probably direct API calls not coming from the front end.

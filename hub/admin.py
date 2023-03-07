@@ -19,8 +19,8 @@ from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     username_validators,
 )
-from kobo.apps.trash_bin.utils import move_to_trash
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
+from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
@@ -30,7 +30,12 @@ from kpi.exceptions import (
     SearchQueryTooShortException,
 )
 from kpi.filters import SearchFilter
-from .models import SitewideMessage, ConfigurationFile, PerUserSetting
+from .models import (
+    ExtraUserDetail,
+    ConfigurationFile,
+    SitewideMessage,
+    PerUserSetting,
+)
 
 
 class QueryParserFilter(admin.filters.SimpleListFilter):
@@ -89,7 +94,13 @@ class ExtendedUserAdmin(UserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = UserAdmin.list_display + ('is_active', 'date_joined',)
+    list_display = (
+        'username',
+        'email',
+        'is_active',
+        'date_joined',
+        'get_date_deactivated',
+    )
     list_filter = (QueryParserFilter, 'is_active', 'is_superuser', 'date_joined')
     search_default_field_lookups = [
         'username__icontains',
@@ -137,9 +148,15 @@ class ExtendedUserAdmin(UserAdmin):
         ).aggregate(count=Count('pk'))
         return assets_count['count']
 
-    def has_delete_permission(self, request, obj=None):
-        # Override django admin built-in delete
-        return False
+    @admin.display(description='Deactivated date')
+    def get_date_deactivated(self, obj):
+        if not (date_deactivated := obj.extra_details.date_deactivated):
+            return '-'
+
+        return date_deactivated
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('extra_details')
 
     def get_search_results(self, request, queryset, search_term):
         queryset = queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
@@ -169,6 +186,10 @@ class ExtendedUserAdmin(UserAdmin):
 
         return queryset, use_distinct
 
+    def has_delete_permission(self, request, obj=None):
+        # Override django admin built-in delete
+        return False
+
     def monthly_submission_count(self, obj):
         """
         Gets the number of this month's submissions a user has to be
@@ -184,7 +205,7 @@ class ExtendedUserAdmin(UserAdmin):
         )
         return instances.get('counter')
 
-    def _deactivate_or_delete(self, request, grace_period: int, users: list[dict]):
+    def _deactivate_or_delete(self, request, grace_period: int, users: list[dict], delete: bool):
         try:
             move_to_trash(request.user, users, grace_period, 'user')
         except TrashIntegrityError:
@@ -240,6 +261,19 @@ class ExtendedUserAdmin(UserAdmin):
         return message
 
 
+class ExtraUserDetailAdmin(admin.ModelAdmin):
+    list_display = ('user',)
+    ordering = ('user__username',)
+    search_fields = ('user__username',)
+    autocomplete_fields = ['user']
+
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request).exclude(user_id=settings.ANONYMOUS_USER_ID)
+        )
+
+
+admin.site.register(ExtraUserDetail, ExtraUserDetailAdmin)
 admin.site.register(SitewideMessage)
 admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
