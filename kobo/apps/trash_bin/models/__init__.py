@@ -30,3 +30,5 @@ class BaseTrash(models.Model):
     date_created = models.DateTimeField(default=now)
     date_modified = models.DateTimeField(default=now)
     metadata = models.JSONField(default=dict)
+    empty_manually = models.BooleanField(default=False)
+    delete_all = models.BooleanField(default=False)

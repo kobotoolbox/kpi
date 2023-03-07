@@ -7,8 +7,10 @@ class TrashMixin:
     def get_failure_error(self, obj):
         return obj.metadata.get('failure_error') or '-'
 
-    @admin.display(description='Start time')
+    @admin.display(description='Scheduled time')
     def get_start_time(self, obj):
+        if obj.empty_manually:
+            return '-'
         return obj.periodic_task.clocked.clocked_time
 
     def has_add_permission(self, request):

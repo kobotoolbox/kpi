@@ -16,6 +16,7 @@ from rest_framework import status
 from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kpi.models import Asset
 from .exceptions import TrashIntegrityError, TrashNotImplementedError
+from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
 
@@ -45,6 +46,7 @@ def move_to_trash(
     objects_list: list[dict],
     grace_period: int,
     trash_type: str,
+    delete_all: bool = False,
 ):
     """
     Create trash objects and their related scheduled celery tasks.
@@ -53,6 +55,7 @@ def move_to_trash(
 
     Projects and accounts get in trash for `grace_period` and they are hard-deleted
     when their related schedule task run.
+    We keep only username if `delete_all` equals False.
     """
 
     clocked_time = now() + timedelta(days=grace_period)
@@ -64,16 +67,32 @@ def move_to_trash(
         fk_field_name,
         task,
         task_name_placeholder
-    ) = _get_settings(trash_type)
+    ) = _get_settings(trash_type, delete_all)
+
+    if delete_all:
+        # Delete any previous trash object if it belongs to this "delete all"
+        # list because "delete all" supersedes deactivated status.
+        obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
+        print('DELETE ALL', obj_ids, flush=True)
+        allowed_statuses = [TrashStatus.PENDING, TrashStatus.FAILED]
+        trash_model.objects.filter(
+            status__in=allowed_statuses,
+            delete_all=False,
+            **{f'{fk_field_name:}__in': obj_ids}
+        ).delete()
 
     try:
         trash_objects = []
         audit_logs = []
+        empty_manually = grace_period == -1
+
         for obj_dict in objects_list:
             trash_objects.append(
                 trash_model(
                     request_author=request_author,
                     metadata=_get_metadata(obj_dict),
+                    empty_manually=empty_manually,
+                    delete_all=delete_all,
                     **{fk_field_name: obj_dict['pk']},
                 )
             )
@@ -89,7 +108,7 @@ def move_to_trash(
             )
 
         trash_model.objects.bulk_create(trash_objects)
-        enabled = grace_period != -1
+
         periodic_tasks = PeriodicTask.objects.bulk_create(
             [
                 PeriodicTask(
@@ -98,13 +117,14 @@ def move_to_trash(
                     task=f'kobo.apps.trash_bin.tasks.{task}',
                     args=json.dumps([ato.id]),
                     one_off=True,
-                    enabled=enabled,
+                    enabled=not empty_manually,
                 )
                 for ato in trash_objects
             ],
         )
 
-    except IntegrityError:
+    except IntegrityError as e:
+        print('E', str(e), flush=True)
         raise TrashIntegrityError
 
     # Update relationships between periodic task and trash objects
@@ -174,7 +194,7 @@ def _get_metadata(trashed_object: dict) -> dict:
     return dict_copy
 
 
-def _get_settings(trash_type: str) -> tuple:
+def _get_settings(trash_type: str, delete_all: bool) -> tuple:
     if trash_type == 'asset':
         return (
             ProjectTrash,
@@ -190,7 +210,9 @@ def _get_settings(trash_type: str) -> tuple:
             get_user_model(),
             'user_id',
             'empty_account',
-            'Delete user’s account ({username})',
+            'Delete user’s account ({username})'
+            if delete_all
+            else 'Delete user’s data ({username})'
         )
 
     raise TrashNotImplementedError

@@ -30,12 +30,14 @@ class Migration(migrations.Migration):
             sql=(
                 delete_if_exists('registration_supervisedregistrationprofile')
                 + 'DROP TABLE IF EXISTS registration_supervisedregistrationprofile CASCADE;'
-            )
+            ),
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.RunSQL(
             sql=(
                 delete_if_exists('registration_registrationprofile')
                 + 'DROP TABLE IF EXISTS registration_registrationprofile CASCADE;'
-            )
+            ),
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]
