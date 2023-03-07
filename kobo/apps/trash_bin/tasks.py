@@ -132,6 +132,10 @@ def empty_project(project_trash_id: int):
         project_trash.save(update_fields=['status'])
 
     delete_project(project_trash.request_author, project_trash.asset)
+    PeriodicTask.objects.get(pk=project_trash.periodic_task_id).delete()
+    logging.info(
+        f'Project {project_trash.asset.name} (#{project_trash.asset.uid}) has been successfully deleted!'
+    )
 
 
 @task_failure.connect(sender=empty_account)
