@@ -18,13 +18,19 @@ class CustomerPortalSerializer(serializers.Serializer):
         raise ValidationError('Invalid organization ID')
 
 
-class CheckoutLinkSerializer(CustomerPortalSerializer):
+class CheckoutLinkSerializer(serializers.Serializer):
     price_id = serializers.CharField(required=True)
+    organization_uid = serializers.CharField(required=False)
 
     def validate_price_id(self, price_id):
         if price_id.startswith('price_'):
             return price_id
         raise ValidationError('Invalid price ID')
+
+    def validate_organization_uid(self, organization_uid):
+        if organization_uid.startswith('org') or not organization_uid:
+            return organization_uid
+        raise ValidationError('Invalid organization ID')
 
 
 class PlanSerializer(serializers.ModelSerializer):

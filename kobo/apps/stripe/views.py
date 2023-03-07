@@ -17,12 +17,13 @@ from rest_framework.views import APIView
 from kobo.apps.stripe.serializers import (
     SubscriptionSerializer,
     CheckoutLinkSerializer,
-    CustomerPortalSerializer
+    CustomerPortalSerializer,
+    ProductSerializer,
 )
 
 from kobo.apps.organizations.models import (
-    ProductSerializer,
     OrganizationUser,
+    OrganizationOwner,
     Organization
 )
 
@@ -33,16 +34,23 @@ class CheckoutLinkView(
     serializer_class = CheckoutLinkSerializer
 
     @staticmethod
-    def generate_payment_link(price_id, user, organization_uid):
-        try:
-            organization = Organization.objects.get(uid=organization_uid)
-        except ObjectDoesNotExist:
-            # Create an organization and organization user
-            organization = create_organization(
-                user,
-                f"{user.username}'s organization",
-                model=Organization
-            )
+    def generate_payment_link(price_id, user, organization_uid=None):
+        organization_user = OrganizationUser.objects.get(user=user)
+        if organization_uid:
+            organization_owner = OrganizationOwner.objects.get(organization_user=organization_user)
+            try:
+                organization = Organization.objects.get(
+                    uid=organization_uid, id=organization_owner.organization.id
+                )
+            except ObjectDoesNotExist:
+                return Response(
+                    {'status': r'Logged-in user is not organization owner'}, status=status.HTTP_403_FORBIDDEN
+                )
+        else:
+            organization_owner, _ = OrganizationOwner.objects.get_or_create(organization_user=organization_user)
+            organization, _ = Organization.objects.get_or_create(owner=organization_owner.id)
+            if organization.owner.id != organization_user.id:
+                return Response({'status': r'Logged-in user is not organization owner'}, status=status.HTTP_403_FORBIDDEN)
         customer, created = Customer.get_or_create(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
@@ -59,7 +67,7 @@ class CheckoutLinkView(
                 },
             )
         session = CheckoutLinkView.start_checkout_session(customer.id, price_id, organization.uid)
-        return session
+        return Response({'url': session})
 
     @staticmethod
     def start_checkout_session(customer_id, price_id, organization_uid):
@@ -98,8 +106,8 @@ class CheckoutLinkView(
             )
         except ObjectDoesNotExist:
             return Response({'status': 'Price not found or inactive'}, status=status.HTTP_404_NOT_FOUND)
-        session = self.generate_payment_link(price_id, request.user, organization_uid)
-        return Response({'url': session.url})
+        response = self.generate_payment_link(price_id, request.user, organization_uid)
+        return response
 
 
 class CustomerPortalView(

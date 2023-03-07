@@ -2,7 +2,7 @@ from django.urls import include, re_path
 from rest_framework.routers import SimpleRouter
 
 
-from kobo.apps.stripe.views import SubscriptionViewSet, CheckoutLinkView, CustomerPortalView
+from kobo.apps.stripe.views import SubscriptionViewSet, CheckoutLinkView, CustomerPortalView, ProductViewSet
 
 router = SimpleRouter()
 router.register(r'subscriptions', SubscriptionViewSet, basename='subscriptions')
