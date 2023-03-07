@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from kpi.fields import KpiUidField
+from django.forms.fields import EmailField
 
 from organizations.abstract import (AbstractOrganization,
                                     AbstractOrganizationInvitation,
@@ -19,7 +20,6 @@ class Organization(AbstractOrganization):
         it has an email address attribute
         """
         return self.owner.organization_user.user.email
-
 
 class OrganizationUser(AbstractOrganizationUser):
     pass
