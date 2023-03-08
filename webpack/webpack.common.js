@@ -18,9 +18,7 @@ const postCssLoader = {
   options: {
     sourceMap: true,
     postcssOptions: {
-      plugins: [
-        'autoprefixer',
-      ],
+      plugins: ['autoprefixer'],
     },
   },
 };
@@ -48,10 +46,9 @@ const commonOptions = {
           reporter: function (errors) {
             errors.forEach((error) => {
               if (error.level === 'error') {
-                this.emitError([
-                  error.lineNumber,
-                  error.message,
-                ].join(' ') + '\n');
+                this.emitError(
+                  [error.lineNumber, error.message].join(' ') + '\n'
+                );
               }
             });
           },
@@ -83,15 +80,20 @@ const commonOptions = {
       },
       {
         test: /\.module\.scss$/,
-        use: ['style-loader', {
-          loader: 'css-loader',
-          options: {
-            modules: {
-              localIdentName:'[name]__[local]--[hash:base64:5]',
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
+              sourceMap: true,
             },
-            sourceMap: true
-          }
-        }, postCssLoader, 'sass-loader'],
+          },
+          postCssLoader,
+          'sass-loader',
+        ],
       },
       {
         test: /\.coffee$/,
@@ -125,7 +127,7 @@ const commonOptions = {
       functionName: 't',
       output: path.join(outputPath, 'extracted-strings.json'),
     }),
-    new webpack.ProvidePlugin({'$': 'jquery'}),
+    new webpack.ProvidePlugin({$: 'jquery'}),
     new ESLintPlugin({
       quiet: true,
       extensions: ['js', 'jsx', 'ts', 'tsx', 'es6'],
@@ -135,11 +137,13 @@ const commonOptions = {
 
 module.exports = function (options) {
   options = lodash.mergeWith(
-    commonOptions, options || {},
+    commonOptions,
+    options || {},
     (objValue, srcValue) => {
       if (lodash.isArray(objValue)) {
         return objValue.concat(srcValue);
+      }
     }
-  });
+  );
   return options;
 };

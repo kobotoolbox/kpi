@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 
 module.exports = {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
@@ -13,8 +14,8 @@ module.exports = {
   core: {
     builder: '@storybook/builder-webpack5',
   },
-  webpackFinal: async (config, {configType}) => {
-    config.plugins.push(new webpack.ProvidePlugin({$: 'jquery'})),
+  webpackFinal: async (config, { configType }) => {
+    config.plugins.push(new webpack.ProvidePlugin({ $: 'jquery' })),
       config.module.rules.push({
         resolve: {
           extensions: [
@@ -57,6 +58,16 @@ module.exports = {
           'sass-loader',
         ],
       }
+    );
+    // Print speed measurement if env variable MEASURE is set
+    config.plugins.push(
+      new SpeedMeasurePlugin({ disable: !process.env.MEASURE })
+    );
+    return config;
+  },
+  managerWebpack: async (config) => {
+    config.plugins.push(
+      new SpeedMeasurePlugin({ disable: !process.env.MEASURE })
     );
     return config;
   },

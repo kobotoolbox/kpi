@@ -1,9 +1,13 @@
 const path = require('path');
 const webpack = require('webpack');
-const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
 const WebpackCommon = require('./webpack.common');
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 
-module.exports = WebpackCommon({
+const publicPath =
+  (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') +
+  '/static/compiled/';
+
+const prodConfig = WebpackCommon({
   mode: 'production',
   optimization: {
     splitChunks: {
@@ -39,3 +43,7 @@ module.exports = WebpackCommon({
     errorDetails: true,
   },
 });
+
+// Print speed measurements if env variable MEASURE is set
+const smp = new SpeedMeasurePlugin({disable: !process.env.MEASURE});
+module.exports = smp.wrap(prodConfig);

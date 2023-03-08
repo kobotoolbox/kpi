@@ -3,13 +3,16 @@ const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
-var isPublicDomainDefined = process.env.KOBOFORM_PUBLIC_SUBDOMAIN &&
-  process.env.PUBLIC_DOMAIN_NAME;
-var publicDomain = isPublicDomainDefined ? process.env.KOBOFORM_PUBLIC_SUBDOMAIN
-  + '.' + process.env.PUBLIC_DOMAIN_NAME : 'localhost';
-var publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 
-module.exports = WebpackCommon({
+const isPublicDomainDefined =
+  process.env.KOBOFORM_PUBLIC_SUBDOMAIN && process.env.PUBLIC_DOMAIN_NAME;
+const publicDomain = isPublicDomainDefined
+  ? process.env.KOBOFORM_PUBLIC_SUBDOMAIN + '.' + process.env.PUBLIC_DOMAIN_NAME
+  : 'localhost';
+const publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
+
+const devConfig = WebpackCommon({
   mode: 'development',
   optimization: {
     splitChunks: {
@@ -57,3 +60,7 @@ module.exports = WebpackCommon({
     }),
   ],
 });
+
+// Print speed measurements if env variable MEASURE is set
+const smp = new SpeedMeasurePlugin({disable: !process.env.MEASURE});
+module.exports = smp.wrap(devConfig);
