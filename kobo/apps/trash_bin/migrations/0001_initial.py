@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name='ProjectTrash',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('in_progress', 'IN_PROGRESS'), ('pending', 'PENDING'), ('retry', 'RETRY'), ('failed', 'FAILED')], db_index=True, default='pending', max_length=11)),
+                ('status', models.CharField(choices=[('in_progress', 'IN PROGRESS'), ('pending', 'PENDING'), ('retry', 'RETRY'), ('failed', 'FAILED')], db_index=True, default='pending', max_length=11)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
                 ('metadata', models.JSONField(default=dict)),
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             name='AccountTrash',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('in_progress', 'IN_PROGRESS'), ('pending', 'PENDING'), ('retry', 'RETRY'), ('failed', 'FAILED')], db_index=True, default='pending', max_length=11)),
+                ('status', models.CharField(choices=[('in_progress', 'IN PROGRESS'), ('pending', 'PENDING'), ('retry', 'RETRY'), ('failed', 'FAILED')], db_index=True, default='pending', max_length=11)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
                 ('metadata', models.JSONField(default=dict)),

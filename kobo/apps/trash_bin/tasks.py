@@ -3,7 +3,6 @@ import logging
 from celery.signals import task_failure, task_retry
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Q
 from django.db.models.signals import post_delete
 from django_celery_beat.models import (
     ClockedSchedule,

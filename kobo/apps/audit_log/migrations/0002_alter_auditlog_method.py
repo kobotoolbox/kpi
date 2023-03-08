@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='auditlog',
             name='method',
-            field=models.CharField(choices=[('create', 'CREATE'), ('delete', 'DELETE'), ('soft-delete', 'SOFT_DELETE'), ('undelete', 'UNDELETE'), ('update', 'UPDATE')], db_index=True, default='delete', max_length=11),
+            field=models.CharField(choices=[('create', 'CREATE'), ('delete', 'DELETE'), ('in-trash', 'IN TRASH'), ('put-back', 'PUT BACK'), ('soft-delete', 'SOFT DELETE'), ('update', 'UPDATE')], db_index=True, default='delete', max_length=11),
         ),
     ]
