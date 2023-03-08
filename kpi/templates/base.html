@@ -3,7 +3,7 @@
 <head>
     {% load static %}
     {% load render_bundle from webpack_loader %}
-    {% include "global_t.html" %}
+    <script src="{% static 'js/global_t.js' %}"></script>
     {% render_bundle 'app' 'css' %}
     {% render_bundle 'app' 'js' %}
 
@@ -17,6 +17,9 @@
 <link rel="icon" href="{% static 'favicon.png' %}" />
 <!-- iPhone + iPad icons -->
 <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
+{% if google_analytics_token %}
+  <meta name="google-analytics-token" content="{{ google_analytics_token }}">
+{% endif %}
 {% block head %}{% endblock %}
 </head>
 <body>
@@ -44,18 +47,12 @@
 {% endblock %}
 </div>
 
-{% include "global_t.html" %}
+<script src="{% static 'js/global_t.js' %}"></script>
 {% block extra_javascript %}{% endblock %}
 {% if google_analytics_token %}
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', '{{google_analytics_token}}');
-</script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+  <script src="{% static 'js/google_analytics.js' %}"></script>
 {% endif %}
 </body>
 </html>
