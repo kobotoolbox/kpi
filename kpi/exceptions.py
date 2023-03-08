@@ -123,6 +123,12 @@ class KobocatProfileException(Exception):
     pass
 
 
+class KobocatUnresponsiveError(Exception):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__('Could not communicate with KoBoCAT.', *args, **kwargs)
+
+
 class NotSupportedFormatException(Exception):
     pass
 

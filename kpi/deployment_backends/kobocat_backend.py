@@ -44,6 +44,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
     InvalidXPathException,
+    KobocatUnresponsiveError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -391,12 +392,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if (
-                hasattr(e, 'response')
-                and e.response.status_code == status.HTTP_404_NOT_FOUND
-            ):
-                # The KC project is already gone!
-                pass
+            if hasattr(e, 'response'):
+                if e.response.status_code == status.HTTP_404_NOT_FOUND:
+                    # The KC project is already gone!
+                    pass
+                elif e.response.status_code in [
+                    status.HTTP_502_BAD_GATEWAY,
+                    status.HTTP_504_GATEWAY_TIMEOUT,
+                ]:
+                    raise KobocatUnresponsiveError
             else:
                 raise
         super().delete()

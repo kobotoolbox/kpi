@@ -11,8 +11,9 @@ from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
+from kpi.exceptions import KobocatUnresponsiveError
 from kpi.models.asset import Asset
-from .exceptions import TrashTaskInProgressError, TrashKobocatNotResponsiveError
+from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
@@ -20,7 +21,7 @@ from .utils import delete_project
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError, TrashKobocatNotResponsiveError,),
+    autoretry_for=(TrashTaskInProgressError, KobocatUnresponsiveError,),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
@@ -78,7 +79,7 @@ def empty_account(account_trash_id: int):
             except HTTPError as e:
                 error = str(e)
                 if error.startswith(('502', '504',)):
-                    raise TrashKobocatNotResponsiveError
+                    raise KobocatUnresponsiveError
                 if not error.startswith('404'):
                     raise e
 
@@ -116,7 +117,7 @@ def empty_account(account_trash_id: int):
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError, TrashKobocatNotResponsiveError,),
+    autoretry_for=(TrashTaskInProgressError, KobocatUnresponsiveError, ),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
