@@ -2301,7 +2301,6 @@ export const assetWithSupplementalDetails = {
       'url': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
     },
   ],
-  'koboform_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/koboform/',
   'xform_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
   'hooks_link': 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/hooks/',
   'tag_string': '',
