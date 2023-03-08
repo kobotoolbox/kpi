@@ -77,7 +77,7 @@ class ConfigurationFile(models.Model):
 
         response['Content-Type'] = mimetype
         response['Content-Length'] = size
-        response["Last-Modified"] = http_date(mtime)
+        response['Last-Modified'] = http_date(mtime)
         return response
 
     @property
