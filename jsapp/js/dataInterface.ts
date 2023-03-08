@@ -1504,7 +1504,7 @@ export const dataInterface: DataInterface = {
     sort: Array<{desc: boolean; id: string}> = [],
     fields: string[] = [],
     filter = ''
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<PaginatedResponse<SubmissionResponse>> {
     const query = `limit=${pageSize}&start=${page}`;
     let s = '&sort={"_id":-1}'; // default sort
     let f = '';
@@ -1521,7 +1521,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getSubmission(uid: string, sid: string): JQuery.jqXHR<any> {
+  getSubmission(uid: string, sid: string): JQuery.jqXHR<SubmissionResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'GET',
