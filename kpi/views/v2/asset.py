@@ -381,16 +381,7 @@ class AssetViewSet(
         renderer_classes=[renderers.JSONRenderer],
     )
     def bulk(self, request, *args, **kwargs):
-        params = {
-            'data': request.data,
-            'context': self.get_serializer_context(),
-        }
-
-        bulk_actions_validator = AssetBulkActionsSerializer(**params)
-        bulk_actions_validator.is_valid(raise_exception=True)
-        bulk_actions_validator.save()
-
-        return Response(bulk_actions_validator.data)
+        return Response(self._delete_assets(request.data))
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -766,9 +757,7 @@ class AssetViewSet(
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
+        self._delete_assets({'payload':  {'asset_uids': [instance.uid]}})
 
     @action(
         detail=True,
@@ -817,6 +806,18 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
+
+    def _delete_assets(self, data: dict) -> dict:
+        params = {
+            'data': data,
+            'context': self.get_serializer_context(),
+        }
+
+        bulk_actions_validator = AssetBulkActionsSerializer(**params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        bulk_actions_validator.save()
+
+        return bulk_actions_validator.data
 
     def _get_clone_serializer(self, current_asset=None):
         """
