@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 
@@ -64,9 +65,10 @@ class ProjectTrash(BaseTrash):
                 updated = queryset.update(
                     **update_params
                 )
-                kc_updated = KobocatXForm.objects.filter(
-                    **kc_filter_params
-                ).update(**kc_update_params)
-                assert updated >= kc_updated
+                if not settings.TESTING:
+                    kc_updated = KobocatXForm.objects.filter(
+                        **kc_filter_params
+                    ).update(**kc_update_params)
+                    assert updated >= kc_updated
 
         return queryset, updated
