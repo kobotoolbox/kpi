@@ -36,6 +36,29 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     pointer-events: none;
   }
 
+  &[data-field='checkbox'] {
+    // Checkbox has double padding on the right to make for a more forgiving
+    // touch target
+    min-width: sizes.$x18 + sizes.$x20 + sizes.$x36;
+    width: sizes.$x18 + sizes.$x20 + sizes.$x36;
+    padding-right: sizes.$x36;
+    @include mixins.centerRowFlex;
+
+    // Checkbox cell "eats" the left padding of the next cell so its extra
+    // width does not change the layout
+    & + [data-field] {
+      padding-left: 0;
+    }
+
+    // Hovering the checkbox cell clears the underline text-decoration on
+    // Project Name. This clarifies where it's safe to click or not,
+    // especially if you're trying to select multiple projects.
+    &:hover ~ :is(.rowTypeProject .cell[data-field='name']) {
+      text-decoration-color: color.change(colors.$kobo-blue, $alpha: 0);
+      transition: text-decoration-color 0s;
+    }
+  }
+
   &[data-field='countries'],
   &[data-field='description'],
   &[data-field='ownerEmail'],
@@ -75,6 +98,13 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     font-size: sizes.$x16;
     font-weight: 600;
     width: 25%;
+
+    // Setup for underlining the Project Name on row hover.
+    // This clarifies the size of the checkbox touch-target
+    // and makes full-navigation a little more predictable.
+    text-decoration: 2px solid underline color.change(colors.$kobo-blue, $alpha: 0);
+    text-underline-offset: 2px;
+    transition: text-decoration-color 0.3s; // soft transition for whole-row hovers
   }
 
   &[data-field='sector'] {
@@ -90,6 +120,11 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &:hover .cell {
     background-color: $projects-table-hover-bg;
+
+    // When hovering a project row cell, underline the project name.
+    &[data-field='name'] {
+      text-decoration-color: color.change(colors.$kobo-blue, $alpha: 0.25);
+    }
 
     &.cellHighlighted {
       background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);

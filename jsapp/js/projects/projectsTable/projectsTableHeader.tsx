@@ -10,14 +10,13 @@ import rowStyles from './projectsTableRow.module.scss';
 import styles from './projectsTableHeader.module.scss';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
-import KoboDropdown, {
-  KoboDropdownPlacements,
-} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
+  orderableFields: ProjectFieldName[];
   order: ProjectsTableOrder;
   onChangeOrderRequested: (order: ProjectsTableOrder) => void;
   onHideFieldRequested: (fieldName: ProjectFieldName) => void;
@@ -50,7 +49,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       >
         <KoboDropdown
           name={field.name}
-          placement={KoboDropdownPlacements['down-center']}
+          placement={'down-center'}
           hideOnMenuClick
           onMenuVisibilityChange={(isVisible: boolean) => {
             let newVisibleMenuNames = Array.from(visibleMenuNames);
@@ -86,7 +85,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
           }
           menuContent={
             <div className={styles.dropdownContent}>
-              {field.orderable && (
+              {props.orderableFields.includes(field.name) && (
                 <Button
                   type='bare'
                   color='storm'
@@ -101,7 +100,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                   }}
                 />
               )}
-              {field.orderable && (
+              {props.orderableFields.includes(field.name) && (
                 <Button
                   type='bare'
                   color='storm'
@@ -139,6 +138,9 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
   return (
     <header className={tableStyles.header}>
       <div className={classNames(rowStyles.row, rowStyles.rowTypeHeader)}>
+        {/* First column is always visible and displays a checkbox. */}
+        <div className={rowStyles.cell} data-field='checkbox' />
+
         {Object.values(PROJECT_FIELDS).map(renderColumn)}
       </div>
     </header>

@@ -37,17 +37,6 @@ bem.EmptyContent__title = makeBem(bem.EmptyContent, 'title', 'h1');
 bem.EmptyContent__message = makeBem(bem.EmptyContent, 'message', 'p');
 bem.EmptyContent__button = makeBem(bem.EmptyContent, 'button', 'button');
 
-bem.AssetRow = makeBem(null, 'asset-row', 'li');
-bem.AssetRow__cell        = makeBem(bem.AssetRow, 'cell');
-bem.AssetRow__cellmeta    = makeBem(bem.AssetRow, 'cellmeta');
-bem.AssetRow__description = makeBem(bem.AssetRow, 'description', 'span');
-bem.AssetRow__tags        = makeBem(bem.AssetRow, 'tags');
-bem.AssetRow__tags__tag   = makeBem(bem.AssetRow, 'tags__tag', 'span');
-bem.AssetRow__tags__notags = makeBem(bem.AssetRow, 'tags__notags', 'span');
-bem.AssetRow__actionIcon  = makeBem(bem.AssetRow, 'action-icon', 'a');
-bem.AssetRow__buttons        = makeBem(bem.AssetRow, 'buttons');
-bem.AssetRow__typeIcon  = makeBem(bem.AssetRow, 'type-icon', 'span');
-
 bem.ServiceRow = makeBem(null, 'service-row');
 bem.ServiceRow__column = makeBem(bem.ServiceRow, 'column');
 bem.ServiceRow__actionButton = makeBem(bem.ServiceRow, 'action-button', 'button');
@@ -94,7 +83,6 @@ bem.SearchInput = makeBem(null, 'search-input', 'input');
 bem.Search = makeBem(null, 'search');
 bem.Search__icon = makeBem(bem.Search, 'icon', 'i');
 bem.Search__cancel = makeBem(bem.Search, 'cancel', 'i');
-bem.Search__summary = makeBem(bem.Search, 'summary');
 
 bem.LibNav = makeBem(null, 'lib-nav');
 bem.LibNav__content = makeBem(bem.LibNav, 'content');
@@ -135,16 +123,6 @@ bem.CollectionNav__button = makeBem(bem.CollectionNav, 'button', 'button');
 bem.CollectionNav__link = makeBem(bem.CollectionNav, 'link', 'a');
 bem.CollectionNav__searchcancel = makeBem(bem.CollectionNav, 'searchcancel', 'i');
 bem.CollectionNav__searchicon = makeBem(bem.CollectionNav, 'searchicon', 'i');
-
-bem.List = makeBem(null, 'list');
-bem.List__heading = makeBem(bem.List, 'heading');
-bem.List__subheading = makeBem(bem.List, 'subheading');
-
-bem.AssetList = makeBem(null, 'asset-list');
-bem.AssetItems = makeBem(null, 'asset-items', 'ul');
-
-bem.AssetListSorts = makeBem(null, 'asset-list-sorts', 'div');
-bem.AssetListSorts__item = makeBem(bem.AssetListSorts, 'item');
 
 bem.FormView = makeBem(null, 'form-view');
 // used in header.es6

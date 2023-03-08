@@ -3,11 +3,8 @@ import {useNavigate} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
-import KoboDropdown, {
-  KoboDropdownPlacements,
-} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import {PROJECTS_ROUTES} from 'js/projects/routes';
-import {ROUTES} from 'js/router/routerConstants';
 import projectViewsStore from './projectViewsStore';
 import styles from './viewSwitcher.module.scss';
 import {HOME_VIEW} from './constants';
@@ -24,8 +21,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
   const onOptionClick = (viewUid: string) => {
     if (viewUid === HOME_VIEW.uid || viewUid === null) {
-      // TODO change this to PROJECTS_ROUTES.MY_PROJECTS
-      navigate(ROUTES.FORMS);
+      navigate(PROJECTS_ROUTES.MY_PROJECTS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
       // The store keeps a number of assets of each view, and that number
@@ -34,18 +30,24 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     }
   };
 
-  const getTriggerLabel = () => {
-    if (props.selectedViewUid === HOME_VIEW.uid) {
-      return HOME_VIEW.name;
-    }
+  let triggerLabel = HOME_VIEW.name;
+  if (props.selectedViewUid !== HOME_VIEW.uid) {
+    triggerLabel = projectViews.getView(props.selectedViewUid)?.name || '-';
+  }
 
-    return projectViews.getView(props.selectedViewUid)?.name;
-  };
-
-  // We don't want to display anything before the API call is done. If there are
-  // no custom views defined, there's no point in displaying it either.
-  if (!projectViews.isFirstLoadComplete || projectViews.views.length === 0) {
+  // We don't want to display anything before the API call is done.
+  if (!projectViews.isFirstLoadComplete) {
     return null;
+  }
+
+  // If there are no custom views defined, there's no point in displaying
+  // the dropdown, we will display a "simple" header.
+  if (projectViews.views.length === 0) {
+    return (
+      <button className={classNames(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
+        <label>{triggerLabel}</label>
+      </button>
+    );
   }
 
   return (
@@ -57,12 +59,12 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     >
       <KoboDropdown
         name='projects_view_switcher'
-        placement={KoboDropdownPlacements['down-left']}
+        placement={'down-left'}
         hideOnMenuClick
         onMenuVisibilityChange={setIsMenuVisible}
         triggerContent={
-          <button className={styles.trigger}>
-            {getTriggerLabel()}
+          <button className={styles.trigger} title={triggerLabel}>
+            <label>{triggerLabel}</label>
             <Icon size='xxs' name={isMenuVisible ? 'caret-up' : 'caret-down'} />
           </button>
         }

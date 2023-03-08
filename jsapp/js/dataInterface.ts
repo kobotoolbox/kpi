@@ -311,6 +311,7 @@ export interface AssetContent {
   choices?: SurveyChoice[];
   settings?: AssetContentSettings | AssetContentSettings[];
   translated?: string[];
+  /** A list of languages. */
   translations?: Array<string|null>;
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[];
 }
@@ -551,6 +552,7 @@ export interface AssetResponse extends AssetRequestObject {
 /** This is the asset object returned by project-views endpoint. */
 export interface ProjectViewAsset {
   url: string;
+  asset_type: AssetTypeName;
   date_modified: string;
   date_created: string;
   date_deployed: string | null;
@@ -561,21 +563,12 @@ export interface ProjectViewAsset {
   owner__name: string;
   owner__organization: string;
   uid: string;
-  kind: string;
   name: string;
   settings: AssetSettings;
   languages: Array<string | null>;
-  asset_type: string;
-  version_id: string;
-  version_count: number;
   has_deployment: boolean;
-  deployed_version_id: string | null;
   deployment__active: boolean;
   deployment__submission_count: number;
-  permissions: string[];
-  status: string;
-  data_sharing: {};
-  data: string;
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
@@ -775,6 +768,15 @@ interface ExternalServiceRequestData {
   payload_template: string;
   username?: string;
   password?: string;
+}
+
+export interface DeploymentResponse {
+  backend: string;
+  /** URL */
+  identifier: string;
+  active: boolean;
+  version_id: string;
+  asset: AssetResponse;
 }
 
 interface DataInterface {
@@ -1451,7 +1453,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deployAsset(asset: AssetResponse, redeployment: boolean): JQuery.jqXHR<any> {
+  deployAsset(asset: AssetResponse, redeployment: boolean): JQuery.jqXHR<DeploymentResponse> {
     const data: {
       active: boolean;
       version_id?: string | null;
@@ -1470,7 +1472,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  setDeploymentActive(params: {asset: AssetResponse; active: boolean}): JQuery.jqXHR<any> {
+  setDeploymentActive(params: {asset: AssetResponse; active: boolean}): JQuery.jqXHR<DeploymentResponse> {
     return $ajax({
       method: 'PATCH',
       url: `${params.asset.url}deployment/`,

@@ -375,10 +375,6 @@ class FormSummary extends React.Component {
       )
     );
 
-    // if (!this.state.permissions) {
-    //   return (<LoadingSpinner/>);
-    // }
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>

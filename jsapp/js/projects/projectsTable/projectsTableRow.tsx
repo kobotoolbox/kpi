@@ -14,11 +14,14 @@ import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import assetUtils, {isSelfOwned} from 'js/assetUtils';
 import styles from './projectsTableRow.module.scss';
 import classNames from 'classnames';
+import Checkbox from 'js/components/common/checkbox';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse | ProjectViewAsset;
   highlightedFields: ProjectFieldName[];
   visibleFields: ProjectFieldName[];
+  isSelected: boolean;
+  onSelectRequested: (isSelected: boolean) => void;
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
@@ -26,6 +29,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
 
   const onRowClick = () => {
     navigate(ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid));
+  };
+
+  const onCheckboxClick = (
+    evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>
+  ) => {
+    // When checkbox is clicked, the whole row also receives click event, and it
+    // causes the navigation to happen. We want to avoid that obviously.
+    evt.stopPropagation();
   };
 
   const renderColumnContent = (field: ProjectFieldDefinition) => {
@@ -123,6 +134,25 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       className={classNames(styles.row, styles.rowTypeProject)}
       onClick={onRowClick}
     >
+      {/* First column is always visible and displays a checkbox. */}
+      <div
+        className={styles.cell}
+        data-field='checkbox'
+        onClick={(evt) => {
+          // Usability - Treat the full cell as clickable target for the
+          // checkbox. Makes multi-selection easier, and forgives miss-clicks
+          // that would otherwise navigate to the project overview.
+          props.onSelectRequested(!props.isSelected); // Toggle the selection
+          evt.stopPropagation(); // Prevent treating as a row navigation
+        }}
+      >
+        <Checkbox
+          checked={props.isSelected}
+          onChange={props.onSelectRequested}
+          onClick={onCheckboxClick}
+        />
+      </div>
+
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {
         // Hide not visible fields.
         if (!props.visibleFields.includes(field.name)) {
