@@ -1,14 +1,15 @@
 import stripe
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
-from djstripe.models import Customer, Product, Subscription, Price
-from djstripe.settings import djstripe_settings
-from organizations.utils import create_organization
-from rest_framework import mixins, status, viewsets
-
+from django.core.exceptions import ObjectDoesNotExist'
 from django.db.models import Prefetch
-from djstripe.models import Plan, Product, Subscription
+
+from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
+from djstripe.settings import djstripe_settings
+
+from organizations.utils import create_organization
+
+from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -143,18 +144,72 @@ class SubscriptionViewSet(
         return self.queryset.filter(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__users=self.request.user,
+        ).prefetch_related(
+            Prefetch(
+                'items',
+                queryset=SubscriptionItem.objects.select_related(
+                    'price__product'
+                ),
+            )
         )
 
 
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    """
+    Returns Product and Price Lists
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/stripe/products/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/stripe/products/
+
+    > Response
+    >
+    >       HTTP 200 Ok
+    >        {
+    >           "count": ...
+    >           "next": ...
+    >           "previous": ...
+    >           "results": [
+    >               {
+    >                   "id": string,
+    >                   "name": string,
+    >                   "type": string,
+    >                   "prices": [
+    >                       {
+    >                           "id": string,
+    >                           "nickname": string,
+    >                           "currency": string,
+    >                           "type": string,
+    >                           "unit_amount": int (cents),
+    >                           "human_readable_price": string,
+    >                           "metadata": {}
+    >                       },
+    >                       ...
+    >                   ],
+    >                   "metadata": {},
+    >               },
+    >               ...
+    >           ]
+    >        }
+    >
+
+    ### Note: unit_amount is price in cents
+
+    ## Current Endpoint
+    """
+
     queryset = (
         Product.objects.filter(
             active=True,
             livemode=settings.STRIPE_LIVE_MODE,
-            plan__active=True,
+            prices__active=True,
         )
         .prefetch_related(
-            Prefetch("plan_set", queryset=Plan.objects.filter(active=True))
+            Prefetch('prices', queryset=Price.objects.filter(active=True))
         )
         .distinct()
     )
