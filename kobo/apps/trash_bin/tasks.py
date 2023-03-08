@@ -115,7 +115,13 @@ def empty_account(account_trash_id: int):
     logging.info(f'User {user.username} (#{user_id}) has been successfully deleted!')
 
 
-@celery_app.task
+@celery_app.task(
+    autoretry_for=(TrashTaskInProgressError, TrashKobocatNotResponsiveError,),
+    retry_backoff=60,
+    retry_backoff_max=600,
+    max_retries=5,
+    retry_jitter=False,
+)
 def empty_project(project_trash_id: int):
     with transaction.atomic():
         project_trash = ProjectTrash.objects.select_for_update().get(
@@ -134,7 +140,8 @@ def empty_project(project_trash_id: int):
     delete_project(project_trash.request_author, project_trash.asset)
     PeriodicTask.objects.get(pk=project_trash.periodic_task_id).delete()
     logging.info(
-        f'Project {project_trash.asset.name} (#{project_trash.asset.uid}) has been successfully deleted!'
+        f'Project {project_trash.asset.name} (#{project_trash.asset.uid}) has '
+        f'been successfully deleted!'
     )
 
 

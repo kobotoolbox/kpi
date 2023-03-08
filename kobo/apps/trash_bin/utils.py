@@ -17,19 +17,24 @@ from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kpi.models import Asset
+from kpi.utils.mongo_helper import MongoHelper
 from .exceptions import (
     TrashIntegrityError,
     TrashNotImplementedError,
+    TrashMongoDeleteOrphansError,
     TrashTaskInProgressError,
+    TrashUnknownKobocatError,
 )
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
+from .exceptions import TrashKobocatNotResponsiveError
 
 
 def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
+        asset.deployment.delete()
 
     with transaction.atomic():
         asset_id = asset.pk
@@ -211,7 +216,7 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
         ))
         if not submissions:
             if not (
-                submissions := asset.deployment.get_zombie_submissions()
+                submissions := asset.deployment.get_orphan_submissions()
             ):
                 stop = True
                 continue
@@ -234,8 +239,27 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
             {'submission_ids': submission_ids, 'query': ''}, request_author
         )
 
-        # If requests has succeeded, let's log deletions (if any)
-        if json_response['status'] == status.HTTP_200_OK and audit_logs:
+        if json_response['status'] in [
+            status.HTTP_502_BAD_GATEWAY,
+            status.HTTP_504_GATEWAY_TIMEOUT,
+        ]:
+            raise TrashKobocatNotResponsiveError
+
+        if json_response['status'] not in [
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_200_OK,
+        ]:
+            raise TrashUnknownKobocatError(response=json_response)
+
+        if audit_logs:
+            if json_response['status'] == status.HTTP_404_NOT_FOUND:
+                # Submissions are wandering in MongoDB but XForm has been
+                # already deleted
+                if not MongoHelper.delete(
+                    asset.deployment.mongo_userform_id, submission_ids
+                ):
+                    raise TrashMongoDeleteOrphansError
+
             AuditLog.objects.bulk_create(audit_logs)
 
 

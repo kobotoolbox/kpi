@@ -851,6 +851,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
+    def get_orphan_submissions(self) -> QuerySet:
+        all_submissions = self.get_submissions(
+            user=self.asset.owner,
+            fields=['_id'],
+            skip_count=True,
+        )
+        try:
+            next(all_submissions)
+        except StopIteration:
+            pass
+        else:
+            return False
+
+        return ReadOnlyKobocatInstance.objects.filter(
+            xform_id=self.xform_id
+        ).annotate(_id=F('pk'), _uuid=F('uuid')).values('_id', '_uuid')
+
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
         return url
@@ -911,25 +928,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
-
-    def get_zombie_submissions(self) -> list[dict]:
-        all_submissions = self.get_submissions(
-            user=self.asset.owner,
-            fields=['_id'],
-            skip_count=True,
-        )
-        try:
-            next(all_submissions)
-        except StopIteration:
-            pass
-        else:
-            raise Exception
-
-        return list(
-            ReadOnlyKobocatInstance.objects.filter(
-                xform_id=self.xform_id
-            ).annotate(_id=F('pk'), _uuid=F('uuid')).values('_id', '_uuid')
-        )
 
     @staticmethod
     def internal_to_external_url(url):

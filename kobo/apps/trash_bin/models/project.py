@@ -67,6 +67,6 @@ class ProjectTrash(BaseTrash):
                 kc_updated = KobocatXForm.objects.filter(
                     **kc_filter_params
                 ).update(**kc_update_params)
-                assert updated == kc_updated
+                assert updated >= kc_updated
 
         return queryset, updated

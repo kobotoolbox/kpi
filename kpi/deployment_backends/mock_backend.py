@@ -9,7 +9,6 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -18,9 +17,7 @@ except ImportError:
 from deepmerge import always_merger
 from dict2xml import dict2xml
 from django.conf import settings
-from django.db.models import QuerySet
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext as t
 from lxml import etree
 from rest_framework import status
@@ -389,6 +386,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'preview_url': 'https://enke.to/preview/::self',
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
+
+    def get_orphan_submissions(self) -> list[dict]:
+        pass
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         # This doesn't really need to be implemented.
