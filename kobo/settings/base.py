@@ -748,9 +748,15 @@ CELERY_TASK_SOFT_TIME_LIMIT = int(
 
 CELERY_BEAT_SCHEDULE = {
     # Schedule every day at midnight UTC. Can be customized in admin section
-    "send-hooks-failures-reports": {
-        "task": "kobo.apps.hook.tasks.failures_reports",
-        "schedule": crontab(hour=0, minute=0),
+    'send-hooks-failures-reports': {
+        'task': 'kobo.apps.hook.tasks.failures_reports',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'trash-bin-garbage-collector': {
+        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
+        'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }

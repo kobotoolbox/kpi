@@ -3,8 +3,13 @@ import logging
 from celery.signals import task_failure, task_retry
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
 from django.db.models.signals import post_delete
-from django_celery_beat.models import PeriodicTasks, PeriodicTask
+from django_celery_beat.models import (
+    ClockedSchedule,
+    PeriodicTask,
+    PeriodicTasks,
+)
 from requests.exceptions import HTTPError
 
 from kobo.apps.trackers.models import MonthlyNLPUsageCounter
@@ -208,6 +213,27 @@ def empty_project_retry(sender=None, **kwargs):
 
 @celery_app.task
 def garbage_collector():
-    # Do something with IN_progress for more than X hours
-    # Delete complete
-    pass
+    with transaction.atomic():
+        # Remove orphan periodic tasks
+        PeriodicTask.objects.exclude(
+            pk__in=AccountTrash.objects.values_list(
+                'periodic_task_id', flat=True
+            ),
+        ).filter(
+            name__startswith='Delete user’s', clocked__isnull=False
+        ).delete()
+
+        PeriodicTask.objects.exclude(
+            pk__in=ProjectTrash.objects.values_list(
+                'periodic_task_id', flat=True
+            ),
+        ).filter(
+            name__startswith='Delete project', clocked__isnull=False
+        ).delete()
+
+        # Then, remove clocked schedules
+        ClockedSchedule.objects.exclude(
+            pk__in=PeriodicTask.objects.filter(
+                clocked__isnull=False
+            ).values_list('clocked_id', flat=True),
+        ).delete()
