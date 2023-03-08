@@ -110,16 +110,9 @@ class AssetManager(models.Manager):
 
     def deployed(self):
         """
-        Filter for deployed assets (i.e. assets having at least one deployed
-        version) in an efficient way that doesn't involve joining or counting.
-        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        Filter for deployed assets (i.e. assets without a null value for `date_deployed`)
         """
-        deployed_versions = AssetVersion.objects.filter(
-            asset=OuterRef('pk'), deployed=True
-        )
-        return self.annotate(deployed=Exists(deployed_versions)).filter(
-            deployed=True
-        )
+        return self.exclude(date_deployed__isnull=True)
 
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
