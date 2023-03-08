@@ -22,31 +22,13 @@ const postCssLoader = {
   },
 };
 
-const babelLoader = {
-  loader: 'babel-loader',
-  options: {
-    presets: ['@babel/preset-env', '@babel/preset-react'],
-    plugins: ['react-hot-loader/babel'],
-  },
-};
-
 const commonOptions = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|es6)$/,
+        test: /\.(js|jsx|es6|ts|tsx)$/,
         exclude: /node_modules/,
-        use: babelLoader,
-      },
-      {
-        test: /\.(ts|tsx)$/,
-        exclude: /node_modules/,
-        use: [
-          babelLoader,
-          {
-            loader: 'ts-loader',
-          },
-        ],
+        use: 'swc-loader',
       },
       {
         test: /\.css$/,

@@ -1,7 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
-const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const publicPath =
   (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') +
@@ -19,6 +19,14 @@ const prodConfig = WebpackCommon({
         },
       },
     },
+    // Speed up the minify step with swc
+    // https://webpack.js.org/plugins/terser-webpack-plugin/#swc
+    minimizer: [
+      new TerserPlugin({
+        minify: TerserPlugin.swcMinify,
+        terserOptions: {},
+      }),
+    ],
   },
   entry: {
     app: './jsapp/js/main.es6',
@@ -45,5 +53,10 @@ const prodConfig = WebpackCommon({
 });
 
 // Print speed measurements if env variable MEASURE is set
-const smp = new SpeedMeasurePlugin({disable: !process.env.MEASURE});
-module.exports = smp.wrap(prodConfig);
+if (process.env.MEASURE) {
+  const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+  const smp = new SpeedMeasurePlugin();
+  module.exports = smp.wrap(prodConfig);
+} else {
+  module.exports = prodConfig;
+}

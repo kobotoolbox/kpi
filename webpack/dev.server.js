@@ -1,9 +1,8 @@
 process.traceDeprecation = true;
 const path = require('path');
-const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
-const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const isPublicDomainDefined =
   process.env.KOBOFORM_PUBLIC_SUBDOMAIN && process.env.PUBLIC_DOMAIN_NAME;
@@ -26,7 +25,7 @@ const devConfig = WebpackCommon({
     },
   },
   entry: {
-    app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
+    app: ['./jsapp/js/main.es6'],
     browsertests: path.resolve(__dirname, '../test/index.js'),
   },
   output: {
@@ -45,12 +44,8 @@ const devConfig = WebpackCommon({
     port: 3000,
     host: '0.0.0.0',
   },
+  devtool: 'eval-source-map',
   plugins: [
-    new webpack.SourceMapDevToolPlugin({
-      filename: '[file].map',
-      exclude: /vendors.*.*/,
-    }),
-    new webpack.HotModuleReplacementPlugin(),
     new CircularDependencyPlugin({
       exclude: /a\.js|node_modules/,
       include: /jsapp/,
@@ -58,9 +53,15 @@ const devConfig = WebpackCommon({
       allowAsyncCycles: false,
       cwd: process.cwd(),
     }),
+    new ReactRefreshWebpackPlugin(),
   ],
 });
 
 // Print speed measurements if env variable MEASURE is set
-const smp = new SpeedMeasurePlugin({disable: !process.env.MEASURE});
-module.exports = smp.wrap(devConfig);
+if (process.env.MEASURE) {
+  const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+  const smp = new SpeedMeasurePlugin();
+  module.exports = smp.wrap(devConfig);
+} else {
+  module.exports = devConfig;
+}

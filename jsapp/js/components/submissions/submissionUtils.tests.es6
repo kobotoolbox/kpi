@@ -40,6 +40,10 @@ import {
 } from './submissionUtils';
 import {actions} from 'js/actions';
 
+// Be able to exclude __proto__ when deeply comparing with mock objects
+import chaiExclude from 'chai-exclude';
+chai.use(chaiExclude);
+
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
       const test = getSubmissionDisplayData(
@@ -51,7 +55,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 1, simpleSurveySubmission).children;
       const target = simpleSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a null data entries for a survey with no answers', () => {
@@ -64,7 +68,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, simpleSurveySubmissionEmpty).children;
       const target = simpleSurveyDisplayDataEmpty;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with a repeat group', () => {
@@ -77,7 +81,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, repeatSurveySubmission).children;
       const target = repeatSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with nested repeat groups', () => {
@@ -90,7 +94,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, nestedRepeatSurveySubmission).children;
       const target = nestedRepeatSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with a matrix', () => {
@@ -103,7 +107,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, matrixSurveySubmission).children;
       const target = matrixSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a valid data for a survey with all kinds of groups', () => {
@@ -116,7 +120,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, groupsSurveySubmission).children;
       const target = groupsSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a valid data for every possible question type', () => {
@@ -129,7 +133,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, everythingSurveySubmission).children;
       const target = everythingSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 
   it('should return a valid data for a matrix group inside repeat group', () => {
@@ -142,7 +146,7 @@ describe('getSubmissionDisplayData', () => {
           },
         }, 0, matrixRepeatSurveySubmission).children;
       const target = matrixRepeatSurveyDisplayData;
-      expect(test).to.deep.equal(target);
+      expect(test).excludingEvery('__proto__').to.deep.equal(target);
   });
 });
 

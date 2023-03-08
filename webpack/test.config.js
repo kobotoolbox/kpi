@@ -1,6 +1,5 @@
 const path = require('path');
 const WebpackCommon = require('./webpack.common');
-const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 
 const testConfig = WebpackCommon({
   mode: 'development',
@@ -20,5 +19,10 @@ const testConfig = WebpackCommon({
 });
 
 // Print speed measurements if env variable MEASURE is set
-const smp = new SpeedMeasurePlugin({disable: !process.env.MEASURE});
-module.exports = smp.wrap(testConfig);
+if (process.env.MEASURE) {
+  const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+  const smp = new SpeedMeasurePlugin();
+  module.exports = smp.wrap(testConfig);
+} else {
+  module.exports = testConfig;
+}
