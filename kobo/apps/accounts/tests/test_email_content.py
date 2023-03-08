@@ -58,21 +58,22 @@ class EmailContentModelTestCase(TestCase):
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_custom_activation_email_template_blank_content(self):
-        email_content = EmailContent.objects.create(
-            email_name='email_confirmation_signup_message',
-            section_name='section_one',
-            content=''
-        )
-        email_content_closing = EmailContent.objects.create(
-            email_name='email_confirmation_signup_message',
-            section_name='section_two',
-            content=''
-        )
-        email_subject = EmailContent.objects.create(
-            email_name='email_confirmation_signup_message',
-            section_name='subject',
-            content=''
-        )
+        with self.assertNumQueries(3):
+            email_content = EmailContent.objects.create(
+                email_name='email_confirmation_signup_message',
+                section_name='section_one',
+                content=''
+            )
+            email_content_closing = EmailContent.objects.create(
+                email_name='email_confirmation_signup_message',
+                section_name='section_two',
+                content=''
+            )
+            email_subject = EmailContent.objects.create(
+                email_name='email_confirmation_signup_message',
+                section_name='subject',
+                content=''
+            )
         # Using the randomint to make sure that usernames and emails
         # are unique to ensure the tests will pass when run back to back
         # as only one email can be requested per username and email every three
@@ -93,7 +94,6 @@ class EmailContentModelTestCase(TestCase):
         self.client.get(reverse('account_email_verification_sent'))
         assert len(mail.outbox) == 1
         assert mail.outbox[0].subject == 'Activate your KoboToolbox Account'
-        self.assertNumQueries(1)
         assert email_content.content in mail.outbox[0].body
         assert default not in mail.outbox[0].body
 
