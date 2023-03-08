@@ -1,6 +1,5 @@
 const BundleTracker = require('webpack-bundle-tracker');
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
-const ESLintPlugin = require('eslint-webpack-plugin');
 const fs = require('fs');
 const lodash = require('lodash');
 const path = require('path');
@@ -34,26 +33,6 @@ const babelLoader = {
 const commonOptions = {
   module: {
     rules: [
-      {
-        enforce: 'pre',
-        test: /\.coffee$/,
-        exclude: /node_modules/,
-        loader: 'less-terrible-coffeelint-loader',
-        options: {
-          failOnErrors: true,
-          failOnWarns: false,
-          // custom reporter function that only returns errors (no warnings)
-          reporter: function (errors) {
-            errors.forEach((error) => {
-              if (error.level === 'error') {
-                this.emitError(
-                  [error.lineNumber, error.message].join(' ') + '\n'
-                );
-              }
-            });
-          },
-        },
-      },
       {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
@@ -128,10 +107,6 @@ const commonOptions = {
       output: path.join(outputPath, 'extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({$: 'jquery'}),
-    new ESLintPlugin({
-      quiet: true,
-      extensions: ['js', 'jsx', 'ts', 'tsx', 'es6'],
-    }),
   ],
 };
 
