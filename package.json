@@ -148,15 +148,16 @@
   "scripts": {
     "postinstall": "npm run copy-fonts",
     "build": "webpack --config webpack/prod.config.js",
-    "watch": "npm run generate-icons && webpack-dev-server --config webpack/dev.server.js",
+    "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
-    "test-autobuild": "echo \"hint: open file://$(pwd)/test/tests.html, refresh manually\n\n\" && webpack --config webpack/test.autobuild.js",
+    "test-autobuild": "npm run hint test-autobuild && webpack --config webpack/test.autobuild.js",
     "lint": "eslint \"jsapp/js/**/*\" --ext .es6,.js,.jsx,.ts,.tsx",
     "lint-coffee": "coffeelint -f ./coffeelint.json jsapp/xlform/src test",
     "lint-styles": "stylelint jsapp/**/*.{css,scss} --ip jsapp/compiled --ip jsapp/fonts",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons",
+    "hint": "node ./scripts/hints.js",
     "storybook": "start-storybook -p 6006 --no-open",
     "build-storybook": "build-storybook"
   },
