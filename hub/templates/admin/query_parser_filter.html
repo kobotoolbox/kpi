@@ -1,22 +1,11 @@
-<style>
-  pre.pre-inline {
-    display: inline-block;
-    margin: 0;
-    padding-left: 1px;
-    padding-right: 0;
-    overflow-x: inherit;
-  }
+{% load static %}
+<link rel="stylesheet" href="{% static 'admin/css/query_parser_filter.css' %}"/>
 
-  pre.pre-inline:first-child {
-    padding-left: 10px;
-  }
-
-</style>
 <h3>Advanced query search</h3>
 
 <ul>
   <li>You can use django <a
-    style="display: inline"
+    class="hub-queryparser--d-inline"
     href="https://docs.djangoproject.com/en/3.2/ref/models/querysets/#field-lookups">
     field lookups</a> to perform advanced searches
   </li>
@@ -32,11 +21,11 @@
   </li>
   <li><b>Fields:</b></li>
   <li>
-    <pre class="pre-inline">first_name</pre>,
-    <pre class="pre-inline">last_name</pre>,
-    <pre class="pre-inline">username</pre>,
-    <pre class="pre-inline">email</pre>,
-    <pre class="pre-inline">last_login</pre>,
-    <pre class="pre-inline">extra_details__date_deactivated</pre>
+    <pre class="hub-queryparser--pre-inline">first_name</pre>,
+    <pre class="hub-queryparser--pre-inline">last_name</pre>,
+    <pre class="hub-queryparser--pre-inline">username</pre>,
+    <pre class="hub-queryparser--pre-inline">email</pre>,
+    <pre class="hub-queryparser--pre-inline">last_login</pre>,
+    <pre class="hub-queryparser--pre-inline">extra_details__date_deactivated</pre>
   </li>
 </ul>
