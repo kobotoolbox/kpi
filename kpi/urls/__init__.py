@@ -41,6 +41,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
     path('', include('kobo.apps.accounts.urls')),
     re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
+    re_path(r'^api/v2/audit-logs\.(?P<format>[a-z0-9]+)?/$', include('kobo.apps.audit_log.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
