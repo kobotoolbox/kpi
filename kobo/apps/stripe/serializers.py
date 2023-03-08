@@ -1,4 +1,4 @@
-from django.core.exceptions import SuspiciousOperation
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from djstripe.models import (
     Customer,
     Price,
@@ -6,6 +6,7 @@ from djstripe.models import (
     Subscription,
     SubscriptionItem,
 )
+
 from rest_framework import serializers
 
 
@@ -27,6 +28,29 @@ class BasePriceSerializer(serializers.ModelSerializer):
             "human_readable_price",
             "metadata",
         )
+
+class CustomerPortalSerializer(serializers.Serializer):
+    organization_uid = serializers.CharField(required=True)
+
+    def validate_organization_uid(self, organization_uid):
+        if organization_uid.startswith('org'):
+            return organization_uid
+        raise ValidationError('Invalid organization ID')
+
+
+class CheckoutLinkSerializer(serializers.Serializer):
+    price_id = serializers.CharField(required=True)
+    organization_uid = serializers.CharField(required=False)
+
+    def validate_price_id(self, price_id):
+        if price_id.startswith('price_'):
+            return price_id
+        raise ValidationError('Invalid price ID')
+
+    def validate_organization_uid(self, organization_uid):
+        if organization_uid.startswith('org') or not organization_uid:
+            return organization_uid
+        raise ValidationError('Invalid organization ID')
 
 
 class PriceSerializer(BasePriceSerializer):
