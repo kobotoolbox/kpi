@@ -557,6 +557,7 @@ def generate_user_details_report(output_filename: str):
         'linkedin',
         'instagram',
         'metadata',
+        'last_ui_language'
     ]
 
     def flatten_metadata_inplace(metadata: dict):

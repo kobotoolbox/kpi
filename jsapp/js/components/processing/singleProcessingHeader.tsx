@@ -101,7 +101,7 @@ class SingleProcessingHeader extends React.Component<
               0
             );
             options.push({
-              id: qpath,
+              value: qpath,
               label: translatedLabel !== null ? translatedLabel : rowName,
               icon: getRowTypeIcon(questionData.type),
             });

@@ -104,7 +104,7 @@ export default class RegionSelector extends React.Component<
         if (serviceLanguageCode && label) {
           outcome.push({
             label: label,
-            id: serviceLanguageCode,
+            value: serviceLanguageCode,
           });
         }
       }

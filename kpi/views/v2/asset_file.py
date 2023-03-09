@@ -149,6 +149,21 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         model = AssetFile
         model_file_field = 'content'
 
+        # Help mitigate the risk from things like inline JavaScript inside SVGs
+        # by forcing the browser to download the file instead of display it.
+        # File content can still be embedded e.g. via an `<img>` tag, but that
+        # is not a concern because browsers refuse to execute scripts inside
+        # these embeds. From
+        # https://html.spec.whatwg.org/multipage/embedded-content.html#the-img-element:
+        #   The src attribute must be present, and must contain a valid
+        #   non-empty URL potentially surrounded by spaces referencing a
+        #   non-interactive, optionally animated, image resource that is neither
+        #   paged nor scripted.
+        #
+        # Setting `ENABLE_CSP=True` will also thwart inline JS inside SVGs, so
+        # long as `unsafe-inline` is not allowed by the policy.
+        content_disposition = 'attachment'
+
         # ToDo Evaluate this check, may be redundant.
         # `AssetNestedObjectPermission` is already in charge to check
         # permissions
