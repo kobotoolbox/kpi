@@ -34,11 +34,6 @@ class EmailContentModelTestCase(TestCase):
             section_name='subject',
             content='This is a test subject line'
         )
-
-        # Using the randomint to make sure that usernames and emails
-        # are unique to ensure the tests will pass when run back to back
-        # as only one email can be requested per username and email every three
-        # minutes
         username = 'user001'
         email = username + '@example.com'
         data = {
@@ -58,26 +53,21 @@ class EmailContentModelTestCase(TestCase):
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_custom_activation_email_template_blank_content(self):
-        with self.assertNumQueries(3):
-            email_content = EmailContent.objects.create(
-                email_name='email_confirmation_signup_message',
-                section_name='section_one',
-                content=''
-            )
-            email_content_closing = EmailContent.objects.create(
-                email_name='email_confirmation_signup_message',
-                section_name='section_two',
-                content=''
-            )
-            email_subject = EmailContent.objects.create(
-                email_name='email_confirmation_signup_message',
-                section_name='subject',
-                content=''
-            )
-        # Using the randomint to make sure that usernames and emails
-        # are unique to ensure the tests will pass when run back to back
-        # as only one email can be requested per username and email every three
-        # minutes
+        email_content = EmailContent.objects.create(
+            email_name='email_confirmation_signup_message',
+            section_name='section_one',
+            content=''
+        )
+        email_content_closing = EmailContent.objects.create(
+            email_name='email_confirmation_signup_message',
+            section_name='section_two',
+            content=''
+        )
+        email_subject = EmailContent.objects.create(
+            email_name='email_confirmation_signup_message',
+            section_name='subject',
+            content=''
+        )
         username = 'user002'
         email = username + '@example.com'
         data = {
@@ -87,7 +77,8 @@ class EmailContentModelTestCase(TestCase):
             'username': username,
         }
         default = "Thanks for signing up with KoboToolbox!"
-        request = self.client.post(self.signup_url, data)
+        with self.assertNumQueries(42):
+            request = self.client.post(self.signup_url, data)
         user = get_user_model().objects.get(email=email)
         assert request.status_code == status.HTTP_302_FOUND
         self.client.login(username=user.username, password=user.password)
@@ -99,10 +90,6 @@ class EmailContentModelTestCase(TestCase):
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
     def test_default_activation_email_template(self):
-        # Using the randomint to make sure that usernames and emails
-        # are unique to ensure the tests will pass when run back to back
-        # as only one email can be requested per username and email every three
-        # minutes
         username = 'user003'
         email = username + '@example.com'
         data = {
