@@ -17,6 +17,7 @@ from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatUnresponsiveError
 from kpi.models.asset import Asset
+from kpi.utils.storage import rmdir
 from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
@@ -107,6 +108,8 @@ def empty_account(account_trash_id: int):
                 audit_log_params['method'] = AuditMethod.SOFT_DELETE
 
             AuditLog.objects.create(**audit_log_params)
+
+        rmdir(f'{asset.owner.username}/')
 
     finally:
         post_delete.connect(

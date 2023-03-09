@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.db import IntegrityError, transaction
 from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_delete
+from django.core.files.storage import default_storage
 from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
@@ -19,6 +20,7 @@ from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kpi.exceptions import KobocatUnresponsiveError
 from kpi.models import Asset
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.storage import rmdir
 from .exceptions import (
     TrashIntegrityError,
     TrashNotImplementedError,
@@ -32,8 +34,12 @@ from .models.project import ProjectTrash
 
 
 def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
+    deployment_backend_uuid = None
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
+        deployment_backend_uuid = asset.deployment.get_data(
+            'backend_response.uuid'
+        )
         asset.deployment.delete()
 
     with transaction.atomic():
@@ -49,6 +55,13 @@ def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
                 'asset_name': asset.name,
             }
         )
+
+    # Delete all related files
+    default_storage.delete(f'{asset.owner.username}/xls/{asset.uid}.xls')
+    default_storage.delete(f'{asset.owner.username}/xls/{asset.uid}.xlsx')
+    rmdir(f'{asset.owner.username}/asset_files/{asset.uid}')
+    if deployment_backend_uuid:
+        rmdir(f'{asset.owner.username}/form-media/{deployment_backend_uuid}')
 
 
 @transaction.atomic
