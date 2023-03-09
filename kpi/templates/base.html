@@ -52,7 +52,7 @@
 {% if google_analytics_token %}
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
-  <script src="{% static 'js/google_analytics.js' %}"></script>
+  <!-- The rest of the setup is in main.es6 file -->
 {% endif %}
 </body>
 </html>
