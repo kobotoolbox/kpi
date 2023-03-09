@@ -119,25 +119,34 @@ class ExtendedUserAdmin(UserAdmin):
             {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
-    actions = ['deactivate', 'delete']
+    actions = ['purge', 'delete']
 
-    @admin.action(description='Deactivate selected users')
-    def deactivate(self, request, queryset, **kwargs):
+    @admin.action(description='Delete selected users (keep only their username)')
+    def delete(self, request, queryset, **kwargs):
+        """
+        Put users in trash and schedule their data deletion according to
+        constance setting `ACCOUNT_TRASH_GRACE_PERIOD`. Keep only their
+        username.
+        """
         if not request.user.is_superuser:
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._deactivate_or_delete(
+        self._delete_or_purge(
             request, users=users, grace_period=config.ACCOUNT_TRASH_GRACE_PERIOD
         )
 
-    @admin.action(description='Delete selected users')
-    def delete(self, request, queryset, **kwargs):
+    @admin.action(description='Purge selected users (keep nothing)')
+    def purge(self, request, queryset, **kwargs):
+        """
+        Put users in trash and schedule their account deletion according to
+        constance setting `ACCOUNT_TRASH_GRACE_PERIOD`. Remove everything.
+        """
         if not request.user.is_superuser:
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._deactivate_or_delete(
+        self._delete_or_purge(
             request, users=users, grace_period=0, delete_all=True
         )
 
@@ -208,7 +217,7 @@ class ExtendedUserAdmin(UserAdmin):
         )
         return instances.get('counter')
 
-    def _deactivate_or_delete(
+    def _delete_or_purge(
         self,
         request,
         grace_period: int,
@@ -239,9 +248,9 @@ class ExtendedUserAdmin(UserAdmin):
 
         if grace_period == -1:
             message = (
-                'User has been deactivated.'
+                'User has been archived.'
                 if singular
-                else 'Users have been deactivated.'
+                else 'Users have been archived.'
             )
             message += (
                 f' Their data is in <a href="{url}">trash</a> and must be '
@@ -249,9 +258,9 @@ class ExtendedUserAdmin(UserAdmin):
             )
         elif grace_period:
             message = (
-                'User has been deactivated '
+                'User has been archived '
                 if singular
-                else 'Users have been deactivated '
+                else 'Users have been archived '
             )
             message += (
                 f' and their data deletion is scheduled for {grace_period} days'
@@ -259,9 +268,9 @@ class ExtendedUserAdmin(UserAdmin):
             )
         else:
             message = (
-                'User’s account deletion is in progress. '
+                'User purge is in progress. '
                 if singular
-                else 'Users’ account deletions are in progress. '
+                else 'Users purge is in progress. '
             )
             message += f'View <a href="{url}">trash.</a>'
 

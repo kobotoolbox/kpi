@@ -11,5 +11,5 @@ if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     exec ${UWSGI_COMMAND}
 else
     echo "Running \`kpi\` container with \`runserver_plus\` debugging application server."
-    exec python manage.py runserver_plus 0:8000 --print-sql
+    exec python manage.py runserver_plus 0:8000
 fi
