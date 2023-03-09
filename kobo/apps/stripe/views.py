@@ -1,7 +1,6 @@
 import stripe
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist'
 from django.db.models import Prefetch
 
 from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
@@ -22,10 +21,9 @@ from kobo.apps.stripe.serializers import (
 )
 
 from kobo.apps.organizations.models import (
-    OrganizationUser,
-    OrganizationOwner,
     Organization
 )
+
 
 class CheckoutLinkView(
     APIView
@@ -36,34 +34,28 @@ class CheckoutLinkView(
     @staticmethod
     def generate_payment_link(price_id, user, organization_uid):
         if organization_uid:
-            # Look up the specific organization provided
-            try:
-                organization = Organization.objects.get(
-                    uid=organization_uid,
-                    organization_users__user=user
-                )
-            # If we can't find the organization or organization user, bail
-            except ObjectDoesNotExist:
-                return Response(
-                    {'status': r'Organization does not exist'}, status=status.HTTP_403_FORBIDDEN
-                )
+            # Get the organization for the logged-in user and provided organization UID
+            organization = Organization.objects.get(
+                uid=organization_uid,
+                owner__organization_user__user_id=user
+            )
         else:
             # Find the first organization the user belongs to, otherwise make a new one
-            organization = Organization.objects.filter(users=user, organization_user__user_id=user).first()
+            organization = Organization.objects.filter(users=user, owner__organization_user__user_id=user).first()
             if not organization:
                 organization = create_organization(
                     user, f"{user.username}'s organization", model=Organization, owner__user=user
                 )
-        customer, created = Customer.get_or_create(
+        customer, _ = Customer.get_or_create(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
         )
         session = CheckoutLinkView.start_checkout_session(customer.id, price_id, organization.uid)
-        return Response({'url': session})
+        return Response({'url': session['url']})
 
     @staticmethod
     def start_checkout_session(customer_id, price_id, organization_uid):
-        session = stripe.checkout.Session.create(
+        return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={
                 'enabled': False
@@ -82,22 +74,18 @@ class CheckoutLinkView(
             payment_method_types=["card"],
             success_url=f'{settings.KOBOFORM_URL}/#/plans?checkout_complete=true',
         )
-        return session
 
-    def get(self, request):
+    def post(self, request):
         serializer = CheckoutLinkSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         serializer_data = serializer.validated_data
         price_id = serializer_data['price_id']
         organization_uid = serializer.validated_data.get('organization_uid')
-        try:
-            Price.objects.get(
-                active=True,
-                product__active=True,
-                id=price_id
-            )
-        except ObjectDoesNotExist:
-            return Response({'status': 'Price not found or inactive'}, status=status.HTTP_404_NOT_FOUND)
+        Price.objects.get(
+            active=True,
+            product__active=True,
+            id=price_id
+        )
         response = self.generate_payment_link(price_id, request.user, organization_uid)
         return response
 
@@ -108,8 +96,8 @@ class CustomerPortalView(
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
-    def generate_portal_link(organization_uid):
-        organization = Organization.objects.get(uid=organization_uid)
+    def generate_portal_link(user, organization_uid):
+        organization = Organization.objects.get(uid=organization_uid, owner__organization_user__user_id=user)
         customer = Customer.objects.get(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
@@ -123,11 +111,10 @@ class CustomerPortalView(
 
     def post(self, request):
         serializer = CustomerPortalSerializer(data=request.query_params)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
         organization_uid = serializer.validated_data['organization_uid']
-        session = self.generate_portal_link(organization_uid)
-        return Response({'url': session.url})
+        session = self.generate_portal_link(request.user, organization_uid)
+        return Response({'url': session['url']})
 
 
 class SubscriptionViewSet(
