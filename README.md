@@ -16,6 +16,13 @@ If you do not want to upgrade at this time, please use the [`shared-database-obs
 
 Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip-tools`](https://github.com/jazzband/pip-tools/) package. The dependencies are listed in [`dependencies/pip/`](./dependencies/pip/), with core requirements in [`dependencies/pip/requirements.in`](./dependencies/pip/requirements.in). You may use `pip` directly with one of the compiled `dependencies/pip/*.txt` files, but consider using instead the `pip-sync`. **Do not** add new dependencies directly to the *compiled* `dependencies/pip/*.txt` files; instead, update the relevant the *source* `dependencies/pip/*.in` file(s), and execute `./pip-compile.sh` after any changes. You can pass arguments to `pip-compile.sh` with e.g. `./pip-compile.sh --upgrade-package=xlwt`.
 
+## Python Tests
+
+Pytest is used for backend tests. It's easiest to run tests inside the docker container.
+
+1. Ensure Python dev dependencies are installed. `pip install -r dependencies/pip/dev_requirements.txt`
+2. Run pytest. An example to run tests at a specific path and reuse the database: `pytest --reuse-db kobo/apps/foo`. --reuse-db speeds up the test, but should be omitted to remake the database fresh.
+
 ## Downloading and compiling the translations
 
 * Pull the submodule into the `locale` directory with `git submodule update`.
