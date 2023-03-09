@@ -110,16 +110,9 @@ class AssetManager(models.Manager):
 
     def deployed(self):
         """
-        Filter for deployed assets (i.e. assets having at least one deployed
-        version) in an efficient way that doesn't involve joining or counting.
-        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        Filter for deployed assets (i.e. assets without a null value for `date_deployed`)
         """
-        deployed_versions = AssetVersion.objects.filter(
-            asset=OuterRef('pk'), deployed=True
-        )
-        return self.annotate(deployed=Exists(deployed_versions)).filter(
-            deployed=True
-        )
+        return self.exclude(date_deployed__isnull=True)
 
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
@@ -413,78 +406,6 @@ class Asset(ObjectPermissionMixin,
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
-    def get_advanced_feature_instances(self):
-        return advanced_feature_instances(self.content, self.advanced_features)
-
-    @property
-    def has_advanced_features(self):
-        if self.advanced_features is None:
-            return False
-        return len(self.advanced_features) > 0
-
-    def _get_additional_fields(self):
-        return parse_known_cols(self.known_cols)
-
-    def _get_engines(self):
-        for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
-
-    def analysis_form_json(self):
-        additional_fields = list(self._get_additional_fields())
-        engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
-
-    def validate_advanced_features(self):
-        if self.advanced_features is None:
-            self.advanced_features = {}
-        jsonschema_validate(instance=self.advanced_features,
-                            schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
-
-    def update_submission_extra(self, content, user=None):
-        submission_uuid = content.get('submission')
-        # the view had better have handled this
-        assert submission_uuid is not None
-
-        # `select_for_update()` can only lock things that exist; make sure
-        # a `SubmissionExtras` exists for this submission before proceeding
-        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
-
-        with transaction.atomic():
-            sub = (
-                self.submission_extras.filter(submission_uuid=submission_uuid)
-                .select_for_update()
-                .first()
-            )
-            instances = self.get_advanced_feature_instances()
-            compiled_content = {**sub.content}
-            for instance in instances:
-                compiled_content = instance.compile_revised_record(
-                    compiled_content, edits=content
-                )
-            sub.content = compiled_content
-            sub.save()
-
-        return sub
-
-    def get_advanced_submission_schema(self, url=None,
-                                       content=False):
-        if len(self.advanced_features) == 0:
-            NO_FEATURES_MSG = 'no advanced features activated for this form'
-            return {'type': 'object', '$description': NO_FEATURES_MSG}
-        last_deployed_version = self.deployed_versions.first()
-        if content:
-            return advanced_submission_jsonschema(content,
-                                                  self.advanced_features,
-                                                  url=url)
-        if last_deployed_version is None:
-            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
-            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
-        content = last_deployed_version.version_content
-        return advanced_submission_jsonschema(content,
-                                              self.advanced_features,
-                                              url=url)
-
     def adjust_content_on_save(self):
         """
         This is called on save by default if content exists.
@@ -522,6 +443,11 @@ class Asset(ObjectPermissionMixin,
         if _title is not None:
             # Remove newlines and tabs (they are stripped in front end anyway)
             self.name = re.sub(r'[\n\t]+', '', _title)
+
+    def analysis_form_json(self):
+        additional_fields = list(self._get_additional_fields())
+        engines = dict(self._get_engines())
+        return {'engines': engines, 'additional_fields': additional_fields}
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -563,6 +489,26 @@ class Asset(ObjectPermissionMixin,
 
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
+
+    def get_advanced_feature_instances(self):
+        return advanced_feature_instances(self.content, self.advanced_features)
+
+    def get_advanced_submission_schema(self, url=None, content=False):
+        if len(self.advanced_features) == 0:
+            NO_FEATURES_MSG = 'no advanced features activated for this form'
+            return {'type': 'object', '$description': NO_FEATURES_MSG}
+        last_deployed_version = self.deployed_versions.first()
+        if content:
+            return advanced_submission_jsonschema(
+                content, self.advanced_features, url=url
+            )
+        if last_deployed_version is None:
+            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
+            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
+        content = last_deployed_version.version_content
+        return advanced_submission_jsonschema(
+            content, self.advanced_features, url=url
+        )
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -693,6 +639,12 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
+    @property
+    def has_advanced_features(self):
+        if self.advanced_features is None:
+            return False
+        return len(self.advanced_features) > 0
 
     def has_subscribed_user(self, user_id):
         # This property is only needed when `self` is a collection.
@@ -996,6 +948,32 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_submission_extra(self, content, user=None):
+        submission_uuid = content.get('submission')
+        # the view had better have handled this
+        assert submission_uuid is not None
+
+        # `select_for_update()` can only lock things that exist; make sure
+        # a `SubmissionExtras` exists for this submission before proceeding
+        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
+
+        with transaction.atomic():
+            sub = (
+                self.submission_extras.filter(submission_uuid=submission_uuid)
+                .select_for_update()
+                .first()
+            )
+            instances = self.get_advanced_feature_instances()
+            compiled_content = {**sub.content}
+            for instance in instances:
+                compiled_content = instance.compile_revised_record(
+                    compiled_content, edits=content
+                )
+            sub.content = compiled_content
+            sub.save()
+
+        return sub
+
     def update_languages(self, children=None):
         """
         Updates object's languages by aggregating all its children's languages
@@ -1042,6 +1020,14 @@ class Asset(ObjectPermissionMixin,
         self.summary['languages'] = languages
         self.save(update_fields=['summary'])
 
+    def validate_advanced_features(self):
+        if self.advanced_features is None:
+            self.advanced_features = {}
+        jsonschema_validate(
+            instance=self.advanced_features,
+            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+        )
+
     @property
     def version__content_hash(self):
         # Avoid reading the property `self.latest_version` more than once, since
@@ -1069,6 +1055,14 @@ class Asset(ObjectPermissionMixin,
             count = count + 1
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
+
+    def _get_additional_fields(self):
+        return parse_known_cols(self.known_cols)
+
+    def _get_engines(self):
+        for instance in self.get_advanced_feature_instances():
+            for key, val in instance.engines():
+                yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

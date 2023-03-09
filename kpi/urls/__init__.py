@@ -56,7 +56,7 @@ urlpatterns = [
     path('token/', TokenView.as_view(), name='token'),
     path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
-            ConfigurationFile.redirect_view, name='configurationfile'),
+            ConfigurationFile.content_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),

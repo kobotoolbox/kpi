@@ -19,6 +19,15 @@ import Modal from 'react-modal';
 // Tell moment library what is the app language
 moment.locale(currentLang());
 
+// Setup Google Analytics
+const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]');
+if (gaTokenEl !== null && gaTokenEl.content) {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function() {window.dataLayer.push(arguments);};
+  window.gtag('js', new Date());
+  window.gtag('config', gaTokenEl.content);
+}
+
 // Setup the authentication of AJAX calls
 $.ajaxSetup({
   beforeSend: function (xhr, settings) {
