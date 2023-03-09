@@ -8,6 +8,7 @@ from django.contrib.auth.forms import (
     UserChangeForm as DjangoUserChangeForm,
 )
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
 from django.urls import reverse
@@ -63,6 +64,21 @@ class UserChangeForm(DjangoUserChangeForm):
         help_text=USERNAME_INVALID_MESSAGE,
         validators=username_validators,
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_active = cleaned_data['is_active']
+        if (
+            is_active
+            and AccountTrash.objects.filter(user_id=self.instance.pk).exists()
+        ):
+            url = reverse('admin:trash_bin_accounttrash_changelist')
+            raise ValidationError(mark_safe(
+                f'User is in <a href="{url}">trash</a> and cannot be reactivated'
+                f' from here.'
+            ))
+
+        return cleaned_data
 
 
 class UserCreationForm(DjangoUserCreationForm):
