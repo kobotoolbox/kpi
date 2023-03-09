@@ -24,6 +24,11 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
     actions = ['empty_trash', 'put_back']
     task = empty_account
     trash_type = 'user'
+    empty_trash_short_description = 'Empty trash for selected users'
+
+    @admin.action(description='Empty trash for selected users')
+    def empty_trash(self, request, queryset, **kwargs):
+        super().empty_trash(request, queryset, **kwargs)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -70,6 +75,10 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
     actions = ['empty_trash', 'put_back']
     task = empty_project
     trash_type = 'asset'
+
+    @admin.action(description='Empty trash for selected projects')
+    def empty_trash(self, request, queryset, **kwargs):
+        super().empty_trash(request, queryset, **kwargs)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

@@ -18,7 +18,7 @@ from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog, AuditMethod
 from kpi.exceptions import KobocatUnresponsiveError
-from kpi.models import Asset
+from kpi.models import Asset, ExportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
 from .exceptions import (
@@ -35,12 +35,16 @@ from .models.project import ProjectTrash
 
 def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
     deployment_backend_uuid = None
+    project_exports = []
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
         deployment_backend_uuid = asset.deployment.get_data(
             'backend_response.uuid'
         )
         asset.deployment.delete()
+        project_exports = ExportTask.objects.values_list(
+            'result', flat=True
+        ).filter(data__source__endswith=f'/api/v2/assets/{asset.uid}/')
 
     with transaction.atomic():
         asset_id = asset.pk
@@ -62,6 +66,8 @@ def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
     rmdir(f'{asset.owner.username}/asset_files/{asset.uid}')
     if deployment_backend_uuid:
         rmdir(f'{asset.owner.username}/form-media/{deployment_backend_uuid}')
+        for export in project_exports:
+            default_storage.delete(export)
 
 
 @transaction.atomic

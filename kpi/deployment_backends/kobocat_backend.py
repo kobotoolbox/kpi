@@ -868,9 +868,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             return False
 
-        return ReadOnlyKobocatInstance.objects.filter(
-            xform_id=self.xform_id
-        ).annotate(_id=F('pk'), _uuid=F('uuid')).values('_id', '_uuid')
+        try:
+            return ReadOnlyKobocatInstance.objects.filter(
+                xform_id=self.xform_id
+            ).annotate(_id=F('pk'), _uuid=F('uuid')).values('_id', '_uuid')
+        except InvalidXFormException:
+            pass
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'

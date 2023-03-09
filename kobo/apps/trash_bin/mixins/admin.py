@@ -3,7 +3,7 @@ from django.contrib import admin, messages
 
 class TrashMixin:
 
-    @admin.action(description='Empty trash for selected users')
+    @admin.action(description='Empty trash for selected objects')
     def empty_trash(self, request, queryset, **kwargs):
         obj_ids = queryset.values_list('pk', flat=True)
         for obj_id in obj_ids:
