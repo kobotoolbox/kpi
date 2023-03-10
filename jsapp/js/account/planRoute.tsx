@@ -3,12 +3,14 @@ import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
 import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
-import type {SubscriptionInfo, ProductInfo} from './subscriptionStore';
+import type {SubscriptionInfo, BaseProduct, Product } from './subscriptionStore';
+import { fetchProducts } from './subscriptionStore';
 import type {ServiceUsage} from './dataUsageStore';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import './planRoute.scss';
+import {fetchGet, fetchPost, fetchDelete} from 'jsapp/js/api';
 
 /**
  * TODO: Most probably all different Account routes will use very similar design,
@@ -48,9 +50,11 @@ const PLACEHOLDER_DESC = t('Free access to all services. 5GB of media attachment
 
 interface PlanRouteState {
   isLoading: boolean;
-  subscribedProduct: ProductInfo;
+  subscribedProduct: BaseProduct;
+  products: Product[];
   dataUsageBytes: number;
   dataUsageMonthly: number;
+  intervalFilter: string;
 }
 
 class PlanRoute extends React.Component<{}, PlanRouteState> {
@@ -65,8 +69,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
         type: '',
         metadata: {}
       },
+      products: [],
       dataUsageBytes: 0,
       dataUsageMonthly: 0,
+      intervalFilter: 'year',
     };
   }
 
@@ -77,8 +83,30 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
     if (envStore.data.stripe_public_key) {
       this.fetchSubscriptionInfo();
+      fetchProducts().then((data)=> {
+        this.setState({
+          products: data.results,
+        })
+      })
     }
     this.fetchDataUsage();
+  }
+
+  private setInterval(interval: string) {
+    this.setState({
+      intervalFilter: interval,
+    })
+  }
+
+  private filterPrices(){
+    const filteredPrices = 
+      this.state.products.map((product) => {
+        return {
+          ...product,
+          prices: product.prices.filter((price) => price.interval === this.state.intervalFilter)
+        }
+    })
+    return filteredPrices;
   }
 
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
@@ -207,11 +235,41 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
             {t('Add ons and upgrades to your plan')}
           </bem.AccountPlan__blurb>
           <bem.AccountPlan__stripe>
-            {envStore.isReady && stripePublicKey && stripePricingTableID && (
-              <stripe-pricing-table
-                pricing-table-id={stripePricingTableID}
-                publishable-key={stripePublicKey}
-              />
+            {envStore.isReady && this.state.products.length !== 0 && (
+            <div className='plans-section'>
+              <p className='interval-toggle'> 
+              <button className='filter-button' onClick={() => this.setInterval("Annual")} value="year">  Annual </button>
+              <button className='filter-button' onClick={() => this.setInterval("Monthly")} value="month"> Monthly </button>
+              </p> 
+              <div className='current-plan'>
+                your plan
+              </div>
+              {console.log(this.filterPrices())}
+              {this.filterPrices().map((product, i) => {   
+                return (
+                  <div className='plan-container' key={i}>
+                    <h1> {product.name} </h1>
+                    {product.prices.length > 0 && (
+                      <h2> {product.prices[0].amount}</h2>
+                    )}
+                    <ul> <li>features</li></ul>
+                    <p key={i}>{product.description}</p>
+                    <p> Support </p>
+                    <p> Advanced Features</p>
+                    <p> Available add-ons </p>
+                  </div>
+                ) 
+              })}
+              <div className='enterprise-plan'>
+                <h3> Need More?</h3>
+                <p>
+                We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.</p>
+                <p>If your organization has larger or more specific needs, contact our team to learn about our enterprise options.
+                </p>
+                <div>Get in touch for Enterprise options</div>
+              </div>
+              {/* <div className="">Display Full Comparison /Collapse</div> */}
+              </div>
             )}
           </bem.AccountPlan__stripe>
         </bem.AccountPlan>

@@ -6,7 +6,6 @@ from djstripe.models import (
     Subscription,
     SubscriptionItem,
 )
-
 from rest_framework import serializers
 
 
