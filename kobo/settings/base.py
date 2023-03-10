@@ -580,7 +580,19 @@ STRIPE_ENABLED = False
 if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
     STRIPE_ENABLED = True
 
+
+def dj_stripe_request_callback_method():
+    # This method exists because dj-stripe's documentation doesn't reflect reality.
+    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
+    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
+    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
+    # It doesn't need to do anything other than exist
+    # https://github.com/dj-stripe/dj-stripe/issues/1900
+    pass
+
+
 DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
 STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
