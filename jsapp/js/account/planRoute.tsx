@@ -98,15 +98,15 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     })
   }
 
-  private filterPlans(){
-    const filteredPlans = 
+  private filterPrices(){
+    const filteredPrices = 
       this.state.products.map((product) => {
         return {
           ...product,
-          plans: product.plans.filter((plan) => plan.interval === this.state.intervalFilter)
+          prices: product.prices.filter((price) => price.interval === this.state.intervalFilter)
         }
     })
-    return filteredPlans;
+    return filteredPrices;
   }
 
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
@@ -244,13 +244,13 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
               <div className='current-plan'>
                 your plan
               </div>
-              {console.log(this.filterPlans())}
-              {this.filterPlans().map((product, i) => {   
+              {console.log(this.filterPrices())}
+              {this.filterPrices().map((product, i) => {   
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
-                    {product.plans.length > 0 && (
-                      <h2> {product.plans[0].amount}</h2>
+                    {product.prices.length > 0 && (
+                      <h2> {product.prices[0].amount}</h2>
                     )}
                     <ul> <li>features</li></ul>
                     <p key={i}>{product.description}</p>

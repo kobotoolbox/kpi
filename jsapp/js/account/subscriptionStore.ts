@@ -81,7 +81,7 @@ export interface SubscriptionInfo {
 
 // There is probably a better way to hand the nested types
 export interface Product extends BaseProduct {
-  plans: Array<PlanInfo>
+  prices: Array<PlanInfo>
 }
 
 export async function fetchProducts() {

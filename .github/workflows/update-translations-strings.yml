@@ -5,7 +5,7 @@ on:
   pull_request:
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-your-workflow-when-a-pull-request-merges
     types: [ closed ]
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -40,9 +40,6 @@ jobs:
       - name: Install translate-toolkit
         run: sudo apt install translate-toolkit
 
-      - name: Install Transifex
-        run: sudo pip3 install transifex-client
-
       - name: Run make translation po file
         run: sudo ./manage.py makemessages --locale en
 
@@ -50,6 +47,7 @@ jobs:
         run: sudo json2po jsapp/compiled/extracted-strings.json locale/en/LC_MESSAGES/djangojs.po
 
       - name: Run Transifex
-        run: tx push -s
-        env:
-          TX_TOKEN: ${{ secrets.TRANSIFEX_API }}
+        uses: transifex/cli-action@v1
+        with:
+          token: ${{ secrets.TRANSIFEX_API }}
+          args: 'push -s'
