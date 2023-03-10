@@ -108,8 +108,7 @@ def empty_account(account_trash_id: int):
                 audit_log_params['method'] = AuditMethod.SOFT_DELETE
 
             AuditLog.objects.create(**audit_log_params)
-
-        rmdir(f'{asset.owner.username}/')
+            rmdir(f'{user.username}/')
 
     finally:
         post_delete.connect(
