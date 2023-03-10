@@ -5,11 +5,11 @@ import {useLocation} from 'react-router-dom';
 export const useTracking = () => {
   const location = useLocation();
 
-  // useEffect(() => {
-  //   if (typeof gtag === 'function') {
-  //     gtag('event', 'page_view', {page_location: window.location.hash});
-  //   }
-  // }, [location]);
+  useEffect(() => {
+    if (typeof gtag === 'function') {
+      gtag('event', 'page_view', {page_location: window.location.hash});
+    }
+  }, [location]);
 };
 
 /* TODO Replace this by converting allRoutes to functional component
