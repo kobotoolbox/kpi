@@ -10,6 +10,7 @@
 
 .account-plan {
   padding: sizes.$x30 sizes.$x40;
+  overflow: auto;
 }
 
 .account-plan__info {
@@ -45,30 +46,77 @@
   display: grid;
   grid-template-rows: repeat(4, auto);
   grid-template-columns: repeat(auto, 1fr);
+  column-gap: sizes.$x20;
 }
 
 .interval-toggle {
   grid-column: 1 / 5;
   grid-row: 1/2;
-  justify-self: center
+  justify-self: center;
+  background-color: colors.$kobo-cloud;
+  padding: sizes.$x10 sizes.$x4;
+  border-radius: sizes.$x4;
 }
 
-.filter-button {
+.interval-toggle input[type="radio"] {
+  display: none;
+  position: absolute;
+  width: 100%;
+  appearance: none;
+}
+.interval-toggle label { 
+  padding: sizes.$x8 sizes.$x12;
+  color: colors.$kobo-dark-blue;
+}
+.interval-toggle input[type="radio"]:checked + label {
   background-color: colors.$kobo-blue;
-  border:none;
+  animation-name: blink;
+  animation-duration: 1s;
   color: colors.$kobo-white;
+  padding: sizes.$x8 sizes.$x12;
+  border-radius: sizes.$x4;
+}
+.interval-toggle input[type="radio"]:checked + label:after {
+background-color: colors.$kobo-blue;
+padding: sizes.$x8 sizes.$x12;
+}
+.interval-toggle input[type="radio"]:checked + label:before {
+  width: 20px;
+  height: 20px;
+  color: colors.$kobo-cloud;
+  padding: sizes.$x8 sizes.$x12;
 }
 
 .plan-container { 
   grid-auto-columns: 1fr;
   grid-row: 3/4;
+  border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid 1px; 
+  padding: 27px 57px;
+}
+.upgrade-btn {
+  background-color: colors.$kobo-blue;
+  color: colors.$kobo-white;
+  border-radius: 6px;
+  padding: 15px 30px;
+  width: 120px;
+  margin: 0 auto;
+  text-align: center;
+  position:relative;
+  bottom: 0;
+}
+h1 {
+  color: colors.$kobo-gray-40;
+  font-size: sizes.$x24;
 }
 
 .enterprise-plan {
   background-color: colors.$kobo-light-blue;
   grid-column: auto;
   grid-row: 3/4;
+  padding: 48px;
+  height: 375px;
+  overflow: hidden;
 }
 
 .current-plan {
@@ -79,4 +127,77 @@
   justify-content: center;
   align-items: center;
   border-radius: 6px 6px 0 0 ;
+  height: 38px;
+}
+
+.expand-btn {
+  color: colors.$kobo-dark-blue;
+  background-color: colors.$kobo-cloud;
+  text-align: center;
+  border-radius: 6px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.line { 
+  border-bottom: 1px solid colors.$kobo-gray-85;
+  border-radius: 5px;
+  width: 100%;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.x {
+  width: 9px;
+  height: 9px;
+  position: relative;
+}
+.x:after {
+  content: '';
+  height: 9px;
+  border-left: 3px solid colors.$kobo-red;
+  position: absolute;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  left: 28px;
+}
+
+.x:before {
+  content: '';
+  height: 9px;
+  border-left: 3px solid colors.$kobo-red;
+  border-radius: 3px;
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 28px;
+}
+
+
+.checkmark {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  -ms-transform: rotate(45deg); 
+  -webkit-transform: rotate(45deg); 
+  transform: rotate(45deg);
+}
+
+.checkmark_stem {
+  position: absolute;
+  width: 3px;
+  height: 9px;
+  background-color: colors.$kobo-teal;
+  border-radius: 3px;
+  left: 11px;
+  top: 6px;
+}
+
+.checkmark_kick {
+  position: absolute;
+  width: 4px;
+  height: 3px;
+  background-color: colors.$kobo-teal;
+  border-radius: 3px 0 0 3px ;
+  left: 8px;
+  top: 12px;
 }

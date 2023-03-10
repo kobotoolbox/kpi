@@ -38,9 +38,6 @@ bem.PlanUsageRow__data = makeBem(bem.PlanUsageRow, 'data');
 // Stripe table parent div
 bem.AccountPlan__stripe = makeBem(bem.AccountPlan, 'stripe');
 
-const MAX_MONTHLY_SUBMISSIONS = 2; //TODO change this to 10000 after testing
-const MAX_GIGABYTES_STORAGE = 4;
-const WARNING_PERCENT = 75;
 // Semi-hack: display proper range with a percentage as math using
 // MAX_MONTHLY_SUBMISSIONS is already done later
 const MAX_PERCENTAGE = 100;
@@ -55,6 +52,8 @@ interface PlanRouteState {
   dataUsageBytes: number;
   dataUsageMonthly: number;
   intervalFilter: string;
+  filterToggle: boolean;
+  expandComparison: boolean;
 }
 
 class PlanRoute extends React.Component<{}, PlanRouteState> {
@@ -73,7 +72,11 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       dataUsageBytes: 0,
       dataUsageMonthly: 0,
       intervalFilter: 'year',
+      filterToggle: false,
+      expandComparison: false,
     };
+    this.setInterval = this.setInterval.bind(this);
+    this.filterPrices = this.filterPrices.bind(this);
   }
 
   componentDidMount() {
@@ -92,21 +95,31 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     this.fetchDataUsage();
   }
 
+  private toggleComparison(){
+    this.setState({
+      expandComparison: !this.state.expandComparison,
+    })
+  }
+
   private setInterval(interval: string) {
     this.setState({
       intervalFilter: interval,
     })
+    this.setState({
+      filterToggle: !this.state.filterToggle,
+    })
   }
 
   private filterPrices(){
-    const filteredPrices = 
+    const filteredPrice = 
       this.state.products.map((product) => {
         return {
           ...product,
           prices: product.prices.filter((price) => price.interval === this.state.intervalFilter)
         }
     })
-    return filteredPrices;
+    console.log('prod filter', this.state.products)
+    return filteredPrice;
   }
 
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
@@ -122,16 +135,33 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       .fail(handleApiFail);
   }
 
+  private upgradePlan(){
+    // $.ajax({
+    //   dataType: 'json',
+    //   method: 'GET',
+    //   url: `${ROOT_URL}/api/v2/stripe/checkout-link`,
+    // })
+    //   .done(this.onFetchSubscriptionInfoDone.bind(this))
+    //   .fail(handleApiFail);
+
+    //
+    // -----
+    // api/v2/stripe/checkout-link
+    // - required parameter: price_id (string)    : product.prices[0].id
+    // - optional parameter: organization_uid (string or null)  : 
+
+    // api/v2/stripe/customer-portal
+    // - required parameter: organization_uid (string)
+
+    // Both endpoints return the same object if successful, {url: 'https://placeholder.com/'}
+  }
+
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     this.setState({
       subscribedProduct: response.results[0].plan.product,
     });
-  }
-
-  private getOneDecimalDisplay(x: number): number {
-    return parseFloat(x.toFixed(1));
   }
 
   private fetchDataUsage() {
@@ -151,112 +181,82 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     });
   }
 
-  private getUsageColor(): KoboRangeColors {
-    if (
-      (this.state.dataUsageMonthly / MAX_MONTHLY_SUBMISSIONS) *
-        100 >=
-      WARNING_PERCENT
-    ) {
-      return KoboRangeColors.warning;
-    } else {
-      return KoboRangeColors.teal;
-    }
-  }
-
   private renderPlanText() {
     return (
       <bem.AccountPlan__description>
-        <bem.AccountPlan__descriptionHeader>
           {this.state.subscribedProduct.name}
-        </bem.AccountPlan__descriptionHeader>
-        <bem.AccountPlan__descriptionBlurb>
-          {this.state.subscribedProduct.description}
-        </bem.AccountPlan__descriptionBlurb>
       </bem.AccountPlan__description>
     );
   }
 
   render() {
-    const stripePublicKey = envStore.data.stripe_public_key;
-    const stripePricingTableID = envStore.data.stripe_pricing_table_id;
-
-    const MONTHLY_USAGE_PERCENTAGE =
-      (this.state.dataUsageMonthly / MAX_MONTHLY_SUBMISSIONS) * 100;
-    const GIGABYTES_USAGE_PERCENTAGE =
-      (this.state.dataUsageBytes / 1000000 / MAX_GIGABYTES_STORAGE) * 100;
-
       return (
         <bem.AccountPlan>
-          <bem.AccountPlan__header>{t('Current Plan')}</bem.AccountPlan__header>
           <bem.AccountPlan__info>
-            <bem.AccountPlan__data>
-              <bem.PlanUsageRow>
-                <bem.PlanUsageRow__data>
-                  {/* TODO: we temporarily use KoboRange here, but finally we
-                      should build a tailored solution here - one that will
-                      not require misusing an interactive component :)
-                  */}
-                  <KoboRange
-                    max={MAX_PERCENTAGE}
-                    value={this.getOneDecimalDisplay(MONTHLY_USAGE_PERCENTAGE)}
-                    currentLabel={'Monthly submissions'}
-                    totalLabel={'%'}
-                    color={this.getUsageColor()}
-                    singleStat
-                  />
-                </bem.PlanUsageRow__data>
-              </bem.PlanUsageRow>
-
-              <bem.PlanUsageRow>
-                <bem.PlanUsageRow__data>
-                  {/* TODO: we temporarily use KoboRange here, but finally we
-                      should build a tailored solution here - one that will
-                      not require misusing an interactive component :)
-                  */}
-                  <KoboRange
-                    max={MAX_PERCENTAGE}
-                    value={this.getOneDecimalDisplay(
-                      GIGABYTES_USAGE_PERCENTAGE
-                    )}
-                    currentLabel={'Data storage'}
-                    totalLabel={'%'}
-                    color={this.getUsageColor()}
-                    singleStat
-                  />
-                </bem.PlanUsageRow__data>
-              </bem.PlanUsageRow>
-            </bem.AccountPlan__data>
-
             {this.renderPlanText()}
           </bem.AccountPlan__info>
 
-          <bem.AccountPlan__header>{t('Upgrade')}</bem.AccountPlan__header>
-          <bem.AccountPlan__blurb>
-            {t('Add ons and upgrades to your plan')}
-          </bem.AccountPlan__blurb>
           <bem.AccountPlan__stripe>
             {envStore.isReady && this.state.products.length !== 0 && (
             <div className='plans-section'>
-              <p className='interval-toggle'> 
-              <button className='filter-button' onClick={() => this.setInterval("Annual")} value="year">  Annual </button>
-              <button className='filter-button' onClick={() => this.setInterval("Monthly")} value="month"> Monthly </button>
-              </p> 
+              <form className="interval-toggle">
+                <input
+                  type="radio"
+                  id="switch_left"
+                  name="switchToggle"
+                  value="year"
+                  onChange={() => this.setInterval("year")}
+                  checked={!this.state.filterToggle}
+                />
+                <label htmlFor="switch_left">Annual</label>
+
+                <input
+                  type="radio"
+                  id="switch_right"
+                  name="switchToggle"
+                  value="month"
+                  onChange={() => this.setInterval("month")}
+                  checked={this.state.filterToggle}
+                />
+                <label htmlFor="switch_right">Monthly</label>
+              </form>
               <div className='current-plan'>
                 your plan
               </div>
-              {console.log(this.filterPrices())}
-              {this.filterPrices().map((product, i) => {   
+              {/* api/v2/stripe/checkout-link */}
+              {this.filterPrices().map((product, i) => {  
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
+                    {console.log(product, product.prices.length)}
                     {product.prices.length > 0 && (
-                      <h2> {product.prices[0].amount}</h2>
+                      <div>
+                        <h2>
+                        {console.log('test', product.prices[0].id)} 
+                        {product.prices[0].amount === '0' ? 'Free' : product.prices[0]}
+                        </h2>
+                      </div>
                     )}
-                    <ul> <li>features</li></ul>
-                    <p key={i}>{product.description}</p>
+                    <ul>
+                      <li>  <span className='checkmark'>
+                      <div className='checkmark_stem' />
+                      <div className='checkmark_kick' />
+                    </span> 
+                    features</li>
+                    </ul>
+                    {this.state.subscribedProduct.name !== product.name && 
+                      <div className='upgrade-btn'> Upgrade </div>
+                    }
+                    <p key={i}>{product.description}</p>                   
+                    {this.state.expandComparison &&
+                    <div>
+                    <div className='line'/>
+                    <div className="x"/>
                     <p> Support </p>
                     <p> Advanced Features</p>
                     <p> Available add-ons </p>
+                    </div>
+                    }
                   </div>
                 ) 
               })}
@@ -268,9 +268,9 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 </p>
                 <div>Get in touch for Enterprise options</div>
               </div>
-              {/* <div className="">Display Full Comparison /Collapse</div> */}
               </div>
             )}
+            <div className='expand-btn' onClick={() => this.toggleComparison()}> {!this.state.expandComparison ? 'Display Full Comparison' : 'Collapse'}</div>
           </bem.AccountPlan__stripe>
         </bem.AccountPlan>
       );
