@@ -59,10 +59,6 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/polyfill": "^7.8.7",
-    "@babel/preset-env": "^7.9.6",
-    "@babel/preset-react": "^7.9.4",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^6.5.15",
     "@storybook/addon-actions": "^6.5.15",
@@ -101,8 +97,6 @@
     "@vusion/webfonts-generator": "^0.7.3",
     "@webpack-cli/serve": "^1.6.1",
     "autoprefixer": "^9.8.1",
-    "babel-eslint": "^10.1.0",
-    "babel-loader": "^9.1.2",
     "chai": "^4.2.0",
     "chai-exclude": "^2.1.0",
     "chart.js": "^2.9.3",
@@ -115,8 +109,6 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-storybook": "^0.6.8",
-    "eslint-webpack-plugin": "^2.6.0",
-    "less-terrible-coffeelint-loader": "^0.1.5",
     "lodash.isequal": "^4.5.0",
     "mocha": "^7.1.2",
     "mocha-chrome": "^2.2.0",
