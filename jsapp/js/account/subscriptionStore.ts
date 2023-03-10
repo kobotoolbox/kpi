@@ -14,8 +14,7 @@ export interface BaseProduct {
   metadata: any;
 }
 
-export interface PlanInfo {
-  product: BaseProduct;
+export interface BasePrice {
   djstripe_created: string;
   djstripe_updated: string;
   id: string;
@@ -40,8 +39,12 @@ export interface PlanInfo {
   djstripe_owner_account: string;
 }
 
+export interface Price extends BasePrice {
+  product: BaseProduct;
+}
+
 export interface SubscriptionInfo {
-  plan: PlanInfo;
+  plan: any;
   djstripe_created: string;
   djstripe_updated: string;
   id: string;
@@ -81,7 +84,7 @@ export interface SubscriptionInfo {
 
 // There is probably a better way to hand the nested types
 export interface Product extends BaseProduct {
-  plans: Array<PlanInfo>
+  prices: BasePrice[];
 }
 
 export async function fetchProducts() {

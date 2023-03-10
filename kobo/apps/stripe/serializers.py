@@ -15,7 +15,43 @@ class BaseProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
 
-class PlanSerializer(serializers.ModelSerializer):
+class BasePriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Price
+        fields = (
+            "id",
+            "nickname",
+            "currency",
+            "type",
+            "unit_amount",
+            "human_readable_price",
+            "metadata",
+        )
+
+
+class CustomerPortalSerializer(serializers.Serializer):
+    organization_uid = serializers.CharField(required=True)
+
+    def validate_organization_uid(self, organization_uid):
+        if organization_uid.startswith('org'):
+            return organization_uid
+        raise ValidationError('Invalid organization ID')
+
+
+class CheckoutLinkSerializer(serializers.Serializer):
+    price_id = serializers.CharField(required=True)
+    organization_uid = serializers.CharField(required=False)
+
+    def validate_price_id(self, price_id):
+        if price_id.startswith('price_'):
+            return price_id
+        raise ValidationError('Invalid price ID')
+
+    def validate_organization_uid(self, organization_uid):
+        if organization_uid.startswith('org') or not organization_uid:
+            return organization_uid
+        raise ValidationError('Invalid organization ID')
+
 
 class PriceSerializer(BasePriceSerializer):
     product = BaseProductSerializer()

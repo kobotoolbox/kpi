@@ -82,14 +82,14 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     });
 
     if (envStore.data.stripe_public_key) {
-      this.fetchSubscriptionInfo();
+      // this.fetchSubscriptionInfo();
       fetchProducts().then((data)=> {
         this.setState({
           products: data.results,
         })
       })
     }
-    this.fetchDataUsage();
+    // this.fetchDataUsage();
   }
 
   private setInterval(interval: string) {
@@ -103,7 +103,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       this.state.products.map((product) => {
         return {
           ...product,
-          plans: product.plans.filter((plan) => plan.interval === this.state.intervalFilter)
+          plans: product.prices.filter((price) => price.interval === this.state.intervalFilter)
         }
     })
     return filteredPlans;
@@ -112,37 +112,37 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
   // and injecting multiple stores clashes with how we do routes. When we finish
   // these funcitons should be used from the store and removed here
-  private fetchSubscriptionInfo() {
-    $.ajax({
-      dataType: 'json',
-      method: 'GET',
-      url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
-    })
-      .done(this.onFetchSubscriptionInfoDone.bind(this))
-      .fail(handleApiFail);
-  }
+  // private fetchSubscriptionInfo() {
+  //   $.ajax({
+  //     dataType: 'json',
+  //     method: 'GET',
+  //     url: `${ROOT_URL}/api/v2/stripe/subscriptions/`,
+  //   })
+  //     .done(this.onFetchSubscriptionInfoDone.bind(this))
+  //     .fail(handleApiFail);
+  // }
 
-  private onFetchSubscriptionInfoDone(
-    response: PaginatedResponse<SubscriptionInfo>
-  ) {
-    this.setState({
-      subscribedProduct: response.results[0].plan.product,
-    });
-  }
+  // private onFetchSubscriptionInfoDone(
+  //   response: PaginatedResponse<SubscriptionInfo>
+  // ) {
+  //   this.setState({
+  //     subscribedProduct: response.results[0].plan.product,
+  //   });
+  // }
 
   private getOneDecimalDisplay(x: number): number {
     return parseFloat(x.toFixed(1));
   }
 
-  private fetchDataUsage() {
-    $.ajax({
-      dataType: 'json',
-      method: 'GET',
-      url: `${ROOT_URL}/api/v2/service_usage/`,
-    })
-      .done(this.onFetchDataUsageDone.bind(this))
-      .fail(handleApiFail);
-  }
+  // private fetchDataUsage() {
+  //   $.ajax({
+  //     dataType: 'json',
+  //     method: 'GET',
+  //     url: `${ROOT_URL}/api/v2/service_usage/`,
+  //   })
+  //     .done(this.onFetchDataUsageDone.bind(this))
+  //     .fail(handleApiFail);
+  // }
 
   private onFetchDataUsageDone(response: ServiceUsage) {
     this.setState({
