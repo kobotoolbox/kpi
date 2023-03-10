@@ -9,7 +9,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.forms import CharField
 from django.urls import reverse
 from django.utils import timezone
@@ -135,10 +135,10 @@ class ExtendedUserAdmin(UserAdmin):
             {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
-    actions = ['purge', 'delete']
+    actions = ['remove', 'delete']
 
-    @admin.action(description='Delete selected users (keep only their username)')
-    def delete(self, request, queryset, **kwargs):
+    @admin.action(description='Remove selected users (delete everything but their username)')
+    def remove(self, request, queryset, **kwargs):
         """
         Put users in trash and schedule their data deletion according to
         constance setting `ACCOUNT_TRASH_GRACE_PERIOD`. Keep only their
@@ -152,8 +152,8 @@ class ExtendedUserAdmin(UserAdmin):
             request, users=users, grace_period=config.ACCOUNT_TRASH_GRACE_PERIOD
         )
 
-    @admin.action(description='Purge selected users (keep nothing)')
-    def purge(self, request, queryset, **kwargs):
+    @admin.action(description='Delete selected users (keep nothing)')
+    def delete(self, request, queryset, **kwargs):
         """
         Put users in trash and schedule their account deletion according to
         constance setting `ACCOUNT_TRASH_GRACE_PERIOD`. Remove everything.
@@ -184,10 +184,13 @@ class ExtendedUserAdmin(UserAdmin):
         return date_deactivated
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('extra_details')
+        queryset = super().get_queryset(request)
+        return queryset.exclude(
+            Q(pk__in=AccountTrash.objects.values_list('user_id', flat=True))
+            | Q(pk=settings.ANONYMOUS_USER_ID),
+        ).select_related('extra_details')
 
     def get_search_results(self, request, queryset, search_term):
-        queryset = queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
 
         if request.path != '/admin/auth/user/':
             return super().get_search_results(request, queryset, search_term)
@@ -284,9 +287,9 @@ class ExtendedUserAdmin(UserAdmin):
             )
         else:
             message = (
-                'User purge is in progress. '
+                'User deletion is in progress. '
                 if singular
-                else 'Users purge is in progress. '
+                else 'Users deletion is in progress. '
             )
             message += f'View <a href="{url}">trash.</a>'
 
