@@ -66,7 +66,9 @@
     {% endblock footer %}
 
     {% if google_analytics_token %}
-      <script src="{% static 'js/google_analytics.js' %}"></script>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+      <!-- The rest of the setup is in main.es6 file -->
     {% endif %}
   </body>
 </html>
