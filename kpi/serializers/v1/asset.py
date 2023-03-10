@@ -41,7 +41,6 @@ class AssetSerializer(AssetSerializerV2):
                   'content',
                   'downloads',
                   'embeds',
-                  'koboform_link',
                   'xform_link',
                   'hooks_link',
                   'tag_string',

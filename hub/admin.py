@@ -62,7 +62,7 @@ class ExtendedUserAdmin(UserAdmin):
 
     form = UserChangeForm
     add_form = UserCreationForm
-
+    change_form_template = 'admin/loginas/change_form.html'
     list_display = UserAdmin.list_display + ('date_joined',)
     list_filter = UserAdmin.list_filter + ('date_joined',)
     readonly_fields = UserAdmin.readonly_fields + (
