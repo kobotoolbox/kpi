@@ -10,7 +10,7 @@
 
 .account-plan {
   padding: sizes.$x30 sizes.$x40;
-  overflow: auto;
+  overflow-y: auto !important;
 }
 
 .account-plan__info {
@@ -98,8 +98,8 @@ padding: sizes.$x8 sizes.$x12;
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
   border-radius: 6px;
-  padding: 15px 30px;
-  width: 120px;
+  padding: 10px;
+  max-width: 120px;
   margin: 0 auto;
   text-align: center;
   position:relative;
@@ -128,6 +128,12 @@ h1 {
   align-items: center;
   border-radius: 6px 6px 0 0 ;
   height: 38px;
+}
+
+.price-title {
+  color: colors.$kobo-dark-blue;
+  text-align: center;
+  font-size: sizes.$x18;
 }
 
 .expand-btn {

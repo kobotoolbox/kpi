@@ -1,7 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
-import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
 import {observer} from 'mobx-react';
 import type {SubscriptionInfo, BaseProduct, Product } from './subscriptionStore';
 import { fetchProducts } from './subscriptionStore';
@@ -10,7 +9,6 @@ import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import './planRoute.scss';
-import {fetchGet, fetchPost, fetchDelete} from 'jsapp/js/api';
 
 /**
  * TODO: Most probably all different Account routes will use very similar design,
@@ -87,8 +85,23 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     if (envStore.data.stripe_public_key) {
       this.fetchSubscriptionInfo();
       fetchProducts().then((data)=> {
+
+        const renamedPriceKeys: any = 
+        data.results.map((product) => { 
+          let priceArry ={};
+          Object.entries(product.prices[0]).forEach(entry => {
+            let [key, value] = entry;
+            const newKey = key.toLowerCase().replace(/[-_][a-z]/g, (group) => group.slice(-1).toUpperCase())
+            Object.assign(priceArry, {[newKey]: value});
+          })
+          return {  
+            ...product,
+            prices: priceArry
+          }
+        })
+
         this.setState({
-          products: data.results,
+          products: renamedPriceKeys,
         })
       })
     }
@@ -112,13 +125,15 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
   private filterPrices(){
     const filteredPrice = 
-      this.state.products.map((product) => {
+      this.state.products.map((product: any) => {
+        const interval = product.prices.humanReadablePrice.split('/')[1]
+        const asArray = Object.entries(product.prices);
+        const filtered = asArray.filter(() => interval === this.state.intervalFilter);
         return {
           ...product,
-          prices: product.prices.filter((price) => price.interval === this.state.intervalFilter)
+          prices: Object.fromEntries(filtered)
         }
     })
-    console.log('prod filter', this.state.products)
     return filteredPrice;
   }
 
@@ -228,13 +243,11 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
-                    {console.log(product, product.prices.length)}
-                    {product.prices.length > 0 && (
-                      <div>
-                        <h2>
-                        {console.log('test', product.prices[0].id)} 
-                        {product.prices[0].amount === '0' ? 'Free' : product.prices[0]}
-                        </h2>
+                    {Object.keys(product.prices).length >= 0 && (
+                      <div className='price-title'>
+                          {typeof product.prices.humanReadablePrice === 'string' && (
+                            product.prices.humanReadablePrice.includes('$0.00') ? 'Free' : product.prices.humanReadablePrice
+                          )}
                       </div>
                     )}
                     <ul>
