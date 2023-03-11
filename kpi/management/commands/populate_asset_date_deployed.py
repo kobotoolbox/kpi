@@ -58,4 +58,4 @@ class Command(BaseCommand):
                 else:
                     asset.date_deployed = first_deployed_version.date_modified
 
-            Asset.objects.bulk_update(assets, fields=['date_deployed'])
+            Asset.all_objects.bulk_update(assets, fields=['date_deployed'])

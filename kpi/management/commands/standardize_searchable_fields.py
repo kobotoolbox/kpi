@@ -51,7 +51,7 @@ class Command(BaseCommand):
             # No need to call `Asset._populate_summary` since `asset` is not
             # a new one.
             asset.standardize_json_field('summary', 'languages', list)
-            Asset.objects.filter(pk=asset.pk).update(
+            Asset.all_objects.filter(pk=asset.pk).update(
                 settings=asset.settings,
                 summary=asset.summary
             )
