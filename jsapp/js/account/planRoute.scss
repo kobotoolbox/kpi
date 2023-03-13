@@ -10,7 +10,7 @@
 
 .account-plan {
   padding: sizes.$x30 sizes.$x40;
-  overflow-y: auto !important;
+  overflow: auto;
 }
 
 .account-plan__info {
