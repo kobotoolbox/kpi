@@ -23,12 +23,22 @@ const postCssLoader = {
 };
 
 const commonOptions = {
+  // context: path.resolve(__dirname, '../'), // helps ts-loader find tsconfig.json
   module: {
     rules: [
       {
-        test: /\.(js|jsx|es6|ts|tsx)$/,
+        test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
-        use: 'swc-loader',
+        use: ['swc-loader'],
+      },
+      {
+        test: /\.(ts|tsx)$/,
+        exclude: /node_modules/,
+        // Find TypeScript errors on CI and local builds
+        // Allow skipping to save resources.
+        use: !process.env.SKIP_TS_CHECK
+          ? ['swc-loader', 'ts-loader']
+          : ['swc-loader'],
       },
       {
         test: /\.css$/,
@@ -66,7 +76,7 @@ const commonOptions = {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
         type: 'asset/resource',
         generator: {
-          filename: '[name].[ext]',
+          filename: '[name][ext]',
         },
       },
     ],

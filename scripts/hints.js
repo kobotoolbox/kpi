@@ -7,6 +7,7 @@
 //                       ^ argv[2]
 const hintName = process.argv[2];
 const hints = {
+  // Hints for npm scripts
   watch: `
     Use \`npm run generate-icons\` if you've made changes to
       jsapp/svg-icons, or switched to a branch that did.
@@ -22,9 +23,19 @@ const hints = {
 
     Reload the page to re-run the tests.
   `,
+
+  SKIP_TS_CHECK: `
+     Skipping TypeScript check (\u001b[95mSKIP_TS_CHECK\u001b[31m)
+  `,
 };
 const hint = hints[hintName];
 if (hint) {
   //            bright blue             default
   console.warn('\u001b[94m' + hint + '\u001b[0m');
+}
+
+// Provide an auxiliary hint.
+if (process.env.SKIP_TS_CHECK) {
+  //            bright red                           default
+  console.warn('\u001b[91m' + hints.SKIP_TS_CHECK + '\u001b[0m');
 }

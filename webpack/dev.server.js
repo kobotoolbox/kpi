@@ -3,6 +3,7 @@ const path = require('path');
 const WebpackCommon = require('./webpack.common');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const isPublicDomainDefined =
   process.env.KOBOFORM_PUBLIC_SUBDOMAIN && process.env.PUBLIC_DOMAIN_NAME;
@@ -11,7 +12,7 @@ const publicDomain = isPublicDomainDefined
   : 'localhost';
 const publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
 
-const devConfig = WebpackCommon({
+let devConfig = WebpackCommon({
   mode: 'development',
   optimization: {
     splitChunks: {
@@ -53,15 +54,29 @@ const devConfig = WebpackCommon({
       allowAsyncCycles: false,
       cwd: process.cwd(),
     }),
-    new ReactRefreshWebpackPlugin(),
+    // Some other plugins; see below.
   ],
 });
 
 // Print speed measurements if env variable MEASURE is set
+// Be careful with this, as SpeedMeasurePlugin's wrap(config) sometimes prevents
+// other plugins from working correctly - particularly in Dev mode.
+// Usually the workaround is to wrap first, then add the plugins that don't
+// enjoy being wrapped.
+// - https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/160
+// - https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/167
+// - https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/175
 if (process.env.MEASURE) {
   const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
   const smp = new SpeedMeasurePlugin();
-  module.exports = smp.wrap(devConfig);
-} else {
-  module.exports = devConfig;
+  devConfig = smp.wrap(devConfig);
 }
+// Plugins we add *after* wrapping with SpeedMeasureWebpackPlugin:
+// - ReactRefreshWebpackPlugin
+// - ForkTsCheckerWebpackPlugin
+devConfig.plugins.push(new ReactRefreshWebpackPlugin());
+if (!process.env.SKIP_TS_CHECK) {
+  devConfig.plugins.push(new ForkTsCheckerWebpackPlugin());
+}
+
+module.exports = devConfig;
