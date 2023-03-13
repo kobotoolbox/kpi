@@ -9,6 +9,7 @@ import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import './planRoute.scss';
+import {setState} from "reflux";
 
 /**
  * TODO: Most probably all different Account routes will use very similar design,
@@ -29,6 +30,15 @@ bem.AccountPlan__stripe = makeBem(bem.AccountPlan, 'stripe');
 const PLACEHOLDER_TITLE = t('Community plan (free access)');
 const PLACEHOLDER_DESC = t('Free access to all services. 5GB of media attachments per account, 10,000 submissions per month, as well as 25 minutes of automatic speech recognition and 20,000 characters of machine translation per month.');
 
+interface Organization {
+  uid: string;
+  name: string;
+  is_active: boolean;
+  created: string;
+  modified:string;
+  slug: string;
+}
+
 interface PlanRouteState {
   isLoading: boolean;
   subscribedProduct: BaseProduct;
@@ -38,6 +48,8 @@ interface PlanRouteState {
   intervalFilter: string;
   filterToggle: boolean;
   expandComparison: boolean;
+  // TODO: Find/implement Organization interface
+  organization: null|Organization;
 }
 
 class PlanRoute extends React.Component<{}, PlanRouteState> {
@@ -58,10 +70,12 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       intervalFilter: 'year',
       filterToggle: false,
       expandComparison: false,
+      organization: null,
     };
     this.setInterval = this.setInterval.bind(this);
     this.filterPrices = this.filterPrices.bind(this);
     this.upgradePlan = this.upgradePlan.bind(this);
+    this.fetchOrganization = this.fetchOrganization.bind(this)
   }
 
   componentDidMount() {
@@ -71,17 +85,18 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
     if (envStore.data.stripe_public_key) {
       this.fetchSubscriptionInfo();
+      this.fetchOrganization();
       fetchProducts().then((data)=> {
 
-        const renamedPriceKeys: any = 
-        data.results.map((product) => { 
+        const renamedPriceKeys: any =
+        data.results.map((product) => {
           let priceArry ={};
           Object.entries(product.prices[0]).forEach(entry => {
             let [key, value] = entry;
             const newKey = key.toLowerCase().replace(/[-_][a-z]/g, (group) => group.slice(-1).toUpperCase())
             Object.assign(priceArry, {[newKey]: value});
           })
-          return {  
+          return {
             ...product,
             prices: priceArry
           }
@@ -111,7 +126,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   }
 
   private filterPrices(){
-    const filteredPrice = 
+    const filteredPrice =
       this.state.products.map((product: any) => {
         const interval = product.prices.humanReadablePrice.split('/')[1]
         const asArray = Object.entries(product.prices);
@@ -137,33 +152,45 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       .fail(handleApiFail);
   }
 
-  private upgradePlan(priceId:string){
+  private upgradePlan(priceId:string) {
     console.log('Upgrade', priceId)
     $.ajax({
       dataType: 'json',
       method: 'POST',
-      url: `${ROOT_URL}/api/v2/stripe/checkout-link?price_id=${priceId}`,
+      url: `${ROOT_URL}/api/v2/stripe/checkout-link?price_id=${priceId}&organization_uid=${this.state.organization?.uid}`
     })
-      .done(function(res){
+      .done(function (res) {
         window.location.replace(res.url);
       })
       .fail(handleApiFail);
+  }
 
-    // api/v2/stripe/checkout-link
-    // - required parameter: price_id (string)    : product.prices[0].id
-    // - optional parameter: organization_uid (string or null)  : 
+  private fetchOrganization() {
+    $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: `${ROOT_URL}/api/v2/organizations/`,
+    })
+      .done(this.onFetchOrganizationDone.bind(this))
+      .fail(handleApiFail);
+  }
 
-    // api/v2/stripe/customer-portal
-    // - required parameter: organization_uid (string)
-
-    // Both endpoints return the same object if successful, {url: 'https://placeholder.com/'}
+  private onFetchOrganizationDone(
+    response: PaginatedResponse<Organization>
+  ) {
+    this.setState((prevState:PlanRouteState) => {
+        return {
+          ...prevState,
+          organization: response.results[0]
+        }
+    });
   }
 
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     this.setState({
-      subscribedProduct: response.results[0].plan.product,
+      subscribedProduct: response.results[0]?.plan.product,
     });
   }
 
@@ -187,7 +214,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   private renderPlanText() {
     return (
       <bem.AccountPlan__description>
-          {this.state.subscribedProduct.name}
+          {this.state.subscribedProduct?.name}
       </bem.AccountPlan__description>
     );
   }
@@ -226,7 +253,8 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
               <div className='current-plan'>
                 your plan
               </div>
-              {this.filterPrices().map((product, i) => {  
+              {this.filterPrices().map((product, i) => {
+                console.log(product)
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
@@ -242,14 +270,13 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                       <span className='checkmark'>
                         <div className='checkmark_stem' />
                         <div className='checkmark_kick' />
-                      </span> 
+                      </span>
                     features</li>
                     </ul>
-                    {this.state.subscribedProduct.name !== product.name && 
-                       
+                    {this.state.subscribedProduct?.name !== product.name && product.prices?.id &&
                       <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}> Upgrade</div>
                     }
-                    <p key={i}>{product.description}</p>                   
+                    <p key={i}>{product.description}</p>
                     {this.state.expandComparison &&
                     <div>
                     <div className='line'/>
@@ -260,7 +287,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                     </div>
                     }
                   </div>
-                ) 
+                )
               })}
               <div className='enterprise-plan'>
                 <h3> Need More?</h3>

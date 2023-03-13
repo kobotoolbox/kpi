@@ -111,7 +111,7 @@ class SubscriptionStore {
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     this.subscriptionResponse = response.results;
-    this.subscribedProduct = response.results[0]?.plan.product;
+    this.subscribedProduct = response.results[0]?.plan?.product;
   }
 }
 
