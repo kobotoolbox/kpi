@@ -72,7 +72,7 @@ class CheckoutLinkView(
             },
             mode="subscription",
             payment_method_types=["card"],
-            success_url=f'{settings.KOBOFORM_URL}/#/plans?checkout_complete=true',
+            success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout_complete=true',
         )
 
     def post(self, request):
@@ -105,7 +105,7 @@ class CustomerPortalView(
         session = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             customer=customer.id,
-            return_url=f'{settings.KOBOFORM_URL}/#/plans'
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan'
         )
         return session
 
