@@ -18,7 +18,20 @@ jobs:
           cache: 'npm'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
-      - run: npm install
-      - run: npm run copy-fonts
-      - run: npm run build
-      - run: npm run test
+      - name: Install JavaScript dependencies (npm install)
+        run: npm install
+      - name: Build Prod
+        run: SKIP_TS_CHECK=true npm run build
+      - name: Check TypeScript # Separated for visibility
+        run: npm run check-types
+      - name: Check ESLint, errors only
+        run: npm run lint -- --quiet
+      - name: Build Tests
+        run: npx webpack --config webpack/test.config.js
+      - name: Run Tests, with mocha-chrome
+        run: npx mocha-chrome test/tests.html --chrome-launcher.connectionPollInterval=5000
+        # This step takes less than 1 minute if it succeeds, but will hang for
+        # 6 hours if it fails with 'No inspectable targets'
+        # Timeout early to make it easier to manually re-run jobs.
+        # Tracking issue: https://github.com/kobotoolbox/kpi/issues/4337
+        timeout-minutes: 1

@@ -142,7 +142,7 @@
     "postinstall": "npm run copy-fonts",
     "build": "npm run hint build && webpack --config webpack/prod.config.js",
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
-    "test": "npm run hint test && webpack --config webpack/test.config.js && mocha-chrome test/tests.html --chrome-launcher.connectionPollInterval=250 --chrome-launcher.maxConnectionRetries=3000",
+    "test": "npm run hint test && webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
     "test-autobuild": "npm run hint test-autobuild && webpack --config webpack/test.autobuild.js",
     "lint": "eslint \"jsapp/js/**/*\" --ext .es6,.js,.jsx,.ts,.tsx",
     "lint-coffee": "coffeelint -f ./coffeelint.json jsapp/xlform/src test",
