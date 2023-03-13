@@ -64,7 +64,7 @@
   width: 100%;
   appearance: none;
 }
-.interval-toggle label { 
+.interval-toggle label {
   padding: sizes.$x8 sizes.$x12;
   color: colors.$kobo-dark-blue;
 }
@@ -87,13 +87,14 @@ padding: sizes.$x8 sizes.$x12;
   padding: sizes.$x8 sizes.$x12;
 }
 
-.plan-container { 
+.plan-container {
   grid-auto-columns: 1fr;
   grid-row: 3/4;
   border-radius: sizes.$x6;
-  border: colors.$kobo-gray-85 solid 1px; 
+  border: colors.$kobo-gray-85 solid 1px;
   padding: 27px 57px;
 }
+
 .upgrade-btn {
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
@@ -104,7 +105,18 @@ padding: sizes.$x8 sizes.$x12;
   text-align: center;
   position:relative;
   bottom: 0;
+  cursor: pointer;
 }
+
+.manage-btn {
+  @extend .upgrade-btn;
+  background-color: colors.$kobo-white;
+  color: colors.$kobo-blue;
+  border-color: colors.$kobo-blue;
+  border-width: 1px;
+  border-style: solid;
+}
+
 h1 {
   color: colors.$kobo-gray-40;
   font-size: sizes.$x24;
@@ -145,7 +157,7 @@ h1 {
   padding: 10px;
 }
 
-.line { 
+.line {
   border-bottom: 1px solid colors.$kobo-gray-85;
   border-radius: 5px;
   width: 100%;
@@ -183,8 +195,8 @@ h1 {
   display: inline-block;
   width: 22px;
   height: 22px;
-  -ms-transform: rotate(45deg); 
-  -webkit-transform: rotate(45deg); 
+  -ms-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
   transform: rotate(45deg);
 }
 
