@@ -166,7 +166,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       url: `${ROOT_URL}/api/v2/stripe/checkout-link?price_id=${priceId}&organization_uid=${this.state.organization?.uid}`
     })
       .done(function (res) {
-        window.location.replace(res.url);
+        window.location.assign(res.url);
       })
       .fail(handleApiFail);
   }
@@ -179,7 +179,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       url: `${ROOT_URL}/api/v2/stripe/customer-portal?organization_uid=${this.state.organization?.uid}`
     })
       .done(function (res) {
-        window.location.replace(res.url);
+        window.location.assign(res.url);
       })
       .fail(handleApiFail);
   }
@@ -271,7 +271,9 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 />
                 <label htmlFor="switch_right">Monthly</label>
               </form>
-              <div className='current-plan' style={{gridRow: 0, gridColumn: 1 + this.filterPrices().findIndex(this.isSubscribedProduct)}}>
+              <div className='current-plan'
+                   style={{gridRow: 0, gridColumn: 1 + this.filterPrices().findIndex(this.isSubscribedProduct)}}
+              >
                 Your Plan
               </div>
               {this.filterPrices().map((product, i) => {
