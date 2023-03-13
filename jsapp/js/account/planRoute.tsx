@@ -18,27 +18,13 @@ import './planRoute.scss';
  */
 bem.AccountPlan = makeBem(null, 'account-plan');
 
-bem.AccountPlan__header = makeBem(bem.AccountPlan, 'header', 'h2');
-bem.AccountPlan__blurb = makeBem(bem.AccountPlan, 'blurb', 'b');
 // Plan details parent div
 bem.AccountPlan__info = makeBem(bem.AccountPlan, 'info');
 // Plan text description
 bem.AccountPlan__description = makeBem(bem.AccountPlan, 'description');
-bem.AccountPlan__descriptionHeader = makeBem(bem.AccountPlan, 'description-header');
-bem.AccountPlan__descriptionBlurb = makeBem(bem.AccountPlan, 'description-blurb');
-// Data usage
-bem.AccountPlan__data = makeBem(bem.AccountPlan, 'data');
-// Component inside data usage that shows range
-bem.PlanUsageRow = makeBem(null, 'plan-usage-row');
-bem.PlanUsageRow__header = makeBem(bem.PlanUsageRow, 'header');
-bem.PlanUsageRow__data = makeBem(bem.PlanUsageRow, 'data');
 
 // Stripe table parent div
 bem.AccountPlan__stripe = makeBem(bem.AccountPlan, 'stripe');
-
-// Semi-hack: display proper range with a percentage as math using
-// MAX_MONTHLY_SUBMISSIONS is already done later
-const MAX_PERCENTAGE = 100;
 
 const PLACEHOLDER_TITLE = t('Community plan (free access)');
 const PLACEHOLDER_DESC = t('Free access to all services. 5GB of media attachments per account, 10,000 submissions per month, as well as 25 minutes of automatic speech recognition and 20,000 characters of machine translation per month.');
@@ -75,6 +61,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     };
     this.setInterval = this.setInterval.bind(this);
     this.filterPrices = this.filterPrices.bind(this);
+    this.upgradePlan = this.upgradePlan.bind(this);
   }
 
   componentDidMount() {
@@ -150,17 +137,18 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       .fail(handleApiFail);
   }
 
-  private upgradePlan(){
-    // $.ajax({
-    //   dataType: 'json',
-    //   method: 'GET',
-    //   url: `${ROOT_URL}/api/v2/stripe/checkout-link`,
-    // })
-    //   .done(this.onFetchSubscriptionInfoDone.bind(this))
-    //   .fail(handleApiFail);
+  private upgradePlan(priceId:string){
+    console.log('Upgrade', priceId)
+    $.ajax({
+      dataType: 'json',
+      method: 'POST',
+      url: `${ROOT_URL}/api/v2/stripe/checkout-link?price_id=${priceId}`,
+    })
+      .done(function(res){
+        window.location.replace(res.url);
+      })
+      .fail(handleApiFail);
 
-    //
-    // -----
     // api/v2/stripe/checkout-link
     // - required parameter: price_id (string)    : product.prices[0].id
     // - optional parameter: organization_uid (string or null)  : 
@@ -238,7 +226,6 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
               <div className='current-plan'>
                 your plan
               </div>
-              {/* api/v2/stripe/checkout-link */}
               {this.filterPrices().map((product, i) => {  
                 return (
                   <div className='plan-container' key={i}>
@@ -251,14 +238,16 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                       </div>
                     )}
                     <ul>
-                      <li>  <span className='checkmark'>
-                      <div className='checkmark_stem' />
-                      <div className='checkmark_kick' />
-                    </span> 
+                      <li>
+                      <span className='checkmark'>
+                        <div className='checkmark_stem' />
+                        <div className='checkmark_kick' />
+                      </span> 
                     features</li>
                     </ul>
                     {this.state.subscribedProduct.name !== product.name && 
-                      <div className='upgrade-btn'> Upgrade </div>
+                       
+                      <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}> Upgrade</div>
                     }
                     <p key={i}>{product.description}</p>                   
                     {this.state.expandComparison &&
