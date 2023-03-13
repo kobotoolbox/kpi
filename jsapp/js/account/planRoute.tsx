@@ -27,7 +27,7 @@ bem.AccountPlan__description = makeBem(bem.AccountPlan, 'description');
 // Stripe table parent div
 bem.AccountPlan__stripe = makeBem(bem.AccountPlan, 'stripe');
 
-const PLACEHOLDER_TITLE = t('Community plan (free access)');
+const PLACEHOLDER_TITLE = t('Community plan');
 const PLACEHOLDER_DESC = t('Free access to all services. 5GB of media attachments per account, 10,000 submissions per month, as well as 25 minutes of automatic speech recognition and 20,000 characters of machine translation per month.');
 
 interface Organization {
@@ -75,7 +75,9 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     this.setInterval = this.setInterval.bind(this);
     this.filterPrices = this.filterPrices.bind(this);
     this.upgradePlan = this.upgradePlan.bind(this);
-    this.fetchOrganization = this.fetchOrganization.bind(this)
+    this.fetchOrganization = this.fetchOrganization.bind(this);
+    this.isSubscribedProduct = this.isSubscribedProduct.bind(this);
+    this.managePlan = this.managePlan.bind(this);
   }
 
   componentDidMount() {
@@ -137,6 +139,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
         }
     })
     return filteredPrice;
+  }
+
+  private isSubscribedProduct(product:any) {
+    return product.name === this.state.subscribedProduct?.name;
   }
 
   // FIXME: Need to rework router/mobx. As of now, attempting to use RootStore
@@ -265,7 +271,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 />
                 <label htmlFor="switch_right">Monthly</label>
               </form>
-              <div className='current-plan' style={{gridRow: 0, gridColumn: 0}}>
+              <div className='current-plan' style={{gridRow: 0, gridColumn: 1 + this.filterPrices().findIndex(this.isSubscribedProduct)}}>
                 Your Plan
               </div>
               {this.filterPrices().map((product, i) => {
@@ -287,10 +293,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                       </span>
                     features</li>
                     </ul>
-                    {this.state.subscribedProduct?.name !== product.name && product.prices?.id &&
+                    {!this.isSubscribedProduct(product) &&
                       <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}> Upgrade</div>
                     }
-                    {this.state.subscribedProduct?.name === product.name && this.state.organization?.uid &&
+                    {this.isSubscribedProduct(product) && this.state.organization?.uid &&
                       <div className='manage-btn' onClick={this.managePlan}> Manage</div>
                     }
                     <p key={i}>{product.description}</p>
