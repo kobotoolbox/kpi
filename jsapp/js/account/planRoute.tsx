@@ -165,6 +165,19 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       .fail(handleApiFail);
   }
 
+  private managePlan() {
+    console.log('Manage', this.state.organization?.uid)
+    $.ajax({
+      dataType: 'json',
+      method: 'POST',
+      url: `${ROOT_URL}/api/v2/stripe/customer-portal?organization_uid=${this.state.organization?.uid}`
+    })
+      .done(function (res) {
+        window.location.replace(res.url);
+      })
+      .fail(handleApiFail);
+  }
+
   private fetchOrganization() {
     $.ajax({
       dataType: 'json',
@@ -189,9 +202,11 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
-    this.setState({
-      subscribedProduct: response.results[0]?.plan.product,
-    });
+    if( response.results[0]?.plan.product ) {
+      this.setState({
+        subscribedProduct: response.results[0]?.plan.product,
+      });
+    }
   }
 
   private fetchDataUsage() {
@@ -250,11 +265,10 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 />
                 <label htmlFor="switch_right">Monthly</label>
               </form>
-              <div className='current-plan'>
-                your plan
+              <div className='current-plan' style={{gridRow: 0, gridColumn: 0}}>
+                Your Plan
               </div>
               {this.filterPrices().map((product, i) => {
-                console.log(product)
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
@@ -275,6 +289,9 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                     </ul>
                     {this.state.subscribedProduct?.name !== product.name && product.prices?.id &&
                       <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}> Upgrade</div>
+                    }
+                    {this.state.subscribedProduct?.name === product.name && this.state.organization?.uid &&
+                      <div className='manage-btn' onClick={this.managePlan}> Manage</div>
                     }
                     <p key={i}>{product.description}</p>
                     {this.state.expandComparison &&
