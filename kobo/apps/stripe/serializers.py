@@ -38,18 +38,22 @@ class CustomerPortalSerializer(serializers.Serializer):
 
 
 class CheckoutLinkSerializer(serializers.Serializer):
-    price_id = serializers.CharField(required=True)
+    price_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Price.objects.filter(active=True, product__active=True),
+        required=True,
+        allow_empty=False,
+    )
     organization_uid = serializers.CharField(required=False)
-
-    def validate_price_id(self, price_id):
-        if price_id.startswith('price_'):
-            return price_id
-        raise ValidationError('Invalid price ID')
 
     def validate_organization_uid(self, organization_uid):
         if organization_uid.startswith('org') or not organization_uid:
             return organization_uid
         raise ValidationError('Invalid organization ID')
+
+    class Meta:
+        model = Price
+        fields = ("id",)
 
 
 class PriceSerializer(BasePriceSerializer):
