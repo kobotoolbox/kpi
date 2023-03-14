@@ -96,12 +96,28 @@ padding: sizes.$x8 sizes.$x12;
   padding: 27px 57px;
 }
 
+.reset-button {
+  border-width: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  display: block;
+}
+
 .upgrade-btn {
+  font-family: Roboto, sans-serif;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1em;
+  text-transform: uppercase;
+  letter-spacing: 0em;
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
   border-radius: 6px;
   padding: 10px;
-  max-width: 120px;
+  width: 7.5em;
   margin: 0 auto;
   text-align: center;
   position:relative;

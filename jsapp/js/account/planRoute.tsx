@@ -316,14 +316,26 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                     features</li>
                     </ul>
                     {!this.isSubscribedProduct(product) &&
-                      <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}>
+                      <button
+                        className='reset-button upgrade-btn'
+                        onClick={() => this.upgradePlan(product.prices.id)}
+                        aria-label={`upgrade to ${product.name}`}
+                        disabled={this.state.areButtonsDisabled}
+                        aria-disabled={this.state.areButtonsDisabled}
+                      >
                         Upgrade
-                      </div>
+                      </button>
                     }
                     {this.isSubscribedProduct(product) && this.state.organization?.uid &&
-                      <div className='manage-btn' onClick={this.managePlan} role={'button'}>
+                      <button
+                        className='reset-button manage-btn'
+                        onClick={this.managePlan}
+                        disabled={this.state.areButtonsDisabled}
+                        aria-disabled={this.state.areButtonsDisabled}
+                        aria-label={`manage your ${product.name} subscription`}
+                      >
                         Manage
-                      </div>
+                      </button>
                     }
                     <p key={i}>{product.description}</p>
                     {this.state.expandComparison &&
@@ -348,7 +360,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
               </div>
               </div>
             )}
-            <div className='expand-btn' onClick={this.toggleComparison}> {this.state.expandComparison ? 'Collapse' : 'Display Full Comparison'}</div>
+            <div className='expand-btn' role='button' onClick={this.toggleComparison}> {this.state.expandComparison ? 'Collapse' : 'Display Full Comparison'}</div>
           </bem.AccountPlan__stripe>
         </bem.AccountPlan>
       );
