@@ -41,6 +41,7 @@ interface Organization {
 
 interface PlanRouteState {
   isLoading: boolean;
+  areButtonsDisabled: boolean;
   subscribedProduct: BaseProduct;
   products: Product[];
   dataUsageBytes: number;
@@ -48,7 +49,6 @@ interface PlanRouteState {
   intervalFilter: string;
   filterToggle: boolean;
   expandComparison: boolean;
-  // TODO: Find/implement Organization interface
   organization: null|Organization;
 }
 
@@ -57,6 +57,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     super(props);
     this.state = {
       isLoading: true,
+      areButtonsDisabled: false,
       subscribedProduct: {
         id: '',
         name: PLACEHOLDER_TITLE,
@@ -78,6 +79,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
     this.fetchOrganization = this.fetchOrganization.bind(this);
     this.isSubscribedProduct = this.isSubscribedProduct.bind(this);
     this.managePlan = this.managePlan.bind(this);
+    this.toggleComparison = this.toggleComparison.bind(this);
   }
 
   componentDidMount() {
@@ -121,8 +123,6 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   private setInterval(interval: string) {
     this.setState({
       intervalFilter: interval,
-    })
-    this.setState({
       filterToggle: !this.state.filterToggle,
     })
   }
@@ -160,6 +160,11 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
 
   private upgradePlan(priceId:string) {
     console.log('Upgrade', priceId)
+    if(!priceId || this.state.areButtonsDisabled)
+      return;
+    this.setState({
+      areButtonsDisabled: true
+    })
     $.ajax({
       dataType: 'json',
       method: 'POST',
@@ -168,11 +173,21 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       .done(function (res) {
         window.location.assign(res.url);
       })
-      .fail(handleApiFail);
+      .fail(handleApiFail)
+      .always(() =>
+        this.setState({
+          areButtonsDisabled: false
+        }
+      ));
   }
 
   private managePlan() {
     console.log('Manage', this.state.organization?.uid)
+    if(!this.state.organization?.uid || this.state.areButtonsDisabled)
+      return;
+    this.setState({
+      areButtonsDisabled: true
+    })
     $.ajax({
       dataType: 'json',
       method: 'POST',
@@ -181,7 +196,12 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       .done(function (res) {
         window.location.assign(res.url);
       })
-      .fail(handleApiFail);
+      .fail(handleApiFail)
+      .always(() =>
+        this.setState({
+          areButtonsDisabled: false
+        }
+      ));
   }
 
   private fetchOrganization() {
@@ -296,19 +316,23 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                     features</li>
                     </ul>
                     {!this.isSubscribedProduct(product) &&
-                      <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}> Upgrade</div>
+                      <div className='upgrade-btn' onClick={() => this.upgradePlan(product.prices.id)}>
+                        Upgrade
+                      </div>
                     }
                     {this.isSubscribedProduct(product) && this.state.organization?.uid &&
-                      <div className='manage-btn' onClick={this.managePlan}> Manage</div>
+                      <div className='manage-btn' onClick={this.managePlan} role={'button'}>
+                        Manage
+                      </div>
                     }
                     <p key={i}>{product.description}</p>
                     {this.state.expandComparison &&
-                    <div>
-                    <div className='line'/>
-                    <div className="x"/>
-                    <p> Support </p>
-                    <p> Advanced Features</p>
-                    <p> Available add-ons </p>
+                    <div className={'plan-comparison'}>
+                      <div className='line'/>
+                      <div className="x"/>
+                      <p> Support </p>
+                      <p> Advanced Features</p>
+                      <p> Available add-ons </p>
                     </div>
                     }
                   </div>
@@ -324,7 +348,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
               </div>
               </div>
             )}
-            <div className='expand-btn' onClick={() => this.toggleComparison()}> {!this.state.expandComparison ? 'Display Full Comparison' : 'Collapse'}</div>
+            <div className='expand-btn' onClick={this.toggleComparison}> {this.state.expandComparison ? 'Collapse' : 'Display Full Comparison'}</div>
           </bem.AccountPlan__stripe>
         </bem.AccountPlan>
       );
