@@ -55,6 +55,7 @@ class CheckoutLinkView(
 
     @staticmethod
     def start_checkout_session(customer_id, price, organization_uid):
+        checkout_mode = 'payment' if price.type == 'one_time' else 'subscription'
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={
@@ -70,7 +71,7 @@ class CheckoutLinkView(
             metadata={
                 'organization_uid': organization_uid
             },
-            mode=price.billing_scheme,
+            mode=checkout_mode,
             payment_method_types=["card"],
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout_complete=true',
         )
