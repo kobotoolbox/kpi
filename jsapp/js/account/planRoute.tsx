@@ -134,8 +134,8 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   private filterPrices(){
     const products = this.state.products.map((product: any) => {
       const filteredPrices = product.prices.filter((price: any) => {
-      const interval = price.humanReadablePrice.split('/')[1]
-        return interval === this.state.intervalFilter;
+        const interval = price.humanReadablePrice.split('/')[1];
+        return interval === this.state.intervalFilter || price.unitAmount === 0;
       });
       return {
         ...product,
