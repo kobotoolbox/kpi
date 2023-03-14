@@ -18,8 +18,20 @@ jobs:
           cache: 'npm'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
+      - name: Cache node modules
+        id: cache-nodemodules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
       - name: Install JavaScript dependencies (npm install)
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
+      - name: Run copy-fonts (skipped npm install, using cached node_modules)
+        if: steps.cache-nodemodules.outputs.cache-hit == 'true'
+        run: npm run copy-fonts
       - name: Build Prod
         run: SKIP_TS_CHECK=true npm run build
       - name: Check TypeScript # Separated for visibility
