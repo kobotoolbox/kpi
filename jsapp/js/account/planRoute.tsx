@@ -91,18 +91,22 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
       this.fetchSubscriptionInfo();
       this.fetchOrganization();
       fetchProducts().then((data)=> {
-
         const renamedPriceKeys: any =
         data.results.map((product) => {
-          let priceArry ={};
-          Object.entries(product.prices[0]).forEach(entry => {
-            let [key, value] = entry;
-            const newKey = key.toLowerCase().replace(/[-_][a-z]/g, (group) => group.slice(-1).toUpperCase())
-            Object.assign(priceArry, {[newKey]: value});
+          let priceArray: any[] = [];
+          const newPrice = {};
+          product.prices.forEach(price => {
+            Object.entries(price).forEach(entry => {
+              const [key, value] = entry;
+              const newKey = key.toLowerCase().replace(/[-_][a-z]/g, (group) => group.slice(-1).toUpperCase())
+              Object.assign(newPrice, {[newKey]: value});
+            })
+            priceArray.push(newPrice)
           })
+
           return {
             ...product,
-            prices: priceArry
+            prices: priceArray
           }
         })
 
@@ -128,17 +132,17 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   }
 
   private filterPrices(){
-    const filteredPrice =
-      this.state.products.map((product: any) => {
-        const interval = product.prices.humanReadablePrice.split('/')[1]
-        const asArray = Object.entries(product.prices);
-        const filtered = asArray.filter(() => interval === this.state.intervalFilter);
-        return {
-          ...product,
-          prices: Object.fromEntries(filtered)
-        }
+    const products = this.state.products.map((product: any) => {
+      const filteredPrices = product.prices.filter((price: any) => {
+      const interval = price.humanReadablePrice.split('/')[1]
+        return interval === this.state.intervalFilter;
+      });
+      return {
+        ...product,
+        prices: filteredPrices.length ? filteredPrices[0] : null
+      }
     })
-    return filteredPrice;
+    return products.filter(product => product.prices);
   }
 
   private isSubscribedProduct(product:any) {
@@ -261,6 +265,7 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
   }
 
   render() {
+      const products = this.filterPrices();
       return (
         <bem.AccountPlan>
           <bem.AccountPlan__info>
@@ -292,11 +297,15 @@ class PlanRoute extends React.Component<{}, PlanRouteState> {
                 <label htmlFor="switch_right">Monthly</label>
               </form>
               <div className='current-plan'
-                   style={{gridRow: 0, gridColumn: 1 + this.filterPrices().findIndex(this.isSubscribedProduct)}}
+                style={{
+                  gridRow: 0,
+                  gridColumn: 1 + products.findIndex(this.isSubscribedProduct),
+                  display: products.findIndex(this.isSubscribedProduct) >= 0 ? '' : 'none',
+                }}
               >
                 Your Plan
               </div>
-              {this.filterPrices().map((product, i) => {
+              {products.map((product, i) => {
                 return (
                   <div className='plan-container' key={i}>
                     <h1> {product.name} </h1>
