@@ -9,8 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           # We need this particular version, as npm 8.5.5 is the last version
           # that works with our package.json :sadface:.
