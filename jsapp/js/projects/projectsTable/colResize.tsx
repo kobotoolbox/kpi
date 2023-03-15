@@ -6,8 +6,8 @@ import React, {useState, useEffect, useReducer, useRef} from 'react';
  *
  * Usage notes
  * - The SCSS for the table cell widths define the default widths.
- * - When dragging a resize handle, this component overrides a given field
- *   with a fixed width in px units.
+ * - When dragging a resize handle, this component overrides the width of a
+ *   given column with a fixed width in px units.
  * - Header and row cells use [data-field={field.name}]
  * - Resizers, with [data-resize-fieldname={field.name}], are a direct child of
  *   a table header cell.
@@ -136,7 +136,7 @@ export default function ColumnResizer() {
       Used for de-duping mousemove */
   const dragPrevXRef = useRef(0);
   /** The column width we used in the previous mousedown/mousemove.
-      Used for de-duping mouse renders. */
+      Used for de-duping style re-renders. */
   const dragPrevWidthRef = useRef(0);
 
   /**
@@ -260,11 +260,19 @@ export default function ColumnResizer() {
             }
             `
         )}
-      </style>
-      <style>
-        {/* For polish, show a cursor even when you hover away from the handle.
-         */}
-        {shouldRenderBodyCursor && '* { cursor: col-resize !important; }'}
+        {/* For polish, during resize:
+            - Show a cursor even when you hover away from the handle.
+            - Make resize indicators stay visible for active resize cell */}
+        {isDraggingRef.current &&
+          `
+          * { cursor: col-resize !important; }
+          [data-field="${draggingColumnRef.current}"]::before,
+          [data-field="${draggingColumnRef.current}"]::after,
+          [data-resize-fieldname="${draggingColumnRef.current}"],
+          [data-resize-fieldname="${draggingColumnRef.current}"]::after {
+            opacity: 1 !important;
+            transition: opacity 0.5s;
+          }`}
       </style>
     </>
   );

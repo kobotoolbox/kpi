@@ -47,6 +47,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
             field.name
           ),
         })}
+        // This attribute is being used for styling and for ColumnResizer
         data-field={field.name}
         key={field.name}
       >
