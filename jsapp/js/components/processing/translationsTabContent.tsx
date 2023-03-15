@@ -4,7 +4,9 @@ import bem from 'js/bem';
 import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
-import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
+import LanguageSelector, {
+  resetAllLanguageSelectors,
+} from 'js/components/languages/languageSelector';
 import RegionSelector from 'js/components/languages/regionSelector';
 import Button from 'js/components/common/button';
 import 'js/components/processing/processingBody';
@@ -46,14 +48,16 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     const draft = singleProcessingStore.getTranslationDraft();
 
@@ -66,7 +70,8 @@ export default class TranslationsTabContent extends React.Component<
     // When the selected translation was removed, we select another one.
     if (
       draft === undefined &&
-      singleProcessingStore.getTranslation(this.state.selectedTranslation) === undefined
+      singleProcessingStore.getTranslation(this.state.selectedTranslation) ===
+        undefined
     ) {
       this.selectTranslation(this.getDefaultSelectedTranslation());
     }
@@ -76,14 +81,16 @@ export default class TranslationsTabContent extends React.Component<
 
   /** Changes the draft language, preserving the other draft properties. */
   onLanguageChange(newVal: DetailedLanguage | ListLanguage | null) {
-    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
+    const newDraft =
+      clonedeep(singleProcessingStore.getTranslationDraft()) || {};
     newDraft.languageCode = newVal?.code;
     singleProcessingStore.setTranslationDraft(newDraft);
   }
 
   /** Changes the draft region, preserving the other draft properties. */
   onRegionChange(newVal: LanguageCode | null | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
+    const newDraft =
+      clonedeep(singleProcessingStore.getTranslationDraft()) || {};
     newDraft.regionCode = newVal;
     singleProcessingStore.setTranslationDraft(newDraft);
   }
@@ -99,7 +106,8 @@ export default class TranslationsTabContent extends React.Component<
 
   /** Changes the draft value, preserving the other draft properties. */
   setDraftValue(newVal: string | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {};
+    const newDraft =
+      clonedeep(singleProcessingStore.getTranslationDraft()) || {};
     newDraft.value = newVal;
     singleProcessingStore.setTranslationDraft(newDraft);
   }
@@ -128,10 +136,9 @@ export default class TranslationsTabContent extends React.Component<
   requestAutoTranslation() {
     // Currently we only support automatic translation from transcript language,
     // but we should also allow to use the source data language.
-    const toLanguageCode = (
+    const toLanguageCode =
       singleProcessingStore.getTranslationDraft()?.regionCode ||
-      singleProcessingStore.getTranslationDraft()?.languageCode
-    );
+      singleProcessingStore.getTranslationDraft()?.languageCode;
     if (toLanguageCode) {
       singleProcessingStore.requestAutoTranslation(toLanguageCode);
     }
@@ -183,14 +190,8 @@ export default class TranslationsTabContent extends React.Component<
   saveDraft() {
     const draft = singleProcessingStore.getTranslationDraft();
 
-    if (
-      draft?.languageCode !== undefined &&
-      draft?.value !== undefined
-    ) {
-      singleProcessingStore.setTranslation(
-        draft.languageCode,
-        draft.value
-      );
+    if (draft?.languageCode !== undefined && draft?.value !== undefined) {
+      singleProcessingStore.setTranslation(draft.languageCode, draft.value);
     }
   }
 
@@ -241,14 +242,22 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   renderLanguageAndDate() {
-    const storeTranslation = singleProcessingStore.getTranslation(this.state.selectedTranslation);
+    const storeTranslation = singleProcessingStore.getTranslation(
+      this.state.selectedTranslation
+    );
 
     let dateText = '';
     if (storeTranslation) {
       if (storeTranslation.dateCreated !== storeTranslation?.dateModified) {
-        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranslation.dateModified));
+        dateText = t('last modified ##date##').replace(
+          '##date##',
+          formatTime(storeTranslation.dateModified)
+        );
       } else {
-        dateText = t('created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated));
+        dateText = t('created ##date##').replace(
+          '##date##',
+          formatTime(storeTranslation.dateCreated)
+        );
       }
     }
 
@@ -256,11 +265,11 @@ export default class TranslationsTabContent extends React.Component<
       <React.Fragment>
         {this.renderLanguage()}
 
-        {dateText !== '' &&
+        {dateText !== '' && (
           <bem.ProcessingBody__transxHeaderDate>
             {dateText}
           </bem.ProcessingBody__transxHeaderDate>
-        }
+        )}
       </React.Fragment>
     );
   }
@@ -273,7 +282,7 @@ export default class TranslationsTabContent extends React.Component<
     if (draft?.languageCode) {
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          <AsyncLanguageDisplayLabel code={draft.languageCode}/>
+          <AsyncLanguageDisplayLabel code={draft.languageCode} />
         </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
@@ -284,7 +293,7 @@ export default class TranslationsTabContent extends React.Component<
     if (!draft && translations.length === 1) {
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          <AsyncLanguageDisplayLabel code={translations[0].languageCode}/>
+          <AsyncLanguageDisplayLabel code={translations[0].languageCode} />
         </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
@@ -295,7 +304,9 @@ export default class TranslationsTabContent extends React.Component<
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
           <TransxSelector
-            languageCodes={translations.map((translation) => translation.languageCode)}
+            languageCodes={translations.map(
+              (translation) => translation.languageCode
+            )}
             selectedLanguage={this.state.selectedTranslation}
             onChange={(newSelectedOption: LanguageCode | null) => {
               this.selectTranslation(newSelectedOption || undefined);
@@ -332,7 +343,9 @@ export default class TranslationsTabContent extends React.Component<
     return (
       <bem.ProcessingBody m='config'>
         <LanguageSelector
-          titleOverride={t('Please select the language you want to translate to')}
+          titleOverride={t(
+            'Please select the language you want to translate to'
+          )}
           onLanguageChange={this.onLanguageChange.bind(this)}
           sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
           hiddenLanguages={this.getTranslationsLanguages()}
@@ -358,7 +371,10 @@ export default class TranslationsTabContent extends React.Component<
               size='m'
               label={this.isAutoEnabled() ? t('manual') : t('translate')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
+              isDisabled={
+                draft?.languageCode === undefined ||
+                singleProcessingStore.isFetchingData
+              }
             />
 
             <TransxAutomaticButton
@@ -396,13 +412,15 @@ export default class TranslationsTabContent extends React.Component<
 
         <h2>{t('Translation provider')}</h2>
 
-        <p>{t(
-          'Automated translation is provided by Google Cloud Platform. By using '
-          + 'this service you agree that your transcript text will be sent to '
-          + "Google's servers for the purpose of translation. However, it will not "
-          + "be stored on Google's servers beyond the very short period needed for "
-          + 'completing the translation.'
-        )}</p>
+        <p>
+          {t(
+            'Automated translation is provided by Google Cloud Platform. By using ' +
+              'this service you agree that your transcript text will be sent to ' +
+              "Google's servers for the purpose of translation. However, it will not " +
+              "be stored on Google's servers beyond the very short period needed for " +
+              'completing the translation.'
+          )}
+        </p>
 
         <bem.ProcessingBody__footer>
           <bem.ProcessingBody__footerCenterButtons>
@@ -460,7 +478,9 @@ export default class TranslationsTabContent extends React.Component<
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
               isPending={singleProcessingStore.isFetchingData}
-              isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftValue()}
+              isDisabled={
+                !singleProcessingStore.hasUnsavedTranslationDraftValue()
+              }
             />
           </bem.ProcessingBody__transxHeaderButtons>
         </bem.ProcessingBody__transxHeader>
@@ -501,7 +521,10 @@ export default class TranslationsTabContent extends React.Component<
               color='storm'
               size='s'
               startIcon='edit'
-              onClick={this.openEditor.bind(this, this.state.selectedTranslation)}
+              onClick={this.openEditor.bind(
+                this,
+                this.state.selectedTranslation
+              )}
               tooltip={t('Edit')}
               isDisabled={singleProcessingStore.isFetchingData}
             />
@@ -511,7 +534,10 @@ export default class TranslationsTabContent extends React.Component<
               color='storm'
               size='s'
               startIcon='trash'
-              onClick={this.deleteTranslation.bind(this, this.state.selectedTranslation)}
+              onClick={this.deleteTranslation.bind(
+                this,
+                this.state.selectedTranslation
+              )}
               tooltip={t('Delete')}
               isPending={singleProcessingStore.isFetchingData}
             />
@@ -519,7 +545,10 @@ export default class TranslationsTabContent extends React.Component<
         </bem.ProcessingBody__transxHeader>
 
         <bem.ProcessingBody__text>
-          {singleProcessingStore.getTranslation(this.state.selectedTranslation)?.value}
+          {
+            singleProcessingStore.getTranslation(this.state.selectedTranslation)
+              ?.value
+          }
         </bem.ProcessingBody__text>
       </bem.ProcessingBody>
     );
@@ -540,10 +569,7 @@ export default class TranslationsTabContent extends React.Component<
     // Step 2: Config - for selecting the translation language and mode.
     if (
       draft !== undefined &&
-      (
-        draft.languageCode === undefined ||
-        draft.value === undefined
-      ) &&
+      (draft.languageCode === undefined || draft.value === undefined) &&
       draft.regionCode === undefined
     ) {
       return this.renderStepConfig();
@@ -552,10 +578,7 @@ export default class TranslationsTabContent extends React.Component<
     // Step 2.1: Config Automatic - for selecting region and other automatic options
     if (
       draft !== undefined &&
-      (
-        draft.languageCode === undefined ||
-        draft.value === undefined
-      ) &&
+      (draft.languageCode === undefined || draft.value === undefined) &&
       draft.regionCode !== undefined
     ) {
       return this.renderStepConfigAuto();
@@ -568,10 +591,9 @@ export default class TranslationsTabContent extends React.Component<
 
     // Step 4: Viewer - display existing (on backend) and selected translation.
     if (
-      (
-        singleProcessingStore.getTranslation(this.state.selectedTranslation) !== undefined ||
-        singleProcessingStore.getTranslations().length >= 1
-      ) &&
+      (singleProcessingStore.getTranslation(this.state.selectedTranslation) !==
+        undefined ||
+        singleProcessingStore.getTranslations().length >= 1) &&
       draft === undefined
     ) {
       return this.renderStepSingleViewer();
