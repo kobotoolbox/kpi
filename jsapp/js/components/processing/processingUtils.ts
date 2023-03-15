@@ -1,7 +1,7 @@
 import {ROUTES} from 'js/router/routerConstants';
 import {SUPPLEMENTAL_DETAILS_PROP} from 'js/constants';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import { history } from 'jsapp/js/router/historyRouter';
+import {history} from 'jsapp/js/router/historyRouter';
 
 /**
  * Returns a path that leads to transcription value in the submission response,
@@ -49,10 +49,9 @@ export function getSupplementalPathParts(path: string): {
 export function openProcessing(
   assetUid: string,
   qpath: string,
-  submissionEditId: string,
+  submissionEditId: string
 ) {
-  const route = ROUTES.FORM_PROCESSING
-    .replace(':uid', assetUid)
+  const route = ROUTES.FORM_PROCESSING.replace(':uid', assetUid)
     .replace(':qpath', qpath)
     .replace(':submissionEditId', submissionEditId);
   history.push(route);
