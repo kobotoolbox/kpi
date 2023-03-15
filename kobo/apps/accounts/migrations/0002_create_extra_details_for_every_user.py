@@ -20,11 +20,13 @@ def create_extra_user_detail(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')
 
-    # Efficient bulk data mover - 3 queries per many users
     page_size = 10000
+    user_w_extradetails_ids = list(
+        ExtraUserDetail.objects.values_list('user_id', flat=True)
+    )
     paginator = Paginator(
         User.objects.values_list('pk', flat=True).order_by('pk').exclude(
-            pk__in=ExtraUserDetail.objects.values_list('user_id', flat=True)
+            pk__in=user_w_extradetails_ids
         ),
         page_size,
     )
