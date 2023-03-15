@@ -7,7 +7,7 @@ import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
-import { withRouter } from "js/router/legacy";
+import {withRouter} from 'js/router/legacy';
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {actions} from '../actions';
@@ -28,6 +28,7 @@ import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import envStore from 'js/envStore';
+import {userCan} from 'js/components/permissions/utils';
 
 const MainHeader = class MainHeader extends Reflux.Component {
   constructor(props){
@@ -276,7 +277,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
 
     let userCanEditAsset = false;
     if (this.state.asset) {
-      userCanEditAsset = this.userCan('change_asset', this.state.asset);
+      userCanEditAsset = userCan('change_asset', this.state.asset);
     }
 
     let iconClassName = '';
@@ -342,7 +343,6 @@ const MainHeader = class MainHeader extends Reflux.Component {
 
 reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
 reactMixin(MainHeader.prototype, mixins.contextRouter);
-reactMixin(MainHeader.prototype, mixins.permissions);
 
 MainHeader.contextTypes = {router: PropTypes.object};
 

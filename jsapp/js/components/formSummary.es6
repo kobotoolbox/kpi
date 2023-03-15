@@ -8,7 +8,6 @@ import {dataInterface} from 'js/dataInterface';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import bem from 'js/bem';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
 import DocumentTitle from 'react-document-title';
 import Icon from 'js/components/common/icon';
 import moment from 'moment';
@@ -26,6 +25,7 @@ import {
   ANON_USERNAME,
 } from 'js/constants';
 import './formSummary.scss';
+import {userCan} from 'js/components/permissions/utils';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -50,7 +50,7 @@ class FormSummary extends React.Component {
     }
   }
   prep() {
-    if (this.state.permissions && this.userCan('view_submissions', this.state)) {
+    if (this.state.permissions && userCan('view_submissions', this.state)) {
       const uid = this._getAssetUid();
       this.getLatestSubmissionTime(uid);
       this.prepSubmissions(uid);
@@ -148,7 +148,7 @@ class FormSummary extends React.Component {
     });
   }
   renderSubmissionsGraph() {
-    if (!this.state.permissions || !this.userCan('view_submissions', this.state)) {
+    if (!this.state.permissions || !userCan('view_submissions', this.state)) {
       return null;
     }
 
@@ -218,7 +218,7 @@ class FormSummary extends React.Component {
   renderQuickLinks() {
     return (
       <bem.FormView__cell m='data-tabs'>
-        {this.userCan('add_submissions', this.state) &&
+        {userCan('add_submissions', this.state) &&
           <Link
             to={`/forms/${this.state.uid}/landing`}
             key='landing'
@@ -231,7 +231,7 @@ class FormSummary extends React.Component {
           </Link>
         }
 
-        {this.userCan('change_asset', this.state) &&
+        {userCan('change_asset', this.state) &&
           <button onClick={this.sharingModal}>
             <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
@@ -239,7 +239,7 @@ class FormSummary extends React.Component {
           </button>
         }
 
-        {this.userCan('change_asset', this.state) &&
+        {userCan('change_asset', this.state) &&
           <Link
             to={`/forms/${this.state.uid}/edit`}
             key='edit'
@@ -262,7 +262,7 @@ class FormSummary extends React.Component {
   }
 
   renderDataTabs() {
-    if (!this.state.permissions || !this.userCan('view_submissions', this.state)) {
+    if (!this.state.permissions || !userCan('view_submissions', this.state)) {
       return null;
     }
 
@@ -335,7 +335,7 @@ class FormSummary extends React.Component {
         <bem.FormView__cell m={['label', 'first']}>
           {t('Team members')}
         </bem.FormView__cell>
-        {this.userCan('change_asset', this.state) &&
+        {userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
             <i className='k-icon k-icon-user-share' />
           </a>
@@ -499,7 +499,6 @@ class FormSummary extends React.Component {
 }
 
 reactMixin(FormSummary.prototype, mixins.dmix);
-reactMixin(FormSummary.prototype, mixins.permissions);
 reactMixin(FormSummary.prototype, Reflux.ListenerMixin);
 
 export default FormSummary;
