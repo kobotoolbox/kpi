@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ],
                 db_index=True,
                 default='delete',
-                max_length=11,
+                max_length=10,
             ),
         ),
         migrations.AlterIndexTogether(

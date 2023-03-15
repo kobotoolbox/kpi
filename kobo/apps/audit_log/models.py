@@ -26,7 +26,7 @@ class AuditLog(models.Model):
     date_created = models.DateTimeField(default=now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
-        max_length=11,
+        max_length=10,
         choices=AuditAction.choices,
         default=AuditAction.DELETE,
         db_index=True
