@@ -11,10 +11,10 @@
   </li>
   <li><b>Some examples:</b></li>
   <li>logged in after March 1, 2023:
-    <pre>last_login__gte=2023-03-01</pre>
+    <pre>last_login__gte:2023-03-01</pre>
   </li>
   <li>emails not from domain.tld:
-    <pre>NOT email__iendswith=@domain.tld</pre>
+    <pre>NOT email__iendswith:@domain.tld</pre>
   </li>
   <li>Users being pending removed:
     <pre>extra_details__date_removal_request__isnull:False</pre>
