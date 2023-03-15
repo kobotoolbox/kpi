@@ -4,6 +4,7 @@ from celery.signals import task_failure, task_retry
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
+from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
     PeriodicTask,
@@ -66,7 +67,7 @@ def empty_account(account_trash_id: int):
 
     user = account_trash.user
     user_id = user.pk
-    date_deactivated = user.extra_details.date_deactivated
+    date_removal_request = user.extra_details.date_removal_request
     try:
         # We need to deactivate this post_delete signal because it's triggered
         # on `User` delete cascade and fails to insert into DB within a transaction.
@@ -104,10 +105,16 @@ def empty_account(account_trash_id: int):
                 # registration with the same username.
                 anonymized_user = get_user_model().objects.create_user(
                     username=user.username,
+                    is_active=False,
+                    last_login=user.last_login,
+                    date_joined=user.date_joined,
                     password=get_user_model().objects.make_random_password(),
                 )
-                ExtraUserDetail.objects.create(
-                    user=anonymized_user, date_deactivated=date_deactivated
+                extra_details = anonymized_user.extra_details
+                extra_details.date_removal_request = date_removal_request
+                extra_details.date_removed = now()
+                extra_details.save(
+                    update_fields=['date_removal_request', 'date_removed']
                 )
                 audit_log_params['action'] = AuditAction.REMOVE
 

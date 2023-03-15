@@ -116,7 +116,9 @@ class ExtendedUserAdmin(UserAdmin):
         'email',
         'is_active',
         'date_joined',
-        'get_date_deactivated',
+        'get_date_removal_request',
+        'get_date_removed',
+        'get_status',
     )
     list_filter = (QueryParserFilter, 'is_active', 'is_superuser', 'date_joined')
     search_default_field_lookups = [
@@ -136,6 +138,9 @@ class ExtendedUserAdmin(UserAdmin):
         ),
     )
     actions = ['remove', 'delete']
+
+    class Media:
+        js = ['admin/js/list_filter_toggle.js']
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):
@@ -176,19 +181,42 @@ class ExtendedUserAdmin(UserAdmin):
         ).aggregate(count=Count('pk'))
         return assets_count['count']
 
-    @admin.display(description='Deactivated date')
-    def get_date_deactivated(self, obj):
-        if not (date_deactivated := obj.extra_details.date_deactivated):
+    @admin.display(description='Removal request date')
+    def get_date_removal_request(self, obj):
+        if not (date_removal_request := obj.extra_details.date_removal_request):
             return '-'
 
-        return date_deactivated
+        return date_removal_request
+
+    @admin.display(description='Removed date')
+    def get_date_removed(self, obj):
+        if not (date_removed := obj.extra_details.date_removed):
+            return '-'
+
+        return date_removed
+
+    @admin.display(description='Status')
+    def get_status(self, obj):
+
+        if not obj.last_login:
+            return 'Never logged in'
+
+        if obj.is_active:
+            return 'Active'
+
+        if obj.extra_details.date_removed:
+            return 'Removed'
+
+        if obj.extra_details.date_removal_request:
+            return 'Removal pending'
+
+        return 'Inactive'
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.exclude(
-            Q(pk__in=AccountTrash.objects.values_list('user_id', flat=True))
-            | Q(pk=settings.ANONYMOUS_USER_ID),
-        ).select_related('extra_details')
+        return queryset.exclude(pk=settings.ANONYMOUS_USER_ID).select_related(
+            'extra_details'
+        )
 
     def get_search_results(self, request, queryset, search_term):
 

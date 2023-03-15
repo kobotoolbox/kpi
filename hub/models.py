@@ -144,7 +144,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
     data = models.JSONField(default=dict)
-    date_deactivated = models.DateTimeField(null=True)
+    date_removal_request = models.DateTimeField(null=True)
+    date_removed = models.DateTimeField(null=True)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
@@ -169,15 +170,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):
-
-    extra_detail, created = ExtraUserDetail.objects.get_or_create(user=instance)
-
-    if not instance.is_active and not extra_detail.date_deactivated:
-        extra_detail.date_deactivated = now()
-        extra_detail.save(update_fields=['date_deactivated'])
-    elif instance.is_active and extra_detail.date_deactivated:
-        extra_detail.date_deactivated = None
-        extra_detail.save(update_fields=['date_deactivated'])
+    if created:
+        ExtraUserDetail.objects.get_or_create(user=instance)
 
 
 post_save.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)

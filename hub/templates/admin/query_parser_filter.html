@@ -16,8 +16,12 @@
   <li>emails not from domain.tld:
     <pre>NOT email__iendswith=@domain.tld</pre>
   </li>
-  <li>deactivated users:
-    <pre>NOT extra_details__date_deactivated__isnull:True</pre>
+  <li>Users being pending removed:
+    <pre>extra_details__date_removal_request__isnull:False</pre>
+    <pre>AND extra_details__date_removed__isnull:True</pre>
+  </li>
+  <li>Users removed:
+    <pre>extra_details__date_removed__isnull:False</pre>
   </li>
   <li><b>Fields:</b></li>
   <li>
@@ -26,6 +30,7 @@
     <pre class="hub-queryparser--pre-inline">username</pre>,
     <pre class="hub-queryparser--pre-inline">email</pre>,
     <pre class="hub-queryparser--pre-inline">last_login</pre>,
-    <pre class="hub-queryparser--pre-inline">extra_details__date_deactivated</pre>
+    <pre class="hub-queryparser--pre-inline">extra_details__date_removal_request</pre>,
+    <pre class="hub-queryparser--pre-inline">extra_details__date_removed</pre>
   </li>
 </ul>

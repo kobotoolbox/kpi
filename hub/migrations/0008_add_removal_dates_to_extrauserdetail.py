@@ -12,7 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='extrauserdetail',
-            name='date_deactivated',
+            name='date_removal_request',
+            field=models.DateTimeField(null=True),
+        ),
+        migrations.AddField(
+            model_name='extrauserdetail',
+            name='date_removed',
             field=models.DateTimeField(null=True),
         ),
     ]
