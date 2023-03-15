@@ -33,7 +33,7 @@ from .models.account import AccountTrash
 from .models.project import ProjectTrash
 
 
-def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
+def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
     deployment_backend_uuid = None
     asset_id = asset.pk
     asset_uid = asset.uid

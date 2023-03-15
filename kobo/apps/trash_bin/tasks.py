@@ -12,7 +12,6 @@ from django_celery_beat.models import (
 )
 from requests.exceptions import HTTPError
 
-from hub.models import ExtraUserDetail
 from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 from kobo.apps.audit_log.models import AuditLog, AuditAction
 from kobo.celery import celery_app
@@ -24,7 +23,7 @@ from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
-from .utils import delete_project
+from .utils import delete_asset
 
 
 @celery_app.task(
@@ -46,8 +45,17 @@ def empty_account(account_trash_id: int):
             )
             return
 
-        assets = Asset.all_objects.filter(owner=account_trash.user).only(
-            'uid', '_deployment_data', 'name', 'asset_type', 'advanced_features'
+        assets = (
+            Asset.all_objects.filter(owner=account_trash.user)
+            .only(
+                'uid',
+                '_deployment_data',
+                'owner',
+                'name',
+                'asset_type',
+                'advanced_features',
+            )
+            .select_related('owner')
         )
 
         # Ensure there are no running other project trash tasks related to this
@@ -62,8 +70,13 @@ def empty_account(account_trash_id: int):
         account_trash.metadata['failure_error'] = ''
         account_trash.save(update_fields=['metadata', 'status'])
 
-    for asset in assets:
-        delete_project(account_trash.request_author, asset)
+    # Delete children first…
+    for asset in assets.filter(parent__isnull=False):
+        delete_asset(account_trash.request_author, asset)
+
+    # …then parents
+    for asset in assets.filter(parent__isnull=True):
+        delete_asset(account_trash.request_author, asset)
 
     user = account_trash.user
     user_id = user.pk
@@ -155,7 +168,7 @@ def empty_project(project_trash_id: int):
         project_trash.status = TrashStatus.IN_PROGRESS
         project_trash.save(update_fields=['status'])
 
-    delete_project(project_trash.request_author, project_trash.asset)
+    delete_asset(project_trash.request_author, project_trash.asset)
     PeriodicTask.objects.get(pk=project_trash.periodic_task_id).delete()
     logging.info(
         f'Project {project_trash.asset.name} (#{project_trash.asset.uid}) has '
