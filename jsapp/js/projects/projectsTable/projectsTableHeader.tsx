@@ -14,7 +14,7 @@ import KoboDropdown, {
   KoboDropdownPlacements,
 } from 'js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
-import ColumnResizer from './colResize';
+import ColumnResizer from './columnResizer';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
