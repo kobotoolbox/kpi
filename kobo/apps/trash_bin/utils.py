@@ -35,6 +35,9 @@ from .models.project import ProjectTrash
 
 def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
     deployment_backend_uuid = None
+    asset_id = asset.pk
+    asset_uid = asset.uid
+    owner_username = asset.owner.username
     project_exports = []
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
@@ -54,17 +57,17 @@ def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
             object_id=asset_id,
             user=request_author,
             metadata={
-                'asset_uid': asset.uid,
+                'asset_uid': asset_uid,
                 'asset_name': asset.name,
             }
         )
 
     # Delete all related files
-    default_storage.delete(f'{asset.owner.username}/xls/{asset.uid}.xls')
-    default_storage.delete(f'{asset.owner.username}/xls/{asset.uid}.xlsx')
-    rmdir(f'{asset.owner.username}/asset_files/{asset.uid}')
+    default_storage.delete(f'{owner_username}/xls/{asset_uid}.xls')
+    default_storage.delete(f'{owner_username}/xls/{asset_uid}.xlsx')
+    rmdir(f'{owner_username}/asset_files/{asset_uid}')
     if deployment_backend_uuid:
-        rmdir(f'{asset.owner.username}/form-media/{deployment_backend_uuid}')
+        rmdir(f'{owner_username}/form-media/{deployment_backend_uuid}')
         for export in project_exports:
             default_storage.delete(export)
 
