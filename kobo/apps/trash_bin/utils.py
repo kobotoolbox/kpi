@@ -16,7 +16,7 @@ from django_celery_beat.models import (
 )
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditLog, AuditMethod
+from kobo.apps.audit_log.models import AuditLog, AuditAction
 from kpi.exceptions import KobocatUnresponsiveError
 from kpi.models import Asset, ExportTask
 from kpi.utils.mongo_helper import MongoHelper
@@ -47,7 +47,6 @@ def delete_project(request_author: 'auth.User', asset: 'kpi.Asset'):
         ).filter(data__source__endswith=f'/api/v2/assets/{asset.uid}/')
 
     with transaction.atomic():
-        asset_id = asset.pk
         asset.delete()
         AuditLog.objects.create(
             app_label=asset._meta.app_label,
@@ -131,7 +130,7 @@ def move_to_trash(
                     model_name=related_model._meta.model_name,
                     object_id=obj_dict['pk'],
                     user=request_author,
-                    method=AuditMethod.IN_TRASH,
+                    action=AuditAction.IN_TRASH,
                     metadata=_get_metadata(obj_dict)
                 )
             )
@@ -201,7 +200,7 @@ def put_back(
                 model_name=related_model._meta.model_name,
                 object_id=obj_dict['pk'],
                 user=request_author,
-                method=AuditMethod.PUT_BACK,
+                action=AuditAction.PUT_BACK,
                 metadata=_get_metadata(obj_dict)
             )
             for obj_dict in objects_list

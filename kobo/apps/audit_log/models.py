@@ -4,13 +4,13 @@ from django.conf import settings
 from django.utils.timezone import now
 
 
-class AuditMethod(models.TextChoices):
+class AuditAction(models.TextChoices):
 
     CREATE = 'create', 'CREATE'
     DELETE = 'delete', 'DELETE'
     IN_TRASH = 'in-trash', 'IN TRASH'
     PUT_BACK = 'put-back', 'PUT BACK'
-    SOFT_DELETE = 'soft-delete', 'SOFT DELETE'
+    REMOVE = 'remove', 'REMOVE'
     UPDATE = 'update', 'UPDATE'
 
 
@@ -25,15 +25,15 @@ class AuditLog(models.Model):
     object_id = models.BigIntegerField()
     date_created = models.DateTimeField(default=now, db_index=True)
     metadata = models.JSONField(default=dict)
-    method = models.CharField(
+    action = models.CharField(
         max_length=11,
-        choices=AuditMethod.choices,
-        default=AuditMethod.DELETE,
+        choices=AuditAction.choices,
+        default=AuditAction.DELETE,
         db_index=True
     )
 
     class Meta:
         index_together = (
-            ('app_label', 'model_name', 'method'),
+            ('app_label', 'model_name', 'action'),
             ('app_label', 'model_name'),
         )

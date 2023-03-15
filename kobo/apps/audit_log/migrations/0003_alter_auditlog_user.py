@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('audit_log', '0002_alter_auditlog_method'),
+        ('audit_log', '0002_rename_method_to_action'),
     ]
 
     operations = [

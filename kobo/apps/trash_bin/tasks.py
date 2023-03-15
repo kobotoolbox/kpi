@@ -11,8 +11,9 @@ from django_celery_beat.models import (
 )
 from requests.exceptions import HTTPError
 
+from hub.models import ExtraUserDetail
 from kobo.apps.trackers.models import MonthlyNLPUsageCounter
-from kobo.apps.audit_log.models import AuditLog, AuditMethod
+from kobo.apps.audit_log.models import AuditLog, AuditAction
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatUnresponsiveError
@@ -101,11 +102,14 @@ def empty_account(account_trash_id: int):
             if not account_trash.delete_all:
                 # Recreate a user with same username to block any future
                 # registration with the same username.
-                user.set_password(get_user_model().objects.make_random_password())
-                user.save()
-                user.extra_details.date_deactivated = date_deactivated
-                user.extra_details.save(update_fields=['date_deactivated'])
-                audit_log_params['method'] = AuditMethod.SOFT_DELETE
+                anonymized_user = get_user_model().objects.create_user(
+                    username=user.username,
+                    password=get_user_model().objects.make_random_password(),
+                )
+                ExtraUserDetail.objects.create(
+                    user=anonymized_user, date_deactivated=date_deactivated
+                )
+                audit_log_params['action'] = AuditAction.REMOVE
 
             AuditLog.objects.create(**audit_log_params)
             rmdir(f'{user.username}/')

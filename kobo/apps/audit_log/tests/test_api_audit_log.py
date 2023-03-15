@@ -46,7 +46,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            method='delete'
+            action='delete'
         )
         self.client.login(username='admin', password='pass')
         expected = [{
@@ -54,7 +54,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             'model_name': 'bar',
             'object_id': 1,
             'user': 'http://testserver/users/someuser/',
-            'method': 'DELETE',
+            'action': 'DELETE',
             'metadata': {},
             'date_created': date_created,
         }]
@@ -74,7 +74,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            method='update',
+            action='update',
         )
         AuditLog.objects.create(
             user=anotheruser,
@@ -82,7 +82,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            method='delete',
+            action='delete',
         )
         self.client.login(username='admin', password='pass')
         expected = [{
