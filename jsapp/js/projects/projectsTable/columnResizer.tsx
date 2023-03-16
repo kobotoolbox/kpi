@@ -165,50 +165,58 @@ export default function ColumnResizer() {
       Used for de-duping style re-renders. */
   const dragPrevWidthRef = useRef(0);
 
+  // This handler is separated out from the others as a small optimization.
   /**
-   * The singular DOM event handler for column resizing.
-   * One consolidated function. It switches on event.type, delegates when
-   * necessary, and exits early.
+   * Event handler for pointermove events
+   *
+   * - Only relevant if drag interaction is already happening
+   * - Updates the column width state for the current column
    */
-  const handlerRef = useRef((e: Event) => {
-    // TypeScript guard
-    if (!(e instanceof MouseEvent)) {
-      return;
-    }
-    // Mousemove
-    //  - Only relevant if drag is already happening
-    //  - Update column width state for current column
-    if (
-      e.type === 'mousemove' &&
-      // Event logic
-      isDraggingRef.current &&
-      // De-dupe
-      dragPrevXRef.current !== e.pageX // skip event if same x
-    ) {
-      const newWidth = clampedColumnWidth(
-        draggingColumnRef.current,
-        // Calculate desired width based on initial positions and current x
-        dragStartWidthRef.current + (e.pageX - dragStartXRef.current)
-      );
-      // Update state for re-render only if the width is new after clamp
-      if (newWidth !== dragPrevWidthRef.current) {
-        setColumnWidths((prevColumnWidths) => {
-          return {
-            ...prevColumnWidths,
-            [draggingColumnRef.current]: newWidth,
-          };
-        });
-      }
-      // Set variables for de-duping
-      dragPrevXRef.current = e.pageX; // to skip event early if same x
-      dragPrevWidthRef.current = newWidth; // to skip state update if same width
+  const moveHandlerRef = useRef((e: PointerEvent) => {
+    // Return early if:
+    //  - Not dragging (shouldn't happen, but check just in case)
+    //  - Same X as before (column width can't change)
+    if (!isDraggingRef.current || dragPrevXRef.current === e.pageX) {
       return;
     }
 
-    // Mousedown
+    const newWidth = clampedColumnWidth(
+      draggingColumnRef.current,
+      // Calculate desired width based on initial positions and current x
+      dragStartWidthRef.current + (e.pageX - dragStartXRef.current)
+    );
+    // Update state for re-render only if the width is new after clamp
+    if (newWidth !== dragPrevWidthRef.current) {
+      setColumnWidths((prevColumnWidths) => {
+        return {
+          ...prevColumnWidths,
+          [draggingColumnRef.current]: newWidth,
+        };
+      });
+    }
+    // Set variables for de-duping
+    dragPrevXRef.current = e.pageX; // to skip event early if same x
+    dragPrevWidthRef.current = newWidth; // to skip state update if same width
+
+    return;
+    // }
+  });
+
+  /**
+   * A consolidated function for pointerdown, pointerup, and contextmenu.
+   * It switches on event.type, delegates when necessary, and exits early.
+   * It also adds/removes listeners for the pointermove event.
+   */
+  const handlerRef = useRef((e: Event) => {
+    // TypeScript guard
+    if (!(e instanceof PointerEvent)) {
+      return;
+    }
+
+    // Pointer Down
     //  - Start the dragging interaction (if on a resize handle)
     if (
-      e.type === 'mousedown' &&
+      e.type === 'pointerdown' &&
       e.button === 0 // Only on left (primary) mouse button
     ) {
       // Detect resize handle with [data-resize-fieldname={fieldname}]
@@ -228,6 +236,7 @@ export default function ColumnResizer() {
           dragStartWidthRef.current = parent.offsetWidth;
           // box-sizing: border-box makes this very easy
         }
+        document.body.addEventListener('pointermove', moveHandlerRef.current);
       }
       return;
     }
@@ -235,7 +244,7 @@ export default function ColumnResizer() {
     // Mouseup (or contextmenu)
     //  - End the dragging interaction
     //  - Clear the cursor
-    if (e.type === 'mouseup' || e.type === 'contextmenu') {
+    if (e.type === 'pointerup' || e.type === 'contextmenu') {
       // // Uncomment to help find good width settings
       // if (isDraggingRef.current) {
       //   console.log(
@@ -248,10 +257,14 @@ export default function ColumnResizer() {
       // }
       isDraggingRef.current = false;
       setIsDragging(false);
+      document.body.removeEventListener('pointermove', moveHandlerRef.current);
       return;
     }
   });
-  const eventTypes = ['mousedown', 'mouseup', 'mousemove', 'contextmenu'];
+
+  // List of events we register immediately.
+  // pointermove not included - we toggle this when drag starts/ends
+  const eventTypes = ['pointerdown', 'pointerup', 'contextmenu'];
 
   // Mount/Unmount effect: Attach/remove handlers on the body
   useEffect(() => {
@@ -265,6 +278,8 @@ export default function ColumnResizer() {
       eventTypes.forEach((eventType) => {
         document.body.removeEventListener(eventType, handlerRef.current);
       });
+      // Remove pointermove, in case we unmount during a drag event
+      document.body.removeEventListener('pointermove', moveHandlerRef.current);
     };
   }, []);
 
