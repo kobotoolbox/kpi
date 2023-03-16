@@ -72,7 +72,7 @@ class CheckoutLinkView(
             },
             mode="subscription",
             payment_method_types=["card"],
-            success_url=f'{settings.KOBOFORM_URL}/#/plans/success',
+            success_url=f'{settings.KOBOFORM_URL}/#/account/plan/success',
         )
 
     def post(self, request):
