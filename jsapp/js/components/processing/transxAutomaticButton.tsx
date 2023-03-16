@@ -46,7 +46,9 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   componentDidUpdate(prevProps: TransxAutomaticButtonProps) {
@@ -56,10 +58,10 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
@@ -84,10 +86,14 @@ export default class TransxAutomaticButton extends React.Component<
     let hasServicesAvailable = false;
     try {
       if (this.props.type === 'transcript') {
-        hasServicesAvailable = await hasTranscriptServicesAvailable(languageCode);
+        hasServicesAvailable = await hasTranscriptServicesAvailable(
+          languageCode
+        );
       }
       if (this.props.type === 'translation') {
-        hasServicesAvailable = await hasTranslationServicesAvailable(languageCode);
+        hasServicesAvailable = await hasTranslationServicesAvailable(
+          languageCode
+        );
       }
     } catch (error) {
       console.error(`Language ${languageCode} not found 3`);
@@ -115,7 +121,9 @@ export default class TransxAutomaticButton extends React.Component<
           label={t('automatic')}
           onClick={this.props.onClick}
           isDisabled={!this.state.isAvailable}
-          isPending={singleProcessingStore.isFetchingData || this.state.isLoading}
+          isPending={
+            singleProcessingStore.isFetchingData || this.state.isLoading
+          }
         />
       );
     }
