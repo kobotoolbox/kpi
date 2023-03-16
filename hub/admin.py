@@ -198,7 +198,7 @@ class ExtendedUserAdmin(UserAdmin):
     @admin.display(description='Status')
     def get_status(self, obj):
 
-        if not obj.last_login:
+        if not obj.last_login and not obj.extra_details.date_removal_request:
             return 'Never logged in'
 
         if obj.is_active:
