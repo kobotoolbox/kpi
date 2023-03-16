@@ -181,7 +181,6 @@ export default function ColumnResizer() {
     if (
       e.type === 'mousemove' &&
       // Event logic
-      // isDragging &&
       isDraggingRef.current &&
       // De-dupe
       dragPrevXRef.current !== e.pageX // skip event if same x

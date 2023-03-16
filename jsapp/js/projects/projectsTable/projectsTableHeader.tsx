@@ -140,9 +140,6 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
     );
   };
 
-  // Confirms that the resizing doesn't cause extra renders
-  // console.log('Rendered ProjectsTableHeader!');
-
   return (
     <header className={tableStyles.header}>
       <ColumnResizer />
