@@ -1,13 +1,19 @@
 import React from 'react';
 import {formatTime} from 'js/utils';
 import bem, {makeBem} from 'js/bem';
-import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore';
+import singleProcessingStore, {
+  SingleProcessingTabs,
+} from 'js/components/processing/singleProcessingStore';
 import TransxSelector from './transxSelector';
 import './singleProcessingPreview.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 
-bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section');
+bem.SingleProcessingPreview = makeBem(
+  null,
+  'single-processing-preview',
+  'section'
+);
 
 /** Shows a source (transcript or translation) for new translation. */
 export default class SingleProcessingPreview extends React.Component {
@@ -20,7 +26,9 @@ export default class SingleProcessingPreview extends React.Component {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   onSingleProcessingStoreChange() {
@@ -42,9 +50,15 @@ export default class SingleProcessingPreview extends React.Component {
     let dateText = '';
     if (source) {
       if (source.dateCreated !== source?.dateModified) {
-        dateText = t('last modified ##date##').replace('##date##', formatTime(source.dateModified));
+        dateText = t('last modified ##date##').replace(
+          '##date##',
+          formatTime(source.dateModified)
+        );
       } else {
-        dateText = t('created ##date##').replace('##date##', formatTime(source.dateCreated));
+        dateText = t('created ##date##').replace(
+          '##date##',
+          formatTime(source.dateCreated)
+        );
       }
     }
 
@@ -52,11 +66,11 @@ export default class SingleProcessingPreview extends React.Component {
       <React.Fragment>
         {this.renderLanguage()}
 
-        {dateText !== '' &&
+        {dateText !== '' && (
           <bem.ProcessingBody__transxHeaderDate>
             {dateText}
           </bem.ProcessingBody__transxHeaderDate>
-        }
+        )}
       </React.Fragment>
     );
   }
@@ -74,7 +88,7 @@ export default class SingleProcessingPreview extends React.Component {
     if (sources.length === 1) {
       return (
         <bem.ProcessingBody__transxHeaderLanguage>
-          <AsyncLanguageDisplayLabel code={sourceData.languageCode}/>
+          <AsyncLanguageDisplayLabel code={sourceData.languageCode} />
         </bem.ProcessingBody__transxHeaderLanguage>
       );
     }
