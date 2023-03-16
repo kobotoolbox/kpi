@@ -68,7 +68,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
-    koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
     version_count = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
@@ -146,7 +145,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'content',
                   'downloads',
                   'embeds',
-                  'koboform_link',
                   'xform_link',
                   'hooks_link',
                   'tag_string',
@@ -235,7 +233,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         project_view_perms = get_project_view_user_permissions_for_asset(
             obj, user
         )
-        asset_perms = list(obj.get_perms(user))
+        asset_perms = obj.get_perms(user)
         return [
             {'codename': perm} for perm in set(project_view_perms + asset_perms)
         ]
@@ -292,11 +290,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             _reverse_lookup_format('xls'),
             _reverse_lookup_format('xml'),
         ]
-
-    def get_koboform_link(self, obj):
-        return reverse('asset-koboform',
-                       args=(obj.uid,),
-                       request=self.context.get('request', None))
 
     def get_data(self, obj):
         kwargs = {'parent_lookup_asset': obj.uid}

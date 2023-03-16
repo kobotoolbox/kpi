@@ -50,6 +50,7 @@ celery[redis]==5.2.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-celery-beat
+    #   flower
 certifi==2021.10.8
     # via
     #   msrest
@@ -94,7 +95,7 @@ dict2xml==1.7.1
     # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
-dj-stripe==2.6.2
+dj-stripe==2.7.3
     # via -r dependencies/pip/requirements.in
 django==3.2.15
     # via
@@ -162,11 +163,11 @@ django-picklefield==3.0.1
     # via django-constance
 django-private-storage==3.0
     # via -r dependencies/pip/requirements.in
+django-prometheus==2.2.0
+    # via -r dependencies/pip/requirements.in
 django-redis==5.2.0
     # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.2
-    # via -r dependencies/pip/requirements.in
-django-registration-redux==2.10
     # via -r dependencies/pip/requirements.in
 django-request-cache==1.4.0
     # via -r dependencies/pip/requirements.in
@@ -197,6 +198,8 @@ drf-extensions==0.7.1
     # via -r dependencies/pip/requirements.in
 et-xmlfile==1.1.0
     # via openpyxl
+flower==1.2.0
+    # via -r dependencies/pip/requirements.in
 future==0.18.2
     # via -r dependencies/pip/requirements.in
 geojson-rewind==1.0.2
@@ -249,6 +252,8 @@ httplib2==0.20.4
     # via
     #   google-api-python-client
     #   google-auth-httplib2
+humanize==4.6.0
+    # via flower
 idna==3.3
     # via requests
 isodate==0.6.1
@@ -301,6 +306,10 @@ path-py==12.5.0
     # via formpack
 pillow==9.1.0
     # via django-markdownx
+prometheus-client==0.16.0
+    # via
+    #   django-prometheus
+    #   flower
 prompt-toolkit==3.0.29
     # via click-repl
 proto-plus==1.20.6
@@ -364,6 +373,7 @@ pytz==2022.1
     #   django
     #   django-timezone-field
     #   djangorestframework
+    #   flower
     #   twilio
 pyxform==1.9.0
     # via
@@ -412,7 +422,6 @@ six==1.16.0
     #   google-auth
     #   google-auth-httplib2
     #   grpcio
-    #   isodate
     #   python-dateutil
 smsapi-client==2.6.0
     # via django-trench
@@ -431,6 +440,8 @@ stripe==4.1.0
     # via dj-stripe
 tabulate==0.8.9
     # via -r dependencies/pip/requirements.in
+tornado==6.2
+    # via flower
 twilio==7.8.2
     # via django-trench
 typing-extensions==4.2.0
@@ -443,7 +454,7 @@ urllib3==1.26.9
     #   requests
     #   responses
     #   sentry-sdk
-uwsgi==2.0.20
+uwsgi==2.0.21
     # via -r dependencies/pip/requirements.in
 vine==5.0.0
     # via

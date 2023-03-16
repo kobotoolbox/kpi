@@ -1,0 +1,16 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li><a id="loginas-link" href="#"><i class="icon-user icon-alpha75"></i>{% trans "Log in as user" %}</a></li>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+    <form method="post" id="loginas-form" action="{% url 'loginas-user-login' object_id %}" style="display: none">
+        {% csrf_token %}
+    </form>
+    <script src="{% static 'admin/loginas/script.js' %}"></script>
+{% endblock %}

@@ -58,7 +58,7 @@ if SESSION_COOKIE_DOMAIN:
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
-SESSION_COOKIE_AGE = 604800
+SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", False)
@@ -82,6 +82,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_prometheus',
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
@@ -318,9 +319,27 @@ CONSTANCE_CONFIG = {
         30,
         "Number of days to keep asset snapshots"
     ),
+    'FREE_TIER_THRESHOLDS': (
+        json.dumps({
+            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
+            'data': 1000,
+            'transcription_minutes': 10,
+            'translation_chars': 6000,
+        }),
+        'Free tier thresholds: storage in kilobytes, '
+        'data (number of submissions), '
+        'minutes of transcription, '
+        'number of translation characters',
+        # Use custom field for schema validation
+        'free_tier_threshold_jsonschema'
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
+    'free_tier_threshold_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
@@ -395,9 +414,13 @@ DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
 django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
+DJANGO_LANGUAGE_CODES = [
+    'ar', 'cs', 'de-DE', 'en', 'es', 'fr', 'hi', 'ja',
+    'ku', 'pl', 'pt', 'ru', 'tr', 'uk', 'zh-hans',
+]
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
-        for lang_code in env.str('DJANGO_LANGUAGE_CODES', 'en').split(' ')
+    for lang_code in DJANGO_LANGUAGE_CODES
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -531,6 +554,7 @@ TEMPLATES = [
     },
 ]
 
+DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN_URL = env.url('RAVEN_JS_DSN', default=None)
 RAVEN_JS_DSN = None
@@ -604,12 +628,13 @@ CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCA
 if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
-CSP_SCRIPT_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
+CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
 CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
 CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
+    'https://*.openstreetmap.fr',  # Humanitarian OpenStreetMap Team
     'https://*.opentopomap.org',
     'https://*.arcgisonline.com'
 ]
@@ -707,6 +732,11 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
+# For SSO, the signup form is prepopulated with the account email
+# If set True, the email field in the SSO signup form will be readonly
+UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
+    "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
+)
 
 # See https://django-allauth.readthedocs.io/en/latest/configuration.html
 # Map env vars to upstream dict values, include exact case. Underscores for delimiter.
@@ -883,8 +913,20 @@ if sentry_dsn:
             CeleryIntegration(),
             sentry_logging
         ],
-        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.05),
+        traces_sample_rate=env.float('SENTRY_TRACES_SAMPLE_RATE', 0.01),
         send_default_pii=True
+    )
+
+
+if ENABLE_METRICS := env.bool('ENABLE_METRICS', False):
+    MIDDLEWARE.insert(0, 'django_prometheus.middleware.PrometheusBeforeMiddleware')
+    MIDDLEWARE.append('django_prometheus.middleware.PrometheusAfterMiddleware')
+# Workaround https://github.com/korfuri/django-prometheus/issues/34
+PROMETHEUS_EXPORT_MIGRATIONS = False
+# https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process
+if start_port := env.int('METRICS_START_PORT', None):
+    PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(
+        start_port, env.int('METRICS_END_PORT', start_port + 10)
     )
 
 
