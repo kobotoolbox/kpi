@@ -1,0 +1,20 @@
+.container {
+  display: grid;
+  grid-template-rows: 1fr 4fr 1fr;
+  height: 100%;
+  padding-inline: 3em;
+  padding-block: 24px;
+}
+
+.backLink {
+  display: inline-flex;
+  grid-gap: 1em;
+  max-height: 0;
+}
+
+.message {
+  display: flex;
+  grid-row: 2;
+  flex-direction: column;
+  grid-gap: 1.5em;
+}
