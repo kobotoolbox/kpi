@@ -30,8 +30,7 @@ import type {ProjectFieldName} from '../projectViews/constants';
  *   - Widths are cleared on refresh (or unmount)
  *   - Future, could save them in localstorage, clearing on logout.
  * - Touch events
- *   - Haven't tested kpi on a touchscreen recently, but the code is adaptable.
- *   - Might be pretty simple to support by switching to pointer events.
+ *   - Partial support, but could use improvement with touch-specific code
  */
 
 /**
