@@ -146,84 +146,86 @@ export default function ColumnResizer() {
    */
   const handlerRef = useRef((e: Event) => {
     // TypeScript guard
-    if (e instanceof MouseEvent) {
-      // Mousemove
-      //  - Only relevant if drag is already happening
-      //  - Update column width state for current column
-      if (
-        e.type === 'mousemove' &&
-        // Event logic
-        isDraggingRef.current &&
-        // Type safety
-        draggingColumnRef.current !== null &&
-        dragStartXRef.current !== null &&
-        dragStartWidthRef.current !== null &&
-        // De-dupe
-        dragPrevXRef.current !== e.pageX // skip event if same x
-      ) {
-        const newWidth = clampedColumnWidth(
-          draggingColumnRef.current,
-          // Calculate desired width based on initial positions and current x
-          dragStartWidthRef.current + (e.pageX - dragStartXRef.current)
-        );
-        // Update state for re-render only if the width is new after clamp
-        if (newWidth !== dragPrevWidthRef.current) {
-          dispatch({
-            type: 'resize',
-            column: draggingColumnRef.current,
-            width: newWidth,
-          });
+    if (!(e instanceof MouseEvent)) {
+      return;
+    }
+
+    // Mousemove
+    //  - Only relevant if drag is already happening
+    //  - Update column width state for current column
+    if (
+      e.type === 'mousemove' &&
+      // Event logic
+      isDraggingRef.current &&
+      // Type safety
+      draggingColumnRef.current !== null &&
+      dragStartXRef.current !== null &&
+      dragStartWidthRef.current !== null &&
+      // De-dupe
+      dragPrevXRef.current !== e.pageX // skip event if same x
+    ) {
+      const newWidth = clampedColumnWidth(
+        draggingColumnRef.current,
+        // Calculate desired width based on initial positions and current x
+        dragStartWidthRef.current + (e.pageX - dragStartXRef.current)
+      );
+      // Update state for re-render only if the width is new after clamp
+      if (newWidth !== dragPrevWidthRef.current) {
+        dispatch({
+          type: 'resize',
+          column: draggingColumnRef.current,
+          width: newWidth,
+        });
+      }
+      // Set variables for de-duping
+      dragPrevXRef.current = e.pageX; // to skip event early if same x
+      dragPrevWidthRef.current = newWidth; // to skip state update if same width
+      return;
+    }
+
+    // Mousedown
+    //  - Start the dragging interaction (if on a resize handle)
+    if (
+      e.type === 'mousedown' &&
+      e.button === 0 // Only on left (primary) mouse button
+    ) {
+      // Detect resize handle with [data-resize-fieldname={fieldname}]
+      const fieldname = (e.target as HTMLElement).dataset.resizeFieldname;
+      if (fieldname) {
+        setShouldRenderBodyCursor(true);
+        isDraggingRef.current = true;
+        draggingColumnRef.current = fieldname;
+        dragStartXRef.current = e.pageX;
+        dragPrevXRef.current = e.pageX;
+
+        // Capture the current width of the resizer's parent element, a
+        // header cell, same width as all the row cells below it.
+        const parent = (e.target as HTMLElement).parentElement;
+        if (parent) {
+          dragStartWidthRef.current = parent.offsetWidth;
+          // box-sizing: border-box makes this very easy
         }
-        // Set variables for de-duping
-        dragPrevXRef.current = e.pageX; // to skip event early if same x
-        dragPrevWidthRef.current = newWidth; // to skip state update if same width
-        return;
       }
+      return;
+    }
 
-      // Mousedown
-      //  - Start the dragging interaction (if on a resize handle)
-      if (
-        e.type === 'mousedown' &&
-        e.button === 0 // Only on left (primary) mouse button
-      ) {
-        // Detect resize handle with [data-resize-fieldname={fieldname}]
-        const fieldname = (e.target as HTMLElement).dataset.resizeFieldname;
-        if (fieldname) {
-          setShouldRenderBodyCursor(true);
-          isDraggingRef.current = true;
-          draggingColumnRef.current = fieldname;
-          dragStartXRef.current = e.pageX;
-          dragPrevXRef.current = e.pageX;
-
-          // Capture the current width of the resizer's parent element, a
-          // header cell, same width as all the row cells below it.
-          const parent = (e.target as HTMLElement).parentElement;
-          if (parent) {
-            dragStartWidthRef.current = parent.offsetWidth;
-            // box-sizing: border-box makes this very easy
-          }
-        }
-        return;
-      }
-
-      // Mouseup (or contextmenu)
-      //  - End the dragging interaction
-      //  - Clear the cursor
-      if (e.type === 'mouseup' || e.type === 'contextmenu') {
-        // // Uncomment to help find good width settings
-        // if (isDraggingRef.current) {
-        //   console.log(
-        //     'resized',
-        //     draggingColumnRef.current,
-        //     'to',
-        //     dragPrevWidthRef.current,
-        //     'px'
-        //   );
-        // }
-        isDraggingRef.current = false;
-        setShouldRenderBodyCursor(false);
-        return;
-      }
+    // Mouseup (or contextmenu)
+    //  - End the dragging interaction
+    //  - Clear the cursor
+    if (e.type === 'mouseup' || e.type === 'contextmenu') {
+      // // Uncomment to help find good width settings
+      // if (isDraggingRef.current) {
+      //   console.log(
+      //     'resized',
+      //     draggingColumnRef.current,
+      //     'to',
+      //     dragPrevWidthRef.current,
+      //     'px'
+      //   );
+      // }
+      isDraggingRef.current = false;
+      setShouldRenderBodyCursor(false);
+      return;
     }
   });
   const eventTypes = ['mousedown', 'mouseup', 'mousemove', 'contextmenu'];
