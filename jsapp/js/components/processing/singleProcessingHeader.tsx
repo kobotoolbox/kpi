@@ -1,5 +1,4 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
@@ -13,33 +12,10 @@ import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import './singleProcessingHeader.scss';
+import styles from './singleProcessingHeader.module.scss';
 import {openProcessing} from './processingUtils';
 import {withRouter, WithRouterProps} from 'jsapp/js/router/legacy';
-
-bem.SingleProcessingHeader = makeBem(
-  null,
-  'single-processing-header',
-  'header'
-);
-bem.SingleProcessingHeader__column = makeBem(
-  bem.SingleProcessingHeader,
-  'column',
-  'section'
-);
-bem.SingleProcessingHeader__submissions = makeBem(
-  bem.SingleProcessingHeader,
-  'submissions',
-  'nav'
-);
-bem.SingleProcessingHeader__count = makeBem(
-  bem.SingleProcessingHeader,
-  'count'
-);
-bem.SingleProcessingHeader__number = makeBem(
-  bem.SingleProcessingHeader,
-  'number'
-);
+import classNames from 'classnames';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -258,8 +234,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
       singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
 
     return (
-      <bem.SingleProcessingHeader>
-        <bem.SingleProcessingHeader__column m='main'>
+      <header className={styles.root}>
+        <section className={classNames(styles.column, styles.columnMain)}>
           <KoboSelect
             name='single-processing-question-selector'
             type='gray'
@@ -268,11 +244,11 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             selectedOption={singleProcessingStore.currentQuestionQpath || null}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
-        </bem.SingleProcessingHeader__column>
+        </section>
 
-        <bem.SingleProcessingHeader__column>
-          <bem.SingleProcessingHeader__submissions>
-            <bem.SingleProcessingHeader__count>
+        <section className={styles.column}>
+          <nav className={styles.submissions}>
+            <div className={styles.count}>
               <strong>
                 {t('Item')}
                 &nbsp;
@@ -284,7 +260,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
                   '##total_count##',
                   String(editIds.length)
                 )}
-            </bem.SingleProcessingHeader__count>
+            </div>
 
             <Button
               type='bare'
@@ -303,10 +279,10 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
               onClick={this.goNext.bind(this)}
               isDisabled={this.getNextSubmissionEditId() === null}
             />
-          </bem.SingleProcessingHeader__submissions>
-        </bem.SingleProcessingHeader__column>
+          </nav>
+        </section>
 
-        <bem.SingleProcessingHeader__column>
+        <section className={styles.column}>
           <Button
             type='frame'
             size='l'
@@ -314,8 +290,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             label={t('DONE')}
             onClick={this.onDone.bind(this)}
           />
-        </bem.SingleProcessingHeader__column>
-      </bem.SingleProcessingHeader>
+        </section>
+      </header>
     );
   }
 }
