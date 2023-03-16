@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useReducer, useRef} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
+import type {ProjectFieldName} from '../projectViews/constants';
 
 /**
  * Creates and updates styles for column widths based on drag events on resize handles.
@@ -41,34 +42,9 @@ import React, {useState, useEffect, useReducer, useRef} from 'react';
  *   status: 150  // the "status" column will be 150px wide
  * }
  */
-interface ColumnWidths {
-  [key: string]: number;
-}
-interface ColumnWidthReducerAction {
-  type: 'resize';
-  column: string;
-  width: number;
-}
-/**
- * Reducer for column width updates.
- * Almost too simple to justify its existence.
- *
- * Pulls a tiny bit of update logic out of the event handlers.
- */
-function columnWidthReducer(
-  columnWidths: ColumnWidths,
-  action: ColumnWidthReducerAction
-) {
-  switch (action.type) {
-    case 'resize':
-      return {
-        ...columnWidths,
-        [action.column]: action.width,
-      };
-    default:
-      return {...columnWidths};
-  }
-}
+type ColumnWidths = {
+  [key in ProjectFieldName]?: number;
+};
 
 /**
  * The minimum resizing width for a given column.
@@ -77,7 +53,7 @@ function columnWidthReducer(
  * Currently a minimum of 108px.
  * Can be hardcoded per-field.
  */
-function minColWidth(fieldname: string) {
+function minColWidth(fieldname: ProjectFieldName) {
   const defaultMinimumWidth = 108;
   const minimums: ColumnWidths = {
     countries: 116,
@@ -93,7 +69,7 @@ function minColWidth(fieldname: string) {
  * Currently an arbitrary maximum 800px for all fields.
  * Can be hardcoded per-field.
  */
-function maxColWidth(fieldname: string) {
+function maxColWidth(fieldname: ProjectFieldName) {
   const defaultMaximumWidth = 800;
   const maximums: ColumnWidths = {};
   return maximums[fieldname] || defaultMaximumWidth;
@@ -101,7 +77,7 @@ function maxColWidth(fieldname: string) {
 /**
  * A helper to clamp between the minimum and maximum allowed resizing widths.
  */
-function clampedColumnWidth(fieldname: string, width: number) {
+function clampedColumnWidth(fieldname: ProjectFieldName, width: number) {
   return Math.min(
     Math.max(width, minColWidth(fieldname)),
     maxColWidth(fieldname)
@@ -109,29 +85,79 @@ function clampedColumnWidth(fieldname: string, width: number) {
 }
 
 /**
+ * Render a dynamic style tag to update all custom column widths.
+ *
+ * The alternative would be to adjust inline styles on every cell
+ * in the table, but that would trigger lots of react re-renders
+ * for the whole table during the drag interaction.
+ *
+ * Instead, we let the browser parse and apply these CSS rules,
+ * which is pretty efficient.
+ */
+function ColumnWidthsStyle(props: {columnWidths: ColumnWidths}) {
+  return (
+    <style>
+      {(Object.keys(props.columnWidths) as ProjectFieldName[]).map(
+        (column) =>
+          `
+        [data-field="${column}"] {
+          width: ${props.columnWidths[column]}px !important;
+          max-width: ${props.columnWidths[column]}px !important;
+        }
+        `
+      )}
+    </style>
+  );
+}
+/**
+ * Render a dynamic style tag during drag interaction, to…
+ *
+ *   - Show a dragging cursor
+ *   - Keep the cell header width indicators visible
+ *
+ * …even if the pointer strays from the resize handle.
+ */
+function DraggingStyle(props: {
+  isDragging: boolean;
+  draggingFieldname: string;
+}) {
+  return (
+    <style>
+      {props.isDragging &&
+        `
+      * { cursor: col-resize !important; }
+      [data-field="${props.draggingFieldname}"]::before,
+      [data-field="${props.draggingFieldname}"]::after,
+      [data-resize-fieldname="${props.draggingFieldname}"],
+      [data-resize-fieldname="${props.draggingFieldname}"]::after {
+        opacity: 1 !important;
+        transition: opacity 0.5s;
+      }`}
+    </style>
+  );
+}
+/**
  * <ColumnResizer/>
  *
  * Creates and updates styles for column widths based on drag events on resize
  * handles.
  */
 export default function ColumnResizer() {
-  // State used in rendering new styles
-  const [columnWidths, dispatch] = useReducer(
-    columnWidthReducer,
-    {} as ColumnWidths
-  );
-  // Polish. This could perhaps be merged into a single state with isDragging
-  const [shouldRenderBodyCursor, setShouldRenderBodyCursor] = useState(false);
+  // State, triggers re-rendering in style tags
+  /** Column Widths, used by <ColumnWidthsStyle/> */
+  const [columnWidths, setColumnWidths] = useState({} as ColumnWidths);
+  /** isDragging, used by <DraggingStyle/> */
+  const [isDragging, setIsDragging] = useState(false);
 
   // Refs, for use by event handlers. They won't trigger re-renders.
   /** Bool: Have we started dragging a resize handle? */
   const isDraggingRef = useRef(false);
   /** The field name of the column being resized. */
-  const draggingColumnRef: React.MutableRefObject<string | null> = useRef(null);
+  const draggingColumnRef = useRef('' as ProjectFieldName);
   /** The pageX when we started interacting with the resize handler */
-  const dragStartXRef: React.MutableRefObject<number | null> = useRef(null);
+  const dragStartXRef = useRef(-1);
   /** The width of the header cell when we initially touched its resize handler */
-  const dragStartWidthRef: React.MutableRefObject<number | null> = useRef(null);
+  const dragStartWidthRef = useRef(-1);
   /** The pageX at the previous mousedown/mousemove.
       Used for de-duping mousemove */
   const dragPrevXRef = useRef(0);
@@ -149,18 +175,14 @@ export default function ColumnResizer() {
     if (!(e instanceof MouseEvent)) {
       return;
     }
-
     // Mousemove
     //  - Only relevant if drag is already happening
     //  - Update column width state for current column
     if (
       e.type === 'mousemove' &&
       // Event logic
+      // isDragging &&
       isDraggingRef.current &&
-      // Type safety
-      draggingColumnRef.current !== null &&
-      dragStartXRef.current !== null &&
-      dragStartWidthRef.current !== null &&
       // De-dupe
       dragPrevXRef.current !== e.pageX // skip event if same x
     ) {
@@ -171,10 +193,11 @@ export default function ColumnResizer() {
       );
       // Update state for re-render only if the width is new after clamp
       if (newWidth !== dragPrevWidthRef.current) {
-        dispatch({
-          type: 'resize',
-          column: draggingColumnRef.current,
-          width: newWidth,
+        setColumnWidths((prevColumnWidths) => {
+          return {
+            ...prevColumnWidths,
+            [draggingColumnRef.current]: newWidth,
+          };
         });
       }
       // Set variables for de-duping
@@ -190,9 +213,10 @@ export default function ColumnResizer() {
       e.button === 0 // Only on left (primary) mouse button
     ) {
       // Detect resize handle with [data-resize-fieldname={fieldname}]
-      const fieldname = (e.target as HTMLElement).dataset.resizeFieldname;
+      const fieldname = (e.target as HTMLElement).dataset
+        .resizeFieldname as ProjectFieldName;
       if (fieldname) {
-        setShouldRenderBodyCursor(true);
+        setIsDragging(true);
         isDraggingRef.current = true;
         draggingColumnRef.current = fieldname;
         dragStartXRef.current = e.pageX;
@@ -224,7 +248,7 @@ export default function ColumnResizer() {
       //   );
       // }
       isDraggingRef.current = false;
-      setShouldRenderBodyCursor(false);
+      setIsDragging(false);
       return;
     }
   });
@@ -245,37 +269,13 @@ export default function ColumnResizer() {
     };
   }, []);
 
-  // Log confirms minimal re-rendering.
-  // console.log('Rendered resizer!');
-
-  // Render a dynamic style tag to update all custom widths in a single step,
-  // without modifying any attributes managed elsewhere by React.
   return (
     <>
-      <style>
-        {Object.keys(columnWidths).map(
-          (column) =>
-            `
-            [data-field="${column}"] {
-              width: ${columnWidths[column]}px !important;
-              max-width: ${columnWidths[column]}px !important;
-            }
-            `
-        )}
-        {/* For polish, during resize:
-            - Show a cursor even when you hover away from the handle.
-            - Make resize indicators stay visible for active resize cell */}
-        {isDraggingRef.current &&
-          `
-          * { cursor: col-resize !important; }
-          [data-field="${draggingColumnRef.current}"]::before,
-          [data-field="${draggingColumnRef.current}"]::after,
-          [data-resize-fieldname="${draggingColumnRef.current}"],
-          [data-resize-fieldname="${draggingColumnRef.current}"]::after {
-            opacity: 1 !important;
-            transition: opacity 0.5s;
-          }`}
-      </style>
+      <ColumnWidthsStyle columnWidths={columnWidths} />
+      <DraggingStyle
+        isDragging={isDragging}
+        draggingFieldname={draggingColumnRef.current}
+      />
     </>
   );
 }
