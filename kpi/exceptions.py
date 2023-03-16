@@ -82,6 +82,12 @@ class InvalidXPathException(Exception):
     pass
 
 
+class KobocatCommunicationError(Exception):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__('Could not communicate with KoBoCAT.', *args, **kwargs)
+
+
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
     # This is message should be overridden with something more specific
     default_detail = t('Invalid payload for bulk updating of submissions')
@@ -121,12 +127,6 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
 
 class KobocatProfileException(Exception):
     pass
-
-
-class KobocatUnresponsiveError(Exception):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__('Could not communicate with KoBoCAT.', *args, **kwargs)
 
 
 class NotSupportedFormatException(Exception):

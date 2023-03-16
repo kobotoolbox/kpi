@@ -44,7 +44,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
     InvalidXPathException,
-    KobocatUnresponsiveError,
+    KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -400,7 +400,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     status.HTTP_502_BAD_GATEWAY,
                     status.HTTP_504_GATEWAY_TIMEOUT,
                 ]:
-                    raise KobocatUnresponsiveError
+                    raise KobocatCommunicationError
+                elif e.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                    raise KobocatCommunicationError(
+                        'Could not authenticate with KoBoCAT'
+                    )
             else:
                 raise
         super().delete()

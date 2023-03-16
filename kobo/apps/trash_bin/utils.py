@@ -17,7 +17,7 @@ from django_celery_beat.models import (
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog, AuditAction
-from kpi.exceptions import KobocatUnresponsiveError
+from kpi.exceptions import KobocatCommunicationError
 from kpi.models import Asset, ExportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
@@ -264,7 +264,7 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
             status.HTTP_502_BAD_GATEWAY,
             status.HTTP_504_GATEWAY_TIMEOUT,
         ]:
-            raise KobocatUnresponsiveError
+            raise KobocatCommunicationError
 
         if json_response['status'] not in [
             status.HTTP_404_NOT_FOUND,

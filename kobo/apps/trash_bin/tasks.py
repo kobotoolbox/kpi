@@ -16,7 +16,7 @@ from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 from kobo.apps.audit_log.models import AuditLog, AuditAction
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
-from kpi.exceptions import KobocatUnresponsiveError
+from kpi.exceptions import KobocatCommunicationError
 from kpi.models.asset import Asset
 from kpi.utils.storage import rmdir
 from .exceptions import TrashTaskInProgressError
@@ -27,7 +27,7 @@ from .utils import delete_asset
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError, KobocatUnresponsiveError,),
+    autoretry_for=(TrashTaskInProgressError, KobocatCommunicationError,),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
@@ -99,7 +99,14 @@ def empty_account(account_trash_id: int):
             except HTTPError as e:
                 error = str(e)
                 if error.startswith(('502', '504',)):
-                    raise KobocatUnresponsiveError
+                    raise KobocatCommunicationError
+                if error.startswith(('401',)):
+                    # When users are deleted in a huge batch, there may be a
+                    # race condition that causes the service account token to
+                    # be expired, making auth against KoBoCAT fail.
+                    raise KobocatCommunicationError(
+                        'Could not authenticate with KoBoCAT'
+                    )
                 if not error.startswith('404'):
                     raise e
 
@@ -147,7 +154,7 @@ def empty_account(account_trash_id: int):
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError, KobocatUnresponsiveError, ),
+    autoretry_for=(TrashTaskInProgressError, KobocatCommunicationError,),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
@@ -208,7 +215,6 @@ def empty_account_retry(sender=None, **kwargs):
 
 @task_failure.connect(sender=empty_project)
 def empty_project_failure(sender=None, **kwargs):
-
     # Force scheduler to refresh
     PeriodicTasks.update_changed()
 
