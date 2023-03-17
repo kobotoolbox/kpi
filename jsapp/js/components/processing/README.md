@@ -7,35 +7,40 @@ Analysis features added.
 ## How it works in a nutshell
 
 An `asset` (of type `survey`) has two new properties:
+- `advanced_features` - We use this to enable features. We define `transcipt`
+  and `translation` and manage their lists of enabled languages (language
+  codes). By changing them we cause the Back end code to rebuild the schema.
+- `advanced_submission_schema` - It describes what kind of additional data can
+  be added to the submission object (inside `_supplementalDetails`). It holds
+  a very detailed information for each of transcriptable questions (only some
+  of the question types can be used with processing feature). Whenever we add
+  a transcript or a translation Back end is verifying if the request data
+  matches the schema.
 
-- `advanced_submission_schema` - Here we describe what kind of properties would
-  be stored inside `advanced_features`. Whenever we `PATCH` the `asset`'s
-  `advanced_features` object, Back end is verifying if the data matches
-  the schema.
-- `advanced_features` - It holds the list of languages being enabled for both
-  transcript and translations.
+Submission object has one new property:
+- `_supplementalDetails` - Here the actual transcript and translation text is
+  being stored.
 
 NOTE: Front-end code uses name `transx` to mean both `transcript` and
 `translation`.
 
 ### Step 1. Enabling advanced features for given asset
 
+Every Project starts with no advanced features enabled.
+
 Whenever user visits Single Processing route for the first time for given
 Project, we make a call for enabling `advanced_features`. Initially we enable
-`transcript` and `translations`. We start with zero languages available (more on
-this below) at first. Back end will search for all transcriptable questions
-and include their names in schema.
-
-Enabling advanced feature means simply that we set the schema to suggest that
-transcript and translations will be added. Every Project starts with no
-advanced features.
+`transcript` and `translation` with zero languages, because we don't know yet
+in what languages user would add the text. Back end will search for all
+transcriptable questions and include their names in schema.
 
 After activating the Project to use advanced features, you will find the actual
-feature endpoint at `advanced_submission_schema.url`. We use this endpoint to:
+feature endpoint at `advanced_submission_schema.url`. We use this endpoint in
+two ways:
 
-1. `GET` with Submission ID (mandatory) - retrieves current transcript and
-   translations for Project for given submission.
-2. `POST` stires transcript/translation text.
+- `GET` with Submission ID (mandatory) - retrieves current transcript and
+  translations for Project for given submission.
+- `POST` stires transcript/translation text.
 
 ### Step 2. Adding a transcript or translation
 
@@ -51,8 +56,10 @@ Example: user saves their "Polish" transcript - the code does two things:
 3. Finally we make a call (to the unique feature endpoint) to save the
    transcript text.
 
-Thankfully whenever we delete a transcript, Back end is cleaning up unnecessary
-languages for us. So if user deletes that "Polish" translation - we make
-a single call to API. We will end up with both changes: "Polish" translation
-text is no longer present in `advanced_features`, and "Polish" language is no
-longer enabled in `advanced_submission_schema` under `transcript`.
+Thankfully whenever we delete a transcript, Back end is automagically cleaning
+up unnecessary languages for us. So if user deletes that "Polish" transcript
+(and no other submission has transcript in this language) we don't have to
+remove the language from the schema ourselves. We simply make single API call
+and end up with both changes:
+- "Polish" transcript is no longer present in `_supplementalDetails`
+- "Polish" language is no removed from `advanced_fetures`
