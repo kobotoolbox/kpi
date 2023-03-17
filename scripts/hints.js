@@ -42,7 +42,7 @@ if (process.env.SKIP_TS_CHECK && tsCheckAffects.includes(hintName)) {
 }
 
 /*
-  NPM VERSION WRANING
+  NPM VERSION WARNING
 
   Issue a warning if not running with npm 8.5.5, since the errors
   that you get if you run a different version are not very obvious.
