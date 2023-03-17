@@ -534,12 +534,21 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  private onAnyCallFailed(response: FailResponse) {
-    const errorText = (
-      response.responseJSON?.detail ||
-      response.responseJSON?.error ||
-      response.statusText
-    );
+  /**
+   * Additionally to regular API failure response, we also handle a case when
+   * the call was aborted due to features not being enabled. In such case we get
+   * a simple string instead of response object.
+   */
+  private onAnyCallFailed(response: FailResponse | string) {
+    let errorText = t('Something went wrong');
+    if (typeof response === 'string') {
+      errorText = response;
+    } else {
+      errorText =
+        response.responseJSON?.detail ||
+        response.responseJSON?.error ||
+        response.statusText;
+    }
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
     this.isFetchingData = false;
@@ -696,6 +705,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   setTranscript(languageCode: LanguageCode, value: string) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
@@ -708,6 +721,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranscript() {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
@@ -718,6 +735,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranscription() {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
@@ -770,6 +791,10 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This stores the translation on backend. */
   setTranslation(languageCode: LanguageCode, value: string) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
@@ -782,6 +807,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranslation(languageCode: LanguageCode) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
@@ -793,6 +822,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
+    if (!this.currentQuestionQpath) {
+      return;
+    }
+
     this.isFetchingData = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
