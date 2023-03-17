@@ -44,7 +44,10 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   // the dropdown, we will display a "simple" header.
   if (projectViews.views.length === 0) {
     return (
-      <button className={classNames(styles.trigger, styles.triggerSimple)} title={triggerLabel}>
+      <button
+        className={classNames(styles.trigger, styles.triggerSimple)}
+        title={triggerLabel}
+      >
         <label>{triggerLabel}</label>
       </button>
     );

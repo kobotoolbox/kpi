@@ -9,6 +9,7 @@ import type {
 import Badge from 'js/components/common/badge';
 import Avatar from 'js/components/common/avatar';
 import AssetName from 'js/components/common/assetName';
+import AssetStatusBadge from 'js/components/common/assetStatusBadge';
 import {formatTime} from 'js/utils';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import assetUtils, {isSelfOwned} from 'js/assetUtils';
@@ -46,34 +47,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'description':
         return props.asset.settings.description;
       case 'status':
-        if (props.asset.has_deployment && !props.asset.deployment__active) {
-          return (
-            <Badge
-              color='light-amber'
-              size='s'
-              icon='project-archived'
-              label={t('archived')}
-            />
-          );
-        } else if (props.asset.has_deployment) {
-          return (
-            <Badge
-              color='light-blue'
-              size='s'
-              icon='project-deployed'
-              label={t('deployed')}
-            />
-          );
-        } else {
-          return (
-            <Badge
-              color='light-teal'
-              size='s'
-              icon='project-draft'
-              label={t('draft')}
-            />
-          );
-        }
+        return <AssetStatusBadge asset={props.asset} />;
       case 'ownerUsername':
         if (isSelfOwned(props.asset)) {
           return t('me');
@@ -167,6 +141,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
                 field.name
               ),
             })}
+            // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
           >

@@ -24,8 +24,8 @@ const PAGE_SIZE = 50;
 const DEFAULT_VIEW_SETTINGS: ViewSettings = {
   filters: [],
   order: {
-    fieldName: PROJECT_FIELDS.name.name,
-    direction: 'ascending',
+    fieldName: PROJECT_FIELDS.dateModified.name,
+    direction: 'descending',
   },
   // When fields are `undefined`, it means the deafult fields (from
   // `DEFAULT_PROJECT_FIELDS`) are being used.

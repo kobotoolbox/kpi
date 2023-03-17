@@ -79,12 +79,16 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     return fieldDefinition.availableConditions.map(
       (condition: FilterConditionName) => {
         const conditionDefinition = FILTER_CONDITIONS[condition];
-        return {label: conditionDefinition.label, value: conditionDefinition.name};
+        return {
+          label: conditionDefinition.label,
+          value: conditionDefinition.name,
+        };
       }
     );
   };
 
-  const isCountryFilterSelected = props.filter.fieldName && props.filter.fieldName === 'countries';
+  const isCountryFilterSelected =
+    props.filter.fieldName && props.filter.fieldName === 'countries';
 
   return (
     <div className={styles.root}>
