@@ -1,7 +1,8 @@
 # coding: utf-8
 from typing import Optional, Union, List
-from lxml import etree
+from lxml.etree import _Element, ElementTree, SubElement
 
+from defusedxml.lxml import fromstring, tostring
 from django_request_cache import cache_for_request
 from shortuuid import ShortUUID
 
@@ -29,8 +30,8 @@ def strip_nodes(
         source = source.encode()
 
     # Build xml to be parsed
-    xml_doc = etree.fromstring(source)
-    tree = etree.ElementTree(xml_doc)
+    xml_doc = fromstring(source)
+    tree = ElementTree(xml_doc)
     root_element = tree.getroot()
     root_path = tree.getpath(root_element)
 
@@ -62,7 +63,7 @@ def strip_nodes(
 
         return xpath_matches
 
-    def process_node(node_: etree._Element, xpath_matches_: list):
+    def process_node(node_: _Element, xpath_matches_: list):
         """
         `process_node()` is a recursive function.
 
@@ -143,7 +144,7 @@ def strip_nodes(
     if rename_root_node_to:
         tree.getroot().tag = rename_root_node_to
 
-    return etree.tostring(
+    return tostring(
         tree,
         pretty_print=True,
         encoding='utf-8',
@@ -183,7 +184,7 @@ def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
 
 
 def edit_submission_xml(
-    xml_parsed: etree._Element,
+    xml_parsed: _Element,
     path: str,
     value: str,
 ) -> None:
@@ -203,5 +204,5 @@ def edit_submission_xml(
                     if i == 0
                     else xml_parsed.find(get_path(path_parts, end=i))
                 )
-                element = etree.SubElement(parent, node)
+                element = SubElement(parent, node)
     element.text = value

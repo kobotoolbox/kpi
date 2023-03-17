@@ -11,16 +11,18 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
-from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import ElementTree, ParseError
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import requests
+from defusedxml.ElementTree import fromstring, tostring
+from defusedxml.lxml import tostring
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from lxml import etree
+from lxml.etree import SubElement
 from django.core.files import File
 from django.db.models import Sum
 from django.db.models.query import QuerySet
@@ -196,7 +198,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         update_data = self.__prepare_bulk_update_data(data['data'])
         kc_responses = []
         for submission in submissions:
-            xml_parsed = etree.fromstring(submission)
+            xml_parsed = fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
@@ -210,7 +212,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             deprecated_id_or_new = (
                 deprecated_id
                 if deprecated_id is not None
-                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
+                else SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
@@ -225,7 +227,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission
-            file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
+            file_tuple = (_uuid, io.BytesIO(tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
             # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             kc_request = requests.Request(
@@ -492,7 +494,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         # parse XML string to ET object
-        xml_parsed = ET.fromstring(submission)
+        xml_parsed = fromstring(submission)
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
@@ -509,7 +511,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # silently
         xml_parsed.find('meta/instanceID').text = uuid_formatted
 
-        file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
+        file_tuple = (_uuid, io.BytesIO(tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
 
         # Combine all files altogether
@@ -539,8 +541,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         submission_xml = xml_submission_file.read()
         try:
-            xml_root = ET.fromstring(submission_xml)
-        except ET.ParseError:
+            xml_root = fromstring(submission_xml)
+        except ParseError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is malformed.')
             )
@@ -670,7 +672,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise SubmissionNotFoundException
 
         if xpath:
-            submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
+            submission_tree = ElementTree(fromstring(submission_xml))
 
             try:
                 element = submission_tree.find(xpath)
@@ -1625,11 +1627,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         for response in kc_responses:
             try:
                 message = (
-                    ET.fromstring(response['response'].content)
+                    fromstring(response['response'].content)
                     .find(OPEN_ROSA_XML_MESSAGE)
                     .text
                 )
-            except ET.ParseError:
+            except ParseError:
                 message = t('Something went wrong')
 
             results.append(

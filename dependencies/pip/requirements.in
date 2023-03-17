@@ -23,6 +23,7 @@ amqp
 billiard
 celery
 celery[redis]
+defusedxml
 dict2xml
 dj-static
 dj-stripe

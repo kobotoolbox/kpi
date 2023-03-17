@@ -84,6 +84,7 @@ deepmerge==1.0.1
     # via -r dependencies/pip/requirements.in
 defusedxml==0.7.1
     # via
+    #   -r dependencies/pip/requirements.in
     #   djangorestframework-xml
     #   python3-openid
     #   pyxform

@@ -2,9 +2,9 @@
 import copy
 import json
 import re
-from xml.etree import ElementTree as ET
 
 import requests
+from defusedxml import ElementTree as ET
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import gettext_lazy as t
@@ -23,8 +23,6 @@ from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.models import AuditLog
-from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
-from kobo.apps.reports.report_data import build_formpack
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
