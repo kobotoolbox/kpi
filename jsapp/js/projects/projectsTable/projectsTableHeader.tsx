@@ -12,6 +12,7 @@ import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
 import KoboDropdown from 'js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
+import ColumnResizer from './columnResizer';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
@@ -36,6 +37,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
 
     return (
       <div
+        title={field.label}
         className={classNames({
           [styles.columnRoot]: true,
           [styles.isMenuVisible]: isMenuVisible,
@@ -44,6 +46,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
             field.name
           ),
         })}
+        // This attribute is being used for styling and for ColumnResizer
         data-field={field.name}
         key={field.name}
       >
@@ -131,12 +134,14 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
             </div>
           }
         />
+        <div className={styles.resizer} data-resize-fieldname={field.name} />
       </div>
     );
   };
 
   return (
     <header className={tableStyles.header}>
+      <ColumnResizer />
       <div className={classNames(rowStyles.row, rowStyles.rowTypeHeader)}>
         {/* First column is always visible and displays a checkbox. */}
         <div className={rowStyles.cell} data-field='checkbox' />
