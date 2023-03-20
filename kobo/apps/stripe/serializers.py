@@ -1,12 +1,23 @@
 from django.core.exceptions import SuspiciousOperation, ValidationError
 from djstripe.models import (
-    Customer,
+    Session,
     Price,
     Product,
     Subscription,
     SubscriptionItem,
 )
 from rest_framework import serializers
+
+
+class OneTimeAddOnSerializer(serializers.ModelSerializer):
+    payment_intent = serializers.SlugRelatedField(
+        slug_field='status',
+        read_only=True,
+        many=False,
+    )
+    class Meta:
+        model = Session
+        fields = ('metadata', 'created', 'payment_intent',)
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
