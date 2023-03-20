@@ -19,8 +19,7 @@ import {
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
-import {isSubmissionWritable} from 'js/components/permissions/utils';
-import {userCan} from 'js/components/permissions/utils';
+import {isSubmissionWritable, userCan} from 'js/components/permissions/utils';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
