@@ -3,7 +3,7 @@ import stripe
 from django.conf import settings
 from django.db.models import Prefetch
 
-from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
+from djstripe.models import Customer, Price, Product, Session, Subscription, SubscriptionItem
 from djstripe.settings import djstripe_settings
 
 from organizations.utils import create_organization
@@ -17,12 +17,32 @@ from kobo.apps.stripe.serializers import (
     SubscriptionSerializer,
     CheckoutLinkSerializer,
     CustomerPortalSerializer,
+    OneTimeAddOnSerializer,
     ProductSerializer,
 )
 
 from kobo.apps.organizations.models import (
     Organization
 )
+
+
+# Lists the one-time purchases made by the organization that the logged-in user owns
+class OneTimeAddOnViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OneTimeAddOnSerializer
+    queryset = Session.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.filter(
+            livemode=settings.STRIPE_LIVE_MODE,
+            customer__subscriber__owner__organization_user__user=self.request.user,
+            mode='payment',
+            payment_intent__status__in=['succeeded', 'processing']
+        ).prefetch_related('payment_intent')
 
 
 class CheckoutLinkView(
@@ -68,7 +88,8 @@ class CheckoutLinkView(
                 },
             ],
             metadata={
-                'organization_uid': organization_uid
+                'organization_uid': organization_uid,
+                'price_id': price_id,
             },
             mode="subscription",
             payment_method_types=["card"],
