@@ -37,7 +37,7 @@ export default class SingleProcessingRoute extends React.Component<
   SingleProcessingRouteProps,
   SingleProcessingRouteState
 > {
-  constructor(props: any) {
+  constructor(props: SingleProcessingRouteProps) {
     super(props);
     if (this.props.params.uid) {
       this.state = {

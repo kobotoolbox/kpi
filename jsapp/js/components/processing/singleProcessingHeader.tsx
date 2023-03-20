@@ -14,7 +14,8 @@ import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import styles from './singleProcessingHeader.module.scss';
 import {openProcessing} from './processingUtils';
-import {withRouter, WithRouterProps} from 'jsapp/js/router/legacy';
+import {withRouter} from 'jsapp/js/router/legacy';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import classNames from 'classnames';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
@@ -25,7 +26,8 @@ interface SingleProcessingHeaderProps extends WithRouterProps {
 
 /**
  * Component with the current question label and the UI for switching between
- * submissions and questions.
+ * submissions and questions. It also has means of leaving Single Processing
+ * via "DONE" button.
  */
 class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps> {
   private unlisteners: Function[] = [];
@@ -69,6 +71,10 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     return null;
   }
 
+  /**
+   * For displaying question selector - filtered down to questions with
+   * responses and of audio type (for now).
+   */
   getQuestionSelectorOptions() {
     const options: KoboSelectOption[] = [];
     const editIds = singleProcessingStore.getSubmissionsEditIds();
@@ -108,7 +114,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     return options;
   }
 
-  /** Goes back to table view for given asset. */
+  /** Goes back to Data Table route for given project. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
     this.props.router.navigate(newRoute);
@@ -162,9 +168,9 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
   }
 
   /**
-   * Looks for closest previous submissionEditId that has data - i.e. it omits all
-   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
-   * found, simply returns `null`.
+   * Looks for closest previous submissionEditId that has data - i.e. it omits
+   * all `null`s in `submissionsEditIds` array. If there is no such
+   * `submissionEditId` to be found, simply returns `null`.
    */
   getPrevSubmissionEditId(): string | null {
     const editIds =
@@ -194,8 +200,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
 
   /**
    * Looks for closest next submissionEditId that has data - i.e. it omits all
-   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
-   * found, simply returns `null`.
+   * `null`s in `submissionsEditIds` array. If there is no such
+   * `submissionEditId` to be found, simply returns `null`.
    */
   getNextSubmissionEditId(): string | null {
     const editIds =
