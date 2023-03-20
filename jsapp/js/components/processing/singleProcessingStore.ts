@@ -22,7 +22,6 @@ import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
 import type {
   ProcessingDataResponse,
-  AutoTranscriptionEvent,
 } from 'js/components/processing/processingActions';
 import type {
   FailResponse,
@@ -79,6 +78,11 @@ interface SubmissionsEditIds {
     editId: string;
     hasResponse: boolean;
   }>;
+}
+
+interface AutoTranscriptionEvent {
+  response: ProcessingDataResponse;
+  submissionEditId: string;
 }
 
 interface SingleProcessingStoreData {

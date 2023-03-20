@@ -1,3 +1,10 @@
+/**
+ * This file lists all different processing related Reflux actions. Some of
+ * these are simple API calls, but few requires chain calls.
+ *
+ * TODO: in future, this should be moved to MobX.
+ */
+
 import Reflux from 'reflux';
 import {notify} from 'alertifyjs';
 import clonedeep from 'lodash.clonedeep';
@@ -10,14 +17,21 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 
+/**
+ * A safety check error message for calls made with assets that don't have
+ * the processing enabled.
+ */
 const NO_FEATURE_ERROR = t(
   'Asset seems to not have the processing feature enabled!'
 );
 
-// A temporary solution for deleting transcript/translation is to pass this
-// character as value.
+/**
+ * A temporary solution for deleting transcript/translation is to pass this
+ * character as value instead of making a `DELETE` call.
+ */
 const DELETE_CHAR = '⌫';
 
+/** Response from Google for automated transcript. */
 interface GoogleTsResponse {
   status: 'requested' | 'in_progress' | 'complete';
   /** Full transcript text. */
@@ -30,48 +44,48 @@ interface GoogleTsResponse {
   languageCode: string;
 }
 
+/** Response from Google for automated translation. */
 interface GoogleTxResponse {
   status: 'complete';
   value: string;
   languageCode: string;
 }
 
-interface TransxQuestion {
-  transcript: TransxObject;
-  translation: {
-    [languageCode: LanguageCode]: TransxObject;
-  };
-  googlets?: GoogleTsResponse;
-  googletx?: GoogleTxResponse;
-}
-/** Both transcript and translation are built in same way. */
+/**
+ * An object we are sending to Back end whenever we want to save new transcript
+ * or translation value.
+ */
 interface TransxRequestObject {
   languageCode: LanguageCode;
   value: string;
 }
+
+/**
+ * An object we are receiving from Back end for a transcript or a translation.
+ */
 interface TransxObject extends TransxRequestObject {
   dateCreated: string;
   dateModified: string;
+  /** The source of the `value` text. */
   engine?: string;
-  revisions?: TransxRevision[];
-}
-interface TransxRevision {
-  dateModified: string;
-  engine?: string;
-  languageCode: LanguageCode;
-  value: string;
+  /** The history of edits. */
+  revisions?: Array<{
+    dateModified: string;
+    engine?: string;
+    languageCode: LanguageCode;
+    value: string;
+  }>;
 }
 
+/** Object we send to Back end when updating transcript text manually. */
 interface TranscriptRequest {
-  [qpath: string]: TranscriptRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {transcript: TransxRequestObject};
   submission?: string;
 }
-interface TranscriptRequestQuestion {
-  transcript: TransxRequestObject;
-}
 
+/** Object we send to Back end when requesting an automatic transcription. */
 interface AutoTranscriptRequest {
-  [qpath: string]: AutoTranscriptRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {googlets: AutoTranscriptRequestEngineParams};
   submission?: string;
 }
 interface AutoTranscriptRequestEngineParams {
@@ -79,43 +93,46 @@ interface AutoTranscriptRequestEngineParams {
   languageCode?: string;
   regionCode?: string;
 }
-interface AutoTranscriptRequestQuestion {
-  googlets: AutoTranscriptRequestEngineParams;
-}
 
+/** Object we send to Back end when updating translation text manually. */
 interface TranslationRequest {
-  [qpath: string]: TranslationRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {translation: TranslationsRequestObject};
   submission?: string;
-}
-interface TranslationRequestQuestion {
-  translation: TranslationsRequestObject;
 }
 interface TranslationsRequestObject {
   [languageCode: LanguageCode]: TransxRequestObject;
 }
 
+/** Object we send to Back end when requesting an automatic translation. */
 interface AutoTranslationRequest {
-  [qpath: string]: AutoTranslationRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {googletx: AutoTranslationRequestEngineParams};
   submission?: string;
 }
-interface AutoTranslationRequestQuestion {
-  googletx: {
-    status: 'requested';
-    languageCode: string;
-  };
+interface AutoTranslationRequestEngineParams {
+  status: 'requested';
+  languageCode: string;
 }
 
+/**
+ * This is a list of question objects returned from processing endpoint. They
+ * contain a transcript and all translations for given question. If automated
+ * tools were used, it will also contain the responses from these tools.
+ */
 export interface ProcessingDataResponse {
-  [key: string]: TransxQuestion;
-}
-export interface AutoTranscriptionEvent {
-  response: ProcessingDataResponse;
-  submissionEditId: string;
+  [key: string]: {
+    transcript: TransxObject;
+    translation: {
+      [languageCode: LanguageCode]: TransxObject;
+    };
+    googlets?: GoogleTsResponse;
+    googletx?: GoogleTxResponse;
+  };
 }
 
 /**
  * This is a Reflux thing. A function that can be called, but also a function
- * that has a .listen method for adding observers to it.
+ * that has a .listen method for adding observers to it. It helps to typeguard
+ * all the Reflux actions here.
  */
 interface ListanableCallback<R> extends Function {
   (response: R): void;
@@ -147,10 +164,12 @@ const processingActions: ProcessingActionsDefinition = Reflux.createActions({
 });
 
 /**
+ * `activateAsset` action
+ *
  * Processing is database heavy, so assets need to be have the feature activated
  * first. Activations requires providing a lists of question names and a lists
  * of language codes - this means that asset might be re-activated multiple
- * times, e.g. when a new translation language is added. Backend handles
+ * times, e.g. when a new translation language is added. Back end handles
  * un-activation automagically - e.g. when you delete last translation for given
  * language, backend will un-activate that language in asset.
  */
@@ -189,6 +208,12 @@ processingActions.activateAsset.listen(
   }
 );
 
+/**
+ * `getProcessingData` action
+ *
+ * This simply returns the processing data for all questions for given
+ * submission.
+ */
 interface GetProcessingDataFn {
   (assetUid: string, submissionEditId: string): void;
 }
@@ -259,8 +284,13 @@ function setTranscriptInnerMethod(
   }
 }
 
-// This function ensures that `advanced_features` are enabled for given language
-// before sending translation to avoid rejection.
+/**
+ * `setTranscript` action
+ *
+ * For updating the transcript text. Note that it ensures that asset's
+ * `advanced_features` are enabled for given language before sending transcript
+ * - to avoid rejection.
+ */
 interface SetTranscriptFn {
   (
     assetUid: string,
@@ -300,8 +330,8 @@ processingActions.setTranscript.listen(
       return;
     }
 
-    // Case 2: the language is not yet enabled, so we make a chain call that will
-    // enable it and then send the translation
+    // Case 2: the language is not yet enabled, so we make a chain call that
+    // will enable it and then send the translation
 
     // We build the updated advanced_features object.
     const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
@@ -337,8 +367,11 @@ processingActions.setTranscript.failed.listen(() => {
 });
 
 /**
- * For now deleting transcript means setting its value to
- * a predefined DELETE_CHAR.
+ * `deleteTranscript` action
+ *
+ * Use it to completely remove given transcript. Currently deleting transcript
+ * means setting its value to a predefined DELETE_CHAR - Back end handles the
+ * cleanup.
  */
 interface DeleteTranscriptFn {
   (assetUid: string, qpath: string, submissionEditId: string): void;
@@ -380,6 +413,16 @@ processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error');
 });
 
+/**
+ * `requestAutoTranscription` action
+ *
+ * For requestiong automatic transcription from Back end. It uses an in progress
+ * callback called `in_progress`. We use it because transcripting process can
+ * take a long time.
+ *
+ * Note: if user sends the same request multiple times, Back end will respond
+ * with initial request status instead of making a completely new call.
+ */
 interface RequestAutoTranscriptionFn {
   (
     assetUid: string,
@@ -453,6 +496,7 @@ processingActions.requestAutoTranscription.listen(
   }
 );
 
+/** A small utility function for getting easier to use data. */
 function pickTranslationsFromProcessingDataResponse(
   response: ProcessingDataResponse,
   qpath: string
@@ -524,8 +568,13 @@ function setTranslationInnerMethod(
   }
 }
 
-// This function ensures that `advanced_features` are enabled for given language
-// before sending translation to avoid rejection.
+/**
+ * `setTranslation` action
+ *
+ * For updating the translation text. Note that it ensures that asset's
+ * `advanced_features` are enabled for given language before sending translation
+ * - to avoid rejection.
+ */
 interface SetTranslationFn {
   (
     assetUid: string,
@@ -602,8 +651,11 @@ processingActions.setTranslation.failed.listen(() => {
 });
 
 /**
- * For now deleting translation means setting its value to
- * a predefined DELETE_CHAR.
+ * `deleteTranslation` action
+ *
+ * Use it to completely remove given translation. Currently deleting translation
+ * means setting its value to a predefined DELETE_CHAR - Back end handles the
+ * cleanup.
  */
 interface DeleteTranslationFn {
   (
@@ -646,6 +698,12 @@ processingActions.deleteTranslation.failed.listen(() => {
   notify(t('Failed to delete translation.'), 'error');
 });
 
+/**
+ * `requestAutoTranslation` action
+ *
+ * For requestiong automatic translation from Back end. Translations are not as
+ * time consuming as transcripts, so we don't use `in_progress` callback here.
+ */
 interface RequestAutoTranslationFn {
   (
     assetUid: string,
