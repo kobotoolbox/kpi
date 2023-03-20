@@ -3,7 +3,7 @@
 @use './singleProcessingVariables';
 @use 'scss/mixins';
 
-.single-processing-content {
+.root {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -11,7 +11,7 @@
   height: 100%;
 }
 
-.single-processing-content__tabs {
+.tabs {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -19,7 +19,7 @@
   height: singleProcessingVariables.$s-single-processing-tabs;
 }
 
-.single-processing-content__tab {
+.tab {
   cursor: pointer;
   color: colors.$kobo-gray-55;
   position: relative;
@@ -34,7 +34,7 @@
     color: colors.$kobo-gray-40;
   }
 
-  &:active:not(.single-processing-content__tab--active) {
+  &:active:not(.activeTab) {
     transform: translateY(#{sizes.$x1});
   }
 
@@ -49,7 +49,7 @@
     height: sizes.$x6;
   }
 
-  &.single-processing-content__tab--active {
+  &.activeTab {
     color: colors.$kobo-gray-24;
     background-color: colors.$kobo-white;
 
@@ -58,13 +58,13 @@
     }
   }
 
-  &[disabled] {
+  &.disabledTab {
     pointer-events: none;
     opacity: 0.5;
   }
 }
 
-.single-processing-content__body {
+.body {
   background-color: colors.$kobo-white;
   border-radius: sizes.$x6;
   flex: 1;
