@@ -52,6 +52,9 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 # Install `apt` packages.                #
 ##########################################
 
+# DO NOT remove packages like `less` and `procps` without approval from
+# jnm (or the current on-call sysadmin). Thanks.
+
 RUN apt-get -qq update && \
     apt-get -qq -y install curl && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
@@ -66,6 +69,7 @@ RUN apt-get -qq update && \
         locales \
         nodejs \
         postgresql-client \
+        procps \
         rsync \
         runit-init \
         vim-tiny \

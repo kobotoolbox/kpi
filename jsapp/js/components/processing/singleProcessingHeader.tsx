@@ -1,9 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem';
-import {
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
-} from 'js/constants';
+import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
   findRowByQpath,
@@ -17,14 +14,32 @@ import singleProcessingStore from 'js/components/processing/singleProcessingStor
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import './singleProcessingHeader.scss';
-import { openProcessing } from './processingUtils';
-import { withRouter, WithRouterProps } from 'jsapp/js/router/legacy';
+import {openProcessing} from './processingUtils';
+import {withRouter, WithRouterProps} from 'jsapp/js/router/legacy';
 
-bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header');
-bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section');
-bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 'submissions', 'nav');
-bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count');
-bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number');
+bem.SingleProcessingHeader = makeBem(
+  null,
+  'single-processing-header',
+  'header'
+);
+bem.SingleProcessingHeader__column = makeBem(
+  bem.SingleProcessingHeader,
+  'column',
+  'section'
+);
+bem.SingleProcessingHeader__submissions = makeBem(
+  bem.SingleProcessingHeader,
+  'submissions',
+  'nav'
+);
+bem.SingleProcessingHeader__count = makeBem(
+  bem.SingleProcessingHeader,
+  'count'
+);
+bem.SingleProcessingHeader__number = makeBem(
+  bem.SingleProcessingHeader,
+  'number'
+);
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -36,9 +51,7 @@ interface SingleProcessingHeaderProps extends WithRouterProps {
  * Component with the current question label and the UI for switching between
  * submissions and questions.
  */
-class SingleProcessingHeader extends React.Component<
-  SingleProcessingHeaderProps
-> {
+class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -48,14 +61,16 @@ class SingleProcessingHeader extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
@@ -70,7 +85,10 @@ class SingleProcessingHeader extends React.Component<
   getFirstNonNullEditId(questionName: string) {
     const editIds = singleProcessingStore.getSubmissionsEditIds();
     if (editIds) {
-      return editIds[questionName]?.find((editIdOrNull) => editIdOrNull !== null) || null;
+      return (
+        editIds[questionName]?.find((editIdOrNull) => editIdOrNull !== null) ||
+        null
+      );
     }
     return null;
   }
@@ -86,7 +104,9 @@ class SingleProcessingHeader extends React.Component<
         // the question). Otherwise there's no point in having the question as
         // selectable option.
         const questionEditIds = editIds[qpath];
-        const hasAtLeastOneEditId = Boolean(questionEditIds.find((editIdOrNull) => editIdOrNull !== null));
+        const hasAtLeastOneEditId = Boolean(
+          questionEditIds.find((editIdOrNull) => editIdOrNull !== null)
+        );
         if (questionData && hasAtLeastOneEditId) {
           // Only allow audio questions at this point (we plan to allow text
           // and video in future).
@@ -101,7 +121,7 @@ class SingleProcessingHeader extends React.Component<
               0
             );
             options.push({
-              id: qpath,
+              value: qpath,
               label: translatedLabel !== null ? translatedLabel : rowName,
               icon: getRowTypeIcon(questionData.type),
             });
@@ -126,20 +146,27 @@ class SingleProcessingHeader extends React.Component<
   goPrev() {
     const prevEditId = this.getPrevSubmissionEditId();
     if (prevEditId !== null && singleProcessingStore.currentQuestionQpath) {
-      this.goToSubmission(singleProcessingStore.currentQuestionQpath, prevEditId);
+      this.goToSubmission(
+        singleProcessingStore.currentQuestionQpath,
+        prevEditId
+      );
     }
   }
 
   goNext() {
     const nextEditId = this.getNextSubmissionEditId();
     if (nextEditId !== null && singleProcessingStore.currentQuestionQpath) {
-      this.goToSubmission(singleProcessingStore.currentQuestionQpath, nextEditId);
+      this.goToSubmission(
+        singleProcessingStore.currentQuestionQpath,
+        nextEditId
+      );
     }
   }
 
   /** Returns index or `null` (if store is not ready yet). */
   getCurrentSubmissionIndex(): number | null {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (Array.isArray(editIds)) {
       const submissionEditIdIndex = editIds.findIndex(
         (item) => item.editId === this.props.submissionEditId
@@ -164,18 +191,15 @@ class SingleProcessingHeader extends React.Component<
    * found, simply returns `null`.
    */
   getPrevSubmissionEditId(): string | null {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (!Array.isArray(editIds)) {
       return null;
     }
 
     const currentIndex = this.getCurrentSubmissionIndex();
     // If not found, or we are on first element, there is no previous.
-    if (
-      currentIndex === -1 ||
-      currentIndex === 0 ||
-      currentIndex === null
-    ) {
+    if (currentIndex === -1 || currentIndex === 0 || currentIndex === null) {
       return null;
     }
 
@@ -198,7 +222,8 @@ class SingleProcessingHeader extends React.Component<
    * found, simply returns `null`.
    */
   getNextSubmissionEditId(): string | null {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (!Array.isArray(editIds)) {
       return null;
     }
@@ -229,7 +254,8 @@ class SingleProcessingHeader extends React.Component<
   }
 
   render() {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
 
     return (
       <bem.SingleProcessingHeader>
@@ -254,8 +280,10 @@ class SingleProcessingHeader extends React.Component<
               </strong>
               &nbsp;
               {Array.isArray(editIds) &&
-                t('of ##total_count##').replace('##total_count##', String(editIds.length))
-              }
+                t('of ##total_count##').replace(
+                  '##total_count##',
+                  String(editIds.length)
+                )}
             </bem.SingleProcessingHeader__count>
 
             <Button

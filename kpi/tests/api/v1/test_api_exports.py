@@ -49,3 +49,25 @@ class AssetExportTaskTest(MockDataExportsBase, BaseTestCase):
         response_dict = response.json()
         assert response_dict['count'] == 1
         assert self.asset.uid in response_dict['results'][0]['data']['source']
+
+    def test_export_source_validation(self):
+        """
+        Make sure that an export request for an invalid `source` returns a 400
+        error, not a 500. Note that some invalid `source` values will return a
+        404 error, which isn't great, but fixing that is out of scope for the
+        moment!
+        """
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(self._get_endpoint('exporttask-list'))
+        source_url = reverse('asset-detail', args=[self.asset.uid])
+        # Give the source URL an invalid asset UID
+        source_url = source_url.rstrip('/') + 'bogus/'
+        data = {
+            'source': source_url,
+            'type': 'csv'
+        }
+        response = self.client.post(list_url, data)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.json()['source'] == 'The specified asset does not exist.'
+        )

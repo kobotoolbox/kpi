@@ -30,7 +30,10 @@ bem.SingleProcessingDataList = makeBem(
   'single-processing-data-list',
   'section'
 );
-bem.SingleProcessingDataList__body = makeBem(bem.SingleProcessingDataList, 'body');
+bem.SingleProcessingDataList__body = makeBem(
+  bem.SingleProcessingDataList,
+  'body'
+);
 
 interface SingleProcessingSubmissionDetailsProps {
   assetContent: AssetContent;
@@ -39,9 +42,7 @@ interface SingleProcessingSubmissionDetailsProps {
 /**
  * Displays some more detailed information for given submission.
  */
-export default class SingleProcessingSubmissionDetails extends React.Component<
-  SingleProcessingSubmissionDetailsProps
-> {
+export default class SingleProcessingSubmissionDetails extends React.Component<SingleProcessingSubmissionDetailsProps> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -51,14 +52,16 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
@@ -109,7 +112,10 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       case META_QUESTION_TYPES['background-audio']:
         return (
           <bem.SingleProcessingMediaWrapper m='audio' key='audio'>
-            <AudioPlayer mediaURL={attachment.download_url} filename={attachment.filename}/>
+            <AudioPlayer
+              mediaURL={attachment.download_url}
+              filename={attachment.filename}
+            />
           </bem.SingleProcessingMediaWrapper>
         );
       case QUESTION_TYPES.video.id:
@@ -155,11 +161,6 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   render() {
-    return (
-      [
-        this.renderMedia(),
-        this.renderDataList(),
-      ]
-    );
+    return [this.renderMedia(), this.renderDataList()];
   }
 }
