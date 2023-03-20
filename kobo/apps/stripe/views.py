@@ -26,6 +26,7 @@ from kobo.apps.organizations.models import (
 )
 
 
+# Lists the one-time purchases made by the organization that the logged-in user owns
 class OneTimeAddOnViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -42,14 +43,6 @@ class OneTimeAddOnViewSet(
             mode='payment',
             payment_intent__status__in=['succeeded', 'processing']
         ).prefetch_related('payment_intent')
-
-    def get(self, request):
-        serializer = OneTimeAddOnSerializer(context=request.user)
-        serializer.is_valid(raise_exception=True)
-        add_ons = serializer.validated_data.get('addons')
-        return Response({'add_ons': add_ons})
-
-
 
 
 class CheckoutLinkView(
