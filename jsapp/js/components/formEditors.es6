@@ -29,7 +29,6 @@ export class FormPage extends React.Component {
 }
 reactMixin(FormPage.prototype, Reflux.ListenerMixin);
 reactMixin(FormPage.prototype, editableFormMixin);
-reactMixin(FormPage.prototype, mixins.permissions);
 FormPage.contextTypes = {router: PropTypes.object};
 
 class LibraryAssetEditorComponent extends React.Component {

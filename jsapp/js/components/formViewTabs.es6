@@ -12,6 +12,7 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import {assign} from 'utils';
+import {userCan, userCanPartially} from 'js/components/permissions/utils';
 
 export function getFormDataTabs(assetUid) {
   return [
@@ -80,8 +81,8 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.has_deployment &&
       this.state.asset.deployment__submission_count > 0 &&
       (
-        this.userCan('view_submissions', this.state.asset) ||
-        this.userCanPartially('view_submissions', this.state.asset)
+        userCan('view_submissions', this.state.asset) ||
+        userCanPartially('view_submissions', this.state.asset)
       )
     );
   }
@@ -105,8 +106,8 @@ class FormViewTabs extends Reflux.Component {
     if (
       !(
         sessionStore.isLoggedIn && (
-          this.userCan('change_asset', this.state.asset) ||
-          this.userCan('change_metadata_asset', this.state.asset)
+          userCan('change_asset', this.state.asset) ||
+          userCan('change_metadata_asset', this.state.asset)
         )
       )
     ) {
@@ -179,7 +180,7 @@ class FormViewTabs extends Reflux.Component {
       });
 
       if (
-        mixins.permissions.userCan(
+        userCan(
           PERMISSIONS_CODENAMES.change_asset,
           this.state.asset
         )
@@ -192,7 +193,7 @@ class FormViewTabs extends Reflux.Component {
       }
 
       if (
-        mixins.permissions.userCan(
+        userCan(
           PERMISSIONS_CODENAMES.manage_asset,
           this.state.asset
         )
@@ -205,7 +206,7 @@ class FormViewTabs extends Reflux.Component {
       }
 
       if (
-        mixins.permissions.userCan(
+        userCan(
           PERMISSIONS_CODENAMES.manage_asset,
           this.state.asset
         )
@@ -223,11 +224,11 @@ class FormViewTabs extends Reflux.Component {
           // REST services should be visible for archived forms but not drafts
           this.state.asset.deployed_versions.count > 0
         ) &&
-        mixins.permissions.userCan(
+        userCan(
           PERMISSIONS_CODENAMES.view_submissions,
           this.state.asset
         ) &&
-        mixins.permissions.userCan(
+        userCan(
           PERMISSIONS_CODENAMES.change_asset,
           this.state.asset
         )
@@ -290,7 +291,6 @@ class FormViewTabs extends Reflux.Component {
 
 reactMixin(FormViewTabs.prototype, Reflux.ListenerMixin);
 reactMixin(FormViewTabs.prototype, mixins.contextRouter);
-reactMixin(FormViewTabs.prototype, mixins.permissions);
 
 FormViewTabs.contextTypes = {
   router: PropTypes.object,
