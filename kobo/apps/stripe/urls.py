@@ -7,7 +7,7 @@ from kobo.apps.stripe.views import SubscriptionViewSet, CheckoutLinkView, Custom
 router = SimpleRouter()
 router.register(r'subscriptions', SubscriptionViewSet, basename='subscriptions')
 router.register(r'products', ProductViewSet)
-router.register(r'addons', OneTimeAddOnViewSet)
+router.register(r'addons', OneTimeAddOnViewSet, basename='addons')
 
 
 urlpatterns = [
