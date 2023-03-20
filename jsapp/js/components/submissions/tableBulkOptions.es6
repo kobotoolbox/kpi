@@ -11,7 +11,7 @@ import {
   PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import {renderCheckbox} from 'utils';
-import {userCan} from 'js/components/permissions/utils';
+import {userCan, userCanPartially} from 'js/components/permissions/utils';
 
 /**
  * @prop asset
