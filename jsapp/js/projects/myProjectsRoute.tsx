@@ -33,7 +33,6 @@ function MyProjectsRoute() {
       HOME_VIEW.uid,
       `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.s}`
     );
-    customView.fetchAssets();
   }, []);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */

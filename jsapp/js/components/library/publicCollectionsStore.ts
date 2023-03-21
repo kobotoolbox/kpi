@@ -1,6 +1,6 @@
 import Reflux from 'reflux';
 import type {Update} from 'history';
-import searchBoxStore, {SEARCH_CONTEXTS} from 'js/components/header/searchBoxStore';
+import searchBoxStore from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -24,7 +24,9 @@ import type {
   DeleteAssetResponse,
   MetadataResponse,
   AssetSubscriptionsResponse,
+  SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
+import {reaction} from 'mobx';
 
 interface PublicCollectionsStoreData {
   isFetchingData: boolean;
@@ -39,17 +41,6 @@ interface PublicCollectionsStoreData {
   filterValue?: string | null;
 }
 
-/**  search params shared by all searches */
-interface SearchParams {
-  searchPhrase: string;
-  pageSize: number;
-  page: number;
-  filterProperty?: string | null;
-  filterValue?: string | null;
-  metadata?: boolean;
-  ordering?: string;
-}
-
 class PublicCollectionsStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -57,9 +48,9 @@ class PublicCollectionsStore extends Reflux.Store {
    */
   abortFetchData?: Function;
   previousPath = getCurrentPath();
-  previousSearchPhrase = searchBoxStore.getSearchPhrase();
   PAGE_SIZE = 100;
   DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS['date-modified'];
+  searchContext = 'PUBLIC_COLLECTIONS';
 
   isInitialised = false;
 
@@ -81,7 +72,12 @@ class PublicCollectionsStore extends Reflux.Store {
     this.setDefaultColumns();
 
     history.listen(this.onRouteChange.bind(this));
-    searchBoxStore.listen(this.searchBoxStoreChanged.bind(this), this);
+
+    reaction(
+      () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
+      this.onSearchBoxStoreChanged.bind(this)
+    );
+
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));
     actions.library.searchPublicCollections.failed.listen(this.onSearchFailed.bind(this));
@@ -105,10 +101,12 @@ class PublicCollectionsStore extends Reflux.Store {
    */
   startupStore() {
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
   }
 
+  /** Changes the order column to default and remove filtering. */
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
@@ -119,8 +117,8 @@ class PublicCollectionsStore extends Reflux.Store {
   // methods for handling search and data fetch
 
   getSearchParams() {
-    const params: SearchParams = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
+    const params: SearchAssetsPredefinedParams = {
+      searchPhrase: searchBoxStore.data.searchPhrase,
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
     };
@@ -128,7 +126,7 @@ class PublicCollectionsStore extends Reflux.Store {
     if (this.data.filterColumnId) {
       const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
-      params.filterValue = this.data.filterValue;
+      params.filterValue = this.data.filterValue ? this.data.filterValue : undefined;
     }
 
     // Surrounds `filterValue` with double quotes to avoid filters that have
@@ -165,28 +163,26 @@ class PublicCollectionsStore extends Reflux.Store {
 
   onRouteChange(data: Update) {
     if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     } else if (
       this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
       isPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();
-      this.fetchData(true);
+      // This will indirectly run `fetchData`
+      searchBoxStore.setContext(this.searchContext);
     }
     this.previousPath = data.location.pathname;
   }
 
-  searchBoxStoreChanged() {
-    if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.PUBLIC_COLLECTIONS &&
-      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
-    ) {
+  onSearchBoxStoreChanged() {
+    if (searchBoxStore.data.context === this.searchContext) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
       this.fetchData(true);
     }
   }

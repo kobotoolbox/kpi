@@ -11,12 +11,16 @@ export namespace stores {
   const assetSearch: any
   const translations: any
   const pageState: {
-    toggleFixedDrawer: () => void
-    showModal: (params: PageStateModalParams) => void
-    hideModal: () => void
-    switchModal: (params: PageStateModalParams) => void
-    switchToPreviousModal: () => void
-    hasPreviousModal: () => boolean
+    state: {
+      assetNavExpanded: boolean;
+      showFixedDrawer: boolean;
+    };
+    toggleFixedDrawer: () => void;
+    showModal: (params: PageStateModalParams) => void;
+    hideModal: () => void;
+    switchModal: (params: PageStateModalParams) => void;
+    switchToPreviousModal: () => void;
+    hasPreviousModal: () => boolean;
   }
   const snapshots: any
   const session: {

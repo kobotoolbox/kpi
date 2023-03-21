@@ -5,7 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
-import { Outlet } from "react-router-dom";
+import {Outlet} from 'react-router-dom';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {stores} from 'js/stores';
@@ -13,7 +13,7 @@ import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header';
+import MainHeader from 'js/components/header/mainHeader';
 import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
 import PermValidator from 'js/components/permissions/permValidator';
@@ -21,7 +21,7 @@ import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
 import { withRouter, routerGetAssetId } from './router/legacy';
-import { history } from "./router/historyRouter";
+import { history } from './router/historyRouter';
 
 
 class App extends React.Component {
