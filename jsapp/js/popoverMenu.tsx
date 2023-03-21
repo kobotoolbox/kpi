@@ -10,7 +10,7 @@ interface PopoverMenuProps {
   /** A callback run whenever popover is opened (made visible). */
   popoverSetVisible?: () => void;
   /**
-   * This is come weird mechanism for closing the popover from outside. You have
+   * This is some weird mechanism for closing the popover from outside. You have
    * to pass a `true` value here, and the code observes property changes, and
    * would close popover :ironically_impressed_nod:.
    */

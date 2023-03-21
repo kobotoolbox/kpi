@@ -48,7 +48,7 @@ class SearchBox extends React.Component<SearchBoxProps, SearchBoxState> {
 
   onInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
     const newVal = evt.target.value;
-    // set `inpuVal` immediately, but update store after some time
+    // set `inputVal` immediately, but update store after some time
     // to avoid unnecessary updates while typing
     this.setState({inputVal: newVal});
     this.setSearchPhraseDebounced(newVal);
