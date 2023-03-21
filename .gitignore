@@ -30,3 +30,4 @@ cypress/cypress/videos/*
 cypress/cypress/screenshots/*
 public
 .venv
+storybook-static
