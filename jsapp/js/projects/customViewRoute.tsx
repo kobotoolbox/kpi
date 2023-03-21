@@ -39,7 +39,6 @@ function CustomViewRoute() {
       viewUid,
       `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/?`
     );
-    customView.fetchAssets();
   }, [viewUid]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
