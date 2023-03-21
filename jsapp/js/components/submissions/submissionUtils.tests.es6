@@ -40,7 +40,9 @@ import {
 } from './submissionUtils';
 import {actions} from 'js/actions';
 
-// Be able to exclude __proto__ when deeply comparing with mock objects
+// getSubmissionDisplayData() returns objects that have prototype chains, while
+// the simple mock objects do not. Be able to exclude __proto__ when comparing
+// the two
 import chaiExclude from 'chai-exclude';
 chai.use(chaiExclude);
 
