@@ -9,7 +9,10 @@ import bodyStyles from './processingBody.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 
-/** Shows a source (transcript or translation) for new translation. */
+/**
+ * Shows a source (transcript or translation) for new translation. This is being
+ * rendered by the side of the content.
+ */
 export default class SingleProcessingPreview extends React.Component {
   private unlisteners: Function[] = [];
 
@@ -25,11 +28,11 @@ export default class SingleProcessingPreview extends React.Component {
     });
   }
 
+  /**
+   * Don't want to store a duplicate of `activeTab` here, so we need to make
+   * the component re-render itself when the store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
-    /**
-     * Don't want to store a duplicate of `activeTab` here, so we need to make
-     * the component re-render itself when the store changes :shrug:.
-     */
     this.forceUpdate();
   }
 
@@ -69,7 +72,10 @@ export default class SingleProcessingPreview extends React.Component {
     );
   }
 
-  /** Renders a text or a selector of translations. */
+  /**
+   * Renders a text (for one possible source) or a Translations Selector
+   * for multiple.
+   */
   renderLanguage() {
     const sources = singleProcessingStore.getSources();
     const sourceData = singleProcessingStore.getSourceData();

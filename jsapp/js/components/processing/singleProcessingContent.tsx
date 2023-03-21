@@ -8,7 +8,11 @@ import protectorHelpers from 'js/protector/protectorHelpers';
 import styles from './singleProcessingContent.module.scss';
 import classNames from 'classnames';
 
-/** This component is handling the tabs for switching the content. */
+/**
+ * Displays main content part of Single Processing route. It consists of tabs
+ * navigation and a section for currently selected tab. Content for each of the
+ * tabs is built in separate components.
+ */
 export default class SingleProcessingContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
 
@@ -24,11 +28,11 @@ export default class SingleProcessingContent extends React.Component<{}> {
     });
   }
 
+  /**
+   * Don't want to store a duplicate of `activeTab` here, so we need to make
+   * the component re-render itself when the store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
-    /**
-     * Don't want to store a duplicate of `activeTab` here, so we need to make
-     * the component re-render itself when the store changes :shrug:.
-     */
     this.forceUpdate();
   }
 
