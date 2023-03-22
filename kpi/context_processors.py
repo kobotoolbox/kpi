@@ -2,6 +2,7 @@
 import constance
 import markdown
 from django.conf import settings
+from django.urls import reverse
 
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
@@ -48,11 +49,11 @@ def sitewide_messages(request):
     required in the context for any pages that need to display
     custom text in django templates
     """
-    if request.path_info.endswith("accounts/register/"):
+    if request.path_info == reverse('account_signup'):
 
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
-            return {"welcome_message": sitewide_message}
+            return {'welcome_message': sitewide_message}
 
     return {}
 
