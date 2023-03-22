@@ -152,7 +152,10 @@ def disable_auto_field_update(kls, field_name):
 
 
 def remove_string_prefix(string, prefix):
-    return string[len(prefix):] if string.startswith(prefix) else string
+    if prefix and string.startswith(prefix):
+        return string[len(prefix):]
+    else:
+        return string
 
 
 def resolve_url_to_asset(item_path):

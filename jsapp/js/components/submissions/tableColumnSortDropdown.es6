@@ -1,12 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import classNames from 'classnames';
-import mixins from 'js/mixins';
 import bem, {makeBem} from 'js/bem';
 import KoboDropdown from 'js/components/common/koboDropdown';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
+import {userCan} from 'js/components/permissions/utils';
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
 
@@ -109,13 +109,13 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.ASCENDING)}
             {this.renderSortButton(SORT_VALUES.DESCENDING)}
 
-            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+            {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
               <bem.SortDropdownMenuButton onClick={this.hideField}>
                 <i className='k-icon k-icon-hide'/>
                 <span>{t('Hide field')}</span>
               </bem.SortDropdownMenuButton>
             }
-            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+            {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
               <bem.SortDropdownMenuButton
                 onClick={this.changeFieldFrozen.bind(this, !this.props.isFieldFrozen)}
               >

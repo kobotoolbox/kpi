@@ -11,17 +11,18 @@ import {searches} from '../searches';
 import {stores} from '../stores';
 import {
   COMMON_QUERIES,
-  DEPLOYMENT_CATEGORIES
+  DEPLOYMENT_CATEGORIES,
 } from 'js/constants';
 import AssetName from 'js/components/common/assetName';
+import {userCan} from 'js/components/permissions/utils';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
     super(props);
-    var selectedCategories = {
+    const selectedCategories = {
       'Draft': false,
       'Deployed': false,
-      'Archived': false
+      'Archived': false,
     };
     this.state = {
       selectedCategories: selectedCategories,
@@ -47,7 +48,7 @@ class SidebarFormsList extends Reflux.Component {
   renderMiniAssetRow(asset) {
     var href = `/forms/${asset.uid}`;
 
-    if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count) {
+    if (userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count) {
       href = href + '/summary';
     } else {
       href = href + '/landing';
@@ -158,6 +159,5 @@ SidebarFormsList.contextTypes = {
 reactMixin(SidebarFormsList.prototype, searches.common);
 reactMixin(SidebarFormsList.prototype, Reflux.ListenerMixin);
 reactMixin(SidebarFormsList.prototype, mixins.contextRouter);
-reactMixin(SidebarFormsList.prototype, mixins.permissions);
 
 export default SidebarFormsList;
