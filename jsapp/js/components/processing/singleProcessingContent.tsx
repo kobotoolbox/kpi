@@ -2,6 +2,7 @@ import React from 'react';
 import singleProcessingStore, {
   SingleProcessingTabs,
 } from 'js/components/processing/singleProcessingStore';
+import AnalysisTabContent from 'js/components/processing/analysisTabContent';
 import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
 import TranslationsTabContent from 'js/components/processing/translationsTabContent';
 import protectorHelpers from 'js/protector/protectorHelpers';
@@ -55,7 +56,7 @@ export default class SingleProcessingContent extends React.Component<{}> {
       case SingleProcessingTabs.Translations:
         return <TranslationsTabContent />;
       case SingleProcessingTabs.Analysis:
-        return null;
+        return <AnalysisTabContent />;
       default:
         return null;
     }
@@ -103,7 +104,8 @@ export default class SingleProcessingContent extends React.Component<{}> {
               [styles.activeTab]:
                 singleProcessingStore.getActiveTab() ===
                 SingleProcessingTabs.Analysis,
-              [styles.disabledTab]: true,
+              [styles.disabledTab]:
+                singleProcessingStore.getTranscript() === undefined,
             })}
             onClick={this.safeExecute.bind(
               this,
