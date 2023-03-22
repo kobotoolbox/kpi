@@ -152,6 +152,14 @@ export function formatDate(timeStr: string): string {
   return myMoment.format('ll');
 }
 
+/**
+ * Returns something like "March, 2021"
+ */
+export function formatMonth(timeStr: string): string {
+  const myMoment = moment.utc(timeStr).local();
+  return myMoment.format('MMMM YYYY');
+}
+
 /** Returns something like "07:59" */
 export function formatSeconds(seconds: number) {
   // We don't care about milliseconds (sorry!).
