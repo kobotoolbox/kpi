@@ -319,7 +319,7 @@ export default class TranslationsTabContent extends React.Component<
 
   renderStepBegin() {
     return (
-      <div className={classNames(bodyStyles.root, bodyStyles.begin)}>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepBegin)}>
         <header className={bodyStyles.header}>
           {t('This transcript does not have any translations yet')}
         </header>
@@ -339,7 +339,7 @@ export default class TranslationsTabContent extends React.Component<
     const draft = singleProcessingStore.getTranslationDraft();
 
     return (
-      <div className={classNames(bodyStyles.root, bodyStyles.config)}>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
         <LanguageSelector
           titleOverride={t(
             'Please select the language you want to translate to'
@@ -394,7 +394,7 @@ export default class TranslationsTabContent extends React.Component<
     }
 
     return (
-      <div className={classNames(bodyStyles.root, bodyStyles.config)}>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
         <header className={bodyStyles.header}>
           {t('Automatic translation of transcript to')}
         </header>
