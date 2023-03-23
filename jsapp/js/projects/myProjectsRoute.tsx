@@ -79,7 +79,9 @@ function MyProjectsRoute() {
           />
 
           {selectedAssets.length === 1 && (
-            <ProjectQuickActions asset={selectedAssets[0]} />
+            <div className={styles.quickActions}>
+              <ProjectQuickActions asset={selectedAssets[0]} />
+            </div>
           )}
         </header>
 

@@ -4,6 +4,7 @@
 
 .root {
   @include mixins.centerRowFlex;
+  gap: sizes.$x10;
 }
 
 .menu {
