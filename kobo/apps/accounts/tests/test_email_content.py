@@ -77,8 +77,17 @@ class EmailContentModelTestCase(TestCase):
             'username': username,
         }
         default = "Thanks for signing up with KoboToolbox!"
-        with self.assertNumQueries(42):
-            request = self.client.post(self.signup_url, data)
+        # This is unreliable. On commit
+        # 3d4dbdd4ac16b5739237fd9957d0140f50f17280, this assertion passes when
+        # the entire test suite is run, but it fails when the this unit test is
+        # run individually (43 queries are logged). It also fails on
+        # 2eb5877faa2b2cda58c709fa07ec0fd914889a6c: when running the complete
+        # suite, 44 queries are logged, and when running individually, 45 are
+        # logged. I'm disabling the assertion for now. —jnm
+        #
+        # with self.assertNumQueries(42):
+        #    request = self.client.post(self.signup_url, data)
+        request = self.client.post(self.signup_url, data)
         user = get_user_model().objects.get(email=email)
         assert request.status_code == status.HTTP_302_FOUND
         self.client.login(username=user.username, password=user.password)
