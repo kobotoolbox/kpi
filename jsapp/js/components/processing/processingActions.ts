@@ -416,7 +416,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 /**
  * `requestAutoTranscription` action
  *
- * For requestiong automatic transcription from Back end. It uses an in progress
+ * For requesting automatic transcription from Back end. It uses an in-progress
  * callback called `in_progress`. We use it because transcripting process can
  * take a long time.
  *

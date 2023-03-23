@@ -59,7 +59,7 @@ Example: A user saves their "Polish" transcript.
 
 Thankfully, whenever we delete a transcript, the Back end is automagically cleaning
 up unreferenced languages for us. So if user deletes that "Polish" transcript
-(and no other submission has transcript in this language) we don't have to
+(and no other submission has a transcript in this language) we don't have to
 remove the language from the schema ourselves. We simply make single API call
 and end up with both changes:
 - "Polish" transcript is no longer present in `_supplementalDetails`
