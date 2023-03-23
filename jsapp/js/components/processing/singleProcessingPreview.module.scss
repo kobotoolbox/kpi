@@ -1,8 +1,8 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/sizes";
-@use "./singleProcessingVariables";
+@use 'scss/sizes';
+@use './singleProcessingVariables';
 
-.single-processing-preview {
+.root {
   margin-top: singleProcessingVariables.$s-single-processing-tabs;
   background-color: colors.$kobo-white;
   border-radius: sizes.$x6;

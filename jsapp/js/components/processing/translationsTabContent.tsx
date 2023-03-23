@@ -1,6 +1,5 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
-import bem from 'js/bem';
 import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
@@ -9,7 +8,6 @@ import LanguageSelector, {
 } from 'js/components/languages/languageSelector';
 import RegionSelector from 'js/components/languages/regionSelector';
 import Button from 'js/components/common/button';
-import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 import type {
   DetailedLanguage,
@@ -19,6 +17,8 @@ import type {
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import TransxSelector from './transxSelector';
 import envStore from 'js/envStore';
+import bodyStyles from './processingBody.module.scss';
+import classNames from 'classnames';
 
 interface TranslationsTabContentState {
   /** Uses languageCode. */
@@ -266,9 +266,7 @@ export default class TranslationsTabContent extends React.Component<
         {this.renderLanguage()}
 
         {dateText !== '' && (
-          <bem.ProcessingBody__transxHeaderDate>
-            {dateText}
-          </bem.ProcessingBody__transxHeaderDate>
+          <time className={bodyStyles.transxHeaderDate}>{dateText}</time>
         )}
       </React.Fragment>
     );
@@ -281,9 +279,9 @@ export default class TranslationsTabContent extends React.Component<
     // When editing we want to display just a text
     if (draft?.languageCode) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
           <AsyncLanguageDisplayLabel code={draft.languageCode} />
-        </bem.ProcessingBody__transxHeaderLanguage>
+        </label>
       );
     }
 
@@ -292,9 +290,9 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing the only translation we want to display just a text
     if (!draft && translations.length === 1) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
           <AsyncLanguageDisplayLabel code={translations[0].languageCode} />
-        </bem.ProcessingBody__transxHeaderLanguage>
+        </label>
       );
     }
 
@@ -302,7 +300,7 @@ export default class TranslationsTabContent extends React.Component<
     // other translation.
     if (!draft && translations.length >= 2) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
           <TransxSelector
             languageCodes={translations.map(
               (translation) => translation.languageCode
@@ -312,7 +310,7 @@ export default class TranslationsTabContent extends React.Component<
               this.selectTranslation(newSelectedOption || undefined);
             }}
           />
-        </bem.ProcessingBody__transxHeaderLanguage>
+        </label>
       );
     }
 
@@ -321,10 +319,10 @@ export default class TranslationsTabContent extends React.Component<
 
   renderStepBegin() {
     return (
-      <bem.ProcessingBody m='begin'>
-        <bem.ProcessingBody__header>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepBegin)}>
+        <header className={bodyStyles.header}>
           {t('This transcript does not have any translations yet')}
-        </bem.ProcessingBody__header>
+        </header>
 
         <Button
           type='full'
@@ -333,7 +331,7 @@ export default class TranslationsTabContent extends React.Component<
           label={t('begin')}
           onClick={this.begin.bind(this)}
         />
-      </bem.ProcessingBody>
+      </div>
     );
   }
 
@@ -341,7 +339,7 @@ export default class TranslationsTabContent extends React.Component<
     const draft = singleProcessingStore.getTranslationDraft();
 
     return (
-      <bem.ProcessingBody m='config'>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
         <LanguageSelector
           titleOverride={t(
             'Please select the language you want to translate to'
@@ -353,7 +351,7 @@ export default class TranslationsTabContent extends React.Component<
           isDisabled={singleProcessingStore.isFetchingData}
         />
 
-        <bem.ProcessingBody__footer>
+        <footer className={bodyStyles.footer}>
           <Button
             type='bare'
             color='blue'
@@ -364,7 +362,7 @@ export default class TranslationsTabContent extends React.Component<
             isDisabled={singleProcessingStore.isFetchingData}
           />
 
-          <bem.ProcessingBody__footerRightButtons>
+          <div className={bodyStyles.footerRightButtons}>
             <Button
               type='frame'
               color='blue'
@@ -382,9 +380,9 @@ export default class TranslationsTabContent extends React.Component<
               selectedLanguage={draft?.languageCode}
               type='translation'
             />
-          </bem.ProcessingBody__footerRightButtons>
-        </bem.ProcessingBody__footer>
-      </bem.ProcessingBody>
+          </div>
+        </footer>
+      </div>
     );
   }
 
@@ -396,10 +394,10 @@ export default class TranslationsTabContent extends React.Component<
     }
 
     return (
-      <bem.ProcessingBody m='config'>
-        <bem.ProcessingBody__header>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
+        <header className={bodyStyles.header}>
           {t('Automatic translation of transcript to')}
-        </bem.ProcessingBody__header>
+        </header>
 
         <RegionSelector
           isDisabled={singleProcessingStore.isFetchingData}
@@ -422,8 +420,8 @@ export default class TranslationsTabContent extends React.Component<
           )}
         </p>
 
-        <bem.ProcessingBody__footer>
-          <bem.ProcessingBody__footerCenterButtons>
+        <footer className={bodyStyles.footer}>
+          <div className={bodyStyles.footerCenterButtons}>
             <Button
               type='frame'
               color='blue'
@@ -441,9 +439,9 @@ export default class TranslationsTabContent extends React.Component<
               onClick={this.requestAutoTranslation.bind(this)}
               isDisabled={singleProcessingStore.isFetchingData}
             />
-          </bem.ProcessingBody__footerCenterButtons>
-        </bem.ProcessingBody__footer>
-      </bem.ProcessingBody>
+          </div>
+        </footer>
+      </div>
     );
   }
 
@@ -457,11 +455,11 @@ export default class TranslationsTabContent extends React.Component<
     }
 
     return (
-      <bem.ProcessingBody>
-        <bem.ProcessingBody__transxHeader>
+      <div className={bodyStyles.root}>
+        <header className={bodyStyles.transxHeader}>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transxHeaderButtons>
+          <div className={bodyStyles.transxHeaderButtons}>
             <Button
               type='frame'
               color='blue'
@@ -482,15 +480,16 @@ export default class TranslationsTabContent extends React.Component<
                 !singleProcessingStore.hasUnsavedTranslationDraftValue()
               }
             />
-          </bem.ProcessingBody__transxHeaderButtons>
-        </bem.ProcessingBody__transxHeader>
+          </div>
+        </header>
 
-        <bem.ProcessingBody__textarea
+        <textarea
+          className={bodyStyles.textarea}
           value={draft?.value}
           onChange={this.onDraftValueChange.bind(this)}
           disabled={singleProcessingStore.isFetchingData}
         />
-      </bem.ProcessingBody>
+      </div>
     );
   }
 
@@ -501,11 +500,11 @@ export default class TranslationsTabContent extends React.Component<
     }
 
     return (
-      <bem.ProcessingBody>
-        <bem.ProcessingBody__transxHeader>
+      <div className={bodyStyles.root}>
+        <header className={bodyStyles.transxHeader}>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transxHeaderButtons>
+          <div className={bodyStyles.transxHeaderButtons}>
             <Button
               type='frame'
               color='storm'
@@ -541,16 +540,16 @@ export default class TranslationsTabContent extends React.Component<
               tooltip={t('Delete')}
               isPending={singleProcessingStore.isFetchingData}
             />
-          </bem.ProcessingBody__transxHeaderButtons>
-        </bem.ProcessingBody__transxHeader>
+          </div>
+        </header>
 
-        <bem.ProcessingBody__text>
+        <article className={bodyStyles.text}>
           {
             singleProcessingStore.getTranslation(this.state.selectedTranslation)
               ?.value
           }
-        </bem.ProcessingBody__text>
-      </bem.ProcessingBody>
+        </article>
+      </div>
     );
   }
 
