@@ -8,7 +8,6 @@ import type {ServiceUsage} from './dataUsageStore';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
-import './planRoute.scss';
 import {setState} from "reflux";
 
 /**
