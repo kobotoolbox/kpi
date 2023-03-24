@@ -1,6 +1,5 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
-import bem from 'js/bem';
 import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
@@ -9,7 +8,6 @@ import LanguageSelector, {
 } from 'js/components/languages/languageSelector';
 import RegionSelector from 'js/components/languages/regionSelector';
 import Button from 'js/components/common/button';
-import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 import type {
   DetailedLanguage,
@@ -18,6 +16,8 @@ import type {
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import envStore from 'js/envStore';
+import bodyStyles from './processingBody.module.scss';
+import classNames from 'classnames';
 
 export default class TranscriptTabContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
@@ -182,14 +182,14 @@ export default class TranscriptTabContent extends React.Component<{}> {
 
     return (
       <React.Fragment>
-        <bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
           <AsyncLanguageDisplayLabel code={valueLanguageCode} />
-        </bem.ProcessingBody__transxHeaderLanguage>
+        </label>
 
         {dateText !== '' && (
-          <bem.ProcessingBody__transxHeaderDate>
+          <time className={bodyStyles.transxHeaderDate}>
             {dateText}
-          </bem.ProcessingBody__transxHeaderDate>
+          </time>
         )}
       </React.Fragment>
     );
@@ -199,13 +199,13 @@ export default class TranscriptTabContent extends React.Component<{}> {
     const typeLabel =
       singleProcessingStore.currentQuestionType || t('source file');
     return (
-      <bem.ProcessingBody m='begin'>
-        <bem.ProcessingBody__header>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepBegin)}>
+        <header className={bodyStyles.header}>
           {t('This ##type## does not have a transcript yet').replace(
             '##type##',
             typeLabel
           )}
-        </bem.ProcessingBody__header>
+        </header>
 
         <Button
           type='full'
@@ -214,7 +214,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
           label={t('begin')}
           onClick={this.begin.bind(this)}
         />
-      </bem.ProcessingBody>
+      </div>
     );
   }
 
@@ -228,14 +228,14 @@ export default class TranscriptTabContent extends React.Component<{}> {
     ).replace('##type##', typeLabel);
 
     return (
-      <bem.ProcessingBody m='config'>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
         <LanguageSelector
           titleOverride={languageSelectorTitle}
           onLanguageChange={this.onLanguageChange.bind(this)}
           suggestedLanguages={singleProcessingStore.getAssetTranscriptableLanguages()}
         />
 
-        <bem.ProcessingBody__footer>
+        <footer className={bodyStyles.footer}>
           <Button
             type='bare'
             color='blue'
@@ -246,7 +246,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
             isDisabled={singleProcessingStore.isFetchingData}
           />
 
-          <bem.ProcessingBody__footerRightButtons>
+          <div className={bodyStyles.footerRightButtons}>
             <Button
               type='frame'
               color='blue'
@@ -264,9 +264,9 @@ export default class TranscriptTabContent extends React.Component<{}> {
               selectedLanguage={draft?.languageCode}
               type='transcript'
             />
-          </bem.ProcessingBody__footerRightButtons>
-        </bem.ProcessingBody__footer>
-      </bem.ProcessingBody>
+          </div>
+        </footer>
+      </div>
     );
   }
 
@@ -278,10 +278,10 @@ export default class TranscriptTabContent extends React.Component<{}> {
     }
 
     return (
-      <bem.ProcessingBody m='config'>
-        <bem.ProcessingBody__header>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
+        <header className={bodyStyles.header}>
           {t('Automatic transcription of audio file from')}
-        </bem.ProcessingBody__header>
+        </header>
 
         <RegionSelector
           isDisabled={
@@ -308,8 +308,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
           )}
         </p>
 
-        <bem.ProcessingBody__footer>
-          <bem.ProcessingBody__footerCenterButtons>
+        <footer className={bodyStyles.footer}>
+          <div className={bodyStyles.footerCenterButtons}>
             <Button
               type='frame'
               color='blue'
@@ -337,9 +337,9 @@ export default class TranscriptTabContent extends React.Component<{}> {
                 singleProcessingStore.isPollingForTranscript
               }
             />
-          </bem.ProcessingBody__footerCenterButtons>
-        </bem.ProcessingBody__footer>
-      </bem.ProcessingBody>
+          </div>
+        </footer>
+      </div>
     );
   }
 
@@ -353,11 +353,11 @@ export default class TranscriptTabContent extends React.Component<{}> {
     }
 
     return (
-      <bem.ProcessingBody>
-        <bem.ProcessingBody__transxHeader>
+      <div className={bodyStyles.root}>
+        <header className={bodyStyles.transxHeader}>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transxHeaderButtons>
+          <nav className={bodyStyles.transxHeaderButtons}>
             <Button
               type='frame'
               color='blue'
@@ -378,25 +378,26 @@ export default class TranscriptTabContent extends React.Component<{}> {
                 !singleProcessingStore.hasUnsavedTranscriptDraftValue()
               }
             />
-          </bem.ProcessingBody__transxHeaderButtons>
-        </bem.ProcessingBody__transxHeader>
+          </nav>
+        </header>
 
-        <bem.ProcessingBody__textarea
+        <textarea
+          className={bodyStyles.textarea}
           value={draft?.value}
           onChange={this.onDraftValueChange.bind(this)}
           disabled={singleProcessingStore.isFetchingData}
         />
-      </bem.ProcessingBody>
+      </div>
     );
   }
 
   renderStepViewer() {
     return (
-      <bem.ProcessingBody>
-        <bem.ProcessingBody__transxHeader>
+      <div className={bodyStyles.root}>
+        <header className={bodyStyles.transxHeader}>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transxHeaderButtons>
+          <nav className={bodyStyles.transxHeaderButtons}>
             <Button
               type='bare'
               color='storm'
@@ -416,13 +417,13 @@ export default class TranscriptTabContent extends React.Component<{}> {
               tooltip={t('Delete')}
               isPending={singleProcessingStore.isFetchingData}
             />
-          </bem.ProcessingBody__transxHeaderButtons>
-        </bem.ProcessingBody__transxHeader>
+          </nav>
+        </header>
 
-        <bem.ProcessingBody__text>
+        <article className={bodyStyles.text}>
           {singleProcessingStore.getTranscript()?.value}
-        </bem.ProcessingBody__text>
-      </bem.ProcessingBody>
+        </article>
+      </div>
     );
   }
 
