@@ -109,8 +109,11 @@ export default function Plan() {
     }
   };
 
-  const isSubscribedProduct = (product: any) => {
-    return product.name === state.subscribedProduct?.name;
+  const isSubscribedProduct = (product: Product) => {
+    if( product.prices.unit_amount === 0 && !state.subscribedProduct?.length ) {
+      return true;
+    }
+    return product.name === state.subscribedProduct?.name;  };
   };
 
   const upgradePlan = (priceId: string) => {
