@@ -2,7 +2,7 @@
 @use 'scss/sizes';
 @use 'scss/mixins';
 
-.single-processing-header {
+.root {
   @include mixins.centerRowFlex;
 
   height: 100%;
@@ -11,7 +11,7 @@
   padding: 0 sizes.$x18;
 }
 
-.single-processing-header__submissions {
+.submissions {
   @include mixins.centerRowFlex;
 
   font-size: sizes.$x18;
@@ -21,12 +21,12 @@
   }
 }
 
-.single-processing-header__count {
+.count {
   margin-left: sizes.$x50;
 }
 
-.single-processing-header__column {
-  &.single-processing-header__column--main {
+.column {
+  &.columnMain {
     flex: 1;
 
     // HACK: this ensures this element doesn't push other flex items off screen

@@ -1,5 +1,4 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import type {AssetContent} from 'js/dataInterface';
 import {
@@ -13,33 +12,11 @@ import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import KoboSelect from 'js/components/common/koboSelect';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import './singleProcessingHeader.scss';
+import styles from './singleProcessingHeader.module.scss';
 import {openProcessing} from './processingUtils';
-import {withRouter, WithRouterProps} from 'jsapp/js/router/legacy';
-
-bem.SingleProcessingHeader = makeBem(
-  null,
-  'single-processing-header',
-  'header'
-);
-bem.SingleProcessingHeader__column = makeBem(
-  bem.SingleProcessingHeader,
-  'column',
-  'section'
-);
-bem.SingleProcessingHeader__submissions = makeBem(
-  bem.SingleProcessingHeader,
-  'submissions',
-  'nav'
-);
-bem.SingleProcessingHeader__count = makeBem(
-  bem.SingleProcessingHeader,
-  'count'
-);
-bem.SingleProcessingHeader__number = makeBem(
-  bem.SingleProcessingHeader,
-  'number'
-);
+import {withRouter} from 'jsapp/js/router/legacy';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import classNames from 'classnames';
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
@@ -49,7 +26,8 @@ interface SingleProcessingHeaderProps extends WithRouterProps {
 
 /**
  * Component with the current question label and the UI for switching between
- * submissions and questions.
+ * submissions and questions. It also has means of leaving Single Processing
+ * via "DONE" button.
  */
 class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps> {
   private unlisteners: Function[] = [];
@@ -93,6 +71,10 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     return null;
   }
 
+  /**
+   * For displaying question selector - filtered down to questions with
+   * responses and of audio type (for now).
+   */
   getQuestionSelectorOptions() {
     const options: KoboSelectOption[] = [];
     const editIds = singleProcessingStore.getSubmissionsEditIds();
@@ -132,7 +114,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     return options;
   }
 
-  /** Goes back to table view for given asset. */
+  /** Goes back to Data Table route for given project. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid);
     this.props.router.navigate(newRoute);
@@ -186,9 +168,9 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
   }
 
   /**
-   * Looks for closest previous submissionEditId that has data - i.e. it omits all
-   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
-   * found, simply returns `null`.
+   * Looks for closest previous submissionEditId that has data - i.e. it omits
+   * all `null`s in `submissionsEditIds` array. If there is no such
+   * `submissionEditId` to be found, simply returns `null`.
    */
   getPrevSubmissionEditId(): string | null {
     const editIds =
@@ -218,8 +200,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
 
   /**
    * Looks for closest next submissionEditId that has data - i.e. it omits all
-   * `null`s in `submissionsEditIds` array. If there is no such `submissionEditId`
-   * found, simply returns `null`.
+   * `null`s in `submissionsEditIds` array. If there is no such
+   * `submissionEditId` to be found, simply returns `null`.
    */
   getNextSubmissionEditId(): string | null {
     const editIds =
@@ -258,8 +240,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
       singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
 
     return (
-      <bem.SingleProcessingHeader>
-        <bem.SingleProcessingHeader__column m='main'>
+      <header className={styles.root}>
+        <section className={classNames(styles.column, styles.columnMain)}>
           <KoboSelect
             name='single-processing-question-selector'
             type='gray'
@@ -268,11 +250,11 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             selectedOption={singleProcessingStore.currentQuestionQpath || null}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
-        </bem.SingleProcessingHeader__column>
+        </section>
 
-        <bem.SingleProcessingHeader__column>
-          <bem.SingleProcessingHeader__submissions>
-            <bem.SingleProcessingHeader__count>
+        <section className={styles.column}>
+          <nav className={styles.submissions}>
+            <div className={styles.count}>
               <strong>
                 {t('Item')}
                 &nbsp;
@@ -284,7 +266,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
                   '##total_count##',
                   String(editIds.length)
                 )}
-            </bem.SingleProcessingHeader__count>
+            </div>
 
             <Button
               type='bare'
@@ -303,10 +285,10 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
               onClick={this.goNext.bind(this)}
               isDisabled={this.getNextSubmissionEditId() === null}
             />
-          </bem.SingleProcessingHeader__submissions>
-        </bem.SingleProcessingHeader__column>
+          </nav>
+        </section>
 
-        <bem.SingleProcessingHeader__column>
+        <section className={styles.column}>
           <Button
             type='frame'
             size='l'
@@ -314,8 +296,8 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
             label={t('DONE')}
             onClick={this.onDone.bind(this)}
           />
-        </bem.SingleProcessingHeader__column>
-      </bem.SingleProcessingHeader>
+        </section>
+      </header>
     );
   }
 }

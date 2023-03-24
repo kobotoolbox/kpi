@@ -1,21 +1,18 @@
 import React from 'react';
 import {formatTime} from 'js/utils';
-import bem, {makeBem} from 'js/bem';
 import singleProcessingStore, {
   SingleProcessingTabs,
 } from 'js/components/processing/singleProcessingStore';
 import TransxSelector from './transxSelector';
-import './singleProcessingPreview.scss';
+import styles from './singleProcessingPreview.module.scss';
+import bodyStyles from './processingBody.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 
-bem.SingleProcessingPreview = makeBem(
-  null,
-  'single-processing-preview',
-  'section'
-);
-
-/** Shows a source (transcript or translation) for new translation. */
+/**
+ * Shows a source (transcript or translation) for new translation. This is being
+ * rendered by the side of the content.
+ */
 export default class SingleProcessingPreview extends React.Component {
   private unlisteners: Function[] = [];
 
@@ -31,11 +28,11 @@ export default class SingleProcessingPreview extends React.Component {
     });
   }
 
+  /**
+   * Don't want to store a duplicate of `activeTab` here, so we need to make
+   * the component re-render itself when the store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
-    /**
-     * Don't want to store a duplicate of `activeTab` here, so we need to make
-     * the component re-render itself when the store changes :shrug:.
-     */
     this.forceUpdate();
   }
 
@@ -67,15 +64,18 @@ export default class SingleProcessingPreview extends React.Component {
         {this.renderLanguage()}
 
         {dateText !== '' && (
-          <bem.ProcessingBody__transxHeaderDate>
+          <time className={bodyStyles.transxHeaderDate}>
             {dateText}
-          </bem.ProcessingBody__transxHeaderDate>
+          </time>
         )}
       </React.Fragment>
     );
   }
 
-  /** Renders a text or a selector of translations. */
+  /**
+   * Renders a text (for one possible source) or a Translations Selector
+   * for multiple.
+   */
   renderLanguage() {
     const sources = singleProcessingStore.getSources();
     const sourceData = singleProcessingStore.getSourceData();
@@ -87,15 +87,15 @@ export default class SingleProcessingPreview extends React.Component {
     // If there is only one source, we display it as a text.
     if (sources.length === 1) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
           <AsyncLanguageDisplayLabel code={sourceData.languageCode} />
-        </bem.ProcessingBody__transxHeaderLanguage>
+        </label>
       );
     }
 
     if (sources.length >= 2) {
       return (
-        <bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
           <TransxSelector
             languageCodes={sources}
             selectedLanguage={sourceData.languageCode}
@@ -105,7 +105,7 @@ export default class SingleProcessingPreview extends React.Component {
               }
             }}
           />
-        </bem.ProcessingBody__transxHeaderLanguage>
+        </label>
       );
     }
 
@@ -120,17 +120,17 @@ export default class SingleProcessingPreview extends React.Component {
       singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations
     ) {
       return (
-        <bem.SingleProcessingPreview>
-          <bem.ProcessingBody>
-            <bem.ProcessingBody__transxHeader>
+        <section className={styles.root}>
+          <div className={bodyStyles.root}>
+            <header className={bodyStyles.transxHeader}>
               {this.renderLanguageAndDate()}
-            </bem.ProcessingBody__transxHeader>
+            </header>
 
-            <bem.ProcessingBody__text>
+            <article className={bodyStyles.text}>
               {singleProcessingStore.getSourceData()?.value}
-            </bem.ProcessingBody__text>
-          </bem.ProcessingBody>
-        </bem.SingleProcessingPreview>
+            </article>
+          </div>
+        </section>
       );
     }
 
