@@ -4,7 +4,7 @@ import json
 from copy import deepcopy
 from datetime import timedelta
 
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, models, transaction
 from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_delete
 from django.core.files.storage import default_storage
@@ -221,6 +221,46 @@ def put_back(
 
     # Force celery beat scheduler to refresh
     PeriodicTasks.update_changed()
+
+
+def replace_user_with_placeholder(
+    user: 'auth.User', retain_audit_logs: bool = True
+) -> 'auth.User':
+    """
+    Replace a user with an inactive placeholder, which prevents others from
+    registering a new account with the same username. The placeholder uses the
+    same primary key as the original user, and certain other fields are
+    retained.
+    """
+    FIELDS_TO_RETAIN = ('username', 'last_login', 'date_joined')
+
+    placeholder_user = get_user_model()()
+    placeholder_user.pk = user.pk
+    placeholder_user.is_active = False
+    placeholder_user.password = 'REMOVED USER'  # cannot match any hashed value
+    for field in FIELDS_TO_RETAIN:
+        setattr(placeholder_user, field, getattr(user, field))
+
+    if not retain_audit_logs:
+        user.delete()
+        placeholder_user.save()
+        return placeholder_user
+
+    audit_log_user_field = AuditLog._meta.get_field('user').remote_field
+    original_audit_log_delete_handler = audit_log_user_field.on_delete
+    with transaction.atomic():
+        try:
+            # prevent the delete() call from touching the audit logs
+            audit_log_user_field.on_delete = models.DO_NOTHING
+            # …and cause a FK violation!
+            user.delete()
+            # then resolve the violation by creating the placeholder with the
+            # same PK as the original user
+            placeholder_user.save()
+        finally:
+            audit_log_user_field.on_delete = original_audit_log_delete_handler
+
+    return placeholder_user
 
 
 def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):

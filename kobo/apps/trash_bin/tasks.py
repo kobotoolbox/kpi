@@ -23,7 +23,7 @@ from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
-from .utils import delete_asset
+from .utils import delete_asset, replace_user_with_placeholder
 
 
 @celery_app.task(
@@ -93,7 +93,32 @@ def empty_account(account_trash_id: int):
             dispatch_uid='update_catch_all_monthly_xform_submission_counters',
         )
         with transaction.atomic():
-            user.delete()
+            audit_log_params = {
+                'app_label': get_user_model()._meta.app_label,
+                'model_name': get_user_model()._meta.model_name,
+                'object_id': user_id,
+                'user': account_trash.request_author,
+                'metadata': {
+                    'username': user.username,
+                }
+            }
+
+            if account_trash.delete_all:
+                audit_log_params['action'] = AuditAction.DELETE
+                user.delete()
+            else:
+                audit_log_params['action'] = AuditAction.REMOVE
+                placeholder_user = replace_user_with_placeholder(user)
+                # Retain removal date information
+                extra_details = placeholder_user.extra_details
+                extra_details.date_removal_request = date_removal_request
+                extra_details.date_removed = now()
+                extra_details.save(
+                    update_fields=['date_removal_request', 'date_removed']
+                )
+
+            AuditLog.objects.create(**audit_log_params)
+
             try:
                 delete_kc_user(user.username)
             except HTTPError as e:
@@ -110,35 +135,6 @@ def empty_account(account_trash_id: int):
                 if not error.startswith('404'):
                     raise e
 
-            audit_log_params = {
-                'app_label': get_user_model()._meta.app_label,
-                'model_name': get_user_model()._meta.model_name,
-                'object_id': user_id,
-                'user': account_trash.request_author,
-                'metadata': {
-                    'username': user.username,
-                }
-            }
-
-            if not account_trash.delete_all:
-                # Recreate a user with same username to block any future
-                # registration with the same username.
-                anonymized_user = get_user_model().objects.create_user(
-                    username=user.username,
-                    is_active=False,
-                    last_login=user.last_login,
-                    date_joined=user.date_joined,
-                    password=get_user_model().objects.make_random_password(),
-                )
-                extra_details = anonymized_user.extra_details
-                extra_details.date_removal_request = date_removal_request
-                extra_details.date_removed = now()
-                extra_details.save(
-                    update_fields=['date_removal_request', 'date_removed']
-                )
-                audit_log_params['action'] = AuditAction.REMOVE
-
-            AuditLog.objects.create(**audit_log_params)
             rmdir(f'{user.username}/')
 
     finally:
