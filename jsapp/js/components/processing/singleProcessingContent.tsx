@@ -1,35 +1,18 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import singleProcessingStore, {
   SingleProcessingTabs,
 } from 'js/components/processing/singleProcessingStore';
 import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
 import TranslationsTabContent from 'js/components/processing/translationsTabContent';
 import protectorHelpers from 'js/protector/protectorHelpers';
-import './singleProcessingContent.scss';
+import styles from './singleProcessingContent.module.scss';
+import classNames from 'classnames';
 
-bem.SingleProcessingContent = makeBem(
-  null,
-  'single-processing-content',
-  'section'
-);
-bem.SingleProcessingContent__tabs = makeBem(
-  bem.SingleProcessingContent,
-  'tabs',
-  'ul'
-);
-bem.SingleProcessingContent__tab = makeBem(
-  bem.SingleProcessingContent,
-  'tab',
-  'li'
-);
-bem.SingleProcessingContent__body = makeBem(
-  bem.SingleProcessingContent,
-  'body',
-  'section'
-);
-
-/** This component is handling the tabs for switching the content. */
+/**
+ * Displays main content part of Single Processing route. It consists of tabs
+ * navigation and a section for currently selected tab. Content for each of the
+ * tabs is built in separate components.
+ */
 export default class SingleProcessingContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
 
@@ -45,11 +28,11 @@ export default class SingleProcessingContent extends React.Component<{}> {
     });
   }
 
+  /**
+   * Don't want to store a duplicate of `activeTab` here, so we need to make
+   * the component re-render itself when the store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
-    /**
-     * Don't want to store a duplicate of `activeTab` here, so we need to make
-     * the component re-render itself when the store changes :shrug:.
-     */
     this.forceUpdate();
   }
 
@@ -80,57 +63,59 @@ export default class SingleProcessingContent extends React.Component<{}> {
 
   render() {
     return (
-      <bem.SingleProcessingContent>
-        <bem.SingleProcessingContent__tabs>
-          <bem.SingleProcessingContent__tab
-            m={{
-              active:
+      <section className={styles.root}>
+        <ul className={styles.tabs}>
+          <li
+            className={classNames({
+              [styles.tab]: true,
+              [styles.activeTab]:
                 singleProcessingStore.getActiveTab() ===
                 SingleProcessingTabs.Transcript,
-            }}
+            })}
             onClick={this.safeExecute.bind(
               this,
               this.activateTab.bind(this, SingleProcessingTabs.Transcript)
             )}
           >
             {t('Transcript')}
-          </bem.SingleProcessingContent__tab>
+          </li>
 
-          <bem.SingleProcessingContent__tab
-            m={{
-              active:
+          <li
+            className={classNames({
+              [styles.tab]: true,
+              [styles.activeTab]:
                 singleProcessingStore.getActiveTab() ===
                 SingleProcessingTabs.Translations,
-            }}
+              [styles.disabledTab]:
+                singleProcessingStore.getTranscript() === undefined,
+            })}
             onClick={this.safeExecute.bind(
               this,
               this.activateTab.bind(this, SingleProcessingTabs.Translations)
             )}
-            disabled={singleProcessingStore.getTranscript() === undefined}
           >
             {t('Translations')}
-          </bem.SingleProcessingContent__tab>
+          </li>
 
-          <bem.SingleProcessingContent__tab
-            m={{
-              active:
+          <li
+            className={classNames({
+              [styles.tab]: true,
+              [styles.activeTab]:
                 singleProcessingStore.getActiveTab() ===
                 SingleProcessingTabs.Analysis,
-            }}
+              [styles.disabledTab]: true,
+            })}
             onClick={this.safeExecute.bind(
               this,
               this.activateTab.bind(this, SingleProcessingTabs.Analysis)
             )}
-            disabled
           >
             {t('Analysis')}
-          </bem.SingleProcessingContent__tab>
-        </bem.SingleProcessingContent__tabs>
+          </li>
+        </ul>
 
-        <bem.SingleProcessingContent__body>
-          {this.renderTabContent()}
-        </bem.SingleProcessingContent__body>
-      </bem.SingleProcessingContent>
+        <section className={styles.body}>{this.renderTabContent()}</section>
+      </section>
     );
   }
 }
