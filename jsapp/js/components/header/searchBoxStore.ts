@@ -4,6 +4,11 @@ interface SearchBoxStoreData {
   /** Context ensures that observers will not be triggered unnecessarily. */
   context?: string;
   /**
+   * Keeps the date of last update to the store. We use it to be able to react
+   * in a more forceful way to store changes.
+   */
+  lastContextUpdateDate?: number;
+  /**
    * Intentionally left unset by default, so reactions are being called when
    * the app is initialized.
    */
@@ -42,6 +47,7 @@ class SearchBoxStore {
    */
   public setContext(newContext: string) {
     this.data.context = newContext;
+    this.data.lastContextUpdateDate = Date.now();
     // Changing context resets the search phrase
     this.data.searchPhrase = '';
   }
