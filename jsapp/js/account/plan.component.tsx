@@ -1,6 +1,13 @@
 import React, {useEffect, useReducer, useState} from 'react';
 import styles from './plan.module.scss';
-import {getOrganization, getProducts, getSubscription, Product, Organization, BaseSubscription} from './stripe.api';
+import {
+  getOrganization,
+  getProducts,
+  getSubscription,
+  Product,
+  Organization,
+  BaseSubscription,
+} from './stripe.api';
 import {handleApiFail} from 'js/utils';
 import Icon from '../components/common/icon';
 import {ROOT_URL} from 'js/constants';
@@ -29,8 +36,8 @@ const initialState = {
   organization: null,
 };
 
-function planReducer(state: PlanState, action: dataUpdates){
-  switch (action.type){
+function planReducer(state: PlanState, action: dataUpdates) {
+  switch (action.type) {
     case 'initialProd':
       return {...state, products: action.prodData};
     case 'initialOrg':
@@ -38,9 +45,17 @@ function planReducer(state: PlanState, action: dataUpdates){
     case 'initialSub':
       return {...state, subscribedProduct: action.prodData};
     case 'month':
-      return {...state, intervalFilter: 'month', filterToggle: !state.filterToggle};
+      return {
+        ...state,
+        intervalFilter: 'month',
+        filterToggle: !state.filterToggle,
+      };
     case 'year':
-      return {...state, intervalFilter: 'year', filterToggle: !state.filterToggle};
+      return {
+        ...state,
+        intervalFilter: 'year',
+        filterToggle: !state.filterToggle,
+      };
     default:
       return state;
   }
@@ -54,7 +69,8 @@ export default function Plan() {
   useEffect(() => {
     getProducts().then((data) => {
       dispatch({
-        type: 'initialProd', prodData: data.results,
+        type: 'initialProd',
+        prodData: data.results,
       });
     });
 
@@ -62,14 +78,16 @@ export default function Plan() {
       console.log('org', data);
 
       dispatch({
-        type: 'initialOrg', prodData: data.results[0],
+        type: 'initialOrg',
+        prodData: data.results[0],
       });
     });
 
     getSubscription().then((data) => {
       console.log('sub', data);
       dispatch({
-        type: 'initialSub', prodData: data.results,
+        type: 'initialSub',
+        prodData: data.results,
       });
     });
   }, []);
@@ -97,7 +115,7 @@ export default function Plan() {
 
   const upgradePlan = (priceId: string) => {
     console.log('Upgrade', priceId);
-    if (!priceId || buttonsDisabled){
+    if (!priceId || buttonsDisabled) {
       return;
     }
     setButtonDisabled(buttonsDisabled);
@@ -110,14 +128,12 @@ export default function Plan() {
         window.location.assign(res.url);
       })
       .fail(handleApiFail)
-      .always(() =>
-        setButtonDisabled(!buttonsDisabled)
-      );
+      .always(() => setButtonDisabled(!buttonsDisabled));
   };
 
   const managePlan = () => {
     console.log('Manage', state.organization?.uid);
-    if (!state.organization?.uid || buttonsDisabled){
+    if (!state.organization?.uid || buttonsDisabled) {
       return;
     }
     setButtonDisabled(buttonsDisabled);
@@ -130,22 +146,24 @@ export default function Plan() {
         window.location.assign(res.url);
       })
       .fail(handleApiFail)
-      .always(() =>
-        setButtonDisabled(!buttonsDisabled)
-      );
+      .always(() => setButtonDisabled(!buttonsDisabled));
   };
 
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
-    const listItems: {icon: boolean, item: any}[] = [];
-    filterPrices().map((price: any) => (
+    const listItems: {icon: boolean; item: any}[] = [];
+    filterPrices().map((price: any) =>
       Object.keys(price.metadata).map((featureItem: any) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
         switch (listType) {
           case 'support':
             const currentIcon = `feature_support_check_${currentResult}`;
-            if (featureItem.includes('feature_support_') && !featureItem.includes('feature_support_check') && price.name === plan) {
+            if (
+              featureItem.includes('feature_support_') &&
+              !featureItem.includes('feature_support_check') &&
+              price.name === plan
+            ) {
               const keyName = `feature_support_${currentResult}`;
               let iconBool = false;
               const itemName: string = price.metadata[keyName];
@@ -157,7 +175,11 @@ export default function Plan() {
             break;
           case 'advanced':
             const currIcon = `feature_advanced_check_${currentResult}`;
-            if (featureItem.includes('feature_advanced_') && !featureItem.includes('feature_advanced_check') && price.name === plan) {
+            if (
+              featureItem.includes('feature_advanced_') &&
+              !featureItem.includes('feature_advanced_check') &&
+              price.name === plan
+            ) {
               const keyName = `feature_advanced_${currentResult}`;
               let iconBool = false;
               const itemName: string = price.metadata[keyName];
@@ -169,7 +191,11 @@ export default function Plan() {
             break;
           case 'addons':
             const currentItemIcon = `feature_addons_check_${currentResult}`;
-            if (featureItem.includes('feature_addons_') && !featureItem.includes('feature_addons_check') && price.name === plan) {
+            if (
+              featureItem.includes('feature_addons_') &&
+              !featureItem.includes('feature_addons_check') &&
+              price.name === plan
+            ) {
               const keyName = `feature_addons_${currentResult}`;
               let iconBool = false;
               const itemName: string = price.metadata[keyName];
@@ -182,7 +208,6 @@ export default function Plan() {
           default:
         }
       })
-    )
     );
     return listItems;
   };
@@ -212,128 +237,167 @@ export default function Plan() {
             />
             <label htmlFor='switch_right'>Monthly</label>
           </form>
-          <div className={styles.currentPlan}
+          <div
+            className={styles.currentPlan}
             style={{
               gridRow: 0,
               gridColumn: 1 + filterPrices().findIndex(isSubscribedProduct),
-              display: filterPrices().findIndex(isSubscribedProduct) >= 0 ? '' : 'none',
+              display:
+                filterPrices().findIndex(isSubscribedProduct) >= 0
+                  ? ''
+                  : 'none',
             }}
           >
             Your Plan
           </div>
-          {
-            filterPrices().map((price: any, i: number) => (
-              <div className={styles.planContainer} key={i}>
-                <h1 className={styles.priceName}> {price.name} </h1>
-                <div className={styles.priceTitle}>
-                  {typeof price.prices.human_readable_price === 'string' && (
-                    price.prices.human_readable_price.includes('$0.00') ? 'Free' : price.prices.human_readable_price
-                  )}
-                </div>
-
-                <ul>
-                  {
-                    Object.keys(price.metadata).map((featureItem: any) => (
-                      featureItem.includes('feature_list_') && (
-                        <li key={featureItem}><div className={styles.iconContainer}><Icon name='check' size='m' /></div>
-                          {price.metadata[featureItem]}</li>
-                      )
-                    ))
-                  }
-                </ul>
-                {!isSubscribedProduct(price) &&
-                  <button
-                    className={[
-                      styles.resetButton,
-                      styles.upgradeBtn,
-                    ]
-                      .join(' ')}
-
-                    onClick={() => upgradePlan(price.prices.id)}
-                    aria-label={`upgrade to ${price.name}`}
-                    disabled={buttonsDisabled}
-                    aria-disabled={buttonsDisabled}
-                  >
-                    Upgrade
-                  </button>
-                }
-                {isSubscribedProduct(price) && state.organization?.uid &&
-                  <button
-                    className={[styles.resetButton,
-                      styles.manageBtn,
-                    ]
-                      .join(' ')}
-                    onClick={managePlan}
-                    disabled={buttonsDisabled}
-                    aria-disabled={buttonsDisabled}
-                    aria-label={`manage your ${price.name} subscription`}
-                  >
-                    Manage
-                  </button>
-                }
-               
-                {expandComparison &&
-                  <div>
-                     <div className={styles.line} />
-                    <ul>
-                      <li className={styles.listTitle}>Support features</li>
-                      {
-                        getListItem('support', price.name).map((listItem) => (
-                          (listItem.icon ?
-                            listItem.icon === true &&
-                            <li key={listItem.item}><div className={styles.iconContainer}><Icon name='check' size='m' /></div>
-                              {listItem.item}</li>
-                            :
-                            <li key={listItem.item}><div className={styles.iconContainer}><Icon name='close' size='m' /></div>{listItem.item}</li>
-                          )
-                        ))
-                      }
-                    </ul>
-                    <ul>
-                      <li className={styles.listTitle}>Advanced features</li>
-                      {
-                        getListItem('advanced', price.name).map((listItem) => (
-                          (listItem.icon ?
-                            listItem.icon === true &&
-                            <li key={listItem.item}><div className={styles.iconContainer}><Icon name='check' size='m' /></div>
-                              {listItem.item}</li>
-                            :
-                            <li key={listItem.item}><div className={styles.iconContainer}><Icon name='close' size='m' /></div>{listItem.item}</li>
-                          )
-                        ))
-                      }
-                    </ul>
-                    <ul>
-                      <li className={styles.listTitle}>Available addons</li>
-                      {
-                        getListItem('addons', price.name).map((listItem) => (
-                          (listItem.icon ?
-                            listItem.icon === true &&
-                            <li key={listItem.item}><div className={styles.iconContainer}><Icon name='check' size='m' /></div>
-                              {listItem.item}</li>
-                            :
-                            <li key={listItem.item}><div className={styles.iconContainer}><Icon name='close' size='m' /></div>{listItem.item}</li>
-                          )
-                        ))
-                      }
-                    </ul>
-                  </div>
-                }
+          {filterPrices().map((price: any, i: number) => (
+            <div className={styles.planContainer} key={i}>
+              <h1 className={styles.priceName}> {price.name} </h1>
+              <div className={styles.priceTitle}>
+                {typeof price.prices.human_readable_price === 'string' &&
+                  (price.prices.human_readable_price.includes('$0.00')
+                    ? 'Free'
+                    : price.prices.human_readable_price)}
               </div>
-            ))
-          }
+
+              <ul>
+                {Object.keys(price.metadata).map(
+                  (featureItem: any) =>
+                    featureItem.includes('feature_list_') && (
+                      <li key={featureItem}>
+                        <div className={styles.iconContainer}>
+                          <Icon name='check' size='m' />
+                        </div>
+                        {price.metadata[featureItem]}
+                      </li>
+                    )
+                )}
+              </ul>
+              {!isSubscribedProduct(price) && (
+                <button
+                  className={[styles.resetButton, styles.upgradeBtn].join(' ')}
+                  onClick={() => upgradePlan(price.prices.id)}
+                  aria-label={`upgrade to ${price.name}`}
+                  disabled={buttonsDisabled}
+                  aria-disabled={buttonsDisabled}
+                >
+                  Upgrade
+                </button>
+              )}
+              {isSubscribedProduct(price) && state.organization?.uid && (
+                <button
+                  className={[styles.resetButton, styles.manageBtn].join(' ')}
+                  onClick={managePlan}
+                  disabled={buttonsDisabled}
+                  aria-disabled={buttonsDisabled}
+                  aria-label={`manage your ${price.name} subscription`}
+                >
+                  Manage
+                </button>
+              )}
+              {/* if there is none of the list items do not show expand or line
+              if there is none of each type do not show title */}
+              {expandComparison && (
+                <div>
+                  <div className={styles.line} />
+                  <ul>
+                    <li className={styles.listTitle}>Support features</li>
+                    {getListItem('support', price.name).map((listItem) =>
+                      listItem.icon ? (
+                        listItem.icon === true && (
+                          <li key={listItem.item}>
+                            <div className={styles.iconContainer}>
+                              <Icon name='check' size='m' />
+                            </div>
+                            {listItem.item}
+                          </li>
+                        )
+                      ) : (
+                        <li key={listItem.item}>
+                          <div className={styles.iconContainer}>
+                            <Icon name='close' size='m' />
+                          </div>
+                          {listItem.item}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                  <ul>
+                    <li className={styles.listTitle}>Advanced features</li>
+                    {getListItem('advanced', price.name).map((listItem) =>
+                      listItem.icon ? (
+                        listItem.icon === true && (
+                          <li key={listItem.item}>
+                            <div className={styles.iconContainer}>
+                              <Icon name='check' size='m' />
+                            </div>
+                            {listItem.item}
+                          </li>
+                        )
+                      ) : (
+                        <li key={listItem.item}>
+                          <div className={styles.iconContainer}>
+                            <Icon name='close' size='m' />
+                          </div>
+                          {listItem.item}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                  <ul>
+                    <li className={styles.listTitle}>Available addons</li>
+                    {getListItem('addons', price.name).map((listItem) =>
+                      listItem.icon ? (
+                        listItem.icon === true && (
+                          <li key={listItem.item}>
+                            <div className={styles.iconContainer}>
+                              <Icon name='check' size='m' />
+                            </div>
+                            {listItem.item}
+                          </li>
+                        )
+                      ) : (
+                        <li key={listItem.item}>
+                          <div className={styles.iconContainer}>
+                            <Icon name='close' size='m' />
+                          </div>
+                          {listItem.item}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
 
           <div className={styles.enterprisePlan}>
             <h1 className={styles.enterpriseTitle}> Need More?</h1>
             <p className={styles.enterpriseDetails}>
-              We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.</p>
-            <p className={styles.enterpriseDetails}>If your organization has larger or more specific needs, contact our team to learn about our enterprise options.
+              We offer add-on options to increase your limits or the capacity of
+              certain features for a period of time. Scroll down to learn more
+              and purchase add-ons.
             </p>
-            <div className={styles.enterpriseLink}><a href='https://www.kobotoolbox.org/contact/' target='_blanks'>Get in touch for Enterprise options</a></div>
+            <p className={styles.enterpriseDetails}>
+              If your organization has larger or more specific needs, contact
+              our team to learn about our enterprise options.
+            </p>
+            <div className={styles.enterpriseLink}>
+              <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
+                Get in touch for Enterprise options
+              </a>
+            </div>
           </div>
         </div>
       )}
-      <div className={styles.expandBtn} role='button' onClick={() => setExpandComparison(!expandComparison)}> {expandComparison ? 'Collapse' : 'Display Full Comparison'}</div>
+      <div
+        className={styles.expandBtn}
+        role='button'
+        onClick={() => setExpandComparison(!expandComparison)}
+      >
+        {' '}
+        {expandComparison ? 'Collapse' : 'Display Full Comparison'}
+      </div>
     </div>
   );
 }
