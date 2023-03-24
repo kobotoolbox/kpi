@@ -134,7 +134,7 @@ export interface ProcessingDataResponse {
  * that has a .listen method for adding observers to it. It helps to typeguard
  * all the Reflux actions here.
  */
-interface ListanableCallback<R> extends Function {
+interface ListenableCallback<R> extends Function {
   (response: R): void;
   listen: (callback: (response: R) => void) => Function;
 }
@@ -183,8 +183,8 @@ interface ActivateAssetFn {
 }
 interface ActivateAssetDefinition extends ActivateAssetFn {
   listen: (fn: ActivateAssetFn) => void;
-  completed: ListanableCallback<AssetResponse>;
-  failed: ListanableCallback<FailResponse>;
+  completed: ListenableCallback<AssetResponse>;
+  failed: ListenableCallback<FailResponse>;
 }
 processingActions.activateAsset.listen(
   (assetUid, enableTranscript, enableTranslations) => {
@@ -219,9 +219,9 @@ interface GetProcessingDataFn {
 }
 interface GetProcessingDataDefinition extends GetProcessingDataFn {
   listen: (fn: GetProcessingDataFn) => void;
-  started: ListanableCallback<() => void>;
-  completed: ListanableCallback<ProcessingDataResponse>;
-  failed: ListanableCallback<FailResponse | string>;
+  started: ListenableCallback<() => void>;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.getProcessingData.listen((assetUid, submissionEditId) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
@@ -302,8 +302,8 @@ interface SetTranscriptFn {
 }
 interface SetTranscriptDefinition extends SetTranscriptFn {
   listen: (fn: SetTranscriptFn) => void;
-  completed: ListanableCallback<ProcessingDataResponse>;
-  failed: ListanableCallback<FailResponse | string>;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.setTranscript.listen(
   (assetUid, qpath, submissionEditId, languageCode, value) => {
@@ -378,8 +378,8 @@ interface DeleteTranscriptFn {
 }
 interface DeleteTranscriptDefinition extends DeleteTranscriptFn {
   listen: (fn: DeleteTranscriptFn) => void;
-  completed: ListanableCallback<ProcessingDataResponse>;
-  failed: ListanableCallback<FailResponse | string>;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.deleteTranscript.listen(
   (assetUid, qpath, submissionEditId) => {
@@ -416,7 +416,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 /**
  * `requestAutoTranscription` action
  *
- * For requestiong automatic transcription from Back end. It uses an in progress
+ * For requesting automatic transcription from Back end. It uses an in-progress
  * callback called `in_progress`. We use it because transcripting process can
  * take a long time.
  *
@@ -435,15 +435,15 @@ interface RequestAutoTranscriptionFn {
 interface RequestAutoTranscriptionDefinition
   extends RequestAutoTranscriptionFn {
   listen: (fn: RequestAutoTranscriptionFn) => void;
-  completed: ListanableCallback<{
+  completed: ListenableCallback<{
     response: ProcessingDataResponse;
     submissionEditId: string;
   }>;
-  in_progress: ListanableCallback<{
+  in_progress: ListenableCallback<{
     response: ProcessingDataResponse;
     submissionEditId: string;
   }>;
-  failed: ListanableCallback<FailResponse | string>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.requestAutoTranscription.listen(
   (assetUid, qpath, submissionEditId, languageCode, regionCode) => {
@@ -586,8 +586,8 @@ interface SetTranslationFn {
 }
 interface SetTranslationDefinition extends SetTranslationFn {
   listen: (fn: SetTranslationFn) => void;
-  completed: ListanableCallback<TransxObject[]>;
-  failed: ListanableCallback<FailResponse | string>;
+  completed: ListenableCallback<TransxObject[]>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.setTranslation.listen(
   (assetUid, qpath, submissionEditId, languageCode, value) => {
@@ -667,8 +667,8 @@ interface DeleteTranslationFn {
 }
 interface DeleteTranslationDefinition extends DeleteTranslationFn {
   listen: (fn: DeleteTranslationFn) => void;
-  completed: ListanableCallback<ProcessingDataResponse>;
-  failed: ListanableCallback<FailResponse | string>;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.deleteTranslation.listen(
   (assetUid, qpath, submissionEditId, languageCode) => {
@@ -714,8 +714,8 @@ interface RequestAutoTranslationFn {
 }
 interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
   listen: (fn: RequestAutoTranslationFn) => void;
-  completed: ListanableCallback<ProcessingDataResponse>;
-  failed: ListanableCallback<FailResponse | string>;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
 }
 processingActions.requestAutoTranslation.listen(
   (assetUid, qpath, submissionEditId, languageCode) => {
