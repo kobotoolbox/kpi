@@ -13,7 +13,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import {
   buildUserUrl,
-  replaceBracketsWithLink
+  replaceBracketsWithLink,
 } from 'utils';
 import {
   ASSET_TYPES,
@@ -228,7 +228,6 @@ class SharingForm extends React.Component {
 
 SharingForm.contextTypes = {router: PropTypes.object};
 
-reactMixin(SharingForm.prototype, mixins.permissions);
 reactMixin(SharingForm.prototype, mixins.contextRouter);
 reactMixin(SharingForm.prototype, Reflux.ListenerMixin);
 

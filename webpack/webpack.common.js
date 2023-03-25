@@ -23,7 +23,6 @@ const postCssLoader = {
 };
 
 const commonOptions = {
-  // context: path.resolve(__dirname, '../'), // helps ts-loader find tsconfig.json
   module: {
     rules: [
       {

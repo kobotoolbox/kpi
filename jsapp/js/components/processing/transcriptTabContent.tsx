@@ -1,13 +1,13 @@
 import React from 'react';
 import clonedeep from 'lodash.clonedeep';
-import bem from 'js/bem';
 import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
-import LanguageSelector, {resetAllLanguageSelectors} from 'js/components/languages/languageSelector';
+import LanguageSelector, {
+  resetAllLanguageSelectors,
+} from 'js/components/languages/languageSelector';
 import RegionSelector from 'js/components/languages/regionSelector';
 import Button from 'js/components/common/button';
-import 'js/components/processing/processingBody';
 import {destroyConfirm} from 'js/alertify';
 import type {
   DetailedLanguage,
@@ -16,6 +16,8 @@ import type {
 } from 'js/components/languages/languagesStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import envStore from 'js/envStore';
+import bodyStyles from './processingBody.module.scss';
+import classNames from 'classnames';
 
 export default class TranscriptTabContent extends React.Component<{}> {
   private unlisteners: Function[] = [];
@@ -27,35 +29,40 @@ export default class TranscriptTabContent extends React.Component<{}> {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
 
   /** Changes the draft language, preserving the other draft properties. */
   onLanguageChange(newVal: DetailedLanguage | ListLanguage | null) {
-    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    const newDraft =
+      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
     newDraft.languageCode = newVal?.code;
     singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
   /** Changes the draft region, preserving the other draft properties. */
   onRegionChange(newVal: LanguageCode | null | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    const newDraft =
+      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
     newDraft.regionCode = newVal;
     singleProcessingStore.setTranscriptDraft(newDraft);
   }
 
   /** Changes the draft value, preserving the other draft properties. */
   setDraftValue(newVal: string | undefined) {
-    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    const newDraft =
+      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
     newDraft.value = newVal;
     singleProcessingStore.setTranscriptDraft(newDraft);
   }
@@ -124,14 +131,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
 
   saveDraft() {
     const draft = singleProcessingStore.getTranscriptDraft();
-    if (
-      draft?.languageCode !== undefined &&
-      draft?.value !== undefined
-    ) {
-      singleProcessingStore.setTranscript(
-        draft.languageCode,
-        draft.value
-      );
+    if (draft?.languageCode !== undefined && draft?.value !== undefined) {
+      singleProcessingStore.setTranscript(draft.languageCode, draft.value);
     }
   }
 
@@ -158,7 +159,8 @@ export default class TranscriptTabContent extends React.Component<{}> {
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript();
     const draft = singleProcessingStore.getTranscriptDraft();
-    const valueLanguageCode = draft?.languageCode || storeTranscript?.languageCode;
+    const valueLanguageCode =
+      draft?.languageCode || storeTranscript?.languageCode;
     if (valueLanguageCode === undefined) {
       return null;
     }
@@ -166,34 +168,44 @@ export default class TranscriptTabContent extends React.Component<{}> {
     let dateText = '';
     if (storeTranscript) {
       if (storeTranscript.dateCreated !== storeTranscript?.dateModified) {
-        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranscript.dateModified));
+        dateText = t('last modified ##date##').replace(
+          '##date##',
+          formatTime(storeTranscript.dateModified)
+        );
       } else {
-        dateText = t('created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated));
+        dateText = t('created ##date##').replace(
+          '##date##',
+          formatTime(storeTranscript.dateCreated)
+        );
       }
     }
 
     return (
       <React.Fragment>
-        <bem.ProcessingBody__transxHeaderLanguage>
-          <AsyncLanguageDisplayLabel code={valueLanguageCode}/>
-        </bem.ProcessingBody__transxHeaderLanguage>
+        <label className={bodyStyles.transxHeaderLanguage}>
+          <AsyncLanguageDisplayLabel code={valueLanguageCode} />
+        </label>
 
-        {dateText !== '' &&
-          <bem.ProcessingBody__transxHeaderDate>
+        {dateText !== '' && (
+          <time className={bodyStyles.transxHeaderDate}>
             {dateText}
-          </bem.ProcessingBody__transxHeaderDate>
-        }
+          </time>
+        )}
       </React.Fragment>
     );
   }
 
   renderStepBegin() {
-    const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
+    const typeLabel =
+      singleProcessingStore.currentQuestionType || t('source file');
     return (
-      <bem.ProcessingBody m='begin'>
-        <bem.ProcessingBody__header>
-          {t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}
-        </bem.ProcessingBody__header>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepBegin)}>
+        <header className={bodyStyles.header}>
+          {t('This ##type## does not have a transcript yet').replace(
+            '##type##',
+            typeLabel
+          )}
+        </header>
 
         <Button
           type='full'
@@ -202,26 +214,28 @@ export default class TranscriptTabContent extends React.Component<{}> {
           label={t('begin')}
           onClick={this.begin.bind(this)}
         />
-      </bem.ProcessingBody>
+      </div>
     );
   }
 
   renderStepConfig() {
     const draft = singleProcessingStore.getTranscriptDraft();
 
-    const typeLabel = singleProcessingStore.currentQuestionType || t('source file');
-    const languageSelectorTitle = t('Please select the original language of the ##type##')
-      .replace('##type##', typeLabel);
+    const typeLabel =
+      singleProcessingStore.currentQuestionType || t('source file');
+    const languageSelectorTitle = t(
+      'Please select the original language of the ##type##'
+    ).replace('##type##', typeLabel);
 
     return (
-      <bem.ProcessingBody m='config'>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
         <LanguageSelector
           titleOverride={languageSelectorTitle}
           onLanguageChange={this.onLanguageChange.bind(this)}
           suggestedLanguages={singleProcessingStore.getAssetTranscriptableLanguages()}
         />
 
-        <bem.ProcessingBody__footer>
+        <footer className={bodyStyles.footer}>
           <Button
             type='bare'
             color='blue'
@@ -232,14 +246,17 @@ export default class TranscriptTabContent extends React.Component<{}> {
             isDisabled={singleProcessingStore.isFetchingData}
           />
 
-          <bem.ProcessingBody__footerRightButtons>
+          <div className={bodyStyles.footerRightButtons}>
             <Button
               type='frame'
               color='blue'
               size='m'
               label={this.isAutoEnabled() ? t('manual') : t('transcribe')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={draft?.languageCode === undefined || singleProcessingStore.isFetchingData}
+              isDisabled={
+                draft?.languageCode === undefined ||
+                singleProcessingStore.isFetchingData
+              }
             />
 
             <TransxAutomaticButton
@@ -247,9 +264,9 @@ export default class TranscriptTabContent extends React.Component<{}> {
               selectedLanguage={draft?.languageCode}
               type='transcript'
             />
-          </bem.ProcessingBody__footerRightButtons>
-        </bem.ProcessingBody__footer>
-      </bem.ProcessingBody>
+          </div>
+        </footer>
+      </div>
     );
   }
 
@@ -261,10 +278,10 @@ export default class TranscriptTabContent extends React.Component<{}> {
     }
 
     return (
-      <bem.ProcessingBody m='config'>
-        <bem.ProcessingBody__header>
+      <div className={classNames(bodyStyles.root, bodyStyles.stepConfig)}>
+        <header className={bodyStyles.header}>
           {t('Automatic transcription of audio file from')}
-        </bem.ProcessingBody__header>
+        </header>
 
         <RegionSelector
           isDisabled={
@@ -280,37 +297,49 @@ export default class TranscriptTabContent extends React.Component<{}> {
 
         <h2>{t('Transcription provider')}</h2>
 
-        <p>{t(
-          'Automated transcription is provided by Google Cloud Platform. By '
-          + 'using this service you agree that your audio file will be sent to '
-          + "Google's servers for the purpose of transcribing. However, it will "
-          + "not be stored on Google's servers beyond the short period needed for "
-          + 'completing the transcription, and we do not allow Google to use the '
-          + 'audio for improving its transcription service.'
-        )}</p>
+        <p>
+          {t(
+            'Automated transcription is provided by Google Cloud Platform. By ' +
+              'using this service you agree that your audio file will be sent to ' +
+              "Google's servers for the purpose of transcribing. However, it will " +
+              "not be stored on Google's servers beyond the short period needed for " +
+              'completing the transcription, and we do not allow Google to use the ' +
+              'audio for improving its transcription service.'
+          )}
+        </p>
 
-        <bem.ProcessingBody__footer>
-          <bem.ProcessingBody__footerCenterButtons>
+        <footer className={bodyStyles.footer}>
+          <div className={bodyStyles.footerCenterButtons}>
             <Button
               type='frame'
               color='blue'
               size='m'
               label={t('cancel')}
               onClick={this.cancelAuto.bind(this)}
-              isDisabled={singleProcessingStore.isFetchingData || singleProcessingStore.isPollingForTranscript}
+              isDisabled={
+                singleProcessingStore.isFetchingData ||
+                singleProcessingStore.isPollingForTranscript
+              }
             />
 
             <Button
               type='full'
               color='blue'
               size='m'
-              label={singleProcessingStore.isPollingForTranscript ? t('in progress') : t('create transcript')}
+              label={
+                singleProcessingStore.isPollingForTranscript
+                  ? t('in progress')
+                  : t('create transcript')
+              }
               onClick={this.requestAutoTranscription.bind(this)}
-              isDisabled={singleProcessingStore.isFetchingData || singleProcessingStore.isPollingForTranscript}
+              isDisabled={
+                singleProcessingStore.isFetchingData ||
+                singleProcessingStore.isPollingForTranscript
+              }
             />
-          </bem.ProcessingBody__footerCenterButtons>
-        </bem.ProcessingBody__footer>
-      </bem.ProcessingBody>
+          </div>
+        </footer>
+      </div>
     );
   }
 
@@ -324,11 +353,11 @@ export default class TranscriptTabContent extends React.Component<{}> {
     }
 
     return (
-      <bem.ProcessingBody>
-        <bem.ProcessingBody__transxHeader>
+      <div className={bodyStyles.root}>
+        <header className={bodyStyles.transxHeader}>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transxHeaderButtons>
+          <nav className={bodyStyles.transxHeaderButtons}>
             <Button
               type='frame'
               color='blue'
@@ -345,27 +374,30 @@ export default class TranscriptTabContent extends React.Component<{}> {
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
               isPending={singleProcessingStore.isFetchingData}
-              isDisabled={!singleProcessingStore.hasUnsavedTranscriptDraftValue()}
+              isDisabled={
+                !singleProcessingStore.hasUnsavedTranscriptDraftValue()
+              }
             />
-          </bem.ProcessingBody__transxHeaderButtons>
-        </bem.ProcessingBody__transxHeader>
+          </nav>
+        </header>
 
-        <bem.ProcessingBody__textarea
+        <textarea
+          className={bodyStyles.textarea}
           value={draft?.value}
           onChange={this.onDraftValueChange.bind(this)}
           disabled={singleProcessingStore.isFetchingData}
         />
-      </bem.ProcessingBody>
+      </div>
     );
   }
 
   renderStepViewer() {
     return (
-      <bem.ProcessingBody>
-        <bem.ProcessingBody__transxHeader>
+      <div className={bodyStyles.root}>
+        <header className={bodyStyles.transxHeader}>
           {this.renderLanguageAndDate()}
 
-          <bem.ProcessingBody__transxHeaderButtons>
+          <nav className={bodyStyles.transxHeaderButtons}>
             <Button
               type='bare'
               color='storm'
@@ -385,13 +417,13 @@ export default class TranscriptTabContent extends React.Component<{}> {
               tooltip={t('Delete')}
               isPending={singleProcessingStore.isFetchingData}
             />
-          </bem.ProcessingBody__transxHeaderButtons>
-        </bem.ProcessingBody__transxHeader>
+          </nav>
+        </header>
 
-        <bem.ProcessingBody__text>
+        <article className={bodyStyles.text}>
           {singleProcessingStore.getTranscript()?.value}
-        </bem.ProcessingBody__text>
-      </bem.ProcessingBody>
+        </article>
+      </div>
     );
   }
 
@@ -410,10 +442,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
     // Step 2: Config - for selecting the transcript language and mode.
     if (
       draft !== undefined &&
-      (
-        draft.languageCode === undefined ||
-        draft.value === undefined
-      ) &&
+      (draft.languageCode === undefined || draft.value === undefined) &&
       draft.regionCode === undefined
     ) {
       return this.renderStepConfig();
@@ -422,10 +451,7 @@ export default class TranscriptTabContent extends React.Component<{}> {
     // Step 2.1: Config Automatic - for selecting region and other automatic options
     if (
       draft !== undefined &&
-      (
-        draft.languageCode === undefined ||
-        draft.value === undefined
-      ) &&
+      (draft.languageCode === undefined || draft.value === undefined) &&
       draft.regionCode !== undefined
     ) {
       return this.renderStepConfigAuto();
