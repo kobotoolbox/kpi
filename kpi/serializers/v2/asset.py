@@ -121,9 +121,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'parent',
                   'settings',
                   'asset_type',
-                  'date_created',
                   'summary',
+                  'date_created',
                   'date_modified',
+                  'date_deployed',
                   'version_id',
                   'version__content_hash',
                   'version_count',
@@ -660,8 +661,9 @@ class AssetListSerializer(AssetSerializer):
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
         # additional database query for each asset in the list.
         fields = ('url',
-                  'date_modified',
                   'date_created',
+                  'date_modified',
+                  'date_deployed',
                   'owner',
                   'summary',
                   'owner__username',
@@ -770,8 +772,8 @@ class AssetMetadataListSerializer(AssetListSerializer):
     class Meta(AssetSerializer.Meta):
         fields = (
             'url',
-            'date_modified',
             'date_created',
+            'date_modified',
             'date_deployed',
             'owner',
             'owner__username',
