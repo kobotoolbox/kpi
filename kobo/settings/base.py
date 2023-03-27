@@ -422,8 +422,10 @@ DJANGO_LANGUAGE_CODES = env.str(
         'de-DE '  # German
         'en '  # English
         'es '  # Spanish
+        'fa '  # Persian/Farsi
         'fr '  # French
         'hi '  # Hindi
+        'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
         'pl '  # Polish
