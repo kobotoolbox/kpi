@@ -38,12 +38,8 @@ export default function ProjectsFieldsSelector(
   );
 
   useEffect(() => {
-    if (!isModalOpen) {
-      // Reset fields when closing modal.
-      if (isModalOpen === false) {
-        setSelectedFields(getInitialSelectedFields());
-      }
-    }
+    // When opening and closing we reset fields
+    setSelectedFields(getInitialSelectedFields());
   }, [isModalOpen]);
 
   const toggleModal = () => {
