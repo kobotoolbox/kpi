@@ -45,7 +45,7 @@ export default function FormSummaryProjectInfo(
   }, []);
 
   const lastDeployedDate =
-    props.asset.deployed_versions?.results[0].date_modified;
+    props.asset.deployed_versions?.results?.[0]?.date_modified;
 
   return (
     <bem.FormView__row>
