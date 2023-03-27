@@ -52,9 +52,7 @@ class EnvironmentTests(BaseTestCase):
                     ('KEN', 'Kenya'), x
                 ),
             'interface_languages': lambda x: \
-                self.assertGreater(len(x), 5) and self.assertIn(
-                    ('ar', 'العربيّة'), x
-                ),
+                self.assertEqual(len(x), len(settings.LANGUAGES)),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,

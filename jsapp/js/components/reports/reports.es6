@@ -10,10 +10,8 @@ import PopoverMenu from 'js/popoverMenu';
 import InlineMessage from 'js/components/common/inlineMessage';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
-import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
 import {txtid} from '../../../xlform/src/model.utils';
-import alertify from 'alertifyjs';
 import {notify, launchPrinting} from 'utils';
 import {REPORT_STYLES} from './reportsConstants';
 import CustomReportForm from './customReportForm';
@@ -21,6 +19,7 @@ import QuestionGraphSettings from './questionGraphSettings';
 import ReportContents from './reportContents';
 import ReportStyleSettings from './reportStyleSettings';
 import './reports.scss';
+import {userCan} from 'js/components/permissions/utils';
 
 export default class Reports extends React.Component {
   constructor(props) {
@@ -365,7 +364,7 @@ export default class Reports extends React.Component {
               </bem.PopoverMenu__link>
             );
           })}
-          {this.userCan('change_asset', this.state.asset) && (
+          {userCan('change_asset', this.state.asset) && (
             <bem.PopoverMenu__link
               key='new'
               onClick={this.toggleCustomReportModal}
@@ -404,7 +403,7 @@ export default class Reports extends React.Component {
           <i className='k-icon k-icon-print' />
         </bem.Button>
 
-        {this.userCan('change_asset', this.state.asset) && (
+        {userCan('change_asset', this.state.asset) && (
           <bem.Button
             m='icon'
             className='report-button__settings'
@@ -619,5 +618,4 @@ export default class Reports extends React.Component {
   }
 }
 
-reactMixin(Reports.prototype, mixins.permissions);
 reactMixin(Reports.prototype, Reflux.ListenerMixin);

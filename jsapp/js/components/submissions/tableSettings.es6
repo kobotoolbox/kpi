@@ -1,14 +1,12 @@
 import React from 'react';
-import Reflux from 'reflux';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
-import mixins from 'js/mixins';
 import {notify} from 'utils';
 import {DATA_TABLE_SETTINGS} from 'js/components/submissions/tableConstants';
+import {userCan} from 'js/components/permissions/utils';
 import tableStore from 'js/components/submissions/tableStore';
 import './tableSettings.scss';
 
@@ -118,7 +116,7 @@ class TableSettings extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          {this.userCan('change_asset', this.props.asset) &&
+          {userCan('change_asset', this.props.asset) &&
             <bem.KoboButton m='whitegray' onClick={this.onReset}>
               {t('Reset')}
             </bem.KoboButton>
@@ -132,8 +130,5 @@ class TableSettings extends React.Component {
     );
   }
 }
-
-reactMixin(TableSettings.prototype, Reflux.ListenerMixin);
-reactMixin(TableSettings.prototype, mixins.permissions);
 
 export default TableSettings;

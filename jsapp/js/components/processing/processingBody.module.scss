@@ -3,34 +3,45 @@
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 
-.processing-body {
+/**
+ * This file contains all the shared styles for the content part of the Single
+ * Processing Route.
+ */
+
+.root {
   padding: sizes.$x30;
   display: flex;
   flex-direction: column;
   height: 100%;
-
-  // The content of these steps is different.
-  &.processing-body--begin,
-  &.processing-body--config {
-    max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
-    padding-top: sizes.$x50;
-    margin: 0 auto;
-  }
 }
 
-.processing-body > h2 {
+// The content of these steps is different.
+.root.stepBegin,
+.root.stepConfig {
+  max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
+  padding-top: sizes.$x50;
+  margin: 0 auto;
+}
+
+.root.stepBegin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.root :global h2 {
   font-size: sizes.$x16;
   font-weight: 400;
   text-align: center;
 }
 
-.processing-body > p {
+.root :global p {
   text-align: center;
   line-height: 1.6;
 }
 
-.processing-body > h2,
-.processing-body > p {
+.root :global h2,
+.root :global p {
   margin: 0;
 
   &:not(:last-child) {
@@ -38,7 +49,7 @@
   }
 }
 
-.processing-body > .region-selector {
+.root :global .region-selector {
   margin: 0;
 
   &:not(:last-child) {
@@ -46,12 +57,12 @@
   }
 }
 
-.processing-body__transx-header {
+.transxHeader {
   @include mixins.centerRowFlex;
   margin-bottom: sizes.$x12;
 }
 
-.processing-body__transx-header-date {
+.transxHeaderDate {
   @include mixins.textEllipsis;
 
   background-color: colors.$kobo-cloud;
@@ -65,7 +76,7 @@
   }
 }
 
-.processing-body__transx-header-language {
+.transxHeaderLanguage {
   font-weight: 700;
 
   &:not(:first-child) {
@@ -80,7 +91,7 @@
   }
 }
 
-.processing-body__transx-header-buttons {
+.transxHeaderButtons {
   @include mixins.centerRowFlex;
 
   flex: 1;
@@ -89,7 +100,7 @@
   gap: sizes.$x12;
 }
 
-.processing-body__text {
+.text {
   white-space: pre-wrap;
   border-top: sizes.$x2 solid colors.$kobo-gray-96;
   padding-top: sizes.$x16;
@@ -98,7 +109,7 @@
   flex: 1;
 }
 
-.processing-body__textarea {
+.textarea {
   border: sizes.$x2 solid colors.$kobo-gray-96;
   border-radius: sizes.$x6;
   padding: sizes.$x16;
@@ -107,13 +118,7 @@
   flex: 1;
 }
 
-.processing-body.processing-body--begin {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.processing-body__header {
+.header {
   font-size: sizes.$x18;
   font-weight: 400;
   text-align: center;
@@ -121,7 +126,7 @@
   margin-bottom: sizes.$x24;
 }
 
-.processing-body__footer {
+.footer {
   @include mixins.centerRowFlex;
 
   padding: sizes.$x20 0;
@@ -129,13 +134,13 @@
   gap: sizes.$x14;
 }
 
-.processing-body__footer-right-buttons {
+.footerRightButtons {
   @include mixins.centerRowFlex;
 
   gap: sizes.$x14;
 }
 
-.processing-body__footer-center-buttons {
+.footerCenterButtons {
   @include mixins.centerRowFlex;
 
   flex: 1;

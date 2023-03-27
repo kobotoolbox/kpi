@@ -1,16 +1,16 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/sizes";
-@use "./singleProcessingVariables";
+@use 'scss/sizes';
+@use './singleProcessingVariables';
 
-.single-processing-media-wrapper {
-  &.single-processing-media-wrapper--audio {
+.mediaWrapper {
+  &.mediaWrapperAudio {
     background-color: colors.$kobo-white;
     border-radius: sizes.$x6;
     // right padding is for the audio player to appear centered
     padding: sizes.$x20 #{sizes.$x20 + sizes.$x12} sizes.$x14 sizes.$x20;
   }
 
-  &.single-processing-media-wrapper--video {
+  &.mediaWrapperVideo {
     border-radius: sizes.$x6;
     overflow: hidden;
   }
@@ -24,7 +24,7 @@
   }
 }
 
-.single-processing-data-list {
+.dataList {
   flex: 1;
   min-height: sizes.$x100;
   margin-top: sizes.$x20;
@@ -33,12 +33,12 @@
   border-radius: sizes.$x6;
 }
 
-.single-processing-data-list__body {
+.dataListBody {
   overflow-y: auto;
   height: 100%;
 }
 
-.single-processing-video-preview {
+.videoPreview {
   width: 100%;
   object-fit: contain;
 }
