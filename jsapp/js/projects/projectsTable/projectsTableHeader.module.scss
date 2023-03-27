@@ -152,6 +152,7 @@ $resizer-width: sizes.$x16 + $line-width;
   opacity: 1;
 }
 // Always hide leftmost width indicator
-.columnRoot:first-child::before {
+// nth-child(2) because of checkbox column
+.columnRoot:nth-child(2)::before {
   display: none;
 }
