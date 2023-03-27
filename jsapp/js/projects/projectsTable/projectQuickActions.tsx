@@ -7,7 +7,7 @@ import type {
 import {ASSET_TYPES} from 'js/constants';
 import Button from 'js/components/common/button';
 import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
-import styles from './projectQuickActions.module.scss';
+import styles from './projectActions.module.scss';
 import {getAssetDisplayName} from 'jsapp/js/assetUtils';
 import {
   archiveAsset,

@@ -13,7 +13,7 @@
   padding: sizes.$x30 sizes.$x30 sizes.$x40;
 }
 
-.quickActions {
+.actions {
   @include mixins.centerRowFlex;
   flex: 1;
   justify-content: flex-end;
