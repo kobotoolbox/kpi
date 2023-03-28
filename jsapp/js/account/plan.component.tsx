@@ -9,9 +9,9 @@ import {
   BaseSubscription,
   postCheckout,
   postCustomerPortal,
+  BasePrice,
 } from './stripe.api';
 import Icon from '../components/common/icon';
-import {ROOT_URL} from 'js/constants';
 
 interface PlanState {
   isLoading: boolean;
@@ -25,7 +25,7 @@ interface PlanState {
 // An interface for our action
 interface dataUpdates {
   type: string;
-  prodData: any;
+  prodData?: any;
 }
 
 const initialState = {
@@ -101,8 +101,8 @@ export default function Plan() {
   // Filter prices based on plan interval
   const filterPrices = () => {
     if (state.products.length > 0) {
-      const filterAmount = state.products.map((product: any) => {
-        const filteredPrices = product.prices.filter((price: any) => {
+      const filterAmount = state.products.map((product: Product) => {
+        const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.human_readable_price.split('/')[1];
           return interval === state.intervalFilter || price.unit_amount === 0;
         });
@@ -111,15 +111,18 @@ export default function Plan() {
           prices: filteredPrices.length ? filteredPrices[0] : null,
         };
       });
-      return filterAmount.filter((product: any) => product.prices);
+      return filterAmount.filter((product: Product) => product.prices);
     }
   };
 
   const isSubscribedProduct = (product: Product) => {
-    if( product.prices.unit_amount === 0 && !state.subscribedProduct?.length ) {
-      return true;
-    }
-    return product.name === state.subscribedProduct?.name;  };
+    console.log(product.prices);
+    //   if( product.prices.unit_amount === 0 && !state.subscribedProduct?.length ) {
+    //     return true;
+    //   }
+    //   return product.name === state.subscribedProduct?.name;
+    // };
+    return true;
   };
 
   const upgradePlan = (priceId: string) => {
@@ -148,9 +151,9 @@ export default function Plan() {
 
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
-    const listItems: {icon: boolean; item: any}[] = [];
+    const listItems: {icon: boolean; item: string}[] = [];
     filterPrices().map((price: any) =>
-      Object.keys(price.metadata).map((featureItem: any) => {
+      Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
 
@@ -177,7 +180,7 @@ export default function Plan() {
     console.log('len', state.products);
     if (state.products.length > 0) {
       filterPrices().map((price: any) =>
-        Object.keys(price.metadata).map((featureItem: any) => {
+        Object.keys(price.metadata).map((featureItem: string) => {
           if (
             featureItem.includes(`feature_support_`) ||
             featureItem.includes(`feature_advanced_`) ||
