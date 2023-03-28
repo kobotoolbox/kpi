@@ -61,6 +61,7 @@
 
 .planContainer {
   grid-auto-columns: 1fr;
+  width: 27em;
   grid-row: 3/4;
   border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid 1px;
@@ -118,7 +119,8 @@ li {
 
 .enterprisePlan {
   background-color: colors.$kobo-light-blue;
-  grid-column: auto;
+  grid-column: 1fr;
+  width: 27em;
   grid-row: 3/4;
   padding: 39px 48px;
   height: auto;
