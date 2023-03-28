@@ -52,7 +52,7 @@ class CheckoutLinkView(
     serializer_class = CheckoutLinkSerializer
 
     @staticmethod
-    def generate_payment_link(price_id, user, organization_uid):
+    def generate_payment_link(price, user, organization_uid):
         if organization_uid:
             # Get the organization for the logged-in user and provided organization UID
             organization = Organization.objects.get(
@@ -70,11 +70,12 @@ class CheckoutLinkView(
             subscriber=organization,
             livemode=settings.STRIPE_LIVE_MODE
         )
-        session = CheckoutLinkView.start_checkout_session(customer.id, price_id, organization.uid)
+        session = CheckoutLinkView.start_checkout_session(customer.id, price, organization.uid)
         return Response({'url': session['url']})
 
     @staticmethod
-    def start_checkout_session(customer_id, price_id, organization_uid):
+    def start_checkout_session(customer_id, price, organization_uid):
+        checkout_mode = 'payment' if price.type == 'one_time' else 'subscription'
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             automatic_tax={
@@ -83,7 +84,7 @@ class CheckoutLinkView(
             customer=customer_id,
             line_items=[
                 {
-                    "price": price_id,
+                    "price": price.id,
                     "quantity": 1,
                 },
             ],
@@ -91,23 +92,17 @@ class CheckoutLinkView(
                 'organization_uid': organization_uid,
                 'price_id': price_id,
             },
-            mode="subscription",
+            mode=checkout_mode,
             payment_method_types=["card"],
-            success_url=f'{settings.KOBOFORM_URL}/#/account/plan/success',
+            success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout_complete=true',
         )
 
     def post(self, request):
         serializer = CheckoutLinkSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        serializer_data = serializer.validated_data
-        price_id = serializer_data['price_id']
+        price = serializer.validated_data.get('price_id')
         organization_uid = serializer.validated_data.get('organization_uid')
-        Price.objects.get(
-            active=True,
-            product__active=True,
-            id=price_id
-        )
-        response = self.generate_payment_link(price_id, request.user, organization_uid)
+        response = self.generate_payment_link(price, request.user, organization_uid)
         return response
 
 
@@ -126,7 +121,7 @@ class CustomerPortalView(
         session = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             customer=customer.id,
-            return_url=f'{settings.KOBOFORM_URL}/#/plans'
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan'
         )
         return session
 

@@ -55,7 +55,6 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         url = self._get_url({'price_id': 'test', 'organization_uid': 'test'})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['price_id'].count('Invalid price ID') == 1
 
     def test_creates_organization(self, stripe_checkout_session_create_mock, customer_get_or_create_mock):
         customer_get_or_create_mock.return_value = (Customer, False)
