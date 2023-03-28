@@ -68,6 +68,7 @@ from .asset_export_settings import AssetExportSettingsSerializer
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
+    SUPPORTED_ACTIONS = ['archive', 'unarchive', 'delete', 'undelete']
     payload = WritableJSONField()
 
     def __init__(
@@ -77,43 +78,52 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         grace_period=None,
         **kwargs
     ):
-        # Check `method` parameter first to support actions from Django Admin
         request = kwargs.get('context').get('request')
+        self.__user = request.user
         self.__grace_period = grace_period
-        self.__is_delete = request.method == 'DELETE'
         super().__init__(instance=instance, data=data, **kwargs)
 
     def create(self, validated_data):
-        request = self.context['request']
-        put_back = validated_data['payload']['put_back']
+        delete_request, put_back_ = self._get_action_type_and_direction(
+            validated_data['payload']
+        )
+        extra_params = {}
+        if asset_uids := validated_data['payload'].get('asset_uids'):
+            extra_params['asset_uids'] = asset_uids
+        else:
+            extra_params['owner'] = self.__user
 
         queryset, projects_count = ProjectTrash.toggle_asset_statuses(
-            asset_uids=validated_data['payload'].get('asset_uids'),
-            owner=request.user,
-            active=put_back,
-            toggle_delete=self.__is_delete,
+            active=put_back_,
+            toggle_delete=delete_request,
+            **extra_params,
         )
         validated_data['project_counts'] = projects_count
-        self._toggle_trash(queryset, put_back)
+
+        if delete_request:
+            self._toggle_trash(queryset, put_back_)
 
         return validated_data
 
     def validate_payload(self, payload: dict) -> dict:
+        self._validate_action(payload)
         try:
             asset_uids = payload['asset_uids']
         except KeyError:
             self._validate_confirm(payload)
             asset_uids = []
 
-        self._validate_put_back(payload)
-        self._has_perms(asset_uids)
+        self._has_perms(payload, asset_uids)
 
         return payload
 
     def to_representation(self, instance):
-        put_back = instance['payload']['put_back']
-        if self.__is_delete:
-            if put_back:
+        delete_request, put_back_ = self._get_action_type_and_direction(
+            instance['payload']
+        )
+
+        if delete_request:
+            if put_back_:
                 message = nt(
                     f'%(count)d project has been undeleted',
                     f'%(count)d projects have been undeleted',
@@ -126,7 +136,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                     instance['project_counts'],
                 ) % {'count': instance['project_counts']}
         else:
-            if put_back:
+            if put_back_:
                 message = nt(
                     '%(count)d project has been unarchived',
                     '%(count)d projects have been unarchived',
@@ -142,11 +152,9 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         return {'detail': message}
 
     def _create_tasks(self, assets: list[dict]):
-        request = self.context['request']
-
         try:
             move_to_trash(
-                request.user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
+                self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
             )
         except TrashIntegrityError:
             # We do not want to ignore conflicts. If so, something went wrong.
@@ -156,79 +164,102 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             )
 
     def _delete_tasks(self, assets: list[dict]):
-        # Delete project trash and periodic task
         try:
-            put_back(assets, 'asset')
+            put_back(self.__user, assets, 'asset')
         except TrashTaskInProgressError:
             raise serializers.ValidationError(
                 {'detail': t('One or many projects are already being deleted!')}
             )
 
-    def _has_perms(self, asset_uids: list[str]):
+    def _get_action_type_and_direction(self, payload: dict) -> tuple:
 
-        request = self.context['request']
+        action = payload['action']
+        put_back_ = False
+        delete_request = False
+        if action.startswith('un'):
+            put_back_ = True
+        if action.endswith('delete'):
+            delete_request = True
 
-        if request.user.is_anonymous:
+        return delete_request, put_back_
+
+    def _has_perms(self, payload: dict, asset_uids: list[str]):
+
+        delete_request, _ = self._get_action_type_and_direction(payload)
+
+        if self.__user.is_anonymous:
             raise exceptions.PermissionDenied()
 
-        if not asset_uids or request.user.is_superuser:
+        # No need to validate permissions if `asset_uids` is empty (which means
+        # all user's assets will be processed.
+        # Obviously, superusers are granted all permissions implicitly.
+        if not asset_uids or self.__user.is_superuser:
             return
 
-        if request.method == 'PATCH':
+        if not delete_request:
+            if ProjectTrash.objects.filter(asset__uid__in=asset_uids).exists():
+                raise exceptions.PermissionDenied()
+
             code_names = get_cached_code_names(Asset)
             perm_dict = code_names[PERM_MANAGE_ASSET]
             objects_count = ObjectPermission.objects.filter(
-                user=request.user,
+                user=self.__user,
                 permission_id=perm_dict['id'],
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
         else:
             objects_count = Asset.objects.filter(
-                owner=request.user,
+                owner=self.__user,
                 uid__in=asset_uids,
             ).count()
 
         if objects_count != len(asset_uids):
             raise exceptions.PermissionDenied()
 
-    def _toggle_trash(self, queryset: QuerySet, put_back: bool):
-        request = self.context['request']
-        if request.method != 'DELETE':
-            return
+    def _toggle_trash(self, queryset: QuerySet, put_back_: bool):
 
+        # The main goal of the annotation below is to pass always the same
+        # metadata attributes to AuditLog model whatever the model and the action.
+        # `self._delete_tasks and self._create_tasks` both call utilities which
+        # save entries in auditlog table. When fetching auditlog API endpoint
+        # the query parser can be used to search on same attributes.
+        # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
+        # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
+        # all delete submissions and action on the asset itself.
         assets = queryset.annotate(
             asset_uid=F('uid'), asset_name=F('name')
-        ).values('pk', 'uid', 'name')
+        ).values('pk', 'asset_uid', 'asset_name')
 
-        if put_back:
+        if put_back_:
             self._delete_tasks(assets)
         else:
             self._create_tasks(assets)
+
+    def _validate_action(self, payload: dict):
+        try:
+            action = payload['action']
+        except KeyError:
+            raise serializers.ValidationError(
+                t('`action` parameter is required')
+            )
+
+        if action not in self.SUPPORTED_ACTIONS:
+            raise serializers.ValidationError(
+                t('Supported values for `action` are: ')
+                + ', '.join(self.SUPPORTED_ACTIONS)
+            )
+
+        if (
+            action == 'undelete'
+            and not self.__user.is_superuser
+        ):
+            raise exceptions.PermissionDenied()
 
     def _validate_confirm(self, payload: dict):
 
         if not payload.get('confirm'):
             raise serializers.ValidationError(t('Confirmation is required'))
-
-    def _validate_put_back(self, payload: dict):
-        request = self.context['request']
-        put_back = payload.get('put_back', 'False')
-        if not isinstance(put_back, bool):
-            try:
-                put_back = bool(util.strtobool(put_back))
-            except ValueError:
-                payload['put_back'] = False
-                return
-
-        if (
-            put_back
-            and self.__is_delete
-            and not request.user.is_superuser
-        ):
-            raise exceptions.PermissionDenied()
-
-        payload['put_back'] = put_back
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):

@@ -4,10 +4,11 @@ import json
 from copy import deepcopy
 from datetime import timedelta
 
-from django.db import IntegrityError, models, transaction
 from django.contrib.auth import get_user_model
-from django.db.models.signals import pre_delete
 from django.core.files.storage import default_storage
+from django.db import IntegrityError, models, transaction
+from django.db.models import F
+from django.db.models.signals import pre_delete
 from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
@@ -18,9 +19,10 @@ from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog, AuditAction
 from kpi.exceptions import KobocatCommunicationError
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, ExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
+from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from .exceptions import (
     TrashIntegrityError,
     TrashNotImplementedError,
@@ -45,11 +47,19 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
             'backend_response.uuid'
         )
         asset.deployment.delete()
-        project_exports = ExportTask.objects.values_list(
-            'result', flat=True
-        ).filter(data__source__endswith=f'/api/v2/assets/{asset.uid}/')
+        project_exports = ExportTask.objects.filter(
+            data__source__endswith=f'/api/v2/assets/{asset.uid}/'
+        )
 
     with transaction.atomic():
+        # Delete imports
+        ImportTask.objects.filter(
+            data__destination__endswith=f'/api/v2/assets/{asset.uid}/'
+        ).delete()
+        # Delete exports (and related files on storage)
+        for export in project_exports:
+            export.delete()
+
         asset.delete()
         AuditLog.objects.create(
             app_label=asset._meta.app_label,
@@ -68,8 +78,6 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
     rmdir(f'{owner_username}/asset_files/{asset_uid}')
     if deployment_backend_uuid:
         rmdir(f'{owner_username}/form-media/{deployment_backend_uuid}')
-        for export in project_exports:
-            default_storage.delete(export)
 
 
 @transaction.atomic
@@ -82,8 +90,12 @@ def move_to_trash(
 ):
     """
     Create trash objects and their related scheduled celery tasks.
-    `object_list` contains dicts of Asset (projects) properties (`id`, `name`, `uid`)
-    or User (accounts) properties (`id`, `username`).
+
+    `objects_list` must a list of dictionaries which contain at a 'pk' key and
+    any other key that would be saved as attributes in AuditLog.metadata.
+    If `trash_type` is 'asset', dictionaries of `objects_list should contain
+    'pk', 'asset_uid' and 'asset_name'. Otherwise, if `trash_type` is 'user',
+    they should contain 'pk' and 'username'.
 
     Projects and accounts get in trash for `grace_period` and they are hard-deleted
     when their related schedule task run.
@@ -112,32 +124,32 @@ def move_to_trash(
             **{f'{fk_field_name:}__in': obj_ids}
         ).delete()
 
+    trash_objects = []
+    audit_logs = []
+    empty_manually = grace_period == -1
+
+    for obj_dict in objects_list:
+        trash_objects.append(
+            trash_model(
+                request_author=request_author,
+                metadata=_remove_pk_from_dict(obj_dict),
+                empty_manually=empty_manually,
+                delete_all=delete_all,
+                **{fk_field_name: obj_dict['pk']},
+            )
+        )
+        audit_logs.append(
+            AuditLog(
+                app_label=related_model._meta.app_label,
+                model_name=related_model._meta.model_name,
+                object_id=obj_dict['pk'],
+                user=request_author,
+                action=AuditAction.IN_TRASH,
+                metadata=_remove_pk_from_dict(obj_dict)
+            )
+        )
+
     try:
-        trash_objects = []
-        audit_logs = []
-        empty_manually = grace_period == -1
-
-        for obj_dict in objects_list:
-            trash_objects.append(
-                trash_model(
-                    request_author=request_author,
-                    metadata=_get_metadata(obj_dict),
-                    empty_manually=empty_manually,
-                    delete_all=delete_all,
-                    **{fk_field_name: obj_dict['pk']},
-                )
-            )
-            audit_logs.append(
-                AuditLog(
-                    app_label=related_model._meta.app_label,
-                    model_name=related_model._meta.model_name,
-                    object_id=obj_dict['pk'],
-                    user=request_author,
-                    action=AuditAction.IN_TRASH,
-                    metadata=_get_metadata(obj_dict)
-                )
-            )
-
         trash_model.objects.bulk_create(trash_objects)
 
         periodic_tasks = PeriodicTask.objects.bulk_create(
@@ -176,6 +188,15 @@ def move_to_trash(
 def put_back(
     request_author: 'auth.User', objects_list: list[dict], trash_type: str
 ):
+    """
+    Remove related objects from trash.
+
+    `objects_list` must a list of dictionaries which contain at a 'pk' key and
+    any other key that would be saved as attributes in AuditLog.metadata.
+    If `trash_type` is 'asset', dictionaries of `objects_list should contain
+    'pk', 'asset_uid' and 'asset_name'. Otherwise, if `trash_type` is 'user',
+    they should contain 'pk' and 'username'
+    """
 
     trash_model, fk_field_name, related_model, *others = _get_settings(
         trash_type
@@ -204,17 +225,16 @@ def put_back(
                 object_id=obj_dict['pk'],
                 user=request_author,
                 action=AuditAction.PUT_BACK,
-                metadata=_get_metadata(obj_dict)
+                metadata=_remove_pk_from_dict(obj_dict)
             )
             for obj_dict in objects_list
         ]
     )
-
-    # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
-    # delete query finishes to avoid unnecessary DB queries.
-    # see https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
-    pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
     try:
+        # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
+        # delete query finishes to avoid unnecessary DB queries.
+        # see https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
+        pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
     finally:
         pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
@@ -270,17 +290,21 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
         model_name,
     ) = asset.deployment.submission_model.get_app_label_and_model_name()
 
-    while not stop:
+    while True:
         audit_logs = []
         submissions = list(asset.deployment.get_submissions(
             asset.owner, fields=['_id', '_uuid'], limit=200
         ))
         if not submissions:
+            queryset_or_false = asset.deployment.get_orphan_postgres_submissions()
+            # Make submissions an iterable similar to what
+            # `deployment.get_submissions()` would return
             if not (
-                submissions := asset.deployment.get_orphan_submissions()
+                submissions := queryset_or_false.annotate(
+                    _id=F('pk'), _uuid=F('uuid')
+                ).values('_id', '_uuid')
             ):
-                stop = True
-                continue
+                break
 
         submission_ids = []
         for submission in submissions:
@@ -324,12 +348,6 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
             AuditLog.objects.bulk_create(audit_logs)
 
 
-def _get_metadata(trashed_object: dict) -> dict:
-    dict_copy = deepcopy(trashed_object)
-    del dict_copy['pk']
-    return dict_copy
-
-
 def _get_settings(trash_type: str, delete_all: bool = False) -> tuple:
     if trash_type == 'asset':
         return (
@@ -337,7 +355,7 @@ def _get_settings(trash_type: str, delete_all: bool = False) -> tuple:
             'asset_id',
             Asset,
             'empty_project',
-            'Delete project {name} ({uid})',
+            f'{DELETE_PROJECT_STR_PREFIX} {{asset_name}} ({{asset_uid}})',
         )
 
     if trash_type == 'user':
@@ -346,9 +364,18 @@ def _get_settings(trash_type: str, delete_all: bool = False) -> tuple:
             'user_id',
             get_user_model(),
             'empty_account',
-            'Delete user’s account ({username})'
+            f'{DELETE_USER_STR_PREFIX} account ({{username}})'
             if delete_all
-            else 'Delete user’s data ({username})'
+            else f'{DELETE_USER_STR_PREFIX} data ({{username}})'
         )
 
     raise TrashNotImplementedError
+
+
+def _remove_pk_from_dict(trashed_object: dict) -> dict:
+    """
+    Remove `pk` key from `trash_object`
+    """
+    dict_copy = deepcopy(trashed_object)
+    del dict_copy['pk']
+    return dict_copy

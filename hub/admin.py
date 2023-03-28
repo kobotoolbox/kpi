@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
@@ -9,7 +11,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Sum, Q
+from django.db.models import Count, Sum
 from django.forms import CharField
 from django.urls import reverse
 from django.utils import timezone

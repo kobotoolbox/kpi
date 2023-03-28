@@ -344,8 +344,9 @@ CONSTANCE_CONFIG = {
     'ACCOUNT_TRASH_GRACE_PERIOD': (
         30 * 6,
         'Number of days to keep deactivated accounts in trash before '
-        'automatically hard-deleting their projects/data. '
-        'Use -1 to manually empty trash',
+        'automatically hard-deleting all their projects and data. '
+        'Use -1 to require a superuser to empty the trash manually instead of '
+        'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
 }

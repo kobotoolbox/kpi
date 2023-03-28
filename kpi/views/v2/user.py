@@ -1,6 +1,8 @@
 # coding: utf-8
 from constance import config
 from django.contrib.auth.models import User
+from django.db import transaction
+from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
@@ -50,28 +52,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-
-    @action(
-        detail=True,
-        methods=['DELETE'],
-        renderer_classes=[renderers.JSONRenderer],
-    )
-    def delete(self, request, username, **kwargs):
-        if request.user.username != username:
-            raise exceptions.PermissionDenied
-
-        user = {'pk': request.user.pk, 'username': username}
-        try:
-            move_to_trash(
-                request.user, [user], config.ACCOUNT_TRASH_GRACE_PERIOD, 'user'
-            )
-        except TrashIntegrityError:
-            return Response({'error': t('User has already being deactivated')})
-
-        request.user.is_active = False
-        request.user.save(update_fields=['is_active'])
-
-        return Response({'detail': t('User has been deactivated')})
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],

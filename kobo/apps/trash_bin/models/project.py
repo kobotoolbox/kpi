@@ -35,6 +35,11 @@ class ProjectTrash(BaseTrash):
         toggle_delete: bool = True,
     ) -> tuple:
 
+        if asset_uids and owner:
+            raise ValueError(
+                '`asset_uids` and `owner` cannot be passed at the time'
+            )
+
         if asset_uids:
             kc_filter_params = {'kpi_asset_uid__in': asset_uids}
             filter_params = {'uid__in': asset_uids}

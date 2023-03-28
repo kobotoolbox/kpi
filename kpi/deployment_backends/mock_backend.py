@@ -387,9 +387,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
 
-    def get_orphan_submissions(self) -> list[dict]:
-        pass
-
     def get_submission_detail_url(self, submission_id: int) -> str:
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`

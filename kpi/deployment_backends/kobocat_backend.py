@@ -22,7 +22,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from lxml import etree
 from django.core.files import File
-from django.db.models import Sum, F
+from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
@@ -859,7 +859,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
-    def get_orphan_submissions(self) -> QuerySet:
+    def get_orphan_postgres_submissions(self) -> Optional[QuerySet, bool]:
+        """
+        Return a queryset of all submissions still present in PostgreSQL
+        database related to `self.xform`.
+        Return False if one submission still exists in MongoDB at
+        least.
+        Otherwise, if `self.xform` does not exist (anymore), return None
+        """
         all_submissions = self.get_submissions(
             user=self.asset.owner,
             fields=['_id'],
@@ -873,11 +880,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return False
 
         try:
-            return ReadOnlyKobocatInstance.objects.filter(
-                xform_id=self.xform_id
-            ).annotate(_id=F('pk'), _uuid=F('uuid')).values('_id', '_uuid')
+            return ReadOnlyKobocatInstance.objects.filter(xform_id=self.xform_id)
         except InvalidXFormException:
-            pass
+            return None
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'

@@ -377,7 +377,7 @@ class AssetViewSet(
 
     @action(
         detail=False,
-        methods=['PATCH', 'DELETE'],
+        methods=['POST'],
         renderer_classes=[renderers.JSONRenderer],
     )
     def bulk(self, request, *args, **kwargs):

@@ -11,7 +11,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch, Q, F
+from django.db.models import Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -64,7 +64,6 @@ from kpi.exceptions import (
 )
 from kpi.fields import (
     KpiUidField,
-    LazyDefaultBooleanField,
     LazyDefaultJSONBField,
 )
 from kpi.mixins import (
@@ -200,7 +199,7 @@ class Asset(ObjectPermissionMixin,
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
-    pending_delete = LazyDefaultBooleanField(default=False)
+    pending_delete = models.BooleanField(default=False)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()

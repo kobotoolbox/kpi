@@ -23,7 +23,6 @@ from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import (
     BadContentTypeException,
 )
-from kpi.fields import LazyDefaultBooleanField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
 from .storage import (
@@ -444,7 +443,7 @@ class KobocatXForm(ShadowModel):
     num_of_submissions = models.IntegerField(default=0)
     attachment_storage_bytes = models.BigIntegerField(default=0)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
-    pending_delete = LazyDefaultBooleanField(default=False)
+    pending_delete = models.BooleanField(default=False)
 
     @property
     def md5_hash(self):
@@ -590,14 +589,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     status = models.CharField(max_length=20,
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
-
-
-class ReadOnlyKobocatMetaData(ReadOnlyModel):
-
-    xform = models.ForeignKey(KobocatXForm, on_delete=models.CASCADE)
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'main_metadata'
 
 
 class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):

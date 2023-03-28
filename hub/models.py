@@ -8,7 +8,6 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.http import FileResponse, HttpResponse, HttpResponseNotModified
 from django.shortcuts import get_object_or_404
-from django.utils.timezone import now
 from django.urls import reverse
 from django.utils.http import http_date
 from markitup.fields import MarkupField
@@ -17,6 +16,7 @@ from markitup.fields import MarkupField
 # whose approach is emulated here
 from django.views.static import was_modified_since
 
+from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
 
@@ -140,6 +140,7 @@ class PerUserSetting(models.Model):
 
 
 class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
+    uid = KpiUidField(uid_prefix='u')
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)

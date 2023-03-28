@@ -84,8 +84,11 @@ class InvalidXPathException(Exception):
 
 class KobocatCommunicationError(Exception):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__('Could not communicate with KoBoCAT.', *args, **kwargs)
+    def __init__(
+        self, message='Could not communicate with KoBoCAT', *args, **kwargs
+    ):
+        self.message = message
+        super().__init__(self.message, *args, **kwargs)
 
 
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):

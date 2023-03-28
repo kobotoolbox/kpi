@@ -159,10 +159,6 @@ class BaseDeploymentBackend(abc.ABC):
     def get_enketo_survey_links(self):
         pass
 
-    @abc.abstractmethod
-    def get_orphan_submissions(self) -> list[dict]:
-        pass
-
     def get_submission(
         self,
         submission_id: int,

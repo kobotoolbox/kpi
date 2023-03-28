@@ -22,7 +22,10 @@ class AccountTrash(BaseTrash):
         verbose_name_plural = 'users'
 
     def __str__(self) -> str:
-        return f'{self.user.username} - {self.periodic_task.start_time}'
+        try:
+            return f'{self.user.username} - {self.periodic_task.start_time}'
+        except AttributeError:
+            return f'{self.user.username} - None'
 
     @classmethod
     def toggle_user_statuses(cls, users: list[dict], active: bool = False):

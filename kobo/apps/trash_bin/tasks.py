@@ -19,6 +19,7 @@ from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatCommunicationError
 from kpi.models.asset import Asset
 from kpi.utils.storage import rmdir
+from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
@@ -247,7 +248,7 @@ def garbage_collector():
                 'periodic_task_id', flat=True
             ),
         ).filter(
-            name__startswith='Delete user’s', clocked__isnull=False
+            name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
         ).delete()
 
         PeriodicTask.objects.exclude(
@@ -255,7 +256,7 @@ def garbage_collector():
                 'periodic_task_id', flat=True
             ),
         ).filter(
-            name__startswith='Delete project', clocked__isnull=False
+            name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
         ).delete()
 
         # Then, remove clocked schedules
