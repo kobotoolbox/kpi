@@ -66,6 +66,7 @@ export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
   const [buttonsDisabled, setButtonDisabled] = useState(false);
+  const [showExpand, setShowExpand] = useState(false);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -92,6 +93,10 @@ export default function Plan() {
       });
     });
   }, []);
+
+  useEffect(() => {
+    checkMetaFeatures();
+  }, [state.products]);
 
   // Filter prices based on plan interval
   const filterPrices = () => {
@@ -148,60 +153,43 @@ export default function Plan() {
       Object.keys(price.metadata).map((featureItem: any) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
-        switch (listType) {
-          case 'support':
-            const currentIcon = `feature_support_check_${currentResult}`;
-            if (
-              featureItem.includes('feature_support_') &&
-              !featureItem.includes('feature_support_check') &&
-              price.name === plan
-            ) {
-              const keyName = `feature_support_${currentResult}`;
-              let iconBool = false;
-              const itemName: string = price.metadata[keyName];
-              if (price.metadata[currentIcon] !== undefined) {
-                iconBool = JSON.parse(price.metadata[currentIcon]);
-                listItems.push({icon: iconBool, item: itemName});
-              }
-            }
-            break;
-          case 'advanced':
-            const currIcon = `feature_advanced_check_${currentResult}`;
-            if (
-              featureItem.includes('feature_advanced_') &&
-              !featureItem.includes('feature_advanced_check') &&
-              price.name === plan
-            ) {
-              const keyName = `feature_advanced_${currentResult}`;
-              let iconBool = false;
-              const itemName: string = price.metadata[keyName];
-              if (price.metadata[currIcon]) {
-                iconBool = JSON.parse(price.metadata[currIcon]);
-              }
-              listItems.push({icon: iconBool, item: itemName});
-            }
-            break;
-          case 'addons':
-            const currentItemIcon = `feature_addons_check_${currentResult}`;
-            if (
-              featureItem.includes('feature_addons_') &&
-              !featureItem.includes('feature_addons_check') &&
-              price.name === plan
-            ) {
-              const keyName = `feature_addons_${currentResult}`;
-              let iconBool = false;
-              const itemName: string = price.metadata[keyName];
-              if (price.metadata[currentItemIcon]) {
-                iconBool = JSON.parse(price.metadata[currentItemIcon]);
-              }
-              listItems.push({icon: iconBool, item: itemName});
-            }
-            break;
-          default:
+
+        const currentIcon = `feature_${listType}_check_${currentResult}`;
+        if (
+          featureItem.includes(`feature_${listType}_`) &&
+          !featureItem.includes(`feature_${listType}_check`) &&
+          price.name === plan
+        ) {
+          const keyName = `feature_${listType}_${currentResult}`;
+          let iconBool = false;
+          const itemName: string = price.metadata[keyName];
+          if (price.metadata[currentIcon] !== undefined) {
+            iconBool = JSON.parse(price.metadata[currentIcon]);
+            listItems.push({icon: iconBool, item: itemName});
+          }
         }
       })
     );
     return listItems;
+  };
+
+  const checkMetaFeatures = () => {
+    console.log('len', state.products);
+    if (state.products.length > 0) {
+      filterPrices().map((price: any) =>
+        Object.keys(price.metadata).map((featureItem: any) => {
+          if (
+            featureItem.includes(`feature_support_`) ||
+            featureItem.includes(`feature_advanced_`) ||
+            featureItem.includes(`feature_addon_`)
+          ) {
+            setShowExpand(true);
+          } else {
+            setShowExpand(false);
+          }
+        })
+      );
+    }
   };
 
   return (
@@ -287,77 +275,87 @@ export default function Plan() {
                   Manage
                 </button>
               )}
-              {/* if there is none of the list items do not show expand or line
-              if there is none of each type do not show title */}
               {expandComparison && (
                 <div>
                   <div className={styles.line} />
-                  <ul>
-                    <li className={styles.listTitle}>Support features</li>
-                    {getListItem('support', price.name).map((listItem) =>
-                      listItem.icon ? (
-                        listItem.icon === true && (
+                  {getListItem('support', price.name).length > 0 && (
+                    <ul>
+                      <li className={styles.listTitle}>
+                        {price.metadata.feature_support_title}
+                      </li>
+                      {getListItem('support', price.name).map((listItem) =>
+                        listItem.icon ? (
+                          listItem.icon === true && (
+                            <li key={listItem.item}>
+                              <div className={styles.iconContainer}>
+                                <Icon name='check' size='m' />
+                              </div>
+                              {listItem.item}
+                            </li>
+                          )
+                        ) : (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon name='close' size='m' />
                             </div>
                             {listItem.item}
                           </li>
                         )
-                      ) : (
-                        <li key={listItem.item}>
-                          <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
-                          </div>
-                          {listItem.item}
-                        </li>
-                      )
-                    )}
-                  </ul>
-                  <ul>
-                    <li className={styles.listTitle}>Advanced features</li>
-                    {getListItem('advanced', price.name).map((listItem) =>
-                      listItem.icon ? (
-                        listItem.icon === true && (
+                      )}
+                    </ul>
+                  )}
+                  {getListItem('advanced', price.name).length > 0 && (
+                    <ul>
+                      <li className={styles.listTitle}>
+                        {price.metadata.feature_advanced_title}
+                      </li>
+                      {getListItem('advanced', price.name).map((listItem) =>
+                        listItem.icon ? (
+                          listItem.icon === true && (
+                            <li key={listItem.item}>
+                              <div className={styles.iconContainer}>
+                                <Icon name='check' size='m' />
+                              </div>
+                              {listItem.item}
+                            </li>
+                          )
+                        ) : (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon name='close' size='m' />
                             </div>
                             {listItem.item}
                           </li>
                         )
-                      ) : (
-                        <li key={listItem.item}>
-                          <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
-                          </div>
-                          {listItem.item}
-                        </li>
-                      )
-                    )}
-                  </ul>
-                  <ul>
-                    <li className={styles.listTitle}>Available addons</li>
-                    {getListItem('addons', price.name).map((listItem) =>
-                      listItem.icon ? (
-                        listItem.icon === true && (
+                      )}
+                    </ul>
+                  )}
+                  {getListItem('addons', price.name).length > 0 && (
+                    <ul>
+                      <li className={styles.listTitle}>
+                        {price.metadata.feature_addons_title}
+                      </li>
+                      {getListItem('addons', price.name).map((listItem) =>
+                        listItem.icon ? (
+                          listItem.icon === true && (
+                            <li key={listItem.item}>
+                              <div className={styles.iconContainer}>
+                                <Icon name='check' size='m' />
+                              </div>
+                              {listItem.item}
+                            </li>
+                          )
+                        ) : (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon name='close' size='m' />
                             </div>
                             {listItem.item}
                           </li>
                         )
-                      ) : (
-                        <li key={listItem.item}>
-                          <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
-                          </div>
-                          {listItem.item}
-                        </li>
-                      )
-                    )}
-                  </ul>
+                      )}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>
@@ -382,14 +380,16 @@ export default function Plan() {
           </div>
         </div>
       )}
-      <div
-        className={styles.expandBtn}
-        role='button'
-        onClick={() => setExpandComparison(!expandComparison)}
-      >
-        {' '}
-        {expandComparison ? 'Collapse' : 'Display Full Comparison'}
-      </div>
+      {showExpand && (
+        <div
+          className={styles.expandBtn}
+          role='button'
+          onClick={() => setExpandComparison(!expandComparison)}
+        >
+          {' '}
+          {expandComparison ? 'Collapse' : 'Display Full Comparison'}
+        </div>
+      )}
     </div>
   );
 }
