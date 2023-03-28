@@ -7,8 +7,9 @@ import {
   Product,
   Organization,
   BaseSubscription,
+  postCheckout,
+  postCustomerPortal,
 } from './stripe.api';
-import {handleApiFail} from 'js/utils';
 import Icon from '../components/common/icon';
 import {ROOT_URL} from 'js/constants';
 
@@ -117,39 +118,27 @@ export default function Plan() {
   };
 
   const upgradePlan = (priceId: string) => {
-    console.log('Upgrade', priceId);
     if (!priceId || buttonsDisabled) {
       return;
     }
     setButtonDisabled(buttonsDisabled);
-    $.ajax({
-      dataType: 'json',
-      method: 'POST',
-      url: `${ROOT_URL}/api/v2/stripe/checkout-link?price_id=${priceId}&organization_uid=${state.organization?.uid}`,
-    })
-      .done(function (res) {
-        window.location.assign(res.url);
+    postCheckout(priceId, state.organization?.uid)
+      .then((data) => {
+        window.location.assign(data.url);
       })
-      .fail(handleApiFail)
-      .always(() => setButtonDisabled(!buttonsDisabled));
+      .finally(() => setButtonDisabled(!buttonsDisabled));
   };
 
   const managePlan = () => {
-    console.log('Manage', state.organization?.uid);
     if (!state.organization?.uid || buttonsDisabled) {
       return;
     }
     setButtonDisabled(buttonsDisabled);
-    $.ajax({
-      dataType: 'json',
-      method: 'POST',
-      url: `${ROOT_URL}/api/v2/stripe/customer-portal?organization_uid=${state.organization?.uid}`,
-    })
-      .done(function (res) {
-        window.location.assign(res.url);
+    postCustomerPortal(state.organization?.uid)
+      .then((data) => {
+        window.location.assign(data.url);
       })
-      .fail(handleApiFail)
-      .always(() => setButtonDisabled(!buttonsDisabled));
+      .finally(() => setButtonDisabled(!buttonsDisabled));
   };
 
   // Get feature items and matching icon boolean

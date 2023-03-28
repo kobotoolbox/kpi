@@ -1,4 +1,4 @@
-import {fetchGet} from 'jsapp/js/api';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
 
 export interface BaseProduct {
@@ -37,9 +37,19 @@ export interface Product extends BaseProduct {
   prices: Array<BasePrice>;
 }
 
+export interface Checkout {
+  url: string,
+}
+
+export interface Portal { 
+  url: string,
+}
+
 const PRODUCTS_URL = '/api/v2/stripe/products/';
 const SUBSCRIPTION_URL = '/api/v2/stripe/subscriptions/';
 const ORGANIZATION_URL = '/api/v2/organizations/';
+const CHECKOUT_URL = '/api/v2/stripe/checkout-link';
+const PORTAL_URL = '/api/v2/stripe/customer-portal';
 
 export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(PRODUCTS_URL);
@@ -51,4 +61,12 @@ export async function getSubscription(){
 
 export async function getOrganization(){
   return fetchGet<PaginatedResponse<Organization>>(ORGANIZATION_URL);
+}
+
+export async function postCheckout(priceId: string, organizationId: string) {
+  return fetchPost<Checkout>(`${CHECKOUT_URL}?price_id=${priceId}&organization_uid=${organizationId}`, {})
+}
+
+export async function postCustomerPortal(organizationId: string) {
+  return fetchPost<Portal>(`${PORTAL_URL}?organization_uid=${organizationId}`, {})
 }
