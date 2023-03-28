@@ -1,17 +1,11 @@
 # coding: utf-8
-from constance import config
 from django.contrib.auth.models import User
-from django.db import transaction
-from django.utils.timezone import now
-from django.utils.translation import gettext as t
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.pagination import LimitOffsetPagination
 
-from kobo.apps.trash_bin.exceptions import TrashIntegrityError
-from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer

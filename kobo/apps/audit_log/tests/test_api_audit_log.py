@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from ..models import AuditLog
+from ..models import AuditAction, AuditLog
 
 
 class ApiAuditLogTestCase(BaseTestCase):
@@ -46,7 +46,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            action='delete'
+            action=AuditAction.DELETE
         )
         self.client.login(username='admin', password='pass')
         expected = [{
@@ -74,7 +74,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            action='update',
+            action=AuditAction.UPDATE,
         )
         AuditLog.objects.create(
             user=anotheruser,
@@ -82,7 +82,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             model_name='bar',
             object_id=1,
             date_created=date_created,
-            action='delete',
+            action=AuditAction.DELETE,
         )
         self.client.login(username='admin', password='pass')
         expected = [{

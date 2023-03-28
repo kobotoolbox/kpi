@@ -7,7 +7,7 @@ from kpi.fields.kpi_uid import KpiUidField, UUID_LENGTH
 
 
 def add_uid_to_extra_details(apps, schema_editor):
-    ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')
+    ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')  # noqa
     page_size = 10000
     paginator = Paginator(
         ExtraUserDetail.objects.filter(uid='').order_by('pk'), page_size
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 max_length=UUID_LENGTH + 1,
             ),
         ),
-        migrations.RunPython(add_uid_to_extra_details, noop, atomic=True),
+        migrations.RunPython(add_uid_to_extra_details, noop),
         migrations.AlterField(
             model_name='extrauserdetail',
             name='uid',

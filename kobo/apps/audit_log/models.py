@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
 
+from kpi.fields.kpi_uid import UUID_LENGTH
 
 class AuditAction(models.TextChoices):
 
@@ -31,9 +32,27 @@ class AuditLog(models.Model):
         default=AuditAction.DELETE,
         db_index=True
     )
+    user_uid = models.CharField(max_length=UUID_LENGTH + 1)  # 1 is prefix length
 
     class Meta:
         index_together = (
             ('app_label', 'model_name', 'action'),
             ('app_label', 'model_name'),
+        )
+
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        if not self.user_uid:
+            self.user_uid = self.user.extra_details.uid
+
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
         )

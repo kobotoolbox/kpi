@@ -4,7 +4,6 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
-from constance import config
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -23,7 +22,6 @@ from kpi.constants import (
     CLONE_FROM_VERSION_ID_ARG_NAME,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
-
 from kpi.exceptions import (
     BadAssetTypeException,
 )

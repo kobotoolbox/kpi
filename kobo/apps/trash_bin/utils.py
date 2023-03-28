@@ -66,6 +66,7 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
             model_name=asset._meta.model_name,
             object_id=asset_id,
             user=request_author,
+            action=AuditAction.DELETE,
             metadata={
                 'asset_uid': asset_uid,
                 'asset_name': asset.name,
@@ -144,8 +145,9 @@ def move_to_trash(
                 model_name=related_model._meta.model_name,
                 object_id=obj_dict['pk'],
                 user=request_author,
+                user_uid=request_author.extra_details.uid,
                 action=AuditAction.IN_TRASH,
-                metadata=_remove_pk_from_dict(obj_dict)
+                metadata=_remove_pk_from_dict(obj_dict),
             )
         )
 
@@ -224,6 +226,7 @@ def put_back(
                 model_name=related_model._meta.model_name,
                 object_id=obj_dict['pk'],
                 user=request_author,
+                user_uid=request_author.extra_details.uid,
                 action=AuditAction.PUT_BACK,
                 metadata=_remove_pk_from_dict(obj_dict)
             )
@@ -313,10 +316,12 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
                 model_name=model_name,
                 object_id=submission['_id'],
                 user=request_author,
+                user_uid=request_author.extra_details.uid,
                 metadata={
                     'asset_uid': asset.uid,
                     'uuid': submission['_uuid'],
-                }
+                },
+                action=AuditAction.DELETE,
             ))
             submission_ids.append(submission['_id'])
 
@@ -338,7 +343,7 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
 
         if audit_logs:
             if json_response['status'] == status.HTTP_404_NOT_FOUND:
-                # Submissions are wandering in MongoDB but XForm has been
+                # Submissions are lingering in MongoDB but XForm has been
                 # already deleted
                 if not MongoHelper.delete(
                     asset.deployment.mongo_userform_id, submission_ids

@@ -99,6 +99,7 @@ def empty_account(account_trash_id: int):
                 'model_name': get_user_model()._meta.model_name,
                 'object_id': user_id,
                 'user': account_trash.request_author,
+                'user_uid': account_trash.request_author.extra_details.uid,
                 'metadata': {
                     'username': user.username,
                 }
