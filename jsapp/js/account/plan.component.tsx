@@ -10,6 +10,7 @@ import {
   postCheckout,
   postCustomerPortal,
   BasePrice,
+  Price,
 } from './stripe.api';
 import Icon from '../components/common/icon';
 
@@ -96,7 +97,7 @@ export default function Plan() {
   }, [state.products]);
 
   // Filter prices based on plan interval
-  const filterPrices = () => {
+  const filterPrices = (): Price[] => {
     if (state.products.length > 0) {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
@@ -110,16 +111,14 @@ export default function Plan() {
       });
       return filterAmount.filter((product: Product) => product.prices);
     }
+    return [];
   };
 
-  const isSubscribedProduct = (product: Product) => {
-    console.log(product.prices);
-    //   if( product.prices.unit_amount === 0 && !state.subscribedProduct?.length ) {
-    //     return true;
-    //   }
-    //   return product.name === state.subscribedProduct?.name;
-    // };
-    return true;
+  const isSubscribedProduct = (product: Price) => {
+    if (product.prices.unit_amount === 0 && !state.subscribedProduct?.length) {
+      return true;
+    }
+    return product.name === state.subscribedProduct?.name;
   };
 
   const upgradePlan = (priceId: string) => {
@@ -129,7 +128,9 @@ export default function Plan() {
     setButtonDisabled(buttonsDisabled);
     postCheckout(priceId, state.organization?.uid)
       .then((data) => {
-        window.location.assign(data.url);
+        if (!data.url) {
+          alert('There has been an issue, please try again later.');
+        } else window.location.assign(data.url);
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
   };
@@ -141,7 +142,9 @@ export default function Plan() {
     setButtonDisabled(buttonsDisabled);
     postCustomerPortal(state.organization?.uid)
       .then((data) => {
-        window.location.assign(data.url);
+        if (!data.url) {
+          alert('There has been an issue, please try again later.');
+        } else window.location.assign(data.url);
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
   };
@@ -149,7 +152,7 @@ export default function Plan() {
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
     const listItems: {icon: boolean; item: string}[] = [];
-    filterPrices().map((price: any) =>
+    filterPrices().map((price) =>
       Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
@@ -174,9 +177,8 @@ export default function Plan() {
   };
 
   const checkMetaFeatures = () => {
-    console.log('len', state.products);
     if (state.products.length > 0) {
-      filterPrices().map((price: any) =>
+      filterPrices().map((price) =>
         Object.keys(price.metadata).map((featureItem: string) => {
           if (
             featureItem.includes(`feature_support_`) ||
@@ -227,7 +229,7 @@ export default function Plan() {
         >
           Your Plan
         </div>
-        {filterPrices().map((price: any, i: number) => (
+        {filterPrices().map((price: Price, i: number) => (
           <div className={styles.planContainer} key={i}>
             <h1 className={styles.priceName}> {price.name} </h1>
             <div className={styles.priceTitle}>
@@ -250,6 +252,7 @@ export default function Plan() {
                   )
               )}
             </ul>
+
             {!isSubscribedProduct(price) && (
               <button
                 className={[styles.resetButton, styles.upgradeBtn].join(' ')}

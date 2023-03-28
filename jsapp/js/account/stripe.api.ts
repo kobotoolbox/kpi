@@ -6,7 +6,7 @@ export interface BaseProduct {
   name: string;
   description: string;
   type: string;
-  metadata: unknown;
+  metadata: {[key: string]: string};
 }
 
 export interface BasePrice {
@@ -16,7 +16,7 @@ export interface BasePrice {
     type: string;
     unit_amount: number;
     human_readable_price: string;
-    metadata: unknown;
+    metadata: {[key: string]: string};
 }
 
 export interface BaseSubscription {
@@ -35,6 +35,10 @@ export interface Organization {
 
 export interface Product extends BaseProduct {
   prices: Array<BasePrice>;
+}
+
+export interface Price extends BaseProduct {
+  prices: BasePrice;
 }
 
 export interface Checkout {
