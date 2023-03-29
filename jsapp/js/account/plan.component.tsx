@@ -108,8 +108,8 @@ export default function Plan() {
     }
     const priceId = searchParams.get('checkout');
     if (priceId) {
-      const isSubscriptionUpdated = state.subscribedProduct.find((subscription:any) => {
-        return subscription.items.find((item:any) => item.price.id === priceId)
+      const isSubscriptionUpdated = state.subscribedProduct.find((subscription: BaseSubscription) => {
+        return subscription.items.find((item) => item.price.id === priceId)
       });
       if (isSubscriptionUpdated) {
         notify.success( t('Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.') );

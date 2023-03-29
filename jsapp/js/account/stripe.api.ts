@@ -22,6 +22,7 @@ export interface BasePrice {
 export interface BaseSubscription {
   id: number;
   price: Product;
+  items: [{ price:BasePrice }];
 }
 
 export interface Organization {
@@ -41,7 +42,7 @@ export interface Checkout {
   url: string,
 }
 
-export interface Portal { 
+export interface Portal {
   url: string,
 }
 
