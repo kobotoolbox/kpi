@@ -272,17 +272,19 @@ export default function Plan() {
                 {t('Upgrade')}
               </button>
             )}
-            {isSubscribedProduct(price) && state.organization?.uid && (
-              <button
-                className={[styles.resetButton, styles.manageBtn].join(' ')}
-                onClick={managePlan}
-                disabled={buttonsDisabled}
-                aria-disabled={buttonsDisabled}
-                aria-label={`manage your ${price.name} subscription`}
-              >
-                {t('Manage')}
-              </button>
-            )}
+            {isSubscribedProduct(price) &&
+              state.organization?.uid &&
+              price.name !== 'Community plan' && (
+                <button
+                  className={[styles.resetButton, styles.manageBtn].join(' ')}
+                  onClick={managePlan}
+                  disabled={buttonsDisabled}
+                  aria-disabled={buttonsDisabled}
+                  aria-label={`manage your ${price.name} subscription`}
+                >
+                  {t('Manage')}
+                </button>
+              )}
             {expandComparison && (
               <div>
                 <div className={styles.line} />
