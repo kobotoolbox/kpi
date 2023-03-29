@@ -67,7 +67,6 @@ export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
   const [buttonsDisabled, setButtonDisabled] = useState(false);
-  const [showExpand, setShowExpand] = useState(false);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -177,22 +176,24 @@ export default function Plan() {
   };
 
   const checkMetaFeatures = () => {
-    if (state.products.length > 0) {
-      filterPrices().map((price) =>
-        Object.keys(price.metadata).map((featureItem: string) => {
+    let expandBool = false;
+    if (state.products.length >= 0) {
+      filterPrices().map((price) => {
+        for (const featureItem in price.metadata) {
           if (
             featureItem.includes(`feature_support_`) ||
             featureItem.includes(`feature_advanced_`) ||
             featureItem.includes(`feature_addon_`)
           ) {
-            setShowExpand(true);
-          } else {
-            setShowExpand(false);
+            expandBool = true;
+            break;
           }
-        })
-      );
+        }
+      });
     }
+    return expandBool;
   };
+
   if (!state.products.length) return null;
   return (
     <div className={styles.accountPlan}>
@@ -427,13 +428,12 @@ export default function Plan() {
         </div>
       </div>
 
-      {showExpand && (
+      {checkMetaFeatures() && (
         <div
           className={styles.expandBtn}
           role='button'
           onClick={() => setExpandComparison(!expandComparison)}
         >
-          {' '}
           {expandComparison ? t('Collapse') : t('Display full comparison')}
         </div>
       )}
