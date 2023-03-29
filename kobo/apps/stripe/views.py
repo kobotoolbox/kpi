@@ -69,7 +69,8 @@ class CheckoutLinkView(
                 },
             ],
             metadata={
-                'organization_uid': organization_uid
+                'organization_uid': organization_uid,
+                'price_id': price.id,
             },
             mode=checkout_mode,
             payment_method_types=["card"],
