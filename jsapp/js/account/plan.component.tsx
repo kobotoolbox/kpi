@@ -206,7 +206,7 @@ export default function Plan() {
             onChange={() => dispatch({type: 'year'})}
             checked={!state.filterToggle}
           />
-          <label htmlFor='switch_left'>Annual</label>
+          <label htmlFor='switch_left'>{t('Annual')}</label>
 
           <input
             type='radio'
@@ -216,7 +216,7 @@ export default function Plan() {
             onChange={() => dispatch({type: 'month'})}
             checked={state.filterToggle}
           />
-          <label htmlFor='switch_right'>Monthly</label>
+          <label htmlFor='switch_right'> {t('Monthly')}</label>
         </form>
         <div
           className={styles.currentPlan}
@@ -227,7 +227,7 @@ export default function Plan() {
               filterPrices().findIndex(isSubscribedProduct) >= 0 ? '' : 'none',
           }}
         >
-          Your Plan
+          {t('Your Plan')}
         </div>
         {filterPrices().map((price: Price, i: number) => (
           <div className={styles.planContainer} key={i}>
@@ -235,7 +235,7 @@ export default function Plan() {
             <div className={styles.priceTitle}>
               {typeof price.prices.human_readable_price === 'string' &&
                 (price.prices.human_readable_price.includes('$0.00')
-                  ? 'Free'
+                  ? t('Free')
                   : price.prices.human_readable_price)}
             </div>
 
@@ -269,7 +269,7 @@ export default function Plan() {
                 disabled={buttonsDisabled}
                 aria-disabled={buttonsDisabled}
               >
-                Upgrade
+                {t('Upgrade')}
               </button>
             )}
             {isSubscribedProduct(price) && state.organization?.uid && (
@@ -280,7 +280,7 @@ export default function Plan() {
                 aria-disabled={buttonsDisabled}
                 aria-label={`manage your ${price.name} subscription`}
               >
-                Manage
+                {t('Manage')}
               </button>
             )}
             {expandComparison && (
@@ -406,19 +406,20 @@ export default function Plan() {
         ))}
 
         <div className={styles.enterprisePlan}>
-          <h1 className={styles.enterpriseTitle}> Need More?</h1>
+          <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
           <p className={styles.enterpriseDetails}>
-            We offer add-on options to increase your limits or the capacity of
-            certain features for a period of time. Scroll down to learn more and
-            purchase add-ons.
+            {t(
+              'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
+            )}
           </p>
           <p className={styles.enterpriseDetails}>
-            If your organization has larger or more specific needs, contact our
-            team to learn about our enterprise options.
+            {t(
+              'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
+            )}
           </p>
           <div className={styles.enterpriseLink}>
             <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
-              Get in touch for Enterprise options
+              {t('Get in touch for Enterprise options')}
             </a>
           </div>
         </div>
@@ -431,7 +432,7 @@ export default function Plan() {
           onClick={() => setExpandComparison(!expandComparison)}
         >
           {' '}
-          {expandComparison ? 'Collapse' : 'Display Full Comparison'}
+          {expandComparison ? t('Collapse') : t('Display Full Comparison')}
         </div>
       )}
     </div>
