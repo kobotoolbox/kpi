@@ -392,21 +392,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if hasattr(e, 'response'):
-                if e.response.status_code == status.HTTP_404_NOT_FOUND:
-                    # The KC project is already gone!
-                    pass
-                elif e.response.status_code in [
-                    status.HTTP_502_BAD_GATEWAY,
-                    status.HTTP_504_GATEWAY_TIMEOUT,
-                ]:
-                    raise KobocatCommunicationError
-                elif e.response.status_code == status.HTTP_401_UNAUTHORIZED:
-                    raise KobocatCommunicationError(
-                        'Could not authenticate with KoBoCAT'
-                    )
+            if not hasattr(e, 'response'):
+                raise
+
+            if e.response.status_code == status.HTTP_404_NOT_FOUND:
+                # The KC project is already gone!
+                pass
+            elif e.response.status_code in [
+                status.HTTP_502_BAD_GATEWAY,
+                status.HTTP_504_GATEWAY_TIMEOUT,
+            ]:
+                raise KobocatCommunicationError
+            elif e.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                raise KobocatCommunicationError(
+                    'Could not authenticate to KoBoCAT'
+                )
             else:
                 raise
+
         super().delete()
 
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:

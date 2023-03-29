@@ -5,7 +5,6 @@ from copy import deepcopy
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.core.files.storage import default_storage
 from django.db import IntegrityError, models, transaction
 from django.db.models import F
 from django.db.models.signals import pre_delete
@@ -43,9 +42,6 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
     project_exports = []
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
-        deployment_backend_uuid = asset.deployment.get_data(
-            'backend_response.uuid'
-        )
         asset.deployment.delete()
         project_exports = ExportTask.objects.filter(
             data__source__endswith=f'/api/v2/assets/{asset.uid}/'
@@ -73,12 +69,8 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
             }
         )
 
-    # Delete all related files
-    default_storage.delete(f'{owner_username}/xls/{asset_uid}.xls')
-    default_storage.delete(f'{owner_username}/xls/{asset_uid}.xlsx')
+    # Delete media files left on storage
     rmdir(f'{owner_username}/asset_files/{asset_uid}')
-    if deployment_backend_uuid:
-        rmdir(f'{owner_username}/form-media/{deployment_backend_uuid}')
 
 
 @transaction.atomic

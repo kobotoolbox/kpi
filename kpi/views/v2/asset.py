@@ -750,7 +750,9 @@ class AssetViewSet(
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):
-        self._delete_assets({'payload':  {'asset_uids': [instance.uid]}})
+        self._delete_assets(
+            {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
+        )
 
     @action(
         detail=True,
