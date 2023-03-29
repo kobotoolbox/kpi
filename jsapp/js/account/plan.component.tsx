@@ -227,7 +227,7 @@ export default function Plan() {
               filterPrices().findIndex(isSubscribedProduct) >= 0 ? '' : 'none',
           }}
         >
-          {t('Your Plan')}
+          {t('your plan')}
         </div>
         {filterPrices().map((price: Price, i: number) => (
           <div className={styles.planContainer} key={i}>
@@ -434,7 +434,7 @@ export default function Plan() {
           onClick={() => setExpandComparison(!expandComparison)}
         >
           {' '}
-          {expandComparison ? t('Collapse') : t('Display Full Comparison')}
+          {expandComparison ? t('Collapse') : t('Display full comparison')}
         </div>
       )}
     </div>
