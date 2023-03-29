@@ -100,7 +100,7 @@ export default function Plan() {
   }, [state.products]);
 
   useEffect(() => {
-    // display a success message if
+    // display a success message if we're returning from Stripe checkout
     // only run *after* first render
     if (!didMount.current) {
       didMount.current = true;
