@@ -24,7 +24,7 @@ interface PlanState {
 }
 
 // An interface for our action
-interface dataUpdates {
+interface DataUpdates {
   type: string;
   prodData?: any;
 }
@@ -38,7 +38,7 @@ const initialState = {
   organization: null,
 };
 
-function planReducer(state: PlanState, action: dataUpdates) {
+function planReducer(state: PlanState, action: DataUpdates) {
   switch (action.type) {
     case 'initialProd':
       return {...state, products: action.prodData};
@@ -181,9 +181,9 @@ export default function Plan() {
       filterPrices().map((price) => {
         for (const featureItem in price.metadata) {
           if (
-            featureItem.includes(`feature_support_`) ||
-            featureItem.includes(`feature_advanced_`) ||
-            featureItem.includes(`feature_addon_`)
+            featureItem.includes('feature_support_') ||
+            featureItem.includes('feature_advanced_') ||
+            featureItem.includes('feature_addon_')
           ) {
             expandBool = true;
             break;
