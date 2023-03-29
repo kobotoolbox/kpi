@@ -54,6 +54,7 @@ class ApiAuditLogTestCase(BaseTestCase):
             'model_name': 'bar',
             'object_id': 1,
             'user': 'http://testserver/users/someuser/',
+            'user_uid': someuser.extra_details.uid,
             'action': 'DELETE',
             'metadata': {},
             'date_created': date_created,
@@ -90,11 +91,12 @@ class ApiAuditLogTestCase(BaseTestCase):
             'model_name': 'bar',
             'object_id': 1,
             'user': 'http://testserver/users/anotheruser/',
-            'method': 'DELETE',
+            'user_uid': anotheruser.extra_details.uid,
+            'action': 'DELETE',
             'metadata': {},
             'date_created': date_created,
         }]
-        response = self.client.get(f'{self.audit_log_list_url}?q=method:delete')
+        response = self.client.get(f'{self.audit_log_list_url}?q=action:delete')
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK
         assert audit_logs_count == 2
