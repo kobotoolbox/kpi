@@ -44,13 +44,8 @@ export default function FormSummaryProjectInfo(
       });
   }, []);
 
-  let lastDeployedDate;
-  if (
-    props.asset.deployed_versions?.results &&
-    props.asset.deployed_versions?.results.length > 0
-  ) {
-    lastDeployedDate = props.asset.deployed_versions.results[0].date_modified;
-  }
+  const lastDeployedDate =
+    props.asset.deployed_versions?.results?.[0]?.date_modified;
 
   return (
     <bem.FormView__row>

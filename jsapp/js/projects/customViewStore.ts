@@ -70,7 +70,11 @@ class CustomViewStore {
 
     // Observe changes to searchBoxStore
     reaction(
-      () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
+      () => [
+        searchBoxStore.data.context,
+        searchBoxStore.data.searchPhrase,
+        searchBoxStore.data.lastContextUpdateDate,
+      ],
       () => {
         // We are only interested in changes within current context.
         if (searchBoxStore.data.context === this.searchContext) {

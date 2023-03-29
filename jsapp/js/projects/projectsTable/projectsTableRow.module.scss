@@ -39,16 +39,9 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &[data-field='checkbox'] {
     // Checkbox has double padding on the right to make for a more forgiving
     // touch target
-    min-width: sizes.$x18 + sizes.$x20 + sizes.$x36;
-    width: sizes.$x18 + sizes.$x20 + sizes.$x36;
-    padding-right: sizes.$x36;
+    min-width: sizes.$x18 + sizes.$x20 + sizes.$x18;
+    width: sizes.$x18 + sizes.$x20 + sizes.$x18;
     @include mixins.centerRowFlex;
-
-    // Checkbox cell "eats" the left padding of the next cell so its extra
-    // width does not change the layout
-    & + [data-field] {
-      padding-left: 0;
-    }
 
     // Hovering the checkbox cell clears the underline text-decoration on
     // Project Name. This clarifies where it's safe to click or not,
