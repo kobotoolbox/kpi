@@ -194,7 +194,9 @@ export default function Plan() {
     return expandBool;
   };
 
-  if (!state.products.length) return null;
+  if (!state.products.length) {
+    return null;
+  }
   return (
     <div className={styles.accountPlan}>
       <div className={styles.plansSection}>
