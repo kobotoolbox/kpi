@@ -9,7 +9,7 @@ from kpi.fields.kpi_uid import UUID_LENGTH
 def update_user_uids(apps, schema_editor):
 
     AuditLog = apps.get_model('audit_log', 'AuditLog')  # noqa
-    page_size = 2000  # Small page size. Otherwise, bulk update is really slow
+    page_size = 10000
     paginator = Paginator(
         AuditLog.objects.filter(user_uid='')
         .select_related('user', 'user__extra_details')
@@ -21,7 +21,7 @@ def update_user_uids(apps, schema_editor):
         for audit_log in audit_logs:
             if audit_log.user:
                 audit_log.user_uid = audit_log.user.extra_details.uid
-        AuditLog.objects.bulk_update(audit_logs, ['user_uid'])
+        AuditLog.objects.bulk_update(audit_logs, ['user_uid'], batch_size=2000)
 
 
 def noop(*args, **kwargs):
@@ -31,7 +31,7 @@ def noop(*args, **kwargs):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hub', '0008_add_removal_dates_to_extrauserdetail'),
+        ('hub', '0009_add_uid_to_extra_details'),
         ('audit_log', '0003_alter_auditlog_user'),
     ]
 

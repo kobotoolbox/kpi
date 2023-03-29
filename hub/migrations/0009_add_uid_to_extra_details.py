@@ -10,12 +10,13 @@ def add_uid_to_extra_details(apps, schema_editor):
     ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')  # noqa
     page_size = 10000
     paginator = Paginator(
-        ExtraUserDetail.objects.filter(uid='').order_by('pk'), page_size
+        ExtraUserDetail.objects.all().order_by('pk'), page_size
     )
     for page in paginator.page_range:
         user_details = paginator.page(page).object_list
         for user_detail in user_details:
-            user_detail.uid = KpiUidField.generate_unique_id('u')
+            if not user_detail.uid:
+                user_detail.uid = KpiUidField.generate_unique_id('u')
         ExtraUserDetail.objects.bulk_update(user_details, ['uid'])
 
 
