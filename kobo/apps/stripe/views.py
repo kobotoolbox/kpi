@@ -90,11 +90,11 @@ class CheckoutLinkView(
             ],
             metadata={
                 'organization_uid': organization_uid,
-                'price_id': price_id,
+                'price_id': price.id,
             },
             mode=checkout_mode,
             payment_method_types=["card"],
-            success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout_complete=true',
+            success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
         )
 
     def post(self, request):

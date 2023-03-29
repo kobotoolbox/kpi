@@ -1,4 +1,5 @@
-import React, {useEffect, useReducer, useState} from 'react';
+import React, {useEffect, useReducer, useRef, useState} from 'react';
+import {useSearchParams} from "react-router-dom";
 import styles from './plan.module.scss';
 import {
   getOrganization,
@@ -12,6 +13,7 @@ import {
   BasePrice,
 } from './stripe.api';
 import Icon from '../components/common/icon';
+import {notify} from "js/utils";
 
 interface PlanState {
   isLoading: boolean;
@@ -67,6 +69,8 @@ export default function Plan() {
   const [expandComparison, setExpandComparison] = useState(false);
   const [buttonsDisabled, setButtonDisabled] = useState(false);
   const [showExpand, setShowExpand] = useState(false);
+  const [searchParams, _setSearchParams] = useSearchParams();
+  const didMount = useRef(false);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -94,6 +98,27 @@ export default function Plan() {
   useEffect(() => {
     checkMetaFeatures();
   }, [state.products]);
+
+  useEffect(() => {
+    // display a success message if
+    // only run *after* first render
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    const priceId = searchParams.get('checkout');
+    if (priceId) {
+      const isSubscriptionUpdated = state.subscribedProduct.find((subscription:any) => {
+        return subscription.items.find((item:any) => item.price.id === priceId)
+      });
+      if (isSubscriptionUpdated) {
+        notify.success( t('Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.') );
+      }
+      else {
+        notify.success( t('Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.') );
+      }
+    }
+  }, [state.subscribedProduct])
 
   // Filter prices based on plan interval
   const filterPrices = () => {
