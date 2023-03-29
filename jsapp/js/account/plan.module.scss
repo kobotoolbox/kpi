@@ -61,11 +61,11 @@
 
 .planContainer {
   grid-auto-columns: 1fr;
-  width: 27em;
+  width: 25em;
   grid-row: 3/4;
   border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid 1px;
-  padding: 27px 57px;
+  padding: 27px 54px;
 }
 
 .priceName,
@@ -100,7 +100,7 @@
 }
 
 li {
-  padding: sizes.$x12 0;
+  padding: sizes.$x6 0;
   vertical-align: middle;
   display: flex;
   font-weight: 400;
@@ -114,15 +114,23 @@ li {
 }
 
 .stormCheck {
-  color: colors.$kobo-storm
+  color: colors.$kobo-storm;
+}
+
+.tealCheck {
+color: colors.$kobo-teal;
+}
+
+.redClose { 
+  color: colors.$kobo-red;
 }
 
 .enterprisePlan {
   background-color: colors.$kobo-light-blue;
   grid-column: 1fr;
-  width: 27em;
+  width: 25em;
   grid-row: 3/4;
-  padding: 39px 48px;
+  padding: 39px 46px;
   height: auto;
   overflow: hidden;
 }

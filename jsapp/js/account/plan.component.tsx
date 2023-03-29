@@ -245,7 +245,15 @@ export default function Plan() {
                   featureItem.includes('feature_list_') && (
                     <li key={featureItem}>
                       <div className={styles.iconContainer}>
-                        <Icon name='check' size='m' />
+                        <Icon
+                          name='check'
+                          size='m'
+                          classNames={
+                            price.name === 'Professional plan'
+                              ? [styles.tealCheck]
+                              : [styles.stormCheck]
+                          }
+                        />
                       </div>
                       {price.metadata[featureItem]}
                     </li>
@@ -288,7 +296,15 @@ export default function Plan() {
                         listItem.icon === true && (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon
+                                name='check'
+                                size='m'
+                                classNames={
+                                  price.name === 'Professional plan'
+                                    ? [styles.tealCheck]
+                                    : [styles.stormCheck]
+                                }
+                              />
                             </div>
                             {listItem.item}
                           </li>
@@ -296,7 +312,11 @@ export default function Plan() {
                       ) : (
                         <li key={listItem.item}>
                           <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
+                            <Icon
+                              name='close'
+                              size='m'
+                              classNames={[styles.redClose]}
+                            />
                           </div>
                           {listItem.item}
                         </li>
@@ -314,7 +334,15 @@ export default function Plan() {
                         listItem.icon === true && (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon
+                                name='check'
+                                size='m'
+                                classNames={
+                                  price.name === 'Professional plan'
+                                    ? [styles.tealCheck]
+                                    : [styles.stormCheck]
+                                }
+                              />
                             </div>
                             {listItem.item}
                           </li>
@@ -322,7 +350,11 @@ export default function Plan() {
                       ) : (
                         <li key={listItem.item}>
                           <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
+                            <Icon
+                              name='close'
+                              size='m'
+                              classNames={[styles.redClose]}
+                            />
                           </div>
                           {listItem.item}
                         </li>
@@ -340,7 +372,15 @@ export default function Plan() {
                         listItem.icon === true && (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon
+                                name='check'
+                                size='m'
+                                classNames={
+                                  price.name === 'Professional plan'
+                                    ? [styles.tealCheck]
+                                    : [styles.stormCheck]
+                                }
+                              />
                             </div>
                             {listItem.item}
                           </li>
@@ -348,7 +388,11 @@ export default function Plan() {
                       ) : (
                         <li key={listItem.item}>
                           <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
+                            <Icon
+                              name='close'
+                              size='m'
+                              classNames={[styles.redClose]}
+                            />
                           </div>
                           {listItem.item}
                         </li>
