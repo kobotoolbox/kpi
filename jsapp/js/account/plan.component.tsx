@@ -11,6 +11,7 @@ import {
   postCheckout,
   postCustomerPortal,
   BasePrice,
+  Price,
 } from './stripe.api';
 import Icon from '../components/common/icon';
 import {notify} from "js/utils";
@@ -121,7 +122,7 @@ export default function Plan() {
   }, [state.subscribedProduct])
 
   // Filter prices based on plan interval
-  const filterPrices = () => {
+  const filterPrices = (): Price[] => {
     if (state.products.length > 0) {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
@@ -135,16 +136,14 @@ export default function Plan() {
       });
       return filterAmount.filter((product: Product) => product.prices);
     }
+    return [];
   };
 
-  const isSubscribedProduct = (product: Product) => {
-    console.log(product.prices);
-    //   if( product.prices.unit_amount === 0 && !state.subscribedProduct?.length ) {
-    //     return true;
-    //   }
-    //   return product.name === state.subscribedProduct?.name;
-    // };
-    return true;
+  const isSubscribedProduct = (product: Price) => {
+    if (product.prices.unit_amount === 0 && !state.subscribedProduct?.length) {
+      return true;
+    }
+    return product.name === state.subscribedProduct?.name;
   };
 
   const upgradePlan = (priceId: string) => {
@@ -154,7 +153,9 @@ export default function Plan() {
     setButtonDisabled(buttonsDisabled);
     postCheckout(priceId, state.organization?.uid)
       .then((data) => {
-        window.location.assign(data.url);
+        if (!data.url) {
+          alert('There has been an issue, please try again later.');
+        } else window.location.assign(data.url);
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
   };
@@ -166,7 +167,9 @@ export default function Plan() {
     setButtonDisabled(buttonsDisabled);
     postCustomerPortal(state.organization?.uid)
       .then((data) => {
-        window.location.assign(data.url);
+        if (!data.url) {
+          alert('There has been an issue, please try again later.');
+        } else window.location.assign(data.url);
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
   };
@@ -174,7 +177,7 @@ export default function Plan() {
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
     const listItems: {icon: boolean; item: string}[] = [];
-    filterPrices().map((price: any) =>
+    filterPrices().map((price) =>
       Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
@@ -199,9 +202,8 @@ export default function Plan() {
   };
 
   const checkMetaFeatures = () => {
-    console.log('len', state.products);
     if (state.products.length > 0) {
-      filterPrices().map((price: any) =>
+      filterPrices().map((price) =>
         Object.keys(price.metadata).map((featureItem: string) => {
           if (
             featureItem.includes(`feature_support_`) ||
@@ -229,7 +231,7 @@ export default function Plan() {
             onChange={() => dispatch({type: 'year'})}
             checked={!state.filterToggle}
           />
-          <label htmlFor='switch_left'>Annual</label>
+          <label htmlFor='switch_left'>{t('Annual')}</label>
 
           <input
             type='radio'
@@ -239,7 +241,7 @@ export default function Plan() {
             onChange={() => dispatch({type: 'month'})}
             checked={state.filterToggle}
           />
-          <label htmlFor='switch_right'>Monthly</label>
+          <label htmlFor='switch_right'> {t('Monthly')}</label>
         </form>
         <div
           className={styles.currentPlan}
@@ -250,15 +252,15 @@ export default function Plan() {
               filterPrices().findIndex(isSubscribedProduct) >= 0 ? '' : 'none',
           }}
         >
-          Your Plan
+          {t('your plan')}
         </div>
-        {filterPrices().map((price: any, i: number) => (
+        {filterPrices().map((price: Price, i: number) => (
           <div className={styles.planContainer} key={i}>
             <h1 className={styles.priceName}> {price.name} </h1>
             <div className={styles.priceTitle}>
               {typeof price.prices.human_readable_price === 'string' &&
                 (price.prices.human_readable_price.includes('$0.00')
-                  ? 'Free'
+                  ? t('Free')
                   : price.prices.human_readable_price)}
             </div>
 
@@ -268,13 +270,22 @@ export default function Plan() {
                   featureItem.includes('feature_list_') && (
                     <li key={featureItem}>
                       <div className={styles.iconContainer}>
-                        <Icon name='check' size='m' />
+                        <Icon
+                          name='check'
+                          size='m'
+                          classNames={
+                            price.name === 'Professional plan'
+                              ? [styles.tealCheck]
+                              : [styles.stormCheck]
+                          }
+                        />
                       </div>
                       {price.metadata[featureItem]}
                     </li>
                   )
               )}
             </ul>
+
             {!isSubscribedProduct(price) && (
               <button
                 className={[styles.resetButton, styles.upgradeBtn].join(' ')}
@@ -283,20 +294,22 @@ export default function Plan() {
                 disabled={buttonsDisabled}
                 aria-disabled={buttonsDisabled}
               >
-                Upgrade
+                {t('Upgrade')}
               </button>
             )}
-            {isSubscribedProduct(price) && state.organization?.uid && (
-              <button
-                className={[styles.resetButton, styles.manageBtn].join(' ')}
-                onClick={managePlan}
-                disabled={buttonsDisabled}
-                aria-disabled={buttonsDisabled}
-                aria-label={`manage your ${price.name} subscription`}
-              >
-                Manage
-              </button>
-            )}
+            {isSubscribedProduct(price) &&
+              state.organization?.uid &&
+              price.name !== 'Community plan' && (
+                <button
+                  className={[styles.resetButton, styles.manageBtn].join(' ')}
+                  onClick={managePlan}
+                  disabled={buttonsDisabled}
+                  aria-disabled={buttonsDisabled}
+                  aria-label={`manage your ${price.name} subscription`}
+                >
+                  {t('Manage')}
+                </button>
+              )}
             {expandComparison && (
               <div>
                 <div className={styles.line} />
@@ -310,7 +323,15 @@ export default function Plan() {
                         listItem.icon === true && (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon
+                                name='check'
+                                size='m'
+                                classNames={
+                                  price.name === 'Professional plan'
+                                    ? [styles.tealCheck]
+                                    : [styles.stormCheck]
+                                }
+                              />
                             </div>
                             {listItem.item}
                           </li>
@@ -318,7 +339,11 @@ export default function Plan() {
                       ) : (
                         <li key={listItem.item}>
                           <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
+                            <Icon
+                              name='close'
+                              size='m'
+                              classNames={[styles.redClose]}
+                            />
                           </div>
                           {listItem.item}
                         </li>
@@ -336,7 +361,15 @@ export default function Plan() {
                         listItem.icon === true && (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon
+                                name='check'
+                                size='m'
+                                classNames={
+                                  price.name === 'Professional plan'
+                                    ? [styles.tealCheck]
+                                    : [styles.stormCheck]
+                                }
+                              />
                             </div>
                             {listItem.item}
                           </li>
@@ -344,7 +377,11 @@ export default function Plan() {
                       ) : (
                         <li key={listItem.item}>
                           <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
+                            <Icon
+                              name='close'
+                              size='m'
+                              classNames={[styles.redClose]}
+                            />
                           </div>
                           {listItem.item}
                         </li>
@@ -362,7 +399,15 @@ export default function Plan() {
                         listItem.icon === true && (
                           <li key={listItem.item}>
                             <div className={styles.iconContainer}>
-                              <Icon name='check' size='m' />
+                              <Icon
+                                name='check'
+                                size='m'
+                                classNames={
+                                  price.name === 'Professional plan'
+                                    ? [styles.tealCheck]
+                                    : [styles.stormCheck]
+                                }
+                              />
                             </div>
                             {listItem.item}
                           </li>
@@ -370,7 +415,11 @@ export default function Plan() {
                       ) : (
                         <li key={listItem.item}>
                           <div className={styles.iconContainer}>
-                            <Icon name='close' size='m' />
+                            <Icon
+                              name='close'
+                              size='m'
+                              classNames={[styles.redClose]}
+                            />
                           </div>
                           {listItem.item}
                         </li>
@@ -384,19 +433,20 @@ export default function Plan() {
         ))}
 
         <div className={styles.enterprisePlan}>
-          <h1 className={styles.enterpriseTitle}> Need More?</h1>
+          <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
           <p className={styles.enterpriseDetails}>
-            We offer add-on options to increase your limits or the capacity of
-            certain features for a period of time. Scroll down to learn more and
-            purchase add-ons.
+            {t(
+              'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
+            )}
           </p>
           <p className={styles.enterpriseDetails}>
-            If your organization has larger or more specific needs, contact our
-            team to learn about our enterprise options.
+            {t(
+              'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
+            )}
           </p>
           <div className={styles.enterpriseLink}>
             <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
-              Get in touch for Enterprise options
+              {t('Get in touch for Enterprise options')}
             </a>
           </div>
         </div>
@@ -409,7 +459,7 @@ export default function Plan() {
           onClick={() => setExpandComparison(!expandComparison)}
         >
           {' '}
-          {expandComparison ? 'Collapse' : 'Display Full Comparison'}
+          {expandComparison ? t('Collapse') : t('Display full comparison')}
         </div>
       )}
     </div>

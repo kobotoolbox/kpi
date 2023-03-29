@@ -6,17 +6,17 @@ export interface BaseProduct {
   name: string;
   description: string;
   type: string;
-  metadata: unknown;
+  metadata: {[key: string]: string};
 }
 
 export interface BasePrice {
-    id: string;
-    nickname: string;
-    currency: string;
-    type: string;
-    unit_amount: number;
-    human_readable_price: string;
-    metadata: unknown;
+  id: string;
+  nickname: string;
+  currency: string;
+  type: string;
+  unit_amount: number;
+  human_readable_price: string;
+  metadata: {[key: string]: string};
 }
 
 export interface BaseSubscription {
@@ -38,12 +38,16 @@ export interface Product extends BaseProduct {
   prices: Array<BasePrice>;
 }
 
+export interface Price extends BaseProduct {
+  prices: BasePrice;
+}
+
 export interface Checkout {
-  url: string,
+  url: string;
 }
 
 export interface Portal {
-  url: string,
+  url: string;
 }
 
 const PRODUCTS_URL = '/api/v2/stripe/products/';
@@ -56,18 +60,24 @@ export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(PRODUCTS_URL);
 }
 
-export async function getSubscription(){
+export async function getSubscription() {
   return fetchGet<PaginatedResponse<BaseSubscription>>(SUBSCRIPTION_URL);
 }
 
-export async function getOrganization(){
+export async function getOrganization() {
   return fetchGet<PaginatedResponse<Organization>>(ORGANIZATION_URL);
 }
 
 export async function postCheckout(priceId: string, organizationId: string) {
-  return fetchPost<Checkout>(`${CHECKOUT_URL}?price_id=${priceId}&organization_uid=${organizationId}`, {})
+  return fetchPost<Checkout>(
+    `${CHECKOUT_URL}?price_id=${priceId}&organization_uid=${organizationId}`,
+    {}
+  );
 }
 
 export async function postCustomerPortal(organizationId: string) {
-  return fetchPost<Portal>(`${PORTAL_URL}?organization_uid=${organizationId}`, {})
+  return fetchPost<Portal>(
+    `${PORTAL_URL}?organization_uid=${organizationId}`,
+    {}
+  );
 }
