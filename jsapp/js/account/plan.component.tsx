@@ -134,7 +134,9 @@ export default function Plan() {
       .then((data) => {
         if (!data.url) {
           alert(t('There has been an issue, please try again later.'));
-        } else window.location.assign(data.url);
+        } else {
+          window.location.assign(data.url);
+        }
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
   };
@@ -148,7 +150,9 @@ export default function Plan() {
       .then((data) => {
         if (!data.url) {
           alert(t('There has been an issue, please try again later.'));
-        } else window.location.assign(data.url);
+        } else {
+          window.location.assign(data.url);
+        }
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
   };
