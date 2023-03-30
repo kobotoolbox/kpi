@@ -1,18 +1,21 @@
 import React, {useEffect, useReducer, useState} from 'react';
 import styles from './plan.module.scss';
+import type {
+  BaseSubscription,
+  Product,
+  Organization,
+  BasePrice,
+  Price,
+} from './stripe.api';
 import {
   getOrganization,
   getProducts,
   getSubscription,
-  Product,
-  Organization,
-  BaseSubscription,
   postCheckout,
   postCustomerPortal,
-  BasePrice,
-  Price,
 } from './stripe.api';
 import Icon from '../components/common/icon';
+import Button from 'js/components/common/button';
 
 interface PlanState {
   isLoading: boolean;
@@ -267,28 +270,30 @@ export default function Plan() {
             </ul>
 
             {!isSubscribedProduct(price) && (
-              <button
-                className={[styles.resetButton, styles.upgradeBtn].join(' ')}
+              <Button
+                type='full'
+                color='blue'
+                size='m'
+                label={t('Upgrade')}
                 onClick={() => upgradePlan(price.prices.id)}
                 aria-label={`upgrade to ${price.name}`}
-                disabled={buttonsDisabled}
                 aria-disabled={buttonsDisabled}
-              >
-                {t('Upgrade')}
-              </button>
+                isDisabled={buttonsDisabled}
+              />
             )}
             {isSubscribedProduct(price) &&
               state.organization?.uid &&
               price.name !== 'Community plan' && (
-                <button
-                  className={[styles.resetButton, styles.manageBtn].join(' ')}
+                <Button
+                  type='full'
+                  color='blue'
+                  size='m'
+                  label={t('Manage')}
                   onClick={managePlan}
-                  disabled={buttonsDisabled}
-                  aria-disabled={buttonsDisabled}
                   aria-label={`manage your ${price.name} subscription`}
-                >
-                  {t('Manage')}
-                </button>
+                  aria-disabled={buttonsDisabled}
+                  isDisabled={buttonsDisabled}
+                />
               )}
 
             {expandComparison && (
@@ -360,13 +365,19 @@ export default function Plan() {
         </div>
       </div>
       {checkMetaFeatures() && (
-        <div
-          className={styles.expandBtn}
-          role='button'
+        <Button
+          type='full'
+          color='cloud'
+          size='m'
+          isFullWidth
+          label={
+            expandComparison ? t('Collapse') : t('Display full comparison')
+          }
           onClick={() => setExpandComparison(!expandComparison)}
-        >
-          {expandComparison ? t('Collapse') : t('Display full comparison')}
-        </div>
+          aria-label={
+            expandComparison ? t('Collapse') : t('Display full comparison')
+          }
+        />
       )}
     </div>
   );
