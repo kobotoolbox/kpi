@@ -41,7 +41,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
         users = queryset.annotate(pk=F('user_id'), username=F('user__username')).values(
             'pk', 'username'
         )
-        AccountTrash.toggle_user_statuses(users, active=True)
+        AccountTrash.toggle_user_statuses([u['pk'] for u in users], active=True)
 
         try:
             put_back(request.user, users, 'user')
