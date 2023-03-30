@@ -89,14 +89,14 @@
   font-weight: 600;
 }
 
-.line {
+.planContainer :global hr {
   border-bottom: 1px solid colors.$kobo-gray-85;
-  border-radius: 5px;
-  width: 100%;
-  margin-bottom: 20px;
+  border-top: 1px solid colors.$kobo-gray-85;
+  width: 80%;
+  margin-bottom: sizes.$x20;
 }
 
-li {
+.planContainer :global li {
   padding: sizes.$x6 0;
   vertical-align: middle;
   display: flex;
