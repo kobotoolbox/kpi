@@ -3,37 +3,160 @@ import type {FileWithPreview} from 'react-dropzone';
 import type {CreateImportRequest, ImportResponse} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {history} from './router/historyRouter';
-import {log, notify, escapeHtml, join} from 'js/utils';
+import {escapeHtml, join, log, notify} from 'js/utils';
 import {MODAL_TYPES} from './constants';
 import {routerIsActive} from 'js/router/legacy';
 import {ROUTES} from './router/routerConstants';
 import {stores} from './stores';
+import {getExponentialDelayTime} from 'js/components/projectDownloads/exportFetcher';
 
-/** The amount of time to wait before checking if import is complete. */
-const IMPORT_STATUS_CHECK_TIMEOUT = 2500;
+const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed');
 
 /**
- * An internal method for handling a single file import. Its only functionality
- * is adding new asset (no replacing, no cloning as different type, etc.) as
- * either a project or a library item.
+ * An internal method for handling a single file import. Its main functionality
+ * is creating new asset as either a project or a library item.
+ *
+ * It uses a promise to get the final status of the import (either "complete" or
+ * "error"). It waits for the import finish using an exponential interval.
  */
-function onImportXLSFormFile(
+function onImportSingleXLSFormFile(
   name: string,
-  base64Encoded: string | ArrayBuffer | null,
-  totalFilesInBatch = 1,
-  destination?: string
+  base64Encoded: string | ArrayBuffer | null
 ) {
   const isLibrary = routerIsActive('library');
 
-  if (base64Encoded) {
-    stores.pageState.showModal({
-      type: MODAL_TYPES.UPLOADING_XLS,
-      filename:
-        totalFilesInBatch > 1
-          ? t('## files').replace('##', String(totalFilesInBatch))
-          : name,
-    });
-  }
+  const importPromise = new Promise<ImportResponse>((resolve, reject) => {
+    if (!base64Encoded) {
+      reject(IMPORT_FAILED_GENERIC_MESSAGE);
+      return;
+    }
+
+    dataInterface
+      .createImport({
+        name: name,
+        base64Encoded: base64Encoded,
+        library: isLibrary,
+      })
+      .done((data: ImportResponse) => {
+        // After import was created successfuly, we start a loop of checking
+        // the status of it (by calling API). The promis will resolve when it is
+        // complete.
+        notify(
+          t('Your upload is being processed. This may take a few moments.')
+        );
+
+        let callCount = 0;
+        let timeoutId = -1;
+
+        function makeIntervalStatusCheck() {
+          // Make the first call only after we've already waited once. This
+          // ensures we don't check for the import status immediately after it
+          // was created.
+          if (timeoutId > 0) {
+            dataInterface
+              .getImportDetails({uid: data.uid})
+              .done((importData: ImportResponse) => {
+                if (importData.status === 'complete') {
+                  // Stop interval
+                  window.clearTimeout(timeoutId);
+
+                  resolve(importData);
+                } else if (
+                  importData.status === 'processing' &&
+                  callCount === 5
+                ) {
+                  notify.warning(
+                    t(
+                      'Your upload is taking longer than usual. Please get back in few minutes.'
+                    )
+                  );
+                } else if (importData.status === 'error') {
+                  // Stop interval
+                  window.clearTimeout(timeoutId);
+
+                  // Gather all useful error information
+                  const errLines = [];
+                  errLines.push(t('Import Failed!'));
+                  if (name) {
+                    errLines.push(<code>Name: {name}</code>);
+                  }
+                  if (importData.messages?.error) {
+                    errLines.push(
+                      <code>
+                        ${importData.messages.error_type}: $
+                        {escapeHtml(importData.messages.error)}
+                      </code>
+                    );
+                  }
+                  reject(<div>{join(errLines, <br />)}</div>);
+                }
+              })
+              .fail(() => {
+                // Stop interval
+                window.clearTimeout(timeoutId);
+
+                reject(IMPORT_FAILED_GENERIC_MESSAGE);
+              });
+          }
+
+          callCount += 1;
+
+          // Keep the interval alive (can't use `setInterval` with randomized
+          // value, so we use `setTimout` instead).
+          timeoutId = window.setTimeout(
+            makeIntervalStatusCheck,
+            getExponentialDelayTime(callCount)
+          );
+        }
+
+        // start the interval check
+        makeIntervalStatusCheck();
+      })
+      .fail(() => {
+        reject(t('Failed to create import.'));
+      });
+  });
+
+  // Handle import processing finish scenarios
+  importPromise.then(
+    (importData: ImportResponse) => {
+      notify(t('XLS Import completed'));
+
+      // We navigate into the imported Project when import completes (not in
+      // Library though)
+      if (!isLibrary && importData.messages?.created) {
+        // We have to dig deep for that single asset uid :)
+        const firstCreated = importData.messages.created[0];
+        if (firstCreated?.uid) {
+          history.push(ROUTES.FORM.replace(':uid', firstCreated.uid));
+        }
+      }
+    },
+    (reason: string) => {
+      notify.error(reason);
+    }
+  );
+}
+
+/**
+ * An internal method for handling a file import among multiple files being
+ * dropped. This one is targeted towards advanced users (as officially we only
+ * allow importing a single XLSForm file), thus it is a bit rough on the edges.
+ */
+function onImportOneAmongMany(
+  name: string,
+  base64Encoded: string | ArrayBuffer | null,
+  fileIndex: number,
+  totalFilesInBatch: number
+) {
+  const isLibrary = routerIsActive('library');
+  const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch;
+
+  // We open the modal that displays the message with total files count.
+  stores.pageState.showModal({
+    type: MODAL_TYPES.UPLOADING_XLS,
+    filename: t('## files').replace('##', String(totalFilesInBatch)),
+  });
 
   const params: CreateImportRequest = {
     name: name,
@@ -42,85 +165,24 @@ function onImportXLSFormFile(
     library: isLibrary,
   };
 
-  // We can't send `destination: undefined` as it causes the API call to fail
-  if (destination) {
-    params.destination = destination;
-  }
-
   dataInterface
     .createImport(params)
-    .done((data: ImportResponse) => {
-      // TODO get rid of this barbaric method of waiting a magic number of
-      // seconds to check if import was done - possibly while doing
-      // https://github.com/kobotoolbox/kpi/issues/476
-      window.setTimeout(() => {
-        dataInterface
-          .getImportDetails({
-            uid: data.uid,
-          })
-          .done((importData: ImportResponse) => {
-            if (importData.status === 'complete') {
-              // TODO: ideally we would like to notify interested components about
-              // the import success, so they could act accordingly (e.g. relaoding
-              // the list of assets, navigating to freshly imported asset etc.).
-
-              notify(t('XLS Import completed'));
-
-              // If user was importing only a single file, we want to navigate
-              // into its Project when import completes (not in Library though)
-              if (
-                totalFilesInBatch === 1 &&
-                !isLibrary &&
-                importData.messages?.created
-              ) {
-                // We have to dig deep for that single asset uid :)
-                const firstCreated = importData.messages.created[0];
-                if (firstCreated?.uid) {
-                  history.push(ROUTES.FORM.replace(':uid', firstCreated.uid));
-                }
-              }
-            } else if (importData.status === 'processing') {
-              // If the import task didn't complete immediately, inform the user accordingly.
-              notify.warning(
-                t(
-                  'Your upload is being processed. This may take a few moments.'
-                )
-              );
-            } else if (importData.status === 'created') {
-              notify.warning(
-                t(
-                  'Your upload is queued for processing. This may take a few moments.'
-                )
-              );
-            } else if (importData.status === 'error') {
-              const errLines = [];
-              errLines.push(t('Import Failed!'));
-              if (params.name) {
-                errLines.push(<code>Name: {params.name}</code>);
-              }
-              if (importData.messages?.error) {
-                errLines.push(
-                  <code>
-                    ${importData.messages.error_type}: $
-                    {escapeHtml(importData.messages.error)}
-                  </code>
-                );
-              }
-              notify.error(<div>{join(errLines, <br />)}</div>);
-            } else {
-              notify.error(t('Import Failed!'));
-            }
-          })
-          .fail((failData: ImportResponse) => {
-            notify.error(t('Import Failed!'));
-            log('import failed', failData);
-          });
-        stores.pageState.hideModal();
-      }, IMPORT_STATUS_CHECK_TIMEOUT);
-    })
+    // we purposefuly don't do anything on `.done` here
     .fail((jqxhr: string) => {
       log('Failed to create import: ', jqxhr);
       notify.error(t('Failed to create import.'));
+    })
+    .always(() => {
+      if (isLastFileInBatch) {
+        // After the last import is created, we hide the modal…
+        stores.pageState.hideModal();
+        // …and display a helpful toast
+        notify.warning(
+          t(
+            'Your uploads are being processed. This may take a few moments. You will need to refresh the page to see them on the list.'
+          )
+        );
+      }
     });
 }
 
@@ -132,25 +194,30 @@ function onImportXLSFormFile(
  * relies heavily on deprecated technologies.
  */
 export function dropImportXLSForms(
-  acceptedFiles: FileWithPreview[],
-  rejectedFiles: FileWithPreview[]
+  accepted: FileWithPreview[],
+  rejected: FileWithPreview[]
 ) {
-  acceptedFiles.map((file) => {
+  accepted.map((file, index) => {
     const reader = new FileReader();
     reader.onload = () => {
-      onImportXLSFormFile(file.name, reader.result, acceptedFiles.length);
+      if (accepted.length === 1) {
+        onImportSingleXLSFormFile(file.name, reader.result);
+      } else {
+        onImportOneAmongMany(file.name, reader.result, index, accepted.length);
+      }
     };
     reader.readAsDataURL(file);
   });
 
-  for (let i = 0; i < rejectedFiles.length; i++) {
-    if (rejectedFiles[i].type && rejectedFiles[i].name) {
+  rejected.every((file) => {
+    if (file.type && file.name) {
       let errMsg = t('Upload error: could not recognize Excel file.');
-      errMsg += ` (${t('Uploaded file name: ')} ${rejectedFiles[i].name})`;
+      errMsg += ` (${t('Uploaded file name: ')} ${file.name})`;
       notify.error(errMsg);
+      return true;
     } else {
       notify.error(t('Could not recognize the dropped item(s).'));
-      break;
+      return false;
     }
-  }
+  });
 }
