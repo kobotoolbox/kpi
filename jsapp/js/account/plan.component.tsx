@@ -21,6 +21,7 @@ interface PlanState {
   filterToggle: boolean;
   products: Product[];
   organization: null | Organization;
+  featureTypes: string[];
 }
 
 // An interface for our action
@@ -36,6 +37,7 @@ const initialState = {
   filterToggle: false,
   products: [],
   organization: null,
+  featureTypes: ['support', 'advanced', 'addons'],
 };
 
 function planReducer(state: PlanState, action: DataUpdates) {
@@ -288,122 +290,50 @@ export default function Plan() {
                   {t('Manage')}
                 </button>
               )}
+
             {expandComparison && (
               <div>
                 <div className={styles.line} />
-                {getListItem('support', price.name).length > 0 && (
-                  <ul>
-                    <li className={styles.listTitle}>
-                      {price.metadata.feature_support_title}
-                    </li>
-                    {getListItem('support', price.name).map((listItem) =>
-                      listItem.icon ? (
-                        listItem.icon === true && (
-                          <li key={listItem.item}>
-                            <div className={styles.iconContainer}>
-                              <Icon
-                                name='check'
-                                size='m'
-                                classNames={
-                                  price.name === 'Professional plan'
-                                    ? [styles.tealCheck]
-                                    : [styles.stormCheck]
-                                }
-                              />
-                            </div>
-                            {listItem.item}
-                          </li>
-                        )
-                      ) : (
-                        <li key={listItem.item}>
-                          <div className={styles.iconContainer}>
-                            <Icon
-                              name='close'
-                              size='m'
-                              classNames={[styles.redClose]}
-                            />
-                          </div>
-                          {listItem.item}
+                {state.featureTypes.map(
+                  (type) =>
+                    getListItem(type, price.name).length > 0 && (
+                      <ul key={type}>
+                        <li className={styles.listTitle}>
+                          {price.metadata[`feature_${type}_title`]}
                         </li>
-                      )
-                    )}
-                  </ul>
-                )}
-                {getListItem('advanced', price.name).length > 0 && (
-                  <ul>
-                    <li className={styles.listTitle}>
-                      {price.metadata.feature_advanced_title}
-                    </li>
-                    {getListItem('advanced', price.name).map((listItem) =>
-                      listItem.icon ? (
-                        listItem.icon === true && (
-                          <li key={listItem.item}>
-                            <div className={styles.iconContainer}>
-                              <Icon
-                                name='check'
-                                size='m'
-                                classNames={
-                                  price.name === 'Professional plan'
-                                    ? [styles.tealCheck]
-                                    : [styles.stormCheck]
-                                }
-                              />
-                            </div>
-                            {listItem.item}
-                          </li>
-                        )
-                      ) : (
-                        <li key={listItem.item}>
-                          <div className={styles.iconContainer}>
-                            <Icon
-                              name='close'
-                              size='m'
-                              classNames={[styles.redClose]}
-                            />
-                          </div>
-                          {listItem.item}
-                        </li>
-                      )
-                    )}
-                  </ul>
-                )}
-                {getListItem('addons', price.name).length > 0 && (
-                  <ul>
-                    <li className={styles.listTitle}>
-                      {price.metadata.feature_addons_title}
-                    </li>
-                    {getListItem('addons', price.name).map((listItem) =>
-                      listItem.icon ? (
-                        listItem.icon === true && (
-                          <li key={listItem.item}>
-                            <div className={styles.iconContainer}>
-                              <Icon
-                                name='check'
-                                size='m'
-                                classNames={
-                                  price.name === 'Professional plan'
-                                    ? [styles.tealCheck]
-                                    : [styles.stormCheck]
-                                }
-                              />
-                            </div>
-                            {listItem.item}
-                          </li>
-                        )
-                      ) : (
-                        <li key={listItem.item}>
-                          <div className={styles.iconContainer}>
-                            <Icon
-                              name='close'
-                              size='m'
-                              classNames={[styles.redClose]}
-                            />
-                          </div>
-                          {listItem.item}
-                        </li>
-                      )
-                    )}
-                  </ul>
+                        {getListItem(type, price.name).map((listItem) =>
+                          listItem.icon ? (
+                            listItem.icon === true && (
+                              <li key={listItem.item}>
+                                <div className={styles.iconContainer}>
+                                  <Icon
+                                    name='check'
+                                    size='m'
+                                    classNames={
+                                      price.name === 'Professional plan'
+                                        ? [styles.tealCheck]
+                                        : [styles.stormCheck]
+                                    }
+                                  />
+                                </div>
+                                {listItem.item}
+                              </li>
+                            )
+                          ) : (
+                            <li key={listItem.item}>
+                              <div className={styles.iconContainer}>
+                                <Icon
+                                  name='close'
+                                  size='m'
+                                  classNames={[styles.redClose]}
+                                />
+                              </div>
+                              {listItem.item}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    )
                 )}
               </div>
             )}
@@ -429,7 +359,6 @@ export default function Plan() {
           </div>
         </div>
       </div>
-
       {checkMetaFeatures() && (
         <div
           className={styles.expandBtn}
