@@ -1,6 +1,7 @@
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 @use 'scss/breakpoints';
+@use 'sass:color';
 
 .accountPlan {
   padding: sizes.$x30 sizes.$x40;
@@ -13,8 +14,9 @@
 .plansSection {
   display: grid;
   grid-template-rows: repeat(4, auto);
-  grid-template-columns: repeat(auto, 1fr);
+  grid-template-columns: repeat(auto, minmax(300px, 1fr));
   column-gap: sizes.$x20;
+  margin-bottom: sizes.$x16;
 }
 
 .intervalToggle {
@@ -22,8 +24,9 @@
   grid-row: 1/2;
   justify-self: center;
   background-color: colors.$kobo-cloud;
-  padding: sizes.$x10 sizes.$x4;
+  padding: sizes.$x3;
   border-radius: sizes.$x4;
+  margin-bottom: sizes.$x20;
 }
 
 .intervalToggle input[type="radio"] {
@@ -34,15 +37,22 @@
 }
 
 .intervalToggle label {
-  padding: sizes.$x8 sizes.$x12;
   color: colors.$kobo-dark-blue;
+  padding: 0 sizes.$x12;
+  font-size: sizes.$x18;
+  line-height: sizes.$x32;
+  display: inline-block;
+  width: sizes.$x100;
+  text-align: center;
+  cursor: pointer;
 }
 
 .intervalToggle input[type="radio"]:checked+label {
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
-  padding: sizes.$x8 sizes.$x12;
   border-radius: sizes.$x4;
+  width: sizes.$x100;
+  text-align: center;
 }
 
 .intervalToggle input[type="radio"]:checked+label:after {
@@ -51,10 +61,19 @@
 }
 
 .intervalToggle input[type="radio"]:checked+label:before {
-  width: 20px;
-  height: 20px;
+  width: sizes.$x20;
+  height: sizes.$x20;
   color: colors.$kobo-cloud;
   padding: sizes.$x8 sizes.$x12;
+}
+
+.intervalToggle input[type="radio"]:checked+label:hover{
+  background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
+}
+
+.intervalToggle input[type="radio"]+label:hover{
+  background-color: color.adjust(colors.$kobo-cloud, $lightness: -5%);
+  border-radius: sizes.$x4;
 }
 
 .planContainer {
@@ -63,7 +82,7 @@
   grid-row: 3/4;
   border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid 1px;
-  padding: 27px 54px;
+  padding: sizes.$x36 sizes.$x48 sizes.$x40;
 }
 
 .priceName,
@@ -71,6 +90,9 @@
   color: colors.$kobo-gray-40;
   font-weight: 700;
   font-size: sizes.$x24;
+  line-height: sizes.$x40;
+  margin: 0;
+  padding:0;
 }
 
 .priceName {
@@ -87,13 +109,21 @@
   font-size: sizes.$x18;
   padding-bottom: sizes.$x16;
   font-weight: 600;
+  line-height: sizes.$x20;
+}
+
+.btnPlacement {
+  margin: 0 auto;
+}
+
+.planContainer > Button {
+  margin: sizes.$x20 auto 0;
 }
 
 .planContainer :global hr {
   border-bottom: 1px solid colors.$kobo-gray-85;
   border-top: 1px solid colors.$kobo-gray-85;
-  width: 80%;
-  margin-bottom: sizes.$x20;
+  margin: sizes.$x24 auto;
 }
 
 .planContainer :global li {
@@ -127,14 +157,14 @@ color: colors.$kobo-teal;
   grid-column: 1fr;
   width: 25em;
   grid-row: 3/4;
-  padding: 39px 46px;
+  padding: sizes.$x36 sizes.$x48 sizes.$x40;
   height: auto;
   overflow: hidden;
   border-radius: sizes.$x6;
 }
 
 .enterpriseDetails {
-  line-height: 24.5px;
+  line-height: sizes.$x24;
 }
 
 .enterpriseLink a {
@@ -166,12 +196,10 @@ color: colors.$kobo-teal;
   .enterprisePlan {
     grid-column: auto;
     grid-row: 3/4;
-    // padding: sizes.$x39 sizes.$x24;
     font-size: sizes.$x12 ;
   }
 
   .planContainer {
-    // padding: sizes.$x27 sizes.$x24;
     font-size: sizes.$x12 ;
   }
 
