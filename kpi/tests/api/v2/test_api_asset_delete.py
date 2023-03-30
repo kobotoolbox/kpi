@@ -63,6 +63,13 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         return response
 
     def _create_send_payload(self, asset_uids: list, action: str) -> Response:
+        """
+        Create and send a payload in the case where one or more, but not all of
+        a user's assets could be archived or deleted.
+
+        asset_uids: [list_of_uids]
+        action: [archive, unarchive, delete, undelete]
+        """
         payload = {
             'payload': {
                 'asset_uids': asset_uids,
@@ -73,6 +80,9 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         return response
 
     def _get_asset_detail_results(self, asset_uid: str) -> Response:
+        """
+        Get the `asset-detail` results for the asset UID provided
+        """
         asset_detail_url = reverse(self._get_endpoint('asset-detail'), args=(asset_uid,))
         detail_response = self.client.get(asset_detail_url, format='json')
         return detail_response
@@ -159,6 +169,11 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         assert asset.deployment.active is False
         assert asset.pending_delete is False
 
+        # Ensure someuser still access their project
+        detail_response = self._get_asset_detail_results(asset_uid)
+        assert detail_response.status_code == status.HTTP_200_OK
+        assert detail_response.data['deployment__active'] is False
+
         # Undo the archiving
         response = self._create_send_payload([asset_uid], 'unarchive')
         assert response.status_code == status.HTTP_200_OK
@@ -167,7 +182,7 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         assert asset.deployment.active is True
         assert asset.pending_delete is False
 
-        # Ensure someuser still access their project
+        # Ensure someuser can still access their project
         detail_response = self._get_asset_detail_results(asset_uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True

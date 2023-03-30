@@ -77,7 +77,7 @@ class AccountsEmailTestCase(APITestCase):
         for line in mail.outbox[0].body.splitlines():
             if 'confirm-email' in line:
                 confirm_url = line.split('testserver')[1].rsplit('/', 1)[0]
-        with self.assertNumQueries(15):
+        with self.assertNumQueries(14):
             res = self.client.post(confirm_url + "/")
         self.assertEqual(res.status_code, 302)
         self.assertTrue(
