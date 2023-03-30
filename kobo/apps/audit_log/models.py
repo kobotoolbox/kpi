@@ -32,7 +32,7 @@ class AuditLog(models.Model):
         default=AuditAction.DELETE,
         db_index=True
     )
-    user_uid = models.CharField(max_length=UUID_LENGTH + 1)  # 1 is prefix length
+    user_uid = models.CharField(db_index=True, max_length=UUID_LENGTH + 1)  # 1 is prefix length
 
     class Meta:
         index_together = (

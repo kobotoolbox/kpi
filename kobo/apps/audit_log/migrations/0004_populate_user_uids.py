@@ -3,24 +3,22 @@
 from django.core.paginator import Paginator
 from django.db import migrations, models
 
-from kpi.fields.kpi_uid import UUID_LENGTH
+from kpi.fields.kpi_uid import KpiUidField, UUID_LENGTH
 
 
-def update_user_uids(apps, schema_editor):
+def update_null_uids(apps, schema_editor):
 
     AuditLog = apps.get_model('audit_log', 'AuditLog')  # noqa
     page_size = 10000
     paginator = Paginator(
-        AuditLog.objects.filter(user_uid='')
-        .select_related('user', 'user__extra_details')
+        AuditLog.objects.filter(user__isnull=True)
         .order_by('pk'),
         page_size,
     )
     for page in paginator.page_range:
         audit_logs = paginator.page(page).object_list
         for audit_log in audit_logs:
-            if audit_log.user:
-                audit_log.user_uid = audit_log.user.extra_details.uid
+            audit_log.user_uid = KpiUidField.generate_unique_id(prefix='u')
         AuditLog.objects.bulk_update(audit_logs, ['user_uid'], batch_size=2000)
 
 
@@ -42,7 +40,14 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 default='',
                 max_length=UUID_LENGTH + 1,
+                db_index=True,
             ),
         ),
-        migrations.RunPython(update_user_uids, noop),
+        migrations.RunSQL(
+            sql="UPDATE audit_log_auditlog SET user_uid = hub_extrauserdetail.uid "
+                "FROM hub_extrauserdetail "
+                "WHERE audit_log_auditlog.user_id = hub_extrauserdetail.user_id;",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+        migrations.RunPython(update_null_uids, noop),
     ]
