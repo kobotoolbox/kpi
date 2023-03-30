@@ -133,7 +133,7 @@ export default function Plan() {
     postCheckout(priceId, state.organization?.uid)
       .then((data) => {
         if (!data.url) {
-          alert('There has been an issue, please try again later.');
+          alert(t('There has been an issue, please try again later.'));
         } else window.location.assign(data.url);
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
@@ -147,7 +147,7 @@ export default function Plan() {
     postCustomerPortal(state.organization?.uid)
       .then((data) => {
         if (!data.url) {
-          alert('There has been an issue, please try again later.');
+          alert(t('There has been an issue, please try again later.'));
         } else window.location.assign(data.url);
       })
       .finally(() => setButtonDisabled(!buttonsDisabled));
@@ -298,46 +298,56 @@ export default function Plan() {
 
             {expandComparison && (
               <div>
-                <div className={styles.line} />
+                <hr />
                 {state.featureTypes.map(
                   (type) =>
                     getListItem(type, price.name).length > 0 && (
-                      <ul key={type}>
-                        <li className={styles.listTitle}>
+                      <>
+                        <h2
+                          className={styles.listTitle}
+                          id={price.metadata[`feature_${type}_title`]}
+                        >
                           {price.metadata[`feature_${type}_title`]}
-                        </li>
-                        {getListItem(type, price.name).map((listItem) =>
-                          listItem.icon ? (
-                            listItem.icon === true && (
+                        </h2>
+                        <ul
+                          key={type}
+                          aria-labelledby={
+                            price.metadata[`feature_${type}_title`]
+                          }
+                        >
+                          {getListItem(type, price.name).map((listItem) =>
+                            listItem.icon ? (
+                              listItem.icon === true && (
+                                <li key={listItem.item}>
+                                  <div className={styles.iconContainer}>
+                                    <Icon
+                                      name='check'
+                                      size='m'
+                                      classNames={
+                                        price.name === 'Professional plan'
+                                          ? [styles.tealCheck]
+                                          : [styles.stormCheck]
+                                      }
+                                    />
+                                  </div>
+                                  {listItem.item}
+                                </li>
+                              )
+                            ) : (
                               <li key={listItem.item}>
                                 <div className={styles.iconContainer}>
                                   <Icon
-                                    name='check'
+                                    name='close'
                                     size='m'
-                                    classNames={
-                                      price.name === 'Professional plan'
-                                        ? [styles.tealCheck]
-                                        : [styles.stormCheck]
-                                    }
+                                    classNames={[styles.redClose]}
                                   />
                                 </div>
                                 {listItem.item}
                               </li>
                             )
-                          ) : (
-                            <li key={listItem.item}>
-                              <div className={styles.iconContainer}>
-                                <Icon
-                                  name='close'
-                                  size='m'
-                                  classNames={[styles.redClose]}
-                                />
-                              </div>
-                              {listItem.item}
-                            </li>
-                          )
-                        )}
-                      </ul>
+                          )}
+                        </ul>
+                      </>
                     )
                 )}
               </div>
