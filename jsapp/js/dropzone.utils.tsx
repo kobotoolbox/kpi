@@ -38,7 +38,7 @@ function onImportSingleXLSFormFile(
         library: isLibrary,
       })
       .done((data: ImportResponse) => {
-        // After import was created successfuly, we start a loop of checking
+        // After import was created successfully, we start a loop of checking
         // the status of it (by calling API). The promis will resolve when it is
         // complete.
         notify(
