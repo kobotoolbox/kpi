@@ -105,12 +105,12 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
         )
         # The main goal of the annotation below is to pass always the same
         # metadata attributes to AuditLog model whatever the model and the action.
-        # `self._delete_tasks and self._create_tasks` both call utilities which
+        # `self._delete_tasks` and `self._create_tasks` both call utilities which
         # save entries in auditlog table. When fetching auditlog API endpoint
         # the query parser can be used to search on same attributes.
         # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
         # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
-        # all delete submissions and action on the asset itself.
+        # all deleted submissions and actions on the asset itself.
         assets = assets_queryset.annotate(
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'asset_uid', 'asset_name')

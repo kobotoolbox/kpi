@@ -14,7 +14,7 @@ from kpi.serializers import CurrentUserSerializer
 class CurrentUserViewSet(viewsets.ModelViewSet):
     """
     <pre class="prettyprint">
-    <b>GET<b> /me/
+    <b>GET</b> /me/
     </pre>
 
     > Example
@@ -28,7 +28,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >           "email": string,
     >           "server_time": "YYYY-MM-DDTHH:MM:SSZ",
     >           "date_joined": "YYYY-MM-DDTHH:MM:SSZ",
-    >           "projects_url": "https://[kpi]/{username}",
+    >           "projects_url": "https://[kobocat]/{username}",
     >           "is_superuser": boolean,
     >           "gravatar": url,
     >           "is_staff": boolean,
@@ -54,12 +54,12 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "branch": boolean,
     >               "tag": boolean,
     >           },
-    >           "social_accounts": [],
+    >           "social_accounts": []
     >       }
 
     Update account details
     <pre class="prettyprint">
-    <b>PATCH<b> /me/
+    <b>PATCH</b> /me/
     </pre>
 
     > Example
@@ -69,8 +69,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     > Payload Example
     >
     >       {
-    >           "first_name": "Bob",
-    >           "social_accounts": [],
+    >           "first_name": "Bob"
     >       }
 
     Delete the entire account
@@ -85,7 +84,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     > Payload Example
     >
     >       {
-    >           "conifrm": {user__extra_details__uid},
+    >           "confirm": {user__extra_details__uid},
     >       }
 
 
@@ -93,8 +92,6 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.none()
     serializer_class = CurrentUserSerializer
-
-    # TODO: Fix `social_accounts` so it's not required in PATCH request KPI#4397
 
     def get_object(self):
         return self.request.user
@@ -110,14 +107,14 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
             )
 
         user = {'pk': user.pk, 'username': user.username}
-        # If user is already in trash, it should raise a `TrashIntegrityError`
-        # but it should never happen since no non-active/trashed users should be
-        # able to call this endpoint. A 403 should occur before.
-        move_to_trash(
-            request.user, [user], config.ACCOUNT_TRASH_GRACE_PERIOD, 'user'
-        )
 
         with transaction.atomic():
+            # If user is already in trash, it should raise a `TrashIntegrityError`
+            # but it should never happen since no non-active/trashed users should be
+            # able to call this endpoint. A 403 should occur before.
+            move_to_trash(
+                request.user, [user], config.ACCOUNT_TRASH_GRACE_PERIOD, 'user'
+            )
             request.user.is_active = False
             request.user.save(update_fields=['is_active'])
             request.user.extra_details.date_removal_request = now()

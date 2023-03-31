@@ -35,7 +35,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.extra_details.date_removal_request is not None
         assert type(self.user.extra_details.date_removal_request) is datetime
 
-    def test_delete_confirm_is_different_from_UID(self):
+    def test_cannot_delete_when_confirm_different_from_uid(self):
         # Check user account is as expected
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_request is None
@@ -48,12 +48,12 @@ class CurrentUserTestCase(BaseTestCase):
         response = self.client.delete(self.url, data=payload, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-        # Check the db to make sure the expected changes were made
+        # Check the db to make sure that no changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_request is None
 
-    def test_delete_no_confirm(self):
+    def test_cannot_delete_without_confirm(self):
         # Check user account is as expected
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_request is None
@@ -66,12 +66,12 @@ class CurrentUserTestCase(BaseTestCase):
         response = self.client.delete(self.url, data=payload, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-        # Check the db to make sure the expected changes were made
+        # Check the db to make sure that no changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_request is None
 
-    def test_delete_no_payload(self):
+    def test_cannot_delete_without_payload(self):
         # Check user account is as expected
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_request is None
@@ -81,7 +81,7 @@ class CurrentUserTestCase(BaseTestCase):
         response = self.client.delete(self.url, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-        # Check the db to make sure the expected changes were made
+        # Check the db to make sure that no changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_request is None

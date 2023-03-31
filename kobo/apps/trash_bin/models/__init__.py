@@ -34,8 +34,8 @@ class BaseTrash(models.Model):
     # setting `ACCOUNT_TRASH_GRACE_PERIOD` - to delete (or remove) the object.
     # Because this setting can be changed at any time, its value can be
     # different when celery task runs than the object creation. Therefore,
-    # this field helps to know whether a periodic task will automatically or not.
-    # Useful in the admin interface to display in the trash bin object lists.
+    # this field helps to know whether a periodic task will run automatically or
+    # not. Useful in the admin interface to display in the trash bin object lists.
     # Projects are always automatically deleted and related Celery task ignore
     # this field, but it could be implemented at a later time.
     empty_manually = models.BooleanField(default=False)

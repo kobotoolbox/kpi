@@ -127,7 +127,7 @@ class AssetViewSet(
 
     <hr>
 
-    Preform bulk actions on assets
+    Perform bulk actions on assets
 
     Actions available:
 

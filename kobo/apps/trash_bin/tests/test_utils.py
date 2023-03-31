@@ -100,7 +100,7 @@ class AccountTrashTestCase(TestCase):
             object_id=someuser_id,
             user=someuser,
             action=AuditAction.IN_TRASH,
-        )
+        ).exists()
 
     def test_put_back(self):
         self.test_move_to_trash()
@@ -136,15 +136,17 @@ class AccountTrashTestCase(TestCase):
             object_id=someuser.pk,
             user=admin,
             action=AuditAction.PUT_BACK,
-        )
+        ).exists()
 
     def test_remove_user(self):
         """
         Test related objects to user are deleted and user is anonymized, i.e.:
-        everything from their account is deleted expected their username
+        everything from their account is deleted except their username
         """
         someuser = get_user_model().objects.get(username='someuser')
         admin = get_user_model().objects.get(username='admin')
+        someuser.extra_details.data['name'] = 'someuser'
+        someuser.extra_details.save(update_fields=['data'])
 
         grace_period = 0
         assert someuser.assets.count() == 2
@@ -174,6 +176,7 @@ class AccountTrashTestCase(TestCase):
         someuser.refresh_from_db()
         assert someuser.assets.count() == 0
         assert someuser.email == ''
+        assert someuser.extra_details.data.get('name') == ''
 
         assert not AccountTrash.objects.filter(user=someuser).exists()
         assert before <= someuser.extra_details.date_removed <= after
@@ -185,7 +188,7 @@ class AccountTrashTestCase(TestCase):
             object_id=someuser.pk,
             user=admin,
             action=AuditAction.REMOVE,
-        )
+        ).exists()
 
 
 class ProjectTrashTestCase(TestCase):
@@ -233,7 +236,7 @@ class ProjectTrashTestCase(TestCase):
             object_id=asset.pk,
             user=asset.owner,
             action=AuditAction.IN_TRASH,
-        )
+        ).exists()
 
     def test_put_back(self):
         self.test_move_to_trash()
@@ -270,4 +273,4 @@ class ProjectTrashTestCase(TestCase):
             object_id=asset.pk,
             user=asset.owner,
             action=AuditAction.PUT_BACK,
-        )
+        ).exists()
