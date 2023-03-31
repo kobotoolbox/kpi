@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useState} from 'react';
+import React, {ReactNode, useEffect, useReducer, useState} from 'react';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -203,6 +203,36 @@ export default function Plan() {
     return expandBool;
   };
 
+  const returnListItem = (type: string, name: string): ReactNode => {
+    return getListItem(type, name).map((listItem) =>
+      listItem.icon ? (
+        listItem.icon === true && (
+          <li key={listItem.item}>
+            <div className={styles.iconContainer}>
+              <Icon
+                name='check'
+                size='m'
+                classNames={
+                  name === 'Professional plan'
+                    ? [styles.tealCheck]
+                    : [styles.stormCheck]
+                }
+              />
+            </div>
+            {listItem.item}
+          </li>
+        )
+      ) : (
+        <li key={listItem.item}>
+          <div className={styles.iconContainer}>
+            <Icon name='close' size='m' classNames={[styles.redClose]} />
+          </div>
+          {listItem.item}
+        </li>
+      )
+    );
+  };
+
   if (!state.products.length) {
     return null;
   }
@@ -324,37 +354,7 @@ export default function Plan() {
                             price.metadata[`feature_${type}_title`]
                           }
                         >
-                          {getListItem(type, price.name).map((listItem) =>
-                            listItem.icon ? (
-                              listItem.icon === true && (
-                                <li key={listItem.item}>
-                                  <div className={styles.iconContainer}>
-                                    <Icon
-                                      name='check'
-                                      size='m'
-                                      classNames={
-                                        price.name === 'Professional plan'
-                                          ? [styles.tealCheck]
-                                          : [styles.stormCheck]
-                                      }
-                                    />
-                                  </div>
-                                  {listItem.item}
-                                </li>
-                              )
-                            ) : (
-                              <li key={listItem.item}>
-                                <div className={styles.iconContainer}>
-                                  <Icon
-                                    name='close'
-                                    size='m'
-                                    classNames={[styles.redClose]}
-                                  />
-                                </div>
-                                {listItem.item}
-                              </li>
-                            )
-                          )}
+                          {returnListItem(type, price.name)}
                         </ul>
                       </>
                     )
