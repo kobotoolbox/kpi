@@ -2,6 +2,7 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/breakpoints';
 @use 'sass:color';
+@use "scss/_variables";
 
 .accountPlan {
   padding: sizes.$x30 sizes.$x40;
@@ -9,6 +10,7 @@
   position: relative;
   height: 100%;
   width: 100%;
+  font-family: "Roboto", sans-serif;
 }
 
 .plansSection {
@@ -182,8 +184,16 @@ color: colors.$kobo-teal;
   color: colors.$kobo-gray-40;
   font-size: sizes.$x14;
   font-weight: 700;
-  margin-top: sizes.$x30;
-  margin-left: sizes.$x40;
+  margin: 0 0 0 sizes.$x30;
+  padding: 0; 
+}
+
+.planContainer ul :global {
+  margin: sizes.$x5 0 sizes.$x32;
+}
+
+.planContainer :last-child {
+  margin-bottom: 0;
 }
 
 .currentPlan {

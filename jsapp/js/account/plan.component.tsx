@@ -217,6 +217,7 @@ export default function Plan() {
             value='year'
             onChange={() => dispatch({type: 'year'})}
             checked={!state.filterToggle}
+            aria-label={'Toggle to annual options'}
           />
           <label htmlFor='switch_left'>{t('Annual')}</label>
 
@@ -225,6 +226,7 @@ export default function Plan() {
             id='switch_right'
             name='switchToggle'
             value='month'
+            aria-label={'Toggle to month options'}
             onChange={() => dispatch({type: 'month'})}
             checked={state.filterToggle}
           />
