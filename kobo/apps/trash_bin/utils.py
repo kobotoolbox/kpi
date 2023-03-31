@@ -70,7 +70,8 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
         )
 
     # Delete media files left on storage
-    rmdir(f'{owner_username}/asset_files/{asset_uid}')
+    if asset_uid:
+        rmdir(f'{owner_username}/asset_files/{asset_uid}')
 
 
 @transaction.atomic

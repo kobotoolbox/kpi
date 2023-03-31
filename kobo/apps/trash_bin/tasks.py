@@ -137,7 +137,8 @@ def empty_account(account_trash_id: int):
                 if not error.startswith('404'):
                     raise e
 
-            rmdir(f'{user.username}/')
+            if user.username:
+                rmdir(f'{user.username}/')
 
     finally:
         post_delete.connect(
