@@ -299,6 +299,9 @@ export default function Plan() {
                   isDisabled={buttonsDisabled}
                 />
               )}
+            {price.name === 'Community plan' && (
+              <div className={styles.btnSpacePlaceholder} />
+            )}
 
             {expandComparison && (
               <div>
