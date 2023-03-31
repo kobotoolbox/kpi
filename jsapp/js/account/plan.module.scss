@@ -120,6 +120,11 @@
   margin: sizes.$x20 auto 0;
 }
 
+.btnSpacePlaceholder { 
+  margin: sizes.$x20 0;
+  height: sizes.$x32;
+}
+
 .planContainer :global hr {
   border-bottom: 1px solid colors.$kobo-gray-85;
   border-top: 1px solid colors.$kobo-gray-85;
