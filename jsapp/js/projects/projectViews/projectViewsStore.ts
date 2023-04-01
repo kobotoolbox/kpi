@@ -25,7 +25,7 @@ class ProjectViewsStore {
 
   constructor() {
     makeAutoObservable(this);
-    if(sessionStore.isLoggedIn) {
+    if (sessionStore.isLoggedIn) {
       this.fetchData();
     }
   }

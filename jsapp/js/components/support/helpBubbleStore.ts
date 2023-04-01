@@ -43,7 +43,7 @@ class HelpBubbleStore {
 
   constructor() {
     makeAutoObservable(this);
-    if(sessionStore.isLoggedIn) {
+    if (sessionStore.isLoggedIn) {
       this.fetchMessages();
     }
   }
