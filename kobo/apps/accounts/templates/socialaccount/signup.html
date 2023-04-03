@@ -7,7 +7,7 @@
 
 <form class="registration registration--social" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
   {# Friendly welcome message #}
-  {% if username %}
+  {% if form.username and form.username.value %}
   <h1>{% blocktrans with username=form.username.value %}Welcome to KoboToolbox, {{username}}!{% endblocktrans %}</h1>
   {% else %}
   <h1>{% blocktrans %}Welcome to KoboToolbox!{% endblocktrans %}</h1>
