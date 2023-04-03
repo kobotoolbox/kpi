@@ -76,14 +76,19 @@ interface AssetFileRequest {
 }
 
 export interface CreateImportRequest {
-  base64Encoded?: string;
+  base64Encoded?: string | ArrayBuffer | null;
   name?: string;
-  destination?: string;
   totalFiles?: number;
+  /** Url of the asset that should be replaced with XLSForm */
+  destination?: string;
+  /** Uid of the asset that should be replaced with XLSForm */
   assetUid?: string;
+  /** Causes the imported XLSForm to be added as Library Item */
+  library?: boolean;
 }
 
 export interface ImportResponse {
+  /** The uid of the import (not asset!) */
   uid: string;
   url: string;
   messages?: {
