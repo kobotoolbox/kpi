@@ -141,7 +141,8 @@ function onImportSingleXLSFormFile(
 /**
  * An internal method for handling a file import among multiple files being
  * dropped. This one is targeted towards advanced users (as officially we only
- * allow importing a single XLSForm file), thus it is a bit rough on the edges.
+ * allow importing a single XLSForm file), thus it is a bit rough around
+ * the edges.
  */
 function onImportOneAmongMany(
   name: string,
@@ -173,6 +174,10 @@ function onImportOneAmongMany(
       notify.error(t('Failed to create import.'));
     })
     .always(() => {
+      // We run this when last file in the batch finishes. Note that this
+      // doesn't mean that this is last import that finished, as they are being
+      // run asynchronously. It's not perfect, but we don't care (rough around
+      // the edges).
       if (isLastFileInBatch) {
         // After the last import is created, we hide the modal…
         stores.pageState.hideModal();
