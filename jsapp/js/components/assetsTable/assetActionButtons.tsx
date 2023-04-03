@@ -164,7 +164,7 @@ class AssetActionButtons extends React.Component<
   }
 
   /**
-   * Navigates out of nonexistent paths after asset was successfuly deleted
+   * Navigates out of nonexistent paths after asset was successfully deleted
    */
   onDeleteComplete(assetUid: string) {
     if (isAnyLibraryItemRoute() && getRouteAssetUid() === assetUid) {

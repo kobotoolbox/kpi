@@ -23,6 +23,7 @@ import mixins from 'js/mixins';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
+import {dropImportXLSForms} from 'js/dropzone.utils';
 
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
@@ -52,7 +53,7 @@ function MyProjectsRoute() {
 
   return (
     <Dropzone
-      onDrop={mixins.droppable.dropFiles}
+      onDrop={dropImportXLSForms}
       disableClick
       multiple
       className={routeStyles.dropzone}
