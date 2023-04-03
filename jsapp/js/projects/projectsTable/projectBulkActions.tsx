@@ -1,29 +1,19 @@
-import React from 'react';
-import {fetchDelete} from 'js/api';
+import React, {useState} from 'react';
 import type {
   AssetResponse,
   ProjectViewAsset,
 } from 'js/dataInterface';
 import Button from 'js/components/common/button';
 import actionsStyles from './projectActions.module.scss';
-import {handleApiFail} from 'jsapp/js/utils';
+import BulkDeletePrompt from './bulkActions/bulkDeletePrompt';
 
 interface ProjectBulkActionsProps {
+  /** A list of selected assets for bulk operations. */
   assets: Array<AssetResponse | ProjectViewAsset>;
 }
 
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
-  function deleteSelectedAssets() {
-    const uids = props.assets.map((asset) => asset.uid);
-    console.log('AAA delete selected assets', uids);
-
-    fetchDelete(
-      '/api/v2/assets/bulk/',
-      {payload: {asset_uids: uids}}
-    ).then(() => {
-      console.log('AAA delete done');
-    }, handleApiFail);
-  }
+  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
 
   return (
     <div className={actionsStyles.root}>
@@ -32,9 +22,16 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         color='storm'
         size='s'
         startIcon='trash'
-        tooltip={t('Delete ##number## projects').replace('##number##', String(props.assets.length))}
-        onClick={() => deleteSelectedAssets()}
+        tooltip={t('Delete ##count## projects').replace('##count##', String(props.assets.length))}
+        onClick={() => setIsDeletePromptOpen(true)}
       />
+
+      {isDeletePromptOpen &&
+        <BulkDeletePrompt
+          assetUids={props.assets.map((asset) => asset.uid)}
+          onRequestClose={() => setIsDeletePromptOpen(false)}
+        />
+      }
     </div>
   );
 }

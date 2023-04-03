@@ -12,6 +12,7 @@ interface KoboPromptButton {
   color?: ButtonColor;
   label: string;
   onClick: () => void;
+  isDisabled?: boolean;
 }
 
 const defaultButtonType = 'full';
@@ -65,6 +66,7 @@ export default function KoboPrompt(props: KoboPromptProps) {
             size='m'
             label={promptButton.label}
             onClick={promptButton.onClick}
+            isDisabled={promptButton.isDisabled}
           />
         ))}
       </KoboModalFooter>
