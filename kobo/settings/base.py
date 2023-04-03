@@ -414,13 +414,29 @@ DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
 django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
-DJANGO_LANGUAGE_CODES = [
-    'ar', 'cs', 'de-DE', 'en', 'es', 'fr', 'hi', 'ja',
-    'ku', 'pl', 'pt', 'ru', 'tr', 'uk', 'zh-hans',
-]
+DJANGO_LANGUAGE_CODES = env.str(
+    'DJANGO_LANGUAGE_CODES',
+    default=(
+        'ar '  # Arabic
+        'cs '  # Czech
+        'de-DE '  # German
+        'en '  # English
+        'es '  # Spanish
+        'fr '  # French
+        'hi '  # Hindi
+        'ja '  # Japanese
+        'ku '  # Kurdish
+        'pl '  # Polish
+        'pt '  # Portuguese
+        'ru '  # Russian
+        'tr '  # Turkish
+        'uk '  # Ukrainian
+        'zh-hans'  # Chinese Simplified
+    )
+)
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
-    for lang_code in DJANGO_LANGUAGE_CODES
+    for lang_code in DJANGO_LANGUAGE_CODES.split(' ')
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -595,7 +611,6 @@ DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
-STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID", None)
 STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
 STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
 STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
@@ -790,6 +805,10 @@ WEBPACK_LOADER = {
 
 
 ''' Email configuration '''
+# This setting sets the prefix in the subject line of the account activation email
+# The default is the URL of the server. Set to blank to fit the email requirements
+ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
                                'django.core.mail.backends.filebased.EmailBackend')
 

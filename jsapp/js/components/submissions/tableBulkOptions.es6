@@ -1,11 +1,9 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import reactMixin from 'react-mixin';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
 import PopoverMenu from 'js/popoverMenu';
-import mixins from 'js/mixins';
 import alertify from 'alertifyjs';
 import {
   MODAL_TYPES,
@@ -13,6 +11,7 @@ import {
   PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import {renderCheckbox} from 'utils';
+import {userCan, userCanPartially} from 'js/components/permissions/utils';
 
 /**
  * @prop asset
@@ -187,7 +186,7 @@ class TableBulkOptions extends React.Component {
 
         {Object.keys(this.props.selectedRows).length > 0 &&
           <PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
-            {(this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) || this.userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
+            {(userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
               VALIDATION_STATUSES_LIST.map((item, n) => {
                 return (
                   <bem.PopoverMenu__link
@@ -202,7 +201,7 @@ class TableBulkOptions extends React.Component {
           </PopoverMenu>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
+        {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='blue'
             onClick={this.onEdit}
@@ -213,7 +212,7 @@ class TableBulkOptions extends React.Component {
           </bem.KoboLightButton>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || this.userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
+        {Object.keys(this.props.selectedRows).length > 0 && (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='red'
             onClick={this.onDelete}
@@ -226,7 +225,5 @@ class TableBulkOptions extends React.Component {
     );
   }
 }
-
-reactMixin(TableBulkOptions.prototype, mixins.permissions);
 
 export default TableBulkOptions;

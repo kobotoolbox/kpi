@@ -9,7 +9,6 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
-import mixins from 'js/mixins';
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   PERMISSIONS_CODENAMES,
@@ -33,6 +32,7 @@ import {
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
+import {userCan} from 'js/components/permissions/utils';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
@@ -424,7 +424,7 @@ export default class ProjectExportsCreator extends React.Component {
     // Case 2: Also omit saving if user doesn't have permissions to save.
     if (
       this.state.selectedDefinedExport !== null ||
-      !mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
+      !userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
     ) {
       this.handleScheduledExport(payload);
     // Case 3: There is a defined export with the same name already, so we need
@@ -776,7 +776,7 @@ export default class ProjectExportsCreator extends React.Component {
                   </label>
 
                   {this.state.selectedDefinedExport &&
-                    mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
+                    userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
                     <bem.ProjectDownloads__deleteSettingsButton
                       onClick={this.onDeleteExportSetting.bind(
                         this,
