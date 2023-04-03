@@ -414,7 +414,7 @@ droppable: {
     });
   },
 
-  // NOTE: this is a DEPRACTED metod of handling Dropzone. Please refer to
+  // NOTE: this is a DEPRECATED method of handling Dropzone. Please refer to
   // `dropzone.utils.tsx` file and update the code there accordingly to your
   // needs.
   dropFiles(files: File[], rejectedFiles: File[], {}, pms = {}) {
