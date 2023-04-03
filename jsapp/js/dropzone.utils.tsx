@@ -39,7 +39,7 @@ function onImportSingleXLSFormFile(
       })
       .done((data: ImportResponse) => {
         // After import was created successfully, we start a loop of checking
-        // the status of it (by calling API). The promis will resolve when it is
+        // the status of it (by calling API). The promise will resolve when it is
         // complete.
         notify(
           t('Your upload is being processed. This may take a few moments.')
