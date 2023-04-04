@@ -202,11 +202,33 @@ class AssetListApiTests(BaseAssetTestCase):
             asset_type='template',
             content={},
         )
-        survey = Asset.objects.create(
+        deployed_survey = Asset.objects.create(
             owner=someuser,
-            name='survey',
+            name='Deployed survey',
             asset_type='survey',
         )
+        deployed_survey.deploy(backend='mock', active=True)
+
+        other_deployed_survey = Asset.objects.create(
+            owner=someuser,
+            name='Other deployed survey',
+            asset_type='survey',
+        )
+        other_deployed_survey.deploy(backend='mock', active=True)
+
+        archived_survey = Asset.objects.create(
+            owner=someuser,
+            name='Archived survey',
+            asset_type='survey',
+        )
+        archived_survey.deploy(backend='mock', active=False)
+
+        draft_survey = Asset.objects.create(
+            owner=someuser,
+            name='Draft survey',
+            asset_type='survey',
+        )
+
         another_collection = Asset.objects.create(
             owner=someuser,
             name='Someuser’s collection',
@@ -221,25 +243,34 @@ class AssetListApiTests(BaseAssetTestCase):
                 ]
             ]
 
-        # Default is by date_modified desc
+        # Default is by deployment_status (deployed, draft, archived), then
+        # date_modified desc
         expected_default_order = [
+            other_deployed_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
+            archived_survey.uid,
             another_collection.uid,
-            survey.uid,
             template.uid,
             collection.uid,
             question.uid,
         ]
+
         uids = uids_from_results()
         assert expected_default_order == uids
 
         # Sorted by name asc
         expected_order_by_name = [
             question.uid,
+            archived_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
             template.uid,
+            other_deployed_survey.uid,
             another_collection.uid,
-            survey.uid,
             collection.uid,
         ]
+
         uids = uids_from_results({'ordering': 'name'})
         assert expected_order_by_name == uids
 
@@ -248,8 +279,11 @@ class AssetListApiTests(BaseAssetTestCase):
             another_collection.uid,
             collection.uid,
             question.uid,
+            archived_survey.uid,
+            deployed_survey.uid,
+            draft_survey.uid,
             template.uid,
-            survey.uid,
+            other_deployed_survey.uid,
         ]
         uids = uids_from_results({
             'collections_first': 'true',
