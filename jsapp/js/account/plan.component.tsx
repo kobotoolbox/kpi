@@ -397,7 +397,7 @@ export default function Plan() {
                       isDisabled={buttonsDisabled}
                     />
                   )}
-                {price.name === 'Community plan' && (
+                {price.prices.unit_amount === 0 && (
                   <div className={styles.btnSpacePlaceholder} />
                 )}
 
