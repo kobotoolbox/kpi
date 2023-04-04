@@ -118,11 +118,17 @@ def get_q(countries: list[str], export_type: str) -> QuerySet:
 
 
 def get_submission_count(xform_id: int) -> int:
-    return (
-        ReadOnlyKobocatInstance.objects.values('xform_id')
-        .filter(xform_id=xform_id)
-        .count()
+
+    result = (
+        KobocatXForm.objects.values('num_of_submissions')
+        .filter(pk=xform_id)
+        .first()
     )
+
+    if not result:
+        return 0
+
+    return result['num_of_submissions']
 
 
 def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
