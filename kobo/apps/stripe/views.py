@@ -32,11 +32,7 @@ from kobo.apps.organizations.models import Organization
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
-class OneTimeAddOnViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet,
-):
+class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = OneTimeAddOnSerializer
     queryset = Session.objects.all()
@@ -142,9 +138,7 @@ class CustomerPortalView(APIView):
         return Response({'url': session['url']})
 
 
-class SubscriptionViewSet(
-    viewsets.ReadOnlyModelViewSet,
-):
+class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     lookup_field = 'id'
