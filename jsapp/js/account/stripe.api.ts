@@ -23,6 +23,8 @@ export interface BasePrice {
 export interface BaseSubscription {
   id: number;
   price: Product;
+  status: string;
+  items: [{price: {product: BaseProduct}}];
 }
 
 export interface Organization {
@@ -55,7 +57,9 @@ export async function getProducts() {
 }
 
 export async function getSubscription() {
-  return fetchGet<PaginatedResponse<BaseSubscription>>(endpoints.SUBSCRIPTION_URL);
+  return fetchGet<PaginatedResponse<BaseSubscription>>(
+    endpoints.SUBSCRIPTION_URL
+  );
 }
 
 export async function getOrganization() {

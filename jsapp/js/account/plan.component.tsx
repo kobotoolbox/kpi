@@ -1,4 +1,11 @@
-import React, {ReactNode, useEffect, useReducer, useState} from 'react';
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -16,7 +23,6 @@ import {
 } from './stripe.api';
 import Icon from '../components/common/icon';
 import Button from 'js/components/common/button';
-import {render} from 'react-dom';
 
 interface PlanState {
   isLoading: boolean;
@@ -43,6 +49,12 @@ const initialState = {
   organization: null,
   featureTypes: ['support', 'advanced', 'addons'],
 };
+
+/*
+  Stripe Subscription statuses that are shown as active in the UI.
+  Subscriptions with a status in this array will show an option to 'Manage'.
+*/
+const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
 
 function planReducer(state: PlanState, action: DataUpdates) {
   switch (action.type) {
@@ -73,6 +85,11 @@ export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
   const [buttonsDisabled, setButtonDisabled] = useState(false);
+  const hasActiveSubscription = useMemo(() => {
+    return state.subscribedProduct.some((subscription: BaseSubscription) =>
+      activeSubscriptionStatuses.includes(subscription.status)
+    );
+  }, [state.subscribedProduct]);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -103,28 +120,52 @@ export default function Plan() {
 
   // Filter prices based on plan interval
   const filterPrices = (): Price[] => {
-    if (state.products.length > 0) {
-      const filterAmount = state.products.map((product: Product) => {
-        const filteredPrices = product.prices.filter((price: BasePrice) => {
-          const interval = price.human_readable_price.split('/')[1];
-          return interval === state.intervalFilter || price.unit_amount === 0;
-        });
-        return {
-          ...product,
-          prices: filteredPrices.length ? filteredPrices[0] : null,
-        };
+    const filterAmount = state.products.map((product: Product) => {
+      const filteredPrices = product.prices.filter((price: BasePrice) => {
+        const interval = price.human_readable_price.split('/')[1];
+        return interval === state.intervalFilter || price.unit_amount === 0;
       });
-      return filterAmount.filter((product: Product) => product.prices);
-    }
-    return [];
+      return {
+        ...product,
+        prices: filteredPrices.length ? filteredPrices[0] : null,
+      };
+    });
+    return filterAmount.filter((product: Product) => product.prices);
   };
 
-  const isSubscribedProduct = (product: Price) => {
-    if (product.prices.unit_amount === 0 && !state.subscribedProduct?.length) {
-      return true;
-    }
-    return product.name === state.subscribedProduct?.name;
-  };
+  const getSubscriptionForProductId = useCallback(
+    (productId: String) => {
+      return state.subscribedProduct.find((subscription: BaseSubscription) => {
+        return subscription.items[0].price.product.id === productId;
+      });
+    },
+    [state.subscribedProduct]
+  );
+
+  const isSubscribedProduct = useCallback(
+    (product: Price) => {
+      if (!product.prices.unit_amount && !hasActiveSubscription) {
+        return true;
+      }
+      const subscription = getSubscriptionForProductId(product.id);
+      return Boolean(subscription?.status === 'active');
+    },
+    [state.subscribedProduct]
+  );
+
+  const shouldShowManage = useCallback(
+    (product: Price) => {
+      const subscription = getSubscriptionForProductId(product.id);
+      if (!subscription) {
+        return false;
+      }
+      const hasManageableStatus = activeSubscriptionStatuses.includes(
+        subscription.status
+      );
+      return Boolean(state.organization?.uid) && hasManageableStatus;
+    },
+    [state.subscribedProduct]
+  );
 
   const upgradePlan = (priceId: string) => {
     if (!priceId || buttonsDisabled) {
@@ -294,18 +335,8 @@ export default function Plan() {
         <div className={styles.allPlans}>
           {filterPrices().map((price: Price) => (
             <div className={styles.stripePlans} key={price.id}>
-              {isSubscribedProduct(price) ? (
-                <div
-                  className={styles.currentPlan}
-                  style={{
-                    display:
-                      filterPrices().findIndex(isSubscribedProduct) >= 0
-                        ? ''
-                        : 'none',
-                  }}
-                >
-                  {t('your plan')}
-                </div>
+              {shouldShowManage(price) || isSubscribedProduct(price) ? (
+                <div className={styles.currentPlan}>{t('your plan')}</div>
               ) : (
                 <div className={styles.otherPlanSpacing} />
               )}
@@ -313,10 +344,9 @@ export default function Plan() {
               <div className={styles.planContainer}>
                 <h1 className={styles.priceName}> {price.name} </h1>
                 <div className={styles.priceTitle}>
-                  {typeof price.prices.human_readable_price === 'string' &&
-                    (price.prices.human_readable_price.includes('$0.00')
-                      ? t('Free')
-                      : price.prices.human_readable_price)}
+                  {!price.prices?.unit_amount
+                    ? t('Free')
+                    : price.prices.human_readable_price}
                 </div>
 
                 <ul>
@@ -340,22 +370,22 @@ export default function Plan() {
                       )
                   )}
                 </ul>
-
-                {!isSubscribedProduct(price) && (
-                  <Button
-                    type='full'
-                    color='blue'
-                    size='m'
-                    label={t('Upgrade')}
-                    onClick={() => upgradePlan(price.prices.id)}
-                    aria-label={`upgrade to ${price.name}`}
-                    aria-disabled={buttonsDisabled}
-                    isDisabled={buttonsDisabled}
-                  />
-                )}
-                {isSubscribedProduct(price) &&
-                  state.organization?.uid &&
-                  price.name !== 'Community plan' && (
+                {!isSubscribedProduct(price) &&
+                  !shouldShowManage(price) &&
+                  price.prices.unit_amount !== 0 && (
+                    <Button
+                      type='full'
+                      color='blue'
+                      size='m'
+                      label={t('Upgrade')}
+                      onClick={() => upgradePlan(price.prices.id)}
+                      aria-label={`upgrade to ${price.name}`}
+                      aria-disabled={buttonsDisabled}
+                      isDisabled={buttonsDisabled}
+                    />
+                  )}
+                {(isSubscribedProduct(price) || shouldShowManage(price)) &&
+                  price.prices.unit_amount !== 0 && (
                     <Button
                       type='full'
                       color='blue'
