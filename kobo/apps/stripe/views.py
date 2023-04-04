@@ -134,9 +134,7 @@ class CustomerPortalView(
 
 
 class SubscriptionViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet,
+    viewsets.ReadOnlyModelViewSet,
 ):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
