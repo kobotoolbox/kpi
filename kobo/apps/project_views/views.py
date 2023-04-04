@@ -41,10 +41,7 @@ class ProjectViewViewSet(
         'name__icontains',
     ]
     min_search_characters = 2
-    ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS + [
-        # Can be removed as soon as front end starts to use `deployment_status`
-        '_deployment_data__active',
-    ]
+    ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
 
     def get_queryset(self, *args, **kwargs):

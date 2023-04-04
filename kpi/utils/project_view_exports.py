@@ -5,14 +5,14 @@ from io import StringIO
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, F, Max, Min, OuterRef, Q
+from django.db.models import Count, F, Q, Sum
 from django.db.models.query import QuerySet
 
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
-    ReadOnlyKobocatInstance,
+    ReadOnlyKobocatInstance, KobocatXForm
 )
-from kpi.models import Asset, AssetVersion
+from kpi.models import Asset
 from kpi.utils.project_views import get_region_for_view
 
 
@@ -29,7 +29,7 @@ ASSET_FIELDS = (
     'owner__email',
     'owner__name',
     'owner__organization',
-    'deployment__active',
+    '_deployment_status',
     'form_id',
 )
 SETTINGS = 'settings'
@@ -131,7 +131,6 @@ def get_data(filtered_queryset: QuerySet, export_type: str) -> QuerySet:
         data = filtered_queryset.annotate(
             owner__name=F('owner__extra_details__data__name'),
             owner__organization=F('owner__extra_details__data__organization'),
-            deployment__active=F('_deployment_data__active'),
             form_id=F('_deployment_data__backend_response__formid'),
         )
     else:

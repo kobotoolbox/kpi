@@ -49,6 +49,7 @@ from kpi.models import (
     AssetVersion,
     AssetExportSettings,
     ObjectPermission,
+    UserAssetSubscription,
 )
 from kpi.utils.object_permission import (
     get_cached_code_names,

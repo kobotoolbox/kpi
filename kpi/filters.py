@@ -32,7 +32,7 @@ from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     SearchQueryTooShortException,
 )
-from kpi.models.asset import UserAssetSubscription, AssetDeploymentStatus
+from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
 from kpi.utils.django_orm_helper import OrderRandom
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
