@@ -119,7 +119,7 @@ export default function Plan() {
   }, [state.products]);
 
   // Filter prices based on plan interval
-  const filterPrices = (): Price[] => {
+  const filterPrices = useMemo((): Price[] => {
     const filterAmount = state.products.map((product: Product) => {
       const filteredPrices = product.prices.filter((price: BasePrice) => {
         const interval = price.human_readable_price.split('/')[1];
@@ -131,7 +131,7 @@ export default function Plan() {
       };
     });
     return filterAmount.filter((product: Product) => product.prices);
-  };
+  }, [state.products, state.intervalFilter]);
 
   const getSubscriptionForProductId = useCallback(
     (productId: String) => {
@@ -202,7 +202,7 @@ export default function Plan() {
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
     const listItems: {icon: boolean; item: string}[] = [];
-    filterPrices().map((price) =>
+    filterPrices.map((price) =>
       Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
@@ -229,7 +229,7 @@ export default function Plan() {
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products.length >= 0) {
-      filterPrices().map((price) => {
+      filterPrices.map((price) => {
         for (const featureItem in price.metadata) {
           if (
             featureItem.includes('feature_support_') ||
@@ -333,7 +333,7 @@ export default function Plan() {
         </form>
 
         <div className={styles.allPlans}>
-          {filterPrices().map((price: Price) => (
+          {filterPrices.map((price: Price) => (
             <div className={styles.stripePlans} key={price.id}>
               {shouldShowManage(price) || isSubscribedProduct(price) ? (
                 <div className={styles.currentPlan}>{t('your plan')}</div>
