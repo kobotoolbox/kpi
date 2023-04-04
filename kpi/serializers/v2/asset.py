@@ -457,7 +457,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return obj.analysis_form_json()
 
     def get_deployment_status(self, obj: Asset) -> str:
-        return obj.deployment_status
+        if deployment_status := obj.deployment_status:
+            return deployment_status
+        return '-'
 
     def get_effective_permissions(self, obj: Asset) -> list[dict[str, str]]:
         """

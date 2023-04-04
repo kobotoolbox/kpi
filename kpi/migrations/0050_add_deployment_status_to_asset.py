@@ -2,15 +2,16 @@
 
 from django.db import migrations, models
 
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models.asset import AssetDeploymentStatus
 
 
 def populate_deployment_status(apps, schema_editor):
     Asset = apps.get_model('kpi', 'Asset')  # noqa
     batch_size = 2000
-    Asset.objects.only('_deployment_status').filter(_deployment_data={}).update(
-        _deployment_status=AssetDeploymentStatus.DRAFT
-    )
+    Asset.objects.only('_deployment_status').filter(
+        _deployment_data={}, asset_type=ASSET_TYPE_SURVEY
+    ).update(_deployment_status=AssetDeploymentStatus.DRAFT)
     qs = Asset.objects.only('_deployment_status', '_deployment_data').exclude(
         _deployment_data={}
     )
@@ -43,7 +44,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='_deployment_status',
-            field=models.CharField(choices=[('archived', 'Archived'), ('deployed', 'Deployed'), ('draft', 'Draft')], db_index=True, default='draft', max_length=8),
+            field=models.CharField(blank=True, choices=[('archived', 'Archived'), ('deployed', 'Deployed'), ('draft', 'Draft')], db_index=True, null=True, max_length=8),
         ),
         migrations.RunPython(populate_deployment_status, noop)
     ]

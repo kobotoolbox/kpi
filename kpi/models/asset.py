@@ -212,7 +212,8 @@ class Asset(ObjectPermissionMixin,
     _deployment_status = models.CharField(
         max_length=8,
         choices=AssetDeploymentStatus.choices,
-        default=AssetDeploymentStatus.DRAFT,
+        null=True,
+        blank=True,
         db_index=True
     )
 
@@ -504,6 +505,9 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def deployment_status(self):
+        if self.asset_type != ASSET_TYPE_SURVEY:
+            return
+
         return AssetDeploymentStatus(self._deployment_status).label
 
     @property
@@ -1123,6 +1127,9 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     def _set_deployment_status(self):
+        if self.asset_type != ASSET_TYPE_SURVEY:
+            return
+
         if self.has_deployment:
             if self.deployment.active:
                 self._deployment_status = AssetDeploymentStatus.DEPLOYED
