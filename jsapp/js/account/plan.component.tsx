@@ -16,6 +16,7 @@ import {
 } from './stripe.api';
 import Icon from '../components/common/icon';
 import Button from 'js/components/common/button';
+import {render} from 'react-dom';
 
 interface PlanState {
   isLoading: boolean;
@@ -203,34 +204,61 @@ export default function Plan() {
     return expandBool;
   };
 
-  const returnListItem = (type: string, name: string): ReactNode => {
-    return getListItem(type, name).map((listItem) =>
-      listItem.icon ? (
-        listItem.icon === true && (
-          <li key={listItem.item}>
-            <div className={styles.iconContainer}>
-              <Icon
-                name='check'
-                size='m'
-                classNames={
-                  name === 'Professional plan'
-                    ? [styles.tealCheck]
-                    : [styles.stormCheck]
-                }
-              />
-            </div>
-            {listItem.item}
-          </li>
-        )
-      ) : (
-        <li key={listItem.item}>
-          <div className={styles.iconContainer}>
-            <Icon name='close' size='m' classNames={[styles.redClose]} />
-          </div>
-          {listItem.item}
-        </li>
-      )
+  const renderFeaturesList = (
+    items: Array<{
+      icon: 'positive' | 'positive_pro' | 'negative';
+      label: string;
+    }>,
+    title?: string
+  ) => {
+    return (
+      <>
+        <h2 className={styles.listTitle}>{title}</h2>
+        <ul>
+          {items.map((item) => (
+            <li key={item.label}>
+              <div className={styles.iconContainer}>
+                {item.icon !== 'negative' ? (
+                  <Icon
+                    name='check'
+                    size='m'
+                    classNames={
+                      item.icon === 'positive_pro'
+                        ? [styles.tealCheck]
+                        : [styles.stormCheck]
+                    }
+                  />
+                ) : (
+                  <Icon name='close' size='m' classNames={[styles.redClose]} />
+                )}
+              </div>
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      </>
     );
+  };
+
+  const returnListItem = (
+    type: string,
+    name: string,
+    featureTitle: string
+  ): ReactNode => {
+    let items: {
+      icon: 'positive' | 'positive_pro' | 'negative';
+      label: string;
+    }[] = [];
+    getListItem(type, name).map((listItem) => {
+      if (listItem.icon && name === 'Professional plan') {
+        items.push({icon: 'positive_pro', label: listItem.item});
+      } else if (!listItem.icon) {
+        items.push({icon: 'negative', label: listItem.item});
+      } else {
+        items.push({icon: 'positive', label: listItem.item});
+      }
+    });
+    return renderFeaturesList(items, featureTitle);
   };
 
   if (!state.products.length) {
@@ -348,23 +376,11 @@ export default function Plan() {
                     <hr />
                     {state.featureTypes.map(
                       (type) =>
-                        getListItem(type, price.name).length > 0 && (
-                          <>
-                            <h2
-                              className={styles.listTitle}
-                              id={price.metadata[`feature_${type}_title`]}
-                            >
-                              {price.metadata[`feature_${type}_title`]}
-                            </h2>
-                            <ul
-                              key={type}
-                              aria-labelledby={
-                                price.metadata[`feature_${type}_title`]
-                              }
-                            >
-                              {returnListItem(type, price.name)}
-                            </ul>
-                          </>
+                        getListItem(type, price.name).length > 0 &&
+                        returnListItem(
+                          type,
+                          price.name,
+                          price.metadata[`feature_${type}_title`]
                         )
                     )}
                   </>
