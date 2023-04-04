@@ -1,5 +1,6 @@
 import {fetchGet, fetchPost} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
+import {endpoints} from 'js/api.endpoints';
 
 export interface BaseProduct {
   id: string;
@@ -49,34 +50,28 @@ export interface Portal {
   url: string;
 }
 
-const PRODUCTS_URL = '/api/v2/stripe/products/';
-const SUBSCRIPTION_URL = '/api/v2/stripe/subscriptions/';
-const ORGANIZATION_URL = '/api/v2/organizations/';
-const CHECKOUT_URL = '/api/v2/stripe/checkout-link';
-const PORTAL_URL = '/api/v2/stripe/customer-portal';
-
 export async function getProducts() {
-  return fetchGet<PaginatedResponse<Product>>(PRODUCTS_URL);
+  return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL);
 }
 
 export async function getSubscription() {
-  return fetchGet<PaginatedResponse<BaseSubscription>>(SUBSCRIPTION_URL);
+  return fetchGet<PaginatedResponse<BaseSubscription>>(endpoints.SUBSCRIPTION_URL);
 }
 
 export async function getOrganization() {
-  return fetchGet<PaginatedResponse<Organization>>(ORGANIZATION_URL);
+  return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
 }
 
 export async function postCheckout(priceId: string, organizationId: string) {
   return fetchPost<Checkout>(
-    `${CHECKOUT_URL}?price_id=${priceId}&organization_uid=${organizationId}`,
+    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_uid=${organizationId}`,
     {}
   );
 }
 
 export async function postCustomerPortal(organizationId: string) {
   return fetchPost<Portal>(
-    `${PORTAL_URL}?organization_uid=${organizationId}`,
+    `${endpoints.PORTAL_URL}?organization_uid=${organizationId}`,
     {}
   );
 }

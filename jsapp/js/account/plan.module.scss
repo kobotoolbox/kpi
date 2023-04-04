@@ -11,30 +11,33 @@
   height: 100%;
   width: 100%;
   font-family: "Roboto", sans-serif;
+  display: flex;
+  flex-direction: column;
+  row-gap: sizes.$x20;
 }
 
-.plansSection {
-  display: grid;
-  grid-template-rows: repeat(4, auto);
-  grid-template-columns: repeat(auto, minmax(300px, 1fr));
+.allPlans {
   column-gap: sizes.$x20;
-  margin-bottom: sizes.$x16;
+  display: flex;
+  flex-direction: row;
+}
+
+.stripePlans {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .intervalToggle {
-  grid-column: 1 / 5;
-  grid-row: 1/2;
-  justify-self: center;
   background-color: colors.$kobo-cloud;
   padding: sizes.$x3;
   border-radius: sizes.$x4;
-  margin-bottom: sizes.$x20;
+  margin: 0 auto sizes.$x20;
+  width: 15.4em;
 }
 
 .intervalToggle input[type="radio"] {
   display: none;
-  position: absolute;
-  width: 100%;
   appearance: none;
 }
 
@@ -79,12 +82,10 @@
 }
 
 .planContainer {
-  grid-auto-columns: 1fr;
-  width: 25em;
-  grid-row: 3/4;
   border-radius: sizes.$x6;
   border: colors.$kobo-gray-85 solid 1px;
   padding: sizes.$x36 sizes.$x48 sizes.$x40;
+  flex-grow: 1;
 }
 
 .priceName,
@@ -129,7 +130,7 @@
 
 .planContainer :global hr {
   border-bottom: 1px solid colors.$kobo-gray-85;
-  border-top: 1px solid colors.$kobo-gray-85;
+  border-top: none;
   margin: sizes.$x24 auto;
 }
 
@@ -159,15 +160,18 @@ color: colors.$kobo-teal;
   color: colors.$kobo-red;
 }
 
+.enterprisePlanContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .enterprisePlan {
   background-color: colors.$kobo-light-blue;
-  grid-column: 1fr;
-  width: 25em;
-  grid-row: 3/4;
   padding: sizes.$x36 sizes.$x48 sizes.$x40;
-  height: auto;
   overflow: hidden;
   border-radius: sizes.$x6;
+  flex-grow: 1;
 }
 
 .enterpriseDetails {
@@ -199,18 +203,22 @@ color: colors.$kobo-teal;
 .currentPlan {
   background-color: colors.$kobo-storm;
   color: colors.$kobo-white;
-  grid-row: 2/3;
   display: flex;
   justify-content: center;
   align-items: center;
+  position:relative;
+  top: 0;
   border-radius: sizes.$x6 sizes.$x6 0 0;
+  height: sizes.$x38;
+  width: 100%;
+}
+
+.otherPlanSpacing { 
   height: sizes.$x38;
 }
 
 @media screen and (max-width: breakpoints.$b1440) {
   .enterprisePlan {
-    grid-column: auto;
-    grid-row: 3/4;
     font-size: sizes.$x12 ;
   }
 

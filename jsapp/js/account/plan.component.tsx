@@ -97,7 +97,7 @@ export default function Plan() {
   }, []);
 
   useEffect(() => {
-    checkMetaFeatures();
+    hasMetaFeatures();
   }, [state.products]);
 
   // Filter prices based on plan interval
@@ -184,7 +184,7 @@ export default function Plan() {
     return listItems;
   };
 
-  const checkMetaFeatures = () => {
+  const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products.length >= 0) {
       filterPrices().map((price) => {
@@ -262,141 +262,157 @@ export default function Plan() {
           />
           <label htmlFor='switch_right'> {t('Monthly')}</label>
         </form>
-        <div
-          className={styles.currentPlan}
-          style={{
-            gridRow: 0,
-            gridColumn: 1 + filterPrices().findIndex(isSubscribedProduct),
-            display:
-              filterPrices().findIndex(isSubscribedProduct) >= 0 ? '' : 'none',
-          }}
-        >
-          {t('your plan')}
-        </div>
-        {filterPrices().map((price: Price, i: number) => (
-          <div className={styles.planContainer} key={i}>
-            <h1 className={styles.priceName}> {price.name} </h1>
-            <div className={styles.priceTitle}>
-              {typeof price.prices.human_readable_price === 'string' &&
-                (price.prices.human_readable_price.includes('$0.00')
-                  ? t('Free')
-                  : price.prices.human_readable_price)}
-            </div>
 
-            <ul>
-              {Object.keys(price.metadata).map(
-                (featureItem: string) =>
-                  featureItem.includes('feature_list_') && (
-                    <li key={featureItem}>
-                      <div className={styles.iconContainer}>
-                        <Icon
-                          name='check'
-                          size='m'
-                          classNames={
-                            price.name === 'Professional plan'
-                              ? [styles.tealCheck]
-                              : [styles.stormCheck]
-                          }
-                        />
-                      </div>
-                      {price.metadata[featureItem]}
-                    </li>
-                  )
+        <div className={styles.allPlans}>
+          {filterPrices().map((price: Price) => (
+            <div className={styles.stripePlans} key={price.id}>
+              {isSubscribedProduct(price) ? (
+                <div
+                  className={styles.currentPlan}
+                  style={{
+                    display:
+                      filterPrices().findIndex(isSubscribedProduct) >= 0
+                        ? ''
+                        : 'none',
+                  }}
+                >
+                  {t('your plan')}
+                </div>
+              ) : (
+                <div className={styles.otherPlanSpacing} />
               )}
-            </ul>
 
-            {!isSubscribedProduct(price) && (
-              <Button
-                type='full'
-                color='blue'
-                size='m'
-                label={t('Upgrade')}
-                onClick={() => upgradePlan(price.prices.id)}
-                aria-label={`upgrade to ${price.name}`}
-                aria-disabled={buttonsDisabled}
-                isDisabled={buttonsDisabled}
-              />
-            )}
-            {isSubscribedProduct(price) &&
-              state.organization?.uid &&
-              price.name !== 'Community plan' && (
-                <Button
-                  type='full'
-                  color='blue'
-                  size='m'
-                  label={t('Manage')}
-                  onClick={managePlan}
-                  aria-label={`manage your ${price.name} subscription`}
-                  aria-disabled={buttonsDisabled}
-                  isDisabled={buttonsDisabled}
-                />
-              )}
-            {price.name === 'Community plan' && (
-              <div className={styles.btnSpacePlaceholder} />
-            )}
+              <div className={styles.planContainer}>
+                <h1 className={styles.priceName}> {price.name} </h1>
+                <div className={styles.priceTitle}>
+                  {typeof price.prices.human_readable_price === 'string' &&
+                    (price.prices.human_readable_price.includes('$0.00')
+                      ? t('Free')
+                      : price.prices.human_readable_price)}
+                </div>
 
-            {expandComparison && (
-              <div>
-                <hr />
-                {state.featureTypes.map(
-                  (type) =>
-                    getListItem(type, price.name).length > 0 && (
-                      <>
-                        <h2
-                          className={styles.listTitle}
-                          id={price.metadata[`feature_${type}_title`]}
-                        >
-                          {price.metadata[`feature_${type}_title`]}
-                        </h2>
-                        <ul
-                          key={type}
-                          aria-labelledby={
-                            price.metadata[`feature_${type}_title`]
-                          }
-                        >
-                          {returnListItem(type, price.name)}
-                        </ul>
-                      </>
-                    )
+                <ul>
+                  {Object.keys(price.metadata).map(
+                    (featureItem: string) =>
+                      featureItem.includes('feature_list_') && (
+                        <li key={featureItem}>
+                          <div className={styles.iconContainer}>
+                            <Icon
+                              name='check'
+                              size='m'
+                              classNames={
+                                price.name === 'Professional plan'
+                                  ? [styles.tealCheck]
+                                  : [styles.stormCheck]
+                              }
+                            />
+                          </div>
+                          {price.metadata[featureItem]}
+                        </li>
+                      )
+                  )}
+                </ul>
+
+                {!isSubscribedProduct(price) && (
+                  <Button
+                    type='full'
+                    color='blue'
+                    size='m'
+                    label={t('Upgrade')}
+                    onClick={() => upgradePlan(price.prices.id)}
+                    aria-label={`upgrade to ${price.name}`}
+                    aria-disabled={buttonsDisabled}
+                    isDisabled={buttonsDisabled}
+                  />
+                )}
+                {isSubscribedProduct(price) &&
+                  state.organization?.uid &&
+                  price.name !== 'Community plan' && (
+                    <Button
+                      type='full'
+                      color='blue'
+                      size='m'
+                      label={t('Manage')}
+                      onClick={managePlan}
+                      aria-label={`manage your ${price.name} subscription`}
+                      aria-disabled={buttonsDisabled}
+                      isDisabled={buttonsDisabled}
+                    />
+                  )}
+                {price.name === 'Community plan' && (
+                  <div className={styles.btnSpacePlaceholder} />
+                )}
+
+                {expandComparison && (
+                  <>
+                    <hr />
+                    {state.featureTypes.map(
+                      (type) =>
+                        getListItem(type, price.name).length > 0 && (
+                          <>
+                            <h2
+                              className={styles.listTitle}
+                              id={price.metadata[`feature_${type}_title`]}
+                            >
+                              {price.metadata[`feature_${type}_title`]}
+                            </h2>
+                            <ul
+                              key={type}
+                              aria-labelledby={
+                                price.metadata[`feature_${type}_title`]
+                              }
+                            >
+                              {returnListItem(type, price.name)}
+                            </ul>
+                          </>
+                        )
+                    )}
+                  </>
                 )}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
 
-        <div className={styles.enterprisePlan}>
-          <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
-          <p className={styles.enterpriseDetails}>
-            {t(
-              'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
-            )}
-          </p>
-          <p className={styles.enterpriseDetails}>
-            {t(
-              'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
-            )}
-          </p>
-          <div className={styles.enterpriseLink}>
-            <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
-              {t('Get in touch for Enterprise options')}
-            </a>
+          <div className={styles.enterprisePlanContainer}>
+            <div className={styles.otherPlanSpacing} />
+            <div className={styles.enterprisePlan}>
+              <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
+              <p className={styles.enterpriseDetails}>
+                {t(
+                  'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
+                )}
+              </p>
+              <p className={styles.enterpriseDetails}>
+                {t(
+                  'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
+                )}
+              </p>
+              <div className={styles.enterpriseLink}>
+                <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
+                  {t('Get in touch for Enterprise options')}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      {checkMetaFeatures() && (
-        <Button
-          type='full'
-          color='cloud'
-          size='m'
-          isFullWidth
-          label={
-            expandComparison ? t('Collapse') : t('Display full comparison')
-          }
-          onClick={() => setExpandComparison(!expandComparison)}
-          aria-label={
-            expandComparison ? t('Collapse') : t('Display full comparison')
-          }
-        />
+
+      {hasMetaFeatures() && (
+        <div className={styles.expandBtn}>
+          <Button
+            type='full'
+            color='cloud'
+            size='m'
+            isFullWidth
+            label={
+              expandComparison ? t('Collapse') : t('Display full comparison')
+            }
+            onClick={() => setExpandComparison(!expandComparison)}
+            aria-label={
+              expandComparison ? t('Collapse') : t('Display full comparison')
+            }
+          />
+        </div>
       )}
     </div>
   );
