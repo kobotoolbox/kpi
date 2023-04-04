@@ -1,20 +1,37 @@
+/**
+ * This file lists all different processing related Reflux actions. Some of
+ * these are simple API calls, but few requires chain calls.
+ *
+ * TODO: in future, this should be moved to MobX.
+ */
+
 import Reflux from 'reflux';
 import {notify} from 'alertifyjs';
 import clonedeep from 'lodash.clonedeep';
 import {actions} from 'js/actions';
-import {
-  getAssetAdvancedFeatures,
-  getAssetProcessingUrl,
-} from 'js/assetUtils';
-import type {AssetAdvancedFeatures} from 'js/dataInterface';
+import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
+import type {
+  AssetAdvancedFeatures,
+  AssetResponse,
+  FailResponse,
+} from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 
-const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!');
+/**
+ * A safety check error message for calls made with assets that don't have
+ * the processing enabled.
+ */
+const NO_FEATURE_ERROR = t(
+  'Asset seems to not have the processing feature enabled!'
+);
 
-// A temporary solution for deleting transcript/translation is to pass this
-// character as value.
+/**
+ * A temporary solution for deleting transcript/translation is to pass this
+ * character as value instead of making a `DELETE` call.
+ */
 const DELETE_CHAR = '⌫';
 
+/** Response from Google for automated transcript. */
 interface GoogleTsResponse {
   status: 'requested' | 'in_progress' | 'complete';
   /** Full transcript text. */
@@ -27,48 +44,48 @@ interface GoogleTsResponse {
   languageCode: string;
 }
 
+/** Response from Google for automated translation. */
 interface GoogleTxResponse {
   status: 'complete';
   value: string;
   languageCode: string;
 }
 
-interface TransxQuestion {
-  transcript: TransxObject;
-  translation: {
-    [languageCode: LanguageCode]: TransxObject;
-  };
-  googlets?: GoogleTsResponse;
-  googletx?: GoogleTxResponse;
-}
-/** Both transcript and translation are built in same way. */
+/**
+ * An object we are sending to Back end whenever we want to save new transcript
+ * or translation value.
+ */
 interface TransxRequestObject {
   languageCode: LanguageCode;
   value: string;
 }
+
+/**
+ * An object we are receiving from Back end for a transcript or a translation.
+ */
 interface TransxObject extends TransxRequestObject {
   dateCreated: string;
   dateModified: string;
+  /** The source of the `value` text. */
   engine?: string;
-  revisions?: TransxRevision[];
-}
-interface TransxRevision {
-  dateModified: string;
-  engine?: string;
-  languageCode: LanguageCode;
-  value: string;
+  /** The history of edits. */
+  revisions?: Array<{
+    dateModified: string;
+    engine?: string;
+    languageCode: LanguageCode;
+    value: string;
+  }>;
 }
 
+/** Object we send to Back end when updating transcript text manually. */
 interface TranscriptRequest {
-  [qpath: string]: TranscriptRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {transcript: TransxRequestObject};
   submission?: string;
 }
-interface TranscriptRequestQuestion {
-  transcript: TransxRequestObject;
-}
 
+/** Object we send to Back end when requesting an automatic transcription. */
 interface AutoTranscriptRequest {
-  [qpath: string]: AutoTranscriptRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {googlets: AutoTranscriptRequestEngineParams};
   submission?: string;
 }
 interface AutoTranscriptRequestEngineParams {
@@ -76,49 +93,66 @@ interface AutoTranscriptRequestEngineParams {
   languageCode?: string;
   regionCode?: string;
 }
-interface AutoTranscriptRequestQuestion {
-  googlets: AutoTranscriptRequestEngineParams;
-}
 
+/** Object we send to Back end when updating translation text manually. */
 interface TranslationRequest {
-  [qpath: string]: TranslationRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {translation: TranslationsRequestObject};
   submission?: string;
-}
-interface TranslationRequestQuestion {
-  translation: TranslationsRequestObject;
 }
 interface TranslationsRequestObject {
   [languageCode: LanguageCode]: TransxRequestObject;
 }
 
+/** Object we send to Back end when requesting an automatic translation. */
 interface AutoTranslationRequest {
-  [qpath: string]: AutoTranslationRequestQuestion | string | undefined;
+  [qpath: string]: string | undefined | {googletx: AutoTranslationRequestEngineParams};
   submission?: string;
 }
-interface AutoTranslationRequestQuestion {
-  googletx: {
-    status: 'requested';
-    languageCode: string;
+interface AutoTranslationRequestEngineParams {
+  status: 'requested';
+  languageCode: string;
+}
+
+/**
+ * This is a list of question objects returned from processing endpoint. They
+ * contain a transcript and all translations for given question. If automated
+ * tools were used, it will also contain the responses from these tools.
+ */
+export interface ProcessingDataResponse {
+  [key: string]: {
+    transcript: TransxObject;
+    translation: {
+      [languageCode: LanguageCode]: TransxObject;
+    };
+    googlets?: GoogleTsResponse;
+    googletx?: GoogleTxResponse;
   };
 }
 
-export interface ProcessingDataResponse {
-  [key: string]: TransxQuestion;
-}
-export interface AutoTranscriptionEvent {
-  response: ProcessingDataResponse;
-  submissionEditId: string;
+/**
+ * This is a Reflux thing. A function that can be called, but also a function
+ * that has a .listen method for adding observers to it. It helps to typeguard
+ * all the Reflux actions here.
+ */
+interface ListenableCallback<R> extends Function {
+  (response: R): void;
+  listen: (callback: (response: R) => void) => Function;
 }
 
-const processingActions = Reflux.createActions({
+interface ProcessingActionsDefinition {
+  activateAsset: ActivateAssetDefinition;
+  getProcessingData: GetProcessingDataDefinition;
+  setTranscript: SetTranscriptDefinition;
+  deleteTranscript: DeleteTranscriptDefinition;
+  requestAutoTranscription: RequestAutoTranscriptionDefinition;
+  setTranslation: SetTranslationDefinition;
+  deleteTranslation: DeleteTranslationDefinition;
+  requestAutoTranslation: RequestAutoTranslationDefinition;
+}
+
+const processingActions: ProcessingActionsDefinition = Reflux.createActions({
   activateAsset: {children: ['completed', 'failed']},
-  getProcessingData: {
-    children: [
-      'started',
-      'completed',
-      'failed',
-    ],
-  },
+  getProcessingData: {children: ['started', 'completed', 'failed']},
   // Transcript stuff
   setTranscript: {children: ['completed', 'failed']},
   deleteTranscript: {children: ['completed', 'failed']},
@@ -130,43 +164,66 @@ const processingActions = Reflux.createActions({
 });
 
 /**
+ * `activateAsset` action
+ *
  * Processing is database heavy, so assets need to be have the feature activated
  * first. Activations requires providing a lists of question names and a lists
- * processingActions.requestAutoTranscription.in_progress(response);
  * of language codes - this means that asset might be re-activated multiple
- * times, e.g. when a new translation language is added. Backend handles
+ * times, e.g. when a new translation language is added. Back end handles
  * un-activation automagically - e.g. when you delete last translation for given
  * language, backend will un-activate that language in asset.
  */
-processingActions.activateAsset.listen((
-  assetUid: string,
-  enableTranscript?: boolean,
-  /** To enable translations, pass array of languages (empty works too). */
-  enableTranslations?: string[]
-) => {
-  const features: AssetAdvancedFeatures = {};
-  if (enableTranscript) {
-    features.transcript = {};
-  }
-  if (Array.isArray(enableTranslations)) {
-    features.translation = {
-      languages: enableTranslations,
-    };
-  }
-  actions.resources.updateAsset(
-    assetUid,
-    {advanced_features: features},
-    {
-      onComplete: processingActions.activateAsset.completed,
-      onFail: processingActions.activateAsset.failed,
+interface ActivateAssetFn {
+  (
+    assetUid: string,
+    enableTranscript?: boolean,
+    /** To enable translations, pass array of languages (empty works too). */
+    enableTranslations?: string[]
+  ): void;
+}
+interface ActivateAssetDefinition extends ActivateAssetFn {
+  listen: (fn: ActivateAssetFn) => void;
+  completed: ListenableCallback<AssetResponse>;
+  failed: ListenableCallback<FailResponse>;
+}
+processingActions.activateAsset.listen(
+  (assetUid, enableTranscript, enableTranslations) => {
+    const features: AssetAdvancedFeatures = {};
+    if (enableTranscript) {
+      features.transcript = {};
     }
-  );
-});
+    if (Array.isArray(enableTranslations)) {
+      features.translation = {
+        languages: enableTranslations,
+      };
+    }
+    actions.resources.updateAsset(
+      assetUid,
+      {advanced_features: features},
+      {
+        onComplete: processingActions.activateAsset.completed,
+        onFail: processingActions.activateAsset.failed,
+      }
+    );
+  }
+);
 
-processingActions.getProcessingData.listen((
-  assetUid: string,
-  submissionEditId: string
-) => {
+/**
+ * `getProcessingData` action
+ *
+ * This simply returns the processing data for all questions for given
+ * submission.
+ */
+interface GetProcessingDataFn {
+  (assetUid: string, submissionEditId: string): void;
+}
+interface GetProcessingDataDefinition extends GetProcessingDataFn {
+  listen: (fn: GetProcessingDataFn) => void;
+  started: ListenableCallback<() => void>;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.getProcessingData.listen((assetUid, submissionEditId) => {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl === undefined) {
     processingActions.getProcessingData.failed(NO_FEATURE_ERROR);
@@ -178,9 +235,7 @@ processingActions.getProcessingData.listen((
       url: processingUrl,
       data: {submission: submissionEditId},
     })
-      .done((response: ProcessingDataResponse) => {
-        processingActions.getProcessingData.completed(response);
-      })
+      .done(processingActions.getProcessingData.completed)
       .fail(processingActions.getProcessingData.failed);
 
     processingActions.getProcessingData.started(xhr.abort);
@@ -229,156 +284,219 @@ function setTranscriptInnerMethod(
   }
 }
 
-// This function ensures that `advanced_features` are enabled for given language
-// before sending translation to avoid rejection.
-processingActions.setTranscript.listen((
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string,
-  languageCode: LanguageCode,
-  value: string
-) => {
-  // This first block of code is about getting currently enabled languages.
-  const currentFeatures = getAssetAdvancedFeatures(assetUid);
-  if (currentFeatures?.transcript === undefined) {
-    processingActions.setTranscript.failed(NO_FEATURE_ERROR);
-    return;
-  }
+/**
+ * `setTranscript` action
+ *
+ * For updating the transcript text. Note that it ensures that asset's
+ * `advanced_features` are enabled for given language before sending transcript
+ * - to avoid rejection.
+ */
+interface SetTranscriptFn {
+  (
+    assetUid: string,
+    qpath: string,
+    submissionEditId: string,
+    languageCode: LanguageCode,
+    value: string
+  ): void;
+}
+interface SetTranscriptDefinition extends SetTranscriptFn {
+  listen: (fn: SetTranscriptFn) => void;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.setTranscript.listen(
+  (assetUid, qpath, submissionEditId, languageCode, value) => {
+    // This first block of code is about getting currently enabled languages.
+    const currentFeatures = getAssetAdvancedFeatures(assetUid);
+    if (currentFeatures?.transcript === undefined) {
+      processingActions.setTranscript.failed(NO_FEATURE_ERROR);
+      return;
+    }
 
-  // Case 1: the language is already enabled in advanced_features, so we can
-  // just send the translation.
-  if (
-    Array.isArray(currentFeatures.transcript.languages) &&
-    currentFeatures.transcript.languages.includes(languageCode)
-  ) {
-    setTranscriptInnerMethod(
-      assetUid,
-      qpath,
-      submissionEditId,
-      languageCode,
-      value
-    );
-    return;
-  }
-
-  // Case 2: the language is not yet enabled, so we make a chain call that will
-  // enable it and then send the translation
-
-  // We build the updated advanced_features object.
-  const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
-  if (!newFeatures.transcript) {
-    newFeatures.transcript = {};
-  }
-  if (Array.isArray(newFeatures.transcript.languages)) {
-    newFeatures.transcript.languages.push(languageCode);
-  } else {
-    newFeatures.transcript.languages = [languageCode];
-  }
-
-  // We update the asset and go with the next call on success.
-  actions.resources.updateAsset(
-    assetUid,
-    {advanced_features: newFeatures},
-    {
-      onComplete: setTranscriptInnerMethod.bind(
-        this,
+    // Case 1: the language is already enabled in advanced_features, so we can
+    // just send the translation.
+    if (
+      Array.isArray(currentFeatures.transcript.languages) &&
+      currentFeatures.transcript.languages.includes(languageCode)
+    ) {
+      setTranscriptInnerMethod(
         assetUid,
         qpath,
         submissionEditId,
         languageCode,
         value
-      ),
-      onFail: processingActions.setTranscript.failed,
+      );
+      return;
     }
-  );
-});
+
+    // Case 2: the language is not yet enabled, so we make a chain call that
+    // will enable it and then send the translation
+
+    // We build the updated advanced_features object.
+    const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
+    if (!newFeatures.transcript) {
+      newFeatures.transcript = {};
+    }
+    if (Array.isArray(newFeatures.transcript.languages)) {
+      newFeatures.transcript.languages.push(languageCode);
+    } else {
+      newFeatures.transcript.languages = [languageCode];
+    }
+
+    // We update the asset and go with the next call on success.
+    actions.resources.updateAsset(
+      assetUid,
+      {advanced_features: newFeatures},
+      {
+        onComplete: setTranscriptInnerMethod.bind(
+          this,
+          assetUid,
+          qpath,
+          submissionEditId,
+          languageCode,
+          value
+        ),
+        onFail: processingActions.setTranscript.failed,
+      }
+    );
+  }
+);
 processingActions.setTranscript.failed.listen(() => {
   notify(t('Failed to set transcript.'), 'error');
 });
 
 /**
- * For now deleting transcript means setting its value to
- * a predefined DELETE_CHAR.
+ * `deleteTranscript` action
+ *
+ * Use it to completely remove given transcript. Currently deleting transcript
+ * means setting its value to a predefined DELETE_CHAR - Back end handles the
+ * cleanup.
  */
-processingActions.deleteTranscript.listen((
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string
-) => {
-  const processingUrl = getAssetProcessingUrl(assetUid);
-  if (processingUrl === undefined) {
-    processingActions.deleteTranscript.failed(NO_FEATURE_ERROR);
-  } else {
-    const data: TranscriptRequest = {
-      submission: submissionEditId,
-    };
-    data[qpath] = {
-      transcript: {
-        value: DELETE_CHAR,
-        languageCode: '',
-      },
-    };
+interface DeleteTranscriptFn {
+  (assetUid: string, qpath: string, submissionEditId: string): void;
+}
+interface DeleteTranscriptDefinition extends DeleteTranscriptFn {
+  listen: (fn: DeleteTranscriptFn) => void;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.deleteTranscript.listen(
+  (assetUid, qpath, submissionEditId) => {
+    const processingUrl = getAssetProcessingUrl(assetUid);
+    if (processingUrl === undefined) {
+      processingActions.deleteTranscript.failed(NO_FEATURE_ERROR);
+    } else {
+      const data: TranscriptRequest = {
+        submission: submissionEditId,
+      };
+      data[qpath] = {
+        transcript: {
+          value: DELETE_CHAR,
+          languageCode: '',
+        },
+      };
 
-    $.ajax({
-      dataType: 'json',
-      contentType: 'application/json',
-      method: 'POST',
-      url: processingUrl,
-      data: JSON.stringify(data),
-    })
-      .done((response: ProcessingDataResponse) => {
-        processingActions.deleteTranscript.completed(response);
+      $.ajax({
+        dataType: 'json',
+        contentType: 'application/json',
+        method: 'POST',
+        url: processingUrl,
+        data: JSON.stringify(data),
       })
-      .fail(processingActions.deleteTranscript.failed);
+        .done(processingActions.deleteTranscript.completed)
+        .fail(processingActions.deleteTranscript.failed);
+    }
   }
-});
+);
 processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error');
 });
 
-processingActions.requestAutoTranscription.listen((
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string,
-  languageCode?: string,
-  regionCode?: string,
-) => {
-  const processingUrl = getAssetProcessingUrl(assetUid);
-  if (processingUrl === undefined) {
-    processingActions.requestAutoTranscription.failed(NO_FEATURE_ERROR);
-  } else {
-    const data: AutoTranscriptRequest = {
-      submission: submissionEditId,
-    };
-    let autoparams: AutoTranscriptRequestEngineParams = {status: 'requested'};
-    if (languageCode) {
-      autoparams.languageCode = languageCode;
-    }
-    if (regionCode) {
-      autoparams.regionCode = regionCode;
-    }
-    data[qpath] = {
-      googlets: autoparams,
-    };
+/**
+ * `requestAutoTranscription` action
+ *
+ * For requesting automatic transcription from Back end. It uses an in-progress
+ * callback called `in_progress`. We use it because transcripting process can
+ * take a long time.
+ *
+ * Note: if user sends the same request multiple times, Back end will respond
+ * with initial request status instead of making a completely new call.
+ */
+interface RequestAutoTranscriptionFn {
+  (
+    assetUid: string,
+    qpath: string,
+    submissionEditId: string,
+    languageCode?: string,
+    regionCode?: string | null
+  ): void;
+}
+interface RequestAutoTranscriptionDefinition
+  extends RequestAutoTranscriptionFn {
+  listen: (fn: RequestAutoTranscriptionFn) => void;
+  completed: ListenableCallback<{
+    response: ProcessingDataResponse;
+    submissionEditId: string;
+  }>;
+  in_progress: ListenableCallback<{
+    response: ProcessingDataResponse;
+    submissionEditId: string;
+  }>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.requestAutoTranscription.listen(
+  (assetUid, qpath, submissionEditId, languageCode, regionCode) => {
+    const processingUrl = getAssetProcessingUrl(assetUid);
+    if (processingUrl === undefined) {
+      processingActions.requestAutoTranscription.failed(NO_FEATURE_ERROR);
+    } else {
+      const data: AutoTranscriptRequest = {
+        submission: submissionEditId,
+      };
+      const autoparams: AutoTranscriptRequestEngineParams = {
+        status: 'requested',
+      };
+      if (languageCode) {
+        autoparams.languageCode = languageCode;
+      }
+      if (regionCode) {
+        autoparams.regionCode = regionCode;
+      }
+      data[qpath] = {
+        googlets: autoparams,
+      };
 
-    $.ajax({
-      dataType: 'json',
-      contentType: 'application/json',
-      method: 'POST',
-      url: processingUrl,
-      data: JSON.stringify(data),
-    })
-      .done((response: ProcessingDataResponse) => {
-        if (['requested', 'in_progress'].includes(response[qpath]?.googlets?.status ?? '')) {
-          processingActions.requestAutoTranscription.in_progress({response, submissionEditId});
-        } else {
-          processingActions.requestAutoTranscription.completed({response, submissionEditId});
-        }
+      $.ajax({
+        dataType: 'json',
+        contentType: 'application/json',
+        method: 'POST',
+        url: processingUrl,
+        data: JSON.stringify(data),
       })
-      .fail(processingActions.requestAutoTranscription.failed);
+        .done((response: ProcessingDataResponse) => {
+          if (
+            ['requested', 'in_progress'].includes(
+              response[qpath]?.googlets?.status ?? ''
+            )
+          ) {
+            processingActions.requestAutoTranscription.in_progress({
+              response,
+              submissionEditId,
+            });
+          } else {
+            processingActions.requestAutoTranscription.completed({
+              response,
+              submissionEditId,
+            });
+          }
+        })
+        .fail(processingActions.requestAutoTranscription.failed);
+    }
   }
-});
+);
 
+/** A small utility function for getting easier to use data. */
 function pickTranslationsFromProcessingDataResponse(
   response: ProcessingDataResponse,
   qpath: string
@@ -443,152 +561,189 @@ function setTranslationInnerMethod(
     })
       .done((response: ProcessingDataResponse) => {
         processingActions.setTranslation.completed(
-          pickTranslationsFromProcessingDataResponse(
-            response,
-            qpath
-          )
+          pickTranslationsFromProcessingDataResponse(response, qpath)
         );
       })
       .fail(processingActions.setTranslation.failed);
   }
 }
 
-// This function ensures that `advanced_features` are enabled for given language
-// before sending translation to avoid rejection.
-processingActions.setTranslation.listen((
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string,
-  languageCode: LanguageCode,
-  value: string
-) => {
-  // This first block of code is about getting currently enabled languages.
-  const currentFeatures = getAssetAdvancedFeatures(assetUid);
-  if (currentFeatures?.translation === undefined) {
-    processingActions.setTranslation.failed(NO_FEATURE_ERROR);
-    return;
-  }
+/**
+ * `setTranslation` action
+ *
+ * For updating the translation text. Note that it ensures that asset's
+ * `advanced_features` are enabled for given language before sending translation
+ * - to avoid rejection.
+ */
+interface SetTranslationFn {
+  (
+    assetUid: string,
+    qpath: string,
+    submissionEditId: string,
+    languageCode: LanguageCode,
+    value: string
+  ): void;
+}
+interface SetTranslationDefinition extends SetTranslationFn {
+  listen: (fn: SetTranslationFn) => void;
+  completed: ListenableCallback<TransxObject[]>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.setTranslation.listen(
+  (assetUid, qpath, submissionEditId, languageCode, value) => {
+    // This first block of code is about getting currently enabled languages.
+    const currentFeatures = getAssetAdvancedFeatures(assetUid);
+    if (currentFeatures?.translation === undefined) {
+      processingActions.setTranslation.failed(NO_FEATURE_ERROR);
+      return;
+    }
 
-  // Case 1: the language is already enabled in advanced_features, so we can
-  // just send the translation.
-  if (
-    Array.isArray(currentFeatures.translation.languages) &&
-    currentFeatures.translation.languages.includes(languageCode)
-  ) {
-    setTranslationInnerMethod(
-      assetUid,
-      qpath,
-      submissionEditId,
-      languageCode,
-      value
-    );
-    return;
-  }
-
-  // Case 2: the language is not yet enabled, so we make a chain call that will
-  // enable it and then send the translation
-
-  // We build the updated advanced_features object.
-  const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
-  if (!newFeatures.translation) {
-    newFeatures.translation = {};
-  }
-  if (Array.isArray(newFeatures.translation.languages)) {
-    newFeatures.translation.languages.push(languageCode);
-  } else {
-    newFeatures.translation.languages = [languageCode];
-  }
-
-  // We update the asset and go with the next call on success.
-  actions.resources.updateAsset(
-    assetUid,
-    {advanced_features: newFeatures},
-    {
-      onComplete: setTranslationInnerMethod.bind(
-        this,
+    // Case 1: the language is already enabled in advanced_features, so we can
+    // just send the translation.
+    if (
+      Array.isArray(currentFeatures.translation.languages) &&
+      currentFeatures.translation.languages.includes(languageCode)
+    ) {
+      setTranslationInnerMethod(
         assetUid,
         qpath,
         submissionEditId,
         languageCode,
         value
-      ),
-      onFail: processingActions.setTranslation.failed,
+      );
+      return;
     }
-  );
-});
+
+    // Case 2: the language is not yet enabled, so we make a chain call that will
+    // enable it and then send the translation
+
+    // We build the updated advanced_features object.
+    const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures);
+    if (!newFeatures.translation) {
+      newFeatures.translation = {};
+    }
+    if (Array.isArray(newFeatures.translation.languages)) {
+      newFeatures.translation.languages.push(languageCode);
+    } else {
+      newFeatures.translation.languages = [languageCode];
+    }
+
+    // We update the asset and go with the next call on success.
+    actions.resources.updateAsset(
+      assetUid,
+      {advanced_features: newFeatures},
+      {
+        onComplete: setTranslationInnerMethod.bind(
+          this,
+          assetUid,
+          qpath,
+          submissionEditId,
+          languageCode,
+          value
+        ),
+        onFail: processingActions.setTranslation.failed,
+      }
+    );
+  }
+);
 processingActions.setTranslation.failed.listen(() => {
   notify(t('Failed to set transcript.'), 'error');
 });
 
 /**
- * For now deleting translation means setting its value to
- * a predefined DELETE_CHAR.
+ * `deleteTranslation` action
+ *
+ * Use it to completely remove given translation. Currently deleting translation
+ * means setting its value to a predefined DELETE_CHAR - Back end handles the
+ * cleanup.
  */
-processingActions.deleteTranslation.listen((
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string,
-  languageCode: LanguageCode
-) => {
-  const processingUrl = getAssetProcessingUrl(assetUid);
-  if (processingUrl === undefined) {
-    processingActions.deleteTranslation.failed(NO_FEATURE_ERROR);
-  } else {
-    const data = getTranslationDataObject(
-      qpath,
-      submissionEditId,
-      languageCode,
-      DELETE_CHAR
-    );
-    $.ajax({
-      dataType: 'json',
-      contentType: 'application/json',
-      method: 'POST',
-      url: processingUrl,
-      data: JSON.stringify(data),
-    })
-      .done((response: ProcessingDataResponse) => {
-        processingActions.deleteTranslation.completed(response);
+interface DeleteTranslationFn {
+  (
+    assetUid: string,
+    qpath: string,
+    submissionEditId: string,
+    languageCode: LanguageCode
+  ): void;
+}
+interface DeleteTranslationDefinition extends DeleteTranslationFn {
+  listen: (fn: DeleteTranslationFn) => void;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.deleteTranslation.listen(
+  (assetUid, qpath, submissionEditId, languageCode) => {
+    const processingUrl = getAssetProcessingUrl(assetUid);
+    if (processingUrl === undefined) {
+      processingActions.deleteTranslation.failed(NO_FEATURE_ERROR);
+    } else {
+      const data = getTranslationDataObject(
+        qpath,
+        submissionEditId,
+        languageCode,
+        DELETE_CHAR
+      );
+      $.ajax({
+        dataType: 'json',
+        contentType: 'application/json',
+        method: 'POST',
+        url: processingUrl,
+        data: JSON.stringify(data),
       })
-      .fail(processingActions.deleteTranslation.failed);
+        .done(processingActions.deleteTranslation.completed)
+        .fail(processingActions.deleteTranslation.failed);
+    }
   }
-});
+);
 processingActions.deleteTranslation.failed.listen(() => {
   notify(t('Failed to delete translation.'), 'error');
 });
 
-processingActions.requestAutoTranslation.listen((
-  assetUid: string,
-  qpath: string,
-  submissionEditId: string,
-  languageCode: string
-) => {
-  const processingUrl = getAssetProcessingUrl(assetUid);
-  if (processingUrl === undefined) {
-    processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR);
-  } else {
-    const data: AutoTranslationRequest = {
-      submission: submissionEditId,
-    };
-    data[qpath] = {
-      googletx: {
-        status: 'requested',
-        languageCode: languageCode,
-      },
-    };
+/**
+ * `requestAutoTranslation` action
+ *
+ * For requestiong automatic translation from Back end. Translations are not as
+ * time consuming as transcripts, so we don't use `in_progress` callback here.
+ */
+interface RequestAutoTranslationFn {
+  (
+    assetUid: string,
+    qpath: string,
+    submissionEditId: string,
+    languageCode: string
+  ): void;
+}
+interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
+  listen: (fn: RequestAutoTranslationFn) => void;
+  completed: ListenableCallback<ProcessingDataResponse>;
+  failed: ListenableCallback<FailResponse | string>;
+}
+processingActions.requestAutoTranslation.listen(
+  (assetUid, qpath, submissionEditId, languageCode) => {
+    const processingUrl = getAssetProcessingUrl(assetUid);
+    if (processingUrl === undefined) {
+      processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR);
+    } else {
+      const data: AutoTranslationRequest = {
+        submission: submissionEditId,
+      };
+      data[qpath] = {
+        googletx: {
+          status: 'requested',
+          languageCode: languageCode,
+        },
+      };
 
-    $.ajax({
-      dataType: 'json',
-      contentType: 'application/json',
-      method: 'POST',
-      url: processingUrl,
-      data: JSON.stringify(data),
-    })
-      .done((response: ProcessingDataResponse) => {
-        processingActions.requestAutoTranslation.completed(response);
+      $.ajax({
+        dataType: 'json',
+        contentType: 'application/json',
+        method: 'POST',
+        url: processingUrl,
+        data: JSON.stringify(data),
       })
-      .fail(processingActions.requestAutoTranslation.failed);
+        .done(processingActions.requestAutoTranslation.completed)
+        .fail(processingActions.requestAutoTranslation.failed);
+    }
   }
-});
+);
 
 export default processingActions;

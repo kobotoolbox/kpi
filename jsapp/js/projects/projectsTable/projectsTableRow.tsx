@@ -137,6 +137,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
                 field.name
               ),
             })}
+            // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
           >

@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useRef, useState} from 'react';
+import React, {ReactNode, useEffect, useReducer, useRef, useState} from 'react';
 import {useSearchParams} from "react-router-dom";
 import styles from './plan.module.scss';
 import type {
@@ -102,7 +102,7 @@ export default function Plan() {
   }, []);
 
   useEffect(() => {
-    checkMetaFeatures();
+    hasMetaFeatures();
   }, [state.products]);
 
   useEffect(() => {
@@ -210,7 +210,7 @@ export default function Plan() {
     return listItems;
   };
 
-  const checkMetaFeatures = () => {
+  const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products.length >= 0) {
       filterPrices().map((price) => {
@@ -229,6 +229,63 @@ export default function Plan() {
     return expandBool;
   };
 
+  const renderFeaturesList = (
+    items: Array<{
+      icon: 'positive' | 'positive_pro' | 'negative';
+      label: string;
+    }>,
+    title?: string
+  ) => {
+    return (
+      <>
+        <h2 className={styles.listTitle}>{title}</h2>
+        <ul>
+          {items.map((item) => (
+            <li key={item.label}>
+              <div className={styles.iconContainer}>
+                {item.icon !== 'negative' ? (
+                  <Icon
+                    name='check'
+                    size='m'
+                    classNames={
+                      item.icon === 'positive_pro'
+                        ? [styles.tealCheck]
+                        : [styles.stormCheck]
+                    }
+                  />
+                ) : (
+                  <Icon name='close' size='m' classNames={[styles.redClose]} />
+                )}
+              </div>
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      </>
+    );
+  };
+
+  const returnListItem = (
+    type: string,
+    name: string,
+    featureTitle: string
+  ): ReactNode => {
+    let items: {
+      icon: 'positive' | 'positive_pro' | 'negative';
+      label: string;
+    }[] = [];
+    getListItem(type, name).map((listItem) => {
+      if (listItem.icon && name === 'Professional plan') {
+        items.push({icon: 'positive_pro', label: listItem.item});
+      } else if (!listItem.icon) {
+        items.push({icon: 'negative', label: listItem.item});
+      } else {
+        items.push({icon: 'positive', label: listItem.item});
+      }
+    });
+    return renderFeaturesList(items, featureTitle);
+  };
+
   if (!state.products.length) {
     return null;
   }
@@ -243,6 +300,7 @@ export default function Plan() {
             value='year'
             onChange={() => dispatch({type: 'year'})}
             checked={!state.filterToggle}
+            aria-label={'Toggle to annual options'}
           />
           <label htmlFor='switch_left'>{t('Annual')}</label>
 
@@ -251,173 +309,151 @@ export default function Plan() {
             id='switch_right'
             name='switchToggle'
             value='month'
+            aria-label={'Toggle to month options'}
             onChange={() => dispatch({type: 'month'})}
             checked={state.filterToggle}
           />
           <label htmlFor='switch_right'> {t('Monthly')}</label>
         </form>
-        <div
-          className={styles.currentPlan}
-          style={{
-            gridRow: 0,
-            gridColumn: 1 + filterPrices().findIndex(isSubscribedProduct),
-            display:
-              filterPrices().findIndex(isSubscribedProduct) >= 0 ? '' : 'none',
-          }}
-        >
-          {t('your plan')}
-        </div>
-        {filterPrices().map((price: Price, i: number) => (
-          <div className={styles.planContainer} key={i}>
-            <h1 className={styles.priceName}> {price.name} </h1>
-            <div className={styles.priceTitle}>
-              {typeof price.prices.human_readable_price === 'string' &&
-                (price.prices.human_readable_price.includes('$0.00')
-                  ? t('Free')
-                  : price.prices.human_readable_price)}
-            </div>
 
-            <ul>
-              {Object.keys(price.metadata).map(
-                (featureItem: string) =>
-                  featureItem.includes('feature_list_') && (
-                    <li key={featureItem}>
-                      <div className={styles.iconContainer}>
-                        <Icon
-                          name='check'
-                          size='m'
-                          classNames={
-                            price.name === 'Professional plan'
-                              ? [styles.tealCheck]
-                              : [styles.stormCheck]
-                          }
-                        />
-                      </div>
-                      {price.metadata[featureItem]}
-                    </li>
-                  )
-              )}
-            </ul>
-
-            {!isSubscribedProduct(price) && (
-              <Button
-                type='full'
-                color='blue'
-                size='m'
-                label={t('Upgrade')}
-                onClick={() => upgradePlan(price.prices.id)}
-                aria-label={`upgrade to ${price.name}`}
-                aria-disabled={buttonsDisabled}
-                isDisabled={buttonsDisabled}
-              />
-            )}
-            {isSubscribedProduct(price) &&
-              state.organization?.uid &&
-              price.name !== 'Community plan' && (
-                <Button
-                  type='full'
-                  color='blue'
-                  size='m'
-                  label={t('Manage')}
-                  onClick={managePlan}
-                  aria-label={`manage your ${price.name} subscription`}
-                  aria-disabled={buttonsDisabled}
-                  isDisabled={buttonsDisabled}
-                />
+        <div className={styles.allPlans}>
+          {filterPrices().map((price: Price) => (
+            <div className={styles.stripePlans} key={price.id}>
+              {isSubscribedProduct(price) ? (
+                <div
+                  className={styles.currentPlan}
+                  style={{
+                    display:
+                      filterPrices().findIndex(isSubscribedProduct) >= 0
+                        ? ''
+                        : 'none',
+                  }}
+                >
+                  {t('your plan')}
+                </div>
+              ) : (
+                <div className={styles.otherPlanSpacing} />
               )}
 
-            {expandComparison && (
-              <div>
-                <hr />
-                {state.featureTypes.map(
-                  (type) =>
-                    getListItem(type, price.name).length > 0 && (
-                      <>
-                        <h2
-                          className={styles.listTitle}
-                          id={price.metadata[`feature_${type}_title`]}
-                        >
-                          {price.metadata[`feature_${type}_title`]}
-                        </h2>
-                        <ul
-                          key={type}
-                          aria-labelledby={
-                            price.metadata[`feature_${type}_title`]
-                          }
-                        >
-                          {getListItem(type, price.name).map((listItem) =>
-                            listItem.icon ? (
-                              listItem.icon === true && (
-                                <li key={listItem.item}>
-                                  <div className={styles.iconContainer}>
-                                    <Icon
-                                      name='check'
-                                      size='m'
-                                      classNames={
-                                        price.name === 'Professional plan'
-                                          ? [styles.tealCheck]
-                                          : [styles.stormCheck]
-                                      }
-                                    />
-                                  </div>
-                                  {listItem.item}
-                                </li>
-                              )
-                            ) : (
-                              <li key={listItem.item}>
-                                <div className={styles.iconContainer}>
-                                  <Icon
-                                    name='close'
-                                    size='m'
-                                    classNames={[styles.redClose]}
-                                  />
-                                </div>
-                                {listItem.item}
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </>
-                    )
+              <div className={styles.planContainer}>
+                <h1 className={styles.priceName}> {price.name} </h1>
+                <div className={styles.priceTitle}>
+                  {typeof price.prices.human_readable_price === 'string' &&
+                    (price.prices.human_readable_price.includes('$0.00')
+                      ? t('Free')
+                      : price.prices.human_readable_price)}
+                </div>
+
+                <ul>
+                  {Object.keys(price.metadata).map(
+                    (featureItem: string) =>
+                      featureItem.includes('feature_list_') && (
+                        <li key={featureItem}>
+                          <div className={styles.iconContainer}>
+                            <Icon
+                              name='check'
+                              size='m'
+                              classNames={
+                                price.name === 'Professional plan'
+                                  ? [styles.tealCheck]
+                                  : [styles.stormCheck]
+                              }
+                            />
+                          </div>
+                          {price.metadata[featureItem]}
+                        </li>
+                      )
+                  )}
+                </ul>
+
+                {!isSubscribedProduct(price) && (
+                  <Button
+                    type='full'
+                    color='blue'
+                    size='m'
+                    label={t('Upgrade')}
+                    onClick={() => upgradePlan(price.prices.id)}
+                    aria-label={`upgrade to ${price.name}`}
+                    aria-disabled={buttonsDisabled}
+                    isDisabled={buttonsDisabled}
+                  />
+                )}
+                {isSubscribedProduct(price) &&
+                  state.organization?.uid &&
+                  price.name !== 'Community plan' && (
+                    <Button
+                      type='full'
+                      color='blue'
+                      size='m'
+                      label={t('Manage')}
+                      onClick={managePlan}
+                      aria-label={`manage your ${price.name} subscription`}
+                      aria-disabled={buttonsDisabled}
+                      isDisabled={buttonsDisabled}
+                    />
+                  )}
+                {price.name === 'Community plan' && (
+                  <div className={styles.btnSpacePlaceholder} />
+                )}
+
+                {expandComparison && (
+                  <>
+                    <hr />
+                    {state.featureTypes.map(
+                      (type) =>
+                        getListItem(type, price.name).length > 0 &&
+                        returnListItem(
+                          type,
+                          price.name,
+                          price.metadata[`feature_${type}_title`]
+                        )
+                    )}
+                  </>
                 )}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
 
-        <div className={styles.enterprisePlan}>
-          <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
-          <p className={styles.enterpriseDetails}>
-            {t(
-              'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
-            )}
-          </p>
-          <p className={styles.enterpriseDetails}>
-            {t(
-              'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
-            )}
-          </p>
-          <div className={styles.enterpriseLink}>
-            <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
-              {t('Get in touch for Enterprise options')}
-            </a>
+          <div className={styles.enterprisePlanContainer}>
+            <div className={styles.otherPlanSpacing} />
+            <div className={styles.enterprisePlan}>
+              <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
+              <p className={styles.enterpriseDetails}>
+                {t(
+                  'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
+                )}
+              </p>
+              <p className={styles.enterpriseDetails}>
+                {t(
+                  'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
+                )}
+              </p>
+              <div className={styles.enterpriseLink}>
+                <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
+                  {t('Get in touch for Enterprise options')}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      {checkMetaFeatures() && (
-        <Button
-          type='full'
-          color='cloud'
-          size='m'
-          isFullWidth
-          label={
-            expandComparison ? t('Collapse') : t('Display full comparison')
-          }
-          onClick={() => setExpandComparison(!expandComparison)}
-          aria-label={
-            expandComparison ? t('Collapse') : t('Display full comparison')
-          }
-        />
+
+      {hasMetaFeatures() && (
+        <div className={styles.expandBtn}>
+          <Button
+            type='full'
+            color='cloud'
+            size='m'
+            isFullWidth
+            label={
+              expandComparison ? t('Collapse') : t('Display full comparison')
+            }
+            onClick={() => setExpandComparison(!expandComparison)}
+            aria-label={
+              expandComparison ? t('Collapse') : t('Display full comparison')
+            }
+          />
+        </div>
       )}
     </div>
   );
