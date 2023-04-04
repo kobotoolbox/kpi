@@ -15,9 +15,14 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
         read_only=True,
         many=False,
     )
+
     class Meta:
         model = Session
-        fields = ('metadata', 'created', 'payment_intent',)
+        fields = (
+            'metadata',
+            'created',
+            'payment_intent',
+        )
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
@@ -38,6 +43,7 @@ class BasePriceSerializer(serializers.ModelSerializer):
             "human_readable_price",
             "metadata",
         )
+
 
 class CustomerPortalSerializer(serializers.Serializer):
     organization_uid = serializers.CharField(required=True)

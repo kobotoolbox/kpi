@@ -3,7 +3,14 @@ import stripe
 from django.conf import settings
 from django.db.models import Prefetch
 
-from djstripe.models import Customer, Price, Product, Session, Subscription, SubscriptionItem
+from djstripe.models import (
+    Customer,
+    Price,
+    Product,
+    Session,
+    Subscription,
+    SubscriptionItem,
+)
 from djstripe.settings import djstripe_settings
 
 from organizations.utils import create_organization
@@ -21,9 +28,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
 )
 
-from kobo.apps.organizations.models import (
-    Organization
-)
+from kobo.apps.organizations.models import Organization
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
@@ -41,13 +46,11 @@ class OneTimeAddOnViewSet(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__owner__organization_user__user=self.request.user,
             mode='payment',
-            payment_intent__status__in=['succeeded', 'processing']
+            payment_intent__status__in=['succeeded', 'processing'],
         ).prefetch_related('payment_intent')
 
 
-class CheckoutLinkView(
-    APIView
-):
+class CheckoutLinkView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CheckoutLinkSerializer
 
@@ -56,31 +59,36 @@ class CheckoutLinkView(
         if organization_uid:
             # Get the organization for the logged-in user and provided organization UID
             organization = Organization.objects.get(
-                uid=organization_uid,
-                owner__organization_user__user_id=user
+                uid=organization_uid, owner__organization_user__user_id=user
             )
         else:
             # Find the first organization the user belongs to, otherwise make a new one
-            organization = Organization.objects.filter(users=user, owner__organization_user__user_id=user).first()
+            organization = Organization.objects.filter(
+                users=user, owner__organization_user__user_id=user
+            ).first()
             if not organization:
                 organization = create_organization(
-                    user, f"{user.username}'s organization", model=Organization, owner__user=user
+                    user,
+                    f"{user.username}'s organization",
+                    model=Organization,
+                    owner__user=user,
                 )
         customer, _ = Customer.get_or_create(
-            subscriber=organization,
-            livemode=settings.STRIPE_LIVE_MODE
+            subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
-        session = CheckoutLinkView.start_checkout_session(customer.id, price, organization.uid)
+        session = CheckoutLinkView.start_checkout_session(
+            customer.id, price, organization.uid
+        )
         return Response({'url': session['url']})
 
     @staticmethod
     def start_checkout_session(customer_id, price, organization_uid):
-        checkout_mode = 'payment' if price.type == 'one_time' else 'subscription'
+        checkout_mode = (
+            'payment' if price.type == 'one_time' else 'subscription'
+        )
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
-            automatic_tax={
-                'enabled': False
-            },
+            automatic_tax={'enabled': False},
             customer=customer_id,
             line_items=[
                 {
@@ -102,26 +110,27 @@ class CheckoutLinkView(
         serializer.is_valid(raise_exception=True)
         price = serializer.validated_data.get('price_id')
         organization_uid = serializer.validated_data.get('organization_uid')
-        response = self.generate_payment_link(price, request.user, organization_uid)
+        response = self.generate_payment_link(
+            price, request.user, organization_uid
+        )
         return response
 
 
-class CustomerPortalView(
-    APIView
-):
+class CustomerPortalView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
     def generate_portal_link(user, organization_uid):
-        organization = Organization.objects.get(uid=organization_uid, owner__organization_user__user_id=user)
+        organization = Organization.objects.get(
+            uid=organization_uid, owner__organization_user__user_id=user
+        )
         customer = Customer.objects.get(
-            subscriber=organization,
-            livemode=settings.STRIPE_LIVE_MODE
+            subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
         session = stripe.billing_portal.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             customer=customer.id,
-            return_url=f'{settings.KOBOFORM_URL}/#/account/plan'
+            return_url=f'{settings.KOBOFORM_URL}/#/account/plan',
         )
         return session
 
