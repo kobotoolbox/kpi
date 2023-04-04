@@ -369,11 +369,7 @@ class AssetViewSet(
     lookup_field = 'uid'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
-    ordering_fields = [
-        'asset_type',
-        'date_modified',
-        'name',
-        'owner__username',
+    ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS + [
         'subscribers_count',
     ]
     filter_backends = [

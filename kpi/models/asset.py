@@ -82,6 +82,13 @@ from kpi.utils.sluggify import sluggify_label
 from kpi.tasks import remove_asset_snapshots
 
 
+class AssetDeploymentStatus(models.TextChoices):
+
+    ARCHIVED = 'archived', 'Archived'
+    DEPLOYED = 'deployed', 'Deployed'
+    DRAFT = 'draft', 'Draft'
+
+
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetWithoutPendingDeletedManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
@@ -200,6 +207,14 @@ class Asset(ObjectPermissionMixin,
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
     pending_delete = models.BooleanField(default=False)
+    # `_deployment_status` is calculated field, therefore should **NOT** be
+    # set directly.
+    _deployment_status = models.CharField(
+        max_length=8,
+        choices=AssetDeploymentStatus.choices,
+        default=AssetDeploymentStatus.DRAFT,
+        db_index=True
+    )
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -486,6 +501,10 @@ class Asset(ObjectPermissionMixin,
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
+
+    @property
+    def deployment_status(self):
+        return AssetDeploymentStatus(self._deployment_status).label
 
     @property
     def discoverable_when_public(self):
@@ -869,6 +888,8 @@ class Asset(ObjectPermissionMixin,
                 self._deployment_data.pop('_stored_data_key', None)
                 self.__copy_hidden_fields()
 
+        self._set_deployment_status()
+
         super().save(
             force_insert=force_insert,
             force_update=force_update,
@@ -1100,6 +1121,15 @@ class Asset(ObjectPermissionMixin,
             return
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
+
+    def _set_deployment_status(self):
+        if self.has_deployment:
+            if self.deployment.active:
+                self._deployment_status = AssetDeploymentStatus.DEPLOYED
+            else:
+                self._deployment_status = AssetDeploymentStatus.ARCHIVED
+        else:
+            self._deployment_status = AssetDeploymentStatus.DRAFT
 
     @transaction.atomic
     def snapshot(

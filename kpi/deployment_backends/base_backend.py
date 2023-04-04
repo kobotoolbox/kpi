@@ -23,7 +23,7 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.django_orm_helper import ReplaceValues
 
 
 class BaseDeploymentBackend(abc.ABC):
