@@ -4,9 +4,11 @@ import {handleApiFail} from 'js/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
 import styles from './BulkDeletePrompt.module.scss';
+import customViewStore from '../../customViewStore';
 
 interface BulkDeletePromptProps {
   assetUids: string[];
+  /** Being used by the parent component to close the prompt. */
   onRequestClose: () => void;
 }
 
@@ -14,20 +16,23 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
   const [isDataChecked, setIsDataChecked] = useState(false);
   const [isFormChecked, setIsFormChecked] = useState(false);
   const [isRecoverChecked, setIsRecoverChecked] = useState(false);
+  const [isConfirmDeletePending, setIsConfirmDeletePending] = useState(false);
 
   function onConfirmDelete() {
-    console.log('AAA delete selected assets', props.assetUids);
+    setIsConfirmDeletePending(true);
 
     fetchDelete('/api/v2/assets/bulk/', {
       payload: {asset_uids: props.assetUids},
     }).then(() => {
+      props.onRequestClose();
+      customViewStore.handleAssetsDeleted(props.assetUids);
       console.log('AAA delete done');
     }, handleApiFail);
   }
 
   return (
     <KoboPrompt
-      // This is always open, because parent component is conditionally rendering it
+      // This is always open, because parent is conditionally rendering this component
       isOpen
       onRequestClose={props.onRequestClose}
       title={t('Delete ##count## projects').replace(
@@ -40,6 +45,7 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
           color: 'storm',
           label: 'Cancel',
           onClick: props.onRequestClose,
+          isDisabled: isConfirmDeletePending,
         },
         {
           type: 'full',
@@ -47,6 +53,7 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
           label: 'Delete',
           onClick: onConfirmDelete,
           isDisabled: !isDataChecked || !isFormChecked || !isRecoverChecked,
+          isPending: isConfirmDeletePending,
         },
       ]}
     >

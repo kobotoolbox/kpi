@@ -116,7 +116,7 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
             props.asset,
             getAssetDisplayName(props.asset).final,
             (deletedAssetUid: string) => {
-              customViewStore.handleAssetDeleted(deletedAssetUid);
+              customViewStore.handleAssetsDeleted([deletedAssetUid]);
             }
           )
         }
