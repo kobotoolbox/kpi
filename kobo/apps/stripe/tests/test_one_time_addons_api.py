@@ -10,7 +10,6 @@ from kpi.tests.kpi_test_case import BaseTestCase
 
 
 class OneTimeAddOnAPITestCase(BaseTestCase):
-
     fixtures = ['test_data']
 
     def setUp(self):
