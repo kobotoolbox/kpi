@@ -505,10 +505,10 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def deployment_status(self):
-        if self.asset_type != ASSET_TYPE_SURVEY:
-            return
-
-        return AssetDeploymentStatus(self._deployment_status).label
+        """
+        Public property for `_deployment_status`
+        """
+        return self._deployment_status
 
     @property
     def discoverable_when_public(self):

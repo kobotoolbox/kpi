@@ -15,8 +15,8 @@ import classNames from 'classnames';
 const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-successfully';
 
 export interface ProjectsTableOrder {
-  fieldName: ProjectFieldName;
-  direction: OrderDirection;
+  fieldName?: ProjectFieldName;
+  direction?: OrderDirection;
 }
 
 interface ProjectsTableProps {

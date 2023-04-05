@@ -23,10 +23,7 @@ const PAGE_SIZE = 50;
 
 const DEFAULT_VIEW_SETTINGS: ViewSettings = {
   filters: [],
-  order: {
-    fieldName: PROJECT_FIELDS.dateModified.name,
-    direction: 'descending',
-  },
+  order: {},
   // When fields are `undefined`, it means the deafult fields (from
   // `DEFAULT_PROJECT_FIELDS`) are being used.
   fields: undefined,
@@ -142,7 +139,12 @@ class CustomViewStore {
    * > `-name` is descending and `name` is ascending
    */
   private getOrderQuery() {
-    const fieldDefinition = PROJECT_FIELDS[this.order.fieldName];
+    if (!this.order?.fieldName) {
+      return '';
+    }
+
+    const fieldDefinition = PROJECT_FIELDS[this.order.fieldName as ProjectFieldName];
+
     if (this.order.direction === 'descending') {
       return `-${fieldDefinition.apiOrderingName}`;
     }
@@ -171,7 +173,8 @@ class CustomViewStore {
       dataType: 'json',
       method: 'GET',
       url:
-        `${this.baseUrl}&ordering=${orderingString}&limit=${PAGE_SIZE}` +
+        `${this.baseUrl}&limit=${PAGE_SIZE}` +
+        (orderingString ? `&ordering=${orderingString}` : '') +
         (queriesString ? `&q=${queriesString}` : ''),
     })
       .done(this.onFetchAssetsDone.bind(this))

@@ -291,11 +291,11 @@ class ProjectSettings extends React.Component {
   // archive flow
 
   isArchivable() {
-    return this.state.formAsset.has_deployment && this.state.formAsset.deployment__active;
+    return this.state.formAsset.deployment_status === 'deployed';
   }
 
   isArchived() {
-    return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
+    return this.state.formAsset.deployment_status === 'archived';
   }
 
   archiveProject(evt) {
