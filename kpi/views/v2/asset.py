@@ -417,7 +417,7 @@ class AssetViewSet(
         renderer_classes=[renderers.JSONRenderer],
     )
     def bulk(self, request, *args, **kwargs):
-        return Response(self._delete_assets(request.data))
+        return Response(self._bulk_asset_actions(request.data))
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -788,7 +788,7 @@ class AssetViewSet(
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):
-        self._delete_assets(
+        self._bulk_asset_actions(
             {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
         )
 
@@ -840,7 +840,7 @@ class AssetViewSet(
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
 
-    def _delete_assets(self, data: dict) -> dict:
+    def _bulk_asset_actions(self, data: dict) -> dict:
         params = {
             'data': data,
             'context': self.get_serializer_context(),
