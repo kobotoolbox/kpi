@@ -93,6 +93,18 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                   type='bare'
                   color='storm'
                   size='m'
+                  label={t('Default sort')}
+                  startIcon='sort-default'
+                  onClick={() => {
+                    props.onChangeOrderRequested({});
+                  }}
+                />
+              )}
+              {props.orderableFields.includes(field.name) && (
+                <Button
+                  type='bare'
+                  color='storm'
+                  size='m'
                   label={t('Sort A→Z')}
                   startIcon='sort-ascending'
                   onClick={() => {
