@@ -587,7 +587,7 @@ def generate_user_details_report(output_filename: str):
             joined_date=Cast('date_joined', CharField()),
             last_login_date=Cast('last_login', CharField()),
             removal_request_date=Cast(
-                'extra_details__date_removal_request', CharField()
+                'extra_details__date_removal_requested', CharField()
             ),
             removed_date=Cast('extra_details__date_removed', CharField()),
             asset_count=Count('assets'),

@@ -72,7 +72,7 @@ class AccountTrashTestCase(TestCase):
         someuser.refresh_from_db()
         assert not someuser.is_active
         after = now()
-        assert before <= someuser.extra_details.date_removal_request <= after
+        assert before <= someuser.extra_details.date_removal_requested <= after
 
         before = now() + timedelta(days=grace_period)
         move_to_trash(

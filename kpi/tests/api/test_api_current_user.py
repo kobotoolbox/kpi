@@ -19,7 +19,7 @@ class CurrentUserTestCase(BaseTestCase):
     def test_user_deactivation(self):
         # Check user account is as expected
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None
 
         # Prepare and send the request
         self.client.login(username='delete_me', password='delete_me')
@@ -32,13 +32,13 @@ class CurrentUserTestCase(BaseTestCase):
         # Check the db to make sure the expected changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is False
-        assert self.user.extra_details.date_removal_request is not None
-        assert type(self.user.extra_details.date_removal_request) is datetime
+        assert self.user.extra_details.date_removal_requested is not None
+        assert type(self.user.extra_details.date_removal_requested) is datetime
 
     def test_cannot_delete_when_confirm_different_from_uid(self):
         # Check user account is as expected
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None
 
         # Prepare and send the request
         self.client.login(username='delete_me', password='delete_me')
@@ -51,12 +51,12 @@ class CurrentUserTestCase(BaseTestCase):
         # Check the db to make sure that no changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None
 
     def test_cannot_delete_without_confirm(self):
         # Check user account is as expected
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None
 
         # Prepare and send the request
         self.client.login(username='delete_me', password='delete_me')
@@ -69,12 +69,12 @@ class CurrentUserTestCase(BaseTestCase):
         # Check the db to make sure that no changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None
 
     def test_cannot_delete_without_payload(self):
         # Check user account is as expected
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None
 
         # Prepare and send the request
         self.client.login(username='delete_me', password='delete_me')
@@ -84,4 +84,4 @@ class CurrentUserTestCase(BaseTestCase):
         # Check the db to make sure that no changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
-        assert self.user.extra_details.date_removal_request is None
+        assert self.user.extra_details.date_removal_requested is None

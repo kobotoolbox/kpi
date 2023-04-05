@@ -118,7 +118,7 @@ class ExtendedUserAdmin(UserAdmin):
         'email',
         'is_active',
         'date_joined',
-        'get_date_removal_request',
+        'get_date_removal_requested',
         'get_date_removed',
         'get_status',
     )
@@ -184,11 +184,11 @@ class ExtendedUserAdmin(UserAdmin):
         return assets_count['count']
 
     @admin.display(description='Removal request date')
-    def get_date_removal_request(self, obj):
-        if not (date_removal_request := obj.extra_details.date_removal_request):
+    def get_date_removal_requested(self, obj):
+        if not (date_removal_requested := obj.extra_details.date_removal_requested):
             return '-'
 
-        return date_removal_request
+        return date_removal_requested
 
     @admin.display(description='Removed date')
     def get_date_removed(self, obj):
@@ -200,7 +200,7 @@ class ExtendedUserAdmin(UserAdmin):
     @admin.display(description='Status')
     def get_status(self, obj):
 
-        if not obj.last_login and not obj.extra_details.date_removal_request:
+        if not obj.last_login and not obj.extra_details.date_removal_requested:
             return 'Never logged in'
 
         if obj.is_active:
@@ -209,7 +209,7 @@ class ExtendedUserAdmin(UserAdmin):
         if obj.extra_details.date_removed:
             return 'Removed'
 
-        if obj.extra_details.date_removal_request:
+        if obj.extra_details.date_removal_requested:
             return 'Removal pending'
 
         return 'Inactive'

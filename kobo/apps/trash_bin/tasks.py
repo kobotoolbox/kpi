@@ -81,7 +81,7 @@ def empty_account(account_trash_id: int):
 
     user = account_trash.user
     user_id = user.pk
-    date_removal_request = user.extra_details.date_removal_request
+    date_removal_requested = user.extra_details.date_removal_requested
     try:
         # We need to deactivate this post_delete signal because it's triggered
         # on `User` delete cascade and fails to insert into DB within a transaction.
@@ -113,10 +113,10 @@ def empty_account(account_trash_id: int):
                 placeholder_user = replace_user_with_placeholder(user)
                 # Retain removal date information
                 extra_details = placeholder_user.extra_details
-                extra_details.date_removal_request = date_removal_request
+                extra_details.date_removal_requested = date_removal_requested
                 extra_details.date_removed = now()
                 extra_details.save(
-                    update_fields=['date_removal_request', 'date_removed']
+                    update_fields=['date_removal_requested', 'date_removed']
                 )
 
             AuditLog.objects.create(**audit_log_params)

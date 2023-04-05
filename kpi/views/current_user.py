@@ -117,9 +117,9 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
             )
             request.user.is_active = False
             request.user.save(update_fields=['is_active'])
-            request.user.extra_details.date_removal_request = now()
+            request.user.extra_details.date_removal_requested = now()
             request.user.extra_details.save(
-                update_fields=['date_removal_request']
+                update_fields=['date_removal_requested']
             )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
