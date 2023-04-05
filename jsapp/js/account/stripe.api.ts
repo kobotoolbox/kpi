@@ -18,13 +18,14 @@ export interface BasePrice {
   unit_amount: number;
   human_readable_price: string;
   metadata: {[key: string]: string};
+  product: BaseProduct;
 }
 
 export interface BaseSubscription {
   id: number;
   price: Product;
   status: string;
-  items: [{price: {product: BaseProduct}}];
+  items: [{ price:BasePrice }];
 }
 
 export interface Organization {
