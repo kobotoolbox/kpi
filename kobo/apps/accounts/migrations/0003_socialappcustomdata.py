@@ -8,14 +8,22 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('socialaccount', '0003_extra_data_default_dict'),
-        ('accounts', '0001_initial'),
+        ('accounts', '0002_add_emailcontent_model'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='SocialAppCustomData',
             fields=[
-                ('social_app', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='socialaccount.socialapp')),
+                (
+                    'social_app',
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        serialize=False,
+                        to='socialaccount.socialapp',
+                    ),
+                ),
             ],
         ),
     ]
