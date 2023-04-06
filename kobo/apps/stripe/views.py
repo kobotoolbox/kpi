@@ -160,7 +160,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
-    Returns Product and Price Lists
+    Returns Product and Price Lists, sorted from the product with the lowest price to highest
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/stripe/products/
