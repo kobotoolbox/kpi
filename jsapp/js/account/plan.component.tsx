@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useSearchParams, useLocation} from 'react-router-dom';
+import {useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -88,9 +88,7 @@ export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
-  const [showExpand, setShowExpand] = useState(false);
   const [searchParams, _setSearchParams] = useSearchParams();
-  const location = useLocation();
   const didMount = useRef(false);
   const hasActiveSubscription = useMemo(() => {
     return state.subscribedProduct.some((subscription: BaseSubscription) =>
@@ -128,7 +126,20 @@ export default function Plan() {
     );
 
     Promise.all(promises).then(() => setAreButtonsDisabled(false));
-  }, [location.pathname, location.key, searchParams]);
+  }, [searchParams]);
+
+  // Make sure buttons are enabled if displaying from back/forward cache
+  useEffect(() => {
+    const handlePersisted = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setAreButtonsDisabled(false);
+      }
+    };
+    window.addEventListener('pageshow', handlePersisted);
+    return () => {
+      window.removeEventListener('pageshow', handlePersisted);
+    };
+  }, []);
 
   useEffect(() => {
     // display a success message if we're returning from Stripe checkout
