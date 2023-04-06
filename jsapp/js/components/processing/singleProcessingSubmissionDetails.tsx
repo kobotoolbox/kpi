@@ -1,5 +1,4 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import type {AssetContent} from 'js/dataInterface';
 import {
   QUESTION_TYPES,
@@ -13,27 +12,8 @@ import {
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
 import AudioPlayer from 'js/components/common/audioPlayer';
-import './singleProcessingSubmissionDetails.scss';
-
-bem.SingleProcessingVideoPreview = makeBem(
-  null,
-  'single-processing-video-preview',
-  'video'
-);
-bem.SingleProcessingMediaWrapper = makeBem(
-  null,
-  'single-processing-media-wrapper',
-  'section'
-);
-bem.SingleProcessingDataList = makeBem(
-  null,
-  'single-processing-data-list',
-  'section'
-);
-bem.SingleProcessingDataList__body = makeBem(
-  bem.SingleProcessingDataList,
-  'body'
-);
+import styles from './singleProcessingSubmissionDetails.module.scss';
+import classNames from 'classnames';
 
 interface SingleProcessingSubmissionDetailsProps {
   assetContent: AssetContent;
@@ -111,21 +91,34 @@ export default class SingleProcessingSubmissionDetails extends React.Component<S
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
         return (
-          <bem.SingleProcessingMediaWrapper m='audio' key='audio'>
+          <section
+            className={classNames(
+              styles.mediaWrapper,
+              styles.mediaWrapperAudio
+            )}
+            key='audio'
+          >
             <AudioPlayer
               mediaURL={attachment.download_url}
               filename={attachment.filename}
             />
-          </bem.SingleProcessingMediaWrapper>
+          </section>
         );
       case QUESTION_TYPES.video.id:
         return (
-          <bem.SingleProcessingMediaWrapper m='video' key='video'>
-            <bem.SingleProcessingVideoPreview
+          <section
+            className={classNames(
+              styles.mediaWrapper,
+              styles.mediaWrapperVideo
+            )}
+            key='video'
+          >
+            <video
+              className={styles.videoPreview}
               src={attachment.download_url}
               controls
             />
-          </bem.SingleProcessingMediaWrapper>
+          </section>
         );
       default:
         return null;
@@ -147,16 +140,16 @@ export default class SingleProcessingSubmissionDetails extends React.Component<S
     }
 
     return (
-      <bem.SingleProcessingDataList key='data-list'>
-        <bem.SingleProcessingDataList__body>
+      <section className={styles.dataList} key='data-list'>
+        <div className={styles.dataListBody}>
           <SubmissionDataList
             assetContent={this.props.assetContent}
             submissionData={submissionData}
             hideQuestions={this.getQuestionsToHide()}
             hideGroups
           />
-        </bem.SingleProcessingDataList__body>
-      </bem.SingleProcessingDataList>
+        </div>
+      </section>
     );
   }
 
