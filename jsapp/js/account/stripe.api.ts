@@ -23,6 +23,7 @@ export interface BasePrice {
 export interface BaseSubscription {
   id: number;
   price: Product;
+  items: [{ price:BasePrice }];
 }
 
 export interface Organization {
