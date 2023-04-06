@@ -164,6 +164,39 @@ module.exports = do ->
       return
 
 
+  viewRowDetail.DetailViewMixins.file =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--file")
+      available_files = this.model.getSurvey().availableFiles || []
+      file = available_files[0]
+      if available_files.length is 0
+        return viewRowDetail.Templates.textbox @cid, @model.key, label, 'text'
+      else
+        options = []
+        for file in available_files
+          options.push "<option>#{file.metadata.filename}</option>"
+        uniq = "select-file-#{@cid}"
+        tfile = t("Choices File")
+        return """
+            <label for="#{uniq}">#{tfile}:</label>
+            <div class="settings__input">
+              <select id="#{uniq}">
+                #{options.join('')}
+              </select>
+            </div>
+        """
+
+    afterRender: ->
+      @$el.find('select').eq(0).val(@model.get("value"))
+      @listenForSelectChange(@$('select').eq(0))
+
+    listenForSelectChange: ($select) ->
+      $select.on 'change', (evt) =>
+        targetval = evt.target.value
+        @model.set('value', targetval)
+
+
   viewRowDetail.DetailViewMixins.label =
     html: -> false
     insertInDOM: (rowView)->
@@ -275,7 +308,18 @@ module.exports = do ->
         @model.set 'value', value
         @model.deduplicate @model.getSurvey()
       )
-      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || $modelUtils.sluggifyLabel @model._parent.getValue('label'))
+      update_view = () =>
+        $inp = @$el.find('input').eq(0)
+        modelval = @model.get("value")
+        if modelval
+          $inp.val modelval
+        else
+          parent_label = @model._parent.getValue('label')
+          if parent_label instanceof Array
+            console.error("Bad input? Why is this an array?", parent_label)
+            parent_label = parent_label[0]
+          sluggified_label = $modelUtils.sluggifyLabel(parent_label)
+          $inp.val sluggified_label
       update_view()
 
       @model._parent.get('label').on 'change:value', update_view
@@ -409,7 +453,18 @@ module.exports = do ->
     getTypes: () ->
       types =
         text: ['multiline', 'numbers']
-        select_one: ['minimal', 'quick', 'horizontal-compact', 'horizontal', 'likert', 'compact', 'quickcompact', 'label', 'list-nolabel']
+        select_one: [
+          'minimal',
+          'autocomplete',
+          'quick',
+          'horizontal-compact',
+          'horizontal',
+          'likert',
+          'compact',
+          'quickcompact',
+          'label',
+          'list-nolabel',
+        ]
         select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
@@ -420,7 +475,7 @@ module.exports = do ->
 
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
-        return viewRowDetail.Templates.checkbox @cid, @model.key, t("Appearance (advanced)"), t("Show all questions in this group on the same screen")
+        return viewRowDetail.Templates.dropdown @cid, @model.key, @getTypes(), t("Appearance (advanced)")
       else
         appearances = @getTypes()
         if appearances?

@@ -97,6 +97,7 @@ export default assign({
             name: asset.name,
             settings__style: asset.settings__style,
             asset_uid: asset.uid,
+            files: asset.files,
             asset_type: asset.asset_type,
             asset: asset,
           });
@@ -474,6 +475,9 @@ export default assign({
         survey = dkobo_xlform.model.Survey.create();
       } else {
         survey = dkobo_xlform.model.Survey.loadDict(assetContent);
+        if (_state.files && _state.files.length > 0) {
+          survey.availableFiles = _state.files;
+        }
         if (isEmptySurvey) {
           survey.surveyDetails.importDefaults();
         }

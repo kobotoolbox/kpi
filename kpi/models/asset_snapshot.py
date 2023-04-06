@@ -218,11 +218,18 @@ class AssetSnapshot(
 
         warnings = []
         details = {}
+
+        for row in source_copy['survey']:
+            if row.get('type') in ['select_one_from_file', 'select_multiple_from_file']:
+                ff = row.pop('file')
+                _type = row.pop('type')
+                row['type'] = f'{_type} {ff}'
+
         try:
             xml = FormPack({'content': source_copy},
-                           root_node_name=root_node_name,
-                           id_string=id_string,
-                           title=form_title)[0].to_xml(warnings=warnings)
+                            root_node_name=root_node_name,
+                            id_string=id_string,
+                            title=form_title)[0].to_xml(warnings=warnings)
 
             details.update({
                 'status': 'success',
