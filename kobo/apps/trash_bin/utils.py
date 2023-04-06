@@ -80,20 +80,22 @@ def move_to_trash(
     objects_list: list[dict],
     grace_period: int,
     trash_type: str,
-    delete_all: bool = False,
+    retain_placeholder: bool = True,
 ):
     """
     Create trash objects and their related scheduled celery tasks.
 
-    `objects_list` must a list of dictionaries which contain at a 'pk' key and
-    any other key that would be saved as attributes in AuditLog.metadata.
-    If `trash_type` is 'asset', dictionaries of `objects_list should contain
+    `objects_list` must be a list of dictionaries which contain at a 'pk' key
+    and any other key that would be saved as attributes in AuditLog.metadata.
+    If `trash_type` is 'asset', dictionaries of `objects_list` should contain
     'pk', 'asset_uid' and 'asset_name'. Otherwise, if `trash_type` is 'user',
     they should contain 'pk' and 'username'.
 
-    Projects and accounts get in trash for `grace_period` and they are hard-deleted
-    when their related schedule task run.
-    We keep only username if `delete_all` equals False.
+    Projects and accounts stay in trash for `grace_period` and then are
+    hard-deleted when their related scheduled task runs.
+
+    If `retain_placeholder` is True, in instance of `auth.User` with the same
+    username and primary key is retained after deleting all other data.
     """
 
     clocked_time = now() + timedelta(days=grace_period)
@@ -105,16 +107,16 @@ def move_to_trash(
         related_model,
         task,
         task_name_placeholder
-    ) = _get_settings(trash_type, delete_all)
+    ) = _get_settings(trash_type, retain_placeholder)
 
-    if delete_all:
-        # Delete any previous trash object if it belongs to this "delete all"
-        # list because "delete all" supersedes deactivated status.
+    if not retain_placeholder:
+        # Total deletion, without retaining any placeholder, supersedes
+        # existing requests to retain placeholders. Delete those requests
         obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
         allowed_statuses = [TrashStatus.PENDING, TrashStatus.FAILED]
         trash_model.objects.filter(
             status__in=allowed_statuses,
-            delete_all=False,
+            retain_placeholder=True,
             **{f'{fk_field_name:}__in': obj_ids}
         ).delete()
 
@@ -128,7 +130,7 @@ def move_to_trash(
                 request_author=request_author,
                 metadata=_remove_pk_from_dict(obj_dict),
                 empty_manually=empty_manually,
-                delete_all=delete_all,
+                retain_placeholder=retain_placeholder,
                 **{fk_field_name: obj_dict['pk']},
             )
         )
@@ -346,7 +348,7 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
             AuditLog.objects.bulk_create(audit_logs)
 
 
-def _get_settings(trash_type: str, delete_all: bool = False) -> tuple:
+def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
     if trash_type == 'asset':
         return (
             ProjectTrash,
@@ -362,9 +364,9 @@ def _get_settings(trash_type: str, delete_all: bool = False) -> tuple:
             'user_id',
             get_user_model(),
             'empty_account',
-            f'{DELETE_USER_STR_PREFIX} account ({{username}})'
-            if delete_all
-            else f'{DELETE_USER_STR_PREFIX} data ({{username}})'
+            f'{DELETE_USER_STR_PREFIX} data ({{username}})'
+            if retain_placeholder
+            else f'{DELETE_USER_STR_PREFIX} account ({{username}})'
         )
 
     raise TrashNotImplementedError

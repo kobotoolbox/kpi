@@ -170,7 +170,7 @@ class ExtendedUserAdmin(UserAdmin):
 
         users = list(queryset.values('pk', 'username'))
         self._delete_or_purge(
-            request, users=users, grace_period=0, delete_all=True
+            request, users=users, grace_period=0, retain_placeholder=False
         )
 
     def deployed_forms_count(self, obj):
@@ -271,10 +271,12 @@ class ExtendedUserAdmin(UserAdmin):
         request,
         grace_period: int,
         users: list[dict],
-        delete_all: bool = False,
+        retain_placeholder: bool = True,
     ):
         try:
-            move_to_trash(request.user, users, grace_period, 'user', delete_all)
+            move_to_trash(
+                request.user, users, grace_period, 'user', retain_placeholder
+            )
         except TrashIntegrityError:
             self.message_user(
                 request,

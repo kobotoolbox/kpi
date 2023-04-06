@@ -105,10 +105,7 @@ def empty_account(account_trash_id: int):
                 }
             }
 
-            if account_trash.delete_all:
-                audit_log_params['action'] = AuditAction.DELETE
-                user.delete()
-            else:
+            if account_trash.retain_placeholder:
                 audit_log_params['action'] = AuditAction.REMOVE
                 placeholder_user = replace_user_with_placeholder(user)
                 # Retain removal date information
@@ -118,6 +115,9 @@ def empty_account(account_trash_id: int):
                 extra_details.save(
                     update_fields=['date_removal_requested', 'date_removed']
                 )
+            else:
+                audit_log_params['action'] = AuditAction.DELETE
+                user.delete()
 
             AuditLog.objects.create(**audit_log_params)
 

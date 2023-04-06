@@ -47,7 +47,7 @@ class AccountTrashTestCase(TestCase):
             ],
             grace_period=grace_period,
             trash_type='user',
-            delete_all=True,
+            retain_placeholder=False,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
         empty_account.apply([account_trash.pk])
@@ -167,7 +167,7 @@ class AccountTrashTestCase(TestCase):
             ],
             grace_period=grace_period,
             trash_type='user',
-            delete_all=False,
+            retain_placeholder=True,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
         empty_account.apply([account_trash.pk])

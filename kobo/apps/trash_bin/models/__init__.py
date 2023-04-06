@@ -43,4 +43,4 @@ class BaseTrash(models.Model):
     # users' accounts.
     # Projects are always deleted entirely and related Celery task ignore this
     # field, but it could be implemented at a later time.
-    delete_all = models.BooleanField(default=False)
+    retain_placeholder = models.BooleanField(default=True)

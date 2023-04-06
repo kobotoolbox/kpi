@@ -14,7 +14,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
     list_display = [
         'user',
         'request_author',
-        'delete_all',
+        'retain_placeholder',
         'status',
         'get_start_time',
         'get_failure_error',
