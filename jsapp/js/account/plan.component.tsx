@@ -16,7 +16,7 @@ import {
 } from './stripe.api';
 import Icon from '../components/common/icon';
 import Button from 'js/components/common/button';
-import {render} from 'react-dom';
+import classnames from 'classnames';
 
 interface PlanState {
   isLoading: boolean;
@@ -245,7 +245,7 @@ export default function Plan() {
     name: string,
     featureTitle: string
   ): ReactNode => {
-    let items: {
+    const items: {
       icon: 'positive' | 'positive_pro' | 'negative';
       label: string;
     }[] = [];
@@ -264,6 +264,7 @@ export default function Plan() {
   if (!state.products.length) {
     return null;
   }
+
   return (
     <div className={styles.accountPlan}>
       <div className={styles.plansSection}>
@@ -294,7 +295,7 @@ export default function Plan() {
         <div className={styles.allPlans}>
           {filterPrices().map((price: Price) => (
             <div className={styles.stripePlans} key={price.id}>
-              {isSubscribedProduct(price) ? (
+              {isSubscribedProduct(price) && (
                 <div
                   className={styles.currentPlan}
                   style={{
@@ -306,11 +307,13 @@ export default function Plan() {
                 >
                   {t('your plan')}
                 </div>
-              ) : (
-                <div className={styles.otherPlanSpacing} />
               )}
-
-              <div className={styles.planContainer}>
+              <div
+                className={classnames({
+                  [styles.planContainerWithBadge]: isSubscribedProduct(price),
+                  [styles.planContainer]: true,
+                })}
+              >
                 <h1 className={styles.priceName}> {price.name} </h1>
                 <div className={styles.priceTitle}>
                   {typeof price.prices.human_readable_price === 'string' &&
