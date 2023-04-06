@@ -1,5 +1,4 @@
 import React, {
-  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -7,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useSearchParams} from "react-router-dom";
+import {useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -25,7 +24,8 @@ import {
 } from './stripe.api';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import {notify} from "js/utils";
+import classnames from 'classnames';
+import {notify} from 'js/utils';
 
 interface PlanState {
   isLoading: boolean;
@@ -121,10 +121,6 @@ export default function Plan() {
   }, []);
 
   useEffect(() => {
-    hasMetaFeatures();
-  }, [state.products]);
-
-  useEffect(() => {
     // display a success message if we're returning from Stripe checkout
     // only run *after* first render
     if (!didMount.current) {
@@ -133,17 +129,26 @@ export default function Plan() {
     }
     const priceId = searchParams.get('checkout');
     if (priceId) {
-      const isSubscriptionUpdated = state.subscribedProduct.find((subscription: BaseSubscription) => {
-        return subscription.items.find((item) => item.price.id === priceId)
-      });
+      const isSubscriptionUpdated = state.subscribedProduct.find(
+        (subscription: BaseSubscription) => {
+          return subscription.items.find((item) => item.price.id === priceId);
+        }
+      );
       if (isSubscriptionUpdated) {
-        notify.success( t('Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.') );
-      }
-      else {
-        notify.success( t('Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.') );
+        notify.success(
+          t(
+            'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.'
+          )
+        );
+      } else {
+        notify.success(
+          t(
+            'Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.'
+          )
+        );
       }
     }
-  }, [state.subscribedProduct])
+  }, [state.subscribedProduct]);
 
   // Filter prices based on plan interval
   const filterPrices = useMemo((): Price[] => {
@@ -228,7 +233,7 @@ export default function Plan() {
 
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
-    const listItems: {icon: boolean; item: string}[] = [];
+    const listItems: Array<{icon: boolean; item: string}> = [];
     filterPrices.map((price) =>
       Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
@@ -272,51 +277,49 @@ export default function Plan() {
     return expandBool;
   };
 
+  useEffect(() => {
+    hasMetaFeatures();
+  }, [state.products]);
+
   const renderFeaturesList = (
     items: Array<{
       icon: 'positive' | 'positive_pro' | 'negative';
       label: string;
     }>,
     title?: string
-  ) => {
-    return (
-      <>
-        <h2 className={styles.listTitle}>{title}</h2>
-        <ul>
-          {items.map((item) => (
-            <li key={item.label}>
-              <div className={styles.iconContainer}>
-                {item.icon !== 'negative' ? (
-                  <Icon
-                    name='check'
-                    size='m'
-                    classNames={
-                      item.icon === 'positive_pro'
-                        ? [styles.tealCheck]
-                        : [styles.stormCheck]
-                    }
-                  />
-                ) : (
-                  <Icon name='close' size='m' classNames={[styles.redClose]} />
-                )}
-              </div>
-              {item.label}
-            </li>
-          ))}
-        </ul>
-      </>
-    );
-  };
+  ) => (
+    <div className={styles.expandedFeature} key={title}>
+      <h2 className={styles.listTitle}>{title}</h2>
+      <ul>
+        {items.map((item) => (
+          <li key={item.label}>
+            <div className={styles.iconContainer}>
+              {item.icon !== 'negative' ? (
+                <Icon
+                  name='check'
+                  size='m'
+                  classNames={
+                    item.icon === 'positive_pro'
+                      ? [styles.tealCheck]
+                      : [styles.stormCheck]
+                  }
+                />
+              ) : (
+                <Icon name='close' size='m' classNames={[styles.redClose]} />
+              )}
+            </div>
+            {item.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
-  const returnListItem = (
-    type: string,
-    name: string,
-    featureTitle: string
-  ): ReactNode => {
-    let items: {
+  const returnListItem = (type: string, name: string, featureTitle: string) => {
+    const items: Array<{
       icon: 'positive' | 'positive_pro' | 'negative';
       label: string;
-    }[] = [];
+    }> = [];
     getListItem(type, name).map((listItem) => {
       if (listItem.icon && name === 'Professional plan') {
         items.push({icon: 'positive_pro', label: listItem.item});
@@ -332,6 +335,7 @@ export default function Plan() {
   if (!state.products.length) {
     return null;
   }
+
   return (
     <div className={styles.accountPlan}>
       <div className={styles.plansSection}>
@@ -367,8 +371,12 @@ export default function Plan() {
               ) : (
                 <div className={styles.otherPlanSpacing} />
               )}
-
-              <div className={styles.planContainer}>
+              <div
+                className={classnames({
+                  [styles.planContainerWithBadge]: isSubscribedProduct(price),
+                  [styles.planContainer]: true,
+                })}
+              >
                 <h1 className={styles.priceName}> {price.name} </h1>
                 <div className={styles.priceTitle}>
                   {!price.prices?.unit_amount
