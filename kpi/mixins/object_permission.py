@@ -18,10 +18,7 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
-    PERM_CHANGE_METADATA_ASSET,
     PERM_FROM_KC_ONLY,
-    PERM_VIEW_ASSET,
-    PERM_VIEW_SUBMISSIONS,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
