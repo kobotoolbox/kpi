@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {useSearchParams, useLocation} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -87,9 +87,10 @@ function planReducer(state: PlanState, action: DataUpdates) {
 export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
-  const [areButtonsDisabled, setAreAreButtonsDisabled] = useState(false);
+  const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
   const [showExpand, setShowExpand] = useState(false);
   const [searchParams, _setSearchParams] = useSearchParams();
+  const location = useLocation();
   const didMount = useRef(false);
   const hasActiveSubscription = useMemo(() => {
     return state.subscribedProduct.some((subscription: BaseSubscription) =>
@@ -98,27 +99,36 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useEffect(() => {
-    getProducts().then((data) => {
-      dispatch({
-        type: 'initialProd',
-        prodData: data.results,
-      });
-    });
+    const promises = [];
+    promises.push(
+      getProducts().then((data) => {
+        dispatch({
+          type: 'initialProd',
+          prodData: data.results,
+        });
+      })
+    );
 
-    getOrganization().then((data) => {
-      dispatch({
-        type: 'initialOrg',
-        prodData: data.results[0],
-      });
-    });
+    promises.push(
+      getOrganization().then((data) => {
+        dispatch({
+          type: 'initialOrg',
+          prodData: data.results[0],
+        });
+      })
+    );
 
-    getSubscription().then((data) => {
-      dispatch({
-        type: 'initialSub',
-        prodData: data.results,
-      });
-    });
-  }, []);
+    promises.push(
+      getSubscription().then((data) => {
+        dispatch({
+          type: 'initialSub',
+          prodData: data.results,
+        });
+      })
+    );
+
+    Promise.all(promises).then(() => setAreButtonsDisabled(false));
+  }, [location]);
 
   useEffect(() => {
     // display a success message if we're returning from Stripe checkout
@@ -203,8 +213,8 @@ export default function Plan() {
     if (!priceId || areButtonsDisabled) {
       return;
     }
-    setAreAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization.uid)
+    setAreButtonsDisabled(true);
+    postCheckout(priceId, state.organization?.uid)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
@@ -212,14 +222,14 @@ export default function Plan() {
           window.location.assign(data.url);
         }
       })
-      .catch(() => setAreAreButtonsDisabled(false));
+      .catch(() => setAreButtonsDisabled(false));
   };
 
   const managePlan = () => {
     if (!state.organization?.uid || areButtonsDisabled) {
       return;
     }
-    setAreAreButtonsDisabled(true);
+    setAreButtonsDisabled(true);
     postCustomerPortal(state.organization.uid)
       .then((data) => {
         if (!data.url) {
@@ -228,7 +238,7 @@ export default function Plan() {
           window.location.assign(data.url);
         }
       })
-      .catch(() => setAreAreButtonsDisabled(false));
+      .catch(() => setAreButtonsDisabled(false));
   };
 
   // Get feature items and matching icon boolean
