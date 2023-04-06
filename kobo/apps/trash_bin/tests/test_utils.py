@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
+from mock import patch
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog
 from kpi.models import Asset
@@ -47,10 +48,12 @@ class AccountTrashTestCase(TestCase):
             ],
             grace_period=grace_period,
             trash_type='user',
-            delete_all=True,
+            retain_placeholder=False,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
-        empty_account.apply([account_trash.pk])
+        with patch('kobo.apps.trash_bin.tasks.delete_kc_user') as mock_delete_kc_user:
+            mock_delete_kc_user.return_value = True
+            empty_account.apply([account_trash.pk])
 
         assert not get_user_model().objects.filter(pk=someuser_id).exists()
         assert not Asset.objects.filter(owner_id=someuser_id).exists()
@@ -167,10 +170,12 @@ class AccountTrashTestCase(TestCase):
             ],
             grace_period=grace_period,
             trash_type='user',
-            delete_all=False,
+            retain_placeholder=True,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
-        empty_account.apply([account_trash.pk])
+        with patch('kobo.apps.trash_bin.tasks.delete_kc_user') as mock_delete_kc_user:
+            mock_delete_kc_user.return_value = True
+            empty_account.apply([account_trash.pk])
         after = now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()

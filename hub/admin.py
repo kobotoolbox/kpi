@@ -155,7 +155,7 @@ class ExtendedUserAdmin(UserAdmin):
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._delete_or_purge(
+        self._remove_or_delete(
             request, users=users, grace_period=config.ACCOUNT_TRASH_GRACE_PERIOD
         )
 
@@ -169,8 +169,8 @@ class ExtendedUserAdmin(UserAdmin):
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._delete_or_purge(
-            request, users=users, grace_period=0, delete_all=True
+        self._remove_or_delete(
+            request, users=users, grace_period=0, retain_placeholder=False
         )
 
     def deployed_forms_count(self, obj):
@@ -266,15 +266,17 @@ class ExtendedUserAdmin(UserAdmin):
         )
         return instances.get('counter')
 
-    def _delete_or_purge(
+    def _remove_or_delete(
         self,
         request,
         grace_period: int,
         users: list[dict],
-        delete_all: bool = False,
+        retain_placeholder: bool = True,
     ):
         try:
-            move_to_trash(request.user, users, grace_period, 'user', delete_all)
+            move_to_trash(
+                request.user, users, grace_period, 'user', retain_placeholder
+            )
         except TrashIntegrityError:
             self.message_user(
                 request,
