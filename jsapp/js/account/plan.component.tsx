@@ -87,7 +87,7 @@ function planReducer(state: PlanState, action: DataUpdates) {
 export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
-  const [buttonsDisabled, setButtonDisabled] = useState(false);
+  const [areButtonsDisabled, setAreAreButtonsDisabled] = useState(false);
   const [showExpand, setShowExpand] = useState(false);
   const [searchParams, _setSearchParams] = useSearchParams();
   const didMount = useRef(false);
@@ -200,10 +200,10 @@ export default function Plan() {
   );
 
   const upgradePlan = (priceId: string) => {
-    if (!priceId || buttonsDisabled) {
+    if (!priceId || areButtonsDisabled) {
       return;
     }
-    setButtonDisabled(buttonsDisabled);
+    setAreAreButtonsDisabled(areButtonsDisabled);
     postCheckout(priceId, state.organization?.uid)
       .then((data) => {
         if (!data.url) {
@@ -212,14 +212,14 @@ export default function Plan() {
           window.location.assign(data.url);
         }
       })
-      .finally(() => setButtonDisabled(!buttonsDisabled));
+      .finally(() => setAreAreButtonsDisabled(false));
   };
 
   const managePlan = () => {
-    if (!state.organization?.uid || buttonsDisabled) {
+    if (!state.organization?.uid || areButtonsDisabled) {
       return;
     }
-    setButtonDisabled(buttonsDisabled);
+    setAreAreButtonsDisabled(true);
     postCustomerPortal(state.organization?.uid)
       .then((data) => {
         if (!data.url) {
@@ -228,7 +228,7 @@ export default function Plan() {
           window.location.assign(data.url);
         }
       })
-      .finally(() => setButtonDisabled(!buttonsDisabled));
+      .finally(() => setAreAreButtonsDisabled(false));
   };
 
   // Get feature items and matching icon boolean
@@ -415,8 +415,8 @@ export default function Plan() {
                       label={t('Upgrade')}
                       onClick={() => upgradePlan(price.prices.id)}
                       aria-label={`upgrade to ${price.name}`}
-                      aria-disabled={buttonsDisabled}
-                      isDisabled={buttonsDisabled}
+                      aria-disabled={areButtonsDisabled}
+                      isDisabled={areButtonsDisabled}
                     />
                   )}
                 {(isSubscribedProduct(price) || shouldShowManage(price)) &&
@@ -428,8 +428,8 @@ export default function Plan() {
                       label={t('Manage')}
                       onClick={managePlan}
                       aria-label={`manage your ${price.name} subscription`}
-                      aria-disabled={buttonsDisabled}
-                      isDisabled={buttonsDisabled}
+                      aria-disabled={areButtonsDisabled}
+                      isDisabled={areButtonsDisabled}
                     />
                   )}
                 {price.prices.unit_amount === 0 && (
