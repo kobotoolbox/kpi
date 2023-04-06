@@ -1,4 +1,4 @@
-import React, {ReactNode, useEffect, useReducer, useState} from 'react';
+import React, {useEffect, useReducer, useState} from 'react';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -97,10 +97,6 @@ export default function Plan() {
     });
   }, []);
 
-  useEffect(() => {
-    hasMetaFeatures();
-  }, [state.products]);
-
   // Filter prices based on plan interval
   const filterPrices = (): Price[] => {
     if (state.products.length > 0) {
@@ -160,7 +156,7 @@ export default function Plan() {
 
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
-    const listItems: {icon: boolean; item: string}[] = [];
+    const listItems: Array<{icon: boolean; item: string}> = [];
     filterPrices().map((price) =>
       Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
@@ -204,51 +200,49 @@ export default function Plan() {
     return expandBool;
   };
 
+  useEffect(() => {
+    hasMetaFeatures();
+  }, [state.products]);
+
   const renderFeaturesList = (
     items: Array<{
       icon: 'positive' | 'positive_pro' | 'negative';
       label: string;
     }>,
     title?: string
-  ) => {
-    return (
-      <>
-        <h2 className={styles.listTitle}>{title}</h2>
-        <ul>
-          {items.map((item) => (
-            <li key={item.label}>
-              <div className={styles.iconContainer}>
-                {item.icon !== 'negative' ? (
-                  <Icon
-                    name='check'
-                    size='m'
-                    classNames={
-                      item.icon === 'positive_pro'
-                        ? [styles.tealCheck]
-                        : [styles.stormCheck]
-                    }
-                  />
-                ) : (
-                  <Icon name='close' size='m' classNames={[styles.redClose]} />
-                )}
-              </div>
-              {item.label}
-            </li>
-          ))}
-        </ul>
-      </>
-    );
-  };
+  ) => (
+    <div className={styles.expandedFeature} key={title}>
+      <h2 className={styles.listTitle}>{title}</h2>
+      <ul>
+        {items.map((item) => (
+          <li key={item.label}>
+            <div className={styles.iconContainer}>
+              {item.icon !== 'negative' ? (
+                <Icon
+                  name='check'
+                  size='m'
+                  classNames={
+                    item.icon === 'positive_pro'
+                      ? [styles.tealCheck]
+                      : [styles.stormCheck]
+                  }
+                />
+              ) : (
+                <Icon name='close' size='m' classNames={[styles.redClose]} />
+              )}
+            </div>
+            {item.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
-  const returnListItem = (
-    type: string,
-    name: string,
-    featureTitle: string
-  ): ReactNode => {
-    const items: {
+  const returnListItem = (type: string, name: string, featureTitle: string) => {
+    const items: Array<{
       icon: 'positive' | 'positive_pro' | 'negative';
       label: string;
-    }[] = [];
+    }> = [];
     getListItem(type, name).map((listItem) => {
       if (listItem.icon && name === 'Professional plan') {
         items.push({icon: 'positive_pro', label: listItem.item});
