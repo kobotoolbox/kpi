@@ -1,16 +1,18 @@
 import React, {useState} from 'react';
-import {fetchDelete} from 'js/api';
+import {fetchPost} from 'js/api';
 import {handleApiFail} from 'js/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
-import styles from './BulkDeletePrompt.module.scss';
-import customViewStore from '../../customViewStore';
+import styles from './bulkDeletePrompt.module.scss';
+import customViewStore from 'js/projects/customViewStore';
 
 interface BulkDeletePromptProps {
   assetUids: string[];
   /** Being used by the parent component to close the prompt. */
   onRequestClose: () => void;
 }
+
+type AssetsBulkAction = 'archive' | 'delete' | 'unarchive';
 
 export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
   const [isDataChecked, setIsDataChecked] = useState(false);
@@ -21,13 +23,18 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
   function onConfirmDelete() {
     setIsConfirmDeletePending(true);
 
-    fetchDelete('/api/v2/assets/bulk/', {
-      payload: {asset_uids: props.assetUids},
-    }).then(() => {
-      props.onRequestClose();
-      customViewStore.handleAssetsDeleted(props.assetUids);
-      console.log('AAA delete done');
-    }, handleApiFail);
+    const payload: {asset_uids: string[]; action: AssetsBulkAction} = {
+      asset_uids: props.assetUids,
+      action: 'delete',
+    };
+
+    fetchPost('/api/v2/assets/bulk/', {payload: payload})
+      .then((data: any) => {
+        props.onRequestClose();
+        customViewStore.handleAssetsDeleted(props.assetUids);
+        console.log('AAA delete done', data);
+      })
+      .catch(handleApiFail);
   }
 
   return (
