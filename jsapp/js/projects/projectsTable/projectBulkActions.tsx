@@ -24,6 +24,7 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         startIcon='trash'
         tooltip={t('Delete ##count## projects').replace('##count##', String(props.assets.length))}
         onClick={() => setIsDeletePromptOpen(true)}
+        classNames={['right-tooltip']}
       />
 
       {isDeletePromptOpen &&
