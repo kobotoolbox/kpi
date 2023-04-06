@@ -203,7 +203,7 @@ export default function Plan() {
     if (!priceId || areButtonsDisabled) {
       return;
     }
-    setAreAreButtonsDisabled(areButtonsDisabled);
+    setAreAreButtonsDisabled(true);
     postCheckout(priceId, state.organization.uid)
       .then((data) => {
         if (!data.url) {
@@ -212,7 +212,7 @@ export default function Plan() {
           window.location.assign(data.url);
         }
       })
-      .finally(() => setAreAreButtonsDisabled(false));
+      .catch(() => setAreAreButtonsDisabled(false));
   };
 
   const managePlan = () => {
@@ -228,7 +228,7 @@ export default function Plan() {
           window.location.assign(data.url);
         }
       })
-      .finally(() => setAreAreButtonsDisabled(false));
+      .catch(() => setAreAreButtonsDisabled(false));
   };
 
   // Get feature items and matching icon boolean
