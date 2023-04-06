@@ -51,6 +51,7 @@ from kpi.models import (
     ObjectPermission,
     UserAssetSubscription,
 )
+from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -266,7 +267,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if Asset.objects.filter(
             asset_type=ASSET_TYPE_SURVEY,
             uid__in=asset_uids,
-            _deployment_data={},
+            _deployment_status=AssetDeploymentStatus.DRAFT,
         ).exists():
             raise serializers.ValidationError(
                 t('Draft projects cannot be archived')

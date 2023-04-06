@@ -126,7 +126,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             assert detail_response.data['deployment__active'] is False
             assert (
                 detail_response.data['deployment_status']
-                == AssetDeploymentStatus.ARCHIVED.label
+                == AssetDeploymentStatus.ARCHIVED.value
             )
 
     def test_archive_all_without_confirm_true(self):
@@ -154,7 +154,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             assert detail_response.data['deployment__active'] is True
             assert (
                 detail_response.data['deployment_status']
-                == AssetDeploymentStatus.DEPLOYED.label
+                == AssetDeploymentStatus.DEPLOYED.value
             )
 
     def test_user_can_unarchive(self):
@@ -174,7 +174,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is False
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.ARCHIVED.label
+            == AssetDeploymentStatus.ARCHIVED.value
         )
 
         # Undo the archiving
@@ -191,7 +191,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_other_user_cannot_archive_others_assets(self):
@@ -211,7 +211,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_anonymous_cannot_archive_public(self):
@@ -228,7 +228,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_project_editor_cannot_archive_project(self):
@@ -249,7 +249,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_project_manager_can_archive_project(self):
@@ -269,7 +269,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is False
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.ARCHIVED.label
+            == AssetDeploymentStatus.ARCHIVED.value
         )
 
     def test_user_cannot_archive_drafts(self):
@@ -305,7 +305,7 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_delete_all_assets_with_confirm_true(self):
@@ -393,7 +393,7 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_superuser_can_undelete(self):
@@ -426,7 +426,7 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.data['deployment__active'] is True
         assert (
             detail_response.data['deployment_status']
-            == AssetDeploymentStatus.DEPLOYED.label
+            == AssetDeploymentStatus.DEPLOYED.value
         )
 
     def test_users_cannot_undelete(self):
