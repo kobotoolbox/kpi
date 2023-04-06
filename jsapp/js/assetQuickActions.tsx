@@ -29,6 +29,7 @@ import myLibraryStore from './components/library/myLibraryStore';
 import permConfig from './components/permissions/permConfig';
 import toast from 'react-hot-toast';
 import {userCan} from './components/permissions/utils';
+import {renderJSXMessage} from './alertify';
 
 export function openInFormBuilder(uid: string) {
   if (routerIsActive('library')) {
@@ -455,7 +456,7 @@ function _redeployAsset(
     title: t('Overwrite existing deployment'),
     // We wrap the JSX code in curly braces inside of backticks to make a string
     // out of it (alertify requires a string).
-    message: `${(
+    message: renderJSXMessage(
       <span>
         {t(
           'This form has already been deployed. Are you sure you want overwrite the existing deployment?'
@@ -464,7 +465,7 @@ function _redeployAsset(
         <br />
         <strong>{t('This action cannot be undone.')}</strong>
       </span>
-    )}`,
+    ),
     labels: {ok: t('Ok'), cancel: t('Cancel')},
     onok: () => {
       const okBtn = dialog.elements.buttons.primary.firstChild as HTMLElement;
