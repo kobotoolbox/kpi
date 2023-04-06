@@ -207,7 +207,7 @@ export default function Plan() {
     postCheckout(priceId, state.organization?.uid)
       .then((data) => {
         if (!data.url) {
-          alert(t('There has been an issue, please try again later.'));
+          notify.error(t('There has been an issue, please try again later.'));
         } else {
           window.location.assign(data.url);
         }
@@ -223,7 +223,7 @@ export default function Plan() {
     postCustomerPortal(state.organization?.uid)
       .then((data) => {
         if (!data.url) {
-          alert(t('There has been an issue, please try again later.'));
+          notify.error(t('There has been an issue, please try again later.'));
         } else {
           window.location.assign(data.url);
         }
