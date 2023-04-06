@@ -35,7 +35,7 @@ from .models.project import ProjectTrash
 
 
 def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
-    deployment_backend_uuid = None
+
     asset_id = asset.pk
     asset_uid = asset.uid
     owner_username = asset.owner.username
