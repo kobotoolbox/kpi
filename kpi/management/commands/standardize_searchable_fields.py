@@ -27,7 +27,9 @@ class Command(BaseCommand):
         self.standardize_extra_user_details()
 
     def standardize_assets(self):
-        assets = Asset.objects.only('asset_type', 'uid', 'settings', 'summary')
+        assets = Asset.all_objects.only(
+            'asset_type', 'uid', 'settings', 'summary'
+        )
         self.stdout.write(f'Updating assets...')
         for asset in assets.iterator(chunk_size=self._chunks):
             if self._verbosity >= 1:
@@ -49,7 +51,7 @@ class Command(BaseCommand):
             # No need to call `Asset._populate_summary` since `asset` is not
             # a new one.
             asset.standardize_json_field('summary', 'languages', list)
-            Asset.objects.filter(pk=asset.pk).update(
+            Asset.all_objects.filter(pk=asset.pk).update(
                 settings=asset.settings,
                 summary=asset.summary
             )

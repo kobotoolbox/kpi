@@ -15,7 +15,6 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
-from kpi.models.asset_version import AssetVersion
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     user_has_project_view_asset_perm,

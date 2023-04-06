@@ -164,7 +164,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
             }
 
             {/* Things for My Projects and any Custom View */}
-            { isAnyProjectsViewRoute() &&
+            { isLoggedIn && isAnyProjectsViewRoute() &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
                   placeholder={t('Search…')}
