@@ -204,7 +204,7 @@ export default function Plan() {
       return;
     }
     setAreAreButtonsDisabled(areButtonsDisabled);
-    postCheckout(priceId, state.organization?.uid)
+    postCheckout(priceId, state.organization.uid)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
@@ -220,7 +220,7 @@ export default function Plan() {
       return;
     }
     setAreAreButtonsDisabled(true);
-    postCustomerPortal(state.organization?.uid)
+    postCustomerPortal(state.organization.uid)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
