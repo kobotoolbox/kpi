@@ -166,7 +166,12 @@ export function archiveAsset(
       actions.resources.setDeploymentActive({
         asset: asset,
         active: false,
-      }, callback);
+      }, (response: DeploymentResponse) => {
+        if (typeof callback === 'function') {
+          callback(response);
+        }
+        dialog.destroy();
+      });
     },
     oncancel: () => {
       dialog.destroy();
@@ -192,14 +197,16 @@ export function unarchiveAsset(
     title: t('Unarchive Project'),
     message: `${t('Are you sure you want to unarchive this project?')}`,
     labels: {ok: t('Unarchive'), cancel: t('Cancel')},
-    onok: (response: DeploymentResponse) => {
+    onok: () => {
       actions.resources.setDeploymentActive({
         asset: asset,
         active: true,
+      }, (response: DeploymentResponse) => {
+        if (typeof callback === 'function') {
+          callback(response);
+        }
+        dialog.destroy();
       });
-      if (typeof callback === 'function') {
-        callback(response);
-      }
     },
     oncancel: () => {
       dialog.destroy();
