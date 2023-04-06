@@ -4,9 +4,10 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from kpi.constants import (
+    ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET
+    PERM_VIEW_ASSET,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
@@ -14,7 +15,8 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
 
-class AssetBulkDeleteAPITestCase(BaseTestCase):
+class BaseAssetBulkActionsTestCase(BaseTestCase):
+
     fixtures = ['test_data']
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -41,6 +43,7 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         asset = Asset.objects.create(
             owner=User.objects.get(username='someuser'),
             content=content,
+            asset_type=ASSET_TYPE_SURVEY
         )
         asset.deploy(backend='mock', active=True)
         return asset
@@ -94,6 +97,9 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
     def _login_user(self, userpass: str):
         self.client.logout()
         self.client.login(username=userpass, password=userpass)
+
+
+class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
 
     def test_archive_all_with_confirm_true(self):
         # Create multiple assets
@@ -187,7 +193,7 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
 
-    def test_anonymous_archive_public(self):
+    def test_anonymous_cannot_archive_public(self):
         asset = self._add_one_asset_for_someuser()
         anonymous = get_anonymous_user()
         asset.assign_perm(anonymous, PERM_VIEW_ASSET)
@@ -200,7 +206,43 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
 
-    def test_anonymous_delete_public(self):
+    def test_project_editor_cannot_archive_project(self):
+        editor = User.objects.get(username='anotheruser')
+        asset = self._add_one_asset_for_someuser()
+        asset.assign_perm(editor, PERM_CHANGE_ASSET)
+        self._login_user('anotheruser')
+        response = self._create_send_payload([asset.uid], 'archive')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        asset.refresh_from_db()
+        assert asset.deployment.active is True
+        assert asset.pending_delete is False
+
+        # Another can still access the project
+        detail_response = self._get_asset_detail_results(asset.uid)
+        assert detail_response.status_code == status.HTTP_200_OK
+        assert detail_response.data['deployment__active'] is True
+
+    def test_project_manager_can_archive_project(self):
+        manager = User.objects.get(username='anotheruser')
+        asset = self._add_one_asset_for_someuser()
+        asset.assign_perm(manager, PERM_MANAGE_ASSET)
+        self._login_user('anotheruser')
+        response = self._create_send_payload([asset.uid], 'archive')
+        assert response.status_code == status.HTTP_200_OK
+
+        asset.refresh_from_db()
+        assert asset.deployment.active is False
+        assert asset.pending_delete is False
+
+        detail_response = self._get_asset_detail_results(asset.uid)
+        assert detail_response.status_code == status.HTTP_200_OK
+        assert detail_response.data['deployment__active'] is False
+
+
+class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
+
+    def test_anonymous_cannot_delete_public(self):
         asset = self._add_one_asset_for_someuser()
         anonymous = get_anonymous_user()
         asset.assign_perm(anonymous, PERM_VIEW_ASSET)
@@ -240,7 +282,7 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
             detail_response = self._get_asset_detail_results(deleted_asset.uid)
             assert detail_response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_delete_all_assets_without_confirm_true(self):
+    def test_cannot_delete_all_assets_without_confirm_true(self):
         self._login_user('someuser')
         asset_uids = []
         for i in range(3):
@@ -300,39 +342,6 @@ class AssetBulkDeleteAPITestCase(BaseTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
-
-    def test_project_editor_cannot_archive_project(self):
-        editor = User.objects.get(username='anotheruser')
-        asset = self._add_one_asset_for_someuser()
-        asset.assign_perm(editor, PERM_CHANGE_ASSET)
-        self._login_user('anotheruser')
-        response = self._create_send_payload([asset.uid], 'archive')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-        asset.refresh_from_db()
-        assert asset.deployment.active is True
-        assert asset.pending_delete is False
-
-        # Another can still access the project
-        detail_response = self._get_asset_detail_results(asset.uid)
-        assert detail_response.status_code == status.HTTP_200_OK
-        assert detail_response.data['deployment__active'] is True
-
-    def test_project_manager_can_archive_project(self):
-        manager = User.objects.get(username='anotheruser')
-        asset = self._add_one_asset_for_someuser()
-        asset.assign_perm(manager, PERM_MANAGE_ASSET)
-        self._login_user('anotheruser')
-        response = self._create_send_payload([asset.uid], 'archive')
-        assert response.status_code == status.HTTP_200_OK
-
-        asset.refresh_from_db()
-        assert asset.deployment.active is False
-        assert asset.pending_delete is False
-
-        detail_response = self._get_asset_detail_results(asset.uid)
-        assert detail_response.status_code == status.HTTP_200_OK
-        assert detail_response.data['deployment__active'] is False
 
     def test_superuser_can_undelete(self):
         self._login_user('someuser')
