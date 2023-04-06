@@ -155,7 +155,7 @@ class ExtendedUserAdmin(UserAdmin):
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._delete_or_purge(
+        self._remove_or_delete(
             request, users=users, grace_period=config.ACCOUNT_TRASH_GRACE_PERIOD
         )
 
@@ -169,7 +169,7 @@ class ExtendedUserAdmin(UserAdmin):
             return
 
         users = list(queryset.values('pk', 'username'))
-        self._delete_or_purge(
+        self._remove_or_delete(
             request, users=users, grace_period=0, retain_placeholder=False
         )
 
@@ -266,7 +266,7 @@ class ExtendedUserAdmin(UserAdmin):
         )
         return instances.get('counter')
 
-    def _delete_or_purge(
+    def _remove_or_delete(
         self,
         request,
         grace_period: int,
