@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from distutils import util
+
 
 from constance import config
 from django.conf import settings
@@ -29,6 +29,7 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_STATUS_SHARED,
+    ASSET_TYPE_SURVEY,
     ASSET_TYPES,
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
@@ -114,6 +115,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             asset_uids = []
 
         self._has_perms(payload, asset_uids)
+        self._validate_asset_types(payload, asset_uids)
 
         return payload
 
@@ -255,6 +257,21 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             and not self.__user.is_superuser
         ):
             raise exceptions.PermissionDenied()
+
+    def _validate_asset_types(self, payload: dict, asset_uids: list[str]):
+        delete_request, put_back_ = self._get_action_type_and_direction(payload)
+
+        if put_back_ or delete_request or not asset_uids:
+            return
+
+        if Asset.objects.filter(
+            asset_type=ASSET_TYPE_SURVEY,
+            uid__in=asset_uids,
+            _deployment_data={},
+        ).exists():
+            raise serializers.ValidationError(
+                t('Draft projects cannot be archived')
+            )
 
     def _validate_confirm(self, payload: dict):
 

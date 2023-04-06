@@ -239,6 +239,18 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is False
 
+    def test_user_cannot_archive_drafts(self):
+        self._login_user('someuser')
+        deployed_asset = self._add_one_asset_for_someuser()
+        asset = Asset.objects.create(
+            owner=User.objects.get(username='someuser'),
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        response = self._create_send_payload(
+            [deployed_asset.uid, asset.uid], 'archive'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
 
 class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
 
