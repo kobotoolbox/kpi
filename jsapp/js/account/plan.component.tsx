@@ -128,7 +128,7 @@ export default function Plan() {
     );
 
     Promise.all(promises).then(() => setAreButtonsDisabled(false));
-  }, [location]);
+  }, [location.pathname, location.key, searchParams]);
 
   useEffect(() => {
     // display a success message if we're returning from Stripe checkout
