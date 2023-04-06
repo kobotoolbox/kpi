@@ -201,7 +201,7 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     >        }
     >
 
-    ### Note: unit_amount is price in cents
+    ### Note: unit_amount is price in cents (assuming currency is USD/AUD/CAD/etc.)
 
     ## Current Endpoint
     """
