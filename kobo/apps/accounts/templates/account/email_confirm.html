@@ -36,14 +36,11 @@
     {% url 'account_email' as email_url %}
 
     <p class="registration__message">
-      {% blocktrans %}This e-mail confirmation link expired or is invalid. Please <a href="{{ email_url }}">issue a new e-mail confirmation request</a>.{% endblocktrans %}
+      {% blocktrans %}This e-mail confirmation link expired or is invalid.
+      If you need to request a new link to verify your email address change,
+      please go to your account settings page and enter your email address again.{% endblocktrans %}
     </p>
 
-    <p class="registration__message">
-      <a href="{% url 'account_signup' %}">
-        {% trans "Click here to create a new account" %}
-      </a>
-    </p>
   {% endif %}
   </form>
 

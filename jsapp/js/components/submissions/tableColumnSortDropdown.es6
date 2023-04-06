@@ -33,10 +33,10 @@ class TableColumnSortDropdown extends React.Component {
   renderTrigger() {
     let sortIcon = ['k-icon'];
     if (this.props.sortValue && this.props.sortValue === SORT_VALUES.ASCENDING) {
-      sortIcon.push('k-icon-sort-down');
+      sortIcon.push('k-icon-sort-ascending');
     }
     if (this.props.sortValue && this.props.sortValue === SORT_VALUES.DESCENDING) {
-      sortIcon.push('k-icon-sort-up');
+      sortIcon.push('k-icon-sort-descending');
     }
 
     return (
@@ -80,12 +80,12 @@ class TableColumnSortDropdown extends React.Component {
         onClick={this.changeSort.bind(this, buttonSortValue)}
       >
         {buttonSortValue === SORT_VALUES.ASCENDING && [
-          <i key='0' className='k-icon k-icon-sort-down'/>,
-          <span key='1'>{t('Decending')}</span>,
+          <i key='0' className='k-icon k-icon-sort-ascending'/>,
+          <span key='1'>{t('Sort A→Z')}</span>,
         ]}
         {buttonSortValue === SORT_VALUES.DESCENDING && [
-          <i key='0' className='k-icon k-icon-sort-up'/>,
-          <span key='1'>{t('Ascending')}</span>,
+          <i key='0' className='k-icon k-icon-sort-descending'/>,
+          <span key='1'>{t('Sort Z→A')}</span>,
         ]}
 
         {this.props.sortValue === buttonSortValue &&

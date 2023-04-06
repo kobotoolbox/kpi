@@ -1,2 +1,4 @@
 {% load i18n %}
-{% trans "Activate your KoboToolbox Account" %}
+{% autoescape off %}
+{% blocktrans %}KoboToolbox account email address verification{% endblocktrans %}
+{% endautoescape %}

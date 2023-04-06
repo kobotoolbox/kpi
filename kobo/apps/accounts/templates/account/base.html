@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block head %}
-  {% include "snippets/modern_browsers_redirect.html" %}
   {% load static %}
+  <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
+
   {% if config.login_background %}
   <style>
   .registration__bg {

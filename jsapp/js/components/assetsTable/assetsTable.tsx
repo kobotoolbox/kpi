@@ -14,10 +14,10 @@ import {
   ASSETS_TABLE_COLUMNS,
 } from './assetsTableConstants';
 import type {
-  OrderDirection,
   AssetsTableContextName,
   AssetsTableColumn,
 } from './assetsTableConstants';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 import type {
   AssetResponse,
   MetadataResponse,

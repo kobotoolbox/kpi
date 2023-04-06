@@ -4,6 +4,7 @@ from django.conf import settings
 register = template.Library()
 
 @register.simple_tag
-def accounts_settings():
-    account_settings = settings.KOBOFORM_URL + '/#/account/settings'
-    return account_settings
+def account_security():
+    # Not using `reverse()` because this is a route within the SPA
+    account_security = settings.KOBOFORM_URL + '/#/account/security'
+    return account_security

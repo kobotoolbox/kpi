@@ -21,6 +21,7 @@ from django.utils.translation import gettext as t
 from lxml import etree
 from rest_framework import status
 
+from kobo.apps.trackers.models import MonthlyNLPUsageCounter
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -161,6 +162,26 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             self.get_submissions(self.asset.owner)
         )
         return monthly_counter
+
+    @property
+    def current_month_nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        today = datetime.today()
+        try:
+            monthly_nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('counters').get(
+                    asset_id=self.asset.id,
+                    year=today.year,
+                    month=today.month,
+                ).counters
+            )
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `monthly_nlp_tracking`
+            return {}
+        else:
+            return monthly_nlp_tracking
 
     @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
@@ -461,6 +482,28 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     @property
     def mongo_userform_id(self):
         return f'{self.asset.owner.username}_{self.asset.uid}'
+
+    @property
+    def nlp_tracking(self):
+        """
+        Get the current month's NLP tracking data
+        """
+        try:
+            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+                asset_id=self.asset.id
+            )
+            total_counters = {}
+            for nlp_counters in nlp_usage_counters:
+                counters = nlp_counters.counters
+                for key in counters.keys():
+                    if key not in total_counters:
+                        total_counters[key] = 0
+                    total_counters[key] += counters[key]
+        except MonthlyNLPUsageCounter.DoesNotExist:
+            # return empty dict to match `total_counters`
+            return {}
+        else:
+            return total_counters
 
     def redeploy(self, active: bool = None):
         """

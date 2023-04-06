@@ -51,7 +51,7 @@ urlpatterns = [
         r'^reports/media-storage/(?P<base_filename>[^/]+)$', retrieve_reports
     ),
 
-    # Users count by organisation
+    # Users count by organization
     path(
         'reports/users-count-by-organization/',
         user_count_by_organization,
@@ -60,7 +60,7 @@ urlpatterns = [
     re_path(r'^reports/users-count-by-organization/(?P<base_filename>[^/]+)$',
             retrieve_reports),
 
-    # Users count by organisation
+    # Users count by organization
     path('reports/users/', user_report, name='users_report'),
     re_path(r'^reports/users/(?P<base_filename>[^/]+)$', retrieve_reports),
 

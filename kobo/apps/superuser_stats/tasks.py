@@ -46,8 +46,7 @@ def generate_country_report(
         xform_ids = Asset.objects.values_list(
             '_deployment_data__backend_response__formid', flat=True
         ).filter(
-            Q(settings__country__contains=[{'value': code_}])
-            | Q(settings__country__value=code_),
+            settings__country_codes__in_array=[code_],
             _deployment_data__active=True,
             _deployment_data__has_key='backend',
             asset_type=ASSET_TYPE_SURVEY,
@@ -228,7 +227,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
             writer.writerow(row)
 
 
-@shared_task
+@shared_task(soft_time_limit=4200, time_limit=4260)
 def generate_forms_count_by_submission_range(output_filename: str):
     # List of submissions count ranges
     ranges = [

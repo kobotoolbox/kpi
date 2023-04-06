@@ -16,7 +16,7 @@ from kobo.apps.accounts.mfa.views import (
     MfaTokenView,
 )
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests, design_system, modern_browsers
+from kpi.views import home, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
@@ -49,7 +49,6 @@ urlpatterns = [
     path('browser_tests/', browser_tests),
     path('modern_browsers/', modern_browsers),
     path('design-system/', design_system),
-    path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     path('jsi18n/', JavaScriptCatalog.as_view(),
@@ -57,7 +56,7 @@ urlpatterns = [
     path('token/', TokenView.as_view(), name='token'),
     path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
-            ConfigurationFile.redirect_view, name='configurationfile'),
+            ConfigurationFile.content_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),

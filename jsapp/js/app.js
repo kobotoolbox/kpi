@@ -106,6 +106,8 @@ class App extends React.Component {
                 padding: '16px',
                 background: '#1e2129', // $kobo-gray-14
                 color: '#fff', // $kobo-white
+                maxHeight: '90vh',
+                overflow: 'hidden',
               },
               success: {
                 iconTheme: {

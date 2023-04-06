@@ -1,4 +1,5 @@
 import {createEnum} from 'js/constants';
+import type {OrderDirection} from 'js/projects/projectViews/constants';
 
 export enum AssetsTableContextName {
   MY_LIBRARY = 'MY_LIBRARY',
@@ -11,8 +12,6 @@ export const ASSETS_TABLE_CONTEXTS = createEnum([
   AssetsTableContextName.COLLECTION_CONTENT,
   AssetsTableContextName.PUBLIC_COLLECTIONS,
 ]);
-
-export type OrderDirection = 'ascending' | 'descending';
 
 export const ORDER_DIRECTIONS: {[id in OrderDirection]: OrderDirection} = {
   ascending: 'ascending',
