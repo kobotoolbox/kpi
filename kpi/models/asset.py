@@ -892,7 +892,7 @@ class Asset(ObjectPermissionMixin,
                 self._deployment_data.pop('_stored_data_key', None)
                 self.__copy_hidden_fields()
 
-        self._set_deployment_status()
+        self.set_deployment_status()
 
         super().save(
             force_insert=force_insert,
@@ -933,6 +933,18 @@ class Asset(ObjectPermissionMixin,
 
         if create_version:
             self.create_version()
+
+    def set_deployment_status(self):
+        if self.asset_type != ASSET_TYPE_SURVEY:
+            return
+
+        if self.has_deployment:
+            if self.deployment.active:
+                self._deployment_status = AssetDeploymentStatus.DEPLOYED
+            else:
+                self._deployment_status = AssetDeploymentStatus.ARCHIVED
+        else:
+            self._deployment_status = AssetDeploymentStatus.DRAFT
 
     @property
     def tag_string(self):
@@ -1125,18 +1137,6 @@ class Asset(ObjectPermissionMixin,
             return
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
-
-    def _set_deployment_status(self):
-        if self.asset_type != ASSET_TYPE_SURVEY:
-            return
-
-        if self.has_deployment:
-            if self.deployment.active:
-                self._deployment_status = AssetDeploymentStatus.DEPLOYED
-            else:
-                self._deployment_status = AssetDeploymentStatus.ARCHIVED
-        else:
-            self._deployment_status = AssetDeploymentStatus.DRAFT
 
     @transaction.atomic
     def snapshot(

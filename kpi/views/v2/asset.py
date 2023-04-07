@@ -49,7 +49,7 @@ from kpi.renderers import (
     XFormRenderer,
     XlsRenderer,
 )
-from kpi.serializers import DeploymentSerializer
+from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,

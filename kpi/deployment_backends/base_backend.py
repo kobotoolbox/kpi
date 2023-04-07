@@ -282,14 +282,17 @@ class BaseDeploymentBackend(abc.ABC):
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
         now = timezone.now()
+
+        self.store_data(updates)
+        self.asset.set_deployment_status()
         self.asset.__class__.objects.filter(id=self.asset.pk).update(
             _deployment_data=ReplaceValues(
                 '_deployment_data',
                 updates=updates,
             ),
             date_modified=now,
+            _deployment_status=self.asset.deployment_status
         )
-        self.store_data(updates)
         self.asset.date_modified = now
 
     @abc.abstractmethod
