@@ -129,7 +129,7 @@ export default function Plan() {
     Promise.all(promises).then(() => setAreButtonsDisabled(false));
   }, [searchParams, shouldRevalidate]);
 
-  // Make sure buttons are enabled if displaying from back/forward cache
+  // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
     const handlePersisted = (event: PageTransitionEvent) => {
       if (event.persisted) {
