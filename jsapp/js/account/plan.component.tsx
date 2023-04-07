@@ -75,7 +75,6 @@ export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
   const [buttonsDisabled, setButtonDisabled] = useState(false);
-  const [showExpand, setShowExpand] = useState(false);
   const [searchParams, _setSearchParams] = useSearchParams();
   const didMount = useRef(false);
 
@@ -256,14 +255,14 @@ export default function Plan() {
                 <Icon
                   name='check'
                   size='m'
-                  classNames={
+                  color={
                     item.icon === 'positive_pro'
-                      ? [styles.tealCheck]
-                      : [styles.stormCheck]
+                      ? 'hsl(185deg 57% 57%)'
+                      : 'hsl(225deg 33% 59%)'
                   }
                 />
               ) : (
-                <Icon name='close' size='m' classNames={[styles.redClose]} />
+                <Icon name='close' size='m' color='hsl(352deg 100% 70%)' />
               )}
             </div>
             {item.label}
@@ -360,10 +359,10 @@ export default function Plan() {
                             <Icon
                               name='check'
                               size='m'
-                              classNames={
+                              color={
                                 price.name === 'Professional plan'
-                                  ? [styles.tealCheck]
-                                  : [styles.stormCheck]
+                                  ? 'hsl(185deg 57% 57%)'
+                                  : 'hsl(225deg 33% 59%)'
                               }
                             />
                           </div>
