@@ -133,7 +133,7 @@ export default function Plan() {
   useEffect(() => {
     const handlePersisted = (event: PageTransitionEvent) => {
       if (event.persisted) {
-        setShouldRevalidate(true);
+        setShouldRevalidate(!shouldRevalidate);
       }
     };
     window.addEventListener('pageshow', handlePersisted);
