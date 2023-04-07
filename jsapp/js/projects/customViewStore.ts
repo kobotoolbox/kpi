@@ -140,7 +140,7 @@ class CustomViewStore {
    */
   private getOrderQuery() {
     if (!this.order?.fieldName) {
-      return '';
+      return null;
     }
 
     const fieldDefinition = PROJECT_FIELDS[this.order.fieldName as ProjectFieldName];
