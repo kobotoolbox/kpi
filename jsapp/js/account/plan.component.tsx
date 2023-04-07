@@ -88,6 +88,7 @@ export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
+  const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams, _setSearchParams] = useSearchParams();
   const didMount = useRef(false);
   const hasActiveSubscription = useMemo(() => {
@@ -126,13 +127,13 @@ export default function Plan() {
     );
 
     Promise.all(promises).then(() => setAreButtonsDisabled(false));
-  }, [searchParams]);
+  }, [searchParams, shouldRevalidate]);
 
   // Make sure buttons are enabled if displaying from back/forward cache
   useEffect(() => {
     const handlePersisted = (event: PageTransitionEvent) => {
       if (event.persisted) {
-        setAreButtonsDisabled(false);
+        setShouldRevalidate(true);
       }
     };
     window.addEventListener('pageshow', handlePersisted);
