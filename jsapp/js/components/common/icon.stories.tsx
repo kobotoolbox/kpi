@@ -18,7 +18,7 @@ export const AllIcons = () => (
   <div style={{display: 'flex', flexWrap: 'wrap'}}>
     {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((icon) => (
       <div style={{flex: '1 1 200px'}}>
-        <Icon name={icon} size='l' />
+        <Icon name={icon} size='l' color='inherit' />
         {icon}
       </div>
     ))}
