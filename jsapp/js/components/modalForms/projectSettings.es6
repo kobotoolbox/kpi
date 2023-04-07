@@ -300,19 +300,13 @@ class ProjectSettings extends React.Component {
 
   archiveProject(evt) {
     evt.preventDefault();
-    this.archiveAsset(this.state.formAsset.uid, this.onArchiveProjectStarted.bind(this));
-  }
-
-  onArchiveProjectStarted() {
+    this.archiveAsset(this.state.formAsset.uid);
     this.setState({isAwaitingArchiveCompleted: true});
   }
 
   unarchiveProject(evt) {
     evt.preventDefault();
-    this.unarchiveAsset(this.state.formAsset.uid, this.onUnarchiveProjectStarted.bind(this));
-  }
-
-  onUnarchiveProjectStarted() {
+    this.unarchiveAsset(this.state.formAsset.uid);
     this.setState({isAwaitingUnarchiveCompleted: true});
   }
 
