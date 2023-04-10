@@ -54,7 +54,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     // Project Name. This clarifies where it's safe to click or not,
     // especially if you're trying to select multiple projects.
     &:hover ~ :is(.rowTypeProject .cell[data-field='name']) {
-      text-decoration-color: color.change(colors.$kobo-blue, $alpha: 0);
+      text-decoration-color: color.change(colors.$kobo-alt-blue, $alpha: 0);
       transition: text-decoration-color 0s;
     }
   }
@@ -102,9 +102,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     // Setup for underlining the Project Name on row hover.
     // This clarifies the size of the checkbox touch-target
     // and makes full-navigation a little more predictable.
-    text-decoration: 2px solid underline color.change(colors.$kobo-blue, $alpha: 0);
-    text-underline-offset: 2px;
-    transition: text-decoration-color 0.3s; // soft transition for whole-row hovers
+    text-decoration: 1px solid underline color.change(colors.$kobo-alt-blue, $alpha: 0);
+    text-underline-offset: 3px;
   }
 
   &[data-field='sector'] {
@@ -133,7 +132,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     // When hovering a project row cell, underline the project name.
     &[data-field='name'] {
-      text-decoration-color: color.change(colors.$kobo-blue, $alpha: 0.25);
+      text-decoration-color: colors.$kobo-alt-blue;
     }
 
     &.cellHighlighted {

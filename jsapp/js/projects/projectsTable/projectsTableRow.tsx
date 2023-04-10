@@ -113,8 +113,8 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         className={styles.cell}
         data-field='checkbox'
         onClick={(evt) => {
-          // Usability - Treat the full cell as clickable target for the
-          // checkbox. Makes multi-selection easier, and forgives miss-clicks
+          // Treat the full cell as clickable target for the checkbox.
+          // Makes multi-selection easier, and forgives miss-clicks
           // that would otherwise navigate to the project overview.
           props.onSelectRequested(!props.isSelected); // Toggle the selection
           evt.stopPropagation(); // Prevent treating as a row navigation
