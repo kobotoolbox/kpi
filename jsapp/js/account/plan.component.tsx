@@ -177,7 +177,7 @@ export default function Plan() {
     const filterAmount = state.products.map((product: Product) => {
       const filteredPrices = product.prices.filter((price: BasePrice) => {
         const interval = price.human_readable_price.split('/')[1];
-        return interval === state.intervalFilter || price.unit_amount === 0;
+        return interval === state.intervalFilter;
       });
       return {
         ...product,
@@ -269,7 +269,8 @@ export default function Plan() {
         ) {
           const keyName = `feature_${listType}_${currentResult}`;
           let iconBool = false;
-          const itemName: string = price.metadata[keyName];
+          const itemName: string =
+            price.prices.metadata?.[keyName] || price.metadata[keyName];
           if (price.metadata[currentIcon] !== undefined) {
             iconBool = JSON.parse(price.metadata[currentIcon]);
             listItems.push({icon: iconBool, item: itemName});
@@ -422,7 +423,8 @@ export default function Plan() {
                               }
                             />
                           </div>
-                          {price.metadata[featureItem]}
+                          {price.prices.metadata?.[featureItem] ||
+                            price.metadata[featureItem]}
                         </li>
                       )
                   )}
