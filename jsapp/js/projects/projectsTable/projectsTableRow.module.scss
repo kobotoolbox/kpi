@@ -85,8 +85,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &[data-field='dateModified'],
   &[data-field='dateDeployed'] {
     width: 18%;
-    justify-content: flex-end;
-    text-align: right;
   }
 
   &[data-field='languages'] {
