@@ -72,6 +72,16 @@ class CheckoutLinkView(APIView):
         customer, _ = Customer.get_or_create(
             subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
+        # Add the name and organization to the customer if not present.
+        # djstripe doesn't let us do this on customer creation, so modify the customer on Stripe and then fetch locally.
+        if not customer.name and user.extra_details.data['name']:
+            stripe_customer = stripe.Customer.modify(
+                customer.id,
+                name=user.extra_details.data['name'],
+                description=organization.name,
+                api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            )
+            customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
             customer.id, price, organization.uid
         )
