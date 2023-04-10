@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import annotations
 
-from datetime import datetime
-from secrets import token_urlsafe
 from typing import Optional
 
 from django.conf import settings
@@ -10,7 +8,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
 from django.core.files.base import ContentFile
-from django.core.signing import Signer
 from django.db import (
     ProgrammingError,
     connections,
@@ -28,11 +25,11 @@ from kpi.exceptions import (
 )
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.utils.hash import calculate_hash
-from kpi.utils.datetime import one_minute_from_now
 from .storage import (
     get_kobocat_storage,
     KobocatFileSystemStorage,
 )
+
 
 def update_autofield_sequence(model):
     """
@@ -255,12 +252,7 @@ class KobocatUser(ShadowModel):
     def sync(cls, auth_user):
         # NB: `KobocatUserObjectPermission` (and probably other things) depend
         # upon PKs being synchronized between KPI and KoBoCAT
-        try:
-            kc_auth_user = cls.objects.get(pk=auth_user.pk)
-            assert kc_auth_user.username == auth_user.username
-        except KobocatUser.DoesNotExist:
-            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
-
+        kc_auth_user = cls.get_kc_user(auth_user)
         kc_auth_user.password = auth_user.password
         kc_auth_user.last_login = auth_user.last_login
         kc_auth_user.is_superuser = auth_user.is_superuser
@@ -280,6 +272,16 @@ class KobocatUser(ShadowModel):
         # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
+
+    @classmethod
+    def get_kc_user(cls, auth_user: 'auth.User') -> KobocatUser:
+        try:
+            kc_auth_user = cls.objects.get(pk=auth_user.pk)
+            assert kc_auth_user.username == auth_user.username
+        except KobocatUser.DoesNotExist:
+            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
+
+        return kc_auth_user
 
 
 class KobocatUserObjectPermission(ShadowModel):
@@ -441,6 +443,7 @@ class KobocatXForm(ShadowModel):
     num_of_submissions = models.IntegerField(default=0)
     attachment_storage_bytes = models.BigIntegerField(default=0)
     kpi_asset_uid = models.CharField(max_length=32, null=True)
+    pending_delete = models.BooleanField(default=False)
 
     @property
     def md5_hash(self):
@@ -593,7 +596,7 @@ class ReadOnlyKobocatMonthlyXFormSubmissionCounter(ReadOnlyModel):
     month = models.IntegerField()
     user = models.ForeignKey(
         'shadow_model.KobocatUser',
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
     )
     xform = models.ForeignKey(
         'shadow_model.KobocatXForm',

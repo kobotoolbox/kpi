@@ -8,10 +8,11 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
-from django.db import IntegrityError, ProgrammingError, transaction
+from django.db import ProgrammingError, transaction
 from django.db.models import Model
-from django.db.transaction import Atomic
+from kobo_service_account.utils import get_request_headers
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
@@ -19,9 +20,7 @@ from kpi.utils.permissions import is_user_anonymous
 from .shadow_models import (
     safe_kc_read,
     KobocatContentType,
-    KobocatDigestPartial,
     KobocatPermission,
-    KobocatToken,
     KobocatUser,
     KobocatUserObjectPermission,
     KobocatUserPermission,
@@ -391,39 +390,13 @@ def remove_applicable_kc_permissions(
     ).delete()
 
 
-def delete_kc_users(deleted_pks: list) -> bool:
-    """
+def delete_kc_user(username: str):
+    url = settings.KOBOCAT_INTERNAL_URL + f'/api/v1/users/{username}'
 
-    Args:
-        deleted_pks: List of primary keys of KPI deleted objects
-
-    Returns:
-        bool: whether it has succeeded or not.
-    """
-
-    # Then, delete users in KoBoCAT database
-    # Post signal is not triggered because the
-    # deletion is made at the model level, not the object level
-    kc_models = [
-        KobocatDigestPartial,
-        KobocatUserPermission,
-        KobocatUserProfile,
-        KobocatUserObjectPermission,
-        KobocatToken,
-    ]
-    # We can delete related objects
-    for kc_model in kc_models:
-        kc_model.objects.filter(user_id__in=deleted_pks).delete()
-
-    try:
-        # If users have projects/submissions, this query should fail with
-        # an `IntegrityError`.
-        KobocatUser.objects.filter(id__in=deleted_pks).delete()
-    except IntegrityError as e:
-        logging.error(e)
-        return False
-
-    return True
+    response = requests.delete(
+        url, headers=get_request_headers(username)
+    )
+    response.raise_for_status()
 
 
 def kc_transaction_atomic(using='kobocat', *args, **kwargs):
@@ -431,7 +404,7 @@ def kc_transaction_atomic(using='kobocat', *args, **kwargs):
     KoBoCAT database does not exist in testing environment.
     `transaction.atomic(using='kobocat') cannot be called without raising errors.
 
-    This utility returns an a context manager which does nothing if environment
+    This utility returns a context manager which does nothing if environment
     is set to `TESTING`. Otherwise, it returns a real context manager which
     provides transactions support.
     """
