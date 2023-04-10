@@ -97,7 +97,6 @@ class CheckoutLinkView(APIView):
                 'price_id': price.id,
             },
             mode=checkout_mode,
-            payment_method_types=["card"],
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
         )
 
