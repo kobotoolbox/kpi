@@ -119,6 +119,13 @@
 
 .planContainer :global .k-button {
   margin: sizes.$x20 auto 0;
+  width: 120px;
+  height: 38px;
+}
+
+.planContainer :global span.k-button__label { 
+  text-align: center;
+  width: 120px;
 }
 
 $plan-badge-height: sizes.$x38;
