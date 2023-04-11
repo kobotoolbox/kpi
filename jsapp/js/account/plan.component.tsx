@@ -87,7 +87,6 @@ export default function Plan() {
     });
 
     getOrganization().then((data) => {
-      console.log(data.results[0]);
       dispatch({
         type: 'initialOrg',
         prodData: data.results[0],
