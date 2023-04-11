@@ -18,11 +18,13 @@ export interface BasePrice {
   unit_amount: number;
   human_readable_price: string;
   metadata: {[key: string]: string};
+  product: BaseProduct;
 }
 
 export interface BaseSubscription {
   id: number;
   price: Product;
+  status: string;
   items: [{ price:BasePrice }];
 }
 
@@ -56,7 +58,9 @@ export async function getProducts() {
 }
 
 export async function getSubscription() {
-  return fetchGet<PaginatedResponse<BaseSubscription>>(endpoints.SUBSCRIPTION_URL);
+  return fetchGet<PaginatedResponse<BaseSubscription>>(
+    endpoints.SUBSCRIPTION_URL
+  );
 }
 
 export async function getOrganization() {

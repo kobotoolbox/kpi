@@ -1,7 +1,7 @@
 import stripe
 
 from django.conf import settings
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Min
 
 from djstripe.models import (
     Customer,
@@ -72,6 +72,16 @@ class CheckoutLinkView(APIView):
         customer, _ = Customer.get_or_create(
             subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
         )
+        # Add the name and organization to the customer if not present.
+        # djstripe doesn't let us do this on customer creation, so modify the customer on Stripe and then fetch locally.
+        if not customer.name and user.extra_details.data['name']:
+            stripe_customer = stripe.Customer.modify(
+                customer.id,
+                name=user.extra_details.data['name'],
+                description=organization.name,
+                api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            )
+            customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
             customer.id, price, organization.uid
         )
@@ -97,7 +107,6 @@ class CheckoutLinkView(APIView):
                 'price_id': price.id,
             },
             mode=checkout_mode,
-            payment_method_types=["card"],
             success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
         )
 
@@ -160,7 +169,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
-    Returns Product and Price Lists
+    Returns Product and Price Lists, sorted from the product with the lowest price to highest
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/stripe/products/
@@ -201,7 +210,7 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     >        }
     >
 
-    ### Note: unit_amount is price in cents
+    ### Note: unit_amount is price in cents (assuming currency is USD/AUD/CAD/etc.)
 
     ## Current Endpoint
     """
@@ -215,6 +224,8 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .prefetch_related(
             Prefetch('prices', queryset=Price.objects.filter(active=True))
         )
+        .annotate(lowest_unit_amount=Min('prices__unit_amount'))
+        .order_by('lowest_unit_amount')
         .distinct()
     )
     serializer_class = ProductSerializer

@@ -1,4 +1,11 @@
-import React, {useEffect, useReducer, useRef, useState} from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
@@ -46,6 +53,12 @@ const initialState = {
   featureTypes: ['support', 'advanced', 'addons'],
 };
 
+/*
+  Stripe Subscription statuses that are shown as active in the UI.
+  Subscriptions with a status in this array will show an option to 'Manage'.
+*/
+const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
+
 function planReducer(state: PlanState, action: DataUpdates) {
   switch (action.type) {
     case 'initialProd':
@@ -74,31 +87,61 @@ function planReducer(state: PlanState, action: DataUpdates) {
 export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
   const [expandComparison, setExpandComparison] = useState(false);
-  const [buttonsDisabled, setButtonDisabled] = useState(false);
-  const [searchParams, _setSearchParams] = useSearchParams();
+  const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
+  const [shouldRevalidate, setShouldRevalidate] = useState(false);
+  const [searchParams] = useSearchParams();
   const didMount = useRef(false);
+  const hasActiveSubscription = useMemo(
+    () =>
+      state.subscribedProduct.some((subscription: BaseSubscription) =>
+        activeSubscriptionStatuses.includes(subscription.status)
+      ),
+    [state.subscribedProduct]
+  );
 
   useEffect(() => {
-    getProducts().then((data) => {
-      dispatch({
-        type: 'initialProd',
-        prodData: data.results,
-      });
-    });
+    const promises = [];
+    promises.push(
+      getProducts().then((data) => {
+        dispatch({
+          type: 'initialProd',
+          prodData: data.results,
+        });
+      })
+    );
 
-    getOrganization().then((data) => {
-      dispatch({
-        type: 'initialOrg',
-        prodData: data.results[0],
-      });
-    });
+    promises.push(
+      getOrganization().then((data) => {
+        dispatch({
+          type: 'initialOrg',
+          prodData: data.results[0],
+        });
+      })
+    );
 
-    getSubscription().then((data) => {
-      dispatch({
-        type: 'initialSub',
-        prodData: data.results,
-      });
-    });
+    promises.push(
+      getSubscription().then((data) => {
+        dispatch({
+          type: 'initialSub',
+          prodData: data.results,
+        });
+      })
+    );
+
+    Promise.all(promises).then(() => setAreButtonsDisabled(false));
+  }, [searchParams, shouldRevalidate]);
+
+  // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
+  useEffect(() => {
+    const handlePersisted = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setShouldRevalidate(!shouldRevalidate);
+      }
+    };
+    window.addEventListener('pageshow', handlePersisted);
+    return () => {
+      window.removeEventListener('pageshow', handlePersisted);
+    };
   }, []);
 
   useEffect(() => {
@@ -111,9 +154,8 @@ export default function Plan() {
     const priceId = searchParams.get('checkout');
     if (priceId) {
       const isSubscriptionUpdated = state.subscribedProduct.find(
-        (subscription: BaseSubscription) => {
-          return subscription.items.find((item) => item.price.id === priceId);
-        }
+        (subscription: BaseSubscription) =>
+          subscription.items.find((item) => item.price.id === priceId)
       );
       if (isSubscriptionUpdated) {
         notify.success(
@@ -132,66 +174,90 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   // Filter prices based on plan interval
-  const filterPrices = (): Price[] => {
-    if (state.products.length > 0) {
-      const filterAmount = state.products.map((product: Product) => {
-        const filteredPrices = product.prices.filter((price: BasePrice) => {
-          const interval = price.human_readable_price.split('/')[1];
-          return interval === state.intervalFilter || price.unit_amount === 0;
-        });
-        return {
-          ...product,
-          prices: filteredPrices.length ? filteredPrices[0] : null,
-        };
+  const filterPrices = useMemo((): Price[] => {
+    const filterAmount = state.products.map((product: Product) => {
+      const filteredPrices = product.prices.filter((price: BasePrice) => {
+        const interval = price.human_readable_price.split('/')[1];
+        return interval === state.intervalFilter;
       });
-      return filterAmount.filter((product: Product) => product.prices);
-    }
-    return [];
-  };
+      return {
+        ...product,
+        prices: filteredPrices.length ? filteredPrices[0] : null,
+      };
+    });
+    return filterAmount.filter((product: Product) => product.prices);
+  }, [state.products, state.intervalFilter]);
 
-  const isSubscribedProduct = (product: Price) => {
-    if (product.prices.unit_amount === 0 && !state.subscribedProduct?.length) {
-      return true;
-    }
-    return product.name === state.subscribedProduct?.name;
-  };
+  const getSubscriptionForProductId = useCallback(
+    (productId: String) =>
+      state.subscribedProduct.find(
+        (subscription: BaseSubscription) =>
+          subscription.items[0].price.product.id === productId
+      ),
+    [state.subscribedProduct]
+  );
+
+  const isSubscribedProduct = useCallback(
+    (product: Price) => {
+      if (!product.prices.unit_amount && !hasActiveSubscription) {
+        return true;
+      }
+      const subscription = getSubscriptionForProductId(product.id);
+      return Boolean(subscription?.status === 'active');
+    },
+    [state.subscribedProduct]
+  );
+
+  const shouldShowManage = useCallback(
+    (product: Price) => {
+      const subscription = getSubscriptionForProductId(product.id);
+      if (!subscription) {
+        return false;
+      }
+      const hasManageableStatus = activeSubscriptionStatuses.includes(
+        subscription.status
+      );
+      return Boolean(state.organization?.uid) && hasManageableStatus;
+    },
+    [state.subscribedProduct]
+  );
 
   const upgradePlan = (priceId: string) => {
-    if (!priceId || buttonsDisabled) {
+    if (!priceId || areButtonsDisabled) {
       return;
     }
-    setButtonDisabled(buttonsDisabled);
+    setAreButtonsDisabled(true);
     postCheckout(priceId, state.organization?.uid)
       .then((data) => {
         if (!data.url) {
-          alert(t('There has been an issue, please try again later.'));
+          notify.error(t('There has been an issue, please try again later.'));
         } else {
           window.location.assign(data.url);
         }
       })
-      .finally(() => setButtonDisabled(!buttonsDisabled));
+      .catch(() => setAreButtonsDisabled(false));
   };
 
   const managePlan = () => {
-    if (!state.organization?.uid || buttonsDisabled) {
+    if (!state.organization?.uid || areButtonsDisabled) {
       return;
     }
-    setButtonDisabled(buttonsDisabled);
-    postCustomerPortal(state.organization?.uid)
+    setAreButtonsDisabled(true);
+    postCustomerPortal(state.organization.uid)
       .then((data) => {
         if (!data.url) {
-          alert(t('There has been an issue, please try again later.'));
+          notify.error(t('There has been an issue, please try again later.'));
         } else {
           window.location.assign(data.url);
         }
       })
-      .finally(() => setButtonDisabled(!buttonsDisabled));
+      .catch(() => setAreButtonsDisabled(false));
   };
 
   // Get feature items and matching icon boolean
   const getListItem = (listType: string, plan: string) => {
     const listItems: Array<{icon: boolean; item: string}> = [];
-    filterPrices().map((price) =>
+    filterPrices.map((price) =>
       Object.keys(price.metadata).map((featureItem: string) => {
         const numberItem = featureItem.lastIndexOf('_');
         const currentResult = featureItem.substring(numberItem + 1);
@@ -204,7 +270,8 @@ export default function Plan() {
         ) {
           const keyName = `feature_${listType}_${currentResult}`;
           let iconBool = false;
-          const itemName: string = price.metadata[keyName];
+          const itemName: string =
+            price.prices.metadata?.[keyName] || price.metadata[keyName];
           if (price.metadata[currentIcon] !== undefined) {
             iconBool = JSON.parse(price.metadata[currentIcon]);
             listItems.push({icon: iconBool, item: itemName});
@@ -218,7 +285,7 @@ export default function Plan() {
   const hasMetaFeatures = () => {
     let expandBool = false;
     if (state.products.length >= 0) {
-      filterPrices().map((price) => {
+      filterPrices.map((price) => {
         for (const featureItem in price.metadata) {
           if (
             featureItem.includes('feature_support_') ||
@@ -317,20 +384,12 @@ export default function Plan() {
         </form>
 
         <div className={styles.allPlans}>
-          {filterPrices().map((price: Price) => (
+          {filterPrices.map((price: Price) => (
             <div className={styles.stripePlans} key={price.id}>
-              {isSubscribedProduct(price) && (
-                <div
-                  className={styles.currentPlan}
-                  style={{
-                    display:
-                      filterPrices().findIndex(isSubscribedProduct) >= 0
-                        ? ''
-                        : 'none',
-                  }}
-                >
-                  {t('your plan')}
-                </div>
+              {shouldShowManage(price) || isSubscribedProduct(price) ? (
+                <div className={styles.currentPlan}>{t('your plan')}</div>
+              ) : (
+                <div className={styles.otherPlanSpacing} />
               )}
               <div
                 className={classnames({
@@ -340,10 +399,9 @@ export default function Plan() {
               >
                 <h1 className={styles.priceName}> {price.name} </h1>
                 <div className={styles.priceTitle}>
-                  {typeof price.prices.human_readable_price === 'string' &&
-                    (price.prices.human_readable_price.includes('$0.00')
-                      ? t('Free')
-                      : price.prices.human_readable_price)}
+                  {!price.prices?.unit_amount
+                    ? t('Free')
+                    : price.prices.human_readable_price}
                 </div>
 
                 <ul>
@@ -362,27 +420,28 @@ export default function Plan() {
                               }
                             />
                           </div>
-                          {price.metadata[featureItem]}
+                          {price.prices.metadata?.[featureItem] ||
+                            price.metadata[featureItem]}
                         </li>
                       )
                   )}
                 </ul>
-
-                {!isSubscribedProduct(price) && (
-                  <Button
-                    type='full'
-                    color='blue'
-                    size='m'
-                    label={t('Upgrade')}
-                    onClick={() => upgradePlan(price.prices.id)}
-                    aria-label={`upgrade to ${price.name}`}
-                    aria-disabled={buttonsDisabled}
-                    isDisabled={buttonsDisabled}
-                  />
-                )}
-                {isSubscribedProduct(price) &&
-                  state.organization?.uid &&
-                  price.name !== 'Community plan' && (
+                {!isSubscribedProduct(price) &&
+                  !shouldShowManage(price) &&
+                  price.prices.unit_amount !== 0 && (
+                    <Button
+                      type='full'
+                      color='blue'
+                      size='m'
+                      label={t('Upgrade')}
+                      onClick={() => upgradePlan(price.prices.id)}
+                      aria-label={`upgrade to ${price.name}`}
+                      aria-disabled={areButtonsDisabled}
+                      isDisabled={areButtonsDisabled}
+                    />
+                  )}
+                {(isSubscribedProduct(price) || shouldShowManage(price)) &&
+                  price.prices.unit_amount !== 0 && (
                     <Button
                       type='full'
                       color='blue'
@@ -390,11 +449,11 @@ export default function Plan() {
                       label={t('Manage')}
                       onClick={managePlan}
                       aria-label={`manage your ${price.name} subscription`}
-                      aria-disabled={buttonsDisabled}
-                      isDisabled={buttonsDisabled}
+                      aria-disabled={areButtonsDisabled}
+                      isDisabled={areButtonsDisabled}
                     />
                   )}
-                {price.name === 'Community plan' && (
+                {price.prices.unit_amount === 0 && (
                   <div className={styles.btnSpacePlaceholder} />
                 )}
 
