@@ -20,6 +20,8 @@ interface ProjectsFilterEditorProps {
   /** Called on every change. */
   onFilterChange: (filter: ProjectsFilterDefinition) => void;
   onDelete: () => void;
+  /** A list of fields that should not be available to user. */
+  excludedFields?: ProjectFieldName[];
 }
 
 const COUNTRIES = envStore.data.country_choices;
@@ -66,6 +68,11 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       // We don't want to display fields with zero filters available.
       .filter(
         (filterDefinition) => filterDefinition.availableConditions.length >= 1
+      )
+      // We don't want to display excluded fields.
+      .filter(
+        (filterDefinition) =>
+          !props.excludedFields?.includes(filterDefinition.name)
       )
       .map((filterDefinition) => {
         return {label: filterDefinition.label, value: filterDefinition.name};
