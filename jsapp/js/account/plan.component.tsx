@@ -89,13 +89,15 @@ export default function Plan() {
   const [expandComparison, setExpandComparison] = useState(false);
   const [areButtonsDisabled, setAreButtonsDisabled] = useState(true);
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
-  const [searchParams, _setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const didMount = useRef(false);
-  const hasActiveSubscription = useMemo(() => {
-    return state.subscribedProduct.some((subscription: BaseSubscription) =>
-      activeSubscriptionStatuses.includes(subscription.status)
-    );
-  }, [state.subscribedProduct]);
+  const hasActiveSubscription = useMemo(
+    () =>
+      state.subscribedProduct.some((subscription: BaseSubscription) =>
+        activeSubscriptionStatuses.includes(subscription.status)
+      ),
+    [state.subscribedProduct]
+  );
 
   useEffect(() => {
     const promises = [];
@@ -152,9 +154,8 @@ export default function Plan() {
     const priceId = searchParams.get('checkout');
     if (priceId) {
       const isSubscriptionUpdated = state.subscribedProduct.find(
-        (subscription: BaseSubscription) => {
-          return subscription.items.find((item) => item.price.id === priceId);
-        }
+        (subscription: BaseSubscription) =>
+          subscription.items.find((item) => item.price.id === priceId)
       );
       if (isSubscriptionUpdated) {
         notify.success(
@@ -188,11 +189,11 @@ export default function Plan() {
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionForProductId = useCallback(
-    (productId: String) => {
-      return state.subscribedProduct.find((subscription: BaseSubscription) => {
-        return subscription.items[0].price.product.id === productId;
-      });
-    },
+    (productId: String) =>
+      state.subscribedProduct.find(
+        (subscription: BaseSubscription) =>
+          subscription.items[0].price.product.id === productId
+      ),
     [state.subscribedProduct]
   );
 
