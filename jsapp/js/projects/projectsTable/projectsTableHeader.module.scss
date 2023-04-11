@@ -29,6 +29,17 @@
   line-height: sizes.$x30; // ??
 
   :global {
+    // Dropdown arrow
+    .k-icon:first-child {
+      // Hardcoded: we know the --size-xxs icon will be 10px wide.
+      // These sizes are tuned for "optical" alignment
+      // considering the weight of the dropdown arrow.
+      margin-left: 0 - sizes.$x10 - sizes.$x1;
+      padding-right: sizes.$x3;
+      opacity: 0.6;
+    }
+
+    // Dropdown Label
     label {
       @include mixins.textEllipsis;
 
@@ -36,8 +47,10 @@
       flex: 1;
     }
 
+    // Sorting indicator
     .k-icon:not(:first-child) {
       margin-left: sizes.$x6;
+      color: colors.$kobo-teal; // make it stand out
     }
   }
 }
