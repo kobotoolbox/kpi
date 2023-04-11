@@ -8,7 +8,7 @@ import uuid
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Optional, Union
-from xml.etree.ElementTree import ElementTree
+from xml.etree import ElementTree as ET
 
 try:
     from zoneinfo import ZoneInfo
@@ -16,13 +16,12 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 from deepmerge import always_merger
-from defusedxml.ElementTree import fromstring
-from defusedxml.lxml import fromstring as lxml_fromstring, tostring as lxml_tostring
+from defusedxml import ElementTree as DET
 from dict2xml import dict2xml
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext as t
-from lxml.etree import SubElement
+from lxml import etree
 from rest_framework import status
 
 from kobo.apps.trackers.models import MonthlyNLPUsageCounter
@@ -43,7 +42,7 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import MockAttachment
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
-from kpi.utils.xml import edit_submission_xml
+from kpi.utils.xml import check_lxml_fromstring, edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from ..exceptions import KobocatBulkUpdateSubmissionsClientException
 
@@ -112,7 +111,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for submission in submissions:
             # Remove XML declaration from submission
             submission = re.sub(r'(<\?.*\?>)', '', submission)
-            xml_parsed = lxml_fromstring(submission)
+            xml_parsed = check_lxml_fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
@@ -121,7 +120,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             deprecated_id_or_new = (
                 deprecated_id
                 if deprecated_id is not None
-                else SubElement(xml_parsed.find('meta'), 'deprecatedID')
+                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
@@ -134,7 +133,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     'uuid': _uuid,
                     'status_code': status.HTTP_201_CREATED,
                     'message': 'Successful submission',
-                    'updated_submission': lxml_tostring(xml_parsed) # only for testing
+                    'updated_submission': etree.tostring(xml_parsed) # only for testing
                 }
             )
 
@@ -339,8 +338,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if xpath:
-            submission_tree = ElementTree(
-                fromstring(submission_xml)
+            submission_tree = ET.ElementTree(
+                DET.fromstring(submission_xml)
             )
             try:
                 element = submission_tree.find(xpath)

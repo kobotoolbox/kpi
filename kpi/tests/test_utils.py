@@ -2,16 +2,15 @@
 import os
 import re
 from copy import deepcopy
-from lxml import etree
 
 import pytest
 from django.conf import settings
 from django.db.models import Q
 from django.test import TestCase
+from lxml import etree
 
 from kpi.exceptions import (
     SearchQueryTooShortException,
-    QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
 )
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
@@ -19,7 +18,11 @@ from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.xml import strip_nodes, edit_submission_xml
+from kpi.utils.xml import (
+    check_lxml_fromstring,
+    edit_submission_xml,
+    strip_nodes,
+)
 
 
 class UtilsTestCase(TestCase):
@@ -358,7 +361,7 @@ class XmlUtilsTestCase(TestCase):
             '        <subgroup11>'
             '            <question_3>Answer 3</question_3>'
             '            <question_4>Answer 4</question_4>'
-            '        </subgroup11>'            
+            '        </subgroup11>'
             '        <question_5>Answer 5</question_5>'
             '    </group1>'
             '</root>'
@@ -413,7 +416,7 @@ class XmlUtilsTestCase(TestCase):
             '        <subgroup11>'
             '            <question_3>Answer 3</question_3>'
             '            <question_4>Answer 4</question_4>'
-            '        </subgroup11>'            
+            '        </subgroup11>'
             '        <question_5>Answer 5</question_5>'
             '    </group1>'
             '</root>'
@@ -462,7 +465,7 @@ class XmlUtilsTestCase(TestCase):
         )
 
     def test_edit_submission_xml(self):
-        xml_parsed = etree.fromstring(self.__submission)
+        xml_parsed = check_lxml_fromstring(self.__submission)
         update_data = {
             'group1/subgroup1/question_1': 'Edit 1',
             'group1/subgroup11/question_3': 'Edit 2',

@@ -1,10 +1,55 @@
 # coding: utf-8
 from typing import Optional, Union, List
-from lxml.etree import _Element, ElementTree, SubElement
 
-from defusedxml.lxml import fromstring, tostring
 from django_request_cache import cache_for_request
+from lxml import etree
 from shortuuid import ShortUUID
+
+from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
+
+
+def check_entities(
+    elementtree: etree.ElementTree,
+    dtd_forbidden: bool = False,
+    entities_forbidden: bool = True
+):
+    """
+    This function is to be used with the lxml library using examples
+    found in the defusedxml library since support for lxml is depreciated
+    Does not return content. This function will only raise exceptions if
+    unaccepted content is contained in the XML.
+    """
+
+    docinfo = elementtree.docinfo
+    if docinfo.doctype:
+        if dtd_forbidden:
+            raise DTDForbiddenException
+        if entities_forbidden:
+            raise EntitiesForbiddenException
+
+    if entities_forbidden:
+        for dtd_entity in docinfo.internalDTD, docinfo.externalDTD:
+            if dtd_entity is None:
+                continue
+            for entity in dtd_entity.interentities():
+                raise EntitiesForbiddenException
+
+
+def check_lxml_fromstring(
+    text: str,
+    base_url: str = None,
+    forbid_dtd: bool = False,
+    forbid_entities: bool = True,
+):
+    """
+    This function is used to replace the `lxml.etree.fromstring` method similarly to
+    defusedxml's replacement for the method
+    Returns an ElementTree object
+    """
+    rootelement = etree.fromstring(text, base_url=base_url)
+    elementtree = rootelement.getroottree()
+    check_entities(elementtree, forbid_dtd, forbid_entities)
+    return rootelement
 
 
 def strip_nodes(
@@ -30,8 +75,8 @@ def strip_nodes(
         source = source.encode()
 
     # Build xml to be parsed
-    xml_doc = fromstring(source)
-    tree = ElementTree(xml_doc)
+    xml_doc = check_lxml_fromstring(source)
+    tree = etree.ElementTree(xml_doc)
     root_element = tree.getroot()
     root_path = tree.getpath(root_element)
 
@@ -63,7 +108,7 @@ def strip_nodes(
 
         return xpath_matches
 
-    def process_node(node_: _Element, xpath_matches_: list):
+    def process_node(node_: etree._Element, xpath_matches_: list):
         """
         `process_node()` is a recursive function.
 
@@ -144,7 +189,7 @@ def strip_nodes(
     if rename_root_node_to:
         tree.getroot().tag = rename_root_node_to
 
-    return tostring(
+    return etree.tostring(
         tree,
         pretty_print=True,
         encoding='utf-8',
@@ -184,7 +229,7 @@ def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
 
 
 def edit_submission_xml(
-    xml_parsed: _Element,
+    xml_parsed: etree._Element,
     path: str,
     value: str,
 ) -> None:
@@ -204,5 +249,5 @@ def edit_submission_xml(
                     if i == 0
                     else xml_parsed.find(get_path(path_parts, end=i))
                 )
-                element = SubElement(parent, node)
+                element = etree.SubElement(parent, node)
     element.text = value
