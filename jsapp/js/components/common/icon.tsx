@@ -7,15 +7,15 @@ import './icon.scss';
  * Check out `icon.scss` file for exact pixel values.
  */
 export type IconSize = 'l' | 'm' | 's' | 'xl' | 'xs' | 'xxs';
+export type IconColor = '' | 'red' | 'storm' | 'teal';
 
 const DefaultSize = 's';
-const DefaultColor = 'inherit';
 
 interface IconProps {
   name: IconName;
   size?: IconSize;
   classNames?: string[];
-  color?: string;
+  color?: IconColor;
 }
 
 /**
@@ -38,13 +38,14 @@ class Icon extends React.Component<IconProps, {}> {
     const size = this.props.size || DefaultSize;
     classNames.push(`k-icon--size-${size}`);
 
-    const color = this.props.color || DefaultColor;
-    classNames.push(`k-icon--color-${color}`);
+    if (this.props.color) {
+      classNames.push(`k-icon--color-${this.props.color}`);
+    }
 
     classNames.push('k-icon');
     classNames.push(`k-icon-${this.props.name}`);
 
-    return <i className={classNames.join(' ')} style={{color: `${color}`}} />;
+    return <i className={classNames.join(' ')} />;
   }
 }
 

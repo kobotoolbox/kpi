@@ -321,14 +321,10 @@ export default function Plan() {
                 <Icon
                   name='check'
                   size='m'
-                  color={
-                    item.icon === 'positive_pro'
-                      ? 'hsl(185deg 57% 57%)'
-                      : 'hsl(225deg 33% 59%)'
-                  }
+                  color={item.icon === 'positive_pro' ? 'teal' : 'storm'}
                 />
               ) : (
-                <Icon name='close' size='m' color='hsl(352deg 100% 70%)' />
+                <Icon name='close' size='m' color='red' />
               )}
             </div>
             {item.label}
@@ -418,8 +414,8 @@ export default function Plan() {
                               size='m'
                               color={
                                 price.name === 'Professional plan'
-                                  ? 'hsl(185deg 57% 57%)'
-                                  : 'hsl(225deg 33% 59%)'
+                                  ? 'teal'
+                                  : 'storm'
                               }
                             />
                           </div>
