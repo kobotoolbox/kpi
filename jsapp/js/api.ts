@@ -13,7 +13,7 @@ const fetchData = async <T>(
    * Useful if you already have a full URL to be called and there is no point
    * adding `ROOT_URL` to it.
    */
-  prependRootUrl = true,
+  prependRootUrl = true
 ) => {
   const headers: {[key: string]: string} = {
     Accept: JSON_HEADER,
