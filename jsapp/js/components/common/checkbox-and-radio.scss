@@ -16,14 +16,14 @@ $checkbox-size: sizes.$x20;
 
     &:hover .radio__input:not([disabled]),
     &:hover .checkbox__input:not([disabled]) {
-      &:checked::after { opacity: 0.8; }
-      &:not(:checked)::after { opacity: 0.1; }
+      &:checked::after {opacity: 0.8;}
+      &:not(:checked)::after {opacity: 0.1;}
     }
 
     &:active .radio__input:not([disabled]),
     &:active .checkbox__input:not([disabled]) {
-      &:checked::after { opacity: 0.6; }
-      &:not(:checked)::after { opacity: 0.3; }
+      &:checked::after {opacity: 0.6;}
+      &:not(:checked)::after {opacity: 0.3;}
     }
   }
 
@@ -75,7 +75,7 @@ $checkbox-size: sizes.$x20;
     border-radius: sizes.$x2;
 
     &::after {
-      content: "✓";
+      content: '✓';
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -97,7 +97,6 @@ $checkbox-size: sizes.$x20;
     border: sizes.$x1 solid colors.$kobo-gray-40;
     width: $checkbox-size;
     height: $checkbox-size;
-    outline: 0;
     background-color: colors.$kobo-white;
     color: colors.$kobo-gray-40;
     cursor: pointer;
@@ -112,11 +111,7 @@ $checkbox-size: sizes.$x20;
     &:checked {
       border-color: colors.$kobo-blue;
 
-      &::after { opacity: 1; }
-    }
-
-    &:focus {
-      outline: sizes.$x1 solid colors.$kobo-blue;
+      &::after {opacity: 1;}
     }
 
     &[disabled] {
