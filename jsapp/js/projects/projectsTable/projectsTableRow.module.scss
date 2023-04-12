@@ -14,6 +14,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   align-items: stretch;
   cursor: pointer;
   margin: 0 sizes.$x30;
+
+  user-select: none;
 }
 
 .cell {
@@ -40,14 +42,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     max-width: sizes.$x18 + sizes.$x20 + sizes.$x18;
     width: sizes.$x18 + sizes.$x20 + sizes.$x18;
     @include mixins.centerRowFlex;
-
-    // Hovering the checkbox cell clears the underline text-decoration on
-    // Project Name. This clarifies where it's safe to click or not,
-    // especially if you're trying to select multiple projects.
-    &:hover ~ :is(.rowTypeProject .cell[data-field='name']) {
-      text-decoration-color: color.change(colors.$kobo-alt-blue, $alpha: 0);
-      transition: text-decoration-color 0s;
-    }
   }
 
   &[data-field='countries'],
@@ -141,19 +135,51 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
         left: 0 - sizes.$x32;
         width: sizes.$x32;
       }
+
+      :global input.checkbox__input { // general appearance tweaks
+        &::after {border-radius: 1px;} // better-looking inner corners
+        &:focus-visible { // add keyboard focus styles
+          outline: 3px solid colors.$kobo-alt-blue;
+        }
+      }
     }
   }
 
   &:hover .cell {
     background-color: $projects-table-hover-bg;
 
-    // When hovering a project row cell, underline the project name.
-    &[data-field='name'] {
-      text-decoration-color: colors.$kobo-alt-blue;
-    }
-
     &.cellHighlighted {
       background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
+    }
+
+    // Various hover rules to telegraph navigation or checkboxing, depending
+    // on the hovered cell.
+
+    // When hovering anywhere in the row generally, outline the checkbox.
+    &[data-field='checkbox'] {
+      :global .checkbox {
+        border-radius: sizes.$x2;
+        outline: sizes.$x1 solid colors.$kobo-alt-blue;
+      }
+    }
+    // … Except don't outline the checkbox if the Project Name box is hovered.
+    // Not supported in firefox (uses the :has() selector),
+    // but worth including in other browsers for the clarity it adds
+    &[data-field='checkbox']:has(~ [data-field='name']:hover) {
+      :global .checkbox {
+        outline: none;
+      }
+    }
+    // When the project row cell is hovered directly,
+    // underline the project name to telegraph navigation.
+    &[data-field='name']:hover {
+      text-decoration-color: colors.$kobo-alt-blue;
+    }
+    // Big friendly checkbox outline when directly hovering the checkbox cell
+    &[data-field='checkbox']:hover {
+      :global .checkbox {
+        outline-width: sizes.$x3;
+      }
     }
   }
 }
