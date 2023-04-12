@@ -5,6 +5,7 @@ import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
 import styles from './bulkDeletePrompt.module.scss';
 import customViewStore from 'js/projects/customViewStore';
+import {searches} from 'js/searches';
 
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive';
 interface AssetsBulkResponse {
@@ -35,6 +36,13 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
       .then((response) => {
         props.onRequestClose();
         customViewStore.handleAssetsDeleted(props.assetUids);
+
+        // Temporarily we do this hacky thing to update the sidebar list of
+        // projects. After the Bookmarked Projects feature is done (see the
+        // https://github.com/kobotoolbox/kpi/issues/4220 for history of
+        // discussion and more details) we would remove this code.
+        searches.forceRefreshFormsList();
+
         notify(response.detail);
       })
       .catch(handleApiFail);
