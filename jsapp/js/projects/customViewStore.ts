@@ -240,11 +240,11 @@ class CustomViewStore {
     }
   }
 
-  public handleAssetDeleted(deletedAssetUid: string) {
+  public handleAssetsDeleted(deletedAssetsUids: string[]) {
     // When asset is deleted, we simply remove it from loaded assets list as it
     // seems there is no need to fetch all the data again
     this.assets = this.assets.filter(
-      (asset: ProjectViewAsset) => asset.uid !== deletedAssetUid
+      (asset: ProjectViewAsset) => !deletedAssetsUids.includes(asset.uid)
     );
   }
 

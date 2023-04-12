@@ -545,8 +545,17 @@ function getSearchContext(name, opts={}) {
   return contexts[name];
 }
 
+/** A temporary function for glueing things together with `BulkDeletePrompt`. */
+function forceRefreshFormsList() {
+  const formsContext = getSearchContext('forms');
+  if (formsContext?.mixin?.searchSemaphore) {
+    formsContext.mixin.searchSemaphore();
+  }
+}
+
 export const searches = {
   getSearchContext: getSearchContext,
   common: commonMethods,
   isSearchContext: isSearchContext,
+  forceRefreshFormsList: forceRefreshFormsList,
 };

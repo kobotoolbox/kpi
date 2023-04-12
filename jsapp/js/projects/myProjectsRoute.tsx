@@ -20,6 +20,7 @@ import routeStyles from './myProjectsRoute.module.scss';
 import {toJS} from 'mobx';
 import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
+import ProjectBulkActions from './projectsTable/projectBulkActions';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
@@ -90,8 +91,14 @@ function MyProjectsRoute() {
           />
 
           {selectedAssets.length === 1 && (
-            <div className={styles.quickActions}>
+            <div className={styles.actions}>
               <ProjectQuickActions asset={selectedAssets[0]} />
+            </div>
+          )}
+
+          {selectedAssets.length > 1 && (
+            <div className={styles.actions}>
+              <ProjectBulkActions assets={selectedAssets} />
             </div>
           )}
         </header>

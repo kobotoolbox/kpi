@@ -13,7 +13,7 @@ const fetchData = async <T>(
    * Useful if you already have a full URL to be called and there is no point
    * adding `ROOT_URL` to it.
    */
-  prependRootUrl = true,
+  prependRootUrl = true
 ) => {
   const headers: {[key: string]: string} = {
     Accept: JSON_HEADER,
@@ -35,6 +35,11 @@ const fetchData = async <T>(
     headers,
     body: JSON.stringify(data),
   });
+
+  if (!response.ok) {
+    throw response;
+  }
+
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.indexOf('application/json') !== -1) {
     return (await response.json()) as Promise<T>;
