@@ -340,3 +340,13 @@ export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'status',
   'submissions',
 ];
+
+/**
+ * These are fields not available on the `/api/v2/assets/` endpoint - there is
+ * no point in displaying them to the user.
+ */
+export const HOME_EXCLUDED_FIELDS: ProjectFieldName[] = [
+  'ownerEmail',
+  'ownerFullName',
+  'ownerOrganization',
+];

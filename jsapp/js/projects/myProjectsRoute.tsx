@@ -10,6 +10,7 @@ import {
   HOME_VIEW,
   HOME_ORDERABLE_FIELDS,
   DEFAULT_VISIBLE_FIELDS,
+  HOME_EXCLUDED_FIELDS,
 } from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
@@ -20,7 +21,6 @@ import {toJS} from 'mobx';
 import {COMMON_QUERIES, ROOT_URL} from 'js/constants';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
-import mixins from 'js/mixins';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from 'js/utils';
 import Icon from 'js/components/common/icon';
@@ -52,6 +52,14 @@ function MyProjectsRoute() {
     selectedRows.includes(asset.uid)
   );
 
+  /** Filters out excluded fields */
+  const getTableVisibleFields = () => {
+    const outcome = toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS;
+    return outcome.filter(
+      (fieldName) => !HOME_EXCLUDED_FIELDS.includes(fieldName)
+    );
+  };
+
   return (
     <Dropzone
       onDrop={dropImportXLSForms}
@@ -73,11 +81,13 @@ function MyProjectsRoute() {
           <ProjectsFilter
             onFiltersChange={customView.setFilters.bind(customView)}
             filters={toJS(customView.filters)}
+            excludedFields={HOME_EXCLUDED_FIELDS}
           />
 
           <ProjectsFieldsSelector
             onFieldsChange={customView.setFields.bind(customView)}
             selectedFields={toJS(customView.fields)}
+            excludedFields={HOME_EXCLUDED_FIELDS}
           />
 
           {selectedAssets.length === 1 && (
@@ -97,7 +107,7 @@ function MyProjectsRoute() {
           assets={customView.assets}
           isLoading={!customView.isFirstLoadComplete}
           highlightedFields={getFilteredFieldsNames()}
-          visibleFields={toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS}
+          visibleFields={getTableVisibleFields()}
           orderableFields={HOME_ORDERABLE_FIELDS}
           order={customView.order}
           onChangeOrderRequested={customView.setOrder.bind(customView)}
