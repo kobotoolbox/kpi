@@ -115,6 +115,10 @@ $checkbox-size: sizes.$x20;
       &::after { opacity: 1; }
     }
 
+    &:focus {
+      outline: sizes.$x1 solid colors.$kobo-blue;
+    }
+
     &[disabled] {
       pointer-events: none;
       opacity: 0.5;
