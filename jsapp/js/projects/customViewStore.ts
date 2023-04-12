@@ -324,10 +324,10 @@ class CustomViewStore {
       if (savedViewData.filters) {
         this.filters = savedViewData.filters;
       }
-      if (savedViewData.order) {
+      if (savedViewData.order?.direction && savedViewData.order?.fieldName) {
         this.order = savedViewData.order;
       }
-      if (savedViewData.fields) {
+      if (savedViewData.fields && Array.isArray(savedViewData.fields)) {
         this.fields = savedViewData.fields;
       }
     }

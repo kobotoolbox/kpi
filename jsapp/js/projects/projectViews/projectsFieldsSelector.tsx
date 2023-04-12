@@ -19,17 +19,23 @@ interface ProjectsFieldsSelectorProps {
    * again through props.
    */
   onFieldsChange: (fields: ProjectFieldName[] | undefined) => void;
+  /** A list of fields that should not be available to user. */
+  excludedFields?: ProjectFieldName[];
 }
 
 export default function ProjectsFieldsSelector(
   props: ProjectsFieldsSelectorProps
 ) {
   const getInitialSelectedFields = () => {
+    let outcome: ProjectFieldName[] = [];
     if (!props.selectedFields || props.selectedFields.length === 0) {
-      return DEFAULT_VISIBLE_FIELDS;
+      outcome = DEFAULT_VISIBLE_FIELDS;
     } else {
-      return Array.from(props.selectedFields);
+      outcome = Array.from(props.selectedFields);
     }
+    return outcome.filter(
+      (fieldName) => !props.excludedFields?.includes(fieldName)
+    );
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,15 +71,20 @@ export default function ProjectsFieldsSelector(
   };
 
   const getCheckboxes = (): MultiCheckboxItem[] =>
-    Object.values(PROJECT_FIELDS).map((field) => {
-      return {
-        name: field.name,
-        label: field.label,
-        // We ensure "name" field is always selected
-        checked: selectedFields.includes(field.name) || field.name === 'name',
-        disabled: field.name === 'name',
-      };
-    });
+    Object.values(PROJECT_FIELDS)
+      .filter(
+        (fieldDefinition) =>
+          !props.excludedFields?.includes(fieldDefinition.name)
+      )
+      .map((field) => {
+        return {
+          name: field.name,
+          label: field.label,
+          // We ensure "name" field is always selected
+          checked: selectedFields.includes(field.name) || field.name === 'name',
+          disabled: field.name === 'name',
+        };
+      });
 
   return (
     <div className={styles.root}>
