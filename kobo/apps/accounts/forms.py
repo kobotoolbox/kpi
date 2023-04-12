@@ -5,16 +5,12 @@ from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import SignupForm as BaseSignupForm
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
+from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
 
 
-USERNAME_INVALID_MESSAGE = t(
-    'Usernames must be between 2 and 30 characters in length, '
-    'and may only consist of lowercase letters, numbers, '
-    'and underscores, where the first character must be a letter.'
-)
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
     'organization',
@@ -130,7 +126,8 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email'].widget.attrs['readonly'] = True
+        if settings.UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE:
+            self.fields['email'].widget.attrs['readonly'] = True
         self.label_suffix = ""
 
 

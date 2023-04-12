@@ -1,7 +1,5 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
-import reactMixin from 'react-mixin';
 import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
@@ -9,7 +7,6 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
-import mixins from 'js/mixins';
 import ReactTable from 'react-table';
 import ValidationStatusDropdown, { SHOW_ALL_OPTION } from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
@@ -62,6 +59,11 @@ import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
 import MediaCell from './mediaCell';
 import AudioCell from './audioCell';
+import {
+  userCan,
+  userCanPartially,
+  isSubmissionWritable,
+  } from 'js/components/permissions/utils';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -332,29 +334,29 @@ export class DataTable extends React.Component {
     let userCanSeeEditIcon = (
       this.props.asset.deployment__active &&
       (
-        this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-        this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+        userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+        userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
       )
     );
 
     let userCanSeeCheckbox = (
-      this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+      userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
     );
 
     if (
-      this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-      this.userCanPartially(PERMISSIONS_CODENAMES.view_submissions, this.props.asset)
+      userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      userCanPartially(PERMISSIONS_CODENAMES.view_submissions, this.props.asset)
     ) {
       const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
       const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
@@ -415,9 +417,9 @@ export class DataTable extends React.Component {
                 checked={this.state.selectedRows[row.original._id] ? true : false}
                 onChange={this.bulkUpdateChange.bind(this, row.original._id)}
                 disabled={!(
-                  (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
-                  (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
-                  (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
+                  (isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
+                  (isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
+                  (isSubmissionWritable('validate_submissions', this.props.asset, row.original))
                 )}
               />
             }
@@ -431,7 +433,7 @@ export class DataTable extends React.Component {
               <i className='k-icon k-icon-view'/>
             </button>
 
-            {userCanSeeEditIcon && (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) &&
+            {userCanSeeEditIcon && (isSubmissionWritable('change_submissions', this.props.asset, row.original)) &&
               <button
                 onClick={this.launchEditSubmission.bind(this)}
                 data-sid={row.original._id}
@@ -499,7 +501,7 @@ export class DataTable extends React.Component {
         <ValidationStatusDropdown
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           currentValue={this.getValidationStatusOption(row.original)}
-          isDisabled={!(this.isSubmissionWritable(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset, row.original))}
+          isDisabled={!(isSubmissionWritable(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset, row.original))}
         />
       ),
     };
@@ -1245,7 +1247,7 @@ export class DataTable extends React.Component {
     return (
       <bem.FormView m={formViewModifiers}>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          {this.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
             <ColumnsHideDropdown
               asset={this.props.asset}
               submissions={this.state.submissions}
@@ -1314,8 +1316,5 @@ export class DataTable extends React.Component {
     );
   }
 }
-
-reactMixin(DataTable.prototype, Reflux.ListenerMixin);
-reactMixin(DataTable.prototype, mixins.permissions);
 
 export default DataTable;

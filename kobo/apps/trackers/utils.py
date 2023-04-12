@@ -7,11 +7,11 @@ from kpi.utils.jsonbfield_helper import IncrementValue
 
 
 def update_nlp_counter(
-        service: str,
-        amount: int,
-        user_id: int,
-        asset_id: Optional[int] = None,
-        counter_id: Optional[int] = None,
+    service: str,
+    amount: int,
+    user_id: int,
+    asset_id: Optional[int] = None,
+    counter_id: Optional[int] = None,
 ):
     """
     Update the NLP ASR and MT tracker for various services

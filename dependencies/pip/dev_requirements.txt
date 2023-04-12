@@ -58,6 +58,7 @@ celery[redis]==5.2.6
     # via
     #   -r dependencies/pip/requirements.in
     #   django-celery-beat
+    #   flower
 certifi==2021.10.8
     # via
     #   msrest
@@ -184,6 +185,8 @@ django-picklefield==3.0.1
     # via django-constance
 django-private-storage==3.0
     # via -r dependencies/pip/requirements.in
+django-prometheus==2.2.0
+    # via -r dependencies/pip/requirements.in
 django-redis==5.2.0
     # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.2
@@ -192,7 +195,7 @@ django-request-cache==1.4.0
     # via -r dependencies/pip/requirements.in
 django-reversion==5.0.0
     # via -r dependencies/pip/requirements.in
-django-storages[azure,boto3]==1.12.3
+django-storages[azure,boto3]==1.13.2
     # via -r dependencies/pip/requirements.in
 django-taggit==2.1.0
     # via -r dependencies/pip/requirements.in
@@ -223,6 +226,8 @@ executing==0.8.3
     # via stack-data
 fabric==2.7.0
     # via -r dependencies/pip/dev_requirements.in
+flower==1.2.0
+    # via -r dependencies/pip/requirements.in
 future==0.18.2
     # via -r dependencies/pip/requirements.in
 geojson-rewind==1.0.2
@@ -275,6 +280,8 @@ httplib2==0.20.4
     # via
     #   google-api-python-client
     #   google-auth-httplib2
+humanize==4.6.0
+    # via flower
 idna==3.3
     # via requests
 iniconfig==1.1.1
@@ -358,6 +365,10 @@ pillow==9.1.0
     # via django-markdownx
 pluggy==1.0.0
     # via pytest
+prometheus-client==0.16.0
+    # via
+    #   django-prometheus
+    #   flower
 prompt-toolkit==3.0.29
     # via
     #   click-repl
@@ -445,6 +456,7 @@ pytz==2022.1
     #   django
     #   django-timezone-field
     #   djangorestframework
+    #   flower
     #   twilio
 pyxform==1.9.0
     # via
@@ -525,6 +537,8 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
+tornado==6.2
+    # via flower
 traitlets==5.1.1
     # via
     #   ipython

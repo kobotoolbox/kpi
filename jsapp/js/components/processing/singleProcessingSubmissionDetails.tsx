@@ -1,5 +1,4 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import type {AssetContent} from 'js/dataInterface';
 import {
   QUESTION_TYPES,
@@ -13,24 +12,8 @@ import {
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
 import AudioPlayer from 'js/components/common/audioPlayer';
-import './singleProcessingSubmissionDetails.scss';
-
-bem.SingleProcessingVideoPreview = makeBem(
-  null,
-  'single-processing-video-preview',
-  'video'
-);
-bem.SingleProcessingMediaWrapper = makeBem(
-  null,
-  'single-processing-media-wrapper',
-  'section'
-);
-bem.SingleProcessingDataList = makeBem(
-  null,
-  'single-processing-data-list',
-  'section'
-);
-bem.SingleProcessingDataList__body = makeBem(bem.SingleProcessingDataList, 'body');
+import styles from './singleProcessingSubmissionDetails.module.scss';
+import classNames from 'classnames';
 
 interface SingleProcessingSubmissionDetailsProps {
   assetContent: AssetContent;
@@ -39,9 +22,7 @@ interface SingleProcessingSubmissionDetailsProps {
 /**
  * Displays some more detailed information for given submission.
  */
-export default class SingleProcessingSubmissionDetails extends React.Component<
-  SingleProcessingSubmissionDetailsProps
-> {
+export default class SingleProcessingSubmissionDetails extends React.Component<SingleProcessingSubmissionDetailsProps> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
@@ -51,14 +32,16 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
@@ -108,18 +91,34 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
         return (
-          <bem.SingleProcessingMediaWrapper m='audio' key='audio'>
-            <AudioPlayer mediaURL={attachment.download_url} filename={attachment.filename}/>
-          </bem.SingleProcessingMediaWrapper>
+          <section
+            className={classNames(
+              styles.mediaWrapper,
+              styles.mediaWrapperAudio
+            )}
+            key='audio'
+          >
+            <AudioPlayer
+              mediaURL={attachment.download_url}
+              filename={attachment.filename}
+            />
+          </section>
         );
       case QUESTION_TYPES.video.id:
         return (
-          <bem.SingleProcessingMediaWrapper m='video' key='video'>
-            <bem.SingleProcessingVideoPreview
+          <section
+            className={classNames(
+              styles.mediaWrapper,
+              styles.mediaWrapperVideo
+            )}
+            key='video'
+          >
+            <video
+              className={styles.videoPreview}
               src={attachment.download_url}
               controls
             />
-          </bem.SingleProcessingMediaWrapper>
+          </section>
         );
       default:
         return null;
@@ -141,25 +140,20 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     }
 
     return (
-      <bem.SingleProcessingDataList key='data-list'>
-        <bem.SingleProcessingDataList__body>
+      <section className={styles.dataList} key='data-list'>
+        <div className={styles.dataListBody}>
           <SubmissionDataList
             assetContent={this.props.assetContent}
             submissionData={submissionData}
             hideQuestions={this.getQuestionsToHide()}
             hideGroups
           />
-        </bem.SingleProcessingDataList__body>
-      </bem.SingleProcessingDataList>
+        </div>
+      </section>
     );
   }
 
   render() {
-    return (
-      [
-        this.renderMedia(),
-        this.renderDataList(),
-      ]
-    );
+    return [this.renderMedia(), this.renderDataList()];
   }
 }

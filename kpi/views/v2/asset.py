@@ -4,7 +4,7 @@ import json
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -50,7 +50,11 @@ from kpi.renderers import (
     XlsRenderer,
 )
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.serializers.v2.asset import (
+    AssetBulkActionsSerializer,
+    AssetListSerializer,
+    AssetSerializer,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -120,6 +124,44 @@ class AssetViewSet(
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+
+    <hr>
+
+    Perform bulk actions on assets
+
+    Actions available:
+
+    - `archive`
+    - `delete`
+    - `unarchive`
+    - `undelete` (superusers only)
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/bulk/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/bulk/
+
+    > **Payload to preform bulk actions on one or more assets**
+    >
+    >        {
+    >           "payload": {
+    >               "asset_uids": [{string}, ...],
+    >               "action": {string},
+    >           }
+    >        }
+
+    > **Payload to preform bulk actions on ALL assets for authenticated user**
+    >
+    >       {
+    >           "payload": {
+    >               "confirm": true,
+    >               "action": {string}
+    >           }
+    >       }
+
 
     <hr>
 
@@ -368,6 +410,14 @@ class AssetViewSet(
             return asset
 
         return super().get_object()
+
+    @action(
+        detail=False,
+        methods=['POST'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def bulk(self, request, *args, **kwargs):
+        return Response(self._bulk_asset_actions(request.data))
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -659,11 +709,6 @@ class AssetViewSet(
 
         return context_
 
-    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
-    def koboform(self, request, *args, **kwargs):
-        asset = self.get_object()
-        return Response({'asset': asset, }, template_name='koboform.html')
-
     def list(self, request, *args, **kwargs):
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
@@ -743,9 +788,9 @@ class AssetViewSet(
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
+        self._bulk_asset_actions(
+            {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
+        )
 
     @action(
         detail=True,
@@ -794,6 +839,18 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
+
+    def _bulk_asset_actions(self, data: dict) -> dict:
+        params = {
+            'data': data,
+            'context': self.get_serializer_context(),
+        }
+
+        bulk_actions_validator = AssetBulkActionsSerializer(**params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        bulk_actions_validator.save()
+
+        return bulk_actions_validator.data
 
     def _get_clone_serializer(self, current_asset=None):
         """

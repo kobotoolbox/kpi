@@ -1,6 +1,6 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
-import { observer } from 'mobx-react';
+import {when} from 'mobx';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
@@ -55,7 +55,7 @@ export class LibraryAssetFormComponent extends React.Component {
   }
 
   componentDidMount() {
-    observer(sessionStore, () => {
+    when(() => sessionStore.isInitialLoadComplete, () => {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(

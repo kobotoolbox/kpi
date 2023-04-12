@@ -24,14 +24,14 @@
     </button>
   {% else %}
     {# "Log in" #}
-    <h1>{% trans "Log in with Single Sign On" %}</h1>
+    <h1>{% trans "Log in with " %} {{ appname }}</h1>
 
-    <p>{% blocktrans %}Click the button below to log in to KoboToolbox with your {{ appname }} account.{% endblocktrans %}</p>
+    <p>{% blocktrans %}Log in to KoboToolbox with your {{ appname }} account.{% endblocktrans %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--sso kobo-button--fullwidth"
     >
-      {% blocktrans %}Log in with {{ appname }}{% endblocktrans %}
+      {% blocktrans %}Log in{% endblocktrans %}
     </button>
   {% endif %}
   {% csrf_token %}

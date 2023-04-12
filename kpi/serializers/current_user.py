@@ -34,7 +34,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         source="socialaccount_set", many=True, read_only=True
     )
 
-
     class Meta:
         model = User
         fields = (
@@ -121,27 +120,33 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return rep
 
     def validate(self, attrs):
-        if self.instance:
+        if not self.instance:
+            return attrs
 
-            current_password = attrs.pop('current_password', False)
-            new_password = attrs.get('new_password', False)
+        current_password = attrs.pop('current_password', False)
+        new_password = attrs.get('new_password', False)
 
-            if all((current_password, new_password)):
-                if not self.instance.check_password(current_password):
-                    raise serializers.ValidationError({
-                        'current_password': t('Incorrect current password.')
-                    })
-            elif any((current_password, new_password)):
-                not_empty_field_name = 'current_password' \
-                    if current_password else 'new_password'
-                empty_field_name = 'current_password' \
-                    if new_password else 'new_password'
-                raise serializers.ValidationError({
-                    empty_field_name: t('`current_password` and `new_password` '
-                                        'must both be sent together; '
-                                        f'`{not_empty_field_name}` cannot be '
-                                        'sent individually.')
-                })
+        if all((current_password, new_password)):
+            if not self.instance.check_password(current_password):
+                raise serializers.ValidationError(
+                    {'current_password': t('Incorrect current password.')}
+                )
+        elif any((current_password, new_password)):
+            not_empty_field_name = (
+                'current_password' if current_password else 'new_password'
+            )
+            empty_field_name = (
+                'current_password' if new_password else 'new_password'
+            )
+            raise serializers.ValidationError(
+                {
+                    empty_field_name: t(
+                        '`current_password` and `new_password` must both be'
+                        f' sent together; `{not_empty_field_name}` cannot be'
+                        ' sent individually.'
+                    )
+                }
+            )
 
         return attrs
 
@@ -149,14 +154,25 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         desired_metadata_fields = json.loads(
             constance.config.USER_METADATA_FIELDS
         )
+
         errors = {}
         for field in desired_metadata_fields:
-            if field['required'] and not value.get(field['name']):
+            if not field['required']:
+                continue
+            try:
+                field_value = value[field['name']]
+            except KeyError:
+                # If the field is absent from the request, the old value will
+                # be retained, and no validation needs to take place
+                continue
+            if not field_value:
                 # Use verbatim message from DRF to avoid giving translators
                 # more busy work
                 errors[field['name']] = t('This field may not be blank.')
+
         if errors:
             raise serializers.ValidationError(errors)
+
         return value
 
     def update(self, instance, validated_data):
@@ -166,13 +182,23 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         extra_details = validated_data.pop('extra_details', False)
         if extra_details:
             extra_details_obj, created = ExtraUserDetail.objects.get_or_create(
-                user=instance)
-            # `require_auth` needs to be written back to KC
-            if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL and \
-                    'require_auth' in extra_details['data']:
+                user=instance
+            )
+            if (
+                settings.KOBOCAT_URL
+                and settings.KOBOCAT_INTERNAL_URL
+                and 'require_auth' in extra_details['data']
+            ):
+                # `require_auth` needs to be written back to KC
                 set_kc_require_auth(
-                    instance.pk, extra_details['data']['require_auth'])
+                    instance.pk, extra_details['data']['require_auth']
+                )
+
+            # This is a PATCH, so retain existing values for keys that were not
+            # included in the request
             extra_details_obj.data.update(extra_details['data'])
+
+            # Save to the database at last
             extra_details_obj.save()
 
         new_password = validated_data.get('new_password', False)

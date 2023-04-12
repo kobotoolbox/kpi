@@ -533,9 +533,10 @@ def generate_user_details_report(output_filename: str):
         'id',
         'username',
         'is_superuser',
-        'is_staff',
-        'date_joined_str',
-        'last_login_str',
+        'joined_date',
+        'last_login_date',
+        'removal_request_date',
+        'removed_date',
         'is_active',
         'email',
         'mfa_is_active',
@@ -557,6 +558,7 @@ def generate_user_details_report(output_filename: str):
         'linkedin',
         'instagram',
         'metadata',
+        'last_ui_language',
     ]
 
     def flatten_metadata_inplace(metadata: dict):
@@ -576,13 +578,18 @@ def generate_user_details_report(output_filename: str):
         return val
 
     values = USER_COLS + METADATA_COL
+
     data = (
         User.objects.exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
             mfa_is_active=F('mfa_methods__is_active'),
             metadata=F('extra_details__data'),
-            date_joined_str=Cast('date_joined', CharField()),
-            last_login_str=Cast('last_login', CharField()),
+            joined_date=Cast('date_joined', CharField()),
+            last_login_date=Cast('last_login', CharField()),
+            removal_request_date=Cast(
+                'extra_details__date_removal_requested', CharField()
+            ),
+            removed_date=Cast('extra_details__date_removed', CharField()),
             asset_count=Count('assets'),
         )
         .values(*values)
