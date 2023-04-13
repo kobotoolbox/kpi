@@ -4,7 +4,12 @@ import Icon from './icon';
 import {IconNames} from 'jsapp/fonts/k-icons';
 import type {IconColor} from './icon';
 
-const iconColors: IconColor[] = ['', 'storm', 'red', 'teal'];
+const iconColors: Array<IconColor | undefined> = [
+  undefined,
+  'storm',
+  'red',
+  'teal',
+];
 export default {
   title: 'common/Icon',
   component: Icon,

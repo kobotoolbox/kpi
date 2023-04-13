@@ -7,7 +7,7 @@ import './icon.scss';
  * Check out `icon.scss` file for exact pixel values.
  */
 export type IconSize = 'l' | 'm' | 's' | 'xl' | 'xs' | 'xxs';
-export type IconColor = '' | 'red' | 'storm' | 'teal';
+export type IconColor = 'red' | 'storm' | 'teal';
 
 const DefaultSize = 's';
 
@@ -15,6 +15,10 @@ interface IconProps {
   name: IconName;
   size?: IconSize;
   classNames?: string[];
+  /**
+   * Useful if you need some color for the icon, and the color doesn't come from
+   * parent component (e.g. Button).
+   */
   color?: IconColor;
 }
 
@@ -22,10 +26,6 @@ interface IconProps {
  * An icon component.
  */
 class Icon extends React.Component<IconProps, {}> {
-  constructor(props: IconProps) {
-    super(props);
-  }
-
   render() {
     let classNames: string[] = [];
     if (
