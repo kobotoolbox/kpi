@@ -1,7 +1,15 @@
 import React from 'react';
+import clonedeep from 'lodash.clonedeep';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import bodyStyles from './processingBody.module.scss';
+import AnalysisQuestionsList from './analysis/analysisQuestionsList.component';
+import type {AnalysisQuestion} from './analysis/constants';
+import Button from 'js/components/common/button';
+import {generateUid} from 'jsapp/js/utils';
 
-interface AnalysisTabContentState {}
+interface AnalysisTabContentState {
+  questions: AnalysisQuestion[];
+}
 
 export default class AnalysisTabContent extends React.Component<
   {},
@@ -10,7 +18,9 @@ export default class AnalysisTabContent extends React.Component<
   constructor(props: {}) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      questions: [],
+    };
   }
 
   private unlisteners: Function[] = [];
@@ -36,8 +46,36 @@ export default class AnalysisTabContent extends React.Component<
     this.forceUpdate();
   }
 
+  onAddNewQuestion() {
+    const newQuestions = clonedeep(this.state.questions);
+    // Create an empty question
+    newQuestions.push({
+      type: 'aq_text',
+      label: '',
+      uid: generateUid(),
+      response: '',
+    });
+    console.log('onAddNewQuestion', newQuestions);
+    this.setState({questions: newQuestions});
+  }
+
   /** Identifies what step should be displayed based on the data itself. */
   render() {
-    return 'Hello, Analysis!';
+    return (
+      <div className={bodyStyles.root}>
+        <Button
+          type='full'
+          color='blue'
+          size='m'
+          startIcon='plus'
+          label={t('Add question')}
+          onClick={this.onAddNewQuestion.bind(this)}
+        />
+
+        <AnalysisQuestionsList
+          questions={this.state.questions}
+        />
+      </div>
+    );
   }
 }
