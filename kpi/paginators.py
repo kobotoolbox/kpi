@@ -33,7 +33,7 @@ class Paginated(LimitOffsetPagination):
 
 class AssetPagination(Paginated):
 
-    def get_paginated_response(self, data, metadata=None):
+    def get_paginated_response(self, data, metadata):
 
         response = OrderedDict([
             ('count', self.count),
