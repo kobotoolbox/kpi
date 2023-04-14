@@ -37,3 +37,9 @@ def convert_placeholders(section_content, activate_url, user):
         '##activate_url##', activate_url
     ).replace('##user##', user.username).replace("&#x27;", "\'")
 
+
+@register.simple_tag(takes_context=True)
+def ip_address(context):
+    request = context['request']
+    address = request.META.get('REMOTE_ADDR')
+    return address
