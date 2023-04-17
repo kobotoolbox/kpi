@@ -1,42 +1,74 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import Icon from 'js/components/common/icon';
 import styles from './analysisQuestionEditor.module.scss';
-import type {AnalysisQuestionType} from './constants';
 import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
+import {findQuestion} from './analysisQuestions.utils';
+import AnalysisQuestionsContext from './analysisQuestions.context';
 
 interface AnalysisQuestionEditorProps {
-  type: AnalysisQuestionType;
-  label: string;
   uid: string;
-  onSave: (uid: string, newLabel: string) => void;
-  onCancel: () => void;
 }
 
-export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProps) {
-  const [label, setLabel] = useState<string>(props.label);
+export default function AnalysisQuestionEditor(
+  props: AnalysisQuestionEditorProps
+) {
+  const analysisQuestions = useContext(AnalysisQuestionsContext);
+
+  const question = findQuestion(props.uid, analysisQuestions?.state);
+
+  if (!question) {
+    return null;
+  }
+
+  // TODO: upon initial rendering we need to set focus on the input
+
+  const [label, setLabel] = useState<string>(question.label);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  const qaDefinition = ANALYSIS_QUESTION_DEFINITIONS[props.type];
+  const qaDefinition = ANALYSIS_QUESTION_DEFINITIONS[question.type];
+
+  function onTextBoxChange(newLabel: string) {
+    setLabel(newLabel);
+    if (newLabel !== '' && errorMessage !== undefined) {
+      setErrorMessage(undefined);
+    }
+  }
 
   function onSave() {
     if (label === '') {
       setErrorMessage(t('Question label cannot be empty'));
     } else {
-      props.onSave(props.uid, label);
+      analysisQuestions?.dispatch({
+        type: 'updateQuestionDefinition',
+        payload: {
+          uid: props.uid,
+          label: label,
+        },
+      });
     }
+  }
+
+  function onCancel() {
+    analysisQuestions?.dispatch({
+      type: 'stopEditingQuestionDefinition',
+      payload: {uid: props.uid},
+    });
   }
 
   return (
     <div className={styles.root}>
-      <Icon name={qaDefinition.icon} size='m' />
+      <div className={styles.icon}>
+        <Icon name={qaDefinition.icon} size='xl' />
+      </div>
 
       <TextBox
         value={label}
-        onChange={setLabel}
+        onChange={onTextBoxChange}
         errors={errorMessage}
         placeholder={t('Type question')}
+        customModifiers='on-white'
       />
 
       <Button
@@ -52,7 +84,7 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
         color='storm'
         size='m'
         startIcon='close'
-        onClick={props.onCancel}
+        onClick={onCancel}
       />
     </div>
   );

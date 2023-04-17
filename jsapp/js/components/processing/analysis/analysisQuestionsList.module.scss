@@ -1,0 +1,10 @@
+@use 'scss/sizes';
+
+.root {
+  list-style: none;
+  padding: sizes.$x20 0;
+}
+
+.row:not(:last-child) {
+  margin-bottom: sizes.$x20;
+}

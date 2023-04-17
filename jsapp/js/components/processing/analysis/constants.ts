@@ -20,7 +20,9 @@ export interface AnalysisQuestionDefinition {
   icon: IconName;
 }
 
-type AnalysisQuestionDefinitions = {[P in AnalysisQuestionType]: AnalysisQuestionDefinition};
+type AnalysisQuestionDefinitions = {
+  [P in AnalysisQuestionType]: AnalysisQuestionDefinition;
+};
 
 export const ANALYSIS_QUESTION_DEFINITIONS: AnalysisQuestionDefinitions = {
   aq_text: {
