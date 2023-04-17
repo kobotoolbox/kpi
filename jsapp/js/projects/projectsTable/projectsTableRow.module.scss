@@ -153,8 +153,9 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
       background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
     }
 
-    // Various hover rules to telegraph navigation or checkboxing, depending
-    // on the hovered cell.
+    // Various hover rules to tell the user what will happen:
+    // - click project cell  ->  navigate to project
+    // - click other cell    ->  toggle the checkbox for project
 
     // When hovering anywhere in the row generally, outline the checkbox.
     &[data-field='checkbox'] {
@@ -171,8 +172,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
         outline: none;
       }
     }
-    // When the project row cell is hovered directly,
-    // underline the project name to telegraph navigation.
+    // When the project row cell is hovered directly, underline the project name
+    // to suggest that navigation will happen on click.
     &[data-field='name']:hover {
       text-decoration-color: colors.$kobo-alt-blue;
     }
