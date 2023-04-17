@@ -157,30 +157,31 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     // - click project cell  ->  navigate to project
     // - click other cell    ->  toggle the checkbox for project
 
-    // When hovering anywhere in the row generally, outline the checkbox.
+    // Hovering any cell  ->  Outline the checkbox
     &[data-field='checkbox'] {
       :global .checkbox {
         border-radius: sizes.$x2;
         outline: sizes.$x1 solid colors.$kobo-alt-blue;
       }
-    }
-    // … Except don't outline the checkbox if the Project Name box is hovered.
-    // Not supported in firefox (uses the :has() selector),
-    // but worth including in other browsers for the clarity it adds
-    &[data-field='checkbox']:has(~ [data-field='name']:hover) {
-      :global .checkbox {
-        outline: none;
+
+      &:hover {
+        // Do an even bigger outline if you're actually near the checkbox
+        :global .checkbox {
+          outline-width: sizes.$x3;
+        }
       }
     }
-    // When the project row cell is hovered directly, underline the project name
-    // to suggest that navigation will happen on click.
+
+    // Hovering 'Project name' cell…
+    //  ->  Underline project name (link)
     &[data-field='name']:hover {
       text-decoration-color: colors.$kobo-alt-blue;
     }
-    // Big friendly checkbox outline when directly hovering the checkbox cell
-    &[data-field='checkbox']:hover {
+    //  ->  De-emphasize the checkbox
+    &[data-field='checkbox']:has(~ [data-field='name']:hover) {
+      //  (Uses :has(), so not supported in Firefox yet)
       :global .checkbox {
-        outline-width: sizes.$x3;
+        outline: none;
       }
     }
   }
