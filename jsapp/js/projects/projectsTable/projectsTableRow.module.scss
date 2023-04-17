@@ -113,8 +113,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     // much wider than it otherwise would be.
     &[data-field='checkbox'] {
       position: relative;
-      overflow: visible; // override ellipsis
-      contain: inline-size style; // override performance hints
       // create hanging pseudo-elements to expand touch targets
       &::after,
       &::before {
@@ -125,16 +123,19 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
         bottom: 0;
         z-index: 2;
       }
-      // right: "eats" the project name cell padding
+      // right: cover whitespace up to the project name link
       &::after {
         right: 0 - sizes.$x18;
         width: sizes.$x18;
       }
-      // left: "eats" the project table margin
+      // left: cover whitespace left of project table
       &::before {
         left: 0 - sizes.$x32;
         width: sizes.$x32;
       }
+      // uncrop element
+      overflow: visible;
+      contain: inline-size style;
 
       :global input.checkbox__input { // general appearance tweaks
         &::after {border-radius: 1px;} // better-looking inner corners

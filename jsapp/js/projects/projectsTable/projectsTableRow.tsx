@@ -127,8 +127,9 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
               ),
             })}
             onClick={
-              field.name === PROJECT_FIELDS.name.name
-                ? navigateToProject // Treat Project name cell as a link
+              /* prettier-ignore */
+              field.name === (PROJECT_FIELDS.name).name
+                ? navigateToProject // Treat 'Project name' cell as a link
                 : toggleCheckbox // Treat any other cell as a checkbox
             }
             // This attribute is being used for styling and for ColumnResizer
