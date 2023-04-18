@@ -130,8 +130,10 @@ export default function Plan() {
       })
     );
 
-    Promise.all(promises).then(() => setAreButtonsDisabled(false));
-    setDataLoading(false);
+    Promise.all(promises).then(() => {
+      setAreButtonsDisabled(false);
+      setDataLoading(false);
+    });
   }, [searchParams, shouldRevalidate]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
@@ -156,20 +158,17 @@ export default function Plan() {
     }
     const priceId = searchParams.get('checkout');
     if (priceId) {
-      setDataLoading(true);
       const isSubscriptionUpdated = state.subscribedProduct.find(
         (subscription: BaseSubscription) =>
           subscription.items.find((item) => item.price.id === priceId)
       );
       if (isSubscriptionUpdated) {
-        setDataLoading(false);
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.'
           )
         );
       } else {
-        setDataLoading(false);
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.'
