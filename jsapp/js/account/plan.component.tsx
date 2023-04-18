@@ -25,6 +25,7 @@ import {
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
 
 interface PlanState {
@@ -98,6 +99,7 @@ export default function Plan() {
       ),
     [state.subscribedProduct]
   );
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     const promises = [];
@@ -129,6 +131,7 @@ export default function Plan() {
     );
 
     Promise.all(promises).then(() => setAreButtonsDisabled(false));
+    setDataLoading(false);
   }, [searchParams, shouldRevalidate]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
@@ -153,17 +156,20 @@ export default function Plan() {
     }
     const priceId = searchParams.get('checkout');
     if (priceId) {
+      setDataLoading(true);
       const isSubscriptionUpdated = state.subscribedProduct.find(
         (subscription: BaseSubscription) =>
           subscription.items.find((item) => item.price.id === priceId)
       );
       if (isSubscriptionUpdated) {
+        setDataLoading(false);
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.'
           )
         );
       } else {
+        setDataLoading(false);
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.'
@@ -357,165 +363,179 @@ export default function Plan() {
   }
 
   return (
-    <div className={styles.accountPlan}>
-      <div className={styles.plansSection}>
-        <form className={styles.intervalToggle}>
-          <input
-            type='radio'
-            id='switch_left'
-            name='switchToggle'
-            value='year'
-            onChange={() => dispatch({type: 'year'})}
-            checked={!state.filterToggle}
-            aria-label={'Toggle to annual options'}
-          />
-          <label htmlFor='switch_left'>{t('Annual')}</label>
+    <>
+      {dataLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <div className={styles.accountPlan}>
+          <div className={styles.plansSection}>
+            <form className={styles.intervalToggle}>
+              <input
+                type='radio'
+                id='switch_left'
+                name='switchToggle'
+                value='year'
+                onChange={() => dispatch({type: 'year'})}
+                checked={!state.filterToggle}
+                aria-label={'Toggle to annual options'}
+              />
+              <label htmlFor='switch_left'>{t('Annual')}</label>
 
-          <input
-            type='radio'
-            id='switch_right'
-            name='switchToggle'
-            value='month'
-            aria-label={'Toggle to month options'}
-            onChange={() => dispatch({type: 'month'})}
-            checked={state.filterToggle}
-          />
-          <label htmlFor='switch_right'> {t('Monthly')}</label>
-        </form>
+              <input
+                type='radio'
+                id='switch_right'
+                name='switchToggle'
+                value='month'
+                aria-label={'Toggle to month options'}
+                onChange={() => dispatch({type: 'month'})}
+                checked={state.filterToggle}
+              />
+              <label htmlFor='switch_right'> {t('Monthly')}</label>
+            </form>
 
-        <div className={styles.allPlans}>
-          {filterPrices.map((price: Price) => (
-            <div className={styles.stripePlans} key={price.id}>
-              {shouldShowManage(price) || isSubscribedProduct(price) ? (
-                <div className={styles.currentPlan}>{t('your plan')}</div>
-              ) : (
-                <div className={styles.otherPlanSpacing} />
-              )}
-              <div
-                className={classnames({
-                  [styles.planContainerWithBadge]: isSubscribedProduct(price),
-                  [styles.planContainer]: true,
-                })}
-              >
-                <h1 className={styles.priceName}> {price.name} </h1>
-                <div className={styles.priceTitle}>
-                  {!price.prices?.unit_amount
-                    ? t('Free')
-                    : price.prices.human_readable_price}
-                </div>
-
-                <ul>
-                  {Object.keys(price.metadata).map(
-                    (featureItem: string) =>
-                      featureItem.includes('feature_list_') && (
-                        <li key={featureItem}>
-                          <div className={styles.iconContainer}>
-                            <Icon
-                              name='check'
-                              size='m'
-                              color={
-                                price.name === 'Professional plan'
-                                  ? 'teal'
-                                  : 'storm'
-                              }
-                            />
-                          </div>
-                          {price.prices.metadata?.[featureItem] ||
-                            price.metadata[featureItem]}
-                        </li>
-                      )
+            <div className={styles.allPlans}>
+              {filterPrices.map((price: Price) => (
+                <div className={styles.stripePlans} key={price.id}>
+                  {shouldShowManage(price) || isSubscribedProduct(price) ? (
+                    <div className={styles.currentPlan}>{t('your plan')}</div>
+                  ) : (
+                    <div className={styles.otherPlanSpacing} />
                   )}
-                </ul>
-                {!isSubscribedProduct(price) &&
-                  !shouldShowManage(price) &&
-                  price.prices.unit_amount !== 0 && (
-                    <Button
-                      type='full'
-                      color='blue'
-                      size='m'
-                      label={t('Upgrade')}
-                      onClick={() => upgradePlan(price.prices.id)}
-                      aria-label={`upgrade to ${price.name}`}
-                      aria-disabled={areButtonsDisabled}
-                      isDisabled={areButtonsDisabled}
-                    />
-                  )}
-                {(isSubscribedProduct(price) || shouldShowManage(price)) &&
-                  price.prices.unit_amount !== 0 && (
-                    <Button
-                      type='full'
-                      color='blue'
-                      size='m'
-                      label={t('Manage')}
-                      onClick={managePlan}
-                      aria-label={`manage your ${price.name} subscription`}
-                      aria-disabled={areButtonsDisabled}
-                      isDisabled={areButtonsDisabled}
-                    />
-                  )}
-                {price.prices.unit_amount === 0 && (
-                  <div className={styles.btnSpacePlaceholder} />
-                )}
+                  <div
+                    className={classnames({
+                      [styles.planContainerWithBadge]:
+                        isSubscribedProduct(price),
+                      [styles.planContainer]: true,
+                    })}
+                  >
+                    <h1 className={styles.priceName}> {price.name} </h1>
+                    <div className={styles.priceTitle}>
+                      {!price.prices?.unit_amount
+                        ? t('Free')
+                        : price.prices.human_readable_price}
+                    </div>
 
-                {expandComparison && (
-                  <>
-                    <hr />
-                    {state.featureTypes.map(
-                      (type) =>
-                        getListItem(type, price.name).length > 0 &&
-                        returnListItem(
-                          type,
-                          price.name,
-                          price.metadata[`feature_${type}_title`]
-                        )
+                    <ul>
+                      {Object.keys(price.metadata).map(
+                        (featureItem: string) =>
+                          featureItem.includes('feature_list_') && (
+                            <li key={featureItem}>
+                              <div className={styles.iconContainer}>
+                                <Icon
+                                  name='check'
+                                  size='m'
+                                  color={
+                                    price.name === 'Professional plan'
+                                      ? 'teal'
+                                      : 'storm'
+                                  }
+                                />
+                              </div>
+                              {price.prices.metadata?.[featureItem] ||
+                                price.metadata[featureItem]}
+                            </li>
+                          )
+                      )}
+                    </ul>
+                    {!isSubscribedProduct(price) &&
+                      !shouldShowManage(price) &&
+                      price.prices.unit_amount !== 0 && (
+                        <Button
+                          type='full'
+                          color='blue'
+                          size='m'
+                          label={t('Upgrade')}
+                          onClick={() => upgradePlan(price.prices.id)}
+                          aria-label={`upgrade to ${price.name}`}
+                          aria-disabled={areButtonsDisabled}
+                          isDisabled={areButtonsDisabled}
+                        />
+                      )}
+                    {(isSubscribedProduct(price) || shouldShowManage(price)) &&
+                      price.prices.unit_amount !== 0 && (
+                        <Button
+                          type='full'
+                          color='blue'
+                          size='m'
+                          label={t('Manage')}
+                          onClick={managePlan}
+                          aria-label={`manage your ${price.name} subscription`}
+                          aria-disabled={areButtonsDisabled}
+                          isDisabled={areButtonsDisabled}
+                        />
+                      )}
+                    {price.prices.unit_amount === 0 && (
+                      <div className={styles.btnSpacePlaceholder} />
                     )}
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
 
-          <div className={styles.enterprisePlanContainer}>
-            <div className={styles.otherPlanSpacing} />
-            <div className={styles.enterprisePlan}>
-              <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
-              <p className={styles.enterpriseDetails}>
-                {t(
-                  'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
-                )}
-              </p>
-              <p className={styles.enterpriseDetails}>
-                {t(
-                  'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
-                )}
-              </p>
-              <div className={styles.enterpriseLink}>
-                <a href='https://www.kobotoolbox.org/contact/' target='_blanks'>
-                  {t('Get in touch for Enterprise options')}
-                </a>
+                    {expandComparison && (
+                      <>
+                        <hr />
+                        {state.featureTypes.map(
+                          (type) =>
+                            getListItem(type, price.name).length > 0 &&
+                            returnListItem(
+                              type,
+                              price.name,
+                              price.metadata[`feature_${type}_title`]
+                            )
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div className={styles.enterprisePlanContainer}>
+                <div className={styles.otherPlanSpacing} />
+                <div className={styles.enterprisePlan}>
+                  <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
+                  <p className={styles.enterpriseDetails}>
+                    {t(
+                      'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
+                    )}
+                  </p>
+                  <p className={styles.enterpriseDetails}>
+                    {t(
+                      'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
+                    )}
+                  </p>
+                  <div className={styles.enterpriseLink}>
+                    <a
+                      href='https://www.kobotoolbox.org/contact/'
+                      target='_blanks'
+                    >
+                      {t('Get in touch for Enterprise options')}
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {hasMetaFeatures() && (
-        <div className={styles.expandBtn}>
-          <Button
-            type='full'
-            color='cloud'
-            size='m'
-            isFullWidth
-            label={
-              expandComparison ? t('Collapse') : t('Display full comparison')
-            }
-            onClick={() => setExpandComparison(!expandComparison)}
-            aria-label={
-              expandComparison ? t('Collapse') : t('Display full comparison')
-            }
-          />
+          {hasMetaFeatures() && (
+            <div className={styles.expandBtn}>
+              <Button
+                type='full'
+                color='cloud'
+                size='m'
+                isFullWidth
+                label={
+                  expandComparison
+                    ? t('Collapse')
+                    : t('Display full comparison')
+                }
+                onClick={() => setExpandComparison(!expandComparison)}
+                aria-label={
+                  expandComparison
+                    ? t('Collapse')
+                    : t('Display full comparison')
+                }
+              />
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }
