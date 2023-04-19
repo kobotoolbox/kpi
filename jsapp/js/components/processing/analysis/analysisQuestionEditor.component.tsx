@@ -22,8 +22,6 @@ export default function AnalysisQuestionEditor(
     return null;
   }
 
-  // TODO: upon initial rendering we need to set focus on the input
-
   const [label, setLabel] = useState<string>(question.label);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -69,6 +67,7 @@ export default function AnalysisQuestionEditor(
         errors={errorMessage}
         placeholder={t('Type question')}
         customModifiers='on-white'
+        renderFocused
       />
 
       <Button

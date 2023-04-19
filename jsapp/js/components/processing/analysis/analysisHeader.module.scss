@@ -1,0 +1,9 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.root {
+  @include mixins.centerRowFlex;
+  border-bottom: sizes.$x1 solid colors.$kobo-cloud;
+  padding-bottom: sizes.$x16;
+}

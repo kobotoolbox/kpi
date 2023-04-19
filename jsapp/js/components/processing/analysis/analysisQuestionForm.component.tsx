@@ -6,7 +6,7 @@ import styles from './analysisQuestionForm.module.scss';
 import AnalysisQuestionsContext from './analysisQuestions.context';
 import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 import {findQuestion} from './analysisQuestions.utils';
-import KoboPrompt from '../../modals/koboPrompt';
+import KoboPrompt from 'js/components/modals/koboPrompt';
 
 interface AnalysisQuestionFormProps {
   uid: string;

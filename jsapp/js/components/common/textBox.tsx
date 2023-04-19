@@ -27,12 +27,30 @@ interface TextBoxProps {
   disabled?: boolean;
   customModifiers?: string[]|string;
   'data-cy'?: string;
+  /** Gives focus to the input immediately after rendering */
+  renderFocused?: boolean;
 }
 
 /**
  * A text box generic component.
  */
 class TextBox extends React.Component<TextBoxProps, {}> {
+  inputReference: React.MutableRefObject<null | HTMLInputElement>;
+  textareaReference: React.MutableRefObject<null | HTMLTextAreaElement>;
+
+  constructor(props: TextBoxProps) {
+    super(props);
+    this.inputReference = React.createRef();
+    this.textareaReference = React.createRef();
+  }
+
+  componentDidMount() {
+    if (this.props.renderFocused) {
+      this.inputReference.current?.focus();
+      this.textareaReference.current?.focus();
+    }
+  }
+
   /**
    * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
    * types to stop TextareaAutosize complaining.
@@ -105,12 +123,15 @@ class TextBox extends React.Component<TextBoxProps, {}> {
         {this.props.type === 'text-multiline' &&
           <TextareaAutosize
             className='text-box__input'
+            ref={this.textareaReference}
             {...inputProps}
           />
         }
         {this.props.type !== 'text-multiline' &&
-          <bem.TextBox__input
+          <input
+            className='text-box__input'
             type={type}
+            ref={this.inputReference}
             {...inputProps}
           />
         }

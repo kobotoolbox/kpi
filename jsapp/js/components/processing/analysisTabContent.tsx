@@ -1,12 +1,12 @@
 import React, {useMemo, useReducer} from 'react';
 import bodyStyles from './processingBody.module.scss';
 import AnalysisQuestionsList from './analysis/analysisQuestionsList.component';
-import Button from 'js/components/common/button';
 import {
   initialState,
   analysisQuestionsReducer,
 } from './analysis/analysisQuestions.reducer';
 import AnalysisQuestionsContext from './analysis/analysisQuestions.context';
+import AnalysisHeader from './analysis/analysisHeader';
 
 export default function AnalysisTabContent() {
   const [state, dispatch] = useReducer(analysisQuestionsReducer, initialState);
@@ -17,16 +17,7 @@ export default function AnalysisTabContent() {
   return (
     <div className={bodyStyles.root}>
       <AnalysisQuestionsContext.Provider value={contextValue}>
-        <Button
-          type='full'
-          color='blue'
-          size='m'
-          startIcon='plus'
-          label={t('Add question')}
-          onClick={() =>
-            dispatch({type: 'addQuestion', payload: {type: 'aq_text'}})
-          }
-        />
+        <AnalysisHeader />
 
         <AnalysisQuestionsList />
       </AnalysisQuestionsContext.Provider>
