@@ -40,6 +40,10 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
                 },
             },
             'required': ['languages']
-        }
+        },
+        'qual': {
+            'type': 'object',
+            'properties': {},
+        },
     }
 }
