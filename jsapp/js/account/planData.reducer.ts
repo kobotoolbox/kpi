@@ -26,8 +26,7 @@ export const initialState: PlanState = {
   featureTypes: ['support', 'advanced', 'addons'],
 };
 
-export function planReducer(state: PlanState, action: PlanDataAction): PlanState
-    {
+export function planReducer(state: PlanState, action: PlanDataAction): PlanState {
     switch (action.type) {
       case 'initialProduct':
         return {...state, products: action.data};

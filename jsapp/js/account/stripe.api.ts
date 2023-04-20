@@ -25,7 +25,7 @@ export interface BaseSubscription {
   id: number;
   price: Product;
   status: string;
-  items: [{ price:BasePrice }];
+  items: [{price: BasePrice}];
 }
 
 export interface Organization {
@@ -38,7 +38,7 @@ export interface Organization {
 }
 
 export interface Product extends BaseProduct {
-  prices: Array<BasePrice>;
+  prices: BasePrice[];
 }
 
 export interface Price extends BaseProduct {
