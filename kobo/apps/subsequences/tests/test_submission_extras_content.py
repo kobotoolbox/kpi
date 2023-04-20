@@ -21,6 +21,11 @@ def sample_asset(advanced_features=None):
         asset.advanced_features = advanced_features
     return asset
 
+def test_asset_can_have_qa():
+    asset = sample_asset(advanced_features={'qual': {}})
+    schema = asset.get_advanced_submission_schema(content=asset.content)
+    Draft7Validator.check_schema(schema)
+
 def test_asset_makes_schema_for_transcript():
     asset = sample_asset(advanced_features={'transcript': True})
     schema = asset.get_advanced_submission_schema()
