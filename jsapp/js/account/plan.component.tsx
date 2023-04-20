@@ -8,13 +8,7 @@ import React, {
 } from 'react';
 import {useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import type {
-  BaseSubscription,
-  Product,
-  Organization,
-  BasePrice,
-  Price,
-} from './stripe.api';
+import type {BaseSubscription, Product, BasePrice, Price} from './stripe.api';
 import {
   getOrganization,
   getProducts,
@@ -26,63 +20,13 @@ import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import {notify} from 'js/utils';
-
-interface PlanState {
-  isLoading: boolean;
-  subscribedProduct: BaseSubscription;
-  intervalFilter: string;
-  filterToggle: boolean;
-  products: Product[];
-  organization: null | Organization;
-  featureTypes: string[];
-}
-
-// An interface for our action
-interface DataUpdates {
-  type: string;
-  prodData?: any;
-}
-
-const initialState = {
-  isLoading: true,
-  subscribedProduct: [],
-  intervalFilter: 'year',
-  filterToggle: false,
-  products: [],
-  organization: null,
-  featureTypes: ['support', 'advanced', 'addons'],
-};
+import {initialState, planReducer} from './planData.reducer';
 
 /*
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
 */
 const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
-
-function planReducer(state: PlanState, action: DataUpdates) {
-  switch (action.type) {
-    case 'initialProd':
-      return {...state, products: action.prodData};
-    case 'initialOrg':
-      return {...state, organization: action.prodData};
-    case 'initialSub':
-      return {...state, subscribedProduct: action.prodData};
-    case 'month':
-      return {
-        ...state,
-        intervalFilter: 'month',
-        filterToggle: !state.filterToggle,
-      };
-    case 'year':
-      return {
-        ...state,
-        intervalFilter: 'year',
-        filterToggle: !state.filterToggle,
-      };
-    default:
-      return state;
-  }
-}
 
 export default function Plan() {
   const [state, dispatch] = useReducer(planReducer, initialState);
@@ -91,21 +35,22 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
-  const hasActiveSubscription = useMemo(
-    () =>
-      state.subscribedProduct.some((subscription: BaseSubscription) =>
+  const hasActiveSubscription = useMemo(() => {
+    if (state.subscribedProduct) {
+      return state.subscribedProduct.some((subscription: BaseSubscription) =>
         activeSubscriptionStatuses.includes(subscription.status)
-      ),
-    [state.subscribedProduct]
-  );
+      );
+    }
+    return;
+  }, [state.subscribedProduct]);
 
   useEffect(() => {
     const promises = [];
     promises.push(
       getProducts().then((data) => {
         dispatch({
-          type: 'initialProd',
-          prodData: data.results,
+          type: 'initialProduct',
+          data: data.results,
         });
       })
     );
@@ -113,8 +58,8 @@ export default function Plan() {
     promises.push(
       getOrganization().then((data) => {
         dispatch({
-          type: 'initialOrg',
-          prodData: data.results[0],
+          type: 'initialOrganization',
+          data: data.results[0],
         });
       })
     );
@@ -122,8 +67,8 @@ export default function Plan() {
     promises.push(
       getSubscription().then((data) => {
         dispatch({
-          type: 'initialSub',
-          prodData: data.results,
+          type: 'initialSubscribed',
+          data: data.results,
         });
       })
     );
@@ -152,7 +97,7 @@ export default function Plan() {
       return;
     }
     const priceId = searchParams.get('checkout');
-    if (priceId) {
+    if (priceId && state.subscribedProduct) {
       const isSubscriptionUpdated = state.subscribedProduct.find(
         (subscription: BaseSubscription) =>
           subscription.items.find((item) => item.price.id === priceId)
@@ -185,12 +130,14 @@ export default function Plan() {
         prices: filteredPrices.length ? filteredPrices[0] : null,
       };
     });
-    return filterAmount.filter((product: Product) => product.prices);
+    return filterAmount.filter((product: Product) => {
+      product.prices;
+    });
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionForProductId = useCallback(
     (productId: String) =>
-      state.subscribedProduct.find(
+      state.subscribedProduct?.find(
         (subscription: BaseSubscription) =>
           subscription.items[0].price.product.id === productId
       ),
@@ -227,7 +174,7 @@ export default function Plan() {
       return;
     }
     setAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization?.uid)
+    postCheckout(priceId, state.organization?.uid!)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
@@ -284,7 +231,7 @@ export default function Plan() {
 
   const hasMetaFeatures = () => {
     let expandBool = false;
-    if (state.products.length >= 0) {
+    if (state.products && state.products.length > 0) {
       filterPrices.map((price) => {
         for (const featureItem in price.metadata) {
           if (
@@ -352,8 +299,10 @@ export default function Plan() {
     return renderFeaturesList(items, featureTitle);
   };
 
-  if (!state.products.length) {
-    return null;
+  if (state.products) {
+    if (!state.products.length) {
+      return null;
+    }
   }
 
   return (
