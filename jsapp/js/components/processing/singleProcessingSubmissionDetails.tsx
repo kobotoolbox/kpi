@@ -154,6 +154,6 @@ export default class SingleProcessingSubmissionDetails extends React.Component<S
   }
 
   render() {
-    return [this.renderMedia(), this.renderDataList()];
+    return [this.renderMedia()];
   }
 }

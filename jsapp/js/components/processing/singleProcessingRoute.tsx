@@ -9,6 +9,7 @@ import SingleProcessingSubmissionDetails from 'js/components/processing/singlePr
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
 import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import SingleProcessingSidebar from './singleProcessingSidebar';
 import {UNSAVED_CHANGES_WARNING} from 'jsapp/js/protector/protectorConstants';
 import {usePrompt} from 'jsapp/js/router/promptBlocker';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
@@ -134,11 +135,7 @@ export default class SingleProcessingRoute extends React.Component<
           </section>
 
           <section className={styles.bottomRight}>
-            <SingleProcessingPreview />
-
-            <SingleProcessingSubmissionDetails
-              assetContent={this.state.asset.content}
-            />
+            <SingleProcessingSidebar asset={this.state.asset} />
           </section>
         </React.Fragment>
       );

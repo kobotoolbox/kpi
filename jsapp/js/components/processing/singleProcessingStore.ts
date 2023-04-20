@@ -31,11 +31,16 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
-
 export enum SingleProcessingTabs {
   Transcript = 'trc',
   Translations = 'trl',
   Analysis = 'an',
+}
+
+export enum StaticDisplays {
+  Data = 'Data',
+  Audio = 'Audio',
+  Transcript = 'Transcript',
 }
 
 /** Shared interface for transcript and translations. */
@@ -110,6 +115,18 @@ class SingleProcessingStore extends Reflux.Store {
   private areEditIdsLoaded = false;
   private isSubmissionLoaded = false;
   private isProcessingDataLoaded = false;
+
+  private displays = new Map<LanguageCode | StaticDisplays, boolean>([
+    [StaticDisplays.Audio, true],
+    [StaticDisplays.Data, true],
+    [StaticDisplays.Transcript, false],
+  ]);
+
+  private activeDisplays = {
+    isSubmissionDataSelected: true,
+    isSubmissionMediaSelected: true,
+    isTransciptSelected: false,
+  };
 
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
@@ -530,6 +547,9 @@ class SingleProcessingStore extends Reflux.Store {
       );
     }
     this.data.translations = translationsArray;
+    this.data.translations.forEach((translation) => {
+      this.displays.set(translation.languageCode, false);
+    });
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
@@ -935,6 +955,43 @@ class SingleProcessingStore extends Reflux.Store {
       this.isSubmissionLoaded &&
       this.isProcessingDataLoaded
     );
+  }
+
+  getDisplays() {
+    return this.displays;
+  }
+
+  setStaticDisplay(display: StaticDisplays) {
+    switch (display) {
+      case StaticDisplays.Audio:
+        this.displays.set(
+          StaticDisplays.Audio,
+          !this.displays.get(StaticDisplays.Audio)
+        );
+        break;
+      case StaticDisplays.Data:
+        this.displays.set(
+          StaticDisplays.Data,
+          !this.displays.get(StaticDisplays.Data)
+        );
+        break;
+      case StaticDisplays.Transcript:
+        this.displays.set(
+          StaticDisplays.Transcript,
+          !this.displays.get(StaticDisplays.Transcript)
+        );
+        break;
+    }
+
+    this.trigger(this.displays);
+  }
+
+  setTranslationDisplay(display: LanguageCode) {
+    if (this.displays.has(display)) {
+      this.displays.set(display, !this.displays.get(display));
+    }
+
+    this.trigger(this.displays);
   }
 }
 
