@@ -1,4 +1,6 @@
+import json
 from kpi.models import Asset
+from jsonschema import validate
 from pprint import pprint
 
 EXAMPLE_TEXT_QUESTION = 'Any descriptors?'
@@ -48,3 +50,10 @@ def run():
     }
     asset.save()
     pprint(asset.advanced_features)
+
+    if asset.submission_extras.count() > 0:
+        subex = asset.submission_extras.last()
+        subex_content_schema = asset.get_advanced_submission_schema()
+        subex.content[final_question_name]['qual'] = {'q1': 'Good', 'q2': 'yes'}
+        validate({'submission': subex.submission_uuid, **subex.content}, subex_content_schema)
+        subex.save()

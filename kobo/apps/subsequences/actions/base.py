@@ -21,6 +21,9 @@ class BaseAction:
     def cur_time(self):
         return datetime.datetime.now(tz=pytz.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
 
+    def engines(self):
+        return []
+
     def load_params(self, params):
         raise NotImplementedError('subclass must define a load_params method')
 
