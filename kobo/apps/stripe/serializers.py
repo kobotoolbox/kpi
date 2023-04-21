@@ -49,7 +49,7 @@ class CustomerPortalSerializer(serializers.Serializer):
     organization_uid = serializers.CharField(required=True)
 
     def validate_organization_uid(self, organization_uid):
-        if organization_uid.startswith('org'):
+        if organization_uid.startswith('org-uid'):
             return organization_uid
         raise ValidationError('Invalid organization ID')
 
@@ -64,7 +64,7 @@ class CheckoutLinkSerializer(serializers.Serializer):
     organization_uid = serializers.CharField(required=False)
 
     def validate_organization_uid(self, organization_uid):
-        if organization_uid.startswith('org') or not organization_uid:
+        if organization_uid.startswith('org-uid') or not organization_uid:
             return organization_uid
         raise ValidationError('Invalid organization ID')
 

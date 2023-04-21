@@ -30,7 +30,7 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         return f'{url}?{urlencode(query_params)}'
 
     def _create_customer_organization(self):
-        organization = baker.make(Organization, uid='orgSALFMLFMSDGmgdlsgmsd')
+        organization = baker.make(Organization, uid='org-uidSALFMLFMSDGmgdlsgmsd')
         customer = baker.make(Customer, subscriber=organization)
         return customer, organization
 
