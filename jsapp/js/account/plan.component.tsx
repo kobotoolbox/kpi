@@ -188,9 +188,9 @@ export default function Plan() {
     return filterAmount.filter((product: Product) => product.prices);
   }, [state.products, state.intervalFilter]);
 
-  const getSubscriptionForProductId = useCallback(
+  const getSubscriptionsForProductId = useCallback(
     (productId: String) =>
-      state.subscribedProduct.find(
+      state.subscribedProduct.filter(
         (subscription: BaseSubscription) =>
           subscription.items[0].price.product.id === productId
       ),
@@ -202,20 +202,23 @@ export default function Plan() {
       if (!product.prices.unit_amount && !hasActiveSubscription) {
         return true;
       }
-      const subscription = getSubscriptionForProductId(product.id);
-      return Boolean(subscription?.status === 'active');
+      const subscriptions = getSubscriptionsForProductId(product.id);
+      return subscriptions.some(
+        (subscription: BaseSubscription) => subscription.status === 'active'
+      );
     },
     [state.subscribedProduct]
   );
 
   const shouldShowManage = useCallback(
     (product: Price) => {
-      const subscription = getSubscriptionForProductId(product.id);
-      if (!subscription) {
+      const subscriptions = getSubscriptionsForProductId(product.id);
+      if (!subscriptions.length) {
         return false;
       }
-      const hasManageableStatus = activeSubscriptionStatuses.includes(
-        subscription.status
+      const hasManageableStatus = subscriptions.some(
+        (subscription: BaseSubscription) =>
+          activeSubscriptionStatuses.includes(subscription.status)
       );
       return Boolean(state.organization?.uid) && hasManageableStatus;
     },
