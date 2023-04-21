@@ -1,8 +1,8 @@
-from django.core.exceptions import SuspiciousOperation, ValidationError
+from django.core.exceptions import ValidationError
 from djstripe.models import (
-    Session,
     Price,
     Product,
+    Session,
     Subscription,
     SubscriptionItem,
 )
@@ -35,14 +35,42 @@ class BasePriceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Price
         fields = (
-            "id",
-            "nickname",
-            "currency",
-            "type",
-            "unit_amount",
-            "human_readable_price",
-            "metadata",
+            'id',
+            'nickname',
+            'currency',
+            'type',
+            'unit_amount',
+            'human_readable_price',
+            'metadata',
         )
+
+
+class PriceIdSerializer(serializers.Serializer):
+    price_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Price.objects.filter(active=True, product__active=True),
+        required=True,
+        allow_empty=False,
+    )
+
+    class Meta:
+        model = Price
+        fields = ('id',)
+
+
+class ChangePlanSerializer(PriceIdSerializer):
+    subscription_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Subscription.objects.filter(
+            status__in=['active'],
+        ),
+        required=True,
+        allow_empty=False,
+    )
+
+    class Meta:
+        model = Subscription
+        fields = ('id',)
 
 
 class CustomerPortalSerializer(serializers.Serializer):
@@ -54,23 +82,8 @@ class CustomerPortalSerializer(serializers.Serializer):
         raise ValidationError('Invalid organization ID')
 
 
-class CheckoutLinkSerializer(serializers.Serializer):
-    price_id = serializers.SlugRelatedField(
-        'id',
-        queryset=Price.objects.filter(active=True, product__active=True),
-        required=True,
-        allow_empty=False,
-    )
+class CheckoutLinkSerializer(PriceIdSerializer, CustomerPortalSerializer):
     organization_uid = serializers.CharField(required=False)
-
-    def validate_organization_uid(self, organization_uid):
-        if organization_uid.startswith('org-uid') or not organization_uid:
-            return organization_uid
-        raise ValidationError('Invalid organization ID')
-
-    class Meta:
-        model = Price
-        fields = ("id",)
 
 
 class PriceSerializer(BasePriceSerializer):
@@ -78,13 +91,13 @@ class PriceSerializer(BasePriceSerializer):
 
     class Meta(BasePriceSerializer.Meta):
         fields = (
-            "id",
-            "nickname",
-            "currency",
-            "unit_amount",
-            "human_readable_price",
-            "metadata",
-            "product",
+            'id',
+            'nickname',
+            'currency',
+            'unit_amount',
+            'human_readable_price',
+            'metadata',
+            'product',
         )
 
 
@@ -92,7 +105,7 @@ class ProductSerializer(BaseProductSerializer):
     prices = BasePriceSerializer(many=True)
 
     class Meta(BaseProductSerializer.Meta):
-        fields = ("id", "name", "description", "type", "prices", "metadata")
+        fields = ('id', 'name', 'description', 'type', 'prices', 'metadata')
 
 
 class SubscriptionItemSerializer(serializers.ModelSerializer):
@@ -100,7 +113,7 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionItem
-        fields = ("id", "price")
+        fields = ('id', 'price')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):

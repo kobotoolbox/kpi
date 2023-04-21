@@ -1,8 +1,7 @@
 import stripe
-
 from django.conf import settings
-from django.db.models import Prefetch, Min
-
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Min, Prefetch
 from djstripe.models import (
     Customer,
     Price,
@@ -10,25 +9,24 @@ from djstripe.models import (
     Session,
     Subscription,
     SubscriptionItem,
+    SubscriptionSchedule,
 )
 from djstripe.settings import djstripe_settings
-
 from organizations.utils import create_organization
-
 from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.serializers import (
-    SubscriptionSerializer,
+    ChangePlanSerializer,
     CheckoutLinkSerializer,
     CustomerPortalSerializer,
     OneTimeAddOnSerializer,
     ProductSerializer,
+    SubscriptionSerializer,
 )
-
-from kobo.apps.organizations.models import Organization
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
@@ -44,6 +42,95 @@ class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
             mode='payment',
             payment_intent__status__in=['succeeded', 'processing'],
         ).prefetch_related('payment_intent')
+
+
+# Change an existing subscription to a new price
+class ChangePlanView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChangePlanSerializer
+
+    @staticmethod
+    def modify_subscription(price, subscription):
+        stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
+        subscription_item = subscription.items.get(
+            status__in=['active', 'not_started']
+        )
+        if price.id == subscription_item.price.id:
+            return Response(
+                {'status': 'already subscribed to plan'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if price.unit_amount >= subscription_item.price.unit_amount:
+            # Upgrading their plan, change the subscription immediately
+            stripe.Subscription.modify(
+                subscription.id,
+                cancel_at_period_end=False,
+                proration_behavior='create_prorations',
+                items=[
+                    {
+                        'id': subscription_item.id,
+                        'price': price.id,
+                    }
+                ],
+            )
+            return Response({'status': 'upgraded'})
+        # User is not upgrading, schedule a subscription change
+        try:
+            schedule = SubscriptionSchedule.objects.get(
+                subscription=subscription
+            )
+            if schedule.phases[-1]['items'][0]['price'] == price.id:
+                return Response(
+                    {'status': 'already scheduled to change to given price'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except ObjectDoesNotExist:
+            schedule = stripe.SubscriptionSchedule.create(
+                from_subscription=subscription.id
+            )
+        return ChangePlanView.schedule_subscription_change(
+            schedule, subscription_item, price.id
+        )
+
+    @staticmethod
+    def schedule_subscription_change(schedule, subscription_item, price_id):
+        new_phase = {
+            'iterations': 1,
+            'items': [
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                }
+            ],
+        }
+        # Determine the current phase we're in, based on price ID
+        phase_prices = [phase['items'][0]['price'] for phase in schedule.phases]
+        phase_prices.reverse()
+        current_phase_index = len(phase_prices) - phase_prices.index(
+            subscription_item.price.id
+        )
+        phases_to_date = schedule.phases[0:current_phase_index]
+
+        stripe.SubscriptionSchedule.modify(
+            schedule.id, phases=[*phases_to_date, new_phase]
+        )
+        return Response({'status': 'subscription modified successfully'})
+
+    def post(self, request):
+        serializer = ChangePlanSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        price = serializer.validated_data.get('price_id')
+        subscription = serializer.validated_data.get('subscription_id')
+        # Make sure the subscription belongs to the current user
+        try:
+            if (
+                not subscription.customer.subscriber.owner.organization_user.user
+                == request.user
+            ):
+                raise AttributeError
+        except AttributeError:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return ChangePlanView.modify_subscription(price, subscription)
 
 
 class CheckoutLinkView(APIView):
@@ -85,7 +172,7 @@ class CheckoutLinkView(APIView):
         session = CheckoutLinkView.start_checkout_session(
             customer.id, price, organization.uid
         )
-        return Response({'url': session['url']})
+        return session['url']
 
     @staticmethod
     def start_checkout_session(customer_id, price, organization_uid):
@@ -98,8 +185,8 @@ class CheckoutLinkView(APIView):
             customer=customer_id,
             line_items=[
                 {
-                    "price": price.id,
-                    "quantity": 1,
+                    'price': price.id,
+                    'quantity': 1,
                 },
             ],
             metadata={
@@ -115,10 +202,8 @@ class CheckoutLinkView(APIView):
         serializer.is_valid(raise_exception=True)
         price = serializer.validated_data.get('price_id')
         organization_uid = serializer.validated_data.get('organization_uid')
-        response = self.generate_payment_link(
-            price, request.user, organization_uid
-        )
-        return response
+        url = self.generate_payment_link(price, request.user, organization_uid)
+        return Response({'url': url})
 
 
 class CustomerPortalView(APIView):
