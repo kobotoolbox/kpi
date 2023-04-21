@@ -7,6 +7,7 @@ import {
 } from './analysis/analysisQuestions.reducer';
 import AnalysisQuestionsContext from './analysis/analysisQuestions.context';
 import AnalysisHeader from './analysis/analysisHeader';
+import classNames from 'classnames';
 
 export default function AnalysisTabContent() {
   const [state, dispatch] = useReducer(analysisQuestionsReducer, initialState);
@@ -15,7 +16,7 @@ export default function AnalysisTabContent() {
   }, [state, dispatch]);
 
   return (
-    <div className={bodyStyles.root}>
+    <div className={classNames(bodyStyles.root, bodyStyles.viewAnalysis)}>
       <AnalysisQuestionsContext.Provider value={contextValue}>
         <AnalysisHeader />
 

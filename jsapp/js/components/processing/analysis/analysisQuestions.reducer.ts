@@ -14,6 +14,7 @@ interface AnalysisQuestionDraftable extends AnalysisQuestion {
 }
 
 export interface AnalysisQuestionsState {
+  isSaving: boolean;
   questions: AnalysisQuestionDraftable[];
   /**
    * A list of uids of questions with definitions being edited. I.e. whenever
@@ -31,6 +32,7 @@ type AnalysisQuestionReducerType = (
 ) => AnalysisQuestionsState;
 
 export const initialState: AnalysisQuestionsState = {
+  isSaving: false,
   questions: [],
   questionsBeingEdited: [],
 };

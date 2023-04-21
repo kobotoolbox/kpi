@@ -4,6 +4,10 @@
 
 .root {
   @include mixins.centerRowFlex;
+  background-color: colors.$kobo-white;
   border-bottom: sizes.$x1 solid colors.$kobo-cloud;
-  padding-bottom: sizes.$x16;
+  padding: sizes.$x30 0 sizes.$x16;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
