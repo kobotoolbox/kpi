@@ -360,7 +360,11 @@ export default function Plan() {
   }
 
   return (
-    <div className={styles.accountPlan}>
+    <div
+      className={classnames(styles.accountPlan, {
+        [styles.wait]: areButtonsDisabled,
+      })}
+    >
       <div className={styles.plansSection}>
         <form className={styles.intervalToggle}>
           <input
