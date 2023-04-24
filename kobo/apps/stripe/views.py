@@ -52,9 +52,7 @@ class ChangePlanView(APIView):
     @staticmethod
     def modify_subscription(price, subscription):
         stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
-        subscription_item = subscription.items.get(
-            status__in=['active', 'not_started']
-        )
+        subscription_item = subscription.items.get()
         if price.id == subscription_item.price.id:
             return Response(
                 {'status': 'already subscribed to plan'},
@@ -94,7 +92,7 @@ class ChangePlanView(APIView):
 
     @staticmethod
     def schedule_subscription_change(schedule, subscription_item, price_id):
-        new_phase = {
+        new_phases = [{
             'iterations': 1,
             'items': [
                 {
@@ -102,17 +100,20 @@ class ChangePlanView(APIView):
                     'quantity': 1,
                 }
             ],
-        }
-        # Determine the current phase we're in, based on price ID
-        phase_prices = [phase['items'][0]['price'] for phase in schedule.phases]
-        phase_prices.reverse()
-        current_phase_index = len(phase_prices) - phase_prices.index(
-            subscription_item.price.id
-        )
-        phases_to_date = schedule.phases[0:current_phase_index]
+        }]
+
+        if schedule.phases:
+            # Determine the current phase we're in, checking for the current price ID from the end of the phases
+            phase_prices = [phase['items'][0]['price'] for phase in schedule.phases]
+            phase_prices.reverse()
+            current_phase_index = len(phase_prices) - phase_prices.index(
+                subscription_item.price.id
+            )
+            phases_to_date = schedule.phases[0:current_phase_index]
+            new_phases.insert(0, *phases_to_date)
 
         stripe.SubscriptionSchedule.modify(
-            schedule.id, phases=[*phases_to_date, new_phase]
+            schedule.id, phases=new_phases
         )
         return Response({'status': 'subscription modified successfully'})
 
