@@ -4,7 +4,7 @@ import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import styles from './analysisQuestionForm.module.scss';
 import AnalysisQuestionsContext from './analysisQuestions.context';
-import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
+import {ANALYSIS_QUESTION_DEFINITIONS, AUTO_SAVE_TYPING_DELAY} from './constants';
 import {findQuestion} from './analysisQuestions.utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 
@@ -30,32 +30,82 @@ export default function AnalysisQuestionForm(props: AnalysisQuestionFormProps) {
 
   const [response, setResponse] = useState<string>(question.response);
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
+  const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>();
 
   const qaDefinition = ANALYSIS_QUESTION_DEFINITIONS[question.type];
 
-  function onTextboxBlur() {
+  function saveResponse() {
+    clearTimeout(typingTimer);
+
     analysisQuestions?.dispatch({
-      type: 'updateQuestionResponse',
+      type: 'updateResponse',
       payload: {uid: props.uid, response: response},
     });
+
+    // TODO make actual API call here
+    // For now we make a fake response
+    console.log('QA fake API call: update response');
+    setTimeout(() => {
+      console.log('QA fake API call: update response DONE');
+      analysisQuestions?.dispatch({
+        type: 'updateResponseCompleted',
+        payload: {
+          questions: analysisQuestions?.state.questions.map(
+            (item) => {
+              if (item.uid === props.uid) {
+                return {
+                  ...item,
+                  response: response,
+                };
+              } else {
+                return item;
+              }
+            }
+          ),
+        },
+      });
+    }, 1000);
+  }
+
+  function saveResponseDelayedAndQuietly() {
+    clearTimeout(typingTimer);
+    // After 5 seconds we auto save
+    setTypingTimer(setTimeout(saveResponse, AUTO_SAVE_TYPING_DELAY));
   }
 
   /**
    * Means that user clicked "Edit" button and wants to start modyfing
    * the question definition.
    */
-  function onOpenEdit() {
+  function openQuestionInEditor() {
     analysisQuestions?.dispatch({
-      type: 'startEditingQuestionDefinition',
+      type: 'startEditingQuestion',
       payload: {uid: props.uid},
     });
   }
 
-  function onConfirmDelete() {
+  function deleteQuestion() {
     analysisQuestions?.dispatch({
       type: 'deleteQuestion',
       payload: {uid: props.uid},
     });
+
+    setIsDeletePromptOpen(false);
+
+    // TODO make actual API call here
+    // For now we make a fake response
+    console.log('QA fake API call: delete question');
+    setTimeout(() => {
+      console.log('QA fake API call: delete question DONE');
+      analysisQuestions?.dispatch({
+        type: 'deleteQuestionCompleted',
+        payload: {
+          questions: analysisQuestions?.state.questions.filter(
+            (item) => item.uid !== props.uid
+          ),
+        },
+      });
+    }, 1000);
   }
 
   return (
@@ -75,7 +125,7 @@ export default function AnalysisQuestionForm(props: AnalysisQuestionFormProps) {
             type: 'full',
             color: 'red',
             label: t('Delete'),
-            onClick: onConfirmDelete,
+            onClick: deleteQuestion,
           },
         ]}
       >
@@ -98,7 +148,10 @@ export default function AnalysisQuestionForm(props: AnalysisQuestionFormProps) {
           color='storm'
           size='s'
           startIcon='edit'
-          onClick={onOpenEdit}
+          onClick={openQuestionInEditor}
+          // We only allow editing one question at a time, so adding new is not
+          // possible until user stops editing
+          isDisabled={analysisQuestions?.state.questionsBeingEdited.length !== 0 || analysisQuestions?.state.isPending}
         />
 
         <Button
@@ -107,15 +160,19 @@ export default function AnalysisQuestionForm(props: AnalysisQuestionFormProps) {
           size='s'
           startIcon='trash'
           onClick={() => setIsDeletePromptOpen(true)}
+          isDisabled={analysisQuestions?.state.isPending}
         />
       </header>
 
       <TextBox
         type='text-multiline'
         value={response}
-        onChange={setResponse}
+        onChange={(newResponse: string) => {
+          setResponse(newResponse);
+          saveResponseDelayedAndQuietly();
+        }}
         placeholder={t('Start typing your answer')}
-        onBlur={onTextboxBlur}
+        onBlur={saveResponse}
         customModifiers='on-white'
       />
     </div>

@@ -20,6 +20,9 @@ export default function AnalysisHeader() {
             payload: {type: 'aq_text'},
           })
         }
+        // We only allow editing one question at a time, so adding new is not
+        // possible until user stops editing
+        isDisabled={analysisQuestions?.state.questionsBeingEdited.length !== 0 || analysisQuestions?.state.isPending}
       />
 
       <span>

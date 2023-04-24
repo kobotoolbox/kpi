@@ -3,18 +3,22 @@ import type {AnalysisQuestion, AnalysisQuestionType} from './constants';
 
 export type AnalysisQuestionsAction =
   | {type: 'addQuestion'; payload: {type: AnalysisQuestionType}}
+  | {type: 'startEditingQuestion'; payload: {uid: string}}
+  | {type: 'stopEditingQuestion'; payload: {uid: string}}
   | {type: 'deleteQuestion'; payload: {uid: string}}
-  | {type: 'startEditingQuestionDefinition'; payload: {uid: string}}
-  | {type: 'stopEditingQuestionDefinition'; payload: {uid: string}}
-  | {type: 'updateQuestionDefinition'; payload: {uid: string; label: string}}
-  | {type: 'updateQuestionResponse'; payload: {uid: string; response: string}};
+  | {type: 'deleteQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
+  | {type: 'updateQuestion'; payload: {uid: string; label: string}}
+  | {type: 'updateQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
+  | {type: 'updateResponse'; payload: {uid: string; response: string}}
+  | {type: 'updateResponseCompleted'; payload: {questions: AnalysisQuestion[]}};
 
 interface AnalysisQuestionDraftable extends AnalysisQuestion {
   isDraft?: boolean;
 }
 
 export interface AnalysisQuestionsState {
-  isSaving: boolean;
+  /** Whether any async action is being done right now. */
+  isPending: boolean;
   questions: AnalysisQuestionDraftable[];
   /**
    * A list of uids of questions with definitions being edited. I.e. whenever
@@ -32,7 +36,7 @@ type AnalysisQuestionReducerType = (
 ) => AnalysisQuestionsState;
 
 export const initialState: AnalysisQuestionsState = {
-  isSaving: false,
+  isPending: false,
   questions: [],
   questionsBeingEdited: [],
 };
@@ -42,12 +46,6 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
   action: AnalysisQuestionsAction
 ) => {
   switch (action.type) {
-    // TODO idea: when `addQuestion` is acted we create a "draft" question, one
-    // with isDraft:true. When `updateQuestionDefinition` is passed with
-    // question that is isDraft:true, we remove it (thus making it not a draft)
-    // when `selectQuestionToModifyDefinition` is sent with null, and previous
-    // question was isDraft:true, we remove it
-
     case 'addQuestion': {
       // This is the place that assigns the uid to the question
       const newUid = generateUid();
@@ -60,6 +58,8 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
             label: '',
             uid: newUid,
             response: '',
+            // Note: initially the question is being added as a draft. It
+            // wouldn't be stored in database until user saves it intentionally.
             isDraft: true,
           },
           ...state.questions,
@@ -71,12 +71,23 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
     case 'deleteQuestion': {
       return {
         ...state,
+        isPending: true,
+        // Here we immediately remove the question from the list and wait for
+        // a successful API call that will return new questions list (without
+        // the deleted question).
         questions: state.questions.filter(
           (question) => question.uid !== action.payload.uid
         ),
       };
     }
-    case 'startEditingQuestionDefinition': {
+    case 'deleteQuestionCompleted': {
+      return {
+        ...state,
+        isPending: false,
+        questions: action.payload.questions,
+      };
+    }
+    case 'startEditingQuestion': {
       return {
         ...state,
         questionsBeingEdited: [
@@ -85,7 +96,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ],
       };
     }
-    case 'stopEditingQuestionDefinition': {
+    case 'stopEditingQuestion': {
       return {
         ...state,
         // If we stop editing a question that was a draft, we need to remove it
@@ -101,28 +112,34 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ),
       };
     }
-    case 'updateQuestionDefinition': {
+    case 'updateQuestion': {
       return {
         ...state,
-        // We return the same questions array, just replacing one item (it's
-        // the updated question).
-        questions: state.questions.map((aq) => {
-          if (aq.uid === action.payload.uid) {
-            // Successfully updating/saving question makes it not a draft
-            delete aq.isDraft;
-            return {
-              ...aq,
-              label: action.payload.label,
-            };
-          } else {
-            return aq;
-          }
-        }),
+        isPending: true,
+      };
+    }
+    case 'updateQuestionCompleted': {
+      return {
+        ...state,
+        isPending: false,
+        questions: action.payload.questions,
         // After question definition was updated, we no longer modify it (this
         // closes the editor)
-        questionsBeingEdited: state.questionsBeingEdited.filter(
-          (uid) => uid !== action.payload.uid
-        ),
+        // Note: this assumes we are only allowing one question editor at a time
+        questionsBeingEdited: [],
+      };
+    }
+    case 'updateResponse': {
+      return {
+        ...state,
+        isPending: true,
+      };
+    }
+    case 'updateResponseCompleted': {
+      return {
+        ...state,
+        isPending: false,
+        questions: action.payload.questions,
       };
     }
   }

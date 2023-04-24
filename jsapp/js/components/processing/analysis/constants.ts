@@ -1,5 +1,7 @@
 import type {IconName} from 'jsapp/fonts/k-icons';
 
+export const AUTO_SAVE_TYPING_DELAY = 3000;
+
 /** An instance of analysis question. */
 export interface AnalysisQuestion {
   type: AnalysisQuestionType;

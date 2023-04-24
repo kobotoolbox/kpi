@@ -34,23 +34,49 @@ export default function AnalysisQuestionEditor(
     }
   }
 
-  function onSave() {
+  function saveQuestion() {
     if (label === '') {
       setErrorMessage(t('Question label cannot be empty'));
     } else {
       analysisQuestions?.dispatch({
-        type: 'updateQuestionDefinition',
+        type: 'updateQuestion',
         payload: {
           uid: props.uid,
           label: label,
         },
       });
+
+      // TODO make actual API call here
+      // For now we make a fake response
+      console.log('QA fake API call: update question');
+      setTimeout(() => {
+        console.log('QA fake API call: update question DONE');
+        analysisQuestions?.dispatch({
+          type: 'updateQuestionCompleted',
+          payload: {
+            // We return the same questions array, just replacing one item (it's
+            // the updated question).
+            questions: analysisQuestions?.state.questions.map((aq) => {
+              if (aq.uid === props.uid) {
+                // Successfully updating/saving question makes it not a draft
+                delete aq.isDraft;
+                return {
+                  ...aq,
+                  label: label,
+                };
+              } else {
+                return aq;
+              }
+            }),
+          },
+        });
+      }, 2000);
     }
   }
 
-  function onCancel() {
+  function cancelEditing() {
     analysisQuestions?.dispatch({
-      type: 'stopEditingQuestionDefinition',
+      type: 'stopEditingQuestion',
       payload: {uid: props.uid},
     });
   }
@@ -68,6 +94,7 @@ export default function AnalysisQuestionEditor(
         placeholder={t('Type question')}
         customModifiers='on-white'
         renderFocused
+        disabled={analysisQuestions?.state.isPending}
       />
 
       <Button
@@ -75,7 +102,8 @@ export default function AnalysisQuestionEditor(
         color='storm'
         size='m'
         label={t('Save')}
-        onClick={onSave}
+        onClick={saveQuestion}
+        isPending={analysisQuestions?.state.isPending}
       />
 
       <Button
@@ -83,7 +111,8 @@ export default function AnalysisQuestionEditor(
         color='storm'
         size='m'
         startIcon='close'
-        onClick={onCancel}
+        onClick={cancelEditing}
+        isDisabled={analysisQuestions?.state.isPending}
       />
     </div>
   );
