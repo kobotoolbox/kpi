@@ -4,6 +4,7 @@
 
 .root {
   @include mixins.centerRowFlex;
+  justify-content: space-between;
   background-color: colors.$kobo-white;
   border-bottom: sizes.$x1 solid colors.$kobo-cloud;
   padding: sizes.$x30 0 sizes.$x16;

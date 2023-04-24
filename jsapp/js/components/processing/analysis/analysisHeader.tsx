@@ -21,6 +21,11 @@ export default function AnalysisHeader() {
           })
         }
       />
+
+      <span>
+        {analysisQuestions?.state.isPending && t('Saving…')}
+        {!analysisQuestions?.state.isPending && t('Saved')}
+      </span>
     </header>
   );
 }
