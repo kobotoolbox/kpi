@@ -55,7 +55,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
     @patch("stripe.Subscription.modify")
     @patch("stripe.SubscriptionSchedule.create")
     @patch("stripe.SubscriptionSchedule.modify")
-    def _modify_price(self, price_from, price_to, subscription_schedule_modify, subscription_schedule_create, subscription_modify):
+    def _modify_price(self, price_from, price_to, schedule_modify, subscription_schedule_create, subscription_modify):
         customer, organization = self._create_customer_organization()
         organization.add_user(self.someuser, is_admin=True)
         subscription = self._subscribe_organization(organization, customer, price_from)
