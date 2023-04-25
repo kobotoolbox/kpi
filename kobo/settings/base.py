@@ -484,9 +484,10 @@ django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 DJANGO_LANGUAGE_CODES = env.str(
     'DJANGO_LANGUAGE_CODES',
     default=(
+        'am '  # Amharic
         'ar '  # Arabic
         'cs '  # Czech
-        'de-DE '  # German
+        'de '  # German
         'en '  # English
         'es '  # Spanish
         'fa '  # Persian/Farsi
