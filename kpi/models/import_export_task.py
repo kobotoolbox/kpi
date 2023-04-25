@@ -176,9 +176,6 @@ class ImportTask(ImportExportTask):
         self.save(update_fields=['status'])
         dest_item = has_necessary_perm = False
 
-        if isinstance(self.data, str):
-            self.data = json.loads(self.data)
-
         if 'destination' in self.data and self.data['destination']:
             _d = self.data.get('destination')
             dest_item = resolve_url_to_asset(_d)

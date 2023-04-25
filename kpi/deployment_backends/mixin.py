@@ -56,8 +56,6 @@ class DeployableMixin:
             raise DeploymentNotFound
 
         deployment_data = self._deployment_data
-        if isinstance(deployment_data, str):
-            deployment_data = json.loads(self._deployment_data)
         return self.__get_deployment_backend(deployment_data['backend'])
 
     @property
