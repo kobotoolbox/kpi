@@ -326,8 +326,8 @@ export default assign({
         params.parent = assetUtils.buildAssetUrl(this.state.parentAsset);
       }
       actions.resources.createResource.triggerAsync(params)
-        .then(() => {
-          hashHistory.push(`/library/${asset.uid}/edit`);
+        .then((asset) => {
+          hashHistory.push(`/library/asset/${asset.uid}/edit`);
         });
     } else {
       // update existing asset
