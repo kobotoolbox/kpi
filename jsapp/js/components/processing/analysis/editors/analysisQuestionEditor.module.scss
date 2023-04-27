@@ -2,7 +2,7 @@
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
-.root {
+.header {
   @include mixins.centerRowFlex;
   align-items: flex-start;
   gap: sizes.$x8;

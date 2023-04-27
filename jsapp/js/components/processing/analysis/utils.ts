@@ -1,4 +1,5 @@
 import type {AnalysisQuestionsState} from './analysisQuestions.reducer';
+import {AnalysisQuestionType, ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 
 /** Finds given question in state */
 export function findQuestion(
@@ -6,4 +7,8 @@ export function findQuestion(
   state: AnalysisQuestionsState | undefined
 ) {
   return state?.questions.find((question) => question.uid === uid);
+}
+
+export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
+  return ANALYSIS_QUESTION_DEFINITIONS.find((definition) => definition.type === type);
 }

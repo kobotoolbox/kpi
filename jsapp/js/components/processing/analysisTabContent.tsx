@@ -6,7 +6,7 @@ import {
   analysisQuestionsReducer,
 } from './analysis/analysisQuestions.reducer';
 import AnalysisQuestionsContext from './analysis/analysisQuestions.context';
-import AnalysisHeader from './analysis/analysisHeader';
+import AnalysisHeader from './analysis/analysisHeader.component';
 import classNames from 'classnames';
 
 export default function AnalysisTabContent() {

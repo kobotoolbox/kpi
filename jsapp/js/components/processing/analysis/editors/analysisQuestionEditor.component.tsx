@@ -1,31 +1,36 @@
 import React, {useState, useContext} from 'react';
 import Icon from 'js/components/common/icon';
 import styles from './analysisQuestionEditor.module.scss';
-import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
-import {findQuestion} from './analysisQuestions.utils';
-import AnalysisQuestionsContext from './analysisQuestions.context';
+import {
+  findQuestion,
+  getQuestionTypeDefinition,
+} from 'js/components/processing/analysis/utils';
+import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
+import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
 
-interface AnalysisQuestionEditorProps {
+interface DefaultEditorProps {
   uid: string;
 }
 
-export default function AnalysisQuestionEditor(
-  props: AnalysisQuestionEditorProps
-) {
+export default function DefaultEditor(props: DefaultEditorProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
+  // Get the question data from state (with safety check)
   const question = findQuestion(props.uid, analysisQuestions?.state);
-
   if (!question) {
+    return null;
+  }
+
+  // Get the question definition (with safety check)
+  const qaDefinition = getQuestionTypeDefinition(question.type);
+  if (!qaDefinition) {
     return null;
   }
 
   const [label, setLabel] = useState<string>(question.label);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
-
-  const qaDefinition = ANALYSIS_QUESTION_DEFINITIONS[question.type];
 
   function onTextBoxChange(newLabel: string) {
     setLabel(newLabel);
@@ -82,38 +87,44 @@ export default function AnalysisQuestionEditor(
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.icon}>
-        <Icon name={qaDefinition.icon} size='xl' />
-      </div>
+    <div>
+      <header className={styles.header}>
+        <div className={styles.icon}>
+          <Icon name={qaDefinition.icon} size='xl' />
+        </div>
 
-      <TextBox
-        value={label}
-        onChange={onTextBoxChange}
-        errors={errorMessage}
-        placeholder={t('Type question')}
-        customModifiers='on-white'
-        renderFocused
-        disabled={analysisQuestions?.state.isPending}
-      />
+        <TextBox
+          value={label}
+          onChange={onTextBoxChange}
+          errors={errorMessage}
+          placeholder={t('Type question')}
+          customModifiers='on-white'
+          renderFocused
+          disabled={analysisQuestions?.state.isPending}
+        />
 
-      <Button
-        type='frame'
-        color='storm'
-        size='m'
-        label={t('Save')}
-        onClick={saveQuestion}
-        isPending={analysisQuestions?.state.isPending}
-      />
+        <Button
+          type='frame'
+          color='storm'
+          size='m'
+          label={t('Save')}
+          onClick={saveQuestion}
+          isPending={analysisQuestions?.state.isPending}
+        />
 
-      <Button
-        type='bare'
-        color='storm'
-        size='m'
-        startIcon='close'
-        onClick={cancelEditing}
-        isDisabled={analysisQuestions?.state.isPending}
-      />
+        <Button
+          type='bare'
+          color='storm'
+          size='m'
+          startIcon='close'
+          onClick={cancelEditing}
+          isDisabled={analysisQuestions?.state.isPending}
+        />
+      </header>
+
+      {question.type === 'aq_keyword_search' &&
+        <KeywordSearchFieldsEditor uid={question.uid} />
+      }
     </div>
   );
 }

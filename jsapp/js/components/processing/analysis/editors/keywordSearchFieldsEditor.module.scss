@@ -1,0 +1,25 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+.root {
+  @include mixins.centerRowFlex;
+}
+
+.left {
+  flex: 3;
+}
+
+.right {
+  flex: 2;
+}
+
+.helpLink {
+  @include mixins.centerRowFlex;
+  color: colors.$kobo-dark-blue;
+  float: right;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

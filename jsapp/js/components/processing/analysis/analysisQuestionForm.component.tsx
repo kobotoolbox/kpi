@@ -4,8 +4,8 @@ import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import styles from './analysisQuestionForm.module.scss';
 import AnalysisQuestionsContext from './analysisQuestions.context';
-import {ANALYSIS_QUESTION_DEFINITIONS, AUTO_SAVE_TYPING_DELAY} from './constants';
-import {findQuestion} from './analysisQuestions.utils';
+import {AUTO_SAVE_TYPING_DELAY} from './constants';
+import {findQuestion, getQuestionTypeDefinition} from './utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 
 interface AnalysisQuestionFormProps {
@@ -22,17 +22,21 @@ interface AnalysisQuestionFormProps {
 export default function AnalysisQuestionForm(props: AnalysisQuestionFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
+  // Get the question data from state (with safety check)
   const question = findQuestion(props.uid, analysisQuestions?.state);
-
   if (!question) {
+    return null;
+  }
+
+  // Get the question definition (with safety check)
+  const qaDefinition = getQuestionTypeDefinition(question.type);
+  if (!qaDefinition) {
     return null;
   }
 
   const [response, setResponse] = useState<string>(question.response);
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>();
-
-  const qaDefinition = ANALYSIS_QUESTION_DEFINITIONS[question.type];
 
   function saveResponse() {
     clearTimeout(typingTimer);
