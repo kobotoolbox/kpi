@@ -2,14 +2,19 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import {cleanupTags} from 'js/assetUtils';
+import './koboTagsInput.scss';
 
 const DEFAULT_PLACEHOLDER = t('Type and confirm with ENTER');
 const TAGS_SEPARATOR = ',';
 
 interface KoboTagsInputProps {
+  /** tags a comma-separated list of tags (the asset keeps it that way) */
   tags: string;
+  /** returns stringified comma-separated new tags string */
   onChange: (tags: string) => void;
+  /** optional title */
   label?: string;
+  /** optional as default is provided */
   placeholder?: string;
   'data-cy'?: string;
 }
@@ -24,10 +29,6 @@ interface InnerInputProps {
  * This component is a wrapper around 3rd party react-tagsinput to allow for
  * common settings to be reused in a better way.
  *
- * @prop {string} tags a comma-separated list of tags (the asset keeps it that way)
- * @prop {callback} onChange - returns stringified comma-separated new tags string
- * @prop {string} [label] optional title
- * @prop {string} [placeholder] optional as default is provided
  */
 class KoboTagsInput extends React.Component<KoboTagsInputProps> {
   constructor(props: KoboTagsInputProps) {
