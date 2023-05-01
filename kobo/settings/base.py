@@ -8,8 +8,8 @@ import subprocess
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
-import environ
 import django.conf.locale
+import environ
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
@@ -17,7 +17,6 @@ from django.utils.translation import get_language_info
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-
 
 env = environ.Env()
 
@@ -838,7 +837,7 @@ SOCIALACCOUNT_PROVIDERS = {}
 if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
     SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
 # Parse oidc settings as nested dict in array. Example:
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google-kobo" # Must be unique
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google" # Must be unique
 # SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
 # SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
 # Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
@@ -852,10 +851,22 @@ for key, value in {
     if oidc_pattern.match(key)
 }.items():
     number, setting = key.split("_", 1)
-    if number in oidc_servers:
-        oidc_servers[number][setting] = value
+    if setting.startswith("APP"):
+        setting, parsed_key = setting.split("_", 1)
     else:
-        oidc_servers[number] = {setting: value}
+        parsed_key = None
+    if number in oidc_servers:
+        if parsed_key and oidc_servers[number][setting]:
+            oidc_servers[number][setting][parsed_key] = value
+        elif parsed_key:
+            oidc_servers[number][setting] = {parsed_key: value}
+        else:
+            oidc_servers[number][setting] = value
+    else:
+        if parsed_key:
+            oidc_servers[number] = {setting: {parsed_key: value}}
+        else:
+            oidc_servers[number] = {setting: value}
 oidc_servers = [x for x in oidc_servers.values()]
 SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
@@ -993,8 +1004,8 @@ LOGGING = {
 sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
 if sentry_dsn:
     import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
     # All of this is already happening by default!
