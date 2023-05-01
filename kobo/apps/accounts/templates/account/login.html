@@ -61,8 +61,15 @@
               <a title="{{ social_app.name }}"
                 class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
                 href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
-                >{% trans "SSO Login" %}</a>
-                {# "Log in with {{social_app.name}}" when supporting social_apps|length>1 #}
+                >
+                {% if social_apps|length == 1 %}
+                  {% trans "SSO Login" %}
+                {% else %}
+                  {% blocktrans with social_app_name=social_app.name %}
+                    Log in with {{ social_app_name }}
+                  {% endblocktrans %}
+                {% endif %}
+              </a>
             </li>
             {% endfor %}
           </ul>
