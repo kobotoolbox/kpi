@@ -25,7 +25,10 @@ class ProjectViewsStore {
 
   constructor() {
     makeAutoObservable(this);
-    when(() => sessionStore.isLoggedIn, () => this.fetchData());
+    when(
+      () => sessionStore.isLoggedIn,
+      () => this.fetchData()
+    );
   }
 
   public getView(uid: string) {
