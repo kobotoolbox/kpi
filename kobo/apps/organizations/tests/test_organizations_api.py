@@ -20,11 +20,11 @@ class OrganizationTestCase(BaseTestCase):
         self.url_list = reverse(self._get_endpoint('organizations-list'))
 
     def _insert_data(self):
-        self.organization = baker.make(Organization, uid='org_abcd1234')
+        self.organization = baker.make(Organization, id='org_abcd1234')
         self.organization.add_user(user=self.user, is_admin=True)
         self.url_detail = reverse(
             self._get_endpoint('organizations-detail'),
-            kwargs={'uid': self.organization.uid},
+            kwargs={'id': self.organization.id},
         )
 
     def test_anonymous_user(self):
@@ -44,5 +44,5 @@ class OrganizationTestCase(BaseTestCase):
         self._insert_data()
         response = self.client.get(self.url_detail)
         self.assertContains(response, self.organization.slug)
-        self.assertContains(response, self.organization.uid)
+        self.assertContains(response, self.organization.id)
         self.assertContains(response, self.organization.name)
