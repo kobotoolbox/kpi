@@ -1,21 +1,18 @@
-import React, {useContext, useState} from 'react';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
+import React, {useContext} from 'react';
 import styles from './keywordSearchFieldsEditor.module.scss';
 import AnalysisQuestionsContext from '../analysisQuestions.context';
 import {findQuestion} from 'js/components/processing/analysis/utils';
 import TagsInput from 'react-tagsinput';
-import Icon from 'jsapp/js/components/common/icon';
+import Icon from 'js/components/common/icon';
+import type {AdditionalFields} from 'js/components/processing/analysis/constants';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import TransxSelector from 'js/components/processing/transxSelector';
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 interface KeywordSearchFieldsEditorProps {
   uid: string;
-}
-
-interface KeywordSearchFields {
-  /** A list of keywords to search for. */
-  keywords: string[];
-  /** The transcript or translation source for the search. */
-  source?: LanguageCode;
-  hasErrors: boolean;
+  fields: AdditionalFields;
+  onFieldsChange: (fields: AdditionalFields) => void;
 }
 
 export default function KeywordSearchFieldsEditor(
@@ -29,21 +26,29 @@ export default function KeywordSearchFieldsEditor(
     return null;
   }
 
-  const [fields, setFields] = useState<KeywordSearchFields>({
-    keywords: [],
-    hasErrors: true,
-  });
+  function updateFields(newFields: AdditionalFields) {
+    props.onFieldsChange(newFields);
+  }
 
+  /**
+   * Does a little cleanup of tags:
+   * 1. remove whitespace before and after the tag
+   * 2. no duplicates (needed in addition to `onlyUnique` option on
+   *    `<TagsInput>`, because of whitespace changes)
+   */
   function onKeywordsChange(newKeywords: string[]) {
-    // Does a little cleanup of tags:
-    // 1. remove whitespace before and after the tag
-    // 2. no duplicates (needed in addition to `onlyUnique` option on
-    //    `<TagsInput>`, because of whitespace changes)
     const cleanTags = Array.from(new Set(newKeywords.map((tag) => tag.trim())));
 
-    setFields({
-      ...fields,
+    updateFields({
+      ...props.fields,
       keywords: cleanTags,
+    });
+  }
+
+  function onSourceChange(newSource: LanguageCode | null) {
+    updateFields({
+      ...props.fields,
+      source: newSource ? newSource : undefined,
     });
   }
 
@@ -55,12 +60,12 @@ export default function KeywordSearchFieldsEditor(
         <label htmlFor={inputHtmlId}>{t('Look for')}</label>
 
         <a className={styles.helpLink} href={'#TODO'}>
-          <Icon name={'information'} size='xs'/>
+          <Icon name={'information'} size='xs' />
           {t('help')}
         </a>
 
         <TagsInput
-          value={fields.keywords}
+          value={props.fields.keywords || []}
           onChange={onKeywordsChange}
           inputProps={{
             id: inputHtmlId,
@@ -73,7 +78,16 @@ export default function KeywordSearchFieldsEditor(
       </section>
 
       <section className={styles.right}>
-        From file
+        <label>{t('From file')}</label>
+
+        <TransxSelector
+          languageCodes={singleProcessingStore.getSources()}
+          selectedLanguage={props.fields.source}
+          onChange={onSourceChange}
+          // TODO: after PR https://github.com/kobotoolbox/kpi/pull/4423
+          // is merged into feature/analysis branch, lets introduce size and
+          // color props here, so we can use 'm' 'gray' here
+        />
       </section>
     </div>
   );

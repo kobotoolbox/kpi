@@ -9,6 +9,7 @@ import {
 } from 'js/components/processing/analysis/utils';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
+import type {AdditionalFields} from 'js/components/processing/analysis/constants';
 
 interface DefaultEditorProps {
   uid: string;
@@ -31,6 +32,11 @@ export default function DefaultEditor(props: DefaultEditorProps) {
 
   const [label, setLabel] = useState<string>(question.label);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [additionalFieldsErrorMessage, setAdditionalFieldsErrorMessage] =
+    useState<string | undefined>();
+  const [additionalFields, setAdditionalFields] = useState<
+    AdditionalFields | undefined
+  >(question.additionalFields ? question.additionalFields : undefined);
 
   function onTextBoxChange(newLabel: string) {
     setLabel(newLabel);
@@ -40,14 +46,43 @@ export default function DefaultEditor(props: DefaultEditorProps) {
   }
 
   function saveQuestion() {
+    let hasErrors = false;
+
+    // Check missing label
     if (label === '') {
       setErrorMessage(t('Question label cannot be empty'));
-    } else {
+      hasErrors = true;
+    }
+
+    // Check missing additional fields
+    if (
+      // Apply only to questions that has additional fields
+      (qaDefinition?.additionalFieldNames &&
+        // 1. Check if there are no additional fields
+        additionalFields === undefined) ||
+      // 2. Check if the amount of provided additional fields is the same as the
+      // required amount
+      (additionalFields !== undefined &&
+        qaDefinition?.additionalFieldNames?.length !==
+          Object.keys(additionalFields).length) ||
+      // 3. Check if some of the provided fields are empty
+      (additionalFields !== undefined &&
+        qaDefinition?.additionalFieldNames?.some(
+          (fieldName) => additionalFields[fieldName]?.length === 0
+        ))
+    ) {
+      setAdditionalFieldsErrorMessage(t('Some required fields are missing'));
+      hasErrors = true;
+    }
+
+    // Save only if there are no errors
+    if (!hasErrors) {
       analysisQuestions?.dispatch({
         type: 'updateQuestion',
         payload: {
           uid: props.uid,
           label: label,
+          additionalFields: additionalFields,
         },
       });
 
@@ -67,7 +102,8 @@ export default function DefaultEditor(props: DefaultEditorProps) {
                 delete aq.isDraft;
                 return {
                   ...aq,
-                  label: label,
+                  label,
+                  additionalFields,
                 };
               } else {
                 return aq;
@@ -122,9 +158,15 @@ export default function DefaultEditor(props: DefaultEditorProps) {
         />
       </header>
 
-      {question.type === 'aq_keyword_search' &&
-        <KeywordSearchFieldsEditor uid={question.uid} />
-      }
+      {question.type === 'aq_keyword_search' && (
+        <KeywordSearchFieldsEditor
+          uid={question.uid}
+          fields={additionalFields || {source: '', keywords: []}}
+          onFieldsChange={setAdditionalFields}
+        />
+      )}
+
+      {additionalFieldsErrorMessage && <p>{additionalFieldsErrorMessage}</p>}
     </div>
   );
 }

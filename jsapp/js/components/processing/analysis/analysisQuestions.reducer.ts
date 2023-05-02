@@ -1,5 +1,9 @@
 import {generateUid} from 'jsapp/js/utils';
-import type {AnalysisQuestion, AnalysisQuestionType} from './constants';
+import type {
+  AnalysisQuestion,
+  AnalysisQuestionType,
+  AdditionalFields,
+} from './constants';
 
 export type AnalysisQuestionsAction =
   | {type: 'addQuestion'; payload: {type: AnalysisQuestionType}}
@@ -7,7 +11,14 @@ export type AnalysisQuestionsAction =
   | {type: 'stopEditingQuestion'; payload: {uid: string}}
   | {type: 'deleteQuestion'; payload: {uid: string}}
   | {type: 'deleteQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
-  | {type: 'updateQuestion'; payload: {uid: string; label: string}}
+  | {
+      type: 'updateQuestion';
+      payload: {
+        uid: string;
+        label: string;
+        additionalFields?: AdditionalFields;
+      };
+    }
   | {type: 'updateQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
   | {type: 'updateResponse'; payload: {uid: string; response: string}}
   | {type: 'updateResponseCompleted'; payload: {questions: AnalysisQuestion[]}};
