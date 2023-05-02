@@ -1,5 +1,5 @@
 import throttle from 'lodash.throttle';
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, when} from 'mobx';
 import type {
   PaginatedResponse,
   FailResponse,
@@ -43,9 +43,7 @@ class HelpBubbleStore {
 
   constructor() {
     makeAutoObservable(this);
-    if (sessionStore.isLoggedIn) {
-      this.fetchMessages();
-    }
+    when(() => sessionStore.isLoggedIn, () => this.fetchMessages());
   }
 
   get unreadCount() {
