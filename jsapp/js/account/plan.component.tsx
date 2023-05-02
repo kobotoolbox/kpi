@@ -220,7 +220,7 @@ export default function Plan() {
         (subscription: BaseSubscription) =>
           activeSubscriptionStatuses.includes(subscription.status)
       );
-      return Boolean(state.organization?.uid) && hasManageableStatus;
+      return Boolean(state.organization?.id) && hasManageableStatus;
     },
     [state.subscribedProduct]
   );
@@ -230,7 +230,7 @@ export default function Plan() {
       return;
     }
     setAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization?.uid)
+    postCheckout(priceId, state.organization?.id)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
@@ -242,11 +242,11 @@ export default function Plan() {
   };
 
   const managePlan = () => {
-    if (!state.organization?.uid || areButtonsDisabled) {
+    if (!state.organization?.id || areButtonsDisabled) {
       return;
     }
     setAreButtonsDisabled(true);
-    postCustomerPortal(state.organization.uid)
+    postCustomerPortal(state.organization.id)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));

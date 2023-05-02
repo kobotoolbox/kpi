@@ -74,16 +74,16 @@ class ChangePlanSerializer(PriceIdSerializer):
 
 
 class CustomerPortalSerializer(serializers.Serializer):
-    organization_uid = serializers.CharField(required=True)
+    organization_id = serializers.CharField(required=True)
 
-    def validate_organization_uid(self, organization_uid):
-        if organization_uid.startswith('org-uid'):
-            return organization_uid
+    def validate_organization_id(self, organization_id):
+        if organization_id.startswith('org'):
+            return organization_id
         raise ValidationError('Invalid organization ID')
 
 
 class CheckoutLinkSerializer(PriceIdSerializer, CustomerPortalSerializer):
-    organization_uid = serializers.CharField(required=False)
+    organization_id = serializers.CharField(required=False)
 
 
 class PriceSerializer(BasePriceSerializer):

@@ -43,7 +43,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
 
     def _create_customer_organization(self):
         organization = baker.make(
-            Organization, uid='org-uidSALFMLFMSDGmgdlsgmsd'
+            Organization, id='orgSALFMLFMSDGmgdlsgmsd'
         )
         customer = baker.make(Customer, subscriber=organization)
         return customer, organization

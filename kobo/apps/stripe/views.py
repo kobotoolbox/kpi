@@ -139,11 +139,11 @@ class CheckoutLinkView(APIView):
     serializer_class = CheckoutLinkSerializer
 
     @staticmethod
-    def generate_payment_link(price, user, organization_uid):
-        if organization_uid:
-            # Get the organization for the logged-in user and provided organization UID
+    def generate_payment_link(price, user, organization_id):
+        if organization_id:
+            # Get the organization for the logged-in user and provided organization ID
             organization = Organization.objects.get(
-                uid=organization_uid, owner__organization_user__user_id=user
+                id=organization_id, owner__organization_user__user_id=user
             )
         else:
             # Find the first organization the user belongs to, otherwise make a new one
@@ -171,12 +171,12 @@ class CheckoutLinkView(APIView):
             )
             customer.sync_from_stripe_data(stripe_customer)
         session = CheckoutLinkView.start_checkout_session(
-            customer.id, price, organization.uid
+            customer.id, price, organization.id
         )
         return session['url']
 
     @staticmethod
-    def start_checkout_session(customer_id, price, organization_uid):
+    def start_checkout_session(customer_id, price, organization_id):
         checkout_mode = (
             'payment' if price.type == 'one_time' else 'subscription'
         )
@@ -191,7 +191,7 @@ class CheckoutLinkView(APIView):
                 },
             ],
             metadata={
-                'organization_uid': organization_uid,
+                'organization_id': organization_id,
                 'price_id': price.id,
             },
             mode=checkout_mode,
@@ -202,8 +202,8 @@ class CheckoutLinkView(APIView):
         serializer = CheckoutLinkSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         price = serializer.validated_data.get('price_id')
-        organization_uid = serializer.validated_data.get('organization_uid')
-        url = self.generate_payment_link(price, request.user, organization_uid)
+        organization_id = serializer.validated_data.get('organization_id')
+        url = self.generate_payment_link(price, request.user, organization_id)
         return Response({'url': url})
 
 
@@ -211,9 +211,9 @@ class CustomerPortalView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
-    def generate_portal_link(user, organization_uid):
+    def generate_portal_link(user, organization_id):
         organization = Organization.objects.get(
-            uid=organization_uid, owner__organization_user__user_id=user
+            id=organization_id, owner__organization_user__user_id=user
         )
         customer = Customer.objects.get(
             subscriber=organization, livemode=settings.STRIPE_LIVE_MODE
@@ -228,8 +228,8 @@ class CustomerPortalView(APIView):
     def post(self, request):
         serializer = CustomerPortalSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        organization_uid = serializer.validated_data['organization_uid']
-        session = self.generate_portal_link(request.user, organization_uid)
+        organization_id = serializer.validated_data['organization_id']
+        session = self.generate_portal_link(request.user, organization_id)
         return Response({'url': session['url']})
 
 
