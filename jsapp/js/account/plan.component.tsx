@@ -481,12 +481,12 @@ export default function Plan() {
               <h1 className={styles.enterpriseTitle}> {t('Need More?')}</h1>
               <p className={styles.enterpriseDetails}>
                 {t(
-                  'We offer add-on options to increase your limits or the capacity of certain features for a period of time. Scroll down to learn more and purchase add-ons.'
+                  'We offer several add-on options to increase your limits or the capacity of certain features for a period of time, depending on which plan you use.'
                 )}
               </p>
               <p className={styles.enterpriseDetails}>
                 {t(
-                  'If your organization has larger or more specific needs, contact our team to learn about our enterprise options.'
+                  'If your organization has larger or more specific needs, please contact our team to learn about our enterprise options.'
                 )}
               </p>
               <div className={styles.enterpriseLink}>
