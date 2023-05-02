@@ -31,6 +31,7 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
+import SingleProcessingDisplaySettings from './singleProcessingDisplaySettings';
 export enum SingleProcessingTabs {
   Transcript = 'trc',
   Translations = 'trl',
@@ -121,12 +122,6 @@ class SingleProcessingStore extends Reflux.Store {
     [StaticDisplays.Data, true],
     [StaticDisplays.Transcript, false],
   ]);
-
-  private activeDisplays = {
-    isSubmissionDataSelected: true,
-    isSubmissionMediaSelected: true,
-    isTransciptSelected: false,
-  };
 
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
@@ -547,9 +542,6 @@ class SingleProcessingStore extends Reflux.Store {
       );
     }
     this.data.translations = translationsArray;
-    this.data.translations.forEach((translation) => {
-      this.displays.set(translation.languageCode, false);
-    });
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
@@ -678,6 +670,28 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.translationDraft.value = googleTxResponse.value;
     }
     this.trigger(this.data);
+  }
+
+  private clearTranslationDisplays() {
+    Array.from(this.displays.entries()).forEach((key) => {
+      if (!this.isStaticDisplay(key[0])) {
+        this.displays.delete(key[0]);
+      }
+    });
+  }
+
+  private populuateTranslationDisplays() {
+    this.data.translations.forEach((translation) => {
+      this.displays.set(translation.languageCode, false);
+    });
+  }
+
+  isStaticDisplay(display: string) {
+    return (
+      display === StaticDisplays.Audio ||
+      display === StaticDisplays.Data ||
+      display === StaticDisplays.Transcript
+    );
   }
 
   /**
@@ -957,8 +971,20 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  getDisplays() {
-    return this.displays;
+  refreshDisplays() {
+    const tab = this.getActiveTab();
+
+    // Tab specific displays
+    if (tab === SingleProcessingTabs.Translations) {
+      this.clearTranslationDisplays();
+      this.displays.set(StaticDisplays.Transcript, false);
+    } else if (tab === SingleProcessingTabs.Transcript) {
+      this.displays.delete(StaticDisplays.Transcript);
+      this.populuateTranslationDisplays();
+    } else {
+      this.populuateTranslationDisplays();
+      this.displays.set(StaticDisplays.Transcript, false);
+    }
   }
 
   setStaticDisplay(display: StaticDisplays) {
