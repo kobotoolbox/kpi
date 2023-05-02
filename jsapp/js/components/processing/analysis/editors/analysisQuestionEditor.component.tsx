@@ -10,6 +10,7 @@ import {
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
 import type {AdditionalFields} from 'js/components/processing/analysis/constants';
+import SelectXFieldsEditor from './selectXFieldsEditor.component';
 
 interface DefaultEditorProps {
   uid: string;
@@ -42,6 +43,13 @@ export default function DefaultEditor(props: DefaultEditorProps) {
     setLabel(newLabel);
     if (newLabel !== '' && errorMessage !== undefined) {
       setErrorMessage(undefined);
+    }
+  }
+
+  function onAdditionalFieldsChange(newFields: AdditionalFields) {
+    setAdditionalFields(newFields);
+    if (additionalFieldsErrorMessage) {
+      setAdditionalFieldsErrorMessage(undefined);
     }
   }
 
@@ -162,7 +170,15 @@ export default function DefaultEditor(props: DefaultEditorProps) {
         <KeywordSearchFieldsEditor
           uid={question.uid}
           fields={additionalFields || {source: '', keywords: []}}
-          onFieldsChange={setAdditionalFields}
+          onFieldsChange={onAdditionalFieldsChange}
+        />
+      )}
+
+      {(question.type === 'aq_select_one' || question.type === 'aq_select_multiple') && (
+        <SelectXFieldsEditor
+          uid={question.uid}
+          fields={additionalFields || {choices: []}}
+          onFieldsChange={onAdditionalFieldsChange}
         />
       )}
 

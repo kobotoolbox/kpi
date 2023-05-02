@@ -1,0 +1,29 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use 'js/components/common/button';
+
+.root {
+  padding-top: sizes.$x14;
+}
+
+.choice {
+  @include mixins.centerRowFlex;
+  gap: sizes.$x6;
+
+  &:not(:last-child) {
+    margin-bottom: sizes.$x10;
+  }
+
+  :global .text-box {
+    flex: 1;
+  }
+}
+
+.addOption {
+  padding-left: button.$button-height-s + sizes.$x6;
+
+  :global .k-button {
+    width: 100%;
+  }
+}

@@ -1,7 +1,5 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import styles from './keywordSearchFieldsEditor.module.scss';
-import AnalysisQuestionsContext from '../analysisQuestions.context';
-import {findQuestion} from 'js/components/processing/analysis/utils';
 import TagsInput from 'react-tagsinput';
 import Icon from 'js/components/common/icon';
 import type {AdditionalFields} from 'js/components/processing/analysis/constants';
@@ -18,18 +16,6 @@ interface KeywordSearchFieldsEditorProps {
 export default function KeywordSearchFieldsEditor(
   props: KeywordSearchFieldsEditorProps
 ) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext);
-
-  // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
-  if (!question) {
-    return null;
-  }
-
-  function updateFields(newFields: AdditionalFields) {
-    props.onFieldsChange(newFields);
-  }
-
   /**
    * Does a little cleanup of tags:
    * 1. remove whitespace before and after the tag
@@ -39,14 +25,14 @@ export default function KeywordSearchFieldsEditor(
   function onKeywordsChange(newKeywords: string[]) {
     const cleanTags = Array.from(new Set(newKeywords.map((tag) => tag.trim())));
 
-    updateFields({
+    props.onFieldsChange({
       ...props.fields,
       keywords: cleanTags,
     });
   }
 
   function onSourceChange(newSource: LanguageCode | null) {
-    updateFields({
+    props.onFieldsChange({
       ...props.fields,
       source: newSource ? newSource : undefined,
     });
@@ -55,7 +41,7 @@ export default function KeywordSearchFieldsEditor(
   const inputHtmlId = 'keywordSearchFieldsEditor_TagsInput_Input';
 
   return (
-    <div className={styles.root}>
+    <section className={styles.root}>
       <section className={styles.left}>
         <label htmlFor={inputHtmlId}>{t('Look for')}</label>
 
@@ -89,6 +75,6 @@ export default function KeywordSearchFieldsEditor(
           // color props here, so we can use 'm' 'gray' here
         />
       </section>
-    </div>
+    </section>
   );
 }
