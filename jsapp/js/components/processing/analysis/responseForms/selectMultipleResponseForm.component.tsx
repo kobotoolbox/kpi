@@ -1,17 +1,22 @@
 import React, {useContext, useState} from 'react';
 import CommonHeader from './commonHeader.component';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {findQuestion, getQuestionTypeDefinition} from 'js/components/processing/analysis/utils';
+import {
+  findQuestion,
+  getQuestionTypeDefinition,
+  quietlyUpdateResponse,
+} from 'js/components/processing/analysis/utils';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import commonStyles from './common.module.scss';
-// import styles from './selectMultipleResponseForm.module.scss';
 
 interface SelectMultipleResponseFormProps {
   uid: string;
 }
 
-export default function SelectMultipleResponseForm(props: SelectMultipleResponseFormProps) {
+export default function SelectMultipleResponseForm(
+  props: SelectMultipleResponseFormProps
+) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
@@ -33,6 +38,13 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
       .filter((item) => item.checked)
       .map((item) => item.name);
     setResponse(newFields.join(','));
+
+    quietlyUpdateResponse(
+      analysisQuestions?.state,
+      analysisQuestions?.dispatch,
+      props.uid,
+      response
+    );
   }
 
   function getCheckboxes(): MultiCheckboxItem[] {
@@ -50,7 +62,7 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
 
   return (
     <>
-      <CommonHeader uid={props.uid}/>
+      <CommonHeader uid={props.uid} />
 
       <section className={commonStyles.alignedContent}>
         <MultiCheckbox

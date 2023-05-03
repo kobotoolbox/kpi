@@ -3,7 +3,10 @@ import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import commonStyles from './common.module.scss';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {findQuestion, getQuestionTypeDefinition} from 'js/components/processing/analysis/utils';
+import {
+  findQuestion,
+  getQuestionTypeDefinition,
+} from 'js/components/processing/analysis/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
 
 interface ResponseFormHeaderProps {
@@ -104,7 +107,10 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         onClick={openQuestionInEditor}
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
-        isDisabled={analysisQuestions?.state.questionsBeingEdited.length !== 0 || analysisQuestions?.state.isPending}
+        isDisabled={
+          analysisQuestions?.state.questionsBeingEdited.length !== 0 ||
+          analysisQuestions?.state.isPending
+        }
       />
 
       <Button

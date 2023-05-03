@@ -1,3 +1,7 @@
-.todo {
-  color: lavenderblush;
+@use 'scss/sizes';
+
+.radioWrapper {
+  > *:not(:last-child) {
+    margin-bottom: sizes.$x10;
+  }
 }

@@ -167,7 +167,7 @@ export default function DefaultEditor(props: DefaultEditorProps) {
         />
       </header>
 
-      {qaDefinition.additionalFieldNames &&
+      {qaDefinition.additionalFieldNames && (
         <section className={commonStyles.alignedContent}>
           {question.type === 'aq_keyword_search' && (
             <KeywordSearchFieldsEditor
@@ -186,11 +186,11 @@ export default function DefaultEditor(props: DefaultEditorProps) {
             />
           )}
 
-          {additionalFieldsErrorMessage &&
+          {additionalFieldsErrorMessage && (
             <p>{additionalFieldsErrorMessage}</p>
-          }
+          )}
         </section>
-      }
+      )}
     </>
   );
 }

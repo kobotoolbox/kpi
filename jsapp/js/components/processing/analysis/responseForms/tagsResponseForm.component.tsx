@@ -1,10 +1,13 @@
 import React, {useContext, useState} from 'react';
 import CommonHeader from './commonHeader.component';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {findQuestion, getQuestionTypeDefinition} from 'js/components/processing/analysis/utils';
+import {
+  findQuestion,
+  getQuestionTypeDefinition,
+  quietlyUpdateResponse,
+} from 'js/components/processing/analysis/utils';
 import TagsInput from 'react-tagsinput';
 import commonStyles from './common.module.scss';
-// import styles from './tagsResponseForm.module.scss';
 
 interface TagsResponseFormProps {
   uid: string;
@@ -36,11 +39,18 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
 
   function onTagsChange(newTags: string[]) {
     setResponse(newTags.join(','));
+
+    quietlyUpdateResponse(
+      analysisQuestions?.state,
+      analysisQuestions?.dispatch,
+      props.uid,
+      response
+    );
   }
 
   return (
     <>
-      <CommonHeader uid={props.uid}/>
+      <CommonHeader uid={props.uid} />
 
       <section className={commonStyles.alignedContent}>
         <TagsInput

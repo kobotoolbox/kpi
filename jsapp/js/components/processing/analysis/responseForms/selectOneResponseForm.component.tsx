@@ -1,18 +1,25 @@
 import React, {useContext, useState} from 'react';
 import CommonHeader from './commonHeader.component';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {findQuestion, getQuestionTypeDefinition} from 'js/components/processing/analysis/utils';
+import {
+  findQuestion,
+  getQuestionTypeDefinition,
+  quietlyUpdateResponse,
+} from 'js/components/processing/analysis/utils';
 import Radio from 'js/components/common/radio';
 import type {RadioOption} from 'js/components/common/radio';
 import Button from 'jsapp/js/components/common/button';
 import commonStyles from './common.module.scss';
-// import styles from './selectOneResponseForm.module.scss';
+import classNames from 'classnames';
+import styles from './selectOneResponseForm.module.scss';
 
 interface SelectOneResponseFormProps {
   uid: string;
 }
 
-export default function SelectOneResponseForm(props: SelectOneResponseFormProps) {
+export default function SelectOneResponseForm(
+  props: SelectOneResponseFormProps
+) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
@@ -28,6 +35,17 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
   }
 
   const [response, setResponse] = useState<string>(question.response);
+
+  function onRadioChange(newResponse: string) {
+    setResponse(newResponse);
+
+    quietlyUpdateResponse(
+      analysisQuestions?.state,
+      analysisQuestions?.dispatch,
+      props.uid,
+      response
+    );
+  }
 
   function getOptions(): RadioOption[] {
     if (question?.additionalFields?.choices) {
@@ -47,13 +65,13 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
 
   return (
     <>
-      <CommonHeader uid={props.uid}/>
+      <CommonHeader uid={props.uid} />
 
-      <section className={commonStyles.alignedContent}>
+      <section className={classNames([commonStyles.alignedContent, styles.radioWrapper])}>
         <Radio
           options={getOptions()}
           name={question.label}
-          onChange={setResponse}
+          onChange={onRadioChange}
           selected={response}
         />
 
