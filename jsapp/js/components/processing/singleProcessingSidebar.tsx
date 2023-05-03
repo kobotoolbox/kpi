@@ -1,9 +1,7 @@
 import React, {useState} from 'react';
-import singleProcessingStore, {SingleProcessingTabs, StaticDisplays} from 'js/components/processing/singleProcessingStore';
-import SingleProcessingPreview from './singleProcessingPreview';
+import singleProcessingStore, {StaticDisplays} from 'js/components/processing/singleProcessingStore';
 import SingleProcessingTranslation from 'js/components/processing/singleProcessingTranslation';
 import SingleProcessingDisplaySettings from 'js/components/processing/singleProcessingDisplaySettings';
-import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
 import {AssetResponse} from 'jsapp/js/dataInterface';
 import style from './singleProcessingSidebar.module.scss';
 import SingleProcessingSubmissionData from 'js/components/processing/singleProcessingSubmissionData';
@@ -17,16 +15,6 @@ export default function SingleProcessingSidebar(props: SingleProcessingSidebarPr
   const [store] = useState(() => singleProcessingStore);
 
   const displays = store.getDisplays();
-
-  // TODO: [x] Make a better barebones transition.value preview
-  //       Figure out when to actually update the map of available/active translations
-  //       - After submitting a new translation the getDisplays is not updated
-  //       - Display the correct # of translations per question
-  //         - Right now, if there is a question with no translation it will show the last
-  //           translation in the modal(bad), but clicking the toggle shows nothing (good)
-  //       [x] Make the translations unavailable for the translation tab
-  //       Get the default displays defined somewhere
-
   const translations = store.getTranslations();
   const transcription = store.getTranscript();
 
