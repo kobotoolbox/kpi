@@ -4,6 +4,7 @@ name: Update Translations
 on:
   pull_request:
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-your-workflow-when-a-pull-request-merges
+    # Here is a comment that I can commit
     types: [ closed ]
     branches: [ master ]
 
