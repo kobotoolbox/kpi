@@ -29,6 +29,7 @@ class SitewideMessage(models.Model):
 
 
 class ConfigurationFile(models.Model):
+    # This is a comment for testing on a fork
     LOGO = 'logo'
     LOGO_SMALL = 'logo_small'
     LOGIN_BACKGROUND = 'login_background'
