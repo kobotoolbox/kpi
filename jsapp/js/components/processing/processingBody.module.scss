@@ -107,6 +107,8 @@
   width: 100%;
   overflow-y: auto;
   flex: 1;
+  // TODO: have a 'full' option that turns off other displays
+  max-height: sizes.$x200;
 }
 
 .textarea {

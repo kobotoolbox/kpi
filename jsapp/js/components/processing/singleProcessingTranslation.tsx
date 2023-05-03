@@ -1,21 +1,16 @@
 import React, {useState} from 'react';
 import {formatTime} from 'js/utils';
-import singleProcessingStore, {
-  SingleProcessingTabs,
-} from 'js/components/processing/singleProcessingStore';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {Transx} from 'js/components/processing/singleProcessingStore';
-import TransxSelector from './transxSelector';
 import styles from './singleProcessingPreview.module.scss';
 import bodyStyles from './processingBody.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
 
 interface SingleProcessingTranslationProps {
   singleTransx: Transx;
 }
 
 export default function SingleProcessingTranslation(props: SingleProcessingTranslationProps) {
-  const [store] = useState(() => singleProcessingStore);
 
   function renderLanguageAndDate() {
     const source = props.singleTransx;

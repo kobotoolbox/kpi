@@ -26,21 +26,17 @@ export default function SingleProcessingSidebar(props: SingleProcessingSidebarPr
   //           translation in the modal(bad), but clicking the toggle shows nothing (good)
   //       [x] Make the translations unavailable for the translation tab
   //       Get the default displays defined somewhere
-  
+
   const translations = store.getTranslations();
   const transcription = store.getTranscript();
-  const currentTab = store.getActiveTab();
 
   return (
     <div className={style.root}>
       <SingleProcessingDisplaySettings />
 
-      <SingleProcessingPreview />
-
       {Array.from(translations).map((translation) => {
         if (
-          displays.get(translation.languageCode) &&
-          !(currentTab === SingleProcessingTabs.Translations)
+          displays.get(translation.languageCode)
         ) {
           return <SingleProcessingTranslation singleTransx={translation} />;
         }

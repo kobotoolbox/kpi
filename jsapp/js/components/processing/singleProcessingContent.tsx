@@ -1,6 +1,6 @@
 import React from 'react';
 import singleProcessingStore, {
-  SingleProcessingTabs,
+  SingleProcessingTabs, StaticDisplays,
 } from 'js/components/processing/singleProcessingStore';
 import TranscriptTabContent from 'js/components/processing/transcriptTabContent';
 import TranslationsTabContent from 'js/components/processing/translationsTabContent';
@@ -46,6 +46,7 @@ export default class SingleProcessingContent extends React.Component<{}> {
 
   activateTab(tabName: SingleProcessingTabs) {
     singleProcessingStore.activateTab(tabName);
+    singleProcessingStore.refreshDisplays();
   }
 
   renderTabContent() {
@@ -59,6 +60,7 @@ export default class SingleProcessingContent extends React.Component<{}> {
       default:
         return null;
     }
+
   }
 
   render() {

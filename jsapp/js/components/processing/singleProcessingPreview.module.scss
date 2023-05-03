@@ -3,7 +3,7 @@
 @use './singleProcessingVariables';
 
 .root {
-  margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  margin-top: sizes.$x32;
   background-color: colors.$kobo-white;
   border-radius: sizes.$x6;
   min-height: sizes.$x150;

@@ -31,7 +31,6 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
-import SingleProcessingDisplaySettings from './singleProcessingDisplaySettings';
 export enum SingleProcessingTabs {
   Transcript = 'trc',
   Translations = 'trl',
@@ -542,6 +541,7 @@ class SingleProcessingStore extends Reflux.Store {
       );
     }
     this.data.translations = translationsArray;
+    this.refreshDisplays();
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
@@ -675,12 +675,18 @@ class SingleProcessingStore extends Reflux.Store {
   private clearTranslationDisplays() {
     Array.from(this.displays.entries()).forEach((key) => {
       if (!this.isStaticDisplay(key[0])) {
+        // Turn the display off first, then remove from the modal list
+        this.displays.set(key[0], false);
         this.displays.delete(key[0]);
       }
     });
   }
 
   private populuateTranslationDisplays() {
+    // Need to clear translations if switching between questions.
+    // TODO: it makes it a bit jarring to switch from Analysis to Transcript
+    //       Should add a way to save the translations during this?
+    this.clearTranslationDisplays();
     this.data.translations.forEach((translation) => {
       this.displays.set(translation.languageCode, false);
     });
@@ -880,7 +886,14 @@ class SingleProcessingStore extends Reflux.Store {
 
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
+
     // We use transcript as source by default.
+    // Note: If for whatever reason the transcript display is off,
+    // assume user wants it off and don't turn it on.
+    // Should we show the other languages?
+    if (!this.displays.get(StaticDisplays.Transcript)) {
+      this.setStaticDisplay(StaticDisplays.Transcript);
+    }
     if (this.data.source === undefined) {
       this.data.source = this.data.transcript?.languageCode;
     }
@@ -971,19 +984,27 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
+  getDisplays() {
+    return this.displays;
+  }
+
   refreshDisplays() {
     const tab = this.getActiveTab();
 
     // Tab specific displays
     if (tab === SingleProcessingTabs.Translations) {
+      this.displays.set(StaticDisplays.Transcript, true);
       this.clearTranslationDisplays();
-      this.displays.set(StaticDisplays.Transcript, false);
     } else if (tab === SingleProcessingTabs.Transcript) {
       this.displays.delete(StaticDisplays.Transcript);
       this.populuateTranslationDisplays();
     } else {
       this.populuateTranslationDisplays();
-      this.displays.set(StaticDisplays.Transcript, false);
+      // If transcript display is on (coming from translations) then leave it on.
+      this.displays.set(
+        StaticDisplays.Transcript,
+        this.displays.get(StaticDisplays.Transcript) || false
+      );
     }
   }
 
