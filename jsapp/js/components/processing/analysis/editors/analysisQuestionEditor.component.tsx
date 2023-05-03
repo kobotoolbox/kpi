@@ -1,6 +1,7 @@
 import React, {useState, useContext} from 'react';
 import Icon from 'js/components/common/icon';
 import styles from './analysisQuestionEditor.module.scss';
+import commonStyles from 'js/components/processing/analysis/responseForms/common.module.scss';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
 import {
@@ -131,9 +132,9 @@ export default function DefaultEditor(props: DefaultEditorProps) {
   }
 
   return (
-    <div>
+    <>
       <header className={styles.header}>
-        <div className={styles.icon}>
+        <div className={commonStyles.headerIcon}>
           <Icon name={qaDefinition.icon} size='xl' />
         </div>
 
@@ -166,23 +167,30 @@ export default function DefaultEditor(props: DefaultEditorProps) {
         />
       </header>
 
-      {question.type === 'aq_keyword_search' && (
-        <KeywordSearchFieldsEditor
-          uid={question.uid}
-          fields={additionalFields || {source: '', keywords: []}}
-          onFieldsChange={onAdditionalFieldsChange}
-        />
-      )}
+      {qaDefinition.additionalFieldNames &&
+        <section className={commonStyles.alignedContent}>
+          {question.type === 'aq_keyword_search' && (
+            <KeywordSearchFieldsEditor
+              uid={question.uid}
+              fields={additionalFields || {source: '', keywords: []}}
+              onFieldsChange={onAdditionalFieldsChange}
+            />
+          )}
 
-      {(question.type === 'aq_select_one' || question.type === 'aq_select_multiple') && (
-        <SelectXFieldsEditor
-          uid={question.uid}
-          fields={additionalFields || {choices: []}}
-          onFieldsChange={onAdditionalFieldsChange}
-        />
-      )}
+          {(question.type === 'aq_select_one' ||
+            question.type === 'aq_select_multiple') && (
+            <SelectXFieldsEditor
+              uid={question.uid}
+              fields={additionalFields || {choices: []}}
+              onFieldsChange={onAdditionalFieldsChange}
+            />
+          )}
 
-      {additionalFieldsErrorMessage && <p>{additionalFieldsErrorMessage}</p>}
-    </div>
+          {additionalFieldsErrorMessage &&
+            <p>{additionalFieldsErrorMessage}</p>
+          }
+        </section>
+      }
+    </>
   );
 }

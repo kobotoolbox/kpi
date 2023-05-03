@@ -1,23 +1,14 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
+@use 'js/components/processing/analysis/responseForms/common.module';
 
 .header {
   @include mixins.centerRowFlex;
   align-items: flex-start;
-  gap: sizes.$x8;
+  gap: common.$gap-size;
 
   :global .text-box {
     flex: 1;
   }
-}
-
-.icon {
-  background-color: colors.$kobo-light-teal;
-  color: colors.$kobo-teal;
-  border-radius: sizes.$x6;
-  width: sizes.$x32;
-  height: sizes.$x32;
-  line-height: sizes.$x32;
-  text-align: center;
 }

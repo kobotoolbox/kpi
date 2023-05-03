@@ -3,9 +3,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'js/components/common/button';
 
-.root {
-  padding-top: sizes.$x14;
-}
 
 .choice {
   @include mixins.centerRowFlex;
@@ -21,6 +18,8 @@
 }
 
 .addOption {
+  // We position it to align with text boxes (they have a trash icon button on
+  // the left)
   padding-left: button.$button-height-s + sizes.$x6;
 
   :global .k-button {

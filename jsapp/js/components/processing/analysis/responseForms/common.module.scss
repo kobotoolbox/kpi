@@ -2,25 +2,40 @@
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
+$icon-size: sizes.$x32;
+$gap-size: sizes.$x8;
+$label-left-position: $icon-size + $gap-size;
+
 .header {
   @include mixins.centerRowFlex;
   gap: sizes.$x8;
-  margin-bottom: sizes.$x10;
+
+  &:not(:last-child) {
+    margin-bottom: sizes.$x10;
+  }
 }
 
-.label {
+.headerLabel {
   color: colors.$kobo-gray-40;
   font-size: sizes.$x16;
   font-weight: 600;
   flex: 1;
 }
 
-.icon {
+.headerIcon {
   background-color: colors.$kobo-light-teal;
   color: colors.$kobo-teal;
   border-radius: sizes.$x6;
-  width: sizes.$x32;
-  height: sizes.$x32;
-  line-height: sizes.$x32;
+  width: $icon-size;
+  height: $icon-size;
+  line-height: $icon-size;
   text-align: center;
+}
+
+.alignedContent {
+  padding-left: $label-left-position;
+}
+
+.fullWidthContent {
+  width: 100%;
 }

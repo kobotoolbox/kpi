@@ -5,7 +5,6 @@
 .root {
   @include mixins.centerRowFlex;
   align-items: flex-start;
-  margin-top: sizes.$x10;
   gap: sizes.$x10;
 }
 

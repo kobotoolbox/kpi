@@ -11,9 +11,7 @@ interface SelectXFieldsEditorProps {
   onFieldsChange: (fields: AdditionalFields) => void;
 }
 
-export default function SelectXFieldsEditor(
-  props: SelectXFieldsEditorProps
-) {
+export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   function updateChoiceLabel(uid: string, newLabel: string) {
     props.onFieldsChange({
       choices: (props.fields.choices || []).map((choice) => {
@@ -43,12 +41,14 @@ export default function SelectXFieldsEditor(
 
   function deleteChoice(uid: string) {
     props.onFieldsChange({
-      choices: (props.fields.choices || []).filter((choice) => choice.uid !== uid),
+      choices: (props.fields.choices || []).filter(
+        (choice) => choice.uid !== uid
+      ),
     });
   }
 
   return (
-    <section className={styles.root}>
+    <>
       {props.fields.choices?.map((choice) => (
         <div className={styles.choice} key={choice.uid}>
           <Button
@@ -61,7 +61,9 @@ export default function SelectXFieldsEditor(
 
           <TextBox
             value={choice.label}
-            onChange={(newLabel: string) => updateChoiceLabel(choice.uid, newLabel)}
+            onChange={(newLabel: string) =>
+              updateChoiceLabel(choice.uid, newLabel)
+            }
             placeholder={t('Type option name')}
             customModifiers='on-white'
             renderFocused
@@ -79,6 +81,6 @@ export default function SelectXFieldsEditor(
           onClick={addChoice}
         />
       </div>
-    </section>
+    </>
   );
 }
