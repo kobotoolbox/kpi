@@ -1,5 +1,6 @@
 import type {AnalysisQuestionsState} from './analysisQuestions.reducer';
-import {AnalysisQuestionType, ANALYSIS_QUESTION_DEFINITIONS} from './constants';
+import type {AnalysisQuestionType} from './constants';
+import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 
 /** Finds given question in state */
 export function findQuestion(
