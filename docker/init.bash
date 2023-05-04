@@ -53,7 +53,11 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         rm -rf "${KPI_SRC_DIR}/jsapp/compiled"
 
         echo "Syncing \`npm\` packages…"
-        check-dependencies --install
+        if ( ! check-dependencies ); then
+            npm install --quiet > /dev/null 2>&1
+        else
+            npm run postinstall > /dev/null 2>&1
+        fi
 
         echo "Rebuilding client code…"
         npm run build
