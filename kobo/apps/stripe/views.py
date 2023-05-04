@@ -44,8 +44,33 @@ class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
         ).prefetch_related('payment_intent')
 
 
-# Change an existing subscription to a new price
 class ChangePlanView(APIView):
+    """
+    Change an existing subscription to a new price.
+
+    This will immediately change their subscription to the new plan if upgrading, prorating the charge.
+    If the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/stripe/change-plan/
+
+    > **Payload**
+    >
+    >        {
+    >           "price_id": "price_A34cds8fmske3tf",
+    >           "subscription_id": "sub_s9aNFrd2fsmld4gz",
+    >        }
+
+    where:
+
+    * "price_id" (required) is the Stripe Price ID for the plan the user is changing to.
+    * "subscription_id" (required) is a Stripe Subscription ID for the subscription being changed.
+    """
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangePlanSerializer
 
@@ -53,13 +78,14 @@ class ChangePlanView(APIView):
     def modify_subscription(price, subscription):
         stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
         subscription_item = subscription.items.get()
+        # Exit immediately if the price we're changing to is the same as the price they're currently paying
         if price.id == subscription_item.price.id:
             return Response(
                 {'status': 'already subscribed to plan'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # If we're upgrading their plan or moving to a plan with the same price, change the subscription immediately
         if price.unit_amount >= subscription_item.price.unit_amount:
-            # Upgrading their plan, change the subscription immediately
             stripe.Subscription.modify(
                 subscription.id,
                 cancel_at_period_end=False,
@@ -72,26 +98,30 @@ class ChangePlanView(APIView):
                 ],
             )
             return Response({'status': 'upgraded'})
-        # User is not upgrading, schedule a subscription change
+        # We're downgrading the subscription, schedule a subscription change at the end of the current period
+        return ChangePlanView.schedule_subscription_change(
+            subscription, subscription_item, price.id
+        )
+
+    @staticmethod
+    def schedule_subscription_change(subscription, subscription_item, price_id):
+        # First, try getting the existing schedule for the user's subscription
         try:
             schedule = SubscriptionSchedule.objects.get(
                 subscription=subscription
             )
-            if schedule.phases[-1]['items'][0]['price'] == price.id:
+            # If the subscription is already scheduled to change to the given price, quit
+            if schedule.phases[-1]['items'][0]['price'] == price_id:
                 return Response(
                     {'status': 'already scheduled to change to given price'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+        # If we couldn't find a schedule, make a new one
         except ObjectDoesNotExist:
             schedule = stripe.SubscriptionSchedule.create(
                 from_subscription=subscription.id
             )
-        return ChangePlanView.schedule_subscription_change(
-            schedule, subscription_item, price.id
-        )
-
-    @staticmethod
-    def schedule_subscription_change(schedule, subscription_item, price_id):
+        # SubscriptionSchedules are managed by their `phases` list. Make a new phase to append to that list
         new_phases = [{
             'iterations': 1,
             'items': [
@@ -101,9 +131,9 @@ class ChangePlanView(APIView):
                 }
             ],
         }]
-
+        # If the schedule already has phases, combine those with our new phase
         if schedule.phases:
-            # Determine the current phase we're in, checking for the current price ID from the end of the phases
+            # Determine the current phase we're in, checking for the most recent phase with the current price ID
             phase_prices = [phase['items'][0]['price'] for phase in schedule.phases]
             phase_prices.reverse()
             current_phase_index = len(phase_prices) - phase_prices.index(
@@ -111,11 +141,11 @@ class ChangePlanView(APIView):
             )
             phases_to_date = schedule.phases[0:current_phase_index]
             new_phases.insert(0, *phases_to_date)
-
+        # Update the schedule at Stripe. Their webhook will sync our local SubscriptionSchedule models
         stripe.SubscriptionSchedule.modify(
             schedule.id, phases=new_phases
         )
-        return Response({'status': 'subscription modified successfully'})
+        return Response({'status': 'scheduled'})
 
     def post(self, request):
         serializer = ChangePlanSerializer(data=request.query_params)
