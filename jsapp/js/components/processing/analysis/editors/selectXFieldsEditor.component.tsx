@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import styles from './selectXFieldsEditor.module.scss';
 import type {AdditionalFields} from 'js/components/processing/analysis/constants';
 import Button from 'js/components/common/button';
 import {generateUid} from 'js/utils';
 import TextBox from 'jsapp/js/components/common/textBox';
+import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 
 interface SelectXFieldsEditorProps {
   uid: string;
@@ -12,6 +13,8 @@ interface SelectXFieldsEditorProps {
 }
 
 export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
+  const analysisQuestions = useContext(AnalysisQuestionsContext);
+
   function updateChoiceLabel(uid: string, newLabel: string) {
     props.onFieldsChange({
       choices: (props.fields.choices || []).map((choice) => {
@@ -57,6 +60,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
             size='s'
             startIcon='trash'
             onClick={() => deleteChoice(choice.uid)}
+            isDisabled={analysisQuestions?.state.isPending}
           />
 
           <TextBox
@@ -67,6 +71,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
             placeholder={t('Type option name')}
             customModifiers='on-white'
             renderFocused
+            disabled={analysisQuestions?.state.isPending}
           />
         </div>
       ))}
@@ -79,6 +84,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
           startIcon='plus'
           label={t('Add new option')}
           onClick={addChoice}
+          isDisabled={analysisQuestions?.state.isPending}
         />
       </div>
     </>

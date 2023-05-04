@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import styles from './keywordSearchFieldsEditor.module.scss';
 import TagsInput from 'react-tagsinput';
 import Icon from 'js/components/common/icon';
@@ -6,6 +6,7 @@ import type {AdditionalFields} from 'js/components/processing/analysis/constants
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import TransxSelector from 'js/components/processing/transxSelector';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 
 interface KeywordSearchFieldsEditorProps {
   uid: string;
@@ -16,6 +17,8 @@ interface KeywordSearchFieldsEditorProps {
 export default function KeywordSearchFieldsEditor(
   props: KeywordSearchFieldsEditorProps
 ) {
+  const analysisQuestions = useContext(AnalysisQuestionsContext);
+
   /**
    * Does a little cleanup of tags:
    * 1. remove whitespace before and after the tag
@@ -60,6 +63,7 @@ export default function KeywordSearchFieldsEditor(
           onlyUnique
           addOnBlur
           addOnPaste
+          disabled={analysisQuestions?.state.isPending}
         />
       </section>
 
@@ -70,6 +74,7 @@ export default function KeywordSearchFieldsEditor(
           languageCodes={singleProcessingStore.getSources()}
           selectedLanguage={props.fields.source}
           onChange={onSourceChange}
+          disabled={analysisQuestions?.state.isPending}
           // TODO: after PR https://github.com/kobotoolbox/kpi/pull/4423
           // is merged into feature/analysis branch, lets introduce size and
           // color props here, so we can use 'm' 'gray' here
