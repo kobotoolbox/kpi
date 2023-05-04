@@ -145,7 +145,7 @@ django==3.2.15
     #   jsonfield
     #   kobo-service-account
     #   model-bakery
-django-allauth==0.52.0
+django-allauth==0.54.0
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
@@ -195,7 +195,7 @@ django-request-cache==1.4.0
     # via -r dependencies/pip/requirements.in
 django-reversion==5.0.0
     # via -r dependencies/pip/requirements.in
-django-storages[azure,boto3]==1.12.3
+django-storages[azure,boto3]==1.13.2
     # via -r dependencies/pip/requirements.in
 django-taggit==2.1.0
     # via -r dependencies/pip/requirements.in

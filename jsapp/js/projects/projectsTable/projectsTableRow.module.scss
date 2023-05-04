@@ -42,7 +42,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &[data-field='ownerOrganization'],
   &[data-field='status'],
   &[data-field='submissions'] {
-    width: 12.5%;
+    width: 13%;
   }
 
   &[data-field='countries'] {
@@ -86,6 +86,16 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   .cell {
     @include mixins.textEllipsis;
     line-height: sizes.$x36;
+
+    // performance hints for resizing
+    contain: inline-size layout paint style;
+
+    // don't show ellipsis by badges
+    &[data-field='status'],
+    &[data-field='countries'],
+    &[data-field='submissions'] {
+      text-overflow: clip;
+    }
   }
 
   &:hover .cell {
@@ -108,6 +118,9 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     padding-top: sizes.$x12;
     padding-bottom: sizes.$x12;
     background-color: colors.$kobo-white;
+
+    // performance hints for resizing
+    contain: inline-size style;
 
     &:hover {
       color: colors.$kobo-gray-14 !important;

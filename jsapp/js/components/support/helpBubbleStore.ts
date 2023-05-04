@@ -6,6 +6,7 @@ import type {
 } from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import sessionStore from 'js/stores/session';
 
 const FETCH_MESSAGES_LOOP_TIME = 1 * 60 * 1000; // 1 minute
 
@@ -42,7 +43,9 @@ class HelpBubbleStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchMessages();
+    if (sessionStore.isLoggedIn) {
+      this.fetchMessages();
+    }
   }
 
   get unreadCount() {

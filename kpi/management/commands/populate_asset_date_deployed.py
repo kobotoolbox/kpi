@@ -28,15 +28,15 @@ class Command(BaseCommand):
 
     def populate_date_deployed(self):
         queryset = (
-            Asset.objects.only('uid', 'date_deployed')
+            Asset.all_objects.only('uid', 'date_deployed')
             .filter(asset_type=ASSET_TYPE_SURVEY)
             .prefetch_related(
                 Prefetch(
                     'asset_versions',
-                    queryset=AssetVersion.objects.order_by(
-                        '-date_modified'
-                    ).only('uid', 'asset', 'date_modified', 'deployed'),
-                    to_attr='prefetched_latest_versions',
+                    queryset=AssetVersion.objects.order_by('date_modified')
+                    .only('uid', 'asset', 'date_modified', 'deployed')
+                    .filter(deployed=True),
+                    to_attr='prefetched_deployed_versions',
                 ),
             )
         )
@@ -51,7 +51,11 @@ class Command(BaseCommand):
                 if self._verbosity >= 1:
                     self.stdout.write(f'\tAsset {asset.uid}...')
 
-                if asset.latest_version and asset.latest_version.deployed:
-                    asset.date_deployed = asset.latest_version.date_modified
+                try:
+                    first_deployed_version = asset.prefetched_deployed_versions[0]
+                except IndexError:
+                    pass
+                else:
+                    asset.date_deployed = first_deployed_version.date_modified
 
-            Asset.objects.bulk_update(assets, fields=['date_deployed'])
+            Asset.all_objects.bulk_update(assets, fields=['date_deployed'])

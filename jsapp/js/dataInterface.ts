@@ -515,7 +515,6 @@ export interface AssetResponse extends AssetRequestObject {
     format: string;
     url: string;
   }>;
-  koboform_link?: string;
   xform_link?: string;
   hooks_link?: string;
   uid: string;

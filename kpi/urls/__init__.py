@@ -35,12 +35,13 @@ urlpatterns = [
     path('me/', CurrentUserViewSet.as_view({
         'get': 'retrieve',
         'patch': 'partial_update',
+        'delete': 'destroy',
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
+    re_path(r'^api/v2/', include('kobo.apps.audit_log.urls')),
     path('', include('kobo.apps.accounts.urls')),
-    re_path(r'^api/v2/audit-logs/', include('kobo.apps.audit_log.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
@@ -56,7 +57,7 @@ urlpatterns = [
     path('token/', TokenView.as_view(), name='token'),
     path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
-            ConfigurationFile.redirect_view, name='configurationfile'),
+            ConfigurationFile.content_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),

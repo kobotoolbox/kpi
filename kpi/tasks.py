@@ -1,14 +1,10 @@
 # coding: utf-8
-from datetime import timedelta
 import constance
 import requests
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
-from django.utils.timezone import now
 from django.core.mail import send_mail
-from rest_framework import serializers
 
 from kobo.celery import celery_app
 

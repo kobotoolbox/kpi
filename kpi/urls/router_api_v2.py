@@ -13,6 +13,7 @@ from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
+from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.data import DataViewSet
@@ -137,19 +138,17 @@ hook_routes.register(r'logs',
                      )
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
-
-router_api_v2.register(
-    r'organizations',
-    OrganizationViewSet,
-    basename='organizations',
-)
-router_api_v2.register(r'service_usage', ServiceUsageViewSet, basename='service-usage')
-router_api_v2.register(
-    r'asset_subscriptions', UserAssetSubscriptionViewSet)
-router_api_v2.register(r'users', UserViewSet)
-router_api_v2.register(r'permissions', PermissionViewSet)
+router_api_v2.register(r'asset_subscriptions',
+                       UserAssetSubscriptionViewSet)
+router_api_v2.register(r'asset_usage', AssetUsageViewSet, basename='asset-usage')
 router_api_v2.register(r'imports', ImportTaskViewSet)
+router_api_v2.register(r'organizations',
+                       OrganizationViewSet, basename='organizations',)
+router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
+router_api_v2.register(r'service_usage',
+                       ServiceUsageViewSet, basename='service-usage')
+router_api_v2.register(r'users', UserViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)

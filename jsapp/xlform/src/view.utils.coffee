@@ -94,6 +94,8 @@ module.exports = do ->
       $(".enketo-holder").remove()
 
     launch.fromCsv = (surveyCsv, options={})->
+      # Probably dead code? Can't find it being called anywhere, and the
+      # endpoint it uses doesn't exist anymore. —jnm 20230207
       holder = $("<div>", class: "enketo-holder").html("""
         <div class='enketo-iframe-icon'></div>
         <div class="enketo-loading-message">

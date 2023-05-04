@@ -15,7 +15,7 @@
 
     {# Username and Password #}
     {{ form.as_p }}
-    
+
     {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
@@ -46,7 +46,7 @@
     {% get_social_apps as social_apps %}
     {% if social_apps %}
       <div class="registration__sso registration__sso--login">
-        <hr></hr>
+        <hr>
         <h2>{% trans "Log in using SSO" %}</h2>
         <p>
           {% trans "If you set up Single Sign On in your account settings, you will only be able to log in through this method." %}
@@ -70,14 +70,7 @@
           {% include "socialaccount/snippets/login_extra.html" %}
         </div>
       </div>
-      <script>
-        // {# Polish: Make SSO links act more like buttons #}
-        document.addEventListener('keydown', function(e) {
-          if ((e.code === 'Space') && e.target.classList.contains('kobo-button--sso')) {
-            e.target.click()
-          }
-        })
-      </script>
+      <script src="{% static 'js/sso_buttons.js' %}"></script>
     {% endif %}
 
   </form>
