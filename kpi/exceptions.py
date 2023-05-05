@@ -56,8 +56,7 @@ class DeploymentNotFound(Exception):
     def __init__(
         self, message=t('Must call `asset.connect_deployment()` first')
     ):
-        self.message = message
-        super().__init__(self.message)
+        super().__init__(message)
 
 
 class FFMpegException(Exception):
@@ -80,6 +79,14 @@ class InvalidXFormException(Exception):
 
 class InvalidXPathException(Exception):
     pass
+
+
+class KobocatCommunicationError(Exception):
+
+    def __init__(
+        self, message='Could not communicate with KoBoCAT', *args, **kwargs
+    ):
+        super().__init__(message, *args, **kwargs)
 
 
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):

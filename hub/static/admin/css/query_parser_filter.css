@@ -1,0 +1,15 @@
+pre.hub-queryparser--pre-inline {
+  display: inline-block;
+  margin: 0;
+  padding-left: 1px;
+  padding-right: 0;
+  overflow-x: inherit;
+}
+
+pre.hub-queryparser--pre-inline:first-child {
+  padding-left: 10px;
+}
+
+#changelist-filter a.hub-queryparser--d-inline {
+  display: inline;
+}

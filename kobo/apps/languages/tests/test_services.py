@@ -1,6 +1,5 @@
 # coding: utf-8
 import pytest
-from django.test import TestCase
 
 from .base import BaseTestCase
 from ..exceptions import LanguageNotSupported
