@@ -16,6 +16,7 @@ from markitup.fields import MarkupField
 # whose approach is emulated here
 from django.views.static import was_modified_since
 
+from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
 
@@ -139,10 +140,13 @@ class PerUserSetting(models.Model):
 
 
 class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
+    uid = KpiUidField(uid_prefix='u')
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
     data = models.JSONField(default=dict)
+    date_removal_requested = models.DateTimeField(null=True)
+    date_removed = models.DateTimeField(null=True)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
@@ -154,8 +158,9 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         using=None,
         update_fields=None,
     ):
-        self.standardize_json_field('data', 'organization', str)
-        self.standardize_json_field('data', 'name', str)
+        if not update_fields or (update_fields and 'data' in update_fields):
+            self.standardize_json_field('data', 'organization', str)
+            self.standardize_json_field('data', 'name', str)
 
         super().save(
             force_insert=force_insert,

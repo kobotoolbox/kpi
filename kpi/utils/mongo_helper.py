@@ -82,6 +82,16 @@ class MongoHelper:
         return key
 
     @classmethod
+    def delete(cls, mongo_userform_id: str, submission_ids: list):
+        query = {
+            '_id': {cls.IN_OPERATOR: submission_ids},
+            cls.USERFORM_ID: mongo_userform_id
+        }
+        delete_counts = settings.MONGO_DB.instances.delete_many(query)
+
+        return delete_counts == len(submission_ids)
+
+    @classmethod
     def encode(cls, key: str) -> str:
         """
         Replace characters not allowed in Mongo keys with their base64-encoded

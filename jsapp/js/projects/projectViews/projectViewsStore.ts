@@ -1,8 +1,9 @@
 import $ from 'jquery';
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, when} from 'mobx';
 import {handleApiFail} from 'js/utils';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {ROOT_URL} from 'js/constants';
+import sessionStore from 'js/stores/session';
 
 export interface ProjectView {
   uid: string;
@@ -24,7 +25,10 @@ class ProjectViewsStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchData();
+    when(
+      () => sessionStore.isLoggedIn,
+      () => this.fetchData()
+    );
   }
 
   public getView(uid: string) {

@@ -11,7 +11,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch, Q, F
+from django.db.models import Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -19,7 +19,6 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from jsonschema import validate as jsonschema_validate
-
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
@@ -33,7 +32,6 @@ from kobo.apps.subsequences.utils import (
     advanced_submission_jsonschema,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
-
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
@@ -85,7 +83,7 @@ from kpi.tasks import remove_asset_snapshots
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
-class AssetManager(models.Manager):
+class AssetWithoutPendingDeletedManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
         update_parent_languages = kwargs.pop('update_parent_languages', True)
 
@@ -117,13 +115,22 @@ class AssetManager(models.Manager):
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
 
+    def get_queryset(self):
+        return super().get_queryset().exclude(pending_delete=True)
+
+
+class AssetAllManager(AssetWithoutPendingDeletedManager):
+
+    def get_queryset(self):
+        return super(AssetWithoutPendingDeletedManager, self).get_queryset()
+
 
 class KpiTaggableManager(_TaggableManager):
     @require_instance_manager
     def add(self, *tags, **kwargs):
         """ A wrapper that replaces spaces in tag names with dashes and also
         strips leading and trailng whitespace. Behavior should match the
-        TagsInput transform function in app.es6. """
+        cleanupTags function in jsapp/js/utils.ts. """
         tags_out = []
         for t in tags:
             # Modify strings only; the superclass' add() method will then
@@ -192,8 +199,10 @@ class Asset(ObjectPermissionMixin,
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
+    pending_delete = models.BooleanField(default=False)
 
-    objects = AssetManager()
+    objects = AssetWithoutPendingDeletedManager()
+    all_objects = AssetAllManager()
 
     @property
     def kind(self):
