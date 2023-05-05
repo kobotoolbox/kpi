@@ -100,6 +100,18 @@ export default function Plan() {
     }
   }, [state.subscribedProduct]);
 
+  const isDataLoading = useMemo((): boolean => {
+    if (
+      state.products &&
+      state.organization !== null &&
+      state.subscribedProduct !== null
+    ) {
+      return false;
+    } else {
+      return true;
+    }
+  }, [state.products, state.organization, state.subscribedProduct]);
+
   useEffect(() => {
     getProducts().then((data) => {
       dispatch({
@@ -168,18 +180,6 @@ export default function Plan() {
       }
     }
   }, [state.subscribedProduct]);
-
-  const isDataLoading = useMemo((): boolean => {
-    if (
-      state.products &&
-      state.organization !== null &&
-      state.subscribedProduct !== null
-    ) {
-      return false;
-    } else {
-      return true;
-    }
-  }, [state.products, state.organization, state.subscribedProduct]);
 
   // Filter prices based on plan interval
   const filterPrices = useMemo((): Price[] => {
