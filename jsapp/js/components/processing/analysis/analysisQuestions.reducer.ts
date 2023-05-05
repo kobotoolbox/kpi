@@ -21,7 +21,9 @@ export type AnalysisQuestionsAction =
     }
   | {type: 'updateQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
   | {type: 'updateResponse'; payload: {uid: string; response: string}}
-  | {type: 'updateResponseCompleted'; payload: {questions: AnalysisQuestion[]}};
+  | {type: 'updateResponseCompleted'; payload: {questions: AnalysisQuestion[]}}
+  | {type: 'initialiseSearch'; payload: {uid: string}}
+  | {type: 'initialiseSearchCompleted'; payload: {questions: AnalysisQuestion[]}};
 
 interface AnalysisQuestionDraftable extends AnalysisQuestion {
   isDraft?: boolean;
@@ -147,6 +149,19 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       };
     }
     case 'updateResponseCompleted': {
+      return {
+        ...state,
+        isPending: false,
+        questions: action.payload.questions,
+      };
+    }
+    case 'initialiseSearch': {
+      return {
+        ...state,
+        isPending: true,
+      };
+    }
+    case 'initialiseSearchCompleted': {
       return {
         ...state,
         isPending: false,

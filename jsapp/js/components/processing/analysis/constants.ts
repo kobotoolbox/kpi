@@ -24,6 +24,8 @@ export type AnalysisQuestionType =
 export interface AdditionalFields {
   /** A list of keywords to search for. */
   keywords?: string[];
+  /** Used for `aq_keyword_search` question to indicate search in progress. */
+  isSearching?: boolean;
   /** The transcript or translation source for the search. */
   source?: LanguageCode;
   /** For the `aq_seleect_one` and `aq_select_multiple` question types */

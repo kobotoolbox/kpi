@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import CommonHeader from './commonHeader.component';
 import commonStyles from './common.module.scss';
 import styles from './keywordSearchResponseForm.module.scss';
@@ -17,7 +17,6 @@ interface KeywordSearchResponseFormProps {
 export default function KeywordSearchResponseForm(
   props: KeywordSearchResponseFormProps
 ) {
-  const [isSearching, setIsSearching] = useState<boolean>(false);
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
@@ -32,30 +31,24 @@ export default function KeywordSearchResponseForm(
     return null;
   }
 
-  function applySearch() {
-    setIsSearching(true);
+  function startPollingForSearchFinished() {
+    // TODO: make this work ;-)
 
-    // fake 0-50 response
-    const fakeResponse = String(Math.floor(Math.random() * (50 - 0 + 1)));
-
-    analysisQuestions?.dispatch({
-      type: 'updateResponse',
-      payload: {uid: props.uid, response: fakeResponse},
-    });
-
-    // TODO make actual API call here
-    // For now we make a fake response
-    console.log('QA fake API call: update response', props.uid, fakeResponse);
     setTimeout(() => {
-      console.log('QA fake API call: update response DONE');
+      console.log('QA fake API call: poll for search finished DONE');
       analysisQuestions?.dispatch({
-        type: 'updateResponseCompleted',
+        type: 'initialiseSearchCompleted',
         payload: {
           questions: analysisQuestions?.state.questions.map((item) => {
             if (item.uid === props.uid) {
               return {
                 ...item,
-                response: fakeResponse,
+                // fake 0-50 response
+                response: String(Math.floor(Math.random() * (50 - 0 + 1))),
+                additionalFields: {
+                  ...item.additionalFields,
+                  isSearching: false,
+                },
               };
             } else {
               return item;
@@ -63,8 +56,41 @@ export default function KeywordSearchResponseForm(
           }),
         },
       });
-      setIsSearching(false);
-    }, 3000);
+    }, 5000);
+  }
+
+  function applySearch() {
+    analysisQuestions?.dispatch({
+      type: 'initialiseSearch',
+      payload: {uid: props.uid},
+    });
+
+    // TODO make actual API call here
+    // For now we make a fake response
+    console.log('QA fake API call: initialise search', props.uid);
+    setTimeout(() => {
+      console.log('QA fake API call: initialise search DONE');
+      analysisQuestions?.dispatch({
+        type: 'initialiseSearchCompleted',
+        payload: {
+          questions: analysisQuestions?.state.questions.map((item) => {
+            if (item.uid === props.uid) {
+              return {
+                ...item,
+                additionalFields: {
+                  ...item.additionalFields,
+                  isSearching: true,
+                },
+              };
+            } else {
+              return item;
+            }
+          }),
+        },
+      });
+
+      startPollingForSearchFinished();
+    }, 1000);
   }
 
   return (
@@ -73,7 +99,7 @@ export default function KeywordSearchResponseForm(
 
       <section className={commonStyles.alignedContent}>
         {(() => {
-          if (isSearching) {
+          if (question.additionalFields?.isSearching) {
             return (
               <span className={styles.loading}>
                 {t('…keyword search in progress')}
@@ -87,6 +113,7 @@ export default function KeywordSearchResponseForm(
                 size='m'
                 label={t('Apply search')}
                 onClick={applySearch}
+                isDisabled={analysisQuestions?.state.isPending}
               />
             );
           } else if (question.additionalFields?.keywords) {
@@ -104,9 +131,13 @@ export default function KeywordSearchResponseForm(
                   &nbsp;
                   <span>{t('of the keywords')}</span>
                   &nbsp;
-                  <span className={styles.keywords}>
+                  <strong className={styles.keywords}>
                     {question.additionalFields.keywords.join(', ')}
-                  </span>
+                  </strong>
+                  &nbsp;
+                  <span>{t('from')}</span>
+                  &nbsp;
+                  <strong>{question.additionalFields.source}</strong>
                 </span>
 
                 <time className={styles.date}>last updated time</time>
