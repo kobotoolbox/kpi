@@ -29,7 +29,6 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
 
 interface PlanState {
-  isLoading: boolean;
   subscribedProduct: null | BaseSubscription;
   intervalFilter: string;
   filterToggle: boolean;
@@ -45,7 +44,6 @@ interface DataUpdates {
 }
 
 const initialState = {
-  isLoading: true,
   subscribedProduct: null,
   intervalFilter: 'year',
   filterToggle: false,
