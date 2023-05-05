@@ -161,13 +161,19 @@ export default function Plan() {
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.'
-          )
+          ),
+          {
+            duration: 8000,
+          }
         );
       } else {
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.'
-          )
+          ),
+          {
+            duration: 8000,
+          }
         );
       }
     }
