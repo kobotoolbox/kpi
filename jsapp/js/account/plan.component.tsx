@@ -30,7 +30,7 @@ import {notify} from 'js/utils';
 
 interface PlanState {
   isLoading: boolean;
-  subscribedProduct: BaseSubscription;
+  subscribedProduct: null | BaseSubscription;
   intervalFilter: string;
   filterToggle: boolean;
   products: Product[];
@@ -46,7 +46,7 @@ interface DataUpdates {
 
 const initialState = {
   isLoading: true,
-  subscribedProduct: [],
+  subscribedProduct: null,
   intervalFilter: 'year',
   filterToggle: false,
   products: [],
@@ -92,48 +92,39 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
-  const hasActiveSubscription = useMemo(
-    () =>
+  const hasActiveSubscription = useMemo(() => {
+    if (state.subscribedProduct !== null) {
       state.subscribedProduct.some((subscription: BaseSubscription) =>
         activeSubscriptionStatuses.includes(subscription.status)
-      ),
-    [state.subscribedProduct]
-  );
-  const [dataLoading, setDataLoading] = useState(true);
+      );
+    }
+  }, [state.subscribedProduct]);
 
   useEffect(() => {
-    const promises = [];
-    promises.push(
-      getProducts().then((data) => {
-        dispatch({
-          type: 'initialProd',
-          prodData: data.results,
-        });
-      })
-    );
-
-    promises.push(
-      getOrganization().then((data) => {
-        dispatch({
-          type: 'initialOrg',
-          prodData: data.results[0],
-        });
-      })
-    );
-
-    promises.push(
-      getSubscription().then((data) => {
-        dispatch({
-          type: 'initialSub',
-          prodData: data.results,
-        });
-      })
-    );
-
-    Promise.all(promises).then(() => {
-      setAreButtonsDisabled(false);
-      setDataLoading(false);
+    getProducts().then((data) => {
+      dispatch({
+        type: 'initialProd',
+        prodData: data.results,
+      });
     });
+
+    getOrganization().then((data) => {
+      dispatch({
+        type: 'initialOrg',
+        prodData: data.results[0],
+      });
+    });
+
+    getSubscription().then((data) => {
+      dispatch({
+        type: 'initialSub',
+        prodData: data.results,
+      });
+    });
+
+    if (isDataLoading) {
+      setAreButtonsDisabled(false);
+    }
   }, [searchParams, shouldRevalidate]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
@@ -178,6 +169,18 @@ export default function Plan() {
     }
   }, [state.subscribedProduct]);
 
+  const isDataLoading = useMemo((): boolean => {
+    if (
+      state.products &&
+      state.organization !== null &&
+      state.subscribedProduct !== null
+    ) {
+      return false;
+    } else {
+      return true;
+    }
+  }, [state.products, state.organization, state.subscribedProduct]);
+
   // Filter prices based on plan interval
   const filterPrices = useMemo((): Price[] => {
     const filterAmount = state.products.map((product: Product) => {
@@ -204,8 +207,10 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (!product.prices.unit_amount && !hasActiveSubscription) {
-        return true;
+      if (hasActiveSubscription !== undefined) {
+        if (!product.prices.unit_amount && !hasActiveSubscription) {
+          return true;
+        }
       }
       const subscription = getSubscriptionForProductId(product.id);
       return Boolean(subscription?.status === 'active');
@@ -363,7 +368,7 @@ export default function Plan() {
 
   return (
     <>
-      {dataLoading ? (
+      {isDataLoading ? (
         <LoadingSpinner />
       ) : (
         <div className={styles.accountPlan}>
