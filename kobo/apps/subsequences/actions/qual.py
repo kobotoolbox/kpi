@@ -11,7 +11,7 @@ class QualAction(BaseAction):
             if row['type'] in ['audio', 'video']:
                 _fields.append(row['name'])
         return {'values': _fields}
-    
+
     def load_params(self, params):
         self.fields = params.get('values', [])
 
