@@ -32,7 +32,7 @@ interface PlanState {
   subscribedProduct: null | BaseSubscription;
   intervalFilter: string;
   filterToggle: boolean;
-  products: Product[];
+  products: null | Product[];
   organization: null | Organization;
   featureTypes: string[];
 }
@@ -47,7 +47,7 @@ const initialState = {
   subscribedProduct: null,
   intervalFilter: 'year',
   filterToggle: false,
-  products: [],
+  products: null,
   organization: null,
   featureTypes: ['support', 'advanced', 'addons'],
 };
@@ -100,7 +100,7 @@ export default function Plan() {
 
   const isDataLoading = useMemo((): boolean => {
     if (
-      state.products &&
+      state.products !== null &&
       state.organization !== null &&
       state.subscribedProduct !== null
     ) {
@@ -181,17 +181,21 @@ export default function Plan() {
 
   // Filter prices based on plan interval
   const filterPrices = useMemo((): Price[] => {
-    const filterAmount = state.products.map((product: Product) => {
-      const filteredPrices = product.prices.filter((price: BasePrice) => {
-        const interval = price.human_readable_price.split('/')[1];
-        return interval === state.intervalFilter;
+    if (state.products !== null) {
+      const filterAmount = state.products.map((product: Product) => {
+        const filteredPrices = product.prices.filter((price: BasePrice) => {
+          const interval = price.human_readable_price.split('/')[1];
+          return interval === state.intervalFilter;
+        });
+
+        return {
+          ...product,
+          prices: filteredPrices.length ? filteredPrices[0] : null,
+        };
       });
-      return {
-        ...product,
-        prices: filteredPrices.length ? filteredPrices[0] : null,
-      };
-    });
-    return filterAmount.filter((product: Product) => product.prices);
+      return filterAmount.filter((product: Product) => product.prices);
+    }
+    return state.products;
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionForProductId = useCallback(
@@ -292,7 +296,7 @@ export default function Plan() {
 
   const hasMetaFeatures = () => {
     let expandBool = false;
-    if (state.products.length >= 0) {
+    if (state.products && state.products.length > 0) {
       filterPrices.map((price) => {
         for (const featureItem in price.metadata) {
           if (
@@ -359,9 +363,10 @@ export default function Plan() {
     });
     return renderFeaturesList(items, featureTitle);
   };
-
-  if (!state.products.length) {
-    return null;
+  if (state.products) {
+    if (!state.products.length) {
+      return null;
+    }
   }
 
   return (
