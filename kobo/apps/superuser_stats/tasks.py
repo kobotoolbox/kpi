@@ -528,7 +528,11 @@ def generate_user_statistics_report(
 
 
 @shared_task
-def generate_user_details_report(output_filename: str):
+def generate_user_details_report(
+    output_filename: str,
+    start_date: str,
+    end_date: str
+):
     USER_COLS = [
         'id',
         'username',
@@ -580,7 +584,10 @@ def generate_user_details_report(output_filename: str):
     values = USER_COLS + METADATA_COL
 
     data = (
-        User.objects.exclude(pk=settings.ANONYMOUS_USER_ID)
+        User.objects.filter(
+            date_joined__date__range=(start_date, end_date),
+        )
+        .exclude(pk=settings.ANONYMOUS_USER_ID)
         .annotate(
             mfa_is_active=F('mfa_methods__is_active'),
             metadata=F('extra_details__data'),
@@ -601,7 +608,7 @@ def generate_user_details_report(output_filename: str):
         columns = USER_COLS + EXTRA_DETAILS_COLS
         writer = csv.writer(f)
         writer.writerow(columns)
-        for row in data:
+        for row in data.iterator():
             metadata = row.pop('metadata', {}) or {}
             flatten_metadata_inplace(metadata)
             row.update(metadata)
