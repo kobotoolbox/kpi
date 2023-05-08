@@ -169,7 +169,7 @@ export default function DefaultEditor(props: DefaultEditorProps) {
 
       {qaDefinition.additionalFieldNames && (
         <section className={commonStyles.alignedContent}>
-          {question.type === 'aq_keyword_search' && (
+          {question.type === 'qual_keyword_search' && (
             <KeywordSearchFieldsEditor
               uid={question.uid}
               fields={additionalFields || {source: '', keywords: []}}
@@ -177,8 +177,8 @@ export default function DefaultEditor(props: DefaultEditorProps) {
             />
           )}
 
-          {(question.type === 'aq_select_one' ||
-            question.type === 'aq_select_multiple') && (
+          {(question.type === 'qual_select_one' ||
+            question.type === 'qual_select_multiple') && (
             <SelectXFieldsEditor
               uid={question.uid}
               fields={additionalFields || {choices: []}}

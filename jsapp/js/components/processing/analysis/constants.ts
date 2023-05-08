@@ -5,16 +5,16 @@ export const AUTO_SAVE_TYPING_DELAY = 3000;
 
 /**
  * To differentiate these question types from the ones we use in Form Builder,
- * let's prefix them with `aq_` (abbreviation for "analysis question").
+ * let's prefix them with `qual_` (abbreviation for "analysis question").
  */
 export type AnalysisQuestionType =
-  | 'aq_keyword_search'
-  | 'aq_note'
-  | 'aq_number'
-  | 'aq_select_multiple'
-  | 'aq_select_one'
-  | 'aq_tags'
-  | 'aq_text';
+  | 'qual_keyword_search'
+  | 'qual_note'
+  | 'qual_number'
+  | 'qual_select_multiple'
+  | 'qual_select_one'
+  | 'qual_tags'
+  | 'qual_text';
 
 /**
  * This is a sum of all different possible fields for multiple question types.
@@ -24,11 +24,11 @@ export type AnalysisQuestionType =
 export interface AdditionalFields {
   /** A list of keywords to search for. */
   keywords?: string[];
-  /** Used for `aq_keyword_search` question to indicate search in progress. */
+  /** Used for `qual_keyword_search` question to indicate search in progress. */
   isSearching?: boolean;
   /** The transcript or translation source for the search. */
   source?: LanguageCode;
-  /** For the `aq_seleect_one` and `aq_select_multiple` question types */
+  /** For the `qual_seleect_one` and `qual_select_multiple` question types */
   choices?: Array<{
     label: string;
     uid: string;
@@ -67,39 +67,39 @@ export interface AnalysisQuestionDefinition {
  */
 export const ANALYSIS_QUESTION_DEFINITIONS: AnalysisQuestionDefinition[] = [
   {
-    type: 'aq_tags',
+    type: 'qual_tags',
     label: t('Tags'),
     icon: 'tag',
   },
   {
-    type: 'aq_text',
+    type: 'qual_text',
     label: t('Text'),
     icon: 'qt-text',
   },
   {
-    type: 'aq_number',
+    type: 'qual_number',
     label: t('Number'),
     icon: 'qt-number',
   },
   {
-    type: 'aq_select_one',
+    type: 'qual_select_one',
     label: t('Single choice'),
     icon: 'qt-select-one',
     additionalFieldNames: ['choices'],
   },
   {
-    type: 'aq_select_multiple',
+    type: 'qual_select_multiple',
     label: t('Multiple choice'),
     icon: 'qt-select-many',
     additionalFieldNames: ['choices'],
   },
   {
-    type: 'aq_note',
+    type: 'qual_note',
     label: t('Note'),
     icon: 'qt-note',
   },
   {
-    type: 'aq_keyword_search',
+    type: 'qual_keyword_search',
     label: t('Keyword search'),
     icon: 'tag',
     isAutomated: true,
