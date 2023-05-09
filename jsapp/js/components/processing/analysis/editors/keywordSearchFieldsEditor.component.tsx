@@ -68,7 +68,7 @@ export default function KeywordSearchFieldsEditor(
       </section>
 
       <section className={styles.right}>
-        <label>{t('From file')}</label>
+        <label>{t('Search this transcript/translation:')}</label>
 
         <TransxSelector
           languageCodes={singleProcessingStore.getSources()}
