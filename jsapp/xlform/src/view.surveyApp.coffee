@@ -734,13 +734,13 @@ module.exports = do ->
       $header = $et.closest('.card__header')
       card_hover_text = do ->
         if buttonName is 'settings'
-          t("[button triggers] Settings")
+          t("Settings")
         else if buttonName is 'delete'
-          t("[button triggers] Delete Question")
+          t("Delete Question")
         else if buttonName is 'duplicate'
-          t("[button triggers] Duplicate Question")
+          t("Duplicate Question")
         else if buttonName is 'add-to-library'
-          t("[button triggers] Add Question to Library")
+          t("Add Question to Library")
 
       $header.find('.card__header--shade').eq(0).children('span').eq(0)
         .attr('data-card-hover-text', card_hover_text)

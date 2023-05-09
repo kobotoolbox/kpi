@@ -1,0 +1,36 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'admin/css/query_parser_filter.css' %}"/>
+
+<h3>Advanced query search</h3>
+
+<ul>
+  <li>You can use django <a
+    class="hub-queryparser--d-inline"
+    href="https://docs.djangoproject.com/en/3.2/ref/models/querysets/#field-lookups">
+    field lookups</a> to perform advanced searches
+  </li>
+  <li><b>Some examples:</b></li>
+  <li>logged in after March 1, 2023:
+    <pre>last_login__gte:2023-03-01</pre>
+  </li>
+  <li>emails not from domain.tld:
+    <pre>NOT email__iendswith:@domain.tld</pre>
+  </li>
+  <li>Users being pending removed:
+    <pre>extra_details__date_removal_request__isnull:False</pre>
+    <pre>AND extra_details__date_removed__isnull:True</pre>
+  </li>
+  <li>Users removed:
+    <pre>extra_details__date_removed__isnull:False</pre>
+  </li>
+  <li><b>Fields:</b></li>
+  <li>
+    <pre class="hub-queryparser--pre-inline">first_name</pre>,
+    <pre class="hub-queryparser--pre-inline">last_name</pre>,
+    <pre class="hub-queryparser--pre-inline">username</pre>,
+    <pre class="hub-queryparser--pre-inline">email</pre>,
+    <pre class="hub-queryparser--pre-inline">last_login</pre>,
+    <pre class="hub-queryparser--pre-inline">extra_details__date_removal_request</pre>,
+    <pre class="hub-queryparser--pre-inline">extra_details__date_removed</pre>
+  </li>
+</ul>
