@@ -56,23 +56,34 @@ class TextBox extends React.Component<TextBoxProps, {}> {
    * types to stop TextareaAutosize complaining.
    */
 
-  onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+  onValueChange(newValue: string) {
     if (this.props.readOnly || !this.props.onChange) {
       return;
     }
-    this.props.onChange(evt.currentTarget.value);
+
+    this.props.onChange(newValue);
   }
 
-  onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
+  onBlur(evt: React.FocusEvent<HTMLInputElement> | React.FocusEvent<HTMLTextAreaElement>) {
     if (typeof this.props.onBlur === 'function') {
       this.props.onBlur(evt.currentTarget.value);
     }
   }
 
-  onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
+  onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | React.KeyboardEvent<HTMLTextAreaElement>) {
+    // For `number` type, we disallow any non numeric characters.
+    if (
+      this.props.type === 'number' &&
+      !['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(evt.key)
+    ) {
+      evt.preventDefault();
+      return false;
+    }
+
     if (typeof this.props.onKeyPress === 'function') {
       this.props.onKeyPress(evt.key, evt);
     }
+    return true;
   }
 
   render() {
@@ -101,15 +112,20 @@ class TextBox extends React.Component<TextBoxProps, {}> {
       type = this.props.type;
     }
 
+    // Shared props for both `<TextareaAutosize>` and `<input>`. The reason we
+    // need this is because for `text-multiline` type we use special component,
+    // and for all the other types we use the `<input>` HTML tag.
     const inputProps = {
       value: this.props.value,
       placeholder: this.props.placeholder,
-      onChange: this.onChange.bind(this),
       onBlur: this.onBlur.bind(this),
       onKeyPress: this.onKeyPress.bind(this),
       readOnly: this.props.readOnly,
       disabled: this.props.disabled,
       'data-cy': this.props['data-cy'],
+      // For `number` type we allow only positive integers
+      step: this.props.type === 'number' ? 1 : undefined,
+      min: this.props.type === 'number' ? 0 : undefined,
     };
 
     return (
@@ -124,6 +140,9 @@ class TextBox extends React.Component<TextBoxProps, {}> {
           <TextareaAutosize
             className='text-box__input'
             ref={this.textareaReference}
+            onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {
+              this.onValueChange(evt.currentTarget.value);
+            }}
             {...inputProps}
           />
         }
@@ -132,6 +151,14 @@ class TextBox extends React.Component<TextBoxProps, {}> {
             className='text-box__input'
             type={type}
             ref={this.inputReference}
+            // We use `onInput` instead of `onChange` here, because (for some
+            // reason I wasn't able to grasp) `input[type="number"]` is not
+            // calling onChange when non-number is typed, but regardless to that
+            // the non-number character ends up added to the input value.
+            // This happens on Firefox.
+            onInput={(evt: React.ChangeEvent<HTMLInputElement>) => {
+              this.onValueChange(evt.currentTarget.value);
+            }}
             {...inputProps}
           />
         }
