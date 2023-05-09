@@ -251,6 +251,10 @@ const MainHeader = class MainHeader extends Reflux.Component {
   }
 
   renderGitRevInfo() {
+    // For developers who don't want this element to obstruct the UI while
+    // working on it, please uncomment line below
+    // if (window.location.hostname === 'kf.kobo.local') {return null;}
+
     if (
       sessionStore.currentAccount?.git_rev?.branch &&
       sessionStore.currentAccount?.git_rev?.short
