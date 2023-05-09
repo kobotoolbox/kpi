@@ -92,13 +92,6 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
-  const hasActiveSubscription = useMemo(() => {
-    if (state.subscribedProduct !== null) {
-      state.subscribedProduct.some((subscription: BaseSubscription) =>
-        activeSubscriptionStatuses.includes(subscription.status)
-      );
-    }
-  }, [state.subscribedProduct]);
 
   const isDataLoading = useMemo((): boolean => {
     if (
@@ -207,26 +200,38 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (hasActiveSubscription !== undefined) {
-        if (!product.prices.unit_amount && !hasActiveSubscription) {
-          return true;
-        }
+      if (
+        !product.prices.unit_amount &&
+        state.intervalFilter === 'year' &&
+        state.subscribedProduct.length === 0
+      ) {
+        return true;
       }
+
       const subscription = getSubscriptionForProductId(product.id);
-      return Boolean(subscription?.status === 'active');
+      if (
+        subscription?.items[0].price.id === product.prices.id &&
+        subscription?.status === 'active'
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     },
-    [state.subscribedProduct]
+    [state.subscribedProduct, state.intervalFilter]
   );
 
   const shouldShowManage = useCallback(
     (product: Price) => {
       const subscription = getSubscriptionForProductId(product.id);
+
       if (!subscription) {
         return false;
       }
       const hasManageableStatus = activeSubscriptionStatuses.includes(
         subscription.status
       );
+
       return Boolean(state.organization?.uid) && hasManageableStatus;
     },
     [state.subscribedProduct]
@@ -400,7 +405,7 @@ export default function Plan() {
             <div className={styles.allPlans}>
               {filterPrices.map((price: Price) => (
                 <div className={styles.stripePlans} key={price.id}>
-                  {shouldShowManage(price) || isSubscribedProduct(price) ? (
+                  {isSubscribedProduct(price) ? (
                     <div className={styles.currentPlan}>{t('your plan')}</div>
                   ) : (
                     <div className={styles.otherPlanSpacing} />
@@ -455,7 +460,8 @@ export default function Plan() {
                           isDisabled={areButtonsDisabled}
                         />
                       )}
-                    {(isSubscribedProduct(price) || shouldShowManage(price)) &&
+                    {isSubscribedProduct(price) &&
+                      shouldShowManage(price) &&
                       price.prices.unit_amount !== 0 && (
                         <Button
                           type='full'
