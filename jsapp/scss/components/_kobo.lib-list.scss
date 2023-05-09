@@ -1,3 +1,4 @@
+@use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 
 .lib-list {
@@ -58,7 +59,15 @@
 }
 
 .lib-list__tag {
-  @extend .react-tagsinput-tag;
+  background-color: colors.$kobo-gray-40;
+  color: colors.$kobo-white;
+  font-weight: 400;
+  margin-bottom: sizes.$x4;
+  margin-right: sizes.$x4;
+  padding: sizes.$x4 sizes.$x8;
+  padding-right: sizes.$x6;
+  display: inline-block;
+  border-radius: sizes.$x2;
   max-width: 90%;
   overflow: hidden;
 }

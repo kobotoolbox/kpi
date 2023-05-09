@@ -44,6 +44,7 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXFormException,
     InvalidXPathException,
+    KobocatCommunicationError,
     SubmissionIntegrityError,
     SubmissionNotFoundException,
     XPathNotFoundException,
@@ -391,14 +392,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if (
-                hasattr(e, 'response')
-                and e.response.status_code == status.HTTP_404_NOT_FOUND
-            ):
+            if not hasattr(e, 'response'):
+                raise
+
+            if e.response.status_code == status.HTTP_404_NOT_FOUND:
                 # The KC project is already gone!
                 pass
+            elif e.response.status_code in [
+                status.HTTP_502_BAD_GATEWAY,
+                status.HTTP_504_GATEWAY_TIMEOUT,
+            ]:
+                raise KobocatCommunicationError
+            elif e.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                raise KobocatCommunicationError(
+                    'Could not authenticate to KoBoCAT'
+                )
             else:
                 raise
+
         super().delete()
 
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
@@ -850,6 +861,31 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             except KeyError:
                 pass
         return links
+
+    def get_orphan_postgres_submissions(self) -> Optional[QuerySet, bool]:
+        """
+        Return a queryset of all submissions still present in PostgreSQL
+        database related to `self.xform`.
+        Return False if one submission still exists in MongoDB at
+        least.
+        Otherwise, if `self.xform` does not exist (anymore), return None
+        """
+        all_submissions = self.get_submissions(
+            user=self.asset.owner,
+            fields=['_id'],
+            skip_count=True,
+        )
+        try:
+            next(all_submissions)
+        except StopIteration:
+            pass
+        else:
+            return False
+
+        try:
+            return ReadOnlyKobocatInstance.objects.filter(xform_id=self.xform_id)
+        except InvalidXFormException:
+            return None
 
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'

@@ -3,25 +3,16 @@ from django.db import models
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
-from kobo.apps.subsequences.integrations.google.google_transcribe import (
-    GoogleTranscribeEngine,
-)
-from kobo.apps.subsequences.integrations.google.google_translate import (
-    GoogleTranslationEngine,
-)
-from kobo.apps.subsequences.tasks import handle_google_translation_operation
-from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
-    determine_export_cols_indiv,
-)
 from kobo.apps.trackers.utils import update_nlp_counter
-
 from kpi.models import Asset
-
 from .constants import GOOGLETS, GOOGLETX
 from .exceptions import SubsequenceTimeoutError
 from .integrations.google.google_transcribe import GoogleTranscribeEngine
 from .integrations.google.google_translate import GoogleTranslationEngine
 from .tasks import handle_google_translation_operation
+from .utils.determine_export_cols_with_values import (
+    determine_export_cols_indiv,
+)
 
 
 class SubmissionExtras(models.Model):
