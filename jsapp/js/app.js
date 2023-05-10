@@ -9,7 +9,7 @@ import { Outlet } from "react-router-dom";
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {stores} from 'js/stores';
-import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
+import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
