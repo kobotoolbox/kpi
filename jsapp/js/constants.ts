@@ -55,8 +55,8 @@ export type PermissionCodename =
  * permissions config endpoint, but as we need these names to reference them in
  * the code to build the UI it's a necessary evil.
  *
- * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
- * where you have to match the classes with endpoints and their HTTP methods.
+ * To know what these permissions permit see `kpi/permissions.py` file, where
+ * you have to match the classes with endpoints and their HTTP methods.
  */
 type PermissionsCodenames = {[P in PermissionCodename]: PermissionCodename};
 export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
@@ -72,20 +72,32 @@ export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
   // Is asset discoverable in public lists.
   discover_asset: 'discover_asset',
 
-  // Is user able to manage some aspects of asset (it is different from editing)
-  // such as: saving export settings, sharing asset (in future)…
+  /**
+   * Is user able to manage some aspects of asset (it is different from editing)
+   * such as:
+   * - saving export settings
+   * - sharing asset (in future)
+   * - create, modify and delete qualitative analysis questions
+   */
   manage_asset: 'manage_asset',
 
   // Is user able to add submissions - handled by Backend submissions endpoint.
   add_submissions: 'add_submissions',
 
-  // Is user able to see submissions, i.e. the Table View.
+  /**
+   * Is user able to see submissions, i.e. the Table View. Also:
+   * - viewing and exporting qualitative analysis data
+   */
   view_submissions: 'view_submissions',
 
   // Used for partially permissing user actions on submissions.
   partial_submissions: 'partial_submissions',
 
-  // Is user able to edit existing submissions.
+  /**
+   * Is user able to edit existing submissions. Also:
+   * - adding data (responding) to qualitative analysis questions
+   * - creating new tags for qualitative analysis questions
+   */
   change_submissions: 'change_submissions',
 
   // Is user able to delete submissions.
