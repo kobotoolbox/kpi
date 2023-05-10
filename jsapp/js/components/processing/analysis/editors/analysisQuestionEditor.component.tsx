@@ -169,7 +169,7 @@ export default function DefaultEditor(props: DefaultEditorProps) {
 
       {qaDefinition.additionalFieldNames && (
         <section className={commonStyles.alignedContent}>
-          {question.type === 'qual_keyword_search' && (
+          {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
               uid={question.uid}
               fields={additionalFields || {source: '', keywords: []}}

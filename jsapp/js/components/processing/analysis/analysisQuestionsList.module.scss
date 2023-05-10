@@ -1,8 +1,11 @@
 @use 'scss/sizes';
 
 .root {
-  list-style: none;
   padding: sizes.$x20 0;
+}
+
+.list {
+  list-style: none;
 }
 
 .row:not(:last-child) {

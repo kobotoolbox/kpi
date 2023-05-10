@@ -59,10 +59,10 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
 
   // This component is a general/default component for handling responses, and
   // we want it to present a text input. But since creating a separate component
-  // for `qual_number` with a single line being different, we opt for this litte
+  // for `qual_integer` with a single line being different, we opt for this litte
   // check here.
   let textBoxType: AvailableType = 'text-multiline';
-  if (qaDefinition.type === 'qual_number') {
+  if (qaDefinition.type === 'qual_integer') {
     textBoxType = 'number';
   }
 

@@ -8,9 +8,9 @@ export const AUTO_SAVE_TYPING_DELAY = 3000;
  * let's prefix them with `qual_` (abbreviation for "analysis question").
  */
 export type AnalysisQuestionType =
-  | 'qual_keyword_search'
+  | 'qual_auto_keyword_count'
   | 'qual_note'
-  | 'qual_number'
+  | 'qual_integer'
   | 'qual_select_multiple'
   | 'qual_select_one'
   | 'qual_tags'
@@ -24,7 +24,7 @@ export type AnalysisQuestionType =
 export interface AdditionalFields {
   /** A list of keywords to search for. */
   keywords?: string[];
-  /** Used for `qual_keyword_search` question to indicate search in progress. */
+  /** Used for `qual_auto_keyword_count` question to indicate search in progress. */
   isSearching?: boolean;
   /** The transcript or translation source for the search. */
   source?: LanguageCode;
@@ -77,7 +77,7 @@ export const ANALYSIS_QUESTION_DEFINITIONS: AnalysisQuestionDefinition[] = [
     icon: 'qt-text',
   },
   {
-    type: 'qual_number',
+    type: 'qual_integer',
     label: t('Number'),
     icon: 'qt-number',
   },
@@ -99,7 +99,7 @@ export const ANALYSIS_QUESTION_DEFINITIONS: AnalysisQuestionDefinition[] = [
     icon: 'qt-note',
   },
   {
-    type: 'qual_keyword_search',
+    type: 'qual_auto_keyword_count',
     label: t('Keyword search'),
     icon: 'tag',
     isAutomated: true,

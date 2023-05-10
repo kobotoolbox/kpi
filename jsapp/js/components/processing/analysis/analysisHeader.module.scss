@@ -67,6 +67,11 @@ $menu-padding: koboSelect.$k-select-menu-padding;
   }
 }
 
+.addQuestionMenuButtonDisabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .addQuestionMenu :global h2 {
   text-align: left;
   border-top: sizes.$x1 solid colors.$kobo-gray-92;

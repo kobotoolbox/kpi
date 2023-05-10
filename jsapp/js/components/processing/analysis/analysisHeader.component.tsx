@@ -8,6 +8,10 @@ import KoboDropdown, {
 import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 import type {AnalysisQuestionDefinition} from './constants';
 import Icon from 'js/components/common/icon';
+import assetStore from 'jsapp/js/assetStore';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import {userCan} from 'js/components/permissions/utils';
+import classNames from 'classnames';
 
 export default function AnalysisHeader() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
@@ -19,10 +23,24 @@ export default function AnalysisHeader() {
     (definition) => definition.isAutomated
   );
 
+  const hasManagePermissions = (() => {
+    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
+    return userCan('manage_asset', asset);
+  })();
+
   function renderQuestionTypeButton(definition: AnalysisQuestionDefinition) {
     return (
       <li
-        className={styles.addQuestionMenuButton}
+        className={classNames({
+          [styles.addQuestionMenuButton]: true,
+          // We want to disable the Keyword Search question type when there is
+          // no transcript or translation.
+          [styles.addQuestionMenuButtonDisabled]: (
+            definition.type === 'qual_auto_keyword_count' &&
+            singleProcessingStore.getTranscript() === undefined &&
+            singleProcessingStore.getTranslations().length === 0
+          ),
+        })}
         key={definition.type}
         onClick={() => {
           analysisQuestions?.dispatch({
@@ -69,6 +87,7 @@ export default function AnalysisHeader() {
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
         isDisabled={
+          !hasManagePermissions ||
           analysisQuestions?.state.questionsBeingEdited.length !== 0 ||
           analysisQuestions?.state.isPending
         }
