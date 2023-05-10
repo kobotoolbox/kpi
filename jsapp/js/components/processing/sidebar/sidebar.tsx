@@ -1,17 +1,17 @@
 import React, {useState} from 'react';
 import singleProcessingStore, {StaticDisplays} from 'js/components/processing/singleProcessingStore';
 import SingleProcessingTranslation from 'js/components/processing/singleProcessingTranslation';
-import SingleProcessingDisplaySettings from 'js/components/processing/singleProcessingDisplaySettings';
+import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisplaySettings';
 import {AssetResponse} from 'jsapp/js/dataInterface';
-import style from './singleProcessingSidebar.module.scss';
-import SingleProcessingSubmissionData from 'js/components/processing/singleProcessingSubmissionData';
-import SingleProcessingSubmissionMedia from 'js/components/processing/singleProcessingSubmissionMedia';
+import style from './sidebar.module.scss';
+import SingleProcessingSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
+import SingleProcessingSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
 
-interface SingleProcessingSidebarProps {
+interface SidebarProps {
   asset: AssetResponse;
 }
 
-export default function SingleProcessingSidebar(props: SingleProcessingSidebarProps) {
+export default function Sidebar(props: SidebarProps) {
   const [store] = useState(() => singleProcessingStore);
 
   const displays = store.getDisplays();
@@ -20,7 +20,7 @@ export default function SingleProcessingSidebar(props: SingleProcessingSidebarPr
 
   return (
     <div className={style.root}>
-      <SingleProcessingDisplaySettings />
+      <SidebarDisplaySettings />
 
       {Array.from(translations).map((translation) => {
         if (

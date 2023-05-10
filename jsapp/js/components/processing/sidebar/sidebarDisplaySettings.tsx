@@ -1,34 +1,19 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import singleProcessingStore, {SingleProcessingTabs, StaticDisplays} from 'js/components/processing/singleProcessingStore';
-import KoboModal from '../modals/koboModal';
+import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
-import ToggleSwitch from '../common/toggleSwitch';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
-import style from './singleProcessingDisplaySettings.module.scss';
-import languagesStore from '../languages/languagesStore';
-import {AsyncLanguageDisplayLabel} from '../languages/languagesUtils';
+import style from './sidebarDisplaySettings.module.scss';
+import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 
-interface SingleProcessingDisplaySettingsState {
-  isModalOpen: boolean;
-}
-
-export default function SingleProcessingDisplaySettings() {
+export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
-
-  const [modal, setModal] = useState<SingleProcessingDisplaySettingsState>({
-    isModalOpen: false,
-  });
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const displays = store.getDisplays();
   const currentTab = store.getActiveTab();
-
-  function toggleModal() {
-    setModal({
-      ...modal,
-      isModalOpen: !modal.isModalOpen,
-    });
-  }
 
   return (
     <div className={style.root}>
@@ -39,17 +24,17 @@ export default function SingleProcessingDisplaySettings() {
         label={t('Display settings')}
         color='storm'
         startIcon='settings'
-        onClick={toggleModal}
+        onClick={() => setIsModalOpen(true)}
       />
       <KoboModal
-        isOpen={modal.isModalOpen}
-        onRequestClose={toggleModal}
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
         size='medium'
       >
         <KoboModalHeader
           icon='spreadsheet'
           iconColor='storm'
-          onRequestCloseByX={toggleModal}
+          onRequestCloseByX={() => setIsModalOpen(false)}
         >
           {'Select fields to display'}
         </KoboModalHeader>
@@ -67,22 +52,24 @@ export default function SingleProcessingDisplaySettings() {
 
                 return (
                   <li>
-                    <strong>{staticDisplay}</strong>
                     <ToggleSwitch
                       onChange={() => store.setStaticDisplay(staticDisplay)}
                       checked={entry[1]}
+                      label={<strong>{staticDisplay}</strong>}
                     />
                   </li>
                 );
               } else if (!(currentTab === SingleProcessingTabs.Translations)) {
                 return (
                   <li>
-                    <strong>
-                      <AsyncLanguageDisplayLabel code={entry[0]} />
-                    </strong>
                     <ToggleSwitch
                       onChange={() => store.setTranslationDisplay(entry[0])}
                       checked={entry[1]}
+                      label={
+                        <strong>
+                          <AsyncLanguageDisplayLabel code={entry[0]} />
+                        </strong>
+                      }
                     />
                   </li>
                 );

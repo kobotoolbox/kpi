@@ -7,14 +7,14 @@ import {
   getRowData,
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
-import styles from './singleProcessingSubmissionDetails.module.scss';
+import styles from './sidebarSubmissionDetails.module.scss';
 
-interface SingleProcessingSubmissionMediaProps {
+interface SidebarSubmissionMediaProps {
   asset: AssetContent | undefined;
 }
 
-export default function SingleProcessingSubmissionMedia(
-  props: SingleProcessingSubmissionMediaProps
+export default function SidebarSubmissionMedia(
+  props: SidebarSubmissionMediaProps
 ) {
   // We need submission data.
   const [store] = useState(() => singleProcessingStore);

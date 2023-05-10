@@ -921,6 +921,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   activateTab(tab: SingleProcessingTabs) {
     this.data.activeTab = tab;
+    this.refreshDisplays();
 
     // When changing tab, discard all drafts and the selected source.
     this.data.transcriptDraft = undefined;

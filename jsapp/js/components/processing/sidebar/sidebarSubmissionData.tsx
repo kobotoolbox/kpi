@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {AssetContent} from 'jsapp/js/dataInterface';
@@ -6,13 +6,13 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
 } from 'js/constants';
-import styles from './singleProcessingSubmissionDetails.module.scss';
+import styles from './sidebarSubmissionDetails.module.scss';
 
-interface SingleProcessingSubmissionDataProps {
+interface SidebarSubmissionDataProps {
   asset: AssetContent | undefined;
 }
 
-export default function SingleProcessingSubmissionData(props: SingleProcessingSubmissionDataProps) {
+export default function SidebarSubmissionData(props: SidebarSubmissionDataProps) {
   const [store] = useState(() => singleProcessingStore);
 
   const submissionData = store.getSubmissionData();
