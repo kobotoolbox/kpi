@@ -845,26 +845,40 @@ if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None)
 oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
 oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
 oidc_servers = {}
+oidc_nested_keys = ['APP', 'SCOPE', 'AUTH_PARAMS']
+
 for key, value in {
     key.replace(oidc_prefix, ""): val
     for key, val in os.environ.items()
     if oidc_pattern.match(key)
 }.items():
     number, setting = key.split("_", 1)
-    if setting.startswith("APP"):
-        setting, parsed_key = setting.split("_", 1)
-    else:
-        parsed_key = None
+    parsed_key = None
+    nested_key = filter(lambda setting_key : setting.startswith(setting_key), oidc_nested_keys)
+    nested_key = list(nested_key)
+    if len(nested_key):
+        _, parsed_key = setting.split(nested_key[0] + "_", 1)
+        setting = nested_key[0]
     if number in oidc_servers:
-        if parsed_key and oidc_servers[number][setting]:
-            oidc_servers[number][setting][parsed_key] = value
-        elif parsed_key:
-            oidc_servers[number][setting] = {parsed_key: value}
+        if parsed_key:
+            if setting in oidc_servers[number]:
+                if parsed_key.isdigit():
+                    oidc_servers[number][setting].append(value)
+                else:
+                    oidc_servers[number][setting][parsed_key] = value
+            else:
+                if parsed_key.isdigit():
+                    oidc_servers[number][setting] = [value]
+                else:
+                    oidc_servers[number][setting] = {parsed_key: value}
         else:
             oidc_servers[number][setting] = value
     else:
         if parsed_key:
-            oidc_servers[number] = {setting: {parsed_key: value}}
+            if parsed_key.isdigit():
+                oidc_servers[number] = {setting: [value]}
+            else:
+                oidc_servers[number] = {setting: {parsed_key: value}}
         else:
             oidc_servers[number] = {setting: value}
 oidc_servers = [x for x in oidc_servers.values()]
