@@ -53,7 +53,7 @@ export default function SidebarDisplaySettings() {
                 return (
                   <li>
                     <ToggleSwitch
-                      onChange={() => store.setStaticDisplay(staticDisplay)}
+                      onChange={() => store.setDisplay(staticDisplay, !entry[1])}
                       checked={entry[1]}
                       label={<strong>{staticDisplay}</strong>}
                     />
@@ -63,7 +63,7 @@ export default function SidebarDisplaySettings() {
                 return (
                   <li>
                     <ToggleSwitch
-                      onChange={() => store.setTranslationDisplay(entry[0])}
+                      onChange={() => store.setDisplay(entry[0], !entry[1])}
                       checked={entry[1]}
                       label={
                         <strong>

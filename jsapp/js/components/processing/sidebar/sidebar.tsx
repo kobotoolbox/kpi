@@ -26,14 +26,14 @@ export default function Sidebar(props: SidebarProps) {
         if (
           displays.get(translation.languageCode)
         ) {
-          return <SingleProcessingTranslation singleTransx={translation} />;
+          return <SingleProcessingTranslation translation={translation} />;
         }
 
         return null;
       })}
 
       {displays.get(StaticDisplays.Transcript) && transcription && (
-        <SingleProcessingTranslation singleTransx={transcription} />
+        <SingleProcessingTranslation translation={transcription} />
       )}
 
       {displays.get(StaticDisplays.Audio) && (

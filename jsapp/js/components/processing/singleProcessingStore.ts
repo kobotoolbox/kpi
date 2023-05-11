@@ -116,6 +116,11 @@ class SingleProcessingStore extends Reflux.Store {
   private isSubmissionLoaded = false;
   private isProcessingDataLoaded = false;
 
+  /**
+   * A `Map` of available displays and its boolean display state. Everything in
+   * the `Map` is an option in `SidebarDisplaySettings`. The boolean determines
+   * if the display is visible and if the switch is on.
+   */
   private displays = new Map<LanguageCode | StaticDisplays, boolean>([
     [StaticDisplays.Audio, true],
     [StaticDisplays.Data, true],
@@ -892,7 +897,7 @@ class SingleProcessingStore extends Reflux.Store {
     // assume user wants it off and don't turn it on.
     // Should we show the other languages?
     if (!this.displays.get(StaticDisplays.Transcript)) {
-      this.setStaticDisplay(StaticDisplays.Transcript);
+      this.setDisplay(StaticDisplays.Transcript, false);
     }
     if (this.data.source === undefined) {
       this.data.source = this.data.transcript?.languageCode;
@@ -1009,34 +1014,9 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  setStaticDisplay(display: StaticDisplays) {
-    switch (display) {
-      case StaticDisplays.Audio:
-        this.displays.set(
-          StaticDisplays.Audio,
-          !this.displays.get(StaticDisplays.Audio)
-        );
-        break;
-      case StaticDisplays.Data:
-        this.displays.set(
-          StaticDisplays.Data,
-          !this.displays.get(StaticDisplays.Data)
-        );
-        break;
-      case StaticDisplays.Transcript:
-        this.displays.set(
-          StaticDisplays.Transcript,
-          !this.displays.get(StaticDisplays.Transcript)
-        );
-        break;
-    }
-
-    this.trigger(this.displays);
-  }
-
-  setTranslationDisplay(display: LanguageCode) {
+  setDisplay(display: StaticDisplays | LanguageCode, isEnabled: boolean) {
     if (this.displays.has(display)) {
-      this.displays.set(display, !this.displays.get(display));
+      this.displays.set(display, isEnabled);
     }
 
     this.trigger(this.displays);
