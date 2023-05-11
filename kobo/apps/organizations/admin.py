@@ -16,7 +16,7 @@ class OwnerInline(BaseOwnerInline):
 @admin.register(Organization)
 class OrgAdmin(BaseOrganizationAdmin):
     inlines = [OwnerInline]
-    readonly_fields = ['uid']
+    readonly_fields = ['id']
 
 
 @admin.register(OrganizationUser)

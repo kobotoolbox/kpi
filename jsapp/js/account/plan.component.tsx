@@ -58,6 +58,8 @@ const initialState = {
 */
 const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
 
+const subscriptionUpgradeMessageDuration = 8000;
+
 function planReducer(state: PlanState, action: DataUpdates) {
   switch (action.type) {
     case 'initialProd':
@@ -91,24 +93,19 @@ export default function Plan() {
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const hasActiveSubscription = useMemo(() => {
-    if (state.subscribedProduct !== null) {
-      state.subscribedProduct.some((subscription: BaseSubscription) =>
+    if (state.subscribedProduct) {
+      return state.subscribedProduct.some((subscription: BaseSubscription) =>
         activeSubscriptionStatuses.includes(subscription.status)
       );
     }
+    return false;
   }, [state.subscribedProduct]);
 
-  const isDataLoading = useMemo((): boolean => {
-    if (
-      state.products !== null &&
-      state.organization !== null &&
-      state.subscribedProduct !== null
-    ) {
-      return false;
-    } else {
-      return true;
-    }
-  }, [state.products, state.organization, state.subscribedProduct]);
+  const isDataLoading = useMemo(
+    (): boolean =>
+      !(state.products && state.organization && state.subscribedProduct),
+    [state.products, state.organization, state.subscribedProduct]
+  );
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -167,13 +164,19 @@ export default function Plan() {
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.'
-          )
+          ),
+          {
+            duration: subscriptionUpgradeMessageDuration,
+          }
         );
       } else {
         notify.success(
           t(
             'Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.'
-          )
+          ),
+          {
+            duration: subscriptionUpgradeMessageDuration,
+          }
         );
       }
     }
@@ -198,9 +201,9 @@ export default function Plan() {
     return state.products;
   }, [state.products, state.intervalFilter]);
 
-  const getSubscriptionForProductId = useCallback(
+  const getSubscriptionsForProductId = useCallback(
     (productId: String) =>
-      state.subscribedProduct.find(
+      state.subscribedProduct.filter(
         (subscription: BaseSubscription) =>
           subscription.items[0].price.product.id === productId
       ),
@@ -214,22 +217,25 @@ export default function Plan() {
           return true;
         }
       }
-      const subscription = getSubscriptionForProductId(product.id);
-      return Boolean(subscription?.status === 'active');
+      const subscriptions = getSubscriptionsForProductId(product.id);
+      return subscriptions.some(
+        (subscription: BaseSubscription) => subscription.status === 'active'
+      );
     },
     [state.subscribedProduct]
   );
 
   const shouldShowManage = useCallback(
     (product: Price) => {
-      const subscription = getSubscriptionForProductId(product.id);
-      if (!subscription) {
+      const subscriptions = getSubscriptionsForProductId(product.id);
+      if (!subscriptions.length) {
         return false;
       }
-      const hasManageableStatus = activeSubscriptionStatuses.includes(
-        subscription.status
+      const hasManageableStatus = subscriptions.some(
+        (subscription: BaseSubscription) =>
+          activeSubscriptionStatuses.includes(subscription.status)
       );
-      return Boolean(state.organization?.uid) && hasManageableStatus;
+      return Boolean(state.organization?.id) && hasManageableStatus;
     },
     [state.subscribedProduct]
   );
@@ -239,7 +245,7 @@ export default function Plan() {
       return;
     }
     setAreButtonsDisabled(true);
-    postCheckout(priceId, state.organization?.uid)
+    postCheckout(priceId, state.organization?.id)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
@@ -251,11 +257,11 @@ export default function Plan() {
   };
 
   const managePlan = () => {
-    if (!state.organization?.uid || areButtonsDisabled) {
+    if (!state.organization?.id || areButtonsDisabled) {
       return;
     }
     setAreButtonsDisabled(true);
-    postCustomerPortal(state.organization.uid)
+    postCustomerPortal(state.organization.id)
       .then((data) => {
         if (!data.url) {
           notify.error(t('There has been an issue, please try again later.'));
@@ -374,7 +380,11 @@ export default function Plan() {
       {isDataLoading ? (
         <LoadingSpinner />
       ) : (
-        <div className={styles.accountPlan}>
+        <div
+          className={classnames(styles.accountPlan, {
+            [styles.wait]: areButtonsDisabled,
+          })}
+        >
           <div className={styles.plansSection}>
             <form className={styles.intervalToggle}>
               <input

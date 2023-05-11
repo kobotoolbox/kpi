@@ -11,7 +11,7 @@ from organizations.abstract import (AbstractOrganization,
 
 
 class Organization(AbstractOrganization):
-    uid = KpiUidField(uid_prefix='org')
+    id = KpiUidField(uid_prefix='org', primary_key=True)
 
     @property
     def email(self):

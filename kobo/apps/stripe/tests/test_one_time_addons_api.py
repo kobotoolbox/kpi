@@ -35,7 +35,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             'djstripe.Session',
             customer=self.customer,
             metadata={
-                'organization_uid': self.organization.uid,
+                'organization_id': self.organization.id,
                 'price_id': self.price_id,
             },
             mode='payment',

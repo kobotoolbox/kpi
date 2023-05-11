@@ -32,7 +32,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         return f'{url}?{urlencode(query_params)}'
 
     def _create_customer_organization(self):
-        organization = baker.make(Organization, uid='orgSALFMLFMSDGmgdlsgmsd')
+        organization = baker.make(Organization, id='orgSALFMLFMSDGmgdlsgmsd')
         customer = baker.make(Customer, subscriber=organization)
         return customer, organization
 
@@ -43,7 +43,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         organization.add_user(self.someuser, is_admin=True)
         customer_get_or_create_mock.return_value = (Customer, False)
         stripe_checkout_session_create_mock.return_value = {'url': 'https://checkout.stripe.com/c/pay/cs_test_a1NbsdWp'}
-        url = self._get_url({'price_id': self.price.id, 'organization_uid': organization.uid})
+        url = self._get_url({'price_id': self.price.id, 'organization_id': organization.id})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['url'].startswith('https://checkout.stripe.com')
@@ -52,7 +52,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         self, stripe_checkout_session_create_mock, customer_get_or_create_mock
     ):
         stripe_checkout_session_create_mock.return_value = {'url': 'https://checkout.stripe.com/c/pay/cs_test_a1NbsdWp'}
-        url = self._get_url({'price_id': 'test', 'organization_uid': 'test'})
+        url = self._get_url({'price_id': 'test', 'organization_id': 'test'})
         response = self.client.post(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
