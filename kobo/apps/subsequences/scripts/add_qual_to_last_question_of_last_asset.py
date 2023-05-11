@@ -3,14 +3,109 @@ from kpi.models import Asset
 from jsonschema import validate
 from pprint import pprint
 
-EXAMPLE_TEXT_QUESTION = 'Any descriptors?'
-EXAMPLE_YN_QUESTION = 'Do they describe the facility as being well maintained?'
-UUIDS = [
-    '00000000-0000-0000-0000-000000000000',
-    '11111111-1111-1111-1111-111111111111',
-    '22222222-2222-2222-2222-222222222222',
-    '33333333-3333-3333-3333-333333333333',
-]
+EXAMPLE_QUAL_SURVEY_JSON = '''
+{
+  "by_question": {
+    "<QPATH>": {
+      "survey": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000000",
+          "type": "qual_tags",
+          "labels": {
+            "_default": "Any descriptors?"
+          }
+        },
+        {
+          "uuid": "11111111-1111-1111-1111-111111111111",
+          "type": "qual_text",
+          "labels": {
+            "_default": "Short summary (one sentence)"
+          }
+        },
+        {
+          "uuid": "22222222-2222-2222-2222-222222222222",
+          "type": "qual_integer",
+          "labels": {
+            "_default": "How many people are heard speaking in this response?"
+          }
+        },
+        {
+          "uuid": "33333333-3333-3333-3333-333333333333",
+          "type": "qual_select_one",
+          "labels": {
+            "_default": "Do they describe the facility as being well maintained?"
+          },
+          "choices": [
+            {
+              "labels": {
+                "_default": "Yes"
+              },
+              "uuid": "44444444-4444-4444-4444-444444444444"
+            },
+            {
+              "labels": {
+                "_default": "No"
+              },
+              "uuid": "55555555-5555-5555-5555-555555555555"
+            }
+          ]
+        },
+        {
+          "uuid": "66666666-6666-6666-6666-666666666666",
+          "type": "qual_select_multiple",
+          "labels": {
+            "_default": "Select any mentioned areas of concern"
+          },
+          "choices": [
+            {
+              "labels": {
+                "_default": "Lighting"
+              },
+              "uuid": "77777777-7777-7777-7777-777777777777"
+            },
+            {
+              "labels": {
+                "_default": "Ventilation"
+              },
+              "uuid": "88888888-8888-8888-8888-888888888888"
+            },
+            {
+              "labels": {
+                "_default": "Security"
+              },
+              "uuid": "99999999-9999-9999-9999-999999999999"
+            }
+          ]
+        },
+        {
+          "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          "type": "qual_note",
+          "labels": {
+            "_default": "Please respect the confidentiality of our respondents."
+          }
+        },
+        {
+          "uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+          "type": "qual_auto_keyword_count",
+          "labels": {
+            "_default": "Mentions of walkways"
+          },
+          "options": {
+            "keywords": [
+              "sidewalk",
+              "walkway",
+              "path",
+              "trail"
+            ],
+            "operator": "any",
+            "source": "transcript.<LANGUAGE CODE>"
+          }
+        }
+      ]
+    }
+  }
+}
+'''
 
 def run():
     asset = Asset.objects.order_by('-date_created')[0]
@@ -22,42 +117,9 @@ def run():
         raise RuntimeError(
             'Survey does not contain any audio or video question'
         )
-    asset.advanced_features['qual'] = {
-        'by_question': {
-            final_question_qpath: {
-                'survey': [
-                    {
-                        'uuid': UUIDS[0],
-                        'type': 'text',
-                        'labels': {
-                            '_default': EXAMPLE_TEXT_QUESTION,
-                        },
-                    },
-                    {
-                        'uuid': UUIDS[1],
-                        'type': 'select_one',
-                        'labels': {
-                            '_default': EXAMPLE_YN_QUESTION,
-                        },
-                        'choices': [
-                            {
-                                'uuid': UUIDS[2],
-                                'labels': {
-                                    '_default': 'Yes',
-                                },
-                            },
-                            {
-                                'uuid': UUIDS[3],
-                                'labels': {
-                                    '_default': 'No',
-                                },
-                            },
-                        ],
-                    },
-                ],
-            },
-        },
-    }
+    asset.advanced_features['qual'] = json.loads(
+        EXAMPLE_QUAL_SURVEY_JSON.replace('<QPATH>', final_question_qpath)
+    )
     asset.save()
     pprint(asset.advanced_features)
 
@@ -66,10 +128,18 @@ def run():
         subex_content_schema = asset.get_advanced_submission_schema()
         subex.content[final_question_qpath] = {
             'qual': {
-                UUIDS[0]:     # text question
-                    'Good',   # text response
-                UUIDS[1]:     # select_one question
-                    UUIDS[2]  # selected choice ('Yes')
+                '00000000-0000-0000-0000-000000000000': [
+                    'no taggity',
+                    'no doubt',
+                ],
+                '11111111-1111-1111-1111-111111111111': 'wow. to summarize, this response is amazing.',
+                '22222222-2222-2222-2222-222222222222': 69,
+                '33333333-3333-3333-3333-333333333333': '44444444-4444-4444-4444-444444444444',
+                '66666666-6666-6666-6666-666666666666': [
+                    '77777777-7777-7777-7777-777777777777',
+                    '99999999-9999-9999-9999-999999999999',
+                ],
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb': 9000,
             }
         }
         validate(
