@@ -26,12 +26,6 @@ export default function SidebarSubmissionData(props: SidebarSubmissionDataProps)
     return null;
   }
 
-  // If there is a source, we don't want to display these submission details,
-  // as we want the most space possible for the source text.
-  if (singleProcessingStore.getSourceData() !== undefined) {
-    return null;
-  }
-  
   /** We want only the processing related data (the actual form questions) */
   function getQuestionsToHide(): string[] {
     return [

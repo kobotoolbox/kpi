@@ -732,22 +732,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  /** Returns whole transcript/translation for selected source. */
-  getSourceData(): Transx | undefined {
-    if (!this.data.source) {
-      return undefined;
-    }
-
-    if (this.data.source === this.data.transcript?.languageCode) {
-      return this.data.transcript;
-    } else {
-      const found = this.data.translations.find(
-        (translation) => translation.languageCode === this.data.source
-      );
-      return found;
-    }
-  }
-
   /** Returns a local cached transcript data. */
   getTranscript() {
     return this.data.transcript;
