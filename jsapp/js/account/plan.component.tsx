@@ -93,11 +93,12 @@ export default function Plan() {
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
   const hasActiveSubscription = useMemo(() => {
-    if (state.subscribedProduct !== null) {
-      state.subscribedProduct.some((subscription: BaseSubscription) =>
+    if (state.subscribedProduct) {
+      return state.subscribedProduct.some((subscription: BaseSubscription) =>
         activeSubscriptionStatuses.includes(subscription.status)
       );
     }
+    return false;
   }, [state.subscribedProduct]);
 
   const isDataLoading = useMemo(
