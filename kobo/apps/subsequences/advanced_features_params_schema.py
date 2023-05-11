@@ -41,9 +41,72 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
             },
             'required': ['languages']
         },
-        'qual': {
-            'type': 'object',
-            'properties': {},
-        },
     }
+}
+
+# User-defined qualitative analysis forms
+ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
+    'qualQuestionType': {
+        'type': 'string',
+        'enum': [
+            'qual_tags',
+            'qual_text',
+            'qual_integer',
+            'qual_select_one',
+            'qual_select_multiple',
+            'qual_note',
+            'qual_auto_keyword_count',
+        ],
+    },
+    'qualQuestion': {
+        'type': 'object',
+        'additionalProperties': False,
+        'properties': {
+            'uuid': {'$ref': '#/$defs/qualUuid'},
+            'type': {'$ref': '#/$defs/qualQuestionType'},
+            'labels': {'$ref': '#/$defs/qualLabels'},
+            'choices': {
+                'type': 'array',
+                'items': {'$ref': '#/$defs/qualChoice'},
+            },
+            'options': {'type': 'object'},
+        },
+        'required': ['uuid', 'type', 'labels'],
+    },
+    'qualLabels': {
+        'type': 'object',
+        'additionalProperties': False,
+        'patternProperties': {'.+': {'type': 'string'}},
+    },
+    'qualUuid': {'type': 'string', 'minLength': 1},
+    'qualChoice': {
+        'type': 'object',
+        'additionalProperties': False,
+        'properties': {
+            'labels': {'$ref': '#/$defs/qualLabels'},
+            'uuid': {'$ref': '#/$defs/qualUuid'},
+        },
+        'required': ['labels', 'uuid'],
+    },
+    'qualSurvey': {
+        'type': 'array',
+        'items': {'$ref': '#/$defs/qualQuestion'},
+    },
+}
+ADVANCED_FEATURES_PARAMS_SCHEMA['properties']['qual'] = {
+    'type': 'object',
+    'additionalProperties': False,
+    'properties': {
+        'by_question': {
+            'type': 'object',
+            'additionalProperties': False,
+            'patternProperties': {
+                '.+': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {'survey': {'$ref': '#/$defs/qualSurvey'}},
+                },
+            },
+        }
+    },
 }
