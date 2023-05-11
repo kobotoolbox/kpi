@@ -1,6 +1,6 @@
 import React from 'react';
 import bem from 'js/bem';
-import TextareaAutosize from 'react-autosize-textarea';
+import TextareaAutosize from 'react-textarea-autosize';
 import './textBox.scss';
 
 export type AvailableType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url';
@@ -50,11 +50,6 @@ class TextBox extends React.Component<TextBoxProps, {}> {
       this.textareaReference.current?.focus();
     }
   }
-
-  /**
-   * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
-   * types to stop TextareaAutosize complaining.
-   */
 
   onValueChange(newValue: string) {
     if (this.props.readOnly || !this.props.onChange) {

@@ -36,7 +36,7 @@
     "qrcode.react": "^1.0.1",
     "react": "^16.13.1",
     "react-autobind": "^1.0.6",
-    "react-autosize-textarea": "^7.0.0",
+    "react-textarea-autosize": "^8.4.1",
     "react-cookie": "^4.0.3",
     "react-copy-to-clipboard": "^5.0.2",
     "react-debounce-input": "^3.2.2",
