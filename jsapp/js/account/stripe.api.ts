@@ -25,11 +25,11 @@ export interface BaseSubscription {
   id: number;
   price: Product;
   status: string;
-  items: [{ price:BasePrice }];
+  items: [{price: BasePrice}];
 }
 
 export interface Organization {
-  uid: string;
+  id: string;
   name: string;
   is_active: boolean;
   created: string;
@@ -69,14 +69,14 @@ export async function getOrganization() {
 
 export async function postCheckout(priceId: string, organizationId: string) {
   return fetchPost<Checkout>(
-    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_uid=${organizationId}`,
+    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
     {}
   );
 }
 
 export async function postCustomerPortal(organizationId: string) {
   return fetchPost<Portal>(
-    `${endpoints.PORTAL_URL}?organization_uid=${organizationId}`,
+    `${endpoints.PORTAL_URL}?organization_id=${organizationId}`,
     {}
   );
 }

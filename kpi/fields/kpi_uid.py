@@ -12,10 +12,11 @@ class KpiUidField(models.CharField):
     """
     If empty, automatically populates itself with a UID before saving
     """
-    def __init__(self, uid_prefix):
+    def __init__(self, uid_prefix, **kwargs):
         self.uid_prefix = uid_prefix
         total_length = len(uid_prefix) + UUID_LENGTH
-        super().__init__(max_length=total_length, unique=True)
+        primary_key = kwargs.get('primary_key', False)
+        super().__init__(max_length=total_length, unique=True, primary_key=primary_key)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
