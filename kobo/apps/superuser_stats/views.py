@@ -335,10 +335,10 @@ def user_details_report(request):
     # Get the date filters from the query and set defaults
     today = timezone.now().date()
     first_of_month = today.replace(day=1)
-    if not (start_date := request.GET.get('date_joined_gte')):
+    if not (start_date := request.GET.get('start_date')):
         start_date = str(first_of_month)
 
-    if not (end_date := request.GET.get('date_joined_lte')):
+    if not (end_date := request.GET.get('end_date')):
         end_date = str(today)
 
     base_filename = 'user-details-report_{}_{}_{}.csv'.format(
@@ -358,11 +358,11 @@ def user_details_report(request):
         f'If you receive a 404, please refresh your browser periodically until '
         f'your request succeeds.<br><br>'
         f'To select a date range based on the user\'s date joined, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
-        f'<code style="background: lightgray">date_joined_gte</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
-        f'<code style="background: lightgray">date_joined_lte</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
+        f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
+        f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
         f'<b>Example:</b><br>'
-        f'<a href="{url}?date_joined_gte={first_of_month}&date_joined_lte={today}">'
-        f'  {url}?date_joined_gte={first_of_month}&date_joined_lte={today}'
+        f'<a href="{url}?start_date={first_of_month}&end_date={today}">'
+        f'  {url}?start_date={first_of_month}&end_date={today}'
         f'</a>'
         f'<p>Range is <b>inclusive</b>.</p>'
         f'<p>The default range is current month: {today.strftime("%B %Y")}.</p>'

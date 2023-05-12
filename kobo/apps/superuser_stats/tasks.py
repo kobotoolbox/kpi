@@ -97,7 +97,7 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
         last_login__date__range=(twelve_months_time, end_date),
     )
 
-    for user in users:
+    for user in users.iterator():
         # twelve months
         assets = user.assets.values('pk', 'date_created').filter(
             date_created__date__range=(twelve_months_time, end_date),
@@ -178,7 +178,7 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
     # get a list of the domains
     domains = [
         email.split('@')[1] if '@' in email else 'Invalid domain ' + email
-        for email in emails
+        for email in emails.iterator()
     ]
     domain_users = Counter(domains)
 
@@ -298,7 +298,7 @@ def generate_media_storage_report(output_filename: str):
 
     data = []
 
-    for attachment_count in attachments:
+    for attachment_count in attachments.iterator():
         data.append([
             attachment_count['user__username'],
             attachment_count['attachment_storage_bytes'],
@@ -329,7 +329,7 @@ def generate_user_count_by_organization(output_filename: str):
 
     has_no_organizations = False
     data = []
-    for o in organizations:
+    for o in organizations.iterator():
         if not o['extra_details__data__organization']:
             has_no_organizations = True
             o['extra_details__data__organization'] = 'Unspecified'
@@ -466,7 +466,7 @@ def generate_user_statistics_report(
     records = asset_queryset.annotate(deployment_count=Count('pk')).order_by()
     deployment_count = {
         record['owner_id']: record['deployment_count']
-        for record in records
+        for record in records.iterator()
     }
 
     # Get records from SubmissionCounter
@@ -492,7 +492,7 @@ def generate_user_statistics_report(
 
         return value
 
-    for record in records:
+    for record in records.iterator():
         user_details, created = ExtraUserDetail.objects.get_or_create(
             user_id=record['user_id']
         )
