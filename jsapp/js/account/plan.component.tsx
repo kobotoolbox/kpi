@@ -70,13 +70,13 @@ function planReducer(state: PlanState, action: DataUpdates) {
       return {
         ...state,
         intervalFilter: 'month',
-        filterToggle: !state.filterToggle,
+        filterToggle: true,
       };
     case 'year':
       return {
         ...state,
         intervalFilter: 'year',
-        filterToggle: !state.filterToggle,
+        filterToggle: false,
       };
     default:
       return state;
@@ -102,6 +102,19 @@ export default function Plan() {
       return true;
     }
   }, [state.products, state.organization, state.subscribedProduct]);
+
+  useEffect(() => {
+    if (
+      state.subscribedProduct !== null &&
+      state.subscribedProduct.length > 0
+    ) {
+      const subscribedFilter =
+        state.subscribedProduct[0].items[0].price.human_readable_price.split(
+          '/'
+        )[1];
+      dispatch({type: subscribedFilter});
+    }
+  }, [state.subscribedProduct]);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -471,6 +484,19 @@ export default function Plan() {
                           color='blue'
                           size='m'
                           label={t('Manage')}
+                          onClick={managePlan}
+                          aria-label={`manage your ${price.name} subscription`}
+                          aria-disabled={areButtonsDisabled}
+                          isDisabled={areButtonsDisabled}
+                        />
+                      )}
+                    {!isSubscribedProduct(price) &&
+                      price.prices.unit_amount > 0 && (
+                        <Button
+                          type='full'
+                          color='blue'
+                          size='m'
+                          label={t('Change plan')}
                           onClick={managePlan}
                           aria-label={`manage your ${price.name} subscription`}
                           aria-disabled={areButtonsDisabled}
