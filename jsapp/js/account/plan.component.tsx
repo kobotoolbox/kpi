@@ -226,26 +226,31 @@ export default function Plan() {
       }
 
       const subscription = getSubscriptionsForProductId(product.id);
-      if (
-        subscription?.items[0].price.id === product.prices.id &&
-        subscription?.status === 'active'
-      ) {
-        return true;
-      } else {
-        return false;
+
+      if (subscription.length > 0) {
+        const lastsubscription = subscription.length - 1;
+        if (
+          subscription[lastsubscription].items[0].price.id ===
+            product.prices.id &&
+          subscription[lastsubscription].status === 'active'
+        ) {
+          return true;
+        } else {
+          return false;
+        }
       }
+      return;
     },
     [state.subscribedProduct, state.intervalFilter]
   );
 
   const shouldShowManage = useCallback(
     (product: Price) => {
-      const subscription = getSubscriptionsForProductId(product.id);
-
-      if (!subscription) {
+      const subscriptions = getSubscriptionsForProductId(product.id);
+      if (!subscriptions.length) {
         return false;
       }
-      const hasManageableStatus = subscription.some(
+      const hasManageableStatus = subscriptions.some(
         (subscription: BaseSubscription) =>
           activeSubscriptionStatuses.includes(subscription.status)
       );
@@ -497,6 +502,7 @@ export default function Plan() {
                         />
                       )}
                     {!isSubscribedProduct(price) &&
+                      shouldShowManage(price) &&
                       price.prices.unit_amount > 0 && (
                         <Button
                           type='full'
