@@ -2,7 +2,7 @@ stages:
   - build
   - test
   - deploy
-  
+
 include:
   - template: SAST.gitlab-ci.yml
 
@@ -11,7 +11,7 @@ build:
   services:
     - docker:dind
   before_script:
-    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker pull $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-} || true
     - docker build --cache-from $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-} --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME//\//-} .
