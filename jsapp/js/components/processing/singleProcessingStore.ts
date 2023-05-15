@@ -127,6 +127,8 @@ class SingleProcessingStore extends Reflux.Store {
     [StaticDisplays.Transcript, false],
   ]);
 
+  private activeDisplays = new Set<LanguageCode | StaticDisplays>();
+
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
     translations: [],
@@ -677,6 +679,15 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  private resetTranslationDisplays() {
+    Array.from(this.displays.entries()).forEach((key) => {
+      if (!this.isStaticDisplay(key[0])) {
+        // Turn the display off first, then remove from the modal list
+        this.displays.set(key[0], false);
+      }
+    });
+  }
+
   private clearTranslationDisplays() {
     Array.from(this.displays.entries()).forEach((key) => {
       if (!this.isStaticDisplay(key[0])) {
@@ -978,8 +989,18 @@ class SingleProcessingStore extends Reflux.Store {
     return this.displays;
   }
 
+  getActiveDisplays() {
+    return this.activeDisplays;
+  }
+
+  /**
+   * Rebuilds the display settings menu and removes redundant displays.
+   * This does *not* apply the default display. For example, if the user does not
+   * want to see Audio, switch tabs would not being Audio back.
+   */
   refreshDisplays() {
     const tab = this.getActiveTab();
+    this.activeDisplays.clear();
 
     // Tab specific displays
     if (tab === SingleProcessingTabs.Translations) {
@@ -996,14 +1017,60 @@ class SingleProcessingStore extends Reflux.Store {
         this.displays.get(StaticDisplays.Transcript) || false
       );
     }
+
+    this.applyDisplay();
   }
 
+  /**
+   * Applies the default views depending on the tab.
+   */
+  resetDisplays() {
+    const tab = this.getActiveTab();
+
+    if (tab === SingleProcessingTabs.Transcript) {
+      this.displays.set(StaticDisplays.Data, true);
+      this.displays.set(StaticDisplays.Audio, true);
+      this.resetTranslationDisplays();
+    } else if (tab === SingleProcessingTabs.Translations) {
+      this.displays.set(StaticDisplays.Data, true);
+      this.displays.set(StaticDisplays.Audio, true);
+      this.clearTranslationDisplays();
+    } else if (tab === SingleProcessingTabs.Analysis) {
+      this.displays.set(StaticDisplays.Data, true);
+      this.displays.set(StaticDisplays.Audio, true);
+      this.displays.set(StaticDisplays.Transcript, true);
+      this.resetTranslationDisplays();
+    }
+
+    this.trigger(this.displays);
+    this.applyDisplay();
+  }
+
+  /**
+   * Manipulates the displays and their current state. Sidebar does *not* show these changes until
+   * `applyDisplay` is called.
+   */
   setDisplay(display: StaticDisplays | LanguageCode, isEnabled: boolean) {
     if (this.displays.has(display)) {
       this.displays.set(display, isEnabled);
     }
 
     this.trigger(this.displays);
+  }
+
+  /**
+   * Takes displays and their current state and shows on sidebar accordingly.
+   */
+  applyDisplay() {
+    Array.from(this.displays.entries()).forEach((entry) => {
+      if (entry[1]) {
+        this.activeDisplays.add(entry[0]);
+      } else {
+        this.activeDisplays.delete(entry[0]);
+      }
+    });
+
+    this.trigger(this.activeDisplays);
   }
 }
 
