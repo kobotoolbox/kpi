@@ -7,7 +7,6 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import style from './sidebarDisplaySettings.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
-import KoboModalFooter from '../../modals/koboModalFooter';
 
 export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
@@ -79,24 +78,6 @@ export default function SidebarDisplaySettings() {
               }
             })}
           </ul>
-
-          <KoboModalFooter>
-            <Button
-              label='Reset'
-              type='full'
-              color='blue'
-              size='m'
-              onClick={() => {store.resetDisplays(); setIsModalOpen(false);}}
-            />
-            <Button
-              label='Apply'
-              type='full'
-              color='blue'
-              size='m'
-              onClick={() => {store.applyDisplay(); setIsModalOpen(false);}}
-            />
-          </KoboModalFooter>
-
         </KoboModalContent>
       </KoboModal>
     </div>
