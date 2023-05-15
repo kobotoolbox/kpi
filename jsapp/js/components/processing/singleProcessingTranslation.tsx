@@ -1,16 +1,18 @@
 import React from 'react';
 import {formatTime} from 'js/utils';
 import type {Transx} from 'js/components/processing/singleProcessingStore';
-import styles from './singleProcessingPreview.module.scss';
 import bodyStyles from './processingBody.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
+
+import styles from './singleProcessingPreview.module.scss';
 
 interface SingleProcessingTranslationProps {
   translation: Transx;
 }
 
-export default function SingleProcessingTranslation(props: SingleProcessingTranslationProps) {
-
+export default function SingleProcessingTranslation(
+  props: SingleProcessingTranslationProps
+) {
   function renderLanguageAndDate() {
     const source = props.translation;
 
@@ -52,11 +54,8 @@ export default function SingleProcessingTranslation(props: SingleProcessingTrans
           {renderLanguageAndDate()}
         </header>
 
-        <article className={bodyStyles.text}>
-          {props.translation.value}
-        </article>
+        <article className={bodyStyles.text}>{props.translation.value}</article>
       </div>
     </section>
   );
 }
-
