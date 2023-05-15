@@ -111,8 +111,18 @@ class QualAction(BaseAction):
                     'properties': {},
                 },
             )
+            uuid_type_combos = [{'properties': {
+                                  'uuid': {'const': qq['uuid']},
+                                  'type': {'const': qq['type']},
+                                }} for qq in qual_schema['survey']]
+
             field_def['properties'][self.ID] = {
                 'type': 'array',
-                'items': {'$ref': '#/definitions/qual_item'}
+                'items': {
+                    'allOf': [
+                        {'oneOf': uuid_type_combos},
+                        {'$ref': '#/definitions/qual_item'},
+                    ],
+                }
             }
         return schema
