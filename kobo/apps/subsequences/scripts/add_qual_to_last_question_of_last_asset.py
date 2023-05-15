@@ -83,23 +83,6 @@ EXAMPLE_QUAL_SURVEY_JSON = '''
           "labels": {
             "_default": "Please respect the confidentiality of our respondents."
           }
-        },
-        {
-          "uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-          "type": "qual_auto_keyword_count",
-          "labels": {
-            "_default": "Mentions of walkways"
-          },
-          "options": {
-            "keywords": [
-              "sidewalk",
-              "walkway",
-              "path",
-              "trail"
-            ],
-            "operator": "any",
-            "source": "transcript.<LANGUAGE CODE>"
-          }
         }
       ]
     }
@@ -127,20 +110,36 @@ def run():
         subex = asset.submission_extras.last()
         subex_content_schema = asset.get_advanced_submission_schema()
         subex.content[final_question_qpath] = {
-            'qual': {
-                '00000000-0000-0000-0000-000000000000': [
-                    'no taggity',
-                    'no doubt',
-                ],
-                '11111111-1111-1111-1111-111111111111': 'wow. to summarize, this response is amazing.',
-                '22222222-2222-2222-2222-222222222222': 69,
-                '33333333-3333-3333-3333-333333333333': '44444444-4444-4444-4444-444444444444',
-                '66666666-6666-6666-6666-666666666666': [
-                    '77777777-7777-7777-7777-777777777777',
-                    '99999999-9999-9999-9999-999999999999',
-                ],
-                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb': 9000,
-            }
+            'qual': [
+                {
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                    'type': 'qual_tags',
+                    'tags': ['no taggity', 'no doubt'],
+                },
+                {
+                    'uuid': '11111111-1111-1111-1111-111111111111',
+                    'type': 'qual_text',
+                    'response': 'wow. to summarize, this response is amazing.',
+                },
+                {
+                    'uuid': '22222222-2222-2222-2222-222222222222',
+                    'type': 'qual_integer',
+                    'value': 69,
+                },
+                {
+                    'uuid': '33333333-3333-3333-3333-333333333333',
+                    'type': 'qual_select_one',
+                    'value': '44444444-4444-4444-4444-444444444444',
+                },
+                {
+                    'uuid': '66666666-6666-6666-6666-666666666666',
+                    'type': 'qual_select_multiple',
+                    'values': [
+                        '77777777-7777-7777-7777-777777777777',
+                        '99999999-9999-9999-9999-999999999999',
+                    ],
+                },
+            ],
         }
         validate(
             {'submission': subex.submission_uuid, **subex.content},

@@ -1,17 +1,76 @@
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 
+QUAL_BASE_DEFINITION = {
+  'type': 'object',
+  'properties': {
+    'uuid': {'type': 'string'},
+  },
+  'required': ['uuid', 'type'],
+}
+
+QUAL_COMMON_DEFINITIONS = {
+    'qual_item': {
+        'anyOf': [{'$ref': f'#/definitions/{typ}'} for typ in [
+            'qual_tags',
+            'qual_text',
+            'qual_integer',
+            'qual_select_one',
+            'qual_select_multiple',
+        ]],
+        'allOf': [{'$ref': '#/definitions/qual_base'}],
+    },
+    'qual_tags': {
+        'type': 'object',
+        'properties': {
+            'tags': {
+                'type': 'array',
+                'items': {'type': 'string'},
+            },
+            'type': {'const': 'qual_tags'},
+        },
+    },
+    'qual_text': {
+        'type': 'object',
+        'properties': {
+            'type': {'const': 'qual_text'},
+            'response': {
+                'type': 'string',
+            },
+        },
+        'required': ['response'],
+    },
+    'qual_integer': {
+        'type': 'object',
+        'properties': {
+            'type': {'const': 'qual_integer'},
+            'value': {'type': 'integer'},
+        },
+        'required': ['value'],
+    },
+    'qual_select_one': {
+        'type': 'object',
+        'properties': {
+            'type': {'const': 'qual_select_one'},
+            'value': {'type': 'string'},
+        },
+        'required': ['value'],
+    },
+    'qual_select_multiple': {
+        'type': 'object',
+        'properties': {
+            'type': {'const': 'qual_select_multiple'},
+            'values': {
+                'type': 'array',
+                'items': {'type': 'string'},
+            },
+        },
+        'required': ['values'],
+    },
+}
+
 class QualAction(BaseAction):
     ID = 'qual'
-    QUESTION_TO_JSON_TYPE = {
-            "qual_tags": "array",
-            "qual_text": "string",
-            "qual_integer": "number",
-            "qual_select_one": "string",
-            "qual_select_multiple": "array",
-            "qual_note": "null",
-            "qual_auto_keyword_count": "number",
-    }
 
     @classmethod
     def build_params(kls, survey_content):
@@ -38,16 +97,13 @@ class QualAction(BaseAction):
 
     def modify_jsonschema(self, schema):
         # NOCOMMIT write comment
+        definitions = schema.setdefault('definitions', {})
+        definitions['qual_base'] = QUAL_BASE_DEFINITION
+        definitions.update(QUAL_COMMON_DEFINITIONS)
+
         for main_question, qual_schema in self.everything_else[
             'by_question'
         ].items():
-            qual_survey = qual_schema['survey']
-            qual_submission_props = {}
-            for qual_question in qual_survey:
-                qual_submission_props[qual_question['uuid']] = {
-                    'type': self.QUESTION_TO_JSON_TYPE[qual_question['type']]
-                }
-
             field_def = schema['properties'].setdefault(
                 main_question,
                 {
@@ -56,8 +112,7 @@ class QualAction(BaseAction):
                 },
             )
             field_def['properties'][self.ID] = {
-                'type': 'object',
-                'additionalProperties': False,
-                'properties': qual_submission_props,
+                'type': 'array',
+                'items': {'$ref': '#/definitions/qual_item'}
             }
         return schema
