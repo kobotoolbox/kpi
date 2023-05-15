@@ -39,6 +39,7 @@ class BasePriceSerializer(serializers.ModelSerializer):
             'nickname',
             'currency',
             'type',
+            'recurring',
             'unit_amount',
             'human_readable_price',
             'metadata',
