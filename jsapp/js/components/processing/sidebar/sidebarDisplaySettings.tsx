@@ -23,11 +23,16 @@ export default function SidebarDisplaySettings() {
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript && transcript) {
       return (
-        <strong>
+        <strong className={styles.hasTranslation}>
           {t('Original transcript')}
+          &nbsp;
           <AsyncLanguageDisplayLabel code={transcript.languageCode} />
         </strong>
       );
+    } else if (display === StaticDisplays.Data) {
+      return <strong>{t('Submission data')}</strong>;
+    } else {
+      return <strong>{t('Original file (Audio)')}</strong>;
     }
   }
 
@@ -61,7 +66,7 @@ export default function SidebarDisplaySettings() {
             )}
           </p>
 
-          <ul>
+          <ul className={styles.options}>
             {Array.from(displays).map((entry) => {
               let staticDisplay: StaticDisplays;
               if (
@@ -78,7 +83,7 @@ export default function SidebarDisplaySettings() {
                         store.setDisplay(staticDisplay, !entry[1])
                       }
                       checked={entry[1]}
-                      label={<strong>{staticDisplay}</strong>}
+                      label={getStaticDisplayText(staticDisplay)}
                     />
                   </li>
                 );
@@ -89,8 +94,8 @@ export default function SidebarDisplaySettings() {
                       onChange={() => store.setDisplay(entry[0], !entry[1])}
                       checked={entry[1]}
                       label={
-                        <strong>
-                          {t('Transation')}
+                        <strong className={styles.hasTranslation}>
+                          {t('Translation')}
                           &nbsp;
                           <AsyncLanguageDisplayLabel code={entry[0]} />
                         </strong>
@@ -103,30 +108,29 @@ export default function SidebarDisplaySettings() {
               }
             })}
           </ul>
-
-          <KoboModalFooter>
-            <Button
-              label='Reset'
-              type='full'
-              color='blue'
-              size='m'
-              onClick={() => {
-                store.resetDisplays();
-                setIsModalOpen(false);
-              }}
-            />
-            <Button
-              label='Apply'
-              type='full'
-              color='blue'
-              size='m'
-              onClick={() => {
-                store.applyDisplay();
-                setIsModalOpen(false);
-              }}
-            />
-          </KoboModalFooter>
         </KoboModalContent>
+        <KoboModalFooter>
+          <Button
+            label={<strong>{t('Reset')}</strong>}
+            type='frame'
+            color='light-blue'
+            size='m'
+            onClick={() => {
+              store.resetDisplays();
+              setIsModalOpen(false);
+            }}
+          />
+          <Button
+            label={<strong>{t('Apply selection')}</strong>}
+            type='full'
+            color='light-blue'
+            size='m'
+            onClick={() => {
+              store.applyDisplay();
+              setIsModalOpen(false);
+            }}
+          />
+        </KoboModalFooter>
       </KoboModal>
     </div>
   );

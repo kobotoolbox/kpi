@@ -1,3 +1,4 @@
+@use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
 
 .root {
@@ -13,4 +14,33 @@
 
 .display {
   padding-bottom: sizes.$x40;
+}
+
+.hasTranslation {
+  span::before {
+    content: '(';
+  }
+
+  span::after {
+    content: ')';
+  }
+}
+
+.options {
+  height: 100%;
+  padding-bottom: sizes.$x24;
+  overflow-y: scroll;
+}
+
+footer {
+  padding-top: sizes.$x12;
+  padding-bottom: sizes.$x12;
+  justify-content: center !important;
+  // Some basic overflow styling just in case the list is very long
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: colors.$kobo-white;
+  border-radius: sizes.$x6;
 }
