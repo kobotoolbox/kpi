@@ -87,8 +87,6 @@ export default class SingleProcessingContent extends React.Component<{}> {
               [styles.activeTab]:
                 singleProcessingStore.getActiveTab() ===
                 SingleProcessingTabs.Translations,
-              [styles.disabledTab]:
-                singleProcessingStore.getTranscript() === undefined,
             })}
             onClick={this.safeExecute.bind(
               this,
