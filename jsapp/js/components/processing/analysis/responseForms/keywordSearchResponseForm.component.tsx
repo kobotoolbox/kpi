@@ -97,7 +97,7 @@ export default function KeywordSearchResponseForm(
     <>
       <CommonHeader uid={props.uid} />
 
-      <section className={commonStyles.alignedContent}>
+      <section className={commonStyles.content}>
         {(() => {
           if (question.additionalFields?.isSearching) {
             return (

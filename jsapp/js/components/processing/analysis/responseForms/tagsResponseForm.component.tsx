@@ -52,7 +52,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     <>
       <CommonHeader uid={props.uid} />
 
-      <section className={commonStyles.alignedContent}>
+      <section className={commonStyles.content}>
         <TagsInput
           value={getTags()}
           onChange={onTagsChange}

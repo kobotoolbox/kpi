@@ -32,10 +32,6 @@ $label-left-position: $icon-size + $gap-size;
   text-align: center;
 }
 
-.alignedContent {
+.content {
   padding-left: $label-left-position;
-}
-
-.fullWidthContent {
-  width: 100%;
 }

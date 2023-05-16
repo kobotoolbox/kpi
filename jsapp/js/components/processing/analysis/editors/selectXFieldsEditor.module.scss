@@ -1,12 +1,14 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
 @use 'js/components/common/button';
 
+$s-choice-width: 66.66%;
 
 .choice {
   @include mixins.centerRowFlex;
   gap: sizes.$x6;
+
+  width: $s-choice-width;
 
   &:not(:last-child) {
     margin-bottom: sizes.$x10;
@@ -18,9 +20,9 @@
 }
 
 .addOption {
-  // We position it to align with text boxes (they have a trash icon button on
-  // the left)
-  padding-left: button.$button-height-s + sizes.$x6;
+  // We make it shorter to take the trash icon buttons from choices above into
+  // the picture
+  width: calc($s-choice-width - button.$button-height-s - sizes.$x6);
 
   :global .k-button {
     width: 100%;

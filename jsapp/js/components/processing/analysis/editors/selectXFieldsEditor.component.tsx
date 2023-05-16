@@ -54,16 +54,8 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
     <>
       {props.fields.choices?.map((choice) => (
         <div className={styles.choice} key={choice.uid}>
-          <Button
-            type='bare'
-            color='storm'
-            size='s'
-            startIcon='trash'
-            onClick={() => deleteChoice(choice.uid)}
-            isDisabled={analysisQuestions?.state.isPending}
-          />
-
           <TextBox
+            type='text-multiline'
             value={choice.label}
             onChange={(newLabel: string) =>
               updateChoiceLabel(choice.uid, newLabel)
@@ -72,6 +64,15 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
             customModifiers='on-white'
             renderFocused
             disabled={analysisQuestions?.state.isPending}
+          />
+
+          <Button
+            type='bare'
+            color='storm'
+            size='s'
+            startIcon='trash'
+            onClick={() => deleteChoice(choice.uid)}
+            isDisabled={analysisQuestions?.state.isPending}
           />
         </div>
       ))}

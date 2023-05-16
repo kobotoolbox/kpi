@@ -168,7 +168,7 @@ export default function DefaultEditor(props: DefaultEditorProps) {
       </header>
 
       {qaDefinition.additionalFieldNames && (
-        <section className={commonStyles.alignedContent}>
+        <section className={commonStyles.content}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
               uid={question.uid}

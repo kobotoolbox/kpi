@@ -70,7 +70,7 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
     <>
       <CommonHeader uid={props.uid} />
 
-      <section className={commonStyles.fullWidthContent}>
+      <section className={commonStyles.content}>
         <TextBox
           type={textBoxType}
           value={response}

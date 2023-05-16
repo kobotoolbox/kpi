@@ -67,7 +67,7 @@ export default function SelectOneResponseForm(
     <>
       <CommonHeader uid={props.uid} />
 
-      <section className={classNames([commonStyles.alignedContent, styles.radioWrapper])}>
+      <section className={classNames([commonStyles.content, styles.radioWrapper])}>
         <Radio
           options={getOptions()}
           name={question.label}

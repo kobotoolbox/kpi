@@ -64,7 +64,7 @@ export default function SelectMultipleResponseForm(
     <>
       <CommonHeader uid={props.uid} />
 
-      <section className={commonStyles.alignedContent}>
+      <section className={commonStyles.content}>
         <MultiCheckbox
           type='bare'
           items={getCheckboxes()}
