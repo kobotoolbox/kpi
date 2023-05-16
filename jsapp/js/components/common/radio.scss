@@ -4,28 +4,50 @@
 
 .radio {
   .radio__row {
-    padding: 0;
+    padding: sizes.$x4 0;
     cursor: pointer;
     display: block;
 
-    &:hover .radio__input:not([disabled]) {
-      &:checked::after { opacity: 0.8; }
-      &:not(:checked)::after { opacity: 0.1; }
-    }
-
-    &:active .radio__input:not([disabled]) {
-      &:checked::after { opacity: 0.6; }
-      &:not(:checked)::after { opacity: 0.3; }
+    &.radio__row--title {
+      cursor: default;
     }
   }
 
-  .radio__row.radio__row--title,
-  &.radio--disabled .radio__row {
-    cursor: default;
+  // Disabled state
+  &.radio--disabled {
+    .radio__row {
+      cursor: default;
+    }
+
+    .radio__input,
+    .radio__label {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .radio__input:checked {
+      color: colors.$kobo-white;
+      border-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-40;
+    }
   }
 
-  .radio__row {
-    padding: sizes.$x4 0;
+  // Hover states
+  .radio__row:hover {
+    // Unchecked
+    .radio__input:not(:checked) {
+      border-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-light-blue;
+    }
+
+    // Checked
+    .radio__input:checked {
+      border-color: colors.$kobo-alt-blue;
+
+      &::after {
+        background-color: colors.$kobo-alt-blue;
+      }
+    }
   }
 
   .radio__input,
@@ -41,13 +63,27 @@
   }
 
   .radio__input + .radio__label {
-    margin-left: sizes.$x8;
+    margin-left: sizes.$x6;
   }
 
   .radio__input {
     border-radius: 50%;
+    appearance: none;
+    position: relative;
+    margin: 0;
+    color: colors.$kobo-gray-65;
+    border: sizes.$x1 solid colors.$kobo-gray-65;
+    background-color: colors.$kobo-white;
+    width: sizes.$x20;
+    height: sizes.$x20;
+    outline: 0;
+    cursor: pointer;
+    overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
 
     &::after {
+      display: block;
+      position: absolute;
+      opacity: 0;
       content: '';
       top: sizes.$x4;
       left: sizes.$x4;
@@ -56,40 +92,11 @@
       height: sizes.$x10;
       background-color: colors.$kobo-blue;
     }
-  }
-
-  .radio__input {
-    appearance: none;
-    position: relative;
-    margin: 0;
-    border: sizes.$x1 solid colors.$kobo-gray-40;
-    width: sizes.$x20;
-    height: sizes.$x20;
-    outline: 0;
-    background-color: colors.$kobo-white;
-    color: colors.$kobo-gray-40;
-    cursor: pointer;
-    overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
-
-    &::after {
-      display: block;
-      position: absolute;
-      opacity: 0;
-    }
 
     &:checked {
       border-color: colors.$kobo-blue;
 
       &::after { opacity: 1; }
-    }
-
-    &[disabled] {
-      pointer-events: none;
-      opacity: 0.5;
-
-      & + .radio__label {
-        opacity: 0.5;
-      }
     }
   }
 }
