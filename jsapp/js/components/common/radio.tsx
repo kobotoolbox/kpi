@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
+import './radio.scss';
 
 export interface RadioOption {
   label: string;

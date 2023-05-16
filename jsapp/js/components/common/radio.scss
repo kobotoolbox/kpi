@@ -1,31 +1,26 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
-@use "scss/sizes";
+@use 'scss/_variables';
+@use 'scss/sizes';
 
-.radio,
-.checkbox {
-  .radio__row,
-  .checkbox__wrapper {
+.radio {
+  .radio__row {
     padding: 0;
     cursor: pointer;
     display: block;
 
-    &:hover .radio__input:not([disabled]),
-    &:hover .checkbox__input:not([disabled]) {
+    &:hover .radio__input:not([disabled]) {
       &:checked::after { opacity: 0.8; }
       &:not(:checked)::after { opacity: 0.1; }
     }
 
-    &:active .radio__input:not([disabled]),
-    &:active .checkbox__input:not([disabled]) {
+    &:active .radio__input:not([disabled]) {
       &:checked::after { opacity: 0.6; }
       &:not(:checked)::after { opacity: 0.3; }
     }
   }
 
   .radio__row.radio__row--title,
-  &.radio--disabled .radio__row,
-  &.checkbox--disabled .checkbox__wrapper {
+  &.radio--disabled .radio__row {
     cursor: default;
   }
 
@@ -34,22 +29,18 @@
   }
 
   .radio__input,
-  .checkbox__input,
-  .radio__label,
-  .checkbox__label {
+  .radio__label {
     display: inline-block;
     vertical-align: top;
   }
 
-  .radio__label,
-  .checkbox__label {
+  .radio__label {
     max-width: calc(100% - sizes.$x32);
     color: colors.$kobo-gray-24;
     font-size: variables.$base-font-size;
   }
 
-  .radio__input + .radio__label,
-  .checkbox__input + .checkbox__label {
+  .radio__input + .radio__label {
     margin-left: sizes.$x8;
   }
 
@@ -57,7 +48,7 @@
     border-radius: 50%;
 
     &::after {
-      content: "";
+      content: '';
       top: sizes.$x4;
       left: sizes.$x4;
       border-radius: 50%;
@@ -67,26 +58,7 @@
     }
   }
 
-  .checkbox__input {
-    border-radius: sizes.$x2;
-
-    &::after {
-      content: "✓";
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: sizes.$x18;
-      height: sizes.$x18;
-      color: colors.$kobo-white;
-      background-color: colors.$kobo-blue;
-      text-align: center;
-      line-height: sizes.$x18;
-      font-size: sizes.$x18;
-    }
-  }
-
-  .radio__input,
-  .checkbox__input {
+  .radio__input {
     appearance: none;
     position: relative;
     margin: 0;
@@ -115,8 +87,7 @@
       pointer-events: none;
       opacity: 0.5;
 
-      & + .radio__label,
-      & + .checkbox__label {
+      & + .radio__label {
         opacity: 0.5;
       }
     }
