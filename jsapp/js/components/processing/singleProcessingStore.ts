@@ -20,9 +20,7 @@ import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
-import type {
-  ProcessingDataResponse,
-} from 'js/components/processing/processingActions';
+import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -31,6 +29,7 @@ import type {
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {AnyRowTypeName} from 'js/constants';
+
 export enum SingleProcessingTabs {
   Transcript = 'trc',
   Translations = 'trl',
@@ -117,9 +116,11 @@ class SingleProcessingStore extends Reflux.Store {
   private isProcessingDataLoaded = false;
 
   /**
-   * A `Map` of available displays and its boolean display state. Everything in
-   * the `Map` is an option in `SidebarDisplaySettings`. The boolean determines
-   * if the display is visible and if the switch is on.
+   * A `Map` of available displays and a boolean. Everything in the `Map`
+   * is an option in `SidebarDisplaySettings`. The boolean determines if
+   * the display is visible and if the switch is on.
+   *
+   * Sidebar does *not* show these changes until `applyDisplay` is called.
    */
   private displays = new Map<LanguageCode | StaticDisplays, boolean>([
     [StaticDisplays.Audio, true],
@@ -127,6 +128,11 @@ class SingleProcessingStore extends Reflux.Store {
     [StaticDisplays.Transcript, false],
   ]);
 
+  /**
+   * A `Set` of all displays from the `Map` of available displays that hold a `true` value.
+   *
+   * These are the displays that will be shown on the sidebar.
+   */
   private activeDisplays = new Set<LanguageCode | StaticDisplays>();
 
   // We want to give access to this only through methods.
@@ -699,9 +705,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private populuateTranslationDisplays() {
-    // Need to clear translations if switching between questions.
-    // TODO: it makes it a bit jarring to switch from Analysis to Transcript
-    //       Should add a way to save the translations during this?
+    // Need to clear translations if switching between submissions.
     this.clearTranslationDisplays();
     this.data.translations.forEach((translation) => {
       this.displays.set(translation.languageCode, false);
@@ -887,16 +891,12 @@ class SingleProcessingStore extends Reflux.Store {
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
 
-    // We use transcript as source by default.
-    // Note: If for whatever reason the transcript display is off,
-    // assume user wants it off and don't turn it on.
-    // Should we show the other languages?
+    // If for whatever reason the transcript display is off, assume user
+    // wants it off and don't turn it on when editng transcript.
     if (!this.displays.get(StaticDisplays.Transcript)) {
       this.setDisplay(StaticDisplays.Transcript, false);
     }
-    if (this.data.source === undefined) {
-      this.data.source = this.data.transcript?.languageCode;
-    }
+
     this.trigger(this.data);
   }
 
@@ -994,9 +994,12 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /**
-   * Rebuilds the display settings menu and removes redundant displays.
-   * This does *not* apply the default display. For example, if the user does not
-   * want to see Audio, switch tabs would not being Audio back.
+   * Rebuilds the display settings menu and removes redundant display options.
+   * Maintains *valid* display changes such that:
+   *  - if the user switches off Audio, switching tabs would not switch Audio back on.
+   *  - Does not allow transcript to be shown on Transcript tab.
+   *
+   * This does *not* apply the default display. Only `resetDisplays()` applies defaults.
    */
   refreshDisplays() {
     const tab = this.getActiveTab();
@@ -1022,7 +1025,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /**
-   * Applies the default views depending on the tab.
+   * Applies default sidebar displays depending on the tab.
    */
   resetDisplays() {
     const tab = this.getActiveTab();
@@ -1047,8 +1050,9 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /**
-   * Manipulates the displays and their current state. Sidebar does *not* show these changes until
-   * `applyDisplay` is called.
+   * Changes the supplied display's boolean value in the `Map` of all displays, if it exists.
+   *
+   * Sidebar does *not* show these changes until `applyDisplay` is called.
    */
   setDisplay(display: StaticDisplays | LanguageCode, isEnabled: boolean) {
     if (this.displays.has(display)) {

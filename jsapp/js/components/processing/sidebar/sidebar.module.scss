@@ -1,12 +1,11 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
+@use '../singleProcessingVariables';
 
 .root {
   height: 100%;
 }
 
 .displays {
-  padding-bottom: sizes.$x60;
+  padding-bottom: singleProcessingVariables.$s-single-processing-tabs;
   display: flex;
   flex-direction: column;
   height: 100%;

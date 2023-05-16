@@ -6,11 +6,12 @@ import singleProcessingStore, {
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
+import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
-import styles from './sidebarDisplaySettings.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
-import KoboModalFooter from '../../modals/koboModalFooter';
+
+import styles from './sidebarDisplaySettings.module.scss';
 
 export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
@@ -52,10 +53,7 @@ export default function SidebarDisplaySettings() {
         onRequestClose={() => setIsModalOpen(false)}
         size='medium'
       >
-        <KoboModalHeader
-          iconColor='storm'
-          onRequestCloseByX={() => setIsModalOpen(false)}
-        >
+        <KoboModalHeader iconColor='storm'>
           {t('Customize display settings')}
         </KoboModalHeader>
 
@@ -68,13 +66,8 @@ export default function SidebarDisplaySettings() {
 
           <ul className={styles.options}>
             {Array.from(displays).map((entry) => {
-              let staticDisplay: StaticDisplays;
-              if (
-                entry[0] === StaticDisplays.Audio ||
-                entry[0] === StaticDisplays.Data ||
-                entry[0] === StaticDisplays.Transcript
-              ) {
-                staticDisplay = entry[0];
+              if (entry[0] in StaticDisplays) {
+                const staticDisplay = entry[0] as StaticDisplays;
 
                 return (
                   <li className={styles.display}>

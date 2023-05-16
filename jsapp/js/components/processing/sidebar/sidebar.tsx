@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import singleProcessingStore, {
   StaticDisplays,
 } from 'js/components/processing/singleProcessingStore';
-import SingleProcessingTranslation from 'js/components/processing/singleProcessingTranslation';
+import TransxDisplay from 'js/components/processing/transxDisplay';
 import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisplaySettings';
 import type {AssetResponse} from 'jsapp/js/dataInterface';
 import SingleProcessingSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
@@ -28,14 +28,14 @@ export default function Sidebar(props: SidebarProps) {
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {
           if (displays.has(translation.languageCode)) {
-            return <SingleProcessingTranslation translation={translation} />;
+            return <TransxDisplay transx={translation} />;
           }
 
           return null;
         })}
 
         {displays.has(StaticDisplays.Transcript) && transcription && (
-          <SingleProcessingTranslation translation={transcription} />
+          <TransxDisplay transx={transcription} />
         )}
 
         {displays.has(StaticDisplays.Audio) && (
