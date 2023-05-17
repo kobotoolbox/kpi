@@ -99,15 +99,10 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
-  useEffect(() => {
-    if (
-      state.subscribedProduct !== null &&
-      state.subscribedProduct.length > 0
-    ) {
-      const subscribedFilter =
-        state.subscribedProduct[0].items[0].price.human_readable_price.split(
-          '/'
-        )[1];
+  useMemo(() => {
+    const subscribedFilter =
+      state.subscribedProduct?.[0].items[0].price.recurring?.interval;
+    if (subscribedFilter === 'year' || subscribedFilter === 'month') {
       dispatch({type: subscribedFilter});
     }
   }, [state.subscribedProduct]);
@@ -192,7 +187,7 @@ export default function Plan() {
     if (state.products !== null) {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
-          const interval = price.human_readable_price.split('/')[1];
+          const interval = price.recurring?.interval;
           return interval === state.intervalFilter;
         });
 
