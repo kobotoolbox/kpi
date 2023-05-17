@@ -1,17 +1,17 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use 'js/components/common/button';
+@use '../analysisVariables';
 
 $s-choice-width: 66.66%;
 
 .choice {
   @include mixins.centerRowFlex;
-  gap: sizes.$x6;
-
+  gap: analysisVariables.$inner-horizontal-gap;
   width: $s-choice-width;
 
   &:not(:last-child) {
-    margin-bottom: sizes.$x10;
+    margin-bottom: analysisVariables.$inner-vertical-gap;
   }
 
   :global .text-box {

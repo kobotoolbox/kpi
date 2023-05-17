@@ -1,6 +1,6 @@
 import React, {useMemo, useReducer} from 'react';
 import bodyStyles from './processingBody.module.scss';
-import AnalysisQuestionsList from './analysis/analysisQuestionsList.component';
+import AnalysisContent from './analysis/analysisContent.component';
 import {
   initialState,
   analysisQuestionsReducer,
@@ -20,7 +20,7 @@ export default function AnalysisTabContent() {
       <AnalysisQuestionsContext.Provider value={contextValue}>
         <AnalysisHeader />
 
-        <AnalysisQuestionsList />
+        <AnalysisContent />
       </AnalysisQuestionsContext.Provider>
     </div>
   );

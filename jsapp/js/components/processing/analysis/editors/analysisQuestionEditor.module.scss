@@ -1,12 +1,15 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
-@use 'js/components/processing/analysis/responseForms/common.module';
+@use '../analysisVariables';
 
 .header {
   @include mixins.centerRowFlex;
-  align-items: flex-start;
-  gap: common.$gap-size;
+  gap: analysisVariables.$inner-horizontal-gap;
+
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
 
   :global .text-box {
     flex: 1;

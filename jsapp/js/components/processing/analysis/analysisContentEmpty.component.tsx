@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './analysisQuestionsEmpty.module.scss';
+import styles from './analysisContentEmpty.module.scss';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import assetStore from 'js/assetStore';
 import {userCan} from 'js/components/permissions/utils';
@@ -7,7 +7,7 @@ import InlineMessage from 'js/components/common/inlineMessage';
 import Icon from 'js/components/common/icon';
 
 /** To bedisplayed when there are no questions defined yet. */
-export default function AnalysisQuestionsEmpty() {
+export default function AnalysisContentEmpty() {
   const hasManagePermissions = (() => {
     const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid);
     return userCan('manage_asset', asset);

@@ -1,16 +1,16 @@
 import React, {useState, useContext} from 'react';
 import Icon from 'js/components/common/icon';
 import styles from './analysisQuestionEditor.module.scss';
-import commonStyles from 'js/components/processing/analysis/responseForms/common.module.scss';
+import commonStyles from '../responseForms/common.module.scss';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
 import {
   findQuestion,
   getQuestionTypeDefinition,
 } from 'js/components/processing/analysis/utils';
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
+import AnalysisQuestionsContext from '../analysisQuestions.context';
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
-import type {AdditionalFields} from 'js/components/processing/analysis/constants';
+import type {AdditionalFields} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 
 interface DefaultEditorProps {
