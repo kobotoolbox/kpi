@@ -8,7 +8,6 @@ import {
 } from 'js/components/processing/analysis/utils';
 import Radio from 'js/components/common/radio';
 import type {RadioOption} from 'js/components/common/radio';
-import Button from 'jsapp/js/components/common/button';
 import commonStyles from './common.module.scss';
 import classNames from 'classnames';
 import styles from './selectOneResponseForm.module.scss';
@@ -67,20 +66,15 @@ export default function SelectOneResponseForm(
     <>
       <CommonHeader uid={props.uid} />
 
-      <section className={classNames([commonStyles.content, styles.radioWrapper])}>
+      <section
+        className={classNames([commonStyles.content, styles.radioWrapper])}
+      >
         <Radio
           options={getOptions()}
           name={question.label}
           onChange={onRadioChange}
           selected={response}
-        />
-
-        <Button
-          type='bare'
-          color='storm'
-          size='s'
-          onClick={clear}
-          label={t('Clear')}
+          isClearable
         />
       </section>
     </>
