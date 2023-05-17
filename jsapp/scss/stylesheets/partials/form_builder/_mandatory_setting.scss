@@ -11,7 +11,7 @@
         display: block;
       }
 
-      .radio__input:not(:checked) ~ .text-box {
+      input[type='radio']:not(:checked) ~ .text-box {
         visibility: hidden;
         height: 0;
         overflow: hidden;
