@@ -95,6 +95,8 @@ class PriceSerializer(BasePriceSerializer):
             'id',
             'nickname',
             'currency',
+            'type',
+            'recurring',
             'unit_amount',
             'human_readable_price',
             'metadata',
