@@ -2,6 +2,9 @@
 @use 'scss/_variables';
 @use 'scss/sizes';
 
+// Note: we can't change this into a CSS Module, because some Data Table and
+// `utils.ts` code relies on `.checkbox__input` being available.
+
 .checkbox {
   .checkbox__wrapper {
     padding: 0;

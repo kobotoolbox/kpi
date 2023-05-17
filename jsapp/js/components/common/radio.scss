@@ -2,6 +2,9 @@
 @use 'scss/_variables';
 @use 'scss/sizes';
 
+// Note: we can't change this into a CSS Module, because some Form Builder code
+// relies on `.radio__input` being available.
+
 .radio {
   .radio__row {
     padding: sizes.$x4 0;

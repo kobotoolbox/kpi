@@ -1,7 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import './radio.scss';
+
+bem.Radio = makeBem(null, 'radio');
+bem.Radio__row = makeBem(bem.Radio, 'row', 'label');
+bem.Radio__input = makeBem(bem.Radio, 'input', 'input');
+bem.Radio__label = makeBem(bem.Radio, 'label', 'span');
 
 export interface RadioOption {
   label: string;
