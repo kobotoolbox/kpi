@@ -65,8 +65,10 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
 
 class ServiceUsageSerializer(serializers.Serializer):
 
-    total_nlp_asr_seconds = serializers.SerializerMethodField()
-    total_nlp_mt_characters = serializers.SerializerMethodField()
+    total_nlp_asr_seconds_all_time = serializers.SerializerMethodField()
+    total_nlp_asr_seconds_current_month = serializers.SerializerMethodField()
+    total_nlp_mt_characters_all_time = serializers.SerializerMethodField()
+    total_nlp_mt_characters_current_month = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count_current_month = serializers.SerializerMethodField()
     total_submission_count_all_time = serializers.SerializerMethodField()
@@ -74,18 +76,26 @@ class ServiceUsageSerializer(serializers.Serializer):
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
 
-        self._total_nlp_asr_seconds = 0
-        self._total_nlp_mt_characters = 0
+        self._total_nlp_asr_seconds_all_time = 0
+        self._total_nlp_asr_seconds_current_month = 0
+        self._total_nlp_mt_characters_all_time = 0
+        self._total_nlp_mt_characters_current_month = 0
         self._total_storage_bytes = 0
         self._total_submission_count_all_time = 0
         self._total_submission_count_current_month = 0
         self._get_per_asset_usage(instance)
 
-    def get_total_nlp_asr_seconds(self, user):
-        return self._total_nlp_asr_seconds
+    def get_total_nlp_asr_seconds_all_time(self, user):
+        return self._total_nlp_asr_seconds_all_time
 
-    def get_total_nlp_mt_characters(self, user):
-        return self._total_nlp_mt_characters
+    def get_total_nlp_asr_seconds_current_month(self, user):
+        return self._total_nlp_asr_seconds_current_month
+
+    def get_total_nlp_mt_characters_all_time(self, user):
+        return self._total_nlp_mt_characters_all_time
+
+    def get_total_nlp_mt_characters_current_month(self, user):
+        return self._total_nlp_asr_seconds_current_month
 
     def get_total_submission_count_all_time(self, user):
         return self._total_submission_count_all_time
@@ -120,6 +130,13 @@ class ServiceUsageSerializer(serializers.Serializer):
             nlp_keys = nlp_usage.keys()
             for key in nlp_keys:
                 if 'asr_seconds' in key:
-                    self._total_nlp_asr_seconds += nlp_usage[key]
+                    self._total_nlp_asr_seconds_all_time += nlp_usage[key]
                 if 'mt_characters' in key:
-                    self._total_nlp_mt_characters += nlp_usage[key]
+                    self._total_nlp_mt_characters_all_time += nlp_usage[key]
+            nlp_usage = asset['nlp_usage_current_month']
+            nlp_keys = nlp_usage.keys()
+            for key in nlp_keys:
+                if 'asr_seconds' in key:
+                    self._total_nlp_asr_seconds_current_month += nlp_usage[key]
+                if 'mt_characters' in key:
+                    self._total_nlp_mt_characters_current_month += nlp_usage[key]
