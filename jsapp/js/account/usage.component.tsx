@@ -9,16 +9,16 @@ import Button from '../components/common/button';
 interface UsageState {
   storage: number;
   monthlySubmissions: number;
-  transcriptionMinutes: number;
-  translationChars: number;
+  monthlyTranscriptionMinutes: number;
+  monthlyTranslationChars: number;
 }
 
 export default function Usage() {
   const [usage, setUsage] = useState<UsageState>({
     storage: 0,
     monthlySubmissions: 0,
-    transcriptionMinutes: 0,
-    translationChars: 0,
+    monthlyTranscriptionMinutes: 0,
+    monthlyTranslationChars: 0,
   });
 
   function truncate(decimal: number) {
@@ -31,8 +31,10 @@ export default function Usage() {
         ...usage,
         storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
         monthlySubmissions: data.total_submission_count_current_month,
-        transcriptionMinutes: Math.floor(truncate(data.total_nlp_asr_seconds / 60)), // seconds to minutes
-        translationChars: data.total_nlp_mt_characters,
+        monthlyTranscriptionMinutes: Math.floor(
+          truncate(data.total_nlp_asr_seconds_current_month / 60)
+        ), // seconds to minutes
+        monthlyTranslationChars: data.total_nlp_mt_characters_current_month,
       });
     });
   }, []);
@@ -67,7 +69,7 @@ export default function Usage() {
           </div>
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Monthly use')}</strong>
-            <strong>{usage.transcriptionMinutes}</strong>
+            <strong>{usage.monthlyTranscriptionMinutes}</strong>
           </div>
         </div>
         <div className={styles.box}>
@@ -79,7 +81,7 @@ export default function Usage() {
           </div>
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Monthly use')}</strong>
-            <strong>{usage.translationChars}</strong>
+            <strong>{usage.monthlyTranslationChars}</strong>
           </div>
         </div>
       </div>
