@@ -8,12 +8,12 @@ import subprocess
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
+import environ
 import django.conf.locale
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
-import environ
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
@@ -86,7 +86,7 @@ INSTALLED_APPS = (
     'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
-    "kobo.apps.accounts",
+    'kobo.apps.accounts',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -122,6 +122,7 @@ INSTALLED_APPS = (
     'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
+    'kobo.apps.trash_bin.TrashBinAppConfig',
 )
 
 MIDDLEWARE = [
@@ -187,7 +188,7 @@ CONSTANCE_CONFIG = {
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
-        'A synchronus export request will return the last export generated '
+        'A synchronous export request will return the last export generated '
         'with the same settings unless it is older than this value (seconds)'
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
@@ -317,7 +318,8 @@ CONSTANCE_CONFIG = {
     ),
     'ASSET_SNAPSHOT_DAYS_RETENTION': (
         30,
-        "Number of days to keep asset snapshots"
+        'Number of days to keep asset snapshots',
+        'positive_int'
     ),
     'FREE_TIER_THRESHOLDS': (
         json.dumps({
@@ -332,6 +334,20 @@ CONSTANCE_CONFIG = {
         'number of translation characters',
         # Use custom field for schema validation
         'free_tier_threshold_jsonschema'
+    ),
+    'PROJECT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep projects in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
+        'positive_int',
+    ),
+    'ACCOUNT_TRASH_GRACE_PERIOD': (
+        30 * 6,
+        'Number of days to keep deactivated accounts in trash before '
+        'automatically hard-deleting all their projects and data. '
+        'Use -1 to require a superuser to empty the trash manually instead of '
+        'having the system empty it automatically.',
+        'positive_int_minus_one',
     ),
 }
 
@@ -348,6 +364,57 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.MfaHelpTextField',
         {'widget': 'django.forms.Textarea'},
     ],
+    'positive_int': ['django.forms.fields.IntegerField', {
+        'min_value': 0
+    }],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
+        'min_value': -1
+    }],
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    'General Options': (
+        'REGISTRATION_OPEN',
+        'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
+        'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'TERMS_OF_SERVICE_URL',
+        'PRIVACY_POLICY_URL',
+        'SOURCE_CODE_URL',
+        'SUPPORT_EMAIL',
+        'SUPPORT_URL',
+        'COMMUNITY_URL',
+        'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+        'EXPOSE_GIT_REV',
+        'FRONTEND_MIN_RETRY_TIME',
+        'FRONTEND_MAX_RETRY_TIME',
+        'FREE_TIER_THRESHOLDS',
+    ),
+    'Rest Services': (
+        'ALLOW_UNSECURED_HOOK_ENDPOINTS',
+        'HOOK_MAX_RETRIES',
+    ),
+    'Natural language processing': (
+        'ASR_MT_INVITEE_USERNAMES',
+        'ASR_MT_GOOGLE_CREDENTIALS',
+    ),
+    'Security': (
+        'SSRF_ALLOWED_IP_ADDRESS',
+        'SSRF_DENIED_IP_ADDRESS',
+        'MFA_ISSUER_NAME',
+        'MFA_ENABLED',
+        'MFA_LOCALIZED_HELP_TEXT',
+    ),
+    'Metadata options': (
+        'USER_METADATA_FIELDS',
+        'PROJECT_METADATA_FIELDS',
+        'SECTOR_CHOICES',
+        'OPERATIONAL_PURPOSE_CHOICES',
+    ),
+    'Trash bin': (
+        'ASSET_SNAPSHOT_DAYS_RETENTION',
+        'ACCOUNT_TRASH_GRACE_PERIOD',
+        'PROJECT_TRASH_GRACE_PERIOD',
+    ),
 }
 
 # Tell django-constance to use a database model instead of Redis
@@ -422,8 +489,10 @@ DJANGO_LANGUAGE_CODES = env.str(
         'de-DE '  # German
         'en '  # English
         'es '  # Spanish
+        'fa '  # Persian/Farsi
         'fr '  # French
         'hi '  # Hindi
+        'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
         'pl '  # Polish
@@ -704,9 +773,15 @@ CELERY_TASK_SOFT_TIME_LIMIT = int(
 
 CELERY_BEAT_SCHEDULE = {
     # Schedule every day at midnight UTC. Can be customized in admin section
-    "send-hooks-failures-reports": {
-        "task": "kobo.apps.hook.tasks.failures_reports",
-        "schedule": crontab(hour=0, minute=0),
+    'send-hooks-failures-reports': {
+        'task': 'kobo.apps.hook.tasks.failures_reports',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'trash-bin-garbage-collector': {
+        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
+        'schedule': crontab(minute=30),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }

@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
     def populate_date_deployed(self):
         queryset = (
-            Asset.objects.only('uid', 'date_deployed')
+            Asset.all_objects.only('uid', 'date_deployed')
             .filter(asset_type=ASSET_TYPE_SURVEY)
             .prefetch_related(
                 Prefetch(
@@ -58,4 +58,4 @@ class Command(BaseCommand):
                 else:
                     asset.date_deployed = first_deployed_version.date_modified
 
-            Asset.objects.bulk_update(assets, fields=['date_deployed'])
+            Asset.all_objects.bulk_update(assets, fields=['date_deployed'])

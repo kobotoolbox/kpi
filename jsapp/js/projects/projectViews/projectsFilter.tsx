@@ -4,7 +4,7 @@ import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import type {ProjectsFilterDefinition} from './constants';
+import type {ProjectFieldName, ProjectsFilterDefinition} from './constants';
 import ProjectsFilterEditor from './projectsFilterEditor';
 import {removeIncorrectFilters} from './utils';
 import styles from './projectsFilter.module.scss';
@@ -21,6 +21,8 @@ interface ProjectsFilterProps {
    * new filters.
    */
   onFiltersChange: (filters: ProjectsFilterDefinition[]) => void;
+  /** A list of fields that should not be available to user. */
+  excludedFields?: ProjectFieldName[];
 }
 
 export default function ProjectsFilter(props: ProjectsFilterProps) {
@@ -132,6 +134,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
               onDelete={() => {
                 onFilterEditorDelete(filterIndex);
               }}
+              excludedFields={props.excludedFields}
             />
           ))}
 

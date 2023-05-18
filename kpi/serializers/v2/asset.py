@@ -1,16 +1,27 @@
 # coding: utf-8
 from __future__ import annotations
+
 import json
 import re
 
+
+from constance import config
 from django.conf import settings
-from django.utils.translation import gettext as t
+from django.db.models import QuerySet, F
+from django.utils.translation import gettext as t, ngettext as nt
 from django_request_cache import cache_for_request
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
+from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.trash_bin.exceptions import (
+    TrashIntegrityError,
+    TrashTaskInProgressError,
+)
+from kobo.apps.trash_bin.models.project import ProjectTrash
+from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -18,10 +29,12 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_STATUS_SHARED,
+    ASSET_TYPE_SURVEY,
     ASSET_TYPES,
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -32,9 +45,15 @@ from kpi.fields import (
     RelativePrefixHyperlinkedRelatedField,
     WritableJSONField,
 )
-from kpi.models import Asset, AssetVersion, AssetExportSettings
+from kpi.models import (
+    Asset,
+    AssetVersion,
+    AssetExportSettings,
+    ObjectPermission,
+)
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.object_permission import (
+    get_cached_code_names,
     get_database_user,
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
@@ -47,6 +66,217 @@ from kpi.utils.project_views import (
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+
+
+class AssetBulkActionsSerializer(serializers.Serializer):
+    SUPPORTED_ACTIONS = ['archive', 'unarchive', 'delete', 'undelete']
+    payload = WritableJSONField()
+
+    def __init__(
+        self,
+        instance=None,
+        data=empty,
+        grace_period=None,
+        **kwargs
+    ):
+        request = kwargs.get('context').get('request')
+        self.__user = request.user
+        self.__grace_period = grace_period
+        super().__init__(instance=instance, data=data, **kwargs)
+
+    def create(self, validated_data):
+        delete_request, put_back_ = self._get_action_type_and_direction(
+            validated_data['payload']
+        )
+        extra_params = {}
+        if asset_uids := validated_data['payload'].get('asset_uids'):
+            extra_params['asset_uids'] = asset_uids
+        else:
+            extra_params['owner'] = self.__user
+
+        queryset, projects_count = ProjectTrash.toggle_asset_statuses(
+            active=put_back_,
+            toggle_delete=delete_request,
+            **extra_params,
+        )
+        validated_data['project_counts'] = projects_count
+
+        if delete_request:
+            self._toggle_trash(queryset, put_back_)
+
+        return validated_data
+
+    def validate_payload(self, payload: dict) -> dict:
+        self._validate_action(payload)
+        try:
+            asset_uids = payload['asset_uids']
+        except KeyError:
+            self._validate_confirm(payload)
+            asset_uids = []
+
+        self._has_perms(payload, asset_uids)
+        self._validate_asset_types(payload, asset_uids)
+
+        return payload
+
+    def to_representation(self, instance):
+        delete_request, put_back_ = self._get_action_type_and_direction(
+            instance['payload']
+        )
+
+        if delete_request:
+            if put_back_:
+                message = nt(
+                    f'%(count)d project has been undeleted',
+                    f'%(count)d projects have been undeleted',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
+            else:
+                message = nt(
+                    '%(count)d project has been deleted',
+                    '%(count)d projects have been deleted',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
+        else:
+            if put_back_:
+                message = nt(
+                    '%(count)d project has been unarchived',
+                    '%(count)d projects have been unarchived',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
+            else:
+                message = nt(
+                    '%(count)d project has been archived',
+                    '%(count)d projects have been archived',
+                    instance['project_counts'],
+                ) % {'count': instance['project_counts']}
+
+        return {'detail': message}
+
+    def _create_tasks(self, assets: list[dict]):
+        try:
+            move_to_trash(
+                self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
+            )
+        except TrashIntegrityError:
+            # We do not want to ignore conflicts. If so, something went wrong.
+            # Probably direct API calls not coming from the front end.
+            raise serializers.ValidationError(
+                {'detail': t('One or many projects have been deleted already!')}
+            )
+
+    def _delete_tasks(self, assets: list[dict]):
+        try:
+            put_back(self.__user, assets, 'asset')
+        except TrashTaskInProgressError:
+            raise serializers.ValidationError(
+                {'detail': t('One or many projects are already being deleted!')}
+            )
+
+    def _get_action_type_and_direction(self, payload: dict) -> tuple:
+
+        action = payload['action']
+        put_back_ = False
+        delete_request = False
+        if action.startswith('un'):
+            put_back_ = True
+        if action.endswith('delete'):
+            delete_request = True
+
+        return delete_request, put_back_
+
+    def _has_perms(self, payload: dict, asset_uids: list[str]):
+
+        delete_request, _ = self._get_action_type_and_direction(payload)
+
+        if self.__user.is_anonymous:
+            raise exceptions.PermissionDenied()
+
+        # No need to validate permissions if `asset_uids` is empty (which means
+        # all user's assets will be processed.
+        # Obviously, superusers are granted all permissions implicitly.
+        if not asset_uids or self.__user.is_superuser:
+            return
+
+        if not delete_request:
+            if ProjectTrash.objects.filter(asset__uid__in=asset_uids).exists():
+                raise exceptions.PermissionDenied()
+
+            code_names = get_cached_code_names(Asset)
+            perm_dict = code_names[PERM_MANAGE_ASSET]
+            objects_count = ObjectPermission.objects.filter(
+                user=self.__user,
+                permission_id=perm_dict['id'],
+                asset__uid__in=asset_uids,
+                deny=False
+            ).count()
+        else:
+            objects_count = Asset.objects.filter(
+                owner=self.__user,
+                uid__in=asset_uids,
+            ).count()
+
+        if objects_count != len(asset_uids):
+            raise exceptions.PermissionDenied()
+
+    def _toggle_trash(self, queryset: QuerySet, put_back_: bool):
+
+        # The main goal of the annotation below is to pass always the same
+        # metadata attributes to AuditLog model whatever the model and the action.
+        # `self._delete_tasks and self._create_tasks` both call utilities which
+        # save entries in auditlog table. When fetching auditlog API endpoint
+        # the query parser can be used to search on same attributes.
+        # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
+        # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
+        # all delete submissions and action on the asset itself.
+        assets = queryset.annotate(
+            asset_uid=F('uid'), asset_name=F('name')
+        ).values('pk', 'asset_uid', 'asset_name')
+
+        if put_back_:
+            self._delete_tasks(assets)
+        else:
+            self._create_tasks(assets)
+
+    def _validate_action(self, payload: dict):
+        try:
+            action = payload['action']
+        except KeyError:
+            raise serializers.ValidationError(
+                t('`action` parameter is required')
+            )
+
+        if action not in self.SUPPORTED_ACTIONS:
+            raise serializers.ValidationError(
+                t('Supported values for `action` are: ')
+                + ', '.join(self.SUPPORTED_ACTIONS)
+            )
+
+        if (
+            action == 'undelete'
+            and not self.__user.is_superuser
+        ):
+            raise exceptions.PermissionDenied()
+
+    def _validate_asset_types(self, payload: dict, asset_uids: list[str]):
+        delete_request, put_back_ = self._get_action_type_and_direction(payload)
+
+        if put_back_ or delete_request or not asset_uids:
+            return
+
+        if Asset.objects.filter(
+            asset_type=ASSET_TYPE_SURVEY,
+            uid__in=asset_uids,
+            _deployment_data={},
+        ).exists():
+            raise serializers.ValidationError(
+                t('Draft projects cannot be archived')
+            )
+
+    def _validate_confirm(self, payload: dict):
+
+        if not payload.get('confirm'):
+            raise serializers.ValidationError(t('Confirmation is required'))
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):

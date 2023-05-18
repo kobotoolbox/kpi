@@ -34,7 +34,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         source="socialaccount_set", many=True, read_only=True
     )
 
-
     class Meta:
         model = User
         fields = (

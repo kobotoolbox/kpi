@@ -10,7 +10,7 @@ from .utils import update_nlp_counter
 class MonthlyNLPUsageCounter(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
-    user = models.ForeignKey(User, related_name='users', on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, related_name='nlp_counters', on_delete=models.CASCADE)
     asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
     counters = models.JSONField(default=dict)
 

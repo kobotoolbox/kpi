@@ -1,0 +1,79 @@
+from __future__ import annotations
+
+from django.conf import settings
+from django.db import models, transaction
+from django.utils.timezone import now
+
+from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.fields import KpiUidField
+from kpi.models import Asset
+from kpi.utils.jsonbfield_helper import ReplaceValues
+from . import BaseTrash
+
+
+class ProjectTrash(BaseTrash):
+
+    uid = KpiUidField(uid_prefix='pt')
+    asset = models.OneToOneField(
+        'kpi.Asset', related_name='trash', on_delete=models.CASCADE
+    )
+
+    class Meta(BaseTrash.Meta):
+        verbose_name = 'project'
+        verbose_name_plural = 'projects'
+
+    def __str__(self) -> str:
+        return f'{self.asset} - {self.periodic_task.start_time}'
+
+    @classmethod
+    def toggle_asset_statuses(
+        cls,
+        asset_uids: list[str] = None,
+        owner: 'auth.User' = None,
+        active: bool = True,
+        toggle_delete: bool = True,
+    ) -> tuple:
+
+        if asset_uids and owner:
+            raise ValueError(
+                '`asset_uids` and `owner` cannot be passed at the time'
+            )
+
+        if asset_uids:
+            kc_filter_params = {'kpi_asset_uid__in': asset_uids}
+            filter_params = {'uid__in': asset_uids}
+        else:
+            kc_filter_params = {'user': KobocatUser.get_kc_user(owner)}
+            filter_params = {'owner': owner}
+
+        kc_update_params = {'downloadable': active}
+        update_params = {
+            '_deployment_data': ReplaceValues(
+                '_deployment_data',
+                updates={'active': active},
+            ),
+            'date_modified': now(),
+        }
+
+        if toggle_delete:
+            kc_update_params['pending_delete'] = not active
+            update_params['pending_delete'] = not active
+
+        with transaction.atomic():
+            with kc_transaction_atomic():
+                # Deployment back end should be per asset. But, because we need
+                # to do a bulk action, we assume that all `Asset` objects use the
+                # same back end to avoid looping on each object to update their
+                # back end.
+                queryset = Asset.all_objects.filter(**filter_params)
+                updated = queryset.update(
+                    **update_params
+                )
+                if not settings.TESTING:
+                    kc_updated = KobocatXForm.objects.filter(
+                        **kc_filter_params
+                    ).update(**kc_update_params)
+                    assert updated >= kc_updated
+
+        return queryset, updated
