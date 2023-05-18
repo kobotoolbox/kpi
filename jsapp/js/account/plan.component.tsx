@@ -115,7 +115,9 @@ export default function Plan() {
     ) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (subscribedFilter === 'year' || subscribedFilter === 'month') {
+      if (state.subscribedProduct?.[0].status === 'canceled') {
+        dispatch({type: 'year'});
+      } else {
         dispatch({type: subscribedFilter});
       }
     }
@@ -229,7 +231,6 @@ export default function Plan() {
       if (
         !product.prices.unit_amount &&
         state.intervalFilter === 'year' &&
-        state.subscribedProduct.length === 0 &&
         !hasActiveSubscription
       ) {
         return true;
