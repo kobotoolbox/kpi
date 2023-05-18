@@ -99,11 +99,25 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
+  const hasActiveSubscription = useMemo(() => {
+    if (state.subscribedProduct) {
+      return state.subscribedProduct.some((subscription: BaseSubscription) =>
+        activeSubscriptionStatuses.includes(subscription.status)
+      );
+    }
+    return false;
+  }, [state.subscribedProduct]);
+
   useMemo(() => {
-    const subscribedFilter =
-      state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-    if (subscribedFilter === 'year' || subscribedFilter === 'month') {
-      dispatch({type: subscribedFilter});
+    if (
+      state.subscribedProduct !== null &&
+      state.subscribedProduct.length > 0
+    ) {
+      const subscribedFilter =
+        state.subscribedProduct?.[0].items[0].price.recurring?.interval;
+      if (subscribedFilter === 'year' || subscribedFilter === 'month') {
+        dispatch({type: subscribedFilter});
+      }
     }
   }, [state.subscribedProduct]);
 
@@ -215,7 +229,8 @@ export default function Plan() {
       if (
         !product.prices.unit_amount &&
         state.intervalFilter === 'year' &&
-        state.subscribedProduct.length === 0
+        state.subscribedProduct.length === 0 &&
+        !hasActiveSubscription
       ) {
         return true;
       }
@@ -227,7 +242,7 @@ export default function Plan() {
         if (
           subscription[lastsubscription].items[0].price.id ===
             product.prices.id &&
-          subscription[lastsubscription].status === 'active'
+          hasActiveSubscription
         ) {
           return true;
         } else {
