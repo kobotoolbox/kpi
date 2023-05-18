@@ -5,6 +5,8 @@ from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
+from .actions.base import ACTION_NEEDED, PASSES
+from .actions.keyword_search import KeywordSearchAction
 from .constants import GOOGLETS, GOOGLETX
 from .exceptions import SubsequenceTimeoutError
 from .integrations.google.google_transcribe import GoogleTranscribeEngine
@@ -140,6 +142,14 @@ class SubmissionExtras(models.Model):
                         'languageCode': target_lang,
                         'value': results,
                     }
+
+        if 'keyword_search' in features:
+            kws_action = KeywordSearchAction(features['keyword_search'])
+            if (
+                kws_action.check_submission_status(self.content)
+                == ACTION_NEEDED
+            ):
+                kws_action.run_change(self.content)
 
         asset_changes = False
         asset_known_cols = self.asset.known_cols

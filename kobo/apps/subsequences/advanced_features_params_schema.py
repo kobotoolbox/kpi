@@ -41,6 +41,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
             },
             'required': ['languages']
         },
+        'keyword_search': {},  # FIXME
     }
 }
 
