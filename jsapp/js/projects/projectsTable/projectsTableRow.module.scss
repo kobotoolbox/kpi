@@ -113,6 +113,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     // much wider than it otherwise would be.
     &[data-field='checkbox'] {
       position: relative;
+      line-height: unset;
       // create hanging pseudo-elements to expand touch targets
       &::after,
       &::before {
@@ -136,13 +137,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
       // uncrop element
       overflow: visible;
       contain: inline-size style;
-
-      :global input.checkbox__input { // general appearance tweaks
-        &::after {border-radius: 1px;} // better-looking inner corners
-        &:focus-visible { // add keyboard focus styles
-          outline: 3px solid colors.$kobo-alt-blue;
-        }
-      }
     }
   }
 
@@ -159,17 +153,33 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     // Hovering any cell  ->  Outline the checkbox
     &[data-field='checkbox'] {
-      :global .checkbox {
-        border-radius: sizes.$x2;
-        outline: sizes.$x1 solid colors.$kobo-alt-blue;
+      :global .checkbox__input {
+        outline: sizes.$x2 solid colors.$kobo-alt-blue;
+        outline-offset: 0 - sizes.$x1;
       }
 
       &:hover {
         // Do an even bigger outline if you're actually near the checkbox
-        :global .checkbox {
+        :global .checkbox__input {
           outline-width: sizes.$x3;
+          outline-offset: 0 - sizes.$x1;
+
+          // Override checkbox hover states to reduce flashing
+          &:hover {
+            background-color: colors.$kobo-white;
+
+            &:checked {
+              background-color: colors.$kobo-blue;
+            }
+          }
         }
       }
+    }
+    // Specificity: Keep the keyboard focus styles, despite the pointer
+    &[data-field='checkbox'] :global .checkbox__input:focus-visible,
+    &[data-field='checkbox']:hover :global .checkbox__input:focus-visible {
+      outline: 3px solid colors.$kobo-alt-blue;
+      outline-offset: sizes.$x1;
     }
 
     // Hovering 'Project name' cell…
@@ -180,7 +190,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     //  ->  De-emphasize the checkbox
     &[data-field='checkbox']:has(~ [data-field='name']:hover) {
       //  (Uses :has(), so not supported in Firefox yet)
-      :global .checkbox {
+      :global .checkbox__input {
         outline: none;
       }
     }

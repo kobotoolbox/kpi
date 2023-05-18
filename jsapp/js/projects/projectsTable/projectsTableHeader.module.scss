@@ -3,6 +3,7 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
+@use 'js/components/common/icon';
 
 // This file contains all the styles that are being used exclusively in
 // `ProjectsTableHeader` component. Most of styles it is using are coming
@@ -31,10 +32,9 @@
   :global {
     // Dropdown arrow
     .k-icon:first-child {
-      // Hardcoded: we know the --size-xxs icon will be 10px wide.
-      // These sizes are tuned for "optical" alignment
-      // considering the weight of the dropdown arrow.
-      margin-left: 0 - sizes.$x10 - sizes.$x1;
+      // Pull the dropdown label and arrow to the left somewhat.
+      // This measurement isn't scientific, it's just supposed to look good.
+      margin-left: 0 - icon.$s-icon-xxs - sizes.$x2;
       padding-right: sizes.$x3;
       opacity: 0.6;
     }
