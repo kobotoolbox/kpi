@@ -1,0 +1,105 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/_variables';
+@use 'scss/sizes';
+
+// Note: we can't change this into a CSS Module, because some Form Builder code
+// relies on `.radio__input` being available.
+
+.radio {
+  .radio__row {
+    padding: sizes.$x4 0;
+    cursor: pointer;
+    display: block;
+
+    &.radio__row--title {
+      cursor: default;
+    }
+  }
+
+  // Disabled state
+  &.radio--disabled {
+    .radio__row {
+      cursor: default;
+    }
+
+    .radio__input,
+    .radio__label {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .radio__input:checked {
+      color: colors.$kobo-white;
+      border-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-40;
+    }
+  }
+
+  // Hover states
+  .radio__row:hover {
+    // Unchecked
+    .radio__input:not(:checked) {
+      border-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-light-blue;
+    }
+
+    // Checked
+    .radio__input:checked {
+      border-color: colors.$kobo-alt-blue;
+
+      &::after {
+        background-color: colors.$kobo-alt-blue;
+      }
+    }
+  }
+
+  .radio__input,
+  .radio__label {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  .radio__label {
+    max-width: calc(100% - sizes.$x32);
+    color: colors.$kobo-gray-24;
+    font-size: variables.$base-font-size;
+  }
+
+  .radio__input + .radio__label {
+    margin-left: sizes.$x6;
+  }
+
+  .radio__input {
+    border-radius: 50%;
+    appearance: none;
+    position: relative;
+    margin: 0;
+    color: colors.$kobo-gray-65;
+    border: sizes.$x1 solid colors.$kobo-gray-65;
+    background-color: colors.$kobo-white;
+    width: sizes.$x20;
+    height: sizes.$x20;
+    outline: 0;
+    cursor: pointer;
+    overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
+
+    &::after {
+      display: block;
+      position: absolute;
+      opacity: 0;
+      content: '';
+      top: sizes.$x4;
+      left: sizes.$x4;
+      border-radius: 50%;
+      width: sizes.$x10;
+      height: sizes.$x10;
+      background-color: colors.$kobo-blue;
+    }
+
+    &:checked {
+      border-color: colors.$kobo-blue;
+
+      &::after { opacity: 1; }
+    }
+  }
+}
