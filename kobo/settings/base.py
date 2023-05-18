@@ -804,6 +804,15 @@ if 'KOBOCAT_URL' in os.environ:
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
+# Increase limits for long-running tasks
+# Notes: They are custom name, not part of `CELERY_*` namespace.
+CELERY_LONG_RUNNING_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_TASK_TIME_LIMIT', 4260)  # seconds
+)
+
+CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
+)
 
 ''' Django allauth configuration '''
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
