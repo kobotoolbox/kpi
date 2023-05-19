@@ -3,6 +3,7 @@
 import django.contrib.postgres.indexes
 import django.db.models.expressions
 from django.conf import settings
+from django.contrib.postgres.operations import AddIndexConcurrently
 from django.db import migrations
 
 
@@ -12,10 +13,10 @@ def manually_create_indexes_instructions(apps, schema_editor):
         !!! ATTENTION !!!
         You need to run the SQL queries below in PostgreSQL directly:
 
-            > CREATE INDEX "data__destination_idx" ON "kpi_importtask" USING btree ((("data" -> 'destination')));
-            > CREATE INDEX "data__destination_hash_idx" ON "kpi_importtask" USING hash ((("data" -> 'destination')));
-            > CREATE INDEX "data__source_idx" ON "kpi_exporttask" USING btree ((("data" -> 'source')));
-            > CREATE INDEX "data__source_hash_idx" ON "kpi_exporttask" USING hash ((("data" -> 'source')));
+            > CREATE INDEX CONCURRENTLY "data__destination_idx" ON "kpi_importtask" USING btree ((("data" -> 'destination')));
+            > CREATE INDEX CONCURRENTLY "data__destination_hash_idx" ON "kpi_importtask" USING hash ((("data" -> 'destination')));
+            > CREATE INDEX CONCURRENTLY "data__source_idx" ON "kpi_exporttask" USING btree ((("data" -> 'source')));
+            > CREATE INDEX CONCURRENTLY "data__source_hash_idx" ON "kpi_exporttask" USING hash ((("data" -> 'source')));
 
 
         Otherwise, project deletions will perform very poorly.
@@ -38,7 +39,30 @@ def manually_drop_indexes_instructions(apps, schema_editor):
     )
 
 
+def noop(apps, schema_editor):
+    pass
+
+
+def warning_long_run(apps, schema_editor):
+
+    print(
+        """
+        Warning!!!
+        This migration can take a while on large databases but does not lock
+        any tables.
+        If you cancel it (while it is running), please run the following
+        commands to apply it manually:
+
+        - `./manage.py migrate --fake kpi 0050`
+        - `./manage.py migrate kpi 0049`
+        - `SKIP_HEAVY_MIGRATIONS=True ./manage.py migrate kpi 0050`
+        """
+    )
+
+
 class Migration(migrations.Migration):
+
+    atomic = False
 
     dependencies = [
         ('kpi', '0049_add_pending_delete_to_asset'),
@@ -46,26 +70,30 @@ class Migration(migrations.Migration):
 
     if not settings.SKIP_HEAVY_MIGRATIONS:
         operations = [
-            migrations.AddIndex(
+            migrations.RunPython(
+                warning_long_run,
+                noop,
+            ),
+            AddIndexConcurrently(
                 model_name='importtask',
                 index=django.contrib.postgres.indexes.BTreeIndex(
                     django.db.models.expressions.F('data__destination'),
                     name='data__destination_idx',
                 ),
             ),
-            migrations.AddIndex(
+            AddIndexConcurrently(
                 model_name='importtask',
                 index=django.contrib.postgres.indexes.HashIndex(
                     django.db.models.expressions.F('data__destination'),
                     name='data__destination_hash_idx',
                 ),
             ),
-            migrations.AddIndex(
+            AddIndexConcurrently(
                 model_name='exporttask',
                 index=django.contrib.postgres.indexes.BTreeIndex(
                     django.db.models.expressions.F('data__source'), name='data__source_idx'),
             ),
-            migrations.AddIndex(
+            AddIndexConcurrently(
                 model_name='exporttask',
                 index=django.contrib.postgres.indexes.HashIndex(
                     django.db.models.expressions.F('data__source'),
