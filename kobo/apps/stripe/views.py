@@ -2,6 +2,7 @@ import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Min, Prefetch
+from django.utils import timezone
 from djstripe.models import (
     Customer,
     Price,
@@ -27,6 +28,8 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
+
+from kpi.utils.datetime import next_first_day_of_the_month, next_first_day_of_the_year
 
 
 # Lists the one-time purchases made by the organization that the logged-in user owns
@@ -210,23 +213,37 @@ class CheckoutLinkView(APIView):
         checkout_mode = (
             'payment' if price.type == 'one_time' else 'subscription'
         )
-        return stripe.checkout.Session.create(
-            api_key=djstripe_settings.STRIPE_SECRET_KEY,
-            automatic_tax={'enabled': False},
-            customer=customer_id,
-            line_items=[
+        checkout_session_args = {
+            'api_key': djstripe_settings.STRIPE_SECRET_KEY,
+            'automatic_tax': {'enabled': False},
+            'customer': customer_id,
+            'line_items': [
                 {
                     'price': price.id,
                     'quantity': 1,
                 },
             ],
-            metadata={
+            'metadata': {
                 'organization_id': organization_id,
                 'price_id': price.id,
             },
-            mode=checkout_mode,
-            success_url=f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
-        )
+            'mode': checkout_mode,
+            'success_url': f'{settings.KOBOFORM_URL}/#/account/plan?checkout={price.id}',
+        }
+        # Set the billing cycle anchor date *only* if today's not the first day of the billing period
+        date = timezone.now()
+        if date.day != 1:
+            billing_cycle_anchor = 0
+            if price.recurring['interval'] == 'month':
+                billing_cycle_anchor = next_first_day_of_the_month()
+            if price.recurring['interval'] == 'year':
+                billing_cycle_anchor = next_first_day_of_the_year()
+            if billing_cycle_anchor:
+                billing_cycle_anchor = int(billing_cycle_anchor.timestamp())
+                checkout_session_args['subscription_data'] = {
+                    'billing_cycle_anchor': billing_cycle_anchor
+                }
+        return stripe.checkout.Session.create(**checkout_session_args)
 
     def post(self, request):
         serializer = CheckoutLinkSerializer(data=request.query_params)
