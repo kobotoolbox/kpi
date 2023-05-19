@@ -232,7 +232,7 @@ class CheckoutLinkView(APIView):
         }
         # Set the billing cycle anchor date *only* if today's not the first day of the billing period
         date = timezone.now()
-        if date.day != 1:
+        if date.day != 1 and price.recurring:
             billing_cycle_anchor = 0
             if price.recurring['interval'] == 'month':
                 billing_cycle_anchor = next_first_day_of_the_month()
