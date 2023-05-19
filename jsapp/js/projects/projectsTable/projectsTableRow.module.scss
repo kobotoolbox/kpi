@@ -204,9 +204,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     border-top: 0;
     cursor: pointer;
     height: sizes.$x36;
-    line-height: sizes.$x16;
-    padding-top: sizes.$x12;
-    padding-bottom: sizes.$x12;
+    padding: 0; // dropdown does the padding
+
     background-color: colors.$kobo-white;
 
     // performance hints for resizing

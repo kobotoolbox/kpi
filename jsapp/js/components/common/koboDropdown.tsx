@@ -13,7 +13,7 @@ const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center';
 
 interface KoboDropdownProps {
   placement: KoboDropdownPlacement;
-  /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
+  /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
   hideOnMenuClick: boolean;

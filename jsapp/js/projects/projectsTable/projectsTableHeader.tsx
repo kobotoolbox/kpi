@@ -52,7 +52,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       >
         <KoboDropdown
           name={field.name}
-          placement={'down-center'}
+          placement={'down-left'}
           hideOnMenuClick
           onMenuVisibilityChange={(isVisible: boolean) => {
             let newVisibleMenuNames = Array.from(visibleMenuNames);
