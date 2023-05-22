@@ -5,6 +5,7 @@
 
 .header {
   @include mixins.centerRowFlex;
+  align-items: flex-start;
   gap: analysisVariables.$inner-horizontal-gap;
 
   &:not(:last-child) {

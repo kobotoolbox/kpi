@@ -5,6 +5,10 @@
 .root {
   display: flex;
   flex-direction: row;
+
+  &.isBeingDragged {
+    opacity: 0.5;
+  }
 }
 
 .content {
