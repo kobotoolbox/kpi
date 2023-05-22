@@ -1,5 +1,5 @@
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
-
+from ..jsonschemas.qual_schema import DEFINITIONS as QUAL_DEFINITIONS
 
 QUAL_BASE_DEFINITION = {
   'type': 'object',
@@ -97,32 +97,17 @@ class QualAction(BaseAction):
 
     def modify_jsonschema(self, schema):
         # NOCOMMIT write comment
-        definitions = schema.setdefault('definitions', {})
-        definitions['qual_base'] = QUAL_BASE_DEFINITION
-        definitions.update(QUAL_COMMON_DEFINITIONS)
+        definitions = schema.setdefault('definitions', QUAL_DEFINITIONS)
 
         for main_question, qual_schema in self.everything_else[
             'by_question'
         ].items():
             field_def = schema['properties'].setdefault(
                 main_question,
-                {
-                    'type': 'object',
-                    'properties': {},
-                },
+                {'type': 'object', 'properties': {}},
             )
-            uuid_type_combos = [{'properties': {
-                                  'uuid': {'const': qq['uuid']},
-                                  'type': {'const': qq['type']},
-                                }} for qq in qual_schema['survey']]
-
             field_def['properties'][self.ID] = {
                 'type': 'array',
-                'items': {
-                    'allOf': [
-                        {'oneOf': uuid_type_combos},
-                        {'$ref': '#/definitions/qual_item'},
-                    ],
-                }
+                'items': { '$ref': '#/definitions/qual_item' },
             }
         return schema

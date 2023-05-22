@@ -104,7 +104,7 @@ def run():
         EXAMPLE_QUAL_SURVEY_JSON.replace('<QPATH>', final_question_qpath)
     )
     asset.save()
-    pprint(asset.advanced_features)
+    # pprint(asset.advanced_features)
 
     if asset.submission_extras.count() > 0:
         subex = asset.submission_extras.last()
@@ -114,27 +114,27 @@ def run():
                 {
                     'uuid': '00000000-0000-0000-0000-000000000000',
                     'type': 'qual_tags',
-                    'tags': ['no taggity', 'no doubt'],
+                    'val': ['no taggity', 'no doubt'],
                 },
                 {
                     'uuid': '11111111-1111-1111-1111-111111111111',
                     'type': 'qual_text',
-                    'response': 'wow. to summarize, this response is amazing.',
+                    'val': 'wow. to summarize, this response is amazing.',
                 },
                 {
                     'uuid': '22222222-2222-2222-2222-222222222222',
                     'type': 'qual_integer',
-                    'value': 69,
+                    'val': 69,
                 },
                 {
                     'uuid': '33333333-3333-3333-3333-333333333333',
                     'type': 'qual_select_one',
-                    'value': '44444444-4444-4444-4444-444444444444',
+                    'val': '44444444-4444-4444-4444-444444444444',
                 },
                 {
                     'uuid': '66666666-6666-6666-6666-666666666666',
                     'type': 'qual_select_multiple',
-                    'values': [
+                    'val': [
                         '77777777-7777-7777-7777-777777777777',
                         '99999999-9999-9999-9999-999999999999',
                     ],
