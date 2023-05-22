@@ -78,6 +78,7 @@
     cursor: pointer;
     overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
 
+    // This is the CSS checkbox :)
     &::after {
       display: block;
       position: absolute;
@@ -92,6 +93,7 @@
       width: sizes.$x10;
       height: sizes.$x4;
       background-color: transparent;
+      border-radius: sizes.$x1;
     }
 
     &:checked {
