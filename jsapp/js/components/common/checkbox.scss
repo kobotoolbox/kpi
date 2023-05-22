@@ -1,0 +1,107 @@
+@use '~kobo-common/src/styles/colors';
+@use 'scss/_variables';
+@use 'scss/sizes';
+
+// Note: we can't change this into a CSS Module, because some Data Table and
+// `utils.ts` code relies on `.checkbox__input` being available.
+
+.checkbox {
+  .checkbox__wrapper {
+    padding: 0;
+    cursor: pointer;
+    display: block;
+  }
+
+  // Disabled state
+  &.checkbox--disabled {
+    pointer-events: none;
+
+    .checkbox__wrapper {
+      cursor: default;
+    }
+
+    .checkbox__input,
+    .checkbox__label {
+      opacity: 0.5;
+    }
+
+    .checkbox__input:checked {
+      color: colors.$kobo-white;
+      border-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-40;
+    }
+  }
+
+  // Hover states
+  .checkbox__wrapper:hover {
+    // Unchecked
+    .checkbox__input:not(:checked) {
+      border-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-light-blue;
+    }
+
+    // Checked
+    .checkbox__input:checked {
+      color: colors.$kobo-white;
+      border-color: colors.$kobo-alt-blue;
+      background-color: colors.$kobo-alt-blue;
+    }
+  }
+
+  .checkbox__input,
+  .checkbox__label {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  .checkbox__label {
+    max-width: calc(100% - sizes.$x32);
+    color: colors.$kobo-gray-24;
+    font-size: variables.$base-font-size;
+  }
+
+  .checkbox__input + .checkbox__label {
+    margin-left: sizes.$x6;
+  }
+
+  .checkbox__input {
+    border-radius: sizes.$x4;
+    appearance: none;
+    position: relative;
+    margin: 0;
+    color: colors.$kobo-gray-65;
+    border: sizes.$x1 solid colors.$kobo-gray-65;
+    background-color: colors.$kobo-white;
+    width: sizes.$x20;
+    height: sizes.$x20;
+    outline: 0;
+    cursor: pointer;
+    overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
+
+    // This is the CSS checkbox :)
+    &::after {
+      display: block;
+      position: absolute;
+      opacity: 0;
+      content: '';
+      top: calc(50% - sizes.$x5);
+      left: calc(50% - sizes.$x6);
+      transform: rotate(-45deg);
+      border: sizes.$x3 solid currentColor;
+      border-top: none;
+      border-right: none;
+      width: sizes.$x10;
+      height: sizes.$x4;
+      background-color: transparent;
+      border-radius: sizes.$x1;
+    }
+
+    &:checked {
+      color: colors.$kobo-white;
+      border-color: colors.$kobo-blue;
+      background-color: colors.$kobo-blue;
+
+      &::after {opacity: 1;}
+    }
+  }
+}

@@ -1,7 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from 'js/bem';
-import './checkbox-and-radio.scss';
+import bem, {makeBem} from 'js/bem';
+import './checkbox.scss';
+
+bem.Checkbox = makeBem(null, 'checkbox');
+bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
+bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
+bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
 
 interface CheckboxProps {
   checked: boolean;
