@@ -12,13 +12,18 @@ def manually_create_indexes_instructions(apps, schema_editor):
         !!! ATTENTION !!!
         You need to run the SQL queries below in PostgreSQL directly:
 
-            > CREATE INDEX "data__destination_idx" ON "kpi_importtask" USING btree ((("data" -> 'destination')));
-            > CREATE INDEX "data__destination_hash_idx" ON "kpi_importtask" USING hash ((("data" -> 'destination')));
-            > CREATE INDEX "data__source_idx" ON "kpi_exporttask" USING btree ((("data" -> 'source')));
-            > CREATE INDEX "data__source_hash_idx" ON "kpi_exporttask" USING hash ((("data" -> 'source')));
+            > CREATE INDEX CONCURRENTLY "data__destination_idx" ON "kpi_importtask" USING btree ((("data" -> 'destination')));
+            > CREATE INDEX CONCURRENTLY "data__source_idx" ON "kpi_exporttask" USING btree ((("data" -> 'source')));
 
+            > CREATE INDEX CONCURRENTLY "data__destination_hash_idx" ON "kpi_importtask" USING hash ((("data" -> 'destination')));
+            > CREATE INDEX CONCURRENTLY "data__source_hash_idx" ON "kpi_exporttask" USING hash ((("data" -> 'source')));
 
         Otherwise, project deletions will perform very poorly.
+
+        You may create one index per table simultaneously, i.e. you may run the
+        first two queries in parallel (within different psql sessions) and then
+        run the next two in parallel afterwards. You cannot run all of them
+        at the same time.
         """
     )
 
@@ -29,11 +34,16 @@ def manually_drop_indexes_instructions(apps, schema_editor):
         !!! ATTENTION !!!
         Run the SQL queries below in PostgreSQL directly:
 
-            > DROP INDEX IF EXISTS "data__destination_idx";
-            > DROP INDEX IF EXISTS "data__destination_hash_idx";
-            > DROP INDEX IF EXISTS "data__source_idx";
-            > DROP INDEX IF EXISTS "data__source_hash_idx";
+            > DROP INDEX CONCURRENTLY IF EXISTS "data__destination_idx";
+            > DROP INDEX CONCURRENTLY IF EXISTS "data__source_idx";
 
+            > DROP INDEX CONCURRENTLY IF EXISTS "data__destination_hash_idx";
+            > DROP INDEX CONCURRENTLY IF EXISTS "data__source_hash_idx";
+
+        You may remove one index per table simultaneously, i.e. you may run the
+        first two queries in parallel (within different psql sessions) and then
+        run the next two in parallel afterwards. You cannot run all of them
+        at the same time.
         """
     )
 
@@ -45,6 +55,16 @@ class Migration(migrations.Migration):
     ]
 
     if not settings.SKIP_HEAVY_MIGRATIONS:
+        print(
+            """
+            This might take a while. If it is too slow, you may want to
+            interrupt this migration, cancel any outstanding `CREATE…` or `DROP
+            INDEX` queries on `kpi_importtask` and `kpi_exporttask`, re-run the
+            migration with `SKIP_HEAVY_MIGRATIONS=True`, and then follow the
+            printed instructions to set up the indexes concurrently (without
+            downtime) using raw SQL.
+            """
+        )
         operations = [
             migrations.AddIndex(
                 model_name='importtask',
