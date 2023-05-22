@@ -27,7 +27,21 @@ class KeywordSearchAction(BaseAction):
         self.params = params
 
     def modify_jsonschema(self, schema):
-        return {}  # FIXME
+        definitions = schema.setdefault('definitions', {})
+        definitions.update({'keyword_search': {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'additionalProperties': False,
+                'properties': {
+                    'count': {'type': 'number'},
+                    'keywords': {'type': 'array', 'items': {'type': 'string'}},
+                    'source': {'type': 'string'},
+                    'dateModified': {'type': 'string', 'format': 'date-time'},
+                },
+            },
+        }})
+        return schema
 
     @staticmethod
     def _traverse_object(obj, slash_separated_path):
