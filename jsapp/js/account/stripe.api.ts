@@ -17,6 +17,7 @@ export interface BasePrice {
   type: string;
   unit_amount: number;
   human_readable_price: string;
+  recurring: {[key: string]: string | number};
   metadata: {[key: string]: string};
   product: BaseProduct;
 }

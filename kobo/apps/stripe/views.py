@@ -313,6 +313,12 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     >                           "nickname": string,
     >                           "currency": string,
     >                           "type": string,
+    >                           "recurring": {
+    >                               "aggregate_usage": string ('sum', 'last_during_period`, `last_ever`, `max`)
+    >                               "interval": string ('month', 'year', 'week', 'day')
+    >                               "interval_count": int,
+    >                               "usage_type": string ('metered', 'licensed')
+    >                           },
     >                           "unit_amount": int (cents),
     >                           "human_readable_price": string,
     >                           "metadata": {}

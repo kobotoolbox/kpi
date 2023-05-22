@@ -72,13 +72,13 @@ function planReducer(state: PlanState, action: DataUpdates) {
       return {
         ...state,
         intervalFilter: 'month',
-        filterToggle: !state.filterToggle,
+        filterToggle: true,
       };
     case 'year':
       return {
         ...state,
         intervalFilter: 'year',
-        filterToggle: !state.filterToggle,
+        filterToggle: false,
       };
     default:
       return state;
@@ -92,6 +92,13 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
+
+  const isDataLoading = useMemo(
+    (): boolean =>
+      !(state.products && state.organization && state.subscribedProduct),
+    [state.products, state.organization, state.subscribedProduct]
+  );
+
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
       return state.subscribedProduct.some((subscription: BaseSubscription) =>
@@ -101,11 +108,20 @@ export default function Plan() {
     return false;
   }, [state.subscribedProduct]);
 
-  const isDataLoading = useMemo(
-    (): boolean =>
-      !(state.products && state.organization && state.subscribedProduct),
-    [state.products, state.organization, state.subscribedProduct]
-  );
+  useMemo(() => {
+    if (
+      state.subscribedProduct !== null &&
+      state.subscribedProduct.length > 0
+    ) {
+      const subscribedFilter =
+        state.subscribedProduct?.[0].items[0].price.recurring?.interval;
+      if (state.subscribedProduct?.[0].status === 'canceled') {
+        dispatch({type: 'year'});
+      } else {
+        dispatch({type: subscribedFilter});
+      }
+    }
+  }, [state.subscribedProduct]);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -187,7 +203,7 @@ export default function Plan() {
     if (state.products !== null) {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
-          const interval = price.human_readable_price.split('/')[1];
+          const interval = price.recurring?.interval;
           return interval === state.intervalFilter;
         });
 
@@ -212,17 +228,31 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (hasActiveSubscription !== undefined) {
-        if (!product.prices.unit_amount && !hasActiveSubscription) {
+      if (
+        !product.prices.unit_amount &&
+        state.intervalFilter === 'year' &&
+        !hasActiveSubscription
+      ) {
+        return true;
+      }
+
+      const subscription = getSubscriptionsForProductId(product.id);
+
+      if (subscription.length > 0) {
+        const lastsubscription = subscription.length - 1;
+        if (
+          subscription[lastsubscription].items[0].price.id ===
+            product.prices.id &&
+          hasActiveSubscription
+        ) {
           return true;
+        } else {
+          return false;
         }
       }
-      const subscriptions = getSubscriptionsForProductId(product.id);
-      return subscriptions.some(
-        (subscription: BaseSubscription) => subscription.status === 'active'
-      );
+      return;
     },
-    [state.subscribedProduct]
+    [state.subscribedProduct, state.intervalFilter]
   );
 
   const shouldShowManage = useCallback(
@@ -413,7 +443,7 @@ export default function Plan() {
             <div className={styles.allPlans}>
               {filterPrices.map((price: Price) => (
                 <div className={styles.stripePlans} key={price.id}>
-                  {shouldShowManage(price) || isSubscribedProduct(price) ? (
+                  {isSubscribedProduct(price) ? (
                     <div className={styles.currentPlan}>{t('your plan')}</div>
                   ) : (
                     <div className={styles.otherPlanSpacing} />
@@ -468,13 +498,28 @@ export default function Plan() {
                           isDisabled={areButtonsDisabled}
                         />
                       )}
-                    {(isSubscribedProduct(price) || shouldShowManage(price)) &&
+                    {isSubscribedProduct(price) &&
+                      shouldShowManage(price) &&
                       price.prices.unit_amount !== 0 && (
                         <Button
                           type='full'
                           color='blue'
                           size='m'
                           label={t('Manage')}
+                          onClick={managePlan}
+                          aria-label={`manage your ${price.name} subscription`}
+                          aria-disabled={areButtonsDisabled}
+                          isDisabled={areButtonsDisabled}
+                        />
+                      )}
+                    {!isSubscribedProduct(price) &&
+                      shouldShowManage(price) &&
+                      price.prices.unit_amount > 0 && (
+                        <Button
+                          type='full'
+                          color='blue'
+                          size='m'
+                          label={t('Change plan')}
                           onClick={managePlan}
                           aria-label={`manage your ${price.name} subscription`}
                           aria-disabled={areButtonsDisabled}
