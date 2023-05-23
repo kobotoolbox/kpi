@@ -1,4 +1,4 @@
-import {generateUid} from 'jsapp/js/utils';
+import {generateUid, moveArrayElementToIndex} from 'jsapp/js/utils';
 import type {
   AnalysisQuestion,
   AnalysisQuestionType,
@@ -22,6 +22,7 @@ export type AnalysisQuestionsAction =
   | {type: 'updateQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
   | {type: 'updateResponse'; payload: {uid: string; response: string}}
   | {type: 'updateResponseCompleted'; payload: {questions: AnalysisQuestion[]}}
+  | {type: 'reorderQuestion'; payload: {uid: string; oldIndex: number; newIndex: number}}
   | {type: 'initialiseSearch'; payload: {uid: string}}
   | {type: 'initialiseSearchCompleted'; payload: {questions: AnalysisQuestion[]}};
 
@@ -39,6 +40,14 @@ export interface AnalysisQuestionsState {
    * to this list.
    */
   questionsBeingEdited: string[];
+  /**
+   * An ordererd list of uids of questions.
+   *
+   * When user is not reordering questions, this list doesn't exist. The purpose
+   * of it is to avoid unnecessary API calls during reordering - we make single
+   * call on reordering end.
+   */
+  draftQuestionsOrder?: string[];
 }
 
 // I define this type to ensure that the reducer's returned state always
@@ -154,6 +163,16 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         isPending: false,
         questions: action.payload.questions,
       };
+    }
+    case 'reorderQuestion': {
+      return {
+        ...state,
+        questions: moveArrayElementToIndex(
+          state.questions,
+          action.payload.oldIndex,
+          action.payload.newIndex
+        ),
+      }
     }
     case 'initialiseSearch': {
       return {

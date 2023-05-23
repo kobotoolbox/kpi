@@ -13,11 +13,13 @@ import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
 import type {AdditionalFields} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 
-interface DefaultEditorProps {
+interface AnalysisQuestionEditorProps {
   uid: string;
 }
 
-export default function DefaultEditor(props: DefaultEditorProps) {
+export default function AnalysisQuestionEditor(
+  props: AnalysisQuestionEditorProps
+) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)

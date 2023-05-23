@@ -12,15 +12,26 @@ export default function AnalysisQuestionsList() {
     return null;
   }
 
-  const moveRow = useCallback((dragIndex: number, hoverIndex: number) => {
-    console.log('moveRow', dragIndex, hoverIndex);
-  }, []);
+  const moveRow = useCallback(
+    (uid: string, oldIndex: number, newIndex: number) => {
+      analysisQuestions.dispatch({
+        type: 'reorderQuestion',
+        payload: {uid, oldIndex, newIndex},
+      });
+    },
+    []
+  );
 
   return (
     <DndProvider backend={HTML5Backend}>
       <ul className={styles.root}>
         {analysisQuestions.state.questions.map((question, index: number) => (
-          <AnalysisQuestionRow uid={question.uid} index={index} key={question.uid} moveRow={moveRow}/>
+          <AnalysisQuestionRow
+            uid={question.uid}
+            index={index}
+            key={question.uid}
+            moveRow={moveRow}
+          />
         ))}
       </ul>
     </DndProvider>

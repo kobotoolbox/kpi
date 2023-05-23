@@ -11,21 +11,21 @@ import styles from './analysisQuestionRow.module.scss';
 import type {AnalysisQuestion} from '../constants';
 import Icon from 'js/components/common/icon';
 import {useDrag, useDrop} from 'react-dnd';
-import type { Identifier, XYCoord } from 'dnd-core'
+import type {Identifier, XYCoord} from 'dnd-core';
 import {DND_TYPES} from 'js/constants';
-import { findQuestion } from '../utils';
+import {findQuestion} from '../utils';
 import classnames from 'classnames';
 
 export interface AnalysisQuestionRowProps {
   uid: string;
   index: number;
-  moveRow: (dragIndex: number, hoverIndex: number) => void;
+  moveRow: (uid: string, oldIndex: number, newIndex: number) => void;
 }
 
 interface DragItem {
-  id: string
-  index: number
-  type: string
+  id: string;
+  index: number;
+  type: string;
 }
 
 export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
@@ -41,7 +41,8 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     return null;
   }
 
-  const rowRef = useRef<HTMLLIElement>(null);
+  const previewRef = useRef<HTMLLIElement>(null);
+  const dragRef = useRef<HTMLDivElement>(null);
 
   const [{handlerId}, drop] = useDrop<
     DragItem,
@@ -55,7 +56,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
       };
     },
     hover(item: DragItem, monitor) {
-      if (!rowRef.current) {
+      if (!previewRef.current) {
         return;
       }
       const dragIndex = item.index;
@@ -67,7 +68,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
       }
 
       // Determine rectangle on screen
-      const hoverBoundingRect = rowRef.current?.getBoundingClientRect();
+      const hoverBoundingRect = previewRef.current?.getBoundingClientRect();
 
       // Get vertical middle
       const hoverMiddleY =
@@ -94,7 +95,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
       }
 
       // Time to actually perform the action
-      props.moveRow(dragIndex, hoverIndex);
+      props.moveRow(props.uid, dragIndex, hoverIndex);
 
       // Note: we're mutating the monitor item here!
       // Generally it's better to avoid mutations,
@@ -104,7 +105,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     },
   });
 
-  const [{isDragging}, drag] = useDrag({
+  const [{isDragging}, drag, preview] = useDrag({
     type: DND_TYPES.ANALYSIS_QUESTION,
     item: () => {
       return {id: props.uid, index: props.index};
@@ -112,13 +113,17 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
     }),
+    end: () => console.log('end'),
   });
 
-  drag(drop(rowRef));
+  drag(dragRef);
+  drop(preview(previewRef));
 
   const renderItem = useCallback(
     (question: AnalysisQuestion) => {
-      if (analysisQuestions?.state.questionsBeingEdited.includes(question.uid)) {
+      if (
+        analysisQuestions?.state.questionsBeingEdited.includes(question.uid)
+      ) {
         return <AnalysisQuestionEditor uid={question.uid} />;
       } else {
         switch (question.type) {
@@ -144,7 +149,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         }
       }
     },
-    [],
+    [analysisQuestions?.state.questionsBeingEdited]
   );
 
   return (
@@ -153,10 +158,10 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         [styles.root]: true,
         [styles.isBeingDragged]: isDragging,
       })}
-      ref={rowRef}
+      ref={previewRef}
       data-handler-id={handlerId}
     >
-      <div className={styles.dragHandle}>
+      <div className={styles.dragHandle} ref={dragRef}>
         <Icon name='drag-handle' size='xs' />
       </div>
 

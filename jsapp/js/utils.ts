@@ -492,3 +492,19 @@ export function downloadUrl(url: string) {
   aEl.setAttribute('download', fileName);
   aEl.click();
 }
+
+/**
+ * An immutable function that removes element from index and inserts it at
+ * another one.
+ */
+export function moveArrayElementToIndex(
+  arr: any[],
+  fromIndex: number,
+  toIndex: number
+) {
+  const copiedArr = [...arr];
+  const element = copiedArr[fromIndex];
+  copiedArr.splice(fromIndex, 1);
+  copiedArr.splice(toIndex, 0, element);
+  return copiedArr;
+}
