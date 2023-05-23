@@ -205,7 +205,6 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     cursor: pointer;
     height: sizes.$x36;
     padding: 0; // dropdown does the padding
-
     background-color: colors.$kobo-white;
 
     // performance hints for resizing
@@ -213,6 +212,11 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     &:hover {
       color: colors.$kobo-gray-14 !important;
+    }
+
+    // checkbox header not clickable - use default cursor
+    &[data-field='checkbox'] {
+      cursor: default;
     }
   }
 }
