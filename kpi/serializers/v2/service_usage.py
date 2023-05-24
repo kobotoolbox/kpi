@@ -108,18 +108,18 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._total_storage_bytes
 
     def _get_per_asset_usage(self, user):
-        organization_users = [user]
+        users = [user]
         organization = Organization.objects.filter(
             organization_users__user=user
         ).first()
         if organization:
             organization_users = list(OrganizationUser.objects.filter(organization=organization).select_related('user'))
-            organization_users = [org_user.user for org_user in organization_users]
+            users = [org_user.user for org_user in organization_users]
         # Only use fields we need to improve SQL query speed
         user_assets = Asset.objects.only(
             'pk', 'uid', '_deployment_data', 'owner_id', 'name'
         ).select_related('owner').filter(
-            owner__in=organization_users,
+            owner__in=users,
             asset_type=ASSET_TYPE_SURVEY,
         )
         self._per_asset_usage = AssetUsageSerializer(
