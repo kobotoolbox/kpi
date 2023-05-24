@@ -15,7 +15,8 @@ import bem from 'js/bem';
 import mixins from 'js/mixins';
 import MainHeader from 'js/components/header/mainHeader';
 import Drawer from 'js/components/drawer';
-import FormViewTabs from 'js/components/formViewTabs';
+import FormViewSideTabs from 'js/components/formViewSideTabs';
+import ProjectTopTabs from 'js/project/projectTopTabs.component';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
@@ -86,11 +87,14 @@ class App extends React.Component {
               </React.Fragment>
             }
 
-            <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
+            <bem.PageWrapper__content
+              className='mdl-layout__content'
+              m={pageWrapperContentModifiers}
+            >
               { !this.isFormBuilder() &&
                 <React.Fragment>
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                  {this.isFormSingle() && <ProjectTopTabs/>}
+                  <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
               }
               <Outlet />
