@@ -286,7 +286,7 @@ def replace_user_with_placeholder(
 
 
 def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
-    stop = False
+
     (
         app_label,
         model_name,
@@ -298,7 +298,11 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
             asset.owner, fields=['_id', '_uuid'], limit=200
         ))
         if not submissions:
-            queryset_or_false = asset.deployment.get_orphan_postgres_submissions()
+            if not (
+                queryset_or_false := asset.deployment.get_orphan_postgres_submissions()
+            ):
+                break
+
             # Make submissions an iterable similar to what
             # `deployment.get_submissions()` would return
             if not (
