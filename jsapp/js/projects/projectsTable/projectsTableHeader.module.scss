@@ -3,6 +3,7 @@
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
+@use 'js/components/common/icon';
 
 // This file contains all the styles that are being used exclusively in
 // `ProjectsTableHeader` component. Most of styles it is using are coming
@@ -11,33 +12,48 @@
 // Column Resizer handle styles are here, too.
 
 .columnRoot {
-  // We need this to truncate long column names
-  :global .kobo-dropdown,
-  :global .kobo-dropdown__trigger {
-    max-width: 100%;
-  }
-
   // For column width resizers
   position: relative; // Be a positioned ancestor for resize handles
   user-select: none;  // Prevent accidental text selection
+
+  // Make the whole header cell clickable for the dropdown trigger.
+  :global .kobo-dropdown,
+  :global .kobo-dropdown__trigger {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
 }
 
 .trigger {
   @include mixins.centerRowFlex;
 
+  padding: sizes.$x2 sizes.$x18;
+
   cursor: pointer;
   line-height: sizes.$x30; // ??
 
   :global {
-    label {
-      @include mixins.textEllipsis;
-
-      cursor: inherit;
-      flex: 1;
+    // Dropdown arrow
+    .k-icon:first-child {
+      // Pull the dropdown label and arrow to the left somewhat.
+      // This measurement isn't scientific, it's just supposed to look good.
+      margin-left: 0 - icon.$s-icon-xxs - sizes.$x2;
+      padding-right: sizes.$x3;
+      opacity: 0.6;
     }
 
+    // Dropdown Label
+    label {
+      @include mixins.textEllipsis;
+    }
+
+    // Sorting indicator
     .k-icon:not(:first-child) {
       margin-left: sizes.$x6;
+      color: colors.$kobo-teal; // make it stand out
     }
   }
 }
@@ -152,6 +168,7 @@ $resizer-width: sizes.$x16 + $line-width;
   opacity: 1;
 }
 // Always hide leftmost width indicator
-.columnRoot:first-child::before {
+// nth-child(2) because of checkbox column
+.columnRoot:nth-child(2)::before {
   display: none;
 }

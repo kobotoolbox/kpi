@@ -155,6 +155,11 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
     } else {
       countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
+
+    if (countries.length === 0) {
+      return '-';
+    }
+
     // TODO: improve for RTL?
     // See: https://github.com/kobotoolbox/kpi/issues/3903
     return countries.join(', ');

@@ -52,7 +52,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
       >
         <KoboDropdown
           name={field.name}
-          placement={'down-center'}
+          placement={'down-left'}
           hideOnMenuClick
           onMenuVisibilityChange={(isVisible: boolean) => {
             let newVisibleMenuNames = Array.from(visibleMenuNames);
@@ -67,6 +67,11 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
           }}
           triggerContent={
             <div className={styles.trigger}>
+              <Icon
+                size='xxs'
+                name={isMenuVisible ? 'caret-up' : 'caret-down'}
+              />
+
               <label className={rowStyles.headerLabel}>{field.label}</label>
 
               {props.order.fieldName === field.name && (
@@ -79,11 +84,6 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
                   size='s'
                 />
               )}
-
-              <Icon
-                size='xxs'
-                name={isMenuVisible ? 'caret-up' : 'caret-down'}
-              />
             </div>
           }
           menuContent={

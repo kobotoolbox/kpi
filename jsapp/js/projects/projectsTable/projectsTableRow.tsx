@@ -28,16 +28,11 @@ interface ProjectsTableRowProps {
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const navigate = useNavigate();
 
-  const onRowClick = () => {
+  const navigateToProject = () => {
     navigate(ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid));
   };
-
-  const onCheckboxClick = (
-    evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>
-  ) => {
-    // When checkbox is clicked, the whole row also receives click event, and it
-    // causes the navigation to happen. We want to avoid that obviously.
-    evt.stopPropagation();
+  const toggleCheckbox = () => {
+    props.onSelectRequested(!props.isSelected);
   };
 
   const renderColumnContent = (field: ProjectFieldDefinition) => {
@@ -104,26 +99,16 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   };
 
   return (
-    <div
-      className={classNames(styles.row, styles.rowTypeProject)}
-      onClick={onRowClick}
-    >
+    <div className={classNames(styles.row, styles.rowTypeProject)}>
       {/* First column is always visible and displays a checkbox. */}
       <div
         className={styles.cell}
         data-field='checkbox'
-        onClick={(evt) => {
-          // Usability - Treat the full cell as clickable target for the
-          // checkbox. Makes multi-selection easier, and forgives miss-clicks
-          // that would otherwise navigate to the project overview.
-          props.onSelectRequested(!props.isSelected); // Toggle the selection
-          evt.stopPropagation(); // Prevent treating as a row navigation
-        }}
+        onClick={toggleCheckbox} // Treat whole cell as checkbox
       >
         <Checkbox
           checked={props.isSelected}
           onChange={props.onSelectRequested}
-          onClick={onCheckboxClick}
         />
       </div>
 
@@ -141,6 +126,12 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
                 field.name
               ),
             })}
+            onClick={
+              /* prettier-ignore */
+              field.name === (PROJECT_FIELDS.name).name
+                ? navigateToProject // Treat 'Project name' cell as a link
+                : toggleCheckbox // Treat any other cell as a checkbox
+            }
             // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
