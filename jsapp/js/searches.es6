@@ -272,13 +272,13 @@ function SearchContext(opts={}) {
   const splitResultsToCategorized = function (results) {
     return {
       Deployed: results.filter((asset) => {
-        return asset.has_deployment && asset.deployment__active;
+        return asset.deployment_status === 'deployed';
       }),
       Draft: results.filter((asset) => {
-        return !asset.has_deployment;
+        return asset.deployment_status === 'draft';
       }),
       Archived: results.filter((asset) => {
-        return asset.has_deployment && !asset.deployment__active;
+        return asset.deployment_status === 'archived';
       })
     }
   };

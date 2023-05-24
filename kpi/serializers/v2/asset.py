@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import re
 
-
 from constance import config
 from django.conf import settings
 from django.db.models import QuerySet, F
@@ -50,8 +49,9 @@ from kpi.models import (
     AssetVersion,
     AssetExportSettings,
     ObjectPermission,
+    UserAssetSubscription,
 )
-from kpi.models.asset import UserAssetSubscription
+from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -267,7 +267,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if Asset.objects.filter(
             asset_type=ASSET_TYPE_SURVEY,
             uid__in=asset_uids,
-            _deployment_data={},
+            _deployment_status=AssetDeploymentStatus.DRAFT,
         ).exists():
             raise serializers.ValidationError(
                 t('Draft projects cannot be archived')
@@ -330,6 +330,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+    deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
 
     # Only add link instead of hooks list to avoid multiple access to DB.
@@ -366,6 +367,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
+                  'deployment_status',
                   'report_styles',
                   'report_custom',
                   'advanced_features',
@@ -454,6 +456,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_analysis_form_json(self, obj):
         return obj.analysis_form_json()
+
+    def get_deployment_status(self, obj: Asset) -> str:
+        if deployment_status := obj.deployment_status:
+            return deployment_status
+        return '-'
 
     def get_effective_permissions(self, obj: Asset) -> list[dict[str, str]]:
         """
@@ -910,6 +917,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
+                  'deployment_status',
                   'permissions',
                   'export_settings',
                   'downloads',
@@ -1017,6 +1025,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'deployment_status',
             'asset_type',
             'downloads',
         )

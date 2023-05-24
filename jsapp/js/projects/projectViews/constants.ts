@@ -165,9 +165,12 @@ export const PROJECT_FIELDS: ProjectFields = {
   status: {
     name: 'status',
     label: t('Status'),
-    apiFilteringName: '_deployment_data__active',
-    apiOrderingName: '_deployment_data__active',
-    availableConditions: [],
+    apiFilteringName: '_deployment_status',
+    apiOrderingName: '_deployment_status',
+    availableConditions: [
+      'is',
+      'isNot',
+    ],
   },
   ownerUsername: {
     name: 'ownerUsername',
@@ -327,7 +330,9 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
  */
 export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateModified',
+  'dateDeployed',
   'name',
+  'status',
   'ownerUsername',
 ];
 

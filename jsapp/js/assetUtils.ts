@@ -279,9 +279,9 @@ export function getAssetIcon(asset: AssetResponse) {
     case ASSET_TYPES.survey.id:
       if ('summary' in asset && asset.summary?.lock_any) {
         return 'k-icon k-icon-project-locked';
-      } else if (asset.has_deployment && !asset.deployment__active) {
+      } else if (asset.deployment_status === 'archived') {
         return 'k-icon k-icon-project-archived';
-      } else if (asset.has_deployment) {
+      } else if (asset.deployment_status === 'deployed') {
         return 'k-icon k-icon-project-deployed';
       } else {
         return 'k-icon k-icon-project-draft';
