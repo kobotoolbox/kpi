@@ -47,6 +47,18 @@ def manually_drop_indexes_instructions(apps, schema_editor):
         """
     )
 
+def warning_long_run(apps, schema_editor):
+    print(
+        """
+        This might take a while. If it is too slow, you may want to
+        interrupt this migration, cancel any outstanding `CREATE…` or `DROP
+        INDEX` queries on `kpi_importtask` and `kpi_exporttask`, re-run the
+        migration with `SKIP_HEAVY_MIGRATIONS=True`, and then follow the
+        printed instructions to set up the indexes concurrently (without
+        downtime) using raw SQL.
+        """
+    )
+
 
 class Migration(migrations.Migration):
 
@@ -55,17 +67,8 @@ class Migration(migrations.Migration):
     ]
 
     if not settings.SKIP_HEAVY_MIGRATIONS:
-        print(
-            """
-            This might take a while. If it is too slow, you may want to
-            interrupt this migration, cancel any outstanding `CREATE…` or `DROP
-            INDEX` queries on `kpi_importtask` and `kpi_exporttask`, re-run the
-            migration with `SKIP_HEAVY_MIGRATIONS=True`, and then follow the
-            printed instructions to set up the indexes concurrently (without
-            downtime) using raw SQL.
-            """
-        )
         operations = [
+            migrations.RunPython(warning_long_run, warning_long_run),
             migrations.AddIndex(
                 model_name='importtask',
                 index=django.contrib.postgres.indexes.BTreeIndex(
