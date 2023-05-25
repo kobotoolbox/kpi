@@ -399,7 +399,15 @@ class Asset(ObjectPermissionMixin,
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
-        PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
+        PERM_ADD_SUBMISSIONS: {'shared': True},
+        # !!!!!!!
+        # This is not an acceptable change unless we rewrite all existing flags
+        # in KoboCAT so that former viewers do not unexpectedly become
+        # submitters.
+        # The correct thing to do is probably to add a new column in KoboCAT.
+        # !!!!!!!
+        # PERM_VIEW_SUBMISSIONS: {'shared': False, 'shared_data': True}
+        PERM_VIEW_SUBMISSIONS: {'shared_data': True}
     }
 
     def __init__(self, *args, **kwargs):
