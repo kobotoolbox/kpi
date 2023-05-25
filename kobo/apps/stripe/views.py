@@ -1,7 +1,7 @@
 import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Min, Prefetch
+from django.db.models import Max, Prefetch
 from djstripe.models import (
     Customer,
     Price,
@@ -346,8 +346,8 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .prefetch_related(
             Prefetch('prices', queryset=Price.objects.filter(active=True))
         )
-        .annotate(lowest_unit_amount=Min('prices__unit_amount'))
-        .order_by('lowest_unit_amount')
+        .annotate(highest_unit_amount=Max('prices__unit_amount'))
+        .order_by('highest_unit_amount')
         .distinct()
     )
     serializer_class = ProductSerializer
