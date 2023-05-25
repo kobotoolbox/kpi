@@ -219,7 +219,7 @@ export default function Plan() {
       return filterAmount.filter((product: Product) => product.prices)
         .sort((priceA: Price, priceB: Price) => priceA.prices.unit_amount > priceB.prices.unit_amount);
     }
-    return [state.products];
+    return [];
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionsForProductId = useCallback(
