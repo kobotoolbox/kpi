@@ -204,7 +204,7 @@ export default function Plan() {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
-          return interval === state.intervalFilter;
+          return interval === state.intervalFilter && product.metadata.product_type === 'plan';
         });
 
         return {
