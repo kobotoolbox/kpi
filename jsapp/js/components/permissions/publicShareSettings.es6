@@ -17,6 +17,7 @@ class PublicShareSettings extends React.Component {
     autoBind(this);
     this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
     this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url;
+    this.anonCanAddDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url;
   }
   togglePerms(permCodename) {
     var permission = this.props.publicPerms.filter((perm) => {
@@ -39,6 +40,7 @@ class PublicShareSettings extends React.Component {
 
     const anonCanView = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewPermUrl;})[0];
     const anonCanViewData = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewDataPermUrl;})[0];
+    const anonCanAddData = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanAddDataPermUrl;})[0];
 
     return (
       <bem.FormModal__item m='permissions'>
@@ -66,6 +68,16 @@ class PublicShareSettings extends React.Component {
               {t('Shareable link')}
             </label>
             <input type='text' value={url} readOnly />
+          </bem.FormModal__item>
+        }
+
+        { this.props.deploymentActive &&
+          <bem.FormModal__item>
+            <Checkbox
+              checked={anonCanAddData ? true : false}
+              onChange={this.togglePerms.bind(this, 'add_submissions')}
+              label={t('Anyone can ADD data to this form')}
+            />
           </bem.FormModal__item>
         }
       </bem.FormModal__item>
