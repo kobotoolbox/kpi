@@ -27,6 +27,7 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
+import {BaseProduct} from "js/account/subscriptionStore";
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -198,7 +199,7 @@ export default function Plan() {
     }
   }, [state.subscribedProduct]);
 
-  // Filter prices based on plan interval
+  // Filter prices based on plan interval and filter out recurring addons
   const filterPrices = useMemo((): Price[] => {
     if (state.products !== null) {
       const filterAmount = state.products.map((product: Product) => {
@@ -209,12 +210,14 @@ export default function Plan() {
 
         return {
           ...product,
-          prices: filteredPrices.length ? filteredPrices[0] : null,
+          prices: filteredPrices?.[0],
         };
       });
-      return filterAmount.filter((product: Product) => product.prices);
+
+      return filterAmount.filter((product: Product) => product.prices)
+        .sort((priceA: Price, priceB: Price) => priceA.prices.unit_amount > priceB.prices.unit_amount);
     }
-    return state.products;
+    return [state.products];
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionsForProductId = useCallback(
