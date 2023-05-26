@@ -27,6 +27,7 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
+import {BaseProduct} from "js/account/subscriptionStore";
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -99,10 +100,13 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
+  const hasManageableStatus = useCallback((subscription: BaseSubscription) =>
+    activeSubscriptionStatuses.includes(subscription.status), []);
+
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
       return state.subscribedProduct.some((subscription: BaseSubscription) =>
-        activeSubscriptionStatuses.includes(subscription.status)
+        hasManageableStatus(subscription)
       );
     }
     return false;
@@ -110,12 +114,11 @@ export default function Plan() {
 
   useMemo(() => {
     if (
-      state.subscribedProduct !== null &&
-      state.subscribedProduct.length > 0
+      state.subscribedProduct?.length > 0
     ) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (state.subscribedProduct?.[0].status === 'canceled') {
+      if (!hasManageableStatus(state.subscribedProduct)) {
         dispatch({type: 'year'});
       } else {
         dispatch({type: subscribedFilter});
@@ -198,23 +201,25 @@ export default function Plan() {
     }
   }, [state.subscribedProduct]);
 
-  // Filter prices based on plan interval
+  // Filter prices based on plan interval and filter out recurring addons
   const filterPrices = useMemo((): Price[] => {
     if (state.products !== null) {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
-          return interval === state.intervalFilter;
+          return interval === state.intervalFilter && product.metadata.product_type === 'plan';
         });
 
         return {
           ...product,
-          prices: filteredPrices.length ? filteredPrices[0] : null,
+          prices: filteredPrices?.[0],
         };
       });
-      return filterAmount.filter((product: Product) => product.prices);
+
+      return filterAmount.filter((product: Product) => product.prices)
+        .sort((priceA: Price, priceB: Price) => priceA.prices.unit_amount > priceB.prices.unit_amount);
     }
-    return state.products;
+    return [];
   }, [state.products, state.intervalFilter]);
 
   const getSubscriptionsForProductId = useCallback(
@@ -236,21 +241,15 @@ export default function Plan() {
         return true;
       }
 
-      const subscription = getSubscriptionsForProductId(product.id);
+      const subscriptions = getSubscriptionsForProductId(product.id);
 
-      if (subscription.length > 0) {
-        const lastsubscription = subscription.length - 1;
-        if (
-          subscription[lastsubscription].items[0].price.id ===
-            product.prices.id &&
-          hasActiveSubscription
-        ) {
-          return true;
-        } else {
-          return false;
-        }
+      if (subscriptions.length > 0) {
+        return subscriptions.some((subscription: BaseSubscription) =>
+          subscription.items[0].price.id === product.prices.id &&
+          hasManageableStatus(subscription)
+        );
       }
-      return;
+      return false;
     },
     [state.subscribedProduct, state.intervalFilter]
   );
@@ -258,14 +257,13 @@ export default function Plan() {
   const shouldShowManage = useCallback(
     (product: Price) => {
       const subscriptions = getSubscriptionsForProductId(product.id);
-      if (!subscriptions.length) {
+      if (!subscriptions.length || !state.organization?.id) {
         return false;
       }
-      const hasManageableStatus = subscriptions.some(
-        (subscription: BaseSubscription) =>
-          activeSubscriptionStatuses.includes(subscription.status)
+
+      return subscriptions.some((subscription: BaseSubscription) =>
+          hasManageableStatus(subscription)
       );
-      return Boolean(state.organization?.id) && hasManageableStatus;
     },
     [state.subscribedProduct]
   );
@@ -486,7 +484,7 @@ export default function Plan() {
                     </ul>
                     {!isSubscribedProduct(price) &&
                       !shouldShowManage(price) &&
-                      price.prices.unit_amount !== 0 && (
+                      price.prices.unit_amount > 0 && (
                         <Button
                           type='full'
                           color='blue'
@@ -500,7 +498,7 @@ export default function Plan() {
                       )}
                     {isSubscribedProduct(price) &&
                       shouldShowManage(price) &&
-                      price.prices.unit_amount !== 0 && (
+                      price.prices.unit_amount > 0 && (
                         <Button
                           type='full'
                           color='blue'
@@ -521,7 +519,7 @@ export default function Plan() {
                           size='m'
                           label={t('Change plan')}
                           onClick={managePlan}
-                          aria-label={`manage your ${price.name} subscription`}
+                          aria-label={`change your subscription to ${price.name}`}
                           aria-disabled={areButtonsDisabled}
                           isDisabled={areButtonsDisabled}
                         />
