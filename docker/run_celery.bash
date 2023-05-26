@@ -2,9 +2,8 @@
 set -e
 source /etc/profile
 
-# Run the main Celery worker (will not process low priority jobs).
-# Start 2 processes by default; this will be overridden later, in Python code,
-# according to the user's preference saved by django-constance
+# Run the main Celery worker (will NOT process low-priority jobs)
+
 cd "${KPI_SRC_DIR}"
 
 AUTOSCALE_MIN="${CELERY_AUTOSCALE_MIN:-2}"
