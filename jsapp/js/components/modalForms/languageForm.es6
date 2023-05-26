@@ -44,7 +44,7 @@ class LanguageForm extends React.Component {
 
     autoBind(this);
   }
-  isLanguageNameValid() {
+  isLanguageNameValid(name) {
     if (this.props.existingLanguages) {
       let isNameUnique = true;
       this.props.existingLanguages.forEach((langString) => {
@@ -52,7 +52,7 @@ class LanguageForm extends React.Component {
           // skip comparing to itself (editing language context)
         } else if (langString !== null) {
           const langObj = getLangAsObject(langString);
-          if (langObj && langObj.name === this.state.name) {
+          if (langObj && langObj.name === name) {
             isNameUnique = false;
           }
         }
@@ -62,7 +62,7 @@ class LanguageForm extends React.Component {
       return true;
     }
   }
-  isLanguageCodeValid() {
+  isLanguageCodeValid(code) {
     if (this.props.existingLanguages) {
       let isCodeUnique = true;
       this.props.existingLanguages.forEach((langString) => {
@@ -70,7 +70,7 @@ class LanguageForm extends React.Component {
           // skip comparing to itself (editing language context)
         } else if (langString !== null) {
           const langObj = getLangAsObject(langString);
-          if (langObj && langObj.code === this.state.code) {
+          if (langObj && langObj.code === code) {
             isCodeUnique = false;
           }
         }
@@ -84,7 +84,10 @@ class LanguageForm extends React.Component {
     evt.preventDefault();
     evt.currentTarget.disabled = true;
 
-    const isNameValid = this.isLanguageNameValid();
+    const name = this.state.name.trim();
+    const code = this.state.code.trim();
+
+    const isNameValid = this.isLanguageNameValid(name);
     if (!isNameValid) {
       this.setState({nameError: t('Name must be unique!')});
       evt.currentTarget.disabled = false;
@@ -92,7 +95,7 @@ class LanguageForm extends React.Component {
       this.setState({nameError: null});
     }
 
-    const isCodeValid = this.isLanguageCodeValid();
+    const isCodeValid = this.isLanguageCodeValid(code);
     if (!isCodeValid) {
       this.setState({codeError: t('Code must be unique!')});
       evt.currentTarget.disabled = false;
@@ -106,16 +109,16 @@ class LanguageForm extends React.Component {
         langIndex = this.props.langIndex;
       }
       this.props.onLanguageChange({
-        name: this.state.name,
-        code: this.state.code
+        name: name,
+        code: code
       }, langIndex);
     }
   }
   onNameChange(newName) {
-    this.setState({name: toTitleCase(newName.trim().toLowerCase())});
+    this.setState({name: toTitleCase(newName.toLowerCase())});
   }
   onCodeChange(newCode) {
-    this.setState({code: newCode.trim().toLowerCase()});
+    this.setState({code: newCode.toLowerCase()});
   }
   render() {
     let isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
