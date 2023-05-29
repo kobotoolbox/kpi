@@ -8,7 +8,9 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import ReactTable from 'react-table';
-import ValidationStatusDropdown, { SHOW_ALL_OPTION } from 'js/components/submissions/validationStatusDropdown';
+import ValidationStatusDropdown, {
+  SHOW_ALL_OPTION,
+} from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
   PERMISSIONS_CODENAMES,
@@ -63,7 +65,7 @@ import {
   userCan,
   userCanPartially,
   isSubmissionWritable,
-  } from 'js/components/permissions/utils';
+} from 'js/components/permissions/utils';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -71,7 +73,7 @@ const DEFAULT_PAGE_SIZE = 30;
  * @prop {object} asset
  */
 export class DataTable extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       isInitialized: false, // for having asset with content
@@ -109,25 +111,51 @@ export class DataTable extends React.Component {
     this.unlisteners.push(
       tableStore.listen(this.onTableStoreChange),
       stores.pageState.listen(this.onPageStateUpdated),
-      actions.resources.updateSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange),
-      actions.resources.removeSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange),
-      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted),
-      actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions),
-      actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted),
-      actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions),
-      actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted),
-      actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed),
-      actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted),
-      actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted),
-      actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted),
-      actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted)
+      actions.resources.updateSubmissionValidationStatus.completed.listen(
+        this.onSubmissionValidationStatusChange
+      ),
+      actions.resources.removeSubmissionValidationStatus.completed.listen(
+        this.onSubmissionValidationStatusChange
+      ),
+      actions.table.updateSettings.completed.listen(
+        this.onTableUpdateSettingsCompleted
+      ),
+      actions.resources.deleteSubmission.completed.listen(
+        this.refreshSubmissions
+      ),
+      actions.resources.duplicateSubmission.completed.listen(
+        this.onDuplicateSubmissionCompleted
+      ),
+      actions.resources.refreshTableSubmissions.completed.listen(
+        this.refreshSubmissions
+      ),
+      actions.submissions.getSubmissions.completed.listen(
+        this.onGetSubmissionsCompleted
+      ),
+      actions.submissions.getSubmissions.failed.listen(
+        this.onGetSubmissionsFailed
+      ),
+      actions.submissions.bulkDeleteStatus.completed.listen(
+        this.onBulkChangeCompleted
+      ),
+      actions.submissions.bulkPatchStatus.completed.listen(
+        this.onBulkChangeCompleted
+      ),
+      actions.submissions.bulkPatchValues.completed.listen(
+        this.onBulkChangeCompleted
+      ),
+      actions.submissions.bulkDelete.completed.listen(
+        this.onBulkChangeCompleted
+      )
     );
 
     stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded);
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
@@ -155,9 +183,9 @@ export class DataTable extends React.Component {
       JSON.stringify(prevSettings[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions();
-    // If some other table settings changed, we need to fix columns using
-    // existing data, as after `actions.table.updateSettings` resolves,
-    // the props asset is not yet updated
+      // If some other table settings changed, we need to fix columns using
+      // existing data, as after `actions.table.updateSettings` resolves,
+      // the props asset is not yet updated
     } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
       this._prepColumns(this.state.submissions);
     }
@@ -226,7 +254,10 @@ export class DataTable extends React.Component {
         this.submissionModalProcessing(results[0]._id, results);
       }
       if (this.state.submissionPager === 'prev') {
-        this.submissionModalProcessing(results[results.length - 1]._id, results);
+        this.submissionModalProcessing(
+          results[results.length - 1]._id,
+          results
+        );
       }
       this.setState({
         loading: false,
@@ -248,7 +279,9 @@ export class DataTable extends React.Component {
       });
     } else {
       this.setState({
-        error: t('This project has no submitted data. Please collect some and try again.'),
+        error: t(
+          'This project has no submitted data. Please collect some and try again.'
+        ),
         loading: false,
       });
     }
@@ -331,35 +364,58 @@ export class DataTable extends React.Component {
    * @returns {object} submission actions column for react-table
    */
   _getColumnSubmissionActions(maxPageRes) {
-    let userCanSeeEditIcon = (
+    let userCanSeeEditIcon =
       this.props.asset.deployment__active &&
-      (
-        userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-        userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
-      )
-    );
+      (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+        userCanPartially(
+          PERMISSIONS_CODENAMES.change_submissions,
+          this.props.asset
+        ));
 
-    let userCanSeeCheckbox = (
+    let userCanSeeCheckbox =
       userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-      userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-      userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
-    );
+      userCanPartially(
+        PERMISSIONS_CODENAMES.validate_submissions,
+        this.props.asset
+      ) ||
+      userCanPartially(
+        PERMISSIONS_CODENAMES.delete_submissions,
+        this.props.asset
+      ) ||
+      userCanPartially(
+        PERMISSIONS_CODENAMES.change_submissions,
+        this.props.asset
+      );
 
     if (
       userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) ||
-      userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-      userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      userCanPartially(
+        PERMISSIONS_CODENAMES.validate_submissions,
+        this.props.asset
+      ) ||
+      userCanPartially(
+        PERMISSIONS_CODENAMES.delete_submissions,
+        this.props.asset
+      ) ||
+      userCanPartially(
+        PERMISSIONS_CODENAMES.change_submissions,
+        this.props.asset
+      ) ||
       userCanPartially(PERMISSIONS_CODENAMES.view_submissions, this.props.asset)
     ) {
-      const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
-      const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
+      const res1 =
+        this.state.resultsTotal === 0
+          ? 0
+          : this.state.currentPage * this.state.pageSize + 1;
+      const res2 = Math.min(
+        (this.state.currentPage + 1) * this.state.pageSize,
+        this.state.resultsTotal
+      );
 
       // To accommodate the checkbox, icon buttons and header text.
       let columnWidth = 100;
@@ -380,8 +436,10 @@ export class DataTable extends React.Component {
           <div>
             <div className='table-header-results'>
               {res1} - {res2}
-              <br/>
-              <strong>{this.state.resultsTotal} {t('results')}</strong>
+              <br />
+              <strong>
+                {this.state.resultsTotal} {t('results')}
+              </strong>
             </div>
           </div>
         ),
@@ -412,17 +470,33 @@ export class DataTable extends React.Component {
         },
         Cell: (row) => (
           <div className='table-submission-actions'>
-            {userCanSeeCheckbox &&
+            {userCanSeeCheckbox && (
               <Checkbox
-                checked={this.state.selectedRows[row.original._id] ? true : false}
+                checked={
+                  this.state.selectedRows[row.original._id] ? true : false
+                }
                 onChange={this.bulkUpdateChange.bind(this, row.original._id)}
-                disabled={!(
-                  (isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
-                  (isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
-                  (isSubmissionWritable('validate_submissions', this.props.asset, row.original))
-                )}
+                disabled={
+                  !(
+                    isSubmissionWritable(
+                      'change_submissions',
+                      this.props.asset,
+                      row.original
+                    ) ||
+                    isSubmissionWritable(
+                      'delete_submissions',
+                      this.props.asset,
+                      row.original
+                    ) ||
+                    isSubmissionWritable(
+                      'validate_submissions',
+                      this.props.asset,
+                      row.original
+                    )
+                  )
+                }
               />
-            }
+            )}
 
             <button
               onClick={this.launchSubmissionModal.bind(this, row)}
@@ -430,19 +504,24 @@ export class DataTable extends React.Component {
               className='table-link'
               data-tip={t('Open')}
             >
-              <i className='k-icon k-icon-view'/>
+              <i className='k-icon k-icon-view' />
             </button>
 
-            {userCanSeeEditIcon && (isSubmissionWritable('change_submissions', this.props.asset, row.original)) &&
-              <button
-                onClick={this.launchEditSubmission.bind(this)}
-                data-sid={row.original._id}
-                className='table-link'
-                data-tip={t('Edit')}
-              >
-                <i className='k-icon k-icon-edit'/>
-              </button>
-            }
+            {userCanSeeEditIcon &&
+              isSubmissionWritable(
+                'change_submissions',
+                this.props.asset,
+                row.original
+              ) && (
+                <button
+                  onClick={this.launchEditSubmission.bind(this)}
+                  data-sid={row.original._id}
+                  className='table-link'
+                  data-tip={t('Edit')}
+                >
+                  <i className='k-icon k-icon-edit' />
+                </button>
+              )}
           </div>
         ),
       };
@@ -470,9 +549,7 @@ export class DataTable extends React.Component {
             isFieldFrozen={tableStore.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
             onFrozenChange={this.onFieldFrozenChange}
             additionalTriggerContent={
-              <span className='column-header-title'>
-                {t('Validation')}
-              </span>
+              <span className='column-header-title'>{t('Validation')}</span>
             }
           />
         </div>
@@ -484,14 +561,18 @@ export class DataTable extends React.Component {
       width: this._getColumnWidth(VALIDATION_STATUS_ID_PROP),
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
-      Filter: ({ filter, onChange }) => {
-        let currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
+      Filter: ({filter, onChange}) => {
+        let currentOption = VALIDATION_STATUSES_LIST.find(
+          (item) => item.value === filter?.value
+        );
         if (!currentOption) {
           currentOption = SHOW_ALL_OPTION;
         }
         return (
           <ValidationStatusDropdown
-            onChange={(selectedOption) => {onChange(selectedOption.value);}}
+            onChange={(selectedOption) => {
+              onChange(selectedOption.value);
+            }}
             currentValue={currentOption}
             isForHeaderFilter
           />
@@ -499,9 +580,19 @@ export class DataTable extends React.Component {
       },
       Cell: (row) => (
         <ValidationStatusDropdown
-          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
+          onChange={this.onValidationStatusChange.bind(
+            this,
+            row.original._id,
+            row.index
+          )}
           currentValue={this.getValidationStatusOption(row.original)}
-          isDisabled={!(isSubmissionWritable(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset, row.original))}
+          isDisabled={
+            !isSubmissionWritable(
+              PERMISSIONS_CODENAMES.validate_submissions,
+              this.props.asset,
+              row.original
+            )
+          }
         />
       ),
     };
@@ -519,7 +610,10 @@ export class DataTable extends React.Component {
     let showGroupName = this.state.showGroupName;
     let showHXLTags = this.state.showHXLTags;
     let translationIndex = this.state.translationIndex;
-    let maxPageRes = Math.min(this.state.pageSize, this.state.submissions.length);
+    let maxPageRes = Math.min(
+      this.state.pageSize,
+      this.state.submissions.length
+    );
 
     const tableSettings = tableStore.getTableSettings();
 
@@ -539,7 +633,8 @@ export class DataTable extends React.Component {
     // define the columns array
     let columnsToRender = [];
 
-    const columnSubmissionActions = this._getColumnSubmissionActions(maxPageRes);
+    const columnSubmissionActions =
+      this._getColumnSubmissionActions(maxPageRes);
     if (columnSubmissionActions) {
       columnsToRender.push(columnSubmissionActions);
     }
@@ -556,10 +651,11 @@ export class DataTable extends React.Component {
       var q;
       if (key.includes('/')) {
         const qParentG = key.split('/');
-        q = survey.find((o) => (
-          o.name === qParentG[qParentG.length - 1] ||
-          o.$autoname === qParentG[qParentG.length - 1]
-        ));
+        q = survey.find(
+          (o) =>
+            o.name === qParentG[qParentG.length - 1] ||
+            o.$autoname === qParentG[qParentG.length - 1]
+        );
       } else {
         q = survey.find((o) => o.name === key || o.$autoname === key);
       }
@@ -576,42 +672,44 @@ export class DataTable extends React.Component {
       var index = 'y_' + key;
 
       // Get background-audio question name in case user changes it
-      const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset);
+      const backgroundAudioName = getBackgroundAudioQuestionName(
+        this.props.asset
+      );
 
       // place meta question columns at the very end with `z` prefix
-      switch(key) {
+      switch (key) {
         case META_QUESTION_TYPES.username:
-            index = 'z1';
-            break;
+          index = 'z1';
+          break;
         case META_QUESTION_TYPES.deviceid:
-            index = 'z4';
-            break;
+          index = 'z4';
+          break;
         case META_QUESTION_TYPES.phonenumber:
-            index = 'z5';
-            break;
+          index = 'z5';
+          break;
         case META_QUESTION_TYPES.today:
-            index = 'z6';
-            break;
+          index = 'z6';
+          break;
         case '__version__':
         case '_version_':
-            index = 'z7';
-            break;
+          index = 'z7';
+          break;
         case ADDITIONAL_SUBMISSION_PROPS._id:
-            index = 'z8';
-            break;
+          index = 'z8';
+          break;
         case ADDITIONAL_SUBMISSION_PROPS._uuid:
-            index = 'z9';
-            break;
+          index = 'z9';
+          break;
         case ADDITIONAL_SUBMISSION_PROPS._submission_time:
-            index = 'z91';
-            break;
+          index = 'z91';
+          break;
         case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
-            index = 'z92';
-            break;
+          index = 'z92';
+          break;
         // set index for `background-audio` to the very first column with `_`
         case backgroundAudioName:
-            index = '_1';
-            break;
+          index = '_1';
+          break;
         default:
           // Look for a survey row that matches current column 'key' and set
           // index for it based on the order in which it is stored in survey
@@ -630,15 +728,25 @@ export class DataTable extends React.Component {
           });
 
           // Detect supplemental details column and put it after its source column.
-          if (
-            q === undefined &&
-            key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
-          ) {
+          if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
             const supplementalColumnSource = key.split('/')[1];
-            const sourceColumn = columnsToRender.find((columnToRender) =>
-              columnToRender.id === flatPaths[supplementalColumnSource]
-            );
+            // Add extra step if grouped
+            const sourceCleaned = supplementalColumnSource
+              .replace(/-/g, '/')
+              .split('/')[1];
+            let sourceColumn;
 
+            if (survey[0].type === 'begin_group') {
+              sourceColumn = columnsToRender.find(
+                (columnToRender) =>
+                  columnToRender.id === flatPaths[sourceCleaned]
+              );
+            } else {
+              sourceColumn = columnsToRender.find(
+                (columnToRender) =>
+                  columnToRender.id === flatPaths[supplementalColumnSource]
+              );
+            }
             if (sourceColumn) {
               // This way if we have a source column with index `2`, we will set
               // the supplemental details column to `2__supplementalDetails/…`
@@ -658,7 +766,6 @@ export class DataTable extends React.Component {
       if (q && q.type) {
         columnIcon = renderQuestionTypeIcon(q.type);
       }
-
       columnsToRender.push({
         Header: () => {
           const columnName = getColumnLabel(
@@ -667,8 +774,10 @@ export class DataTable extends React.Component {
             this.state.showGroupName,
             this.state.translationIndex
           );
-
-          const columnHXLTags = getColumnHXLTags(this.props.asset.content.survey, key);
+          const columnHXLTags = getColumnHXLTags(
+            this.props.asset.content.survey,
+            key
+          );
           return (
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
@@ -686,9 +795,11 @@ export class DataTable extends React.Component {
                   </span>
                 }
               />
-              {this.state.showHXLTags && columnHXLTags &&
-                <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
-              }
+              {this.state.showHXLTags && columnHXLTags && (
+                <span className='column-header-hxl-tags' title={columnHXLTags}>
+                  {columnHXLTags}
+                </span>
+              )}
             </div>
           );
         },
@@ -714,8 +825,9 @@ export class DataTable extends React.Component {
                 q.type === QUESTION_TYPES.audio.id ||
                 q.type === META_QUESTION_TYPES['background-audio']
               ) {
-                const { original } = row;
-                const submissionEditId = original['meta/rootUuid'] || original._uuid;
+                const {original} = row;
+                const submissionEditId =
+                  original['meta/rootUuid'] || original._uuid;
                 return (
                   <AudioCell
                     assetUid={this.props.asset.uid}
@@ -742,9 +854,10 @@ export class DataTable extends React.Component {
 
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {
-              let choice = choices.find((o) =>
-                o.list_name === q.select_from_list_name &&
-                (o.name === row.value || o.$autoname === row.value)
+              let choice = choices.find(
+                (o) =>
+                  o.list_name === q.select_from_list_name &&
+                  (o.name === row.value || o.$autoname === row.value)
               );
               if (choice?.label && choice.label[translationIndex]) {
                 return (
@@ -753,27 +866,24 @@ export class DataTable extends React.Component {
                   </span>
                 );
               } else {
-                return (
-                  <span className='trimmed-text'>{row.value}</span>
-                );
+                return <span className='trimmed-text'>{row.value}</span>;
               }
             }
             if (q.type === QUESTION_TYPES.select_multiple.id && row.value) {
               let values = row.value.split(' ');
               var labels = [];
               values.forEach(function (v) {
-                let choice = choices.find((o) =>
-                  o.list_name === q.select_from_list_name &&
-                  (o.name === v || o.$autoname === v)
+                let choice = choices.find(
+                  (o) =>
+                    o.list_name === q.select_from_list_name &&
+                    (o.name === v || o.$autoname === v)
                 );
                 if (choice && choice.label && choice.label[translationIndex]) {
                   labels.push(choice.label[translationIndex]);
                 }
               });
 
-              return (
-                <span className='trimmed-text'>{labels.join(', ')}</span>
-              );
+              return <span className='trimmed-text'>{labels.join(', ')}</span>;
             }
             if (
               q.type === META_QUESTION_TYPES.start ||
@@ -806,13 +916,11 @@ export class DataTable extends React.Component {
               key
             );
             return (
-              <span className='trimmed-text'>
-                {supplementalDetailsContent}
-              </span>
+              <span className='trimmed-text'>{supplementalDetailsContent}</span>
             );
           }
 
-          if (typeof(row.value) === 'object' || row.value === undefined) {
+          if (typeof row.value === 'object' || row.value === undefined) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
@@ -825,11 +933,10 @@ export class DataTable extends React.Component {
               return '';
             }
           } else {
-            return (<span className='trimmed-text'>{row.value}</span>);
+            return <span className='trimmed-text'>{row.value}</span>;
           }
         },
       });
-
     });
 
     // Apply stored indexes to all columns to sort them.
@@ -843,40 +950,55 @@ export class DataTable extends React.Component {
 
     columnsToRender.forEach(function (col) {
       if (
-        col.question && col.question.type === QUESTION_TYPES.select_one.id ||
-        col.question && col.question.type === QUESTION_TYPES.select_multiple.id
+        (col.question && col.question.type === QUESTION_TYPES.select_one.id) ||
+        (col.question &&
+          col.question.type === QUESTION_TYPES.select_multiple.id)
       ) {
         col.filterable = true;
-        col.Filter = ({ filter, onChange }) =>
+        col.Filter = ({filter, onChange}) => (
           <select
             onChange={(event) => onChange(event.target.value)}
-            style={{ width: '100%' }}
+            style={{width: '100%'}}
             value={filter ? filter.value : ''}
           >
             <option value=''>{t('Show All')}</option>
-            {choices.filter((c) => c.list_name === col.question.select_from_list_name).map((item, n) => {
-              const displayName = getQuestionOrChoiceDisplayName(item, translationIndex);
-              return (<option value={item.name} key={n}>{displayName}</option>);
-            })}
-          </select>;
+            {choices
+              .filter((c) => c.list_name === col.question.select_from_list_name)
+              .map((item, n) => {
+                const displayName = getQuestionOrChoiceDisplayName(
+                  item,
+                  translationIndex
+                );
+                return (
+                  <option value={item.name} key={n}>
+                    {displayName}
+                  </option>
+                );
+              })}
+          </select>
+        );
       }
       if (
-        (col.question && TEXT_FILTER_QUESTION_TYPES.includes(col.question.type))
-        || TEXT_FILTER_QUESTION_IDS.includes(col.id)
+        (col.question &&
+          TEXT_FILTER_QUESTION_TYPES.includes(col.question.type)) ||
+        TEXT_FILTER_QUESTION_IDS.includes(col.id)
       ) {
         col.filterable = true;
-        col.Filter = ({ filter, onChange }) =>
+        col.Filter = ({filter, onChange}) => (
           <DebounceInput
             value={filter ? filter.value : undefined}
             debounceTimeout={750}
             onChange={(event) => onChange(event.target.value)}
             className='table-filter-input'
             placeholder={t('Search')}
-          />;
+          />
+        );
       }
 
       if (frozenColumn === col.id) {
-        col.className = col.className ? `is-frozen is-last-frozen ${col.className}` : 'is-frozen is-last-frozen';
+        col.className = col.className
+          ? `is-frozen is-last-frozen ${col.className}`
+          : 'is-frozen is-last-frozen';
         col.headerClassName = 'is-frozen is-last-frozen';
       }
     });
@@ -907,7 +1029,6 @@ export class DataTable extends React.Component {
     });
   }
 
-
   toggleFullscreen() {
     this.setState({isFullscreen: !this.state.isFullscreen});
   }
@@ -918,7 +1039,9 @@ export class DataTable extends React.Component {
    */
   onSubmissionValidationStatusChange(result, sid) {
     if (sid) {
-      var subIndex = this.state.submissions.findIndex((x) => x._id === parseInt(sid));
+      var subIndex = this.state.submissions.findIndex(
+        (x) => x._id === parseInt(sid)
+      );
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         var newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
@@ -939,7 +1062,12 @@ export class DataTable extends React.Component {
    */
   onDuplicateSubmissionCompleted(uid, sid, duplicatedSubmission) {
     this.fetchSubmissions(this.state.fetchInstance);
-    this.submissionModalProcessing(sid, this.state.submissions, true, duplicatedSubmission);
+    this.submissionModalProcessing(
+      sid,
+      this.state.submissions,
+      true,
+      duplicatedSubmission
+    );
   }
 
   onTableStoreChange(newData) {
@@ -953,9 +1081,9 @@ export class DataTable extends React.Component {
       JSON.stringify(newData.overrides[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions();
-    // If some other table settings changed, we need to fix columns using
-    // existing data, as after `actions.table.updateSettings` resolves,
-    // the props asset is not yet updated
+      // If some other table settings changed, we need to fix columns using
+      // existing data, as after `actions.table.updateSettings` resolves,
+      // the props asset is not yet updated
     } else if (
       JSON.stringify(this.previousOverrides[DATA_TABLE_SETTING]) !==
       JSON.stringify(newData.overrides[DATA_TABLE_SETTING])
@@ -994,7 +1122,9 @@ export class DataTable extends React.Component {
   launchSubmissionModal(row) {
     if (row && row.original) {
       const sid = row.original._id;
-      const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset);
+      const backgroundAudioName = getBackgroundAudioQuestionName(
+        this.props.asset
+      );
       if (
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
@@ -1009,7 +1139,7 @@ export class DataTable extends React.Component {
           this.state.submissions,
           false,
           null,
-          backgroundAudioUrl,
+          backgroundAudioUrl
         );
       } else {
         this.submissionModalProcessing(sid, this.state.submissions);
@@ -1031,7 +1161,7 @@ export class DataTable extends React.Component {
     submissions,
     isDuplicated = false,
     duplicatedSubmission = null,
-    backgroundAudioUrl = null,
+    backgroundAudioUrl = null
   ) {
     let ids = [];
 
@@ -1066,7 +1196,8 @@ export class DataTable extends React.Component {
     enketoHandler.openSubmission(
       this.props.asset.uid,
       evt.currentTarget.dataset.sid,
-      ENKETO_ACTIONS.edit);
+      ENKETO_ACTIONS.edit
+    );
   }
 
   onPageStateUpdated(pageState) {
@@ -1087,13 +1218,16 @@ export class DataTable extends React.Component {
         page = this.state.currentPage - 1;
       }
 
-      fetchInstance.setState({ page: page });
-      this.setState({
-        fetchInstance: fetchInstance,
-        submissionPager: pageState.modal.page,
-      }, function () {
-        this.fetchData(this.state.fetchState, this.state.fetchInstance);
-      });
+      fetchInstance.setState({page: page});
+      this.setState(
+        {
+          fetchInstance: fetchInstance,
+          submissionPager: pageState.modal.page,
+        },
+        function () {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
+        }
+      );
     }
   }
 
@@ -1128,8 +1262,7 @@ export class DataTable extends React.Component {
       } else {
         delete s[r._id];
       }
-    }
-    );
+    });
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
@@ -1220,9 +1353,7 @@ export class DataTable extends React.Component {
         <bem.uiPanel>
           <bem.uiPanel__body>
             <bem.Loading>
-              <bem.Loading__inner>
-                {this.state.error}
-              </bem.Loading__inner>
+              <bem.Loading__inner>{this.state.error}</bem.Loading__inner>
             </bem.Loading>
           </bem.uiPanel__body>
         </bem.uiPanel>
@@ -1230,10 +1361,12 @@ export class DataTable extends React.Component {
     }
 
     if (!this.state.isInitialized) {
-      return (<LoadingSpinner/>);
+      return <LoadingSpinner />;
     }
 
-    const pages = Math.floor(((this.state.resultsTotal - 1) / this.state.pageSize) + 1);
+    const pages = Math.floor(
+      (this.state.resultsTotal - 1) / this.state.pageSize + 1
+    );
 
     let tableClasses = ['-highlight'];
     if (this.state.showHXLTags) {
@@ -1246,21 +1379,27 @@ export class DataTable extends React.Component {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+        <bem.FormView__group
+          m={[
+            'table-header',
+            this.state.loading ? 'table-loading' : 'table-loaded',
+          ]}
+        >
+          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
             <ColumnsHideDropdown
               asset={this.props.asset}
               submissions={this.state.submissions}
               showGroupName={this.state.showGroupName}
               translationIndex={this.state.translationIndex}
             />
-          }
+          )}
 
           {this.renderBulkSelectUI()}
 
           <bem.FormView__item m='table-buttons'>
             <bem.Button
-              m='icon' className='report-button__expand right-tooltip'
+              m='icon'
+              className='report-button__expand right-tooltip'
               onClick={this.toggleFullscreen}
               data-tip={t('Toggle fullscreen')}
             >
@@ -1268,7 +1407,8 @@ export class DataTable extends React.Component {
             </bem.Button>
 
             <bem.Button
-              m='icon' className='report-button__expand right-tooltip'
+              m='icon'
+              className='report-button__expand right-tooltip'
               onClick={this.showTableColumnsOptionsModal}
               data-tip={t('Display options')}
             >
@@ -1288,19 +1428,19 @@ export class DataTable extends React.Component {
           manual
           onFetchData={this.fetchData}
           loading={this.state.loading}
-          previousText={(
+          previousText={
             <React.Fragment>
-              <i className='k-icon k-icon-caret-left'/>
+              <i className='k-icon k-icon-caret-left' />
               {t('Prev')}
             </React.Fragment>
-          )}
-          nextText={(
+          }
+          nextText={
             <React.Fragment>
               {t('Next')}
-              <i className='k-icon k-icon-caret-right'/>
+              <i className='k-icon k-icon-caret-right' />
             </React.Fragment>
-          )}
-          loadingText={<LoadingSpinner/>}
+          }
+          loadingText={<LoadingSpinner />}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}
