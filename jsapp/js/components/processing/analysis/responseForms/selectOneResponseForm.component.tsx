@@ -42,7 +42,7 @@ export default function SelectOneResponseForm(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
       props.uid,
-      response
+      newResponse
     );
   }
 
@@ -58,10 +58,6 @@ export default function SelectOneResponseForm(
     return [];
   }
 
-  function clear() {
-    setResponse('');
-  }
-
   return (
     <>
       <CommonHeader uid={props.uid} />
@@ -75,6 +71,7 @@ export default function SelectOneResponseForm(
           onChange={onRadioChange}
           selected={response}
           isClearable
+          isDisabled={analysisQuestions?.state.isPending}
         />
       </section>
     </>

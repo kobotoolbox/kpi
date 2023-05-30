@@ -81,6 +81,7 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
           placeholder={t('Start typing your answer')}
           onBlur={saveResponse}
           customModifiers='on-white'
+          disabled={analysisQuestions?.state.isPending}
         />
       </section>
     </>
