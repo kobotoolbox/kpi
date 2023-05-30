@@ -75,6 +75,7 @@ export default function SelectOneResponseForm(
           onChange={onRadioChange}
           selected={response}
           isClearable
+          isDisabled={analysisQuestions?.state.isPending}
         />
       </section>
     </>
