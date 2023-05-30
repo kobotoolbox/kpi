@@ -154,6 +154,9 @@ class TextBox extends React.Component<TextBoxProps, {}> {
             onInput={(evt: React.ChangeEvent<HTMLInputElement>) => {
               this.onValueChange(evt.currentTarget.value);
             }}
+            // We need this fake `onChange` here to avoid React complaining that
+            // we're creating a read-only input (clearly not true).
+            onChange={() => false}
             {...inputProps}
           />
         }
