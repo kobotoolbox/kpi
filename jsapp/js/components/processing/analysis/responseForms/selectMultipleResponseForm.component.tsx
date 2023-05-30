@@ -37,13 +37,15 @@ export default function SelectMultipleResponseForm(
     const newFields = items
       .filter((item) => item.checked)
       .map((item) => item.name);
-    setResponse(newFields.join(','));
+    const newResponse = newFields.join(',');
+
+    setResponse(newResponse);
 
     quietlyUpdateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
       props.uid,
-      response
+      newResponse
     );
   }
 

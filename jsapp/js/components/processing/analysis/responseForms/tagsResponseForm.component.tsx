@@ -38,13 +38,15 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   }
 
   function onTagsChange(newTags: string[]) {
-    setResponse(newTags.join(','));
+    const newResponse = newTags.join(',');
+
+    setResponse(newResponse);
 
     quietlyUpdateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
       props.uid,
-      response
+      newResponse
     );
   }
 

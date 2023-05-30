@@ -42,7 +42,7 @@ export default function SelectOneResponseForm(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
       props.uid,
-      response
+      newResponse
     );
   }
 
@@ -56,10 +56,6 @@ export default function SelectOneResponseForm(
       });
     }
     return [];
-  }
-
-  function clear() {
-    setResponse('');
   }
 
   return (
