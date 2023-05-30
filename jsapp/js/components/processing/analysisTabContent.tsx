@@ -1,43 +1,27 @@
-import React from 'react';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import React, {useMemo, useReducer} from 'react';
+import bodyStyles from './processingBody.module.scss';
+import AnalysisContent from './analysis/analysisContent.component';
+import {
+  initialState,
+  analysisQuestionsReducer,
+} from './analysis/analysisQuestions.reducer';
+import AnalysisQuestionsContext from './analysis/analysisQuestions.context';
+import AnalysisHeader from './analysis/analysisHeader.component';
+import classNames from 'classnames';
 
-interface AnalysisTabContentState {}
+export default function AnalysisTabContent() {
+  const [state, dispatch] = useReducer(analysisQuestionsReducer, initialState);
+  const contextValue = useMemo(() => {
+    return {state, dispatch};
+  }, [state, dispatch]);
 
-export default class AnalysisTabContent extends React.Component<
-  {},
-  AnalysisTabContentState
-> {
-  constructor(props: {}) {
-    super(props);
+  return (
+    <div className={classNames(bodyStyles.root, bodyStyles.viewAnalysis)}>
+      <AnalysisQuestionsContext.Provider value={contextValue}>
+        <AnalysisHeader />
 
-    this.state = {};
-  }
-
-  private unlisteners: Function[] = [];
-
-  componentDidMount() {
-    this.unlisteners.push(
-      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    );
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb();
-    });
-  }
-
-  /**
-   * Don't want to store a duplicate of store data here just for the sake of
-   * comparison, so we need to make the component re-render itself when the
-   * store changes :shrug:.
-   */
-  onSingleProcessingStoreChange() {
-    this.forceUpdate();
-  }
-
-  /** Identifies what step should be displayed based on the data itself. */
-  render() {
-    return 'Hello, Analysis!';
-  }
+        <AnalysisContent />
+      </AnalysisQuestionsContext.Provider>
+    </div>
+  );
 }

@@ -11,6 +11,7 @@ interface TransxSelectorProps {
   languageCodes: LanguageCode[];
   selectedLanguage?: LanguageCode;
   onChange: (code: LanguageCode | null) => void;
+  disabled?: boolean;
 }
 
 interface TransxSelectorState {
@@ -99,6 +100,7 @@ export default class TransxSelector extends React.Component<
           }
           options={this.state.options}
           onChange={this.onSelectChange.bind(this)}
+          isDisabled={this.props.disabled}
         />
       );
     }
