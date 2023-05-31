@@ -96,7 +96,7 @@ class ServiceUsageSerializer(serializers.Serializer):
         return self._total_nlp_mt_characters_all_time
 
     def get_total_nlp_mt_characters_current_month(self, user):
-        return self._total_nlp_asr_seconds_current_month
+        return self._total_nlp_mt_characters_current_month
 
     def get_total_submission_count_all_time(self, user):
         return self._total_submission_count_all_time

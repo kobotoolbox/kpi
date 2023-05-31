@@ -8,29 +8,27 @@ from .utils import update_nlp_counter
 
 
 class MonthlyNLPUsageCounter(models.Model):
-    year = models.IntegerField()
-    month = models.IntegerField()
+    date = models.DateField()
     user = models.ForeignKey(User, related_name='nlp_counters', on_delete=models.CASCADE)
     asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
     counters = models.JSONField(default=dict)
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['year', 'month', 'user', 'asset'],
+            UniqueConstraint(fields=['date', 'user', 'asset'],
                              name='unique_with_asset'),
-            UniqueConstraint(fields=['year', 'month', 'user'],
+            UniqueConstraint(fields=['date', 'user'],
                              condition=Q(asset=None),
                              name='unique_without_asset')
         ]
         indexes = [
-            models.Index(fields=('year', 'month', 'user')),
+            models.Index(fields=('date', 'user')),
         ]
 
     @classmethod
     def update_catch_all_counters_on_delete(cls, sender, instance, **kwargs):
         criteria = dict(
-            year=instance.year,
-            month=instance.month,
+            date=instance.date,
             user_id=instance.user_id,
             asset=None,
         )

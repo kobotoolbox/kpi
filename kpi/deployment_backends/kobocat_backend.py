@@ -331,13 +331,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Get the current month's NLP tracking data
         """
-        today = datetime.today()
+        today = timezone.now().date()
+        first_of_the_month = timezone.now().date().replace(day=1)
         try:
             monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').get(
-                    asset_id=self.asset.id,
-                    year=today.year,
-                    month=today.month,
+                MonthlyNLPUsageCounter.objects.only('counters').filter(
+                    date__gte=first_of_the_month,
+                    date__lte=today,
+                ).get(
+                    asset_id=self.asset.id
                 ).counters
             )
         except MonthlyNLPUsageCounter.DoesNotExist:

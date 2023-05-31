@@ -9,6 +9,9 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Optional, Union
 from xml.etree import ElementTree as ET
+
+from django.utils import timezone
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -160,10 +163,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         Get the current month's NLP tracking data
         """
-        today = datetime.today()
+        today = timezone.now().date()
+        first_of_the_month = timezone.now().date().replace(day=1)
         try:
             monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').get(
+                MonthlyNLPUsageCounter.objects.only('counters').filter(
+                    date__gte=first_of_the_month,
+                    date__lte=today,
+                ).get(
                     asset_id=self.asset.id,
                     year=today.year,
                     month=today.month,

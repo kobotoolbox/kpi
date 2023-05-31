@@ -1,7 +1,7 @@
-from datetime import datetime
 from typing import Optional
 
 from django.apps import apps
+from django.utils import timezone
 
 from kpi.utils.jsonbfield_helper import IncrementValue
 
@@ -28,10 +28,9 @@ def update_nlp_counter(
     MonthlyNLPUsageCounter = apps.get_model('trackers', 'MonthlyNLPUsageCounter')  # noqa
 
     if not counter_id:
-        date = datetime.today()
+        date = timezone.now()
         criteria = dict(
-            year=date.year,
-            month=date.month,
+            date=date.date(),
             user_id=user_id,
             asset_id=asset_id,
         )

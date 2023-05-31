@@ -37,8 +37,7 @@ class TrackersTestCases(KpiTestCase):
         asset.deploy(backend='mock', active=True)
         asset.save()
         MonthlyNLPUsageCounter.objects.create(
-            year=self.today.year,
-            month=self.today.month,
+            date=self.today.date,
             user=self.user,
             asset_id=asset.id,
             counters={'some_key': 4504},

@@ -35,9 +35,8 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            year=today.year,
-            month=today.month,
-            counters=counter_1
+            date=today.date,
+            counters=counter_1,
         )
 
         # last month
@@ -49,8 +48,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            year=last_month.year,
-            month=last_month.month,
+            date=last_month.date,
             counters=counter_2,
         )
 
