@@ -88,14 +88,7 @@ export default function AnalysisQuestionEditor(
 
     // Save only if there are no errors
     if (!hasErrors) {
-      analysisQuestions?.dispatch({
-        type: 'updateQuestion',
-        payload: {
-          uid: props.uid,
-          label: label,
-          additionalFields: additionalFields,
-        },
-      });
+      analysisQuestions?.dispatch({type: 'updateQuestion'});
 
       // TODO make actual API call here
       // For now we make a fake response

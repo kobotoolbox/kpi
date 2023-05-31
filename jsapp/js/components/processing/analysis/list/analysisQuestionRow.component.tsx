@@ -41,12 +41,14 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     return null;
   }
 
+  const isDragDisabled = analysisQuestions?.state.isPending;
+
   const previewRef = useRef<HTMLLIElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
 
   const [{handlerId}, drop] = useDrop<
     DragItem,
-    void,
+    unknown,
     {handlerId: Identifier | null}
   >({
     accept: DND_TYPES.ANALYSIS_QUESTION,
@@ -110,41 +112,57 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
     item: () => {
       return {id: props.uid, index: props.index};
     },
-    collect: (monitor: any) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    end: () => console.log('end'),
+    canDrag: !isDragDisabled,
+    collect: (monitor) => {
+      return {
+        isDragging: monitor.isDragging(),
+      };
+    },
+    end: () => {
+      analysisQuestions?.dispatch({type: 'applyQuestionsOrder'});
+
+      // TODO make actual API call here
+      // For now we make a fake response
+      console.log('QA fake API call: update order');
+      setTimeout(() => {
+        console.log('QA fake API call: update order DONE');
+        analysisQuestions?.dispatch({
+          type: 'applyQuestionsOrderCompleted',
+          payload: {
+            questions: analysisQuestions?.state.questions,
+          },
+        });
+      }, 2000);
+    },
   });
 
   drag(dragRef);
   drop(preview(previewRef));
 
   const renderItem = useCallback(
-    (question: AnalysisQuestion) => {
-      if (
-        analysisQuestions?.state.questionsBeingEdited.includes(question.uid)
-      ) {
-        return <AnalysisQuestionEditor uid={question.uid} />;
+    (item: AnalysisQuestion) => {
+      if (analysisQuestions?.state.questionsBeingEdited.includes(item.uid)) {
+        return <AnalysisQuestionEditor uid={item.uid} />;
       } else {
-        switch (question.type) {
+        switch (item.type) {
           case 'qual_auto_keyword_count': {
-            return <KeywordSearchResponseForm uid={question.uid} />;
+            return <KeywordSearchResponseForm uid={item.uid} />;
           }
           case 'qual_note': {
             // This question type doesn't have any response
-            return <CommonHeader uid={question.uid} />;
+            return <CommonHeader uid={item.uid} />;
           }
           case 'qual_select_multiple': {
-            return <SelectMultipleResponseForm uid={question.uid} />;
+            return <SelectMultipleResponseForm uid={item.uid} />;
           }
           case 'qual_select_one': {
-            return <SelectOneResponseForm uid={question.uid} />;
+            return <SelectOneResponseForm uid={item.uid} />;
           }
           case 'qual_tags': {
-            return <TagsResponseForm uid={question.uid} />;
+            return <TagsResponseForm uid={item.uid} />;
           }
           default: {
-            return <DefaultResponseForm uid={question.uid} />;
+            return <DefaultResponseForm uid={item.uid} />;
           }
         }
       }
@@ -157,6 +175,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
       className={classnames({
         [styles.root]: true,
         [styles.isBeingDragged]: isDragging,
+        [styles.isDragDisabled]: isDragDisabled,
       })}
       ref={previewRef}
       data-handler-id={handlerId}

@@ -16,7 +16,13 @@ export default function AnalysisContentEmpty() {
   if (hasManagePermissions) {
     return (
       <div className={styles.root}>
-        <InlineMessage icon='alert' type='warning' message={t('Please note that any qualitative question created for this record will generate a new column in the data table, making the question available for all other records.')}/>
+        <InlineMessage
+          icon='alert'
+          type='warning'
+          message={t(
+            'Please note that any qualitative question created for this record will generate a new column in the data table, making the question available for all other records.'
+          )}
+        />
 
         <p>{t('There are no qualitative analysis questions yet.')}</p>
 
@@ -28,9 +34,15 @@ export default function AnalysisContentEmpty() {
       <div className={styles.root}>
         <p>{t('There are no qualitative analysis questions yet.')}</p>
 
-        <p><Icon name='lock-alt' size='xl' classNames={[styles.lockIcon]}/></p>
+        <p>
+          <Icon name='lock-alt' size='xl' classNames={[styles.lockIcon]} />
+        </p>
 
-        <p><strong>{t('Only those with full editing rights can create questions')}</strong></p>
+        <p>
+          <strong>
+            {t('Only those with full editing rights can create questions')}
+          </strong>
+        </p>
         <p>{t('Contact the project owner for more information')}</p>
       </div>
     );

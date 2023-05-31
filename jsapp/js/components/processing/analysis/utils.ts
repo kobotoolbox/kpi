@@ -29,10 +29,7 @@ export function quietlyUpdateResponse(
     return;
   }
 
-  dispatch({
-    type: 'updateResponse',
-    payload: {uid: questionUid, response: response},
-  });
+  dispatch({type: 'updateResponse'});
 
   // TODO make actual API call here
   // For now we make a fake response
