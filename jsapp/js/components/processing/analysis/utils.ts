@@ -1,7 +1,5 @@
-import type {
-  AnalysisQuestionsAction,
-  AnalysisQuestionsState,
-} from './analysisQuestions.reducer';
+import type {AnalysisQuestionsState} from './analysisQuestions.reducer';
+import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
 import type {AnalysisQuestionType} from './constants';
 import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
 
