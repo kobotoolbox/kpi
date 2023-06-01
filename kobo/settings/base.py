@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
+    'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
 )
 
 MIDDLEWARE = [
@@ -388,6 +389,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'FREE_TIER_THRESHOLDS',
+    ),
+    'Project disclaimer': (
+        'FORM_DISCLAIMER_ENABLED',
+        'FORM_DISCLAIMER',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
