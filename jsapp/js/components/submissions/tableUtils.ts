@@ -36,34 +36,44 @@ export function getColumnLabel(
   let questionPath: string[] = [];
   if (key.includes('/')) {
     questionPath = key.split('/');
-    question = asset.content.survey.find((o) => (
-      o.name === questionPath[questionPath.length - 1] ||
-      o.$autoname === questionPath[questionPath.length - 1]
-    ));
+    question = asset.content.survey.find(
+      (o) =>
+        o.name === questionPath[questionPath.length - 1] ||
+        o.$autoname === questionPath[questionPath.length - 1]
+    );
   } else {
-    question = asset.content.survey.find((o) => o.name === key || o.$autoname === key);
+    question = asset.content.survey.find(
+      (o) => o.name === key || o.$autoname === key
+    );
   }
-
   // This identifies the supplemental details column.
-  if (
-    question === undefined &&
-    questionPath[0] === SUPPLEMENTAL_DETAILS_PROP
-  ) {
+  if (question === undefined && questionPath[0] === SUPPLEMENTAL_DETAILS_PROP) {
     const supplementalPathParts = getSupplementalPathParts(key);
+    let sourceName;
+
+    if (asset.content?.survey[0].type === 'begin_group') {
+      sourceName = supplementalPathParts.sourceRowName.split('-')[1];
+    } else {
+      sourceName = supplementalPathParts.sourceRowName;
+    }
     // Supplemental details keys are built like one of:
     // - prefix / source question name / transcript _ language code
     // - prefix / source question name / translated _ language code
     const sourceQuestionLabel = getColumnLabel(
       asset,
-      supplementalPathParts.sourceRowName,
+      sourceName,
       showGroupName,
       translationIndex
     );
-
+    //Find why its returning weird
     if (supplementalPathParts.isTranscript) {
-      return `${t('transcript')} (${supplementalPathParts.languageCode}) | ${sourceQuestionLabel}`;
+      return `${t('transcript')} (${
+        supplementalPathParts.languageCode
+      }) | ${sourceQuestionLabel}`;
     } else if (supplementalPathParts.isTranslation) {
-      return `${t('translation')} (${supplementalPathParts.languageCode}) | ${sourceQuestionLabel}`;
+      return `${t('translation')} (${
+        supplementalPathParts.languageCode
+      }) | ${sourceQuestionLabel}`;
     }
   }
 
@@ -93,7 +103,9 @@ export function getColumnLabel(
 
     if (showLabels) {
       const gT = questionPath.map(function (g) {
-        const x = asset.content?.survey?.find((o) => o.name === g || o.$autoname === g);
+        const x = asset.content?.survey?.find(
+          (o) => o.name === g || o.$autoname === g
+        );
         if (x?.label && x.label[translationIndex]) {
           return x.label[translationIndex];
         }
@@ -109,8 +121,8 @@ export function getColumnLabel(
 }
 
 export function getColumnHXLTags(survey: SurveyRow[], key: string) {
-  const colQuestion: SurveyRow | undefined = survey.find((question) =>
-    question.$autoname === key
+  const colQuestion: SurveyRow | undefined = survey.find(
+    (question) => question.$autoname === key
   );
   if (!colQuestion || !colQuestion.tags) {
     return null;
@@ -128,10 +140,14 @@ export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   }
 }
 
-export function getBackgroundAudioQuestionName(asset: AssetResponse): string | null {
-  return asset?.content?.survey?.find(
-    (item) => item.type === META_QUESTION_TYPES['background-audio']
-  )?.name || null;
+export function getBackgroundAudioQuestionName(
+  asset: AssetResponse
+): string | null {
+  return (
+    asset?.content?.survey?.find(
+      (item) => item.type === META_QUESTION_TYPES['background-audio']
+    )?.name || null
+  );
 }
 
 /**
@@ -146,7 +162,7 @@ export function getBackgroundAudioQuestionName(asset: AssetResponse): string | n
  */
 export function getAllDataColumns(
   asset: AssetResponse,
-  submissions?: SubmissionResponse[],
+  submissions?: SubmissionResponse[]
 ) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content');
@@ -159,18 +175,24 @@ export function getAllDataColumns(
 
   if (submissions) {
     // Gather unique columns from all provided submissions and add them to output
-    const dataKeys = Object.keys(submissions.reduce(function (result, obj) {
-      return Object.assign(result, obj);
-    }, {}));
+    const dataKeys = Object.keys(
+      submissions.reduce(function (result, obj) {
+        return Object.assign(result, obj);
+      }, {})
+    );
     output = [...new Set([...output, ...dataKeys])];
   }
 
   // Put `start` and `end` first
   if (output.indexOf(META_QUESTION_TYPES.end)) {
-    output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0]);
+    output.unshift(
+      output.splice(output.indexOf(META_QUESTION_TYPES.end), 1)[0]
+    );
   }
   if (output.indexOf(META_QUESTION_TYPES.start)) {
-    output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0]);
+    output.unshift(
+      output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0]
+    );
   }
 
   // exclude some technical non-data columns
@@ -190,7 +212,7 @@ export function getAllDataColumns(
     const foundNoteRow = asset?.content?.survey?.find(
       (row) =>
         typeof foundPathKey !== 'undefined' &&
-        (foundPathKey === getRowName(row)) &&
+        foundPathKey === getRowName(row) &&
         row.type === QUESTION_TYPES.note.id
     );
 
