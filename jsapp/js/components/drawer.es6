@@ -164,7 +164,7 @@ const Drawer = observer(class Drawer extends Reflux.Component {
               target='_blank'
               data-tip={t('Projects (legacy)')}
             >
-              <i className='k-icon k-icon-globe' />
+              <Icon name='globe' size='l'/>
             </a>
           }
           { envStore.isReady &&
@@ -175,7 +175,7 @@ const Drawer = observer(class Drawer extends Reflux.Component {
               target='_blank'
               data-tip={t('Source')}
             >
-              <i className='k-icon k-icon-logo-github' />
+              <Icon name='logo-github' size='l'/>
             </a>
           }
         </bem.KDrawer__secondaryIcons>

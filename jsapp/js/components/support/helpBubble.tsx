@@ -131,7 +131,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
     return (
       <bem.HelpBubble__popup m={popupModifiers}>
         <bem.HelpBubble__close onClick={this.close.bind(this)}>
-          <i className='k-icon k-icon-close' />
+          <Icon name='close' size='l'/>
         </bem.HelpBubble__close>
 
         <bem.HelpBubble__popupContent>
@@ -146,7 +146,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
               href={envStore.data.support_url}
               onClick={this.close.bind(this)}
             >
-              <i className='k-icon k-icon-help-articles' />
+              <Icon name='help-articles' size='xl'/>
               <header>{t('KoboToolbox Help Center')}</header>
               <p>
                 {t(
@@ -163,7 +163,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
               href={envStore.data.community_url}
               onClick={this.close.bind(this)}
             >
-              <i className='k-icon k-icon-forum' />
+              <Icon name='forum' size='xl'/>
               <header>{t('KoboToolbox Community Forum')}</header>
               <p>
                 {t(

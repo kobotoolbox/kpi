@@ -35,7 +35,6 @@ $s-help-bubble-row-spacing: 20px;
       position: absolute;
       top: 16px;
       left: 16px;
-      font-size: 28px;
       color: colors.$kobo-gray-40;
     }
   }
@@ -142,8 +141,6 @@ $s-help-bubble-row-spacing: 20px;
   padding: 5px;
   background-color: rgba(colors.$kobo-white, 0.5);
   color: colors.$kobo-gray-40;
-  line-height: 1;
-  font-size: 1.5rem;
 
   .k-icon {
     display: block;
