@@ -23,6 +23,7 @@ import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {history} from 'js/router/historyRouter';
 import { routerIsActive, withRouter } from '../router/legacy';
+import {PROJECTS_ROUTES} from 'js/projects/routes';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -114,7 +115,7 @@ const Drawer = observer(class Drawer extends Reflux.Component {
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
           <NavLink
-            to={ROUTES.FORMS}
+            to={PROJECTS_ROUTES.MY_PROJECTS}
             className='k-drawer__link'
             activeClassName='active'
             data-tip={t('Projects')}

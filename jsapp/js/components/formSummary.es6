@@ -12,10 +12,8 @@ import Icon from 'js/components/common/icon';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
-import {getFormDataTabs} from './formViewTabs';
-import assetUtils from 'js/assetUtils';
+import {getFormDataTabs} from './formViewSideTabs';
 import {
-  formatTime,
   formatDate,
   stringToColor,
   getUsernameFromUrl,
@@ -26,6 +24,7 @@ import {
 } from 'js/constants';
 import './formSummary.scss';
 import {userCan} from 'js/components/permissions/utils';
+import FormSummaryProjectInfo from './formSummaryProjectInfo';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -33,7 +32,6 @@ class FormSummary extends React.Component {
     this.state = {
       subsCurrentPeriod: '',
       subsPreviousPeriod: '',
-      lastSubmission: false,
       chartVisible: false,
       chart: {},
       chartPeriod: 'week',
@@ -52,7 +50,6 @@ class FormSummary extends React.Component {
   prep() {
     if (this.state.permissions && userCan('view_submissions', this.state)) {
       const uid = this._getAssetUid();
-      this.getLatestSubmissionTime(uid);
       this.prepSubmissions(uid);
     }
   }
@@ -139,14 +136,7 @@ class FormSummary extends React.Component {
     });
 
   }
-  getLatestSubmissionTime(assetid) {
-    const fq = ['_id', 'end'];
-    const sort = [{id: '_id', desc: true}];
-    dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
-      const results = data.results;
-      if (data.count) {this.setState({lastSubmission: results[0]['end']});} else {this.setState({lastSubmission: false});}
-    });
-  }
+
   renderSubmissionsGraph() {
     if (!this.state.permissions || !userCan('view_submissions', this.state)) {
       return null;
@@ -356,124 +346,19 @@ class FormSummary extends React.Component {
   }
   render () {
     const docTitle = this.state.name || t('Untitled');
-    const hasCountry = (
-      this.state.settings?.country &&
-      (
-        !Array.isArray(this.state.settings?.country) ||
-        !!this.state.settings?.country.length
-      )
-    );
-    const hasSector = Boolean(this.state.settings?.sector?.value);
-    const hasProjectInfo = (
-      this.state.settings &&
-      (
-        this.state.settings.description ||
-        hasCountry ||
-        hasSector ||
-        this.state.settings.operational_purpose ||
-        this.state.settings.collects_pii
-      )
-    );
-
-    // if (!this.state.permissions) {
-    //   return (<LoadingSpinner/>);
-    // }
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            {/* Project information */}
-            {hasProjectInfo &&
-              <bem.FormView__row m='summary-description'>
-                <bem.FormView__cell m={['label', 'first']}>
-                  {t('Project information')}
-                </bem.FormView__cell>
-                <bem.FormView__cell m='box'>
-                  {(hasCountry || hasSector) &&
-                    <bem.FormView__group m={['items', 'description-cols']}>
-                      {hasCountry &&
-                        <bem.FormView__cell m='padding'>
-                          <bem.FormView__label m='country'>{t('Country')}</bem.FormView__label>
-                          {assetUtils.getCountryDisplayString(this.state)}
-                        </bem.FormView__cell>
-                      }
-                      {hasSector &&
-                        <bem.FormView__cell m='padding'>
-                          <bem.FormView__label m='sector'>{t('Sector')}</bem.FormView__label>
-                          {assetUtils.getSectorDisplayString(this.state)}
-                        </bem.FormView__cell>
-                      }
-                    </bem.FormView__group>
-                  }
-                  {(this.state.settings.operational_purpose || this.state.settings.collects_pii) &&
-                    <bem.FormView__group m={['items', 'description-cols']}>
-                      {this.state.settings.operational_purpose &&
-                        <bem.FormView__cell m='padding'>
-                          <bem.FormView__label m='operational-purpose'>{t('Operational purpose of data')}</bem.FormView__label>
-                          {this.state.settings.operational_purpose.label}
-                        </bem.FormView__cell>
-                      }
-                      {this.state.settings.collects_pii &&
-                        <bem.FormView__cell m='padding'>
-                          <bem.FormView__label m='collects-pii'>{t('Collects personally identifiable information')}</bem.FormView__label>
-                          {this.state.settings.collects_pii.label}
-                        </bem.FormView__cell>
-                      }
-                    </bem.FormView__group>
-                  }
-                  {this.state.settings.description &&
-                    <bem.FormView__group m='items'>
-                      <bem.FormView__cell m={['padding', 'description']}>
-                        <bem.FormView__label m='description'>{t('Description')}</bem.FormView__label>
-                        <p>{this.state.settings.description}</p>
-                      </bem.FormView__cell>
-                    </bem.FormView__group>
-                  }
-                </bem.FormView__cell>
-              </bem.FormView__row>
+            {/* We only want to pass an actual asset object, but because this
+            component uses `mixins.dmix`, we have to add this little check. */}
+            {this.state.uid &&
+              <FormSummaryProjectInfo asset={this.state}/>
             }
 
             {/* Submissions graph */}
             {this.renderSubmissionsGraph()}
-
-            {/* Form details */}
-            <bem.FormView__row m='summary-details'>
-              <bem.FormView__cell m={['label', 'first']}>
-                {t('Form details')}
-              </bem.FormView__cell>
-              <bem.FormView__cell m={['box']}>
-                <bem.FormView__group m='summary-details-cols'>
-                  <bem.FormView__cell>
-                    <bem.FormView__label>{t('Last modified')}</bem.FormView__label>
-                    {formatTime(this.state.date_modified)}
-                  </bem.FormView__cell>
-                  {this.state.lastSubmission &&
-                    <bem.FormView__cell>
-                      <bem.FormView__label>{t('Latest submission')}</bem.FormView__label>
-                      {formatTime(this.state.lastSubmission)}
-                    </bem.FormView__cell>
-                  }
-                  {this.state.summary &&
-                    <bem.FormView__cell>
-                      <bem.FormView__label>{t('Questions')}</bem.FormView__label>
-                      {this.state.summary.row_count}
-                    </bem.FormView__cell>
-                  }
-
-                  {this.state.summary && this.state.summary.languages && this.state.summary.languages.length > 1 &&
-                    <bem.FormView__cell>
-                      <bem.FormView__label>{t('Languages')}</bem.FormView__label>
-                      {this.state.summary.languages.map((l, i) => (
-                          <bem.FormView__cell key={`lang-${i}`} data-index={i}>
-                            {l}
-                          </bem.FormView__cell>
-                        ))}
-                    </bem.FormView__cell>
-                  }
-                </bem.FormView__group>
-              </bem.FormView__cell>
-            </bem.FormView__row>
           </bem.FormView__column>
 
           <bem.FormView__column m='right'>

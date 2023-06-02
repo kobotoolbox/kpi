@@ -13,61 +13,107 @@
  */
 
 import React from 'react';
-import _ from 'lodash';
 import alertify from 'alertifyjs';
-import toast from 'react-hot-toast';
-import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
-  PERMISSIONS_CODENAMES,
 } from './constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
 import assetStore from 'js/assetStore';
-import sessionStore from 'js/stores/session';
 import {actions} from './actions';
-import permConfig from 'js/components/permissions/permConfig';
 import {
   log,
   assign,
   notify,
   escapeHtml,
-  renderCheckbox,
   join,
 } from 'js/utils';
-import myLibraryStore from 'js/components/library/myLibraryStore';
 import type {
   AssetResponse,
   CreateImportRequest,
   ImportResponse,
-  Permission,
+  DeploymentResponse,
 } from 'js/dataInterface';
 import {getRouteAssetUid} from 'js/router/routerUtils';
 import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
 import {history} from 'js/router/historyRouter';
-import {userCan} from 'js/components/permissions/utils';
+import {
+  archiveAsset,
+  unarchiveAsset,
+  deleteAsset,
+  cloneAssetAsTemplate,
+  removeAssetSharing,
+  deployAsset,
+} from 'js/assetQuickActions';
+import type {DropFilesEventHandler} from 'react-dropzone';
 
 const IMPORT_CHECK_INTERVAL = 1000;
+
+interface ApplyImportParams {
+  destination?: string;
+  assetUid: string;
+  name: string;
+  url?: string;
+  base64Encoded?: ArrayBuffer | string | null;
+  lastModified?: number;
+  totalFiles?: number;
+}
+
+/*
+ * helper function for apply*ToAsset droppable mixin methods
+ * returns an interval-driven promise
+ */
+const applyImport = (params: ApplyImportParams) => {
+  const applyPromise = new Promise((resolve, reject) => {
+    actions.resources.createImport(params, (data: ImportResponse) => {
+      const doneCheckInterval = setInterval(() => {
+        dataInterface.getImportDetails({
+          uid: data.uid,
+        }).done((importData: ImportResponse) => {
+          switch (importData.status) {
+            case 'complete': {
+              const finalData = importData.messages?.updated || importData.messages?.created;
+              if (finalData && finalData.length > 0 && finalData[0].uid) {
+                clearInterval(doneCheckInterval);
+                resolve(finalData[0]);
+              } else {
+                clearInterval(doneCheckInterval);
+                reject(importData);
+              }
+              break;
+            }
+            case 'processing':
+            case 'created': {
+              // TODO: notify promise awaiter about delay (after multiple interval rounds)
+              break;
+            }
+            case 'error':
+            default: {
+              clearInterval(doneCheckInterval);
+              reject(importData);
+            }
+          }
+        }).fail((failData: ImportResponse) => {
+          clearInterval(doneCheckInterval);
+          reject(failData);
+        });
+      }, IMPORT_CHECK_INTERVAL);
+    });
+  });
+  return applyPromise;
+};
 
 interface MixinsObject {
   contextRouter: {
     [functionName: string]: Function;
     context?: any;
   };
-  clickAssets: {
-    onActionButtonClick: Function;
-    click: {
-      asset: {
-        [functionName: string]: Function;
-        context?: any;
-      };
-    };
-  };
   droppable: {
     [functionName: string]: Function;
+    dropFiles: DropFilesEventHandler;
     context?: any;
     props?: any;
     state?: any;
@@ -77,80 +123,10 @@ interface MixinsObject {
     state?: any;
     props?: any;
   };
-  cloneAssetAsNewType: {
-    dialog: Function;
-  };
 }
 
 const mixins: MixinsObject = {
-  contextRouter: {},
-  clickAssets: {
-    onActionButtonClick: Function.prototype,
-    click: {asset: {}},
-  },
-  droppable: {},
-  dmix: {},
-  cloneAssetAsNewType: {
-    /** Generates dialog when cloning an asset as new type */
-    dialog(params: {
-      sourceUid: string;
-      sourceName: string;
-      targetType: string;
-      promptTitle: string;
-      promptMessage: string;
-    }) {
-      const dialog = alertify.dialog('prompt');
-      const opts = {
-        title: params.promptTitle,
-        message: params.promptMessage,
-        value: _.escape(params.sourceName),
-        labels: {ok: t('Create'), cancel: t('Cancel')},
-        onok: ({}, value: string) => {
-          // disable buttons
-          // NOTE: we need to cast it as HTMLElement because of missing innerText in declaration.
-          const button1 = (dialog.elements.buttons.primary.children[0] as HTMLElement);
-          button1.setAttribute('disabled', 'true');
-          button1.innerText = t('Please wait…');
-          dialog.elements.buttons.primary.children[1].setAttribute('disabled', 'true');
-
-          actions.resources.cloneAsset({
-            uid: params.sourceUid,
-            name: value,
-            new_asset_type: params.targetType,
-          }, {
-            onComplete: (asset: AssetResponse) => {
-              dialog.destroy();
-
-              switch (asset.asset_type) {
-                case ASSET_TYPES.survey.id:
-                  history.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
-                  break;
-                case ASSET_TYPES.template.id:
-                case ASSET_TYPES.block.id:
-                case ASSET_TYPES.question.id:
-                  history.push(ROUTES.LIBRARY);
-                  break;
-              }
-            },
-            onFailed: () => {
-              dialog.destroy();
-              notify.error(t('Failed to create new asset!'));
-            },
-          });
-
-          // keep the dialog open
-          return false;
-        },
-        oncancel: () => {
-          dialog.destroy();
-        },
-      };
-      dialog.set(opts).show();
-    },
-  },
-};
-
-mixins.dmix = {
+dmix: {
   afterCopy() {
     notify(t('copied to clipboard'));
   },
@@ -191,67 +167,9 @@ mixins.dmix = {
   cloneAsTemplate(evt: React.TouchEvent<HTMLElement>) {
     const sourceUid = evt.currentTarget.dataset.assetUid;
     const sourceName = evt.currentTarget.dataset.assetName;
-    mixins.cloneAssetAsNewType.dialog({
-      sourceUid: sourceUid,
-      sourceName: sourceName,
-      targetType: ASSET_TYPES.template.id,
-      promptTitle: t('Create new template from this project'),
-      promptMessage: t('Enter the name of the new template.'),
-    });
-  },
-
-  _deployAssetFirstTime(asset: AssetResponse) {
-    const deployment_toast = notify.warning(t('deploying to kobocat...'), {duration: 60 * 1000});
-    actions.resources.deployAsset(asset, false, {
-      onDone: () => {
-        notify(t('deployed form'));
-        actions.resources.loadAsset({id: asset.uid});
-        history.push(`/forms/${asset.uid}`);
-        toast.dismiss(deployment_toast);
-      },
-      onFail: () => {
-        toast.dismiss(deployment_toast);
-      },
-    });
-  },
-
-  _redeployAsset(asset: AssetResponse) {
-    const dialog = alertify.dialog('confirm');
-    const opts = {
-      title: t('Overwrite existing deployment'),
-      // TODO: Split this into two independent translation strings without HTML
-      message: t(
-        'This form has already been deployed. Are you sure you ' +
-        'want overwrite the existing deployment? ' +
-        '<br/><br/><strong>This action cannot be undone.</strong>'
-      ),
-      labels: {ok: t('Ok'), cancel: t('Cancel')},
-      onok: () => {
-        const ok_button = (dialog.elements.buttons.primary.firstChild as HTMLElement);
-        ok_button.setAttribute('disabled', 'true');
-        ok_button.innerText = t('Deploying...');
-        actions.resources.deployAsset(asset, true, {
-          onDone: () => {
-            notify(t('redeployed form'));
-            actions.resources.loadAsset({id: asset.uid});
-            if (dialog && typeof dialog.destroy === 'function') {
-              dialog.destroy();
-            }
-          },
-          onFail: () => {
-            if (dialog && typeof dialog.destroy === 'function') {
-              dialog.destroy();
-            }
-          },
-        });
-        // keep the dialog open
-        return false;
-      },
-      oncancel: () => {
-        dialog.destroy();
-      },
-    };
-    dialog.set(opts).show();
+    if (sourceUid && sourceName) {
+      cloneAssetAsTemplate(sourceUid, sourceName);
+    }
   },
   deployAsset(asset: AssetResponse) {
     if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
@@ -262,24 +180,24 @@ mixins.dmix = {
           return;
         }
     }
-    if (!asset.has_deployment) {
-      this._deployAssetFirstTime(asset);
-    } else {
-      this._redeployAsset(asset);
-    }
+    deployAsset(asset);
   },
-  archiveAsset(uid: string, callback: Function) {
-    mixins.clickAssets.click.asset.archive(uid, callback);
+  archiveAsset(uid: string, callback: (response: DeploymentResponse) => void) {
+    archiveAsset(uid, callback);
   },
-  unarchiveAsset(uid: string | null = null, callback: Function) {
+  unarchiveAsset(uid: string | null = null, callback: (response: DeploymentResponse) => void) {
     if (uid === null) {
-      mixins.clickAssets.click.asset.unarchive(this.state, callback);
+      unarchiveAsset(this.state, callback);
     } else {
-      mixins.clickAssets.click.asset.unarchive(uid, callback);
+      unarchiveAsset(uid, callback);
     }
   },
-  deleteAsset(assetOrUid: AssetResponse | string, name: string, callback: Function) {
-    mixins.clickAssets.click.asset.delete(assetOrUid, name, callback);
+  deleteAsset(
+    assetOrUid: AssetResponse | string,
+    name: string,
+    callback: () => void
+  ) {
+    deleteAsset(assetOrUid, name, callback);
   },
   toggleDeploymentHistory() {
     this.setState({
@@ -359,65 +277,10 @@ mixins.dmix = {
   },
 
   removeSharing: function () {
-    mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
+    removeAssetSharing(this.props.params.uid);
   },
-};
-
-interface ApplyImportParams {
-  destination?: string;
-  assetUid: string;
-  name: string;
-  url?: string;
-  base64Encoded?: ArrayBuffer | string | null;
-  lastModified?: number;
-  totalFiles?: number;
-}
-
-/*
- * helper function for apply*ToAsset droppable mixin methods
- * returns an interval-driven promise
- */
-const applyImport = (params: ApplyImportParams) => {
-  const applyPromise = new Promise((resolve, reject) => {
-    actions.resources.createImport(params, (data: ImportResponse) => {
-      const doneCheckInterval = setInterval(() => {
-        dataInterface.getImportDetails({
-          uid: data.uid,
-        }).done((importData: ImportResponse) => {
-          switch (importData.status) {
-            case 'complete': {
-              const finalData = importData.messages?.updated || importData.messages?.created;
-              if (finalData && finalData.length > 0 && finalData[0].uid) {
-                clearInterval(doneCheckInterval);
-                resolve(finalData[0]);
-              } else {
-                clearInterval(doneCheckInterval);
-                reject(importData);
-              }
-              break;
-            }
-            case 'processing':
-            case 'created': {
-              // TODO: notify promise awaiter about delay (after multiple interval rounds)
-              break;
-            }
-            case 'error':
-            default: {
-              clearInterval(doneCheckInterval);
-              reject(importData);
-            }
-          }
-        }).fail((failData: ImportResponse) => {
-          clearInterval(doneCheckInterval);
-          reject(failData);
-        });
-      }, IMPORT_CHECK_INTERVAL);
-    });
-  });
-  return applyPromise;
-};
-
-mixins.droppable = {
+},
+droppable: {
   /*
    * returns an interval-driven promise
    */
@@ -551,6 +414,9 @@ mixins.droppable = {
     });
   },
 
+  // NOTE: this is a DEPRECATED method of handling Dropzone. Please refer to
+  // `dropzone.utils.tsx` file and update the code there accordingly to your
+  // needs.
   dropFiles(files: File[], rejectedFiles: File[], {}, pms = {}) {
     files.map((file) => {
       const reader = new FileReader();
@@ -578,308 +444,8 @@ mixins.droppable = {
       }
     }
   },
-};
-
-mixins.clickAssets = {
-  onActionButtonClick(action: string, uid: string, name: string) {
-    this.click.asset[action].call(this, uid, name);
-  },
-  click: {
-    asset: {
-      clone: function (assetOrUid: AssetResponse | string) {
-        let asset: AssetResponse;
-        if (typeof assetOrUid === 'object') {
-          asset = assetOrUid;
-        } else {
-          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
-        }
-        const assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
-
-        let newName;
-        const displayName = assetUtils.getAssetDisplayName(asset);
-        // propose new name only if source asset name is not empty
-        if (displayName.original) {
-          newName = `${t('Clone of')} ${displayName.original}`;
-        }
-
-        const dialog = alertify.dialog('prompt');
-        const ok_button = (dialog.elements.buttons.primary.firstChild as HTMLElement);
-        const opts = {
-          title: `${t('Clone')} ${assetTypeLabel}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', assetTypeLabel),
-          value: newName,
-          labels: {ok: t('Ok'), cancel: t('Cancel')},
-          onok: ({}, value: string) => {
-            ok_button.setAttribute('disabled', 'true');
-            ok_button.innerText = t('Cloning...');
-
-            let canAddToParent = false;
-            if (asset.parent) {
-              const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
-              canAddToParent = (
-                typeof foundParentAsset !== 'undefined' &&
-                userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
-              );
-            }
-
-            actions.resources.cloneAsset({
-              uid: asset.uid,
-              name: value,
-              parent: canAddToParent ? asset.parent : undefined,
-            }, {
-            onComplete: (asset: AssetResponse) => {
-              ok_button.removeAttribute('disabled');
-              dialog.destroy();
-
-              // TODO when on collection landing page and user clones this
-              // collection's child asset, instead of navigating to cloned asset
-              // landing page, it would be better to stay here and refresh data
-              // (if the clone will keep the parent asset)
-              let goToUrl;
-              if (asset.asset_type === ASSET_TYPES.survey.id) {
-                goToUrl = `/forms/${asset.uid}/landing`;
-              } else {
-                goToUrl = `/library/asset/${asset.uid}`;
-              }
-
-              history.push(goToUrl);
-              notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
-            },
-            });
-            // keep the dialog open
-            return false;
-          },
-          oncancel: () => {
-            dialog.destroy();
-          },
-        };
-        dialog.set(opts).show();
-      },
-      cloneAsTemplate: function (sourceUid: string, sourceName: string) {
-        mixins.cloneAssetAsNewType.dialog({
-          sourceUid: sourceUid,
-          sourceName: sourceName,
-          targetType: ASSET_TYPES.template.id,
-          promptTitle: t('Create new template from this project'),
-          promptMessage: t('Enter the name of the new template.'),
-        });
-      },
-      cloneAsSurvey: function (sourceUid: string, sourceName: string) {
-        mixins.cloneAssetAsNewType.dialog({
-          sourceUid: sourceUid,
-          sourceName: sourceName,
-          targetType: ASSET_TYPES.survey.id,
-          promptTitle: t('Create new project from this template'),
-          promptMessage: t('Enter the name of the new project.'),
-        });
-      },
-      edit: function (uid: string) {
-        if (routerIsActive('library')) {
-          history.push(`/library/asset/${uid}/edit`);
-        } else {
-          history.push(`/forms/${uid}/edit`);
-        }
-      },
-      delete: function (
-        assetOrUid: AssetResponse | string,
-        name: string,
-        callback: Function
-      ) {
-        let asset: AssetResponse;
-        if (typeof assetOrUid === 'object') {
-          asset = assetOrUid;
-        } else {
-          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
-        }
-        const assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
-
-        const safeName = _.escape(name);
-
-        const dialog = alertify.dialog('confirm');
-        const deployed = asset.has_deployment;
-        let msg; let onshow;
-        const onok = () => {
-          actions.resources.deleteAsset({uid: asset.uid, assetType: asset.asset_type}, {
-            onComplete: () => {
-              notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel));
-              if (typeof callback === 'function') {
-                callback();
-              }
-            },
-          });
-        };
-
-        if (!deployed) {
-          if (asset.asset_type !== ASSET_TYPES.survey.id) {
-            msg = t('You are about to permanently delete this item from your library.');
-          } else {
-            msg = t('You are about to permanently delete this draft.');
-          }
-        } else {
-          msg = `${t('You are about to permanently delete this form.')}`;
-          if (asset.deployment__submission_count !== 0) {
-            msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`;
-          }
-          msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}
-            ${renderCheckbox('dt3', t('I understand that if I delete this project I will not be able to recover it.'), true)}
-          `;
-
-          onshow = () => {
-            const ok_button = (dialog.elements.buttons.primary.firstChild as HTMLElement);
-            ok_button.setAttribute( 'data-cy', 'delete' );
-            const $els = $('.alertify-toggle input');
-
-            ok_button.setAttribute('disabled', 'true');
-            $els.each(function () {$(this).prop('checked', false);});
-
-            $els.change(function () {
-              ok_button.removeAttribute('disabled');
-              $els.each(function () {
-                if (!$(this).prop('checked')) {
-                  ok_button.setAttribute('disabled', 'true');
-                }
-              });
-            });
-          };
-        }
-        const opts = {
-          title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
-          message: msg,
-          labels: {
-            ok: t('Delete'),
-            cancel: t('Cancel'),
-          },
-          onshow: onshow,
-          onok: onok,
-          oncancel: () => {
-            dialog.destroy();
-            $('.alertify-toggle input').prop('checked', false);
-          },
-        };
-        dialog.set(opts).show();
-      },
-      deploy: function () {
-        const asset = stores.selectedAsset.asset;
-        mixins.dmix.deployAsset(asset);
-      },
-      archive: function (assetOrUid: AssetResponse | string, callback: Function) {
-        let asset: AssetResponse;
-        if (typeof assetOrUid === 'object') {
-          asset = assetOrUid;
-        } else {
-          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
-        }
-        const dialog = alertify.dialog('confirm');
-        const opts = {
-          title: t('Archive Project'),
-          message: `${t('Are you sure you want to archive this project?')} <br/><br/>
-            <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
-          labels: {ok: t('Archive'), cancel: t('Cancel')},
-          onok: () => {
-            actions.resources.setDeploymentActive({
-              asset: asset,
-              active: false,
-            });
-            if (typeof callback === 'function') {
-              callback();
-            }
-          },
-          oncancel: () => {
-            dialog.destroy();
-          },
-        };
-        dialog.set(opts).show();
-      },
-      unarchive: function (assetOrUid: AssetResponse | string, callback: Function) {
-        let asset: AssetResponse;
-        if (typeof assetOrUid === 'object') {
-          asset = assetOrUid;
-        } else {
-          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
-        }
-        const dialog = alertify.dialog('confirm');
-        const opts = {
-          title: t('Unarchive Project'),
-          message: `${t('Are you sure you want to unarchive this project?')}`,
-          labels: {ok: t('Unarchive'), cancel: t('Cancel')},
-          onok: () => {
-            actions.resources.setDeploymentActive({
-              asset: asset,
-              active: true,
-            });
-            if (typeof callback === 'function') {
-              callback();
-            }
-          },
-          oncancel: () => {
-            dialog.destroy();
-          },
-        };
-        dialog.set(opts).show();
-      },
-      sharing: function (uid: string) {
-        stores.pageState.showModal({
-          type: MODAL_TYPES.SHARING,
-          assetid: uid,
-        });
-      },
-      refresh: function () {
-        stores.pageState.showModal({
-          type: MODAL_TYPES.REPLACE_PROJECT,
-          asset: stores.selectedAsset.asset,
-        });
-      },
-      translations: function (uid: string) {
-        stores.pageState.showModal({
-          type: MODAL_TYPES.FORM_LANGUAGES,
-          assetUid: uid,
-        });
-      },
-      encryption: function (uid: string) {
-        stores.pageState.showModal({
-          type: MODAL_TYPES.ENCRYPT_FORM,
-          assetUid: uid,
-        });
-      },
-      removeSharing: function (uid: string) {
-        /**
-         * Extends `removeAllPermissions` from `userPermissionRow.es6`:
-         * Checks for permissions from current user before finding correct
-         * "most basic" permission to remove.
-         */
-        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
-        const userViewAssetPerm = asset.permissions.find((perm: Permission) => {
-          // Get permissions url related to current user
-          const permUserUrl = perm.user.split('/');
-          return (
-            permUserUrl[permUserUrl.length - 2] === sessionStore.currentAccount.username &&
-            perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)?.url
-          );
-        });
-
-        const dialog = alertify.dialog('confirm');
-        const opts = {
-          title: t('Remove shared form'),
-          message: `${t('Are you sure you want to remove this shared form?')}`,
-          labels: {ok: t('Remove'), cancel: t('Cancel')},
-          onok: () => {
-            // Only non-owners should have the asset removed from their asset list.
-            // This menu option is only open to non-owners so we don't need to check again.
-            const isNonOwner = true;
-            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, isNonOwner);
-          },
-          oncancel: () => {
-            dialog.destroy();
-          },
-        };
-        dialog.set(opts).show();
-      },
-
-    },
-  },
-};
-
-mixins.contextRouter = {
+},
+contextRouter: {
   isFormList() {
     return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
@@ -920,6 +486,7 @@ mixins.contextRouter = {
       routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
+},
 };
 
 export default mixins;

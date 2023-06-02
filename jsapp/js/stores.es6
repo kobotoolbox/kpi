@@ -299,35 +299,6 @@ stores.allAssets = Reflux.createStore({
   }
 });
 
-stores.selectedAsset = Reflux.createStore({
-  init () {
-    this.uid = cookies.get('selectedAssetUid');
-    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-  },
-  onCloneAssetCompleted (asset) {
-    this.uid = asset.uid;
-    this.asset = stores.allAssets.byUid[asset.uid];
-    if (!this.asset) {
-      console.error('selectedAssetStore error');
-    }
-    this.trigger(this.asset);
-  },
-  toggleSelect (uid, forceSelect=false) {
-    if (forceSelect || this.uid !== uid) {
-      this.uid = uid;
-      this.asset = stores.allAssets.byUid[uid];
-    } else {
-      this.uid = false;
-      this.asset = {};
-    }
-    cookies.set('selectedAssetUid', this.uid);
-    this.trigger({
-      selectedAssetUid: this.uid,
-    });
-    return this.uid !== false;
-  }
-});
-
 stores.userExists = Reflux.createStore({
   init () {
     this.checked = {};

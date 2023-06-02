@@ -1,86 +1,56 @@
-import Reflux from 'reflux';
-import {
-  getCurrentPath,
-  isMyLibraryRoute,
-  isPublicCollectionsRoute,
-} from 'js/router/routerUtils';
-import {history} from 'js/router/historyRouter';
-
-const DEFAULT_SEARCH_PHRASE = '';
-
-type SearchBoxContextName = 'MY_LIBRARY' | 'PUBLIC_COLLECTIONS';
-
-export const SEARCH_CONTEXTS: {
-  [name in SearchBoxContextName]: SearchBoxContextName
-} = {
-  MY_LIBRARY: 'MY_LIBRARY',
-  PUBLIC_COLLECTIONS: 'PUBLIC_COLLECTIONS',
-};
+import {makeAutoObservable} from 'mobx';
 
 interface SearchBoxStoreData {
-  context: SearchBoxContextName | null;
-  searchPhrase: string;
+  /** Context ensures that observers will not be triggered unnecessarily. */
+  context?: string;
+  /**
+   * Keeps the date of last update to the store. We use it to be able to react
+   * in a more forceful way to store changes.
+   */
+  lastContextUpdateDate?: number;
+  /**
+   * Intentionally left unset by default, so reactions are being called when
+   * the app is initialized.
+   */
+  searchPhrase?: string;
 }
 
-class SearchBoxStore extends Reflux.Store {
-  previousPath = getCurrentPath();
-  data: SearchBoxStoreData = {
-    context: null,
-    searchPhrase: DEFAULT_SEARCH_PHRASE,
-  };
+/**
+ * This store is responsible for storing search phrase. It can receive it from
+ * different sources, but is built with `SearchBox` component in mind.
+ *
+ * It can provide the search phrase for just one receiver at a time. This is
+ * enforced by the `context` property.
+ *
+ * To use it, set it up with `setContext` during receiving (route) component
+ * initialization. Do it before using the search phrase for any calls. Also
+ * ensure `SearchBox` component is present and you observe the store changes.
+ */
+class SearchBoxStore {
+  data: SearchBoxStoreData = {};
 
-  init() {
-    history.listen(this.onRouteChange.bind(this));
-    this.resetContext();
+  constructor() {
+    makeAutoObservable(this);
   }
 
-  // manages clearing search when switching main routes
-  onRouteChange(data: any) {
-    if (this.previousPath.split('/')[1] !== data.location.pathname.split('/')[1]) {
-      this.clear();
-    }
-    this.previousPath = data.location.pathname;
-
-    this.resetContext();
-  }
-
-  getSearchPhrase() {
-    return this.data.searchPhrase;
-  }
-
-  setSearchPhrase(newVal: string) {
+  /** This method is for the SearchBox component. */
+  public setSearchPhrase(newVal: string) {
     if (this.data.searchPhrase !== newVal) {
       this.data.searchPhrase = newVal;
-      this.trigger(this.data);
     }
   }
 
-  getContext() {
-    return this.data.context;
-  }
-
-  resetContext() {
-    let newContext: SearchBoxContextName | null = null;
-
-    if (isMyLibraryRoute()) {
-      newContext = 'MY_LIBRARY';
-    } else if (isPublicCollectionsRoute()) {
-      newContext = 'PUBLIC_COLLECTIONS';
-    }
-
-    if (this.data.context !== newContext) {
-      this.data.context = newContext;
-      this.data.searchPhrase = DEFAULT_SEARCH_PHRASE;
-      this.trigger(this.data);
-    }
-  }
-
-  clear() {
-    this.setSearchPhrase(DEFAULT_SEARCH_PHRASE);
+  /**
+   * This method is for every component interested in using SearchBoxStore.
+   * When such component loads, it should register itself (take over) with
+   * unique context id.
+   */
+  public setContext(newContext: string) {
+    this.data.context = newContext;
+    this.data.lastContextUpdateDate = Date.now();
+    // Changing context resets the search phrase
+    this.data.searchPhrase = '';
   }
 }
 
-const searchBoxStore = new SearchBoxStore();
-searchBoxStore.init();
-
-export default searchBoxStore;
+export default new SearchBoxStore;

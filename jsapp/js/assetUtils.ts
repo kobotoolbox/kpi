@@ -1,3 +1,8 @@
+/**
+ * This file contains different methods for filtering and understanding asset's
+ * data. Most of these are helpers for rendering information in UI.
+ */
+
 import React from 'react';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
@@ -63,7 +68,7 @@ export function getAssetOwnerDisplayName(username: string) {
   }
 }
 
-export function getOrganizationDisplayString(asset: AssetResponse) {
+export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (asset.settings.organization) {
     return asset.settings.organization;
   } else {
@@ -150,6 +155,11 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
     } else {
       countries.push(envStore.getCountryLabel(asset.settings.country.value));
     }
+
+    if (countries.length === 0) {
+      return '-';
+    }
+
     // TODO: improve for RTL?
     // See: https://github.com/kobotoolbox/kpi/issues/3903
     return countries.join(', ');
@@ -240,9 +250,9 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions: Permission[]) {
+export function isAssetPublic(permissions?: Permission[]) {
   let isDiscoverableByAnonymous = false;
-  permissions.forEach((perm) => {
+  permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
@@ -259,7 +269,7 @@ export function isAssetPublic(permissions: Permission[]) {
 export function getAssetIconName(asset: AssetResponse) {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
-      if (asset.summary?.lock_any) {
+      if ('summary' in asset && asset.summary?.lock_any) {
         return 'template-locked';
       } else {
         return 'template';
@@ -269,17 +279,17 @@ export function getAssetIconName(asset: AssetResponse) {
     case ASSET_TYPES.block.id:
       return 'block';
     case ASSET_TYPES.survey.id:
-      if (asset.summary?.lock_any) {
+      if ('summary' in asset && asset.summary?.lock_any) {
         return 'project-locked';
-      } else if (asset.has_deployment && !asset.deployment__active) {
+      } else if (asset.deployment_status === 'archived') {
         return 'project-archived';
-      } else if (asset.has_deployment) {
+      } else if (asset.deployment_status === 'deployed') {
         return 'project-deployed';
       } else {
         return 'project-draft';
       }
     case ASSET_TYPES.collection.id:
-      if (asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
+      if ('access_types' in asset && asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
         return 'folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
         return 'folder-public';
@@ -291,74 +301,6 @@ export function getAssetIconName(asset: AssetResponse) {
     default:
       return 'project';
   }
-}
-
-/**
- * For getting the icon class name for given asset type. Returned string always
- * contains two class names: base `k-icon` and respective CSS class name.
- */
-export function getAssetIcon(asset: AssetResponse) {
-  return `k-icon k-icon-${getAssetIconName(asset)}`;
-}
-
-/**
- * Opens a modal for editing asset details.
- */
-export function modifyDetails(asset: AssetResponse) {
-  let modalType;
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    modalType = MODAL_TYPES.LIBRARY_COLLECTION;
-  }
-  if (modalType) {
-    stores.pageState.showModal({
-      type: modalType,
-      asset: asset,
-    });
-  } else {
-    throw new Error(`Unsupported asset type: ${asset.asset_type}.`);
-  }
-}
-
-/**
- * Opens a modal for sharing asset.
- */
-export function share(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.SHARING,
-    assetid: asset.uid,
-  });
-}
-
-/**
- * Opens a modal for modifying asset languages and translation strings.
- */
-export function editLanguages(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for modifying asset tags (also editable in Details Modal).
- */
-export function editTags(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset,
-  });
-}
-
-/**
- * Opens a modal for replacing an asset using a file.
- */
-export function replaceForm(asset: AssetResponse) {
-  stores.pageState.showModal({
-    type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset,
-  });
 }
 
 export type SurveyFlatPaths = {
@@ -812,8 +754,6 @@ export function isAssetProcessingActivated(assetUid: string) {
 export default {
   buildAssetUrl,
   cleanupTags,
-  editLanguages,
-  editTags,
   getAssetDisplayName,
   getAssetIcon,
   getAssetOwnerDisplayName,
@@ -832,10 +772,7 @@ export default {
   isLibraryAsset,
   isRowSpecialLabelHolder,
   isSelfOwned,
-  modifyDetails,
   renderQuestionTypeIcon,
-  replaceForm,
-  share,
   removeInvalidChars,
   getAssetAdvancedFeatures,
   getAssetProcessingUrl,

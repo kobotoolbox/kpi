@@ -5,7 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
-import { Outlet } from "react-router-dom";
+import {Outlet} from 'react-router-dom';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {stores} from 'js/stores';
@@ -13,15 +13,16 @@ import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header';
+import MainHeader from 'js/components/header/mainHeader';
 import Drawer from 'js/components/drawer';
-import FormViewTabs from 'js/components/formViewTabs';
+import FormViewSideTabs from 'js/components/formViewSideTabs';
+import ProjectTopTabs from 'js/project/projectTopTabs.component';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
 import { withRouter, routerGetAssetId } from './router/legacy';
-import { history } from "./router/historyRouter";
+import { history } from './router/historyRouter';
 
 
 class App extends React.Component {
@@ -86,11 +87,14 @@ class App extends React.Component {
               </React.Fragment>
             }
 
-            <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
+            <bem.PageWrapper__content
+              className='mdl-layout__content'
+              m={pageWrapperContentModifiers}
+            >
               { !this.isFormBuilder() &&
                 <React.Fragment>
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                  {this.isFormSingle() && <ProjectTopTabs/>}
+                  <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
               }
               <Outlet />

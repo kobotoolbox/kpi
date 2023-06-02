@@ -8,7 +8,6 @@ import {actions} from 'js/actions';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import FormsSearchableList from 'js/lists/forms';
 import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
@@ -21,7 +20,7 @@ import sessionStore from 'js/stores/session';
 import {Tracking} from './useTracking';
 import {history} from './historyRouter';
 import accountRoutes from 'js/account/routes';
-import projectsRoutes from 'js/projects/routes';
+import projectsRoutes, {PROJECTS_ROUTES} from 'js/projects/routes';
 
 // Workaround https://github.com/remix-run/react-router/issues/8139
 import {unstable_HistoryRouter as HistoryRouter, Route} from 'react-router-dom';
@@ -208,11 +207,8 @@ const AllRoutes = class AllRoutes extends React.Component {
             <Route path={ROUTES.FORMS}>
               <Route
                 index
-                element={
-                  <RequireAuth>
-                    <FormsSearchableList />
-                  </RequireAuth>
-                }
+                // A redirect to `/projects/home` if someone arrives at the old `/forms` route.
+                element={<Navigate to={PROJECTS_ROUTES.MY_PROJECTS} replace />}
               />
               <Route path={ROUTES.FORM}>
                 <Route

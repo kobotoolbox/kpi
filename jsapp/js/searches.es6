@@ -139,7 +139,7 @@ function SearchContext(opts={}) {
       if (typeof assetOrUid === 'object') {
         asset = assetOrUid;
       } else {
-        asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        asset = stores.allAssets.byUid[assetOrUid];
       }
       // non-owner self permission removal only gives an assetUid string, not
       // an object; for consistency we make it an object here
@@ -272,13 +272,13 @@ function SearchContext(opts={}) {
   const splitResultsToCategorized = function (results) {
     return {
       Deployed: results.filter((asset) => {
-        return asset.has_deployment && asset.deployment__active;
+        return asset.deployment_status === 'deployed';
       }),
       Draft: results.filter((asset) => {
-        return !asset.has_deployment;
+        return asset.deployment_status === 'draft';
       }),
       Archived: results.filter((asset) => {
-        return asset.has_deployment && !asset.deployment__active;
+        return asset.deployment_status === 'archived';
       })
     }
   };
@@ -545,8 +545,17 @@ function getSearchContext(name, opts={}) {
   return contexts[name];
 }
 
+/** A temporary function for glueing things together with `BulkDeletePrompt`. */
+function forceRefreshFormsList() {
+  const formsContext = getSearchContext('forms');
+  if (formsContext?.mixin?.searchSemaphore) {
+    formsContext.mixin.searchSemaphore();
+  }
+}
+
 export const searches = {
   getSearchContext: getSearchContext,
   common: commonMethods,
   isSearchContext: isSearchContext,
+  forceRefreshFormsList: forceRefreshFormsList,
 };

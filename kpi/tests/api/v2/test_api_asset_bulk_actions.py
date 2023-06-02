@@ -9,7 +9,7 @@ from kpi.constants import (
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
-from kpi.models import Asset
+from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
@@ -123,6 +123,11 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             # Check if `asset-detail` view is still accessible
             detail_response = self._get_asset_detail_results(archived_asset.uid)
             assert detail_response.status_code == status.HTTP_200_OK
+            assert detail_response.data['deployment__active'] is False
+            assert (
+                detail_response.data['deployment_status']
+                == AssetDeploymentStatus.ARCHIVED.value
+            )
 
     def test_archive_all_without_confirm_true(self):
         # Create multiple assets
@@ -147,6 +152,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             detail_response = self._get_asset_detail_results(archived_asset.uid)
             assert detail_response.status_code == status.HTTP_200_OK
             assert detail_response.data['deployment__active'] is True
+            assert (
+                detail_response.data['deployment_status']
+                == AssetDeploymentStatus.DEPLOYED.value
+            )
 
     def test_user_can_unarchive(self):
         # Archive a project
@@ -163,6 +172,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is False
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.ARCHIVED.value
+        )
 
         # Undo the archiving
         response = self._create_send_payload([asset.uid], 'unarchive')
@@ -176,6 +189,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_other_user_cannot_archive_others_assets(self):
         self._login_user('anotheruser')
@@ -192,6 +209,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_anonymous_cannot_archive_public(self):
         asset = self._add_one_asset_for_someuser()
@@ -205,6 +226,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_project_editor_cannot_archive_project(self):
         editor = User.objects.get(username='anotheruser')
@@ -222,6 +247,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_project_manager_can_archive_project(self):
         manager = User.objects.get(username='anotheruser')
@@ -238,6 +267,10 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is False
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.ARCHIVED.value
+        )
 
     def test_user_cannot_archive_drafts(self):
         self._login_user('someuser')
@@ -270,6 +303,10 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_delete_all_assets_with_confirm_true(self):
         # Create multiple assets
@@ -354,6 +391,10 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_superuser_can_undelete(self):
         self._login_user('someuser')
@@ -383,6 +424,10 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['deployment__active'] is True
+        assert (
+            detail_response.data['deployment_status']
+            == AssetDeploymentStatus.DEPLOYED.value
+        )
 
     def test_users_cannot_undelete(self):
         self._login_user('someuser')
