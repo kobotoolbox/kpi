@@ -11,6 +11,7 @@ import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
 import './accountSettings.scss';
+import Button from 'js/components/common/button';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -95,19 +96,21 @@ const ChangePassword = class ChangePassword extends React.Component {
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <bem.KoboButton
-              onClick={this.changePassword}
-              m={['blue']}
-            >
-              {t('Save Password')}
-            </bem.KoboButton>
-
-            <button
+            <Button
+              type='frame'
+              color='storm'
+              size='l'
               onClick={this.close}
-              className='account-settings-close mdl-button mdl-button--icon'
-            >
-              <i className='k-icon k-icon-close'/>
-            </button>
+              label={t('Cancel')}
+            />
+
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              onClick={this.changePassword}
+              label={t('Save Password')}
+            />
           </bem.AccountSettings__actions>
 
           <bem.AccountSettings__item m={'column'}>

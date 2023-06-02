@@ -1,4 +1,5 @@
 @use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
 @use 'scss/sizes';
 @use 'scss/libs/_mdl';
 
@@ -55,17 +56,11 @@
   }
 
   .account-settings__actions {
+    @include mixins.centerRowFlex;
+    gap: sizes.$x10;
     position: absolute;
     top: sizes.$x50;
-    right: 0;
-
-    .account-settings-save:last-child {
-      margin-right: sizes.$x50;
-    }
-
-    .account-settings-close {
-      padding: 0 12px;
-    }
+    right: sizes.$x50;
   }
 
   .account-settings-link {
@@ -108,11 +103,10 @@
           margin-top: sizes.$x5;
         }
 
-        > i {
+        > .k-icon {
           position: absolute;
-          font-size: 24px;
-          top: 4px;
-          left: 4px;
+          top: sizes.$x5;
+          left: sizes.$x5;
         }
 
         .text-box .text-box__input {

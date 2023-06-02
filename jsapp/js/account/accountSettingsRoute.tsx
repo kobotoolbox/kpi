@@ -12,6 +12,8 @@ import envStore from '../envStore';
 import WrappedSelect from '../components/common/wrappedSelect';
 import {dataInterface} from '../dataInterface';
 import type {LabelValuePair} from 'js/dataInterface';
+import Icon from 'js/components/common/icon';
+import Button from 'js/components/common/button';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -209,17 +211,21 @@ const AccountSettings = observer(() => {
     (countryChoice) => countryChoice.value === form.fields.country
   );
 
+  let saveButtonLabel = t('Save Changes');
+  if (!form.isPristine) {
+    saveButtonLabel = `${saveButtonLabel} *`;
+  }
+
   return (
     <bem.AccountSettings>
       <bem.AccountSettings__actions>
-        <bem.KoboButton
-          className='account-settings-save'
+        <Button
+          type='full'
+          color='blue'
+          size='l'
           onClick={updateProfile.bind(form)}
-          m={['blue']}
-        >
-          {t('Save Changes')}
-          {!form.isPristine && ' *'}
-        </bem.KoboButton>
+          label={saveButtonLabel}
+        />
       </bem.AccountSettings__actions>
 
       <bem.AccountSettings__item m={'column'}>
@@ -356,7 +362,7 @@ const AccountSettings = observer(() => {
             <bem.AccountSettings__item m='social'>
               <label>{t('Social')}</label>
               <label>
-                <i className='k-icon k-icon-logo-twitter' />
+                <Icon name='logo-twitter' size='l'/>
 
                 <TextBox
                   customModifiers='on-white'
@@ -366,7 +372,7 @@ const AccountSettings = observer(() => {
                 />
               </label>
               <label>
-                <i className='k-icon k-icon-logo-linkedin' />
+                <Icon name='logo-linkedin' size='l'/>
 
                 <TextBox
                   customModifiers='on-white'
@@ -376,7 +382,7 @@ const AccountSettings = observer(() => {
                 />
               </label>
               <label>
-                <i className='k-icon k-icon-logo-instagram' />
+                <Icon name='logo-instagram' size='l'/>
 
                 <TextBox
                   customModifiers='on-white'
