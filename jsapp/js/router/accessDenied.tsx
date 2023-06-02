@@ -3,9 +3,9 @@ import {observer} from 'mobx-react';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import {replaceBracketsWithLink} from 'js/utils';
-
 import envStore from 'js/envStore';
 import './accessDenied.scss';
+import Icon from 'js/components/common/icon';
 
 bem.AccessDenied = makeBem(null, 'access-denied');
 bem.AccessDenied__body = makeBem(bem.AccessDenied, 'body', 'section');
@@ -37,7 +37,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
     <bem.AccessDenied>
       <bem.AccessDenied__body>
         <bem.AccessDenied__header>
-          <i className='k-icon k-icon-lock-alt' />
+          <Icon name='lock-alt' size='xl' />
           {t('Access denied')}
         </bem.AccessDenied__header>
 

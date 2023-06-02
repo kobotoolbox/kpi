@@ -1,3 +1,6 @@
+@use 'scss/sizes';
+@use 'scss/mixins';
+
 .access-denied {
   display: flex;
   justify-content: center;
@@ -11,21 +14,16 @@
 }
 
 .access-denied__header {
-  font-size: 24px;
-  text-align: center;
-
-  .k-icon {
-    margin-right: 5px;
-    vertical-align: -5px;
-    font-size: 28px;
-    display: inline-block;
-  }
+  @include mixins.centerRowFlex;
+  gap: sizes.$x5;
+  font-size: sizes.$x24;
+  justify-content: center;
 }
 
 .access-denied__text {
-  margin-top: 20px;
+  margin-top: sizes.$x20;
 
   code {
-    margin-left: 5px;
+    margin-left: sizes.$x5;
   }
 }
