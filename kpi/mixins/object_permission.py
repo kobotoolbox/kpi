@@ -13,9 +13,12 @@ from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
+
+from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
+    PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -29,6 +32,10 @@ from kpi.utils.object_permission import (
     perm_parse,
 )
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.project_views import (
+    get_project_view_user_permissions_for_asset,
+    user_has_project_view_asset_perm,
+)
 
 
 class ObjectPermissionMixin:
@@ -539,15 +546,20 @@ class ObjectPermissionMixin:
         self.recalculate_descendants_perms()
         return new_permission
 
-    def get_perms(self, user_obj):
+    def get_perms(self, user_obj: 'auth.User') -> list[str]:
         """
         Return a list of codenames of all effective grant permissions that
         user_obj has on this object.
         """
         user_perm_ids = self._get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
-        return Permission.objects.filter(pk__in=perm_ids).values_list(
-            'codename', flat=True)
+        assigned_perms = Permission.objects.filter(pk__in=perm_ids).values_list(
+            'codename', flat=True
+        )
+        project_views_perms = get_project_view_user_permissions_for_asset(
+            self, user_obj
+        )
+        return list(set(list(assigned_perms) + project_views_perms))
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
@@ -602,8 +614,13 @@ class ObjectPermissionMixin:
             codename=codename
         )) == 1
         if not result and not is_anonymous:
-            # The user-specific test failed, but does the public have access?
-            result = self.has_perm(AnonymousUser(), perm)
+            if perm in ProjectView.ALLOWED_PERMISSIONS:
+                result = user_has_project_view_asset_perm(self, user_obj, perm)
+
+            if not result:
+                # The user-specific test failed, but does the public have access?
+                result = self.has_perm(AnonymousUser(), perm)
+
         if result and is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
@@ -761,7 +778,7 @@ class ObjectPermissionMixin:
         are needed several times in a row (within the same request).
 
         It will hit the DB once for this user. If object permissions are needed
-        for an another object (i.e. `Asset`), in subsequent calls,
+        for another object (i.e. `Asset`), in subsequent calls,
         they can be easily retrieved by the returned dict keys.
 
         Args:
@@ -880,3 +897,26 @@ class ObjectPermissionMixin:
             values_list('pk', 'codename')
 
         return permissions
+
+
+class ObjectPermissionViewSetMixin:
+
+    def cache_all_assets_perms(self, asset_ids: list) -> dict:
+
+        object_permissions = ObjectPermission.objects.filter(
+            asset_id__in=asset_ids,
+            deny=False,
+        ).exclude(
+            permission__codename=PERM_FROM_KC_ONLY
+        ).select_related(
+            'user', 'permission'
+        ).order_by(
+            'user__username', 'permission__codename'
+        )
+
+        object_permissions_per_asset = defaultdict(list)
+
+        for op in object_permissions:
+            object_permissions_per_asset[op.asset_id].append(op)
+
+        return object_permissions_per_asset

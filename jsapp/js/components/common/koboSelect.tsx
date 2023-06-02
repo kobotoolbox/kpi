@@ -41,7 +41,7 @@ export interface KoboSelectOption {
   icon?: IconName;
   label: string;
   /** Needs to be unique! */
-  id: string;
+  value: string;
 }
 
 interface KoboSelectProps {
@@ -61,14 +61,15 @@ interface KoboSelectProps {
   /** Changes the appearance to display spinner. */
   isPending?: boolean;
   options: KoboSelectOption[];
-  /** Pass the id or null for no selection. */
+  /** Pass the value or null for no selection. */
   selectedOption: string | null;
   /**
    * Callback function telling which option is selected now. Passes either
    * option id or `null` when cleared.
    */
-  onChange: (optionId: string | null) => void;
+  onChange: (newSelectedOption: string | null) => void;
   'data-cy'?: string;
+  placeholder?: string;
 }
 
 interface KoboSelectState {
@@ -100,6 +101,10 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  get placeholderLabel() {
+    return this.props.placeholder || t('Select…');
   }
 
   onMenuVisibilityChange(name: string, isVisible: boolean) {
@@ -169,7 +174,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   renderTrigger() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
-      option.id === this.props.selectedOption
+      option.value === this.props.selectedOption
     ));
 
     // When one of the options is selected, we display it inside the trigger.
@@ -220,7 +225,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     return (
       <bem.KoboSelect__trigger>
         <bem.KoboSelect__triggerSelectedOption m='empty'>
-          <label>{t('Select…')}</label>
+          <label>{this.placeholderLabel}</label>
         </bem.KoboSelect__triggerSelectedOption>
 
         {this.isSearchboxVisible() && this.renderSearchBox()}
@@ -244,7 +249,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   renderSearchBox() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
-      option.id === this.props.selectedOption
+      option.value === this.props.selectedOption
     ));
 
     return (
@@ -260,7 +265,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           value={this.state.filterPhrase}
           onChange={this.onSearchBoxChange.bind(this)}
           onClick={this.onSearchBoxClick.bind(this)}
-          placeholder={foundSelectedOption ? foundSelectedOption.label : t('Select…')}
+          placeholder={foundSelectedOption ? foundSelectedOption.label : this.placeholderLabel}
         />
       </React.Fragment>
     );
@@ -273,13 +278,13 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       <bem.KoboSelect__menu>
         {filteredOptions.map((option) => (
           <bem.KoboSelect__option
-            key={option.id}
-            onClick={this.onOptionClick.bind(this, option.id)}
+            key={option.value}
+            onClick={this.onOptionClick.bind(this, option.value)}
             title={option.label}
             m={{
               'selected': (
                 this.props.selectedOption !== null &&
-                this.props.selectedOption === option.id
+                this.props.selectedOption === option.value
               ),
             }}
           >

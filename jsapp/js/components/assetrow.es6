@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import bem from 'js/bem';
 import assetUtils from 'js/assetUtils';
 import PopoverMenu from 'js/popoverMenu';
@@ -16,6 +16,7 @@ import TagInput from 'js/components/tagInput';
 import AssetName from 'js/components/common/assetName';
 import Icon from 'js/components/common/icon';
 import {formatTime} from 'utils';
+import {userCan} from 'js/components/permissions/utils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -80,12 +81,12 @@ class AssetRow extends React.Component {
 
     var isDeployable = this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.deployed_version_id === null;
 
-    const userCanEdit = this.userCan('change_asset', this.props);
+    const userCanEdit = userCan('change_asset', this.props);
 
     const assetName = this.props.name || this.props.firstQuestionLabel;
 
     if (this.props.has_deployment && this.props.deployment__submission_count &&
-        this.userCan('view_submissions', this.props)) {
+        userCan('view_submissions', this.props)) {
       hrefTo = `/forms/${this.props.uid}/summary`;
     }
 
@@ -441,7 +442,6 @@ class AssetRow extends React.Component {
 };
 
 reactMixin(AssetRow.prototype, mixins.droppable);
-reactMixin(AssetRow.prototype, mixins.permissions);
 reactMixin(AssetRow.prototype, mixins.contextRouter);
 
 AssetRow.contextTypes = {

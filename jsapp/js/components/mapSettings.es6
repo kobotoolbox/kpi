@@ -5,7 +5,6 @@ import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
 import {actions} from '../actions';
-import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
 import {notify} from 'js/utils';
@@ -14,6 +13,7 @@ import {
   ASSET_FILE_TYPES,
 } from 'js/constants';
 import { dataInterface } from '../dataInterface';
+import {userCan} from 'js/components/permissions/utils';
 
 // see kobo.map.marker-colors.scss for styling details of each set
 const COLOR_SETS = ['a', 'b', 'c', 'd', 'e'];
@@ -111,7 +111,7 @@ class MapSettings extends React.Component {
       defaultActiveTab = TABS.get('querylimit').id;
     } else if (geoQuestions.length > 1) {
       defaultActiveTab = TABS.get('geoquestion').id;
-    } else if (this.userCan('change_asset', this.props.asset)) {
+    } else if (userCan('change_asset', this.props.asset)) {
       defaultActiveTab = TABS.get('overlays').id;
     }
 
@@ -151,7 +151,7 @@ class MapSettings extends React.Component {
 
   saveMapSettings(newSettings) {
     let assetUid = this.props.asset.uid;
-    if (this.userCan('change_asset', this.props.asset)) {
+    if (userCan('change_asset', this.props.asset)) {
       actions.map.setMapStyles(assetUid, newSettings);
     } else {
       // pass settings to parent component directly
@@ -265,7 +265,7 @@ class MapSettings extends React.Component {
       queryCount = this.state.queryCount;
     var tabs = [TABS.get('colors').id];
 
-    if (this.userCan('change_asset', asset)) {tabs.unshift(TABS.get('overlays').id);}
+    if (userCan('change_asset', asset)) {tabs.unshift(TABS.get('overlays').id);}
     if (geoQuestions.length > 1) {tabs.unshift(TABS.get('geoquestion').id);}
     if (queryCount > QUERY_LIMIT_MINIMUM) {tabs.unshift(TABS.get('querylimit').id);}
 
@@ -404,7 +404,7 @@ class MapSettings extends React.Component {
 
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
-            {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
+            {userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
               <bem.KoboButton m='storm' onClick={this.resetMapSettings}>
                 {t('Reset')}
               </bem.KoboButton>
@@ -420,6 +420,5 @@ class MapSettings extends React.Component {
 }
 
 reactMixin(MapSettings.prototype, Reflux.ListenerMixin);
-reactMixin(MapSettings.prototype, mixins.permissions);
 
 export default MapSettings;

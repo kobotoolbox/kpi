@@ -1,7 +1,7 @@
 import findIndex from 'lodash.findindex';
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
-import {stores} from 'js/stores';
+import {when} from 'mobx';
+import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import {ASSET_TYPES} from 'js/constants';
@@ -10,6 +10,7 @@ import type {
   AssetsResponse,
   DeleteAssetResponse,
 } from 'js/dataInterface';
+import {history} from 'js/router/historyRouter';
 
 export interface OwnedCollectionsStoreData {
   isFetchingData: boolean;
@@ -25,8 +26,6 @@ class OwnedCollectionsStore extends Reflux.Store {
   };
 
   init() {
-    hashHistory.listen(this.startupStore.bind(this));
-    stores.session.listen(this.startupStore.bind(this));
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted.bind(this));
     actions.library.getCollections.failed.listen(this.onGetCollectionsFailed.bind(this));
     // NOTE: this could update the list of collections, but currently nothing is using
@@ -38,14 +37,27 @@ class OwnedCollectionsStore extends Reflux.Store {
     actions.resources.createResource.completed.listen(this.onAssetChangedOrCreated.bind(this));
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
 
+    when(() => sessionStore.isLoggedIn, this.startupStore.bind(this));
+    history.listen(this.startupStore.bind(this));
+
     this.startupStore();
   }
 
+  /** NOTE: This method relies on few different observable properties. */
   startupStore() {
     if (
+      // We only initialize this once
       !this.isInitialised &&
+      // If user enters the app through most common route (i.e. logging in),
+      // they end up on My Projects - we don't load collections then, only wait
+      // for a moment when they navigate to Library. But if user is entering
+      // the app directly at Library, we need to fetch data immediately.
       isAnyLibraryRoute() &&
-      stores.session.isLoggedIn &&
+      // This store requires user who is logged in, and due to race condition we
+      // often end up initializing it before session store is ready, thus we
+      // need to wait for it a bit.
+      sessionStore.isLoggedIn &&
+      // Avoid unnecessary duplicate calls
       !this.data.isFetchingData
     ) {
       this.fetchData();
@@ -69,7 +81,7 @@ class OwnedCollectionsStore extends Reflux.Store {
   onAssetChangedOrCreated(asset: AssetResponse) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&
-      asset.owner__username === stores.session.currentAccount.username
+      asset.owner__username === sessionStore.currentAccount.username
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.collections.length; i++) {
@@ -103,8 +115,8 @@ class OwnedCollectionsStore extends Reflux.Store {
     this.trigger(this.data);
 
     actions.library.getCollections({
-      owner: stores.session.currentAccount.username,
-      pageSize: 0, // zero gives all results with no limit
+      owner: sessionStore.currentAccount.username,
+      pageSize: 0 // zero gives all results with no limit
     });
   }
 

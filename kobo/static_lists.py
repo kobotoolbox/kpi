@@ -173,6 +173,10 @@ COUNTRIES = (
     ('KIR', 'Kiribati'),
     ('PRK', "Korea, Democratic People's Republic of"),
     ('KOR', 'Korea, Republic of'),
+    # Note that the addition of Kosovo is a divergence from ISO:3166 and the API
+    # output from
+    # https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0
+    ('XKX', 'Kosovo'),
     ('KWT', 'Kuwait'),
     ('KGZ', 'Kyrgyzstan'),
     ('LAO', "Lao People's Democratic Republic"),
@@ -310,6 +314,12 @@ COUNTRIES = (
 # information about the language here. This dictionary will be used to update
 # `django.conf.locale.LANG_INFO`
 EXTRA_LANG_INFO = {
+    'am': {
+        'bidi': False,
+        'code': 'am',
+        'name': 'Amharic',
+        'name_local': 'አማርኛ',
+    },
     'ku': {
         'bidi': True,
         'code': 'ku',

@@ -6,11 +6,14 @@ from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 from kobo.apps.organizations.views import OrganizationViewSet
+from kobo.apps.project_views.views import ProjectViewViewSet
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
+from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.data import DataViewSet
@@ -61,6 +64,12 @@ URL_NAMESPACE = 'api_v2'
 
 router_api_v2 = ExtendedDefaultRouterWithPathAliases()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
+
+asset_routes.register(r'counts',
+                      AssetCountsViewSet,
+                      basename='asset-counts',
+                      parents_query_lookups=['asset'],
+                      )
 
 asset_routes.register(r'files',
                       AssetFileViewSet,
@@ -129,18 +138,17 @@ hook_routes.register(r'logs',
                      )
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
-
-router_api_v2.register(
-    r'organizations',
-    OrganizationViewSet,
-    basename='organizations',
-)
-router_api_v2.register(r'service_usage', ServiceUsageViewSet, basename='service-usage')
-router_api_v2.register(
-    r'asset_subscriptions', UserAssetSubscriptionViewSet)
-router_api_v2.register(r'users', UserViewSet)
-router_api_v2.register(r'permissions', PermissionViewSet)
+router_api_v2.register(r'asset_subscriptions',
+                       UserAssetSubscriptionViewSet)
+router_api_v2.register(r'asset_usage', AssetUsageViewSet, basename='asset-usage')
 router_api_v2.register(r'imports', ImportTaskViewSet)
+router_api_v2.register(r'organizations',
+                       OrganizationViewSet, basename='organizations',)
+router_api_v2.register(r'permissions', PermissionViewSet)
+router_api_v2.register(r'project-views', ProjectViewViewSet)
+router_api_v2.register(r'service_usage',
+                       ServiceUsageViewSet, basename='service-usage')
+router_api_v2.register(r'users', UserViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
@@ -148,5 +156,3 @@ router_api_v2.register(r'imports', ImportTaskViewSet)
 # router_api_v2.register(r'authorized_application/users',
 #                        AuthorizedApplicationUserViewSet,
 #                        basename='authorized_applications')
-# router_api_v2.register(r'authorized_application/one_time_authentication_keys',
-#                        OneTimeAuthenticationKeyViewSet)

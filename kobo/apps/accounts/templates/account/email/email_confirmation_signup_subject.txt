@@ -1,0 +1,14 @@
+{% load i18n %}
+{% load customize_email_content %}
+
+{% autoescape off %}
+{% spaceless %}
+{% with content='email_confirmation_signup_message'|email_template %}
+{% if content.subject %}
+    {{ content.subject }}
+{% else %}
+    {% blocktrans %}Activate your KoboToolbox Account{% endblocktrans %}
+{% endif %}
+{% endwith %}
+{% endspaceless %}
+{% endautoescape %}

@@ -260,7 +260,16 @@ class LanguageSelector extends React.Component<
     return this.state.suggestedLanguages?.filter((language) =>
       !this.props.hiddenLanguages?.includes(language.code) &&
       language.code !== this.props.sourceLanguage
-    );
+    ) || [];
+  }
+
+  get featuredLanguages() {
+    return this.languages.filter((language) => language.featured);
+  }
+
+  /** Languages that are not featured. */
+  get otherLanguages() {
+    return this.languages.filter((language) => !language.featured);
   }
 
   renderLanguageItem(language: DetailedLanguage | ListLanguage) {
@@ -363,19 +372,6 @@ class LanguageSelector extends React.Component<
     );
   }
 
-  renderSuggestedLanguages() {
-    if (this.suggestedLanguages === undefined || this.suggestedLanguages.length === 0) {
-      return null;
-    }
-
-    return (
-      <React.Fragment>
-        {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
-        <bem.LanguageSelector__line/>
-      </React.Fragment>
-    );
-  }
-
   renderSearchForm() {
     return (
       <React.Fragment>
@@ -398,10 +394,14 @@ class LanguageSelector extends React.Component<
             useWindow={false}
           >
             <ul key='unorderedlist'>
-              {this.renderSuggestedLanguages()}
-              {this.languages.length >= 1 &&
-                this.languages.map(this.renderLanguageItem.bind(this))
-              }
+              {this.suggestedLanguages.map(this.renderLanguageItem.bind(this))}
+              {this.featuredLanguages.map(this.renderLanguageItem.bind(this))}
+              {/*
+                NOTE: here we assume there will always be at least 1 featured
+                language, thus always displaying the separator linge.
+              */}
+              {this.store.isInitialised && <bem.LanguageSelector__line/>}
+              {this.otherLanguages.map(this.renderLanguageItem.bind(this))}
             </ul>
           </InfiniteScroll>
 

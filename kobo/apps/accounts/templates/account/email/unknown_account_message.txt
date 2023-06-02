@@ -1,0 +1,16 @@
+{% load i18n %}
+
+{% block content %}{% autoescape off %}
+
+{% blocktrans %}Hello from KoboToolbox,{% endblocktrans %}
+{% blocktrans %}You are receiving this email because you or someone else has requested a password for their KoboToolbox account.{% endblocktrans %}
+{% blocktrans %}However, we do not have any record of an account with email {{ email }} in our database.{% endblocktrans %}
+
+{% blocktrans %}If you did not request a password reset, you can safely ignore this email.{% endblocktrans %}
+
+{% blocktrans %}If it was you, please try another email address you might have used to create your account, or double check that your account was not registered on a different KoboToolbox server.{% endblocktrans %}
+
+{{ signup_url }}{% endautoescape %}{% endblock %}
+
+{% blocktrans %}Best,{% endblocktrans %}
+KoboToolbox

@@ -18,8 +18,10 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
+from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
+from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
 import formpack
@@ -36,7 +38,6 @@ from formpack.schema.fields import (
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
 from private_storage.fields import PrivateFileField
-from pyxform import xls2json_backends
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 from openpyxl.utils.exceptions import InvalidFileException
@@ -68,6 +69,7 @@ from kpi.utils.rename_xls_sheet import (
     NoFromSheetError,
     ConflictSheetError,
 )
+from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
 
@@ -165,6 +167,60 @@ class ImportExportTask(models.Model):
                           exc_info=True)
             self.save(update_fields=['status'])
 
+        return self
+
+    def get_absolute_filepath(self, filename: str) -> str:
+        """
+        Get absolute filepath related to storage root.
+        """
+
+        storage_class = self.result.storage
+        filename = self.result.field.generate_filename(
+            self, storage_class.get_valid_name(filename)
+        )
+        # We cannot call `self.result.save()` before reopening the file
+        # in write mode (i.e. open(filename, 'wb')). because it does not work
+        # with AzureStorage.
+        # Unfortunately, `self.result.save()` does few things that we need to
+        # reimplement here:
+        # - Create parent folders (if they do not exist) for local storage
+        # - Get a unique filename if filename already exists on storage
+
+        # Copied from `FileSystemStorage._save()` 😢
+        # TODO avoid duplicating Django FileSystemStorage class code and find
+        #   a way to use `self.result.save()`
+        if isinstance(storage_class, FileSystemStorage):
+            full_path = storage_class.path(filename)
+
+            # Create any intermediate directories that do not exist.
+            directory = os.path.dirname(full_path)
+            if not os.path.exists(directory):
+                try:
+                    if storage_class.directory_permissions_mode is not None:
+                        # os.makedirs applies the global umask, so we reset it,
+                        # for consistency with file_permissions_mode behavior.
+                        old_umask = os.umask(0)
+                        try:
+                            os.makedirs(
+                                directory, storage_class.directory_permissions_mode
+                            )
+                        finally:
+                            os.umask(old_umask)
+                    else:
+                        os.makedirs(directory)
+                except FileExistsError:
+                    # There's a race between os.path.exists() and os.makedirs().
+                    # If os.makedirs() fails with FileExistsError, the directory
+                    # was created concurrently.
+                    pass
+            if not os.path.isdir(directory):
+                raise IOError("%s exists and is not a directory." % directory)
+
+            # Store filenames with forward slashes, even on Windows.
+            filename = filename.replace('\\', '/')
+
+        return storage_class.get_available_name(filename)
+
 
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')
@@ -172,6 +228,16 @@ class ImportTask(ImportExportTask):
     Something that would be done after the file has uploaded
     ...although we probably would need to store the file in a blob
     """
+
+    class Meta(ImportExportTask.Meta):
+        indexes = [
+            BTreeIndex(
+                F('data__destination'), name='data__destination_idx'
+            ),
+            HashIndex(
+                F('data__destination'), name='data__destination_hash_idx'
+            ),
+        ]
 
     def _run_task(self, messages):
         self.status = self.PROCESSING
@@ -407,6 +473,39 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
+class ProjectViewExportTask(ImportExportTask):
+    uid = KpiUidField(uid_prefix='pve')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    def _build_export_filename(
+        self, export_type: str, username: str, view: str
+    ) -> str:
+        time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        return f'{export_type}-{username}-view_{view}-{time}.csv'
+
+    def _run_task(self, messages: list) -> None:
+        export_type = self.data['type']
+        view = self.data['view']
+
+        filename = self._build_export_filename(
+            export_type, self.user.username, view
+        )
+        absolute_filepath = self.get_absolute_filepath(filename)
+
+        buff = create_project_view_export(export_type, self.user.username, view)
+
+        with self.result.storage.open(absolute_filepath, 'wb') as output_file:
+            output_file.write(buff.read().encode())
+
+        self.result = absolute_filepath
+        self.save()
+
+    def delete(self, *args, **kwargs) -> None:
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
+
+
 class ExportTaskBase(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
@@ -458,6 +557,7 @@ class ExportTaskBase(ImportExportTask):
         # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submitted_by',
+        '__version__',
         TagsCopyField,
     )
 
@@ -480,6 +580,14 @@ class ExportTaskBase(ImportExportTask):
     class Meta:
         abstract = True
         ordering = ['-date_created']
+        indexes = [
+            BTreeIndex(
+                F('data__source'), name='data__source_idx'
+            ),
+            HashIndex(
+                F('data__source'), name='data__source_hash_idx'
+            ),
+        ]
 
     def _build_export_filename(self, export, export_type):
         """
@@ -654,9 +762,9 @@ class ExportTaskBase(ImportExportTask):
 
         export, submission_stream = self.get_export_object()
         filename = self._build_export_filename(export, export_type)
-        absolute_filename = self.get_absolute_filename(filename)
+        absolute_filepath = self.get_absolute_filepath(filename)
 
-        with self.result.storage.open(absolute_filename, 'wb') as output_file:
+        with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
@@ -689,7 +797,7 @@ class ExportTaskBase(ImportExportTask):
             elif export_type == 'spss_labels':
                 export.to_spss_labels(output_file)
 
-        self.result = absolute_filename
+        self.result = absolute_filepath
 
         if not self.pk:
             # In tests, exports are not saved into the DB before calling this
@@ -702,57 +810,6 @@ class ExportTaskBase(ImportExportTask):
         # removing exported file from storage
         self.result.delete(save=False)
         super().delete(*args, **kwargs)
-
-    def get_absolute_filename(self, filename: str) -> str:
-        """
-        Get absolute filename related to storage root.
-        """
-
-        storage_class = self.result.storage
-        filename = self.result.field.generate_filename(self, filename)
-
-        # We cannot call `self.result.save()` before reopening the file
-        # in write mode (i.e. open(filename, 'wb')). because it does not work
-        # with AzureStorage.
-        # Unfortunately, `self.result.save()` does few things that we need to
-        # reimplement here:
-        # - Create parent folders (if they do not exist) for local storage
-        # - Get a unique filename if filename already exists on storage
-
-        # Copied from `FileSystemStorage._save()` 😢
-        # TODO avoid duplicating Django FileSystemStorage class code and find
-        #   a way to use `self.result.save()`
-        if isinstance(storage_class, FileSystemStorage):
-            full_path = storage_class.path(filename)
-
-            # Create any intermediate directories that do not exist.
-            directory = os.path.dirname(full_path)
-            if not os.path.exists(directory):
-                try:
-                    if storage_class.directory_permissions_mode is not None:
-                        # os.makedirs applies the global umask, so we reset it,
-                        # for consistency with file_permissions_mode behavior.
-                        old_umask = os.umask(0)
-                        try:
-                            os.makedirs(
-                                directory, storage_class.directory_permissions_mode
-                            )
-                        finally:
-                            os.umask(old_umask)
-                    else:
-                        os.makedirs(directory)
-                except FileExistsError:
-                    # There's a race between os.path.exists() and os.makedirs().
-                    # If os.makedirs() fails with FileExistsError, the directory
-                    # was created concurrently.
-                    pass
-            if not os.path.isdir(directory):
-                raise IOError("%s exists and is not a directory." % directory)
-
-            # Store filenames with forward slashes, even on Windows.
-            filename = filename.replace('\\', '/')
-
-        return storage_class.get_available_name(filename)
 
     def get_export_object(
         self, source: Optional[Asset] = None
@@ -881,6 +938,7 @@ class ExportTask(ExportTaskBase):
     """
     An asynchronous export task, to be run with Celery
     """
+
     def _run_task(self, messages):
         try:
             source_url = self.data['source']

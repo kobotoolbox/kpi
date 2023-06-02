@@ -1,0 +1,85 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+
+/*
+Note: these styles include bunch of overrides, because we have these horrible
+styles in our codebase: `.form-modal__item input[type="text"]` in few different
+placese. As soon as these are removed, we can simplify this file.
+*/
+
+.react-tagsinput {
+  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border-radius: sizes.$x8;
+  padding: sizes.$x8 sizes.$x8 sizes.$x4;
+
+  // Instead of indicating focus by default way (i.e. the input element being
+  // highlighted), we highlight the wrapper.
+  &:focus-within {
+    outline: 1px solid colors.$kobo-blue;
+  }
+
+  &.react-tagsinput-invalid {
+    .react-tagsinput-input {
+      color: colors.$kobo-red;
+      border-bottom-color: colors.$kobo-red;
+    }
+  }
+}
+
+.react-tagsinput-tag {
+  background-color: colors.$kobo-gray-40;
+  color: colors.$kobo-white;
+  font-weight: 400;
+  margin-bottom: sizes.$x4;
+  margin-right: sizes.$x4;
+  padding: sizes.$x4 sizes.$x8 sizes.$x4 sizes.$x10;
+  display: inline-block;
+  border-radius: sizes.$x4;
+}
+
+/* a.k-tagsinput-remove */
+.react-tagsinput-remove {
+  cursor: pointer;
+  color: colors.$kobo-white !important;
+  opacity: 0.6;
+  margin-left: sizes.$x6;
+  vertical-align: middle;
+  font-size: sizes.$x20;
+
+  &::after {
+    content: '\00D7';
+  }
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+// We need to increase specificity here to fight rogue styles for inputs
+.react-tagsinput input[type].react-tagsinput-input {
+  background: transparent;
+  border: 0 none;
+  color: colors.$kobo-gray-40;
+  font-family: sans-serif;
+  font-weight: 400;
+  margin-top: sizes.$x2;
+  margin-bottom: sizes.$x4;
+  margin-left: sizes.$x4;
+  outline: none;
+  padding: 0;
+  min-width: 90px;
+
+  &::placeholder {
+    color: colors.$kobo-gray-55;
+    opacity: 1;
+  }
+
+  // Disable default focus styles in favor of highlighting the wrapper
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.react-tags-save-button {
+  float: left;
+}

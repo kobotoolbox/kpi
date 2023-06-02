@@ -1,30 +1,29 @@
 import React from 'react';
-import type {RouteComponentProps} from 'react-router';
 import DocumentTitle from 'react-document-title';
 import {isRowProcessingEnabled} from 'js/assetUtils';
 import type {AssetResponse} from 'js/dataInterface';
 import assetStore from 'js/assetStore';
-import bem, {makeBem} from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
 import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
 import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import WorkProtector from 'js/protector/workProtector';
-import './singleProcessing.scss';
+import {UNSAVED_CHANGES_WARNING} from 'jsapp/js/protector/protectorConstants';
+import {usePrompt} from 'jsapp/js/router/promptBlocker';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import styles from './singleProcessingRoute.module.scss';
 
-bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
-bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
-bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section');
-bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
-bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
-
-type SingleProcessingRouteProps = RouteComponentProps<{
+interface SingleProcessingRouteProps extends WithRouterProps {
   uid: string;
   qpath: string;
   submissionEditId: string;
-}, unknown>;
+}
+
+const Prompt = () => {
+  usePrompt(UNSAVED_CHANGES_WARNING);
+  return <></>;
+};
 
 interface SingleProcessingRouteState {
   asset: AssetResponse | undefined;
@@ -40,12 +39,14 @@ export default class SingleProcessingRoute extends React.Component<
 > {
   constructor(props: SingleProcessingRouteProps) {
     super(props);
-    this.state = {
-      // NOTE: This route component is being loaded with PermProtectedRoute so
-      // we know that the call to backend to get asset was already made, and
-      // thus we can safely assume asset data is present :happy_face:
-      asset: assetStore.getAsset(this.props.params.uid),
-    };
+    if (this.props.params.uid) {
+      this.state = {
+        // NOTE: This route component is being loaded with PermProtectedRoute so
+        // we know that the call to backend to get asset was already made, and
+        // thus we can safely assume asset data is present :happy_face:
+        asset: assetStore.getAsset(this.props.params.uid),
+      };
+    }
   }
 
   private unlisteners: Function[] = [];
@@ -57,29 +58,35 @@ export default class SingleProcessingRoute extends React.Component<
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleProcessingStoreChange() {
     this.forceUpdate();
   }
 
   /** Is processing enabled for current question. */
   isProcessingEnabled() {
-    return isRowProcessingEnabled(
-      this.props.params.uid,
-      this.props.params.qpath
-    );
+    if (this.props.params.uid && this.props.params.qpath) {
+      return isRowProcessingEnabled(
+        this.props.params.uid,
+        this.props.params.qpath
+      );
+    }
+    return false;
   }
 
   /** Whether current submission has a response for current question. */
   isDataProcessable(): boolean {
-    const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
+    const editIds =
+      singleProcessingStore.getCurrentQuestionSubmissionsEditIds();
     if (Array.isArray(editIds)) {
       const currentItem = editIds.find(
         (item) => item.editId === this.props.params.submissionEditId
@@ -97,42 +104,42 @@ export default class SingleProcessingRoute extends React.Component<
       !singleProcessingStore.isReady() ||
       !this.state.asset?.content?.survey
     ) {
-      return (<LoadingSpinner/>);
+      return <LoadingSpinner />;
     }
 
     if (!this.isProcessingEnabled()) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            {t('There is no data for this question for the current submission')}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <LoadingSpinner
+          hideSpinner
+          message={t(
+            'There is no data for this question for the current submission'
+          )}
+        />
       );
     }
 
     if (this.isProcessingEnabled()) {
       return (
         <React.Fragment>
-          <bem.SingleProcessing__bottomLeft>
-            {this.isDataProcessable() &&
-              <SingleProcessingContent/>
-            }
-            {!this.isDataProcessable() &&
-              <bem.Loading>
-                <bem.Loading__inner>
-                  {t('There is no data for this question for the current submission')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            }
-          </bem.SingleProcessing__bottomLeft>
+          <section className={styles.bottomLeft}>
+            {this.isDataProcessable() && <SingleProcessingContent />}
+            {!this.isDataProcessable() && (
+              <LoadingSpinner
+                hideSpinner
+                message={t(
+                  'There is no data for this question for the current submission'
+                )}
+              />
+            )}
+          </section>
 
-          <bem.SingleProcessing__bottomRight>
-            <SingleProcessingPreview/>
+          <section className={styles.bottomRight}>
+            <SingleProcessingPreview />
 
             <SingleProcessingSubmissionDetails
               assetContent={this.state.asset.content}
             />
-          </bem.SingleProcessing__bottomRight>
+          </section>
         </React.Fragment>
       );
     }
@@ -149,36 +156,28 @@ export default class SingleProcessingRoute extends React.Component<
     ) {
       return (
         <DocumentTitle title={pageTitle}>
-          <bem.SingleProcessing>
-            <LoadingSpinner/>
-          </bem.SingleProcessing>
+          <section className={styles.root}>
+            <LoadingSpinner />
+          </section>
         </DocumentTitle>
       );
     }
 
     return (
       <DocumentTitle title={pageTitle}>
-        <bem.SingleProcessing>
-          <WorkProtector
-            shouldProtect={
-              singleProcessingStore.hasAnyUnsavedWork() ||
-              singleProcessingStore.isPollingForTranscript
-            }
-            currentRoute={this.props.route}
-            router={this.props.router}
-          />
-          <bem.SingleProcessing__top>
+        <section className={styles.root}>
+          {(singleProcessingStore.hasAnyUnsavedWork() ||
+            singleProcessingStore.isPollingForTranscript) && <Prompt />}
+          <section className={styles.top}>
             <SingleProcessingHeader
               submissionEditId={this.props.params.submissionEditId}
               assetUid={this.props.params.uid}
               assetContent={this.state.asset.content}
             />
-          </bem.SingleProcessing__top>
+          </section>
 
-          <bem.SingleProcessing__bottom>
-            {this.renderBottom()}
-          </bem.SingleProcessing__bottom>
-        </bem.SingleProcessing>
+          <section className={styles.bottom}>{this.renderBottom()}</section>
+        </section>
       </DocumentTitle>
     );
   }

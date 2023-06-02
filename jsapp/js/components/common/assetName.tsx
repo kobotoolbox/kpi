@@ -1,11 +1,11 @@
 import React from 'react';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {hasLongWords} from 'js/utils';
-import type {AssetResponse} from 'js/dataInterface';
+import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import './assetName.scss';
 
 interface AssetNameProps {
-  asset: AssetResponse;
+  asset: AssetResponse | ProjectViewAsset;
   'data-cy'?: string;
 }
 
@@ -20,17 +20,18 @@ export default class AssetName extends React.Component<AssetNameProps> {
     const displayName = getAssetDisplayName(this.props.asset);
     let extra = null;
     const classNames = ['asset-name'];
-    const summary = this.props.asset.summary;
 
     if (
       !displayName.original &&
       displayName.question &&
-      summary.row_count
+      'summary' in this.props.asset &&
+      this.props.asset.summary &&
+      this.props.asset.summary.row_count
     ) {
-      if (summary.row_count === 2) {
+      if (this.props.asset.summary.row_count === 2) {
         extra = <small>{t('and one other question')}</small>;
-      } else if (summary.row_count > 2) {
-        extra = <small>{t('and ## other questions').replace('##', String(summary.row_count - 1))}</small>;
+      } else if (this.props.asset.summary.row_count > 2) {
+        extra = <small>{t('and ## other questions').replace('##', String(this.props.asset.summary.row_count - 1))}</small>;
       }
     }
 

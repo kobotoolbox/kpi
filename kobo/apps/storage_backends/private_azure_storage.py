@@ -19,22 +19,3 @@ class PrivateAzureStorage(AzureStorage):
         else:
             # The S3Boto3Storage can generate a presigned URL that is temporary available.
             return super().url(name, *args, **kwargs)
-
-    def get_modified_time(self, name):
-        # workaround https://github.com/jschneier/django-storages/issues/1131
-        # If fixed upstream, delete this function
-        properties = self.client.get_blob_client(
-            self._get_valid_path(name)
-        ).get_blob_properties(
-            timeout=self.timeout
-        )
-        if not setting('USE_TZ', False):
-            return timezone.make_naive(properties.last_modified)
-
-        tz = timezone.get_current_timezone()
-        if timezone.is_naive(properties.last_modified):
-            return timezone.make_aware(properties.last_modified, tz)
-
-        # `last_modified` is in UTC time_zone, we
-        # must convert it to settings time_zone
-        return properties.last_modified.astimezone(tz)

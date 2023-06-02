@@ -15,11 +15,13 @@ from rest_framework.reverse import reverse
 from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
-
 
 class AssetImportTaskTest(BaseTestCase):
     fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
@@ -40,7 +42,7 @@ class AssetImportTaskTest(BaseTestCase):
 
     def _post_import_task_and_compare_created_asset_to_source(self, task_data,
                                                               source):
-        post_url = reverse('api_v2:importtask-list')
+        post_url = reverse(self._get_endpoint('importtask-list'))
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
@@ -103,7 +105,7 @@ class AssetImportTaskTest(BaseTestCase):
             task_data = self._construct_xls_for_import(content, name=name)
 
         empty_asset = self.client.post(
-            reverse('asset-list'),
+            reverse(self._get_endpoint('asset-list')),
             data={'asset_type': asset_type},
             HTTP_ACCEPT='application/json',
         )
@@ -124,6 +126,7 @@ class AssetImportTaskTest(BaseTestCase):
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
+
     def test_import_asset_base64_xls(self):
         encoded_xls = base64.b64encode(self.asset.to_xlsx_io().read())
         task_data = {
@@ -969,3 +972,31 @@ class AssetImportTaskTest(BaseTestCase):
                 "but only these translations are present in the form:"
             )
         )
+
+    def test_import_strip_newline_from_form_title_setting(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['integer', 'age', "Respondent's age?"],
+        ]
+        settings_sheet_content = [
+            ['form_title'],
+            ['A project with\n a new line'],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('settings', settings_sheet_content),
+        )
+        response = self._create_asset_from_xls(
+            content, 'Basic survey', asset_type='survey', excel_format='xlsx'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+
+        asset_uid = detail_response.data['messages']['updated'][0]['uid']
+        asset_response = self.client.get(
+            reverse(
+                self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+            )
+        )
+        expected_name = 'A project with a new line'
+        assert asset_response.data['name'] == expected_name

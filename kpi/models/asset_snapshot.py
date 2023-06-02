@@ -212,7 +212,7 @@ class AssetSnapshot(
         source_copy = copy.deepcopy(source)
         self._expand_kobo_qs(source_copy)
         self._populate_fields_with_autofields(source_copy)
-        self._strip_kuids(source_copy)
+        self._strip_dollar_fields(source_copy)
 
         allow_choice_duplicates(source_copy)
 

@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import assetUtils from 'js/assetUtils';
 import bem from 'js/bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
+import sessionStore from 'js/stores/session';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
@@ -22,16 +22,17 @@ import {
 import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
-  notify
+  notify,
 } from 'utils';
 import {
   Link,
-  hashHistory,
-} from 'react-router';
+} from 'react-router-dom';
+import {withRouter} from 'js/router/legacy';
+import {userCan, userCanRemoveSharedProject} from 'js/components/permissions/utils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
-export class FormLanding extends React.Component {
+class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -144,7 +145,7 @@ export class FormLanding extends React.Component {
     return false;
   }
   isFormRedeploymentNeeded() {
-    return !this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
+    return !this.isCurrentVersionDeployed() && userCan('change_asset', this.state);
   }
   hasLanguagesDefined(translations) {
     return translations && (translations.length > 1 || translations[0] !== null);
@@ -189,7 +190,7 @@ export class FormLanding extends React.Component {
     const versionsToDisplay = this.state.deployed_versions.results.concat(
       this.state.nextPagesVersions
     );
-    const isLoggedIn = stores.session.isLoggedIn;
+    const isLoggedIn = sessionStore.isLoggedIn;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
@@ -408,7 +409,7 @@ export class FormLanding extends React.Component {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   goToProjectsList() {
-    hashHistory.push(ROUTES.FORMS);
+    this.props.router.navigate(ROUTES.FORMS);
   }
   nonOwnerSelfRemoval(evt) {
     evt.preventDefault();
@@ -433,7 +434,7 @@ export class FormLanding extends React.Component {
       downloads = this.state.downloads;
     }
 
-    const isLoggedIn = stores.session.isLoggedIn;
+    const isLoggedIn = sessionStore.isLoggedIn;
 
     return (
       <React.Fragment>
@@ -493,7 +494,10 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
+          {(
+            isLoggedIn &&
+            userCanRemoveSharedProject(this.state)
+          ) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >
@@ -574,8 +578,8 @@ export class FormLanding extends React.Component {
   }
   render () {
     var docTitle = this.state.name || t('Untitled');
-    const userCanEdit = this.userCan('change_asset', this.state);
-    const isLoggedIn = stores.session.isLoggedIn;
+    const userCanEdit = userCan('change_asset', this.state);
+    const isLoggedIn = sessionStore.isLoggedIn;
 
     if (this.state.uid === undefined) {
       return (<LoadingSpinner/>);
@@ -622,7 +626,6 @@ export class FormLanding extends React.Component {
   }
 }
 
-reactMixin(FormLanding.prototype, mixins.permissions);
 reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
 
@@ -630,4 +633,4 @@ FormLanding.contextTypes = {
   router: PropTypes.object
 };
 
-export default FormLanding;
+export default withRouter(FormLanding);

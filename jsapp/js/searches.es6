@@ -10,6 +10,7 @@ import Reflux from 'reflux';
 import SparkMD5 from 'spark-md5';
 
 import {stores} from './stores';
+import sessionStore from './stores/session';
 import {actions} from './actions';
 import {dataInterface} from './dataInterface';
 import {assign} from 'utils';
@@ -444,7 +445,7 @@ function SearchContext(opts={}) {
         searchStore.update({defaultQueryState: 'done'});
 
         // avoid unauthenticated backend calls
-        if (stores.session.isLoggedIn) {
+        if (sessionStore.isLoggedIn) {
           dataInterface.assetsHash()
           .done((data) => {
             if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {

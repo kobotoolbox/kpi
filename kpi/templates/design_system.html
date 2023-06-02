@@ -20,9 +20,8 @@
 
     {% block footer %}
       <!-- Make Django's internationalization functionality available in client code. -->
-      <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-
-      {% include "global_t.html" %}
+      <script src="{% url 'javascript-catalog' %}"></script>
+      <script src="{% static 'js/global_t.js' %}"></script>
 
       {% render_bundle 'app' 'js' %}
 

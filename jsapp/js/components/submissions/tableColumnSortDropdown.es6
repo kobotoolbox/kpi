@@ -1,12 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import classNames from 'classnames';
-import mixins from 'js/mixins';
 import bem, {makeBem} from 'js/bem';
 import KoboDropdown from 'js/components/common/koboDropdown';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
+import {userCan} from 'js/components/permissions/utils';
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
 
@@ -33,10 +33,10 @@ class TableColumnSortDropdown extends React.Component {
   renderTrigger() {
     let sortIcon = ['k-icon'];
     if (this.props.sortValue && this.props.sortValue === SORT_VALUES.ASCENDING) {
-      sortIcon.push('k-icon-sort-down');
+      sortIcon.push('k-icon-sort-ascending');
     }
     if (this.props.sortValue && this.props.sortValue === SORT_VALUES.DESCENDING) {
-      sortIcon.push('k-icon-sort-up');
+      sortIcon.push('k-icon-sort-descending');
     }
 
     return (
@@ -80,12 +80,12 @@ class TableColumnSortDropdown extends React.Component {
         onClick={this.changeSort.bind(this, buttonSortValue)}
       >
         {buttonSortValue === SORT_VALUES.ASCENDING && [
-          <i key='0' className='k-icon k-icon-sort-down'/>,
-          <span key='1'>{t('Decending')}</span>,
+          <i key='0' className='k-icon k-icon-sort-ascending'/>,
+          <span key='1'>{t('Sort A→Z')}</span>,
         ]}
         {buttonSortValue === SORT_VALUES.DESCENDING && [
-          <i key='0' className='k-icon k-icon-sort-up'/>,
-          <span key='1'>{t('Ascending')}</span>,
+          <i key='0' className='k-icon k-icon-sort-descending'/>,
+          <span key='1'>{t('Sort Z→A')}</span>,
         ]}
 
         {this.props.sortValue === buttonSortValue &&
@@ -109,13 +109,13 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.ASCENDING)}
             {this.renderSortButton(SORT_VALUES.DESCENDING)}
 
-            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+            {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
               <bem.SortDropdownMenuButton onClick={this.hideField}>
                 <i className='k-icon k-icon-hide'/>
                 <span>{t('Hide field')}</span>
               </bem.SortDropdownMenuButton>
             }
-            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+            {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
               <bem.SortDropdownMenuButton
                 onClick={this.changeFieldFrozen.bind(this, !this.props.isFieldFrozen)}
               >

@@ -24,6 +24,10 @@
     <div id="mocha"></div>
     <script>
       var expect = chai.expect;
+
+      // allow testing in browser at file://{/path/to/kpi}/test/tests.html
+      mocha.setup('bdd');
+
       // need "t" defined for tests to pass
       function t (str) { return str; }
     </script>

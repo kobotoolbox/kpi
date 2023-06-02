@@ -18,7 +18,6 @@ class AssetContentAnalyzer:
             self.default_translation = self.translations[0]
         self.summary = self.get_summary()
 
-
     def decide_name_quality(self, row):
         '''
         for any row from asset.content,
@@ -120,14 +119,16 @@ class AssetContentAnalyzer:
         # the column name of `kobo--locking-profile` is present in the "survey"
         # and there is at least one locking profile assigned, then `lock_any`
         # is set to `True`
-        if self.settings.get(KOBO_LOCK_ALL, False):
-            lock_all = True
-        if (
-            lock_all
-            or (KOBO_LOCK_COLUMN in columns and any(locks))
-            or self.settings.get(KOBO_LOCK_COLUMN, False)
-        ):
-            lock_any = True
+        if self.settings and isinstance(self.settings, dict):
+            if self.settings.get(KOBO_LOCK_ALL, False):
+                lock_all = True
+
+            if (
+                lock_all
+                or (KOBO_LOCK_COLUMN in columns and any(locks))
+                or self.settings.get(KOBO_LOCK_COLUMN, False)
+            ):
+                lock_any = True
 
         summary = {
             'row_count': row_count,

@@ -9,8 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           # We need this particular version, as npm 8.5.5 is the last version
           # that works with our package.json :sadface:.
@@ -18,7 +18,32 @@ jobs:
           cache: 'npm'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
-      - run: npm install
-      - run: npm run copy-fonts
-      - run: npm run build
-      - run: npm run test
+      - name: Check for cached node_modules
+        id: cache-nodemodules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+      - name: Install JavaScript dependencies (npm install)
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+        run: npm install
+      - name: Run copy-fonts (if using cached node_modules)
+        if: steps.cache-nodemodules.outputs.cache-hit == 'true'
+        run: npm run copy-fonts
+      - name: Build Prod
+        run: SKIP_TS_CHECK=true npm run build
+      - name: Check TypeScript # Separated for visibility
+        run: npm run check-types
+      - name: Check ESLint, errors only
+        run: npm run lint -- --quiet
+      - name: Build Tests
+        run: npx webpack --config webpack/test.config.js
+      - name: Run Tests, with mocha-chrome
+        run: npx mocha-chrome test/tests.html --chrome-launcher.connectionPollInterval=5000
+        # This step takes less than 1 minute if it succeeds, but will hang for
+        # 6 hours if it fails with 'No inspectable targets'
+        # Timeout early to make it easier to manually re-run jobs.
+        # Tracking issue: https://github.com/kobotoolbox/kpi/issues/4337
+        timeout-minutes: 1

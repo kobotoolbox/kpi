@@ -1,23 +1,24 @@
 @use "scss/mixins";
 @use "scss/_variables";
+@use '~kobo-common/src/styles/colors';
 
-$hover-asset-row: $kobo-gray-96;
+$hover-asset-row: colors.$kobo-gray-96;
 $hover-transition: 0.3s opacity;
 $asset-row-spacing: 6px;
 
 .asset-row {
   list-style-type: none;
-  border-top: 1px solid $kobo-gray-92;
+  border-top: 1px solid colors.$kobo-gray-92;
   padding: $asset-row-spacing $asset-row-spacing * 2;
   transition: max-height 0.5s ease, opacity 0.5s ease;
   min-height: 49px;
   opacity: 1;
   position: relative;
   align-items: flex-start;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
 
   &:hover {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
     background: $hover-asset-row;
 
     // avoid displaying border over tooltip
@@ -49,7 +50,7 @@ $asset-row-spacing: 6px;
   }
 
   &:last-child {
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
   }
 
   &.asset-row--deleting {
@@ -86,9 +87,9 @@ $asset-row-spacing: 6px;
   // default row-icon styles are meant for "--question"
   .row-icon {
     vertical-align: middle;
-    border: 1px solid $kobo-teal;
+    border: 1px solid colors.$kobo-teal;
     font-size: 13px;
-    color: $kobo-teal;
+    color: colors.$kobo-teal;
     width: 36px;
     border-radius: 6px;
     display: inline-block;
@@ -97,8 +98,8 @@ $asset-row-spacing: 6px;
     font-style: normal;
 
     &.row-icon--block {
-      color: $kobo-white;
-      background: $kobo-teal;
+      color: colors.$kobo-white;
+      background: colors.$kobo-teal;
     }
 
     &.row-icon--template {
@@ -115,7 +116,7 @@ $asset-row-spacing: 6px;
   .asset-row__description {
     margin-top: $asset-row-spacing;
     display: block;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     font-size: 13px;
   }
 
@@ -162,12 +163,12 @@ $asset-row-spacing: 6px;
   .asset-row__action-icon {
     margin-left: 0px;
     font-weight: 400;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     cursor: pointer;
 
     &:hover {
       background-color: transparent;
-      color: $kobo-blue;
+      color: colors.$kobo-blue;
     }
 
     .k-icon {
@@ -178,7 +179,7 @@ $asset-row-spacing: 6px;
 
   &.asset-row--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 
   &:hover {

@@ -604,7 +604,7 @@ export function getRowSupplementalResponses(
   if (isRowProcessingEnabled(asset.uid, rowName)) {
     const advancedFeatures = asset.advanced_features;
 
-    if (advancedFeatures.transcript?.languages !== undefined) {
+    if (advancedFeatures?.transcript?.languages !== undefined) {
       advancedFeatures.transcript.languages.forEach((languageCode: LanguageCode) => {
         const path = getSupplementalTranscriptPath(rowName, languageCode);
         output.push(
@@ -619,7 +619,7 @@ export function getRowSupplementalResponses(
       });
     }
 
-    if (advancedFeatures.translation?.languages !== undefined) {
+    if (advancedFeatures?.translation?.languages !== undefined) {
       advancedFeatures.translation.languages.forEach((languageCode: LanguageCode) => {
         const path = getSupplementalTranslationPath(rowName, languageCode);
         output.push(

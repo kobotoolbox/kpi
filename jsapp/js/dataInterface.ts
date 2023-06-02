@@ -10,13 +10,16 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
-import type {EnvStoreFieldItem} from 'js/envStore';
+import type {EnvStoreFieldItem, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
   ValidationStatus,
   AssetFileType,
+  PermissionCodename,
 } from 'js/constants';
+import type {Json} from './components/common/common.interfaces';
+import type {ProjectViewsSettings} from './projects/customViewStore';
 
 interface AssetsRequestData {
   q?: string;
@@ -196,7 +199,8 @@ interface AssignablePermissionPartial {
   };
 }
 
-interface SelectChoice {
+export interface LabelValuePair {
+  /** Note: the labels are always localized in the current UI language */
   label: string;
   value: string;
 }
@@ -320,6 +324,26 @@ interface AssetSummary {
   languages?: Array<string|null>;
   row_count?: number;
   default_translation?: string|null;
+  /** To be used in a warning about missing or poorly written question names. */
+  name_quality?: {
+    ok: number;
+    bad: number;
+    good: number;
+    total: number;
+    firsts: {
+      ok?: {
+        name: string;
+        index: number;
+        label: string[];
+      };
+      bad?: {
+        name: string;
+        index: number;
+        label: string[];
+      };
+    };
+  };
+  naming_conflicts?: string[];
 }
 
 interface AssetReportStylesSpecified {
@@ -382,15 +406,13 @@ export interface AssetTableSettings {
 }
 
 export interface AssetSettings {
-  sector?: {
-    label: string;
-    value: string;
-  };
-  country?: SelectChoice | SelectChoice[];
+  sector?: LabelValuePair | null;
+  country?: LabelValuePair | LabelValuePair[] | null;
   description?: string;
-  'share-metadata'?: boolean;
   'data-table'?: AssetTableSettings;
   organization?: string;
+  collects_pii?: LabelValuePair | null;
+  operational_purpose?: LabelValuePair | null;
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -400,12 +422,12 @@ interface AssetRequestObject {
   parent: string | null;
   settings: AssetSettings;
   asset_type: AssetTypeName;
-  report_styles: {
+  report_styles?: {
     default?: {};
     specified?: AssetReportStylesSpecified;
     kuid_names?: AssetReportStylesKuidNames;
   };
-  report_custom: {
+  report_custom?: {
     [reportName: string]: {
       crid: string;
       name: string;
@@ -418,17 +440,17 @@ interface AssetRequestObject {
       };
     };
   };
-  map_styles: {};
-  map_custom: {};
+  map_styles?: {};
+  map_custom?: {};
   content?: AssetContent;
   tag_string: string;
   name: string;
   permissions: Permission[];
   export_settings: ExportSetting[];
   data_sharing: {};
-  paired_data: string;
-  advanced_features: AssetAdvancedFeatures
-  advanced_submission_schema: AdvancedSubmissionSchema
+  paired_data?: string;
+  advanced_features?: AssetAdvancedFeatures;
+  advanced_submission_schema?: AdvancedSubmissionSchema;
 }
 
 export type AssetDownloads = Array<{
@@ -450,12 +472,12 @@ export interface AssetResponse extends AssetRequestObject {
   summary: AssetSummary;
   date_modified: string;
   version_id: string|null;
-  version__content_hash: string|null;
-  version_count: number;
+  version__content_hash?: string|null;
+  version_count?: number;
   has_deployment: boolean;
   deployed_version_id: string|null;
-  analysis_form_json: any;
-  deployed_versions: {
+  analysis_form_json?: any;
+  deployed_versions?: {
     count: number;
     next: string | null;
     previous: string | null;
@@ -468,7 +490,7 @@ export interface AssetResponse extends AssetRequestObject {
     }>;
   };
   deployment__identifier: string|null;
-  deployment__links: {
+  deployment__links?: {
     url?: string;
     single_url?: string;
     single_once_url?: string;
@@ -479,7 +501,7 @@ export interface AssetResponse extends AssetRequestObject {
     single_once_iframe_url?: string;
   };
   deployment__active: boolean;
-  deployment__data_download_links: {
+  deployment__data_download_links?: {
     xls_legacy?: string;
     csv_legacy?: string;
     zip_legacy?: string;
@@ -489,18 +511,23 @@ export interface AssetResponse extends AssetRequestObject {
   };
   deployment__submission_count: number;
   downloads: AssetDownloads;
-  embeds: Array<{
+  embeds?: Array<{
     format: string;
     url: string;
   }>;
-  koboform_link: string;
-  xform_link: string;
-  hooks_link: string;
+  xform_link?: string;
+  hooks_link?: string;
   uid: string;
   kind: string;
-  xls_link: string;
-  assignable_permissions: Array<AssignablePermission|AssignablePermissionPartial>;
-  exports: string;
+  xls_link?: string;
+  assignable_permissions?: Array<AssignablePermission|AssignablePermissionPartial>;
+  /**
+   * A list of all permissions (their codenames) that current user has in
+   * regards to this asset. It is a sum of permissions assigned directly for
+   * that user and ones coming from the Project View definition.
+   */
+  effective_permissions: Array<{codename: PermissionCodename}>;
+  exports?: string;
   data: string;
   children: {
     count: number;
@@ -518,6 +545,36 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
+}
+
+/** This is the asset object returned by project-views endpoint. */
+export interface ProjectViewAsset {
+  url: string;
+  date_modified: string;
+  date_created: string;
+  date_deployed: string | null;
+  owner: string;
+  owner__username: string;
+  owner__email: string;
+  /** Full name */
+  owner__name: string;
+  owner__organization: string;
+  uid: string;
+  kind: string;
+  name: string;
+  settings: AssetSettings;
+  languages: Array<string | null>;
+  asset_type: string;
+  version_id: string;
+  version_count: number;
+  has_deployment: boolean;
+  deployed_version_id: string | null;
+  deployment__active: boolean;
+  deployment__submission_count: number;
+  permissions: string[];
+  status: string;
+  data_sharing: {};
+  data: string;
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
@@ -554,6 +611,15 @@ export interface PermissionDefinition {
 
 export interface PermissionsConfigResponse extends PaginatedResponse<PermissionDefinition> {}
 
+interface SocialAccount {
+  provider: string;
+  uid: string;
+  last_login: string;
+  date_joined: string;
+  email: string | null;
+  username: string | null;
+}
+
 export interface AccountResponse {
   username: string;
   first_name: string;
@@ -572,7 +638,18 @@ export interface AccountResponse {
     sector: string;
     country: string;
     organization: string;
+    organization_website: string;
+    bio: string;
+    city: string;
     require_auth: boolean;
+    twitter: string;
+    linkedin: string;
+    instagram: string;
+    project_views_settings: ProjectViewsSettings;
+    /** We store this for usage statistics only. */
+    last_ui_language?: string;
+    // JSON values are the backend reality, but we make assumptions
+    [key: string]: Json | ProjectViewsSettings | undefined;
   };
   git_rev: {
     short: string;
@@ -580,6 +657,29 @@ export interface AccountResponse {
     branch: string;
     tag: boolean;
   };
+  social_accounts: SocialAccount[];
+}
+
+export interface AccountRequest {
+  email?: string;
+  extra_details?: {
+    name?: string;
+    organization?: string;
+    organization_website?: string;
+    sector?: string;
+    gender?: string;
+    bio?: string;
+    city?: string;
+    country?: string;
+    require_auth?: boolean;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+    project_views_settings?: ProjectViewsSettings;
+    last_ui_language?: string;
+  };
+  current_password?: string;
+  new_password?: string;
 }
 
 interface UserNotLoggedInResponse {
@@ -628,6 +728,7 @@ export interface EnvironmentResponse {
   mfa_code_length: number;
   stripe_public_key: string | null;
   stripe_pricing_table_id: string | null;
+  social_apps: SocialApp[];
 }
 
 export interface AssetSubscriptionsResponse {
@@ -676,12 +777,14 @@ interface ExternalServiceRequestData {
 }
 
 interface DataInterface {
+  patchProfile: (data: AccountRequest) => JQuery.jqXHR<AccountResponse>;
   [key: string]: Function;
 }
 
 const $ajax = (o: {}) => $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
+  getProfile: () => fetch(`${ROOT_URL}/me/`).then((response) => response.json()),  // TODO replace selfProfile
   selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> => $ajax({url: `${ROOT_URL}/me/`}),
 
   apiToken: (): JQuery.jqXHR<{token: string}> => $ajax({
@@ -702,7 +805,7 @@ export const dataInterface: DataInterface = {
 
   logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();
-    $ajax({url: `${ROOT_URL}/accounts/logout/`}).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
+    $ajax({url: `${ROOT_URL}/accounts/logout/`, method: 'POST'}).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
       // logout request wasn't successful, but may have logged the user out
       // querying '/me/' can confirm if we have logged out.
       dataInterface.selfProfile().done(function (data: {message?: string}){
@@ -716,35 +819,19 @@ export const dataInterface: DataInterface = {
     return d.promise();
   },
 
-  patchProfile(data: {
-    email?: string;
-    extra_details?: {
-      name?: string;
-      organization?: string;
-      organization_website?: string;
-      sector?: string;
-      gender?: string;
-      bio?: string;
-      city?: string;
-      country?: string;
-      require_auth?: boolean;
-      twitter?: string;
-      linkedin?: string;
-      instagram?: string;
-    };
-    current_password?: string;
-    new_password?: string;
-  }): JQuery.jqXHR<AccountResponse> {
+  patchProfile(data: AccountRequest): JQuery.jqXHR<AccountResponse> {
     return $ajax({
       url: `${ROOT_URL}/me/`,
       method: 'PATCH',
-      data: data,
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify(data),
     });
   },
 
   listTemplates(): JQuery.jqXHR<AssetsResponse> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.t}`,
+      url: `${ROOT_URL}/api/v2/assets/` + (COMMON_QUERIES.t ? `?q=${COMMON_QUERIES.t}`: ''),
     });
   },
 

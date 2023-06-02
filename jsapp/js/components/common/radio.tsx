@@ -1,6 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
+import './radio.scss';
+
+bem.Radio = makeBem(null, 'radio');
+bem.Radio__row = makeBem(bem.Radio, 'row', 'label');
+bem.Radio__input = makeBem(bem.Radio, 'input', 'input');
+bem.Radio__label = makeBem(bem.Radio, 'label', 'span');
 
 export interface RadioOption {
   label: string;
@@ -15,11 +21,13 @@ interface RadioProps {
   title?: string;
   /** Internal ID useful for the identification of radio. */
   name: string;
-  onChange: Function;
+  onChange: (newSelectedValue: string, radioName: string) => void;
   /** The `value` of selected option. */
   selected: string;
   /** Disables whole radio component. */
   isDisabled?: boolean;
+  /** This is `false` by default */
+  isClearable?: boolean;
   'data-cy'?: string;
 }
 
@@ -34,10 +42,17 @@ class Radio extends React.Component<RadioProps> {
   }
 
   onChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.props.onChange(
-      evt.currentTarget.name,
-      evt.currentTarget.value
-    );
+    this.props.onChange(evt.currentTarget.value, this.props.name);
+  }
+
+  onClick(evt: React.ChangeEvent<HTMLInputElement>) {
+    // For clearable radio, we unselect checked option when clicked
+    if (
+      this.props.isClearable &&
+      evt.currentTarget.checked
+    ) {
+      this.props.onChange('', this.props.name);
+    }
   }
 
   render() {
@@ -53,6 +68,7 @@ class Radio extends React.Component<RadioProps> {
                 value={option.value}
                 name={this.props.name}
                 onChange={this.onChange.bind(this)}
+                onClick={this.onClick.bind(this)}
                 checked={this.props.selected === option.value}
                 disabled={this.props.isDisabled || option.isDisabled}
                 data-cy={this.props['data-cy']}

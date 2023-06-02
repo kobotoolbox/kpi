@@ -1,7 +1,9 @@
 # coding: utf-8
+from __future__ import annotations
 import abc
 import copy
 import json
+from datetime import date
 from typing import Union, Iterator, Optional
 
 from bson import json_util
@@ -41,6 +43,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def all_time_submission_count(self):
+        pass
+
+    @property
+    @abc.abstractmethod
     def attachment_storage_bytes(self):
         pass
 
@@ -75,6 +82,11 @@ class BaseDeploymentBackend(abc.ABC):
     def connect(self, active=False):
         pass
 
+    @property
+    @abc.abstractmethod
+    def current_month_nlp_tracking(self):
+        pass
+
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
@@ -103,6 +115,10 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def get_attachment_objects_from_dict(self, submission: dict) -> list:
+        pass
+
+    @abc.abstractmethod
+    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(
@@ -238,6 +254,11 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def mongo_userform_id(self):
         return None
+
+    @property
+    @abc.abstractmethod
+    def nlp_tracking(self):
+        pass
 
     @abc.abstractmethod
     def redeploy(self, active: bool = None):

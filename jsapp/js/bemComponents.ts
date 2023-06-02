@@ -136,9 +136,6 @@ bem.CollectionNav__link = makeBem(bem.CollectionNav, 'link', 'a');
 bem.CollectionNav__searchcancel = makeBem(bem.CollectionNav, 'searchcancel', 'i');
 bem.CollectionNav__searchicon = makeBem(bem.CollectionNav, 'searchicon', 'i');
 
-bem.Library = makeBem(null, 'library');
-bem.Library__typeFilter = makeBem(bem.Library, 'type-filter', 'label');
-
 bem.List = makeBem(null, 'list');
 bem.List__heading = makeBem(bem.List, 'heading');
 bem.List__subheading = makeBem(bem.List, 'subheading');
@@ -254,7 +251,7 @@ bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper');
 bem.FormSidebar = makeBem(null, 'form-sidebar');
 bem.FormSidebar__item = makeBem(bem.FormSidebar, 'item', 'a');
 bem.FormSidebar__itemText = makeBem(bem.FormSidebar, 'item-text');
-bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label', 'a');
+bem.FormSidebar__label = makeBem(bem.FormSidebar, 'label');
 bem.FormSidebar__labelText = makeBem(bem.FormSidebar, 'label-text');
 bem.FormSidebar__labelCount = makeBem(bem.FormSidebar, 'label-count');
 bem.FormSidebar__grouping = makeBem(bem.FormSidebar, 'grouping');
@@ -283,24 +280,11 @@ bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
 bem.TextBox__description = makeBem(bem.TextBox, 'description');
 bem.TextBox__error = makeBem(bem.TextBox, 'error');
 
-bem.Checkbox = makeBem(null, 'checkbox');
-bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
-bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
-bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
-
-bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul');
-bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li');
-
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');
 bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');
 bem.ToggleSwitch__slider = makeBem(bem.ToggleSwitch, 'slider', 'span');
 bem.ToggleSwitch__label = makeBem(bem.ToggleSwitch, 'label', 'span');
-
-bem.Radio = makeBem(null, 'radio');
-bem.Radio__row = makeBem(bem.Radio, 'row', 'label');
-bem.Radio__input = makeBem(bem.Radio, 'input', 'input');
-bem.Radio__label = makeBem(bem.Radio, 'label', 'span');
 
 bem.PasswordStrength = makeBem(null, 'password-strength');
 bem.PasswordStrength__title = makeBem(bem.PasswordStrength, 'title');

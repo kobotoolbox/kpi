@@ -830,7 +830,7 @@ def test_kuid_persists():
             {'type': 'text', 'name': 'def', '$kuid': initial_kuid_2},
         ],
     })
-    # kobo_specific_types=True avoids calling _strip_kuids
+    # kobo_specific_types=True avoids calling _strip_dollar_fields
     # so, can we assume that kuids are supposed to remain?
     content = asset.ordered_xlsform_content(kobo_specific_types=True)
     # kuids are stripped in "kobo_to_xlsform.to_xlsform_structure(...)"

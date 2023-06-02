@@ -1,14 +1,13 @@
-const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
-const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
 const WebpackCommon = require('./webpack.common');
+const TerserPlugin = require('terser-webpack-plugin');
 
-const outputPath = path.resolve(__dirname, '../jsapp/compiled/');
-// ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
-fs.mkdirSync(outputPath, {recursive: true});
+const publicPath =
+  (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') +
+  '/static/compiled/';
 
-module.exports = WebpackCommon({
+const prodConfig = WebpackCommon({
   mode: 'production',
   optimization: {
     splitChunks: {
@@ -20,13 +19,21 @@ module.exports = WebpackCommon({
         },
       },
     },
+    // Speed up the minify step with swc
+    // https://webpack.js.org/plugins/terser-webpack-plugin/#swc
+    minimizer: [
+      new TerserPlugin({
+        minify: TerserPlugin.swcMinify,
+        terserOptions: {},
+      }),
+    ],
   },
   entry: {
     app: './jsapp/js/main.es6',
     browsertests: path.resolve(__dirname, '../test/index.js'),
   },
   output: {
-    path: outputPath,
+    path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
     filename: '[name]-[contenthash].js',
   },
@@ -44,3 +51,12 @@ module.exports = WebpackCommon({
     errorDetails: true,
   },
 });
+
+// Print speed measurements if env variable MEASURE_WEBPACK_PLUGIN_SPEED is set
+if (process.env.MEASURE_WEBPACK_PLUGIN_SPEED) {
+  const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+  const smp = new SpeedMeasurePlugin();
+  module.exports = smp.wrap(prodConfig);
+} else {
+  module.exports = prodConfig;
+}

@@ -1,24 +1,24 @@
 # coding: utf-8
 # 😬
 import copy
+import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
 
-from jsonschema import validate as jsonschema_validate
-
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch, Q
+from django.db.models import Prefetch, Q, F
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from jsonschema import validate as jsonschema_validate
 
 from kobo.apps.reports.constants import (
     SPECIFIC_REPORTS_KEY,
@@ -32,7 +32,6 @@ from kobo.apps.subsequences.utils import (
     advanced_submission_jsonschema,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
-
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPES_WITH_CONTENT,
@@ -71,6 +70,7 @@ from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     ObjectPermissionMixin,
     XlsExportableMixin,
+    StandardizeSearchableFieldMixin,
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
@@ -83,7 +83,7 @@ from kpi.tasks import remove_asset_snapshots
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
-class AssetManager(models.Manager):
+class AssetWithoutPendingDeletedManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
         update_parent_languages = kwargs.pop('update_parent_languages', True)
 
@@ -108,19 +108,21 @@ class AssetManager(models.Manager):
 
     def deployed(self):
         """
-        Filter for deployed assets (i.e. assets having at least one deployed
-        version) in an efficient way that doesn't involve joining or counting.
-        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        Filter for deployed assets (i.e. assets without a null value for `date_deployed`)
         """
-        deployed_versions = AssetVersion.objects.filter(
-            asset=OuterRef('pk'), deployed=True
-        )
-        return self.annotate(deployed=Exists(deployed_versions)).filter(
-            deployed=True
-        )
+        return self.exclude(date_deployed__isnull=True)
 
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(pending_delete=True)
+
+
+class AssetAllManager(AssetWithoutPendingDeletedManager):
+
+    def get_queryset(self):
+        return super(AssetWithoutPendingDeletedManager, self).get_queryset()
 
 
 class KpiTaggableManager(_TaggableManager):
@@ -128,7 +130,7 @@ class KpiTaggableManager(_TaggableManager):
     def add(self, *tags, **kwargs):
         """ A wrapper that replaces spaces in tag names with dashes and also
         strips leading and trailng whitespace. Behavior should match the
-        TagsInput transform function in app.es6. """
+        cleanupTags function in jsapp/js/utils.ts. """
         tags_out = []
         for t in tags:
             # Modify strings only; the superclass' add() method will then
@@ -146,10 +148,12 @@ class Asset(ObjectPermissionMixin,
             DeployableMixin,
             XlsExportableMixin,
             FormpackXLSFormUtilsMixin,
+            StandardizeSearchableFieldMixin,
             models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+    date_deployed = models.DateTimeField(null=True)
     content = models.JSONField(default=dict)
     summary = models.JSONField(default=dict)
     report_styles = models.JSONField(default=dict)
@@ -159,7 +163,8 @@ class Asset(ObjectPermissionMixin,
     advanced_features = LazyDefaultJSONBField(default=dict)
     known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
+        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY, db_index=True
+    )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
@@ -194,14 +199,22 @@ class Asset(ObjectPermissionMixin,
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
+    pending_delete = models.BooleanField(default=False)
 
-    objects = AssetManager()
+    objects = AssetWithoutPendingDeletedManager()
+    all_objects = AssetAllManager()
 
     @property
     def kind(self):
         return 'asset'
 
     class Meta:
+
+        indexes = [
+            GinIndex(
+                F('settings__country_codes'), name='settings__country_codes_idx'
+            ),
+        ]
 
         # Example in Django documentation  represents `ordering` as a list
         # (even if it can be a list or a tuple). We enforce the type to `list`
@@ -402,78 +415,6 @@ class Asset(ObjectPermissionMixin,
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
-    def get_advanced_feature_instances(self):
-        return advanced_feature_instances(self.content, self.advanced_features)
-
-    @property
-    def has_advanced_features(self):
-        if self.advanced_features is None:
-            return False
-        return len(self.advanced_features) > 0
-
-    def _get_additional_fields(self):
-        return parse_known_cols(self.known_cols)
-
-    def _get_engines(self):
-        for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
-
-    def analysis_form_json(self):
-        additional_fields = list(self._get_additional_fields())
-        engines = dict(self._get_engines())
-        return {'engines': engines, 'additional_fields': additional_fields}
-
-    def validate_advanced_features(self):
-        if self.advanced_features is None:
-            self.advanced_features = {}
-        jsonschema_validate(instance=self.advanced_features,
-                            schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
-
-    def update_submission_extra(self, content, user=None):
-        submission_uuid = content.get('submission')
-        # the view had better have handled this
-        assert submission_uuid is not None
-
-        # `select_for_update()` can only lock things that exist; make sure
-        # a `SubmissionExtras` exists for this submission before proceeding
-        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
-
-        with transaction.atomic():
-            sub = (
-                self.submission_extras.filter(submission_uuid=submission_uuid)
-                .select_for_update()
-                .first()
-            )
-            instances = self.get_advanced_feature_instances()
-            compiled_content = {**sub.content}
-            for instance in instances:
-                compiled_content = instance.compile_revised_record(
-                    compiled_content, edits=content
-                )
-            sub.content = compiled_content
-            sub.save()
-
-        return sub
-
-    def get_advanced_submission_schema(self, url=None,
-                                       content=False):
-        if len(self.advanced_features) == 0:
-            NO_FEATURES_MSG = 'no advanced features activated for this form'
-            return {'type': 'object', '$description': NO_FEATURES_MSG}
-        last_deployed_version = self.deployed_versions.first()
-        if content:
-            return advanced_submission_jsonschema(content,
-                                                  self.advanced_features,
-                                                  url=url)
-        if last_deployed_version is None:
-            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
-            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
-        content = last_deployed_version.version_content
-        return advanced_submission_jsonschema(content,
-                                              self.advanced_features,
-                                              url=url)
-
     def adjust_content_on_save(self):
         """
         This is called on save by default if content exists.
@@ -489,6 +430,7 @@ class Asset(ObjectPermissionMixin,
         self._insert_qpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
+        self._remove_version(self.content)
 
         settings = self.content['settings']
         _title = settings.pop('form_title', None)
@@ -508,7 +450,13 @@ class Asset(ObjectPermissionMixin,
             strip_kobo_locking_profile(self.content)
 
         if _title is not None:
-            self.name = _title
+            # Remove newlines and tabs (they are stripped in front end anyway)
+            self.name = re.sub(r'[\n\t]+', '', _title)
+
+    def analysis_form_json(self):
+        additional_fields = list(self._get_additional_fields())
+        engines = dict(self._get_engines())
+        return {'engines': engines, 'additional_fields': additional_fields}
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -550,6 +498,26 @@ class Asset(ObjectPermissionMixin,
 
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
+
+    def get_advanced_feature_instances(self):
+        return advanced_feature_instances(self.content, self.advanced_features)
+
+    def get_advanced_submission_schema(self, url=None, content=False):
+        if len(self.advanced_features) == 0:
+            NO_FEATURES_MSG = 'no advanced features activated for this form'
+            return {'type': 'object', '$description': NO_FEATURES_MSG}
+        last_deployed_version = self.deployed_versions.first()
+        if content:
+            return advanced_submission_jsonschema(
+                content, self.advanced_features, url=url
+            )
+        if last_deployed_version is None:
+            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
+            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
+        content = last_deployed_version.version_content
+        return advanced_submission_jsonschema(
+            content, self.advanced_features, url=url
+        )
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -680,6 +648,12 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
+    @property
+    def has_advanced_features(self):
+        if self.advanced_features is None:
+            return False
+        return len(self.advanced_features) > 0
 
     def has_subscribed_user(self, user_id):
         # This property is only needed when `self` is a collection.
@@ -841,9 +815,27 @@ class Asset(ObjectPermissionMixin,
         ):
             self.validate_advanced_features()
 
+        # standardize settings (only when required)
+        if (
+            (not update_fields or update_fields and 'settings' in update_fields)
+            and self.asset_type in [ASSET_TYPE_COLLECTION, ASSET_TYPE_SURVEY]
+        ):
+            self.standardize_json_field('settings', 'country', list)
+            self.standardize_json_field(
+                'settings',
+                'country_codes',
+                list,
+                [c['value'] for c in self.settings['country']],
+                force_default=True
+            )
+            self.standardize_json_field('settings', 'sector', dict)
+            self.standardize_json_field('settings', 'description', str)
+            self.standardize_json_field('settings', 'organization', str)
+
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
             self._populate_summary()
+            self.standardize_json_field('summary', 'languages', list)
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -965,6 +957,32 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_submission_extra(self, content, user=None):
+        submission_uuid = content.get('submission')
+        # the view had better have handled this
+        assert submission_uuid is not None
+
+        # `select_for_update()` can only lock things that exist; make sure
+        # a `SubmissionExtras` exists for this submission before proceeding
+        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
+
+        with transaction.atomic():
+            sub = (
+                self.submission_extras.filter(submission_uuid=submission_uuid)
+                .select_for_update()
+                .first()
+            )
+            instances = self.get_advanced_feature_instances()
+            compiled_content = {**sub.content}
+            for instance in instances:
+                compiled_content = instance.compile_revised_record(
+                    compiled_content, edits=content
+                )
+            sub.content = compiled_content
+            sub.save()
+
+        return sub
+
     def update_languages(self, children=None):
         """
         Updates object's languages by aggregating all its children's languages
@@ -1011,6 +1029,14 @@ class Asset(ObjectPermissionMixin,
         self.summary['languages'] = languages
         self.save(update_fields=['summary'])
 
+    def validate_advanced_features(self):
+        if self.advanced_features is None:
+            self.advanced_features = {}
+        jsonschema_validate(
+            instance=self.advanced_features,
+            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+        )
+
     @property
     def version__content_hash(self):
         # Avoid reading the property `self.latest_version` more than once, since
@@ -1038,6 +1064,14 @@ class Asset(ObjectPermissionMixin,
             count = count + 1
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
+
+    def _get_additional_fields(self):
+        return parse_known_cols(self.known_cols)
+
+    def _get_engines(self):
+        for instance in self.get_advanced_feature_instances():
+            for key, val in instance.engines():
+                yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

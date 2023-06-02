@@ -1,8 +1,6 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
-import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
@@ -10,7 +8,7 @@ import {buildUserUrl} from 'utils';
 import {
   ROOT_URL,
   ANON_USERNAME,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
 } from 'js/constants';
 
 class PublicShareSettings extends React.Component {
@@ -74,7 +72,5 @@ class PublicShareSettings extends React.Component {
     );
   }
 }
-
-reactMixin(PublicShareSettings.prototype, mixins.permissions);
 
 export default PublicShareSettings;

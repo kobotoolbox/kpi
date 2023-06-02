@@ -5,7 +5,6 @@
 line-length = 80
 skip-string-normalization = true
 [tool.isort]
-default_section = "THIRDPARTY"
+profile = "black"
 known_first_party = "kobo"
-known_django = "django"
-sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+no_lines_before = ["LOCALFOLDER"]

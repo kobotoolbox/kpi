@@ -87,7 +87,7 @@ class PasswordStrength extends React.Component {
           <bem.PasswordStrength__indicator/>
         </bem.PasswordStrength__bar>
 
-        {(report.feedback.warning || report.feedback.suggestions.length > 0) &&
+        {(report.feedback.warning || report.feedback.suggestions.length > 0) ?
           <bem.PasswordStrength__messages>
             {report.feedback.warning &&
               <bem.PasswordStrength__message m='warning'>
@@ -104,7 +104,8 @@ class PasswordStrength extends React.Component {
                 )
               })
             }
-          </bem.PasswordStrength__messages>
+          </bem.PasswordStrength__messages> :
+          <bem.PasswordStrength__messages m='none' />
         }
       </bem.PasswordStrength>
     )

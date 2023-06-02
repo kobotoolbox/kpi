@@ -62,6 +62,14 @@ def populate_paths(_content):
         elif row['type'] in ['end_group', 'end_repeat']:
             group_stack.pop()
             continue
+
+        # HOTFIX 2022-12-06
+        if rowname is None:
+            rowname = 'missingrowname'
+            import logging
+            logging.error('missing row name', extra={'path': group_stack})
+        # /HOTFIX 2022-12-06
+
         row['qpath'] = '-'.join([*group_stack, rowname])
     return content
 

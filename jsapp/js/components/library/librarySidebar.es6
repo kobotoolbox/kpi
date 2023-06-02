@@ -4,9 +4,12 @@ import reactMixin from 'react-mixin';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import {stores} from 'js/stores';
+import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import myLibraryStore from './myLibraryStore';
+import { routerIsActive } from '../../router/legacy';
+import {NavLink} from 'react-router-dom';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -41,11 +44,11 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   isMyLibrarySelected() {
-    return this.context.router.isActive('library/my-library');
+    return routerIsActive('library/my-library');
   }
 
   isPublicCollectionsSelected() {
-    return this.context.router.isActive('library/public-collections');
+    return routerIsActive('library/public-collections');
   }
 
   render() {
@@ -58,29 +61,37 @@ class LibrarySidebar extends Reflux.Component {
       <React.Fragment>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
-          disabled={!stores.session.isLoggedIn}
+          disabled={!sessionStore.isLoggedIn}
           onClick={this.showLibraryNewModal}
         >
           {t('new')}
         </bem.KoboButton>
 
         <bem.FormSidebar m={sidebarModifier}>
-          <bem.FormSidebar__label
-            m={{selected: this.isMyLibrarySelected()}}
-            href='#/library/my-library'
+          <NavLink
+            className='form-sidebar__navlink'
+            to='/library/my-library'
           >
-            <i className='k-icon k-icon-library'/>
-            <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
-            <bem.FormSidebar__labelCount>{this.state.myLibraryCount}</bem.FormSidebar__labelCount>
-          </bem.FormSidebar__label>
+            <bem.FormSidebar__label
+              m={{selected: this.isMyLibrarySelected()}}
+            >
+              <i className='k-icon k-icon-library'/>
+              <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
+              <bem.FormSidebar__labelCount>{this.state.myLibraryCount}</bem.FormSidebar__labelCount>
+            </bem.FormSidebar__label>
+          </NavLink>
 
-          <bem.FormSidebar__label
-            m={{selected: this.isPublicCollectionsSelected()}}
-            href='#/library/public-collections'
+          <NavLink
+            className='form-sidebar__navlink'
+            to='/library/public-collections'
           >
-            <i className='k-icon k-icon-library-public'/>
-            <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
+            <bem.FormSidebar__label
+              m={{selected: this.isPublicCollectionsSelected()}}
+            >
+              <i className='k-icon k-icon-library-public'/>
+              <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
+            </bem.FormSidebar__label>
+          </NavLink>
         </bem.FormSidebar>
       </React.Fragment>
     );

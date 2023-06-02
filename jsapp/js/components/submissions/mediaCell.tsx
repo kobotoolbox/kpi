@@ -14,7 +14,7 @@ import type {
 import Button from 'js/components/common/button';
 import {truncateString} from 'js/utils';
 import {openProcessing} from 'js/components/processing/processingUtils';
-import {hashHistory} from 'react-router';
+// import {hashHistory} from 'react-router';
 import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 

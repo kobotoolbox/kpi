@@ -1,8 +1,41 @@
 # coding: utf-8
 import json
 
-
+from django.db.models import Lookup, Field
 from django.db.models.expressions import Func, Value
+
+
+@Field.register_lookup
+class InArray(Lookup):
+
+    lookup_name = 'in_array'
+    prepare_rhs = False
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + tuple(rhs_params)
+        return '%s ?| %s' % (lhs, rhs), params
+
+
+class IncrementValue(Func):
+
+    function = 'jsonb_set'
+    template = (
+        "%(function)s(%(expressions)s,"
+        "'{\"%(keyname)s\"}',"
+        "(COALESCE(%(expressions)s ->> '%(keyname)s', '0')::int "
+        "+ %(increment)s)::text::jsonb)"
+    )
+    arity = 1
+
+    def __init__(self, expression: str, keyname: str, increment: int, **extra):
+        super().__init__(
+            expression,
+            keyname=keyname,
+            increment=increment,
+            **extra,
+        )
 
 
 class ReplaceValues(Func):
