@@ -9,6 +9,7 @@ import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
+import Icon from 'js/components/common/icon';
 
 export default function AccountMenu() {
   const navigate = useNavigate();
@@ -121,7 +122,7 @@ export default function AccountMenu() {
               data-popover-menu-stop-blur
               tabIndex='0'
             >
-              <i className='k-icon k-icon-language' />
+              <Icon name='language' size='l'/>
               {t('Language')}
             </bem.AccountBox__menuLink>
 
@@ -130,7 +131,7 @@ export default function AccountMenu() {
 
           <bem.AccountBox__menuLI m={'logout'} key='4'>
             <bem.AccountBox__menuLink onClick={actions.auth.logout}>
-              <i className='k-icon k-icon-logout' />
+              <Icon name='logout' size='l'/>
               {t('Logout')}
             </bem.AccountBox__menuLink>
           </bem.AccountBox__menuLI>

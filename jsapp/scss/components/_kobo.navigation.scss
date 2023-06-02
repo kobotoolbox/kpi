@@ -1,4 +1,6 @@
-@use "scss/_variables";
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'scss/_variables';
 @use 'scss/z-indexes';
 @use '~kobo-common/src/styles/colors';
 
@@ -172,20 +174,11 @@
     padding-bottom: 15px;
 
     a {
+      @include mixins.centerRowFlex;
+      gap: sizes.$x3;
       color: colors.$kobo-gray-40;
       cursor: pointer;
       font-weight: normal;
-      display: block;
-
-      i {
-        font-size: 24px;
-        margin: 3px;
-        vertical-align: -6px;
-      }
-
-      span {
-        vertical-align: middle;
-      }
 
       &:hover {
         color: colors.$kobo-blue;
