@@ -8,6 +8,8 @@ import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
 import type {AssetsTableContextName} from './assetsTableConstants';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTableConstants';
+import Icon from 'js/components/common/icon';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
 interface AssetsTableRowProps {
   asset: AssetResponse;
@@ -16,10 +18,11 @@ interface AssetsTableRowProps {
 
 class AssetsTableRow extends React.Component<AssetsTableRowProps> {
   render() {
-    let iconClassName = '';
-    if (this.props.asset) {
-      iconClassName = assetUtils.getAssetIcon(this.props.asset);
+    if (!this.props.asset) {
+      return null;
     }
+
+    const iconName = assetUtils.getAssetIconName(this.props.asset);
 
     let rowCount = null;
     if (
@@ -43,7 +46,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
         </bem.AssetsTableRow__buttons>
 
         <bem.AssetsTableRow__column m='icon-status'>
-          <i className={`k-icon ${iconClassName}`}/>
+          <Icon name={iconName} size='s'/>
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>

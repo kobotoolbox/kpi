@@ -13,7 +13,7 @@ import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {assign} from 'js/utils';
 import {getLoginUrl, isAnyProjectsViewRoute} from 'js/router/routerUtils';
-import {getAssetIcon} from 'js/assetUtils';
+import {getAssetIconName} from 'js/assetUtils';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
@@ -130,7 +130,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
 
     let iconClassName = '';
     if (this.state.asset) {
-      iconClassName = getAssetIcon(this.state.asset);
+      iconClassName = `k-icon-${getAssetIconName(this.state.asset)}`;
     }
 
     let librarySearchBoxPlaceholder = t('Search My Library');

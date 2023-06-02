@@ -43,6 +43,8 @@ import {
   getSupplementalTranslationPath,
 } from 'js/components/processing/processingUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {IconName} from 'jsapp/fonts/k-icons';
+import Icon from 'js/components/common/icon';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -266,7 +268,7 @@ export function isAssetPublic(permissions?: Permission[]) {
 }
 
 /** For getting the icon name for given asset type. */
-export function getAssetIconName(asset: AssetResponse) {
+export function getAssetIconName(asset: AssetResponse): IconName {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
       if ('summary' in asset && asset.summary?.lock_any) {
@@ -478,21 +480,14 @@ export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
   return undefined;
 }
 
-export function renderQuestionTypeIcon(
-  rowType: AnyRowTypeName
-): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
+/**
+ * Renders an icon for given question type with a native tooltip containing
+ * the name of the question type.
+ */
+export function renderQuestionTypeIcon(rowType: AnyRowTypeName) {
   const rowTypeIcon = getRowTypeIcon(rowType);
   if (rowTypeIcon) {
-    // TODO: use Icon component here, but please check out all usages first.
-    // Also make sure the icon size is right.
-    // It should be done while working on https://github.com/kobotoolbox/kpi/issues/3571
-    return React.createElement(
-      'i',
-      {
-        className: `k-icon k-icon-${rowTypeIcon}`,
-        title: rowType,
-      }
-    );
+    return <span title={rowType}><Icon name={rowTypeIcon} size='l'/></span>;
   } else {
     return null;
   }
@@ -755,7 +750,7 @@ export default {
   buildAssetUrl,
   cleanupTags,
   getAssetDisplayName,
-  getAssetIcon,
+  getAssetIconName,
   getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
