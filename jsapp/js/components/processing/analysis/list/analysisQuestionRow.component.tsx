@@ -118,7 +118,12 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
         isDragging: monitor.isDragging(),
       };
     },
-    end: () => {
+    end: (_item, monitor) => {
+      // Make sure we only accept drops on target
+      if (!monitor.didDrop()) {
+        return;
+      }
+
       analysisQuestions?.dispatch({type: 'applyQuestionsOrder'});
 
       // TODO make actual API call here
