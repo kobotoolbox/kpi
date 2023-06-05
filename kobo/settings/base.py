@@ -486,6 +486,7 @@ DJANGO_LANGUAGE_CODES = env.str(
     default=(
         'am '  # Amharic
         'ar '  # Arabic
+        'bn '  # Bengali
         'cs '  # Czech
         'de '  # German
         'en '  # English
@@ -496,6 +497,8 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
+        'my '  # Burmese/Myanmar
+        'ny '  # Nyanja/Chewa
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
