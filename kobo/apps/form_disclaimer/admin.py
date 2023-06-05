@@ -1,5 +1,7 @@
 from django.contrib import admin
+from django.db import transaction
 
+from kpi.deployment_backends.kc_access.shadow_models import KobocatFormDisclaimer
 from .models import (
     FormDisclaimer,
     OverriddenFormDisclaimer,
@@ -29,13 +31,19 @@ class FormDisclaimerAdmin(admin.ModelAdmin):
             .order_by('-default', 'language__name')
         )
 
+    def delete_queryset(self, request, queryset):
+        to_delete_ids = list(queryset.values_list('pk', flat=True))
+        with transaction.atomic():
+            super().delete_queryset(request, queryset)
+            KobocatFormDisclaimer.objects.filter(pk__in=to_delete_ids).delete()
+
 
 class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
 
     form = OverriddenFormDisclaimerForm
     add_form = OverriddenFormDisclaimerForm
 
-    list_display = ['get_language', 'asset']
+    list_display = ['get_language', 'asset', 'get_status']
     search_fields = [
         'language__code',
         'language__name',
@@ -45,6 +53,10 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
     ]
     autocomplete_fields = ['language', 'asset']
     exclude = ['default']
+
+    @admin.display(description='Status')
+    def get_status(self, obj):
+        return 'Override' if obj.message.strip() else 'Hide'
 
     def get_queryset(self, request):
         queryset = super(FormDisclaimerAdmin, self).get_queryset(request)
