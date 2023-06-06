@@ -17,16 +17,19 @@ def copy_uid_to_id(apps, schema_editor):
         apps.get_model("organizations", "OrganizationOwner"),
         apps.get_model("organizations", "OrganizationUser"),
     ]
-    customer_model = apps.get_model("djstripe", "Customer")
+    djstripe_installed = apps.is_installed("djstripe")
+    if djstripe_installed:
+        customer_model = apps.get_model("djstripe", "Customer")
     orgs = Organization.objects.only('id', 'uid').all()
     for org in orgs:
         for model in related_models:
             model.objects.filter(organization=org).update(
                 organization=org.uid
             )
-        customer_model.objects.filter(subscriber=org.id).update(
-            subscriber=org.uid
-        )
+        if djstripe_installed:
+            customer_model.objects.filter(subscriber=org.id).update(
+                subscriber=org.uid
+            )
     Organization.objects.update(id=F('uid'))
 
 
@@ -37,7 +40,9 @@ def copy_id_to_uid_and_revert_to_integer_ids(apps, schema_editor):
         apps.get_model("organizations", "OrganizationOwner"),
         apps.get_model("organizations", "OrganizationUser"),
     ]
-    customer_model = apps.get_model("djstripe", "Customer")
+    djstripe_installed = apps.is_installed("djstripe")
+    if djstripe_installed:
+        customer_model = apps.get_model("djstripe", "Customer")
     Organization.objects.update(uid=F('id'))
     for new_id, org in enumerate(
         Organization.objects.only('id').all(), start=1
@@ -46,9 +51,10 @@ def copy_id_to_uid_and_revert_to_integer_ids(apps, schema_editor):
             model.objects.filter(organization=org).update(
                 organization=new_id
             )
-        customer_model.objects.filter(subscriber=org.uid).update(
-            subscriber=new_id
-        )
+        if djstripe_installed:
+            customer_model.objects.filter(subscriber=org.uid).update(
+                subscriber=new_id
+            )
         Organization.objects.filter(id=org.id).update(id=new_id)
 
 
