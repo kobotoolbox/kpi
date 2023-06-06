@@ -5,6 +5,18 @@
 .root {
   display: flex;
   flex-direction: row;
+
+  &.isBeingDragged {
+    opacity: 0.5;
+  }
+
+  &.isDragDisabled {
+    .dragHandle {
+      cursor: initial;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  }
 }
 
 .content {
@@ -29,6 +41,6 @@
     height: calc(100% + analysisVariables.$rows-gap);
     position: absolute;
     top: analysisVariables.$rows-gap * -0.5;
-    left: calc(-50% - analysisVariables.$icon-size*0.5);
+    left: calc(-50% - analysisVariables.$icon-size * 0.5);
   }
 }

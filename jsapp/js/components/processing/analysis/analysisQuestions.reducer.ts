@@ -1,29 +1,6 @@
-import {generateUid} from 'jsapp/js/utils';
-import type {
-  AnalysisQuestion,
-  AnalysisQuestionType,
-  AdditionalFields,
-} from './constants';
-
-export type AnalysisQuestionsAction =
-  | {type: 'addQuestion'; payload: {type: AnalysisQuestionType}}
-  | {type: 'startEditingQuestion'; payload: {uid: string}}
-  | {type: 'stopEditingQuestion'; payload: {uid: string}}
-  | {type: 'deleteQuestion'; payload: {uid: string}}
-  | {type: 'deleteQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
-  | {
-      type: 'updateQuestion';
-      payload: {
-        uid: string;
-        label: string;
-        additionalFields?: AdditionalFields;
-      };
-    }
-  | {type: 'updateQuestionCompleted'; payload: {questions: AnalysisQuestion[]}}
-  | {type: 'updateResponse'; payload: {uid: string; response: string}}
-  | {type: 'updateResponseCompleted'; payload: {questions: AnalysisQuestion[]}}
-  | {type: 'initialiseSearch'; payload: {uid: string}}
-  | {type: 'initialiseSearchCompleted'; payload: {questions: AnalysisQuestion[]}};
+import {generateUid, moveArrayElementToIndex} from 'jsapp/js/utils';
+import type {AnalysisQuestion} from './constants';
+import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
 
 interface AnalysisQuestionDraftable extends AnalysisQuestion {
   isDraft?: boolean;
@@ -39,6 +16,14 @@ export interface AnalysisQuestionsState {
    * to this list.
    */
   questionsBeingEdited: string[];
+  /**
+   * An ordererd list of uids of questions.
+   *
+   * When user is not reordering questions, this list doesn't exist. The purpose
+   * of it is to avoid unnecessary API calls during reordering - we make single
+   * call on reordering end.
+   */
+  draftQuestionsOrder?: string[];
 }
 
 // I define this type to ensure that the reducer's returned state always
@@ -155,6 +140,29 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questions: action.payload.questions,
       };
     }
+    case 'reorderQuestion': {
+      return {
+        ...state,
+        questions: moveArrayElementToIndex(
+          state.questions,
+          action.payload.oldIndex,
+          action.payload.newIndex
+        ),
+      };
+    }
+    case 'applyQuestionsOrder': {
+      return {
+        ...state,
+        isPending: true,
+      };
+    }
+    case 'applyQuestionsOrderCompleted': {
+      return {
+        ...state,
+        isPending: false,
+        questions: action.payload.questions,
+      };
+    }
     case 'initialiseSearch': {
       return {
         ...state,
@@ -168,6 +176,8 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questions: action.payload.questions,
       };
     }
+    default: {
+      return state;
+    }
   }
-  return state;
 };

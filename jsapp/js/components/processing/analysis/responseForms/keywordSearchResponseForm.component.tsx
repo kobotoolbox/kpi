@@ -60,10 +60,7 @@ export default function KeywordSearchResponseForm(
   }
 
   function applySearch() {
-    analysisQuestions?.dispatch({
-      type: 'initialiseSearch',
-      payload: {uid: props.uid},
-    });
+    analysisQuestions?.dispatch({type: 'initialiseSearch'});
 
     // TODO make actual API call here
     // For now we make a fake response

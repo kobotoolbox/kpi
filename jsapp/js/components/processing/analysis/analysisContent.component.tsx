@@ -13,13 +13,13 @@ export default function AnalysisContent() {
 
   return (
     <section className={styles.root}>
-      {analysisQuestions.state.questions.length === 0 &&
+      {analysisQuestions.state.questions.length === 0 && (
         <AnalysisContentEmpty />
-      }
+      )}
 
-      {analysisQuestions.state.questions.length > 0 &&
+      {analysisQuestions.state.questions.length > 0 && (
         <AnalysisQuestionsList />
-      }
+      )}
     </section>
   );
 }

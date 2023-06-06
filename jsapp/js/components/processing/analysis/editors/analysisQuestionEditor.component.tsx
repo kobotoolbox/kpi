@@ -13,11 +13,13 @@ import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
 import type {AdditionalFields} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 
-interface DefaultEditorProps {
+interface AnalysisQuestionEditorProps {
   uid: string;
 }
 
-export default function DefaultEditor(props: DefaultEditorProps) {
+export default function AnalysisQuestionEditor(
+  props: AnalysisQuestionEditorProps
+) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
@@ -86,14 +88,7 @@ export default function DefaultEditor(props: DefaultEditorProps) {
 
     // Save only if there are no errors
     if (!hasErrors) {
-      analysisQuestions?.dispatch({
-        type: 'updateQuestion',
-        payload: {
-          uid: props.uid,
-          label: label,
-          additionalFields: additionalFields,
-        },
-      });
+      analysisQuestions?.dispatch({type: 'updateQuestion'});
 
       // TODO make actual API call here
       // For now we make a fake response

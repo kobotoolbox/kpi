@@ -579,6 +579,10 @@ export const FUSE_OPTIONS = {
   ignoreLocation: true,
 };
 
+export const DND_TYPES = {
+  ANALYSIS_QUESTION: 'qualitative-analysis-question-row',
+};
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,

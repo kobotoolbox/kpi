@@ -35,11 +35,10 @@ export default function AnalysisHeader() {
           [styles.addQuestionMenuButton]: true,
           // We want to disable the Keyword Search question type when there is
           // no transcript or translation.
-          [styles.addQuestionMenuButtonDisabled]: (
+          [styles.addQuestionMenuButtonDisabled]:
             definition.type === 'qual_auto_keyword_count' &&
             singleProcessingStore.getTranscript() === undefined &&
-            singleProcessingStore.getTranslations().length === 0
-          ),
+            singleProcessingStore.getTranslations().length === 0,
         })}
         key={definition.type}
         onClick={() => {
