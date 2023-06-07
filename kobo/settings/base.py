@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
+    'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
 )
 
 MIDDLEWARE = [
@@ -498,7 +499,6 @@ DJANGO_LANGUAGE_CODES = env.str(
         'ja '  # Japanese
         'ku '  # Kurdish
         'my '  # Burmese/Myanmar
-        'ny '  # Nyanja/Chewa
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
@@ -543,7 +543,7 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
 
 # django-markdownx, for in-app messages
-MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 # Github-flavored Markdown from `py-gfm`,
 # ToDo Uncomment when it's compatible with Markdown 3.x
 # MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']

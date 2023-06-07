@@ -9,6 +9,7 @@ from markdownx.models import MarkdownxField
 from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
 from private_storage.fields import PrivateFileField
 
+from kobo.apps.markdownx_uploader.models import MarkdownxUploaderFile
 from kpi.fields import KpiUidField
 
 EPOCH_BEGINNING = datetime.datetime.utcfromtimestamp(0)
@@ -55,23 +56,9 @@ class InAppMessage(models.Model):
         return result
 
 
-class InAppMessageFile(models.Model):
-    """
-    A file uploaded by the django-markdownx editor. It doesn't have a foreign
-    key to `InAppMessage` because it was likely uploaded while the message was
-    still being drafted, before ever being saved in the database
-    """
-    # TODO: Clean these up if they're no longer referenced by an
-    # `InAppMessage`? Parse the Markdown to figure it out? GitHub does it
-    # somehow…
-    content = PrivateFileField(
-        # Avoid collisions with usernames, which must begin with `[a-z]`
-        # (see `kpi.forms.USERNAME_REGEX`)
-        upload_to='__in_app_message/%Y/%m/%d/'
-    )
-
-    def __str__(self):
-        return self.content.name
+class InAppMessageFile(MarkdownxUploaderFile):
+    class Meta:
+        proxy = True
 
 
 class InAppMessageUserInteractions(models.Model):

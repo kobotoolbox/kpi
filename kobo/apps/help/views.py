@@ -16,14 +16,6 @@ from .permissions import InAppMessagePermissions
 from .serializers import InAppMessageSerializer
 
 
-class InAppMessageImageUploadView(ImageUploadView):
-    """
-    django-markdownx uses this view to POST files that a user drags-and-drops
-    onto the editor (per `settings.MARKDOWNX_UPLOAD_URLS_PATH`)
-    """
-    form_class = InAppMessageImageForm
-
-
 class InAppMessageFileContentView(PrivateStorageView):
     """
     A view that allows any authenticated user to access the contents of an

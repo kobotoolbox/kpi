@@ -29,6 +29,7 @@ urlpatterns = [
     re_path(r'^markdownx/', include('markdownx.urls')),
     re_path(r'^markitup/', include('markitup.urls')),
     re_path(r'^help/', include('kobo.apps.help.urls')),
+    re_path(r'^markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     path('service_health/', service_health),
     re_path(
         r'kobocat/',
