@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import PasswordStrength from './components/passwordStrength';
+import PasswordStrength from './components/passwordStrength.component';
 
 const PASS_INPUT_ID = 'id_password1';
 
