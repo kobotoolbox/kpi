@@ -156,7 +156,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         else:
             self.save_log(
                 KOBO_INTERNAL_ERROR_STATUS_CODE,
-                "No data available")
+                "Submission has been deleted")
 
         return success
 
