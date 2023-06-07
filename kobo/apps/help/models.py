@@ -4,16 +4,14 @@ import datetime
 
 from django.conf import settings
 from django.db import models
-from django.utils.module_loading import import_string
 from markdownx.models import MarkdownxField
-from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
-from private_storage.fields import PrivateFileField
 
 from kobo.apps.markdownx_uploader.models import MarkdownxUploaderFile
 from kpi.fields import KpiUidField
+from kpi.utils.markdown import markdownify
+
 
 EPOCH_BEGINNING = datetime.datetime.utcfromtimestamp(0)
-markdownify = import_string(MARKDOWNX_MARKDOWNIFY_FUNCTION)
 
 
 class InAppMessage(models.Model):

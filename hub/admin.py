@@ -16,6 +16,7 @@ from django.forms import CharField
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from markdownx.admin import MarkdownxModelAdmin
 
 from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
@@ -341,7 +342,7 @@ class ExtraUserDetailAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ExtraUserDetail, ExtraUserDetailAdmin)
-admin.site.register(SitewideMessage)
+admin.site.register(SitewideMessage, MarkdownxModelAdmin)
 admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
 admin.site.unregister(User)

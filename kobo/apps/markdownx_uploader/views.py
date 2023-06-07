@@ -1,7 +1,9 @@
+from urllib.parse import urlparse
+
 from private_storage.views import PrivateStorageView
 from markdownx.views import ImageUploadView
 
-
+from kpi.utils.urls import absolute_reverse
 from .forms import MarkdownxUploaderImageForm
 from .models import MarkdownxUploaderFile
 
@@ -24,4 +26,11 @@ class MarkdownxUploaderFileContentView(PrivateStorageView):
     model_file_field = 'content'
 
     def can_access_file(self, private_file):
-        return private_file.request.user.is_authenticated
+        try:
+            referrer = self.request.META['HTTP_REFERER']
+        except KeyError:
+            return private_file.request.user.is_authenticated
+        else:
+            parsed_url = urlparse(referrer)
+            referrer = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}'
+            return referrer == absolute_reverse('account_signup')

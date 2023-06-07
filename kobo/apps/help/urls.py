@@ -12,6 +12,7 @@ router = SimpleRouter()
 router.register(r'in_app_messages', InAppMessageViewSet)
 
 urlpatterns = [
+    # keep this route for retro-compatibility
     re_path(r'^in_app_message_file/(?P<path>.*)$',
             InAppMessageFileContentView.as_view(),
             name='in-app-message-file-contents'),

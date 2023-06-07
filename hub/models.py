@@ -10,11 +10,10 @@ from django.http import FileResponse, HttpResponse, HttpResponseNotModified
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.http import http_date
-from markitup.fields import MarkupField
-
 # `was_modified_since` is undocumented(?) but used by django-private-storage,
 # whose approach is emulated here
 from django.views.static import was_modified_since
+from markdownx.models import MarkdownxField
 
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
@@ -23,7 +22,7 @@ from kpi.utils.object_permission import get_database_user
 
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
-    body = MarkupField()
+    body = MarkdownxField()
 
     def __str__(self):
         return self.slug
