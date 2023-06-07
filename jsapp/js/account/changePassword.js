@@ -6,7 +6,7 @@ import sessionStore from "js/stores/session";
 import {actions} from '../actions';
 import bem, {makeBem} from 'js/bem';
 import TextBox from 'js/components/common/textBox';
-import PasswordStrength from 'js/components/passwordStrength';
+import PasswordStrength from 'js/components/passwordStrength.component';
 import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
