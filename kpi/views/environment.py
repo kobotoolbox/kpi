@@ -83,6 +83,7 @@ class EnvironmentView(APIView):
                 ).exists()
             )
         ),
+        'ZXCVBN_PASSWORD_VALIDATION',
     ]
 
     def get(self, request, *args, **kwargs):

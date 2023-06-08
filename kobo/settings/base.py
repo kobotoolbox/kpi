@@ -349,6 +349,62 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
+    # Toggle for ZXCVBN
+    'ZXCVBN_PASSWORD_VALIDATION': (
+        True,
+        'Enables the dropbox library zxcvbn for password validation',
+    ),
+    # Built-in password validator
+    'ENABLE_MINIMUM_LENGTH_VALIDATION': (
+        True,
+        'Enable minimum length validation',
+    ),
+    'MINIMUM_LENGTH_VALIDATION': (
+        10,
+        'Minimum length for all passwords',
+    ),
+    # Build-in password validator
+    'USER_ATTRIBUTE_SIMILARITY_VALIDATOR': (
+        True,
+        "Custom user attribute similarity validation is enabled",
+    ),
+    # Built-in password validator
+    'ENABLE_CUSTOM_COMMON_PASSWORD_VALIDATION': (
+        True,
+        'Enable adding custom common password validation',
+    ),
+    'COMMON_PASSWORD_VALIDATION': (
+        '',
+        'Add to list of common passwords for password validation',
+    ),
+    # Custom password Validator
+    'ENABLE_CUSTOM_CHARACTER_CLASSES_ENABLED': (
+        True,
+        'Enable custom character classes',
+    ),
+    'MINIMUM_CUSTOM_CHARACTER_CLASS_VALIDATION': (
+        3,
+        'The minimum number of character classes which must be set'
+    ),
+    'CUSTOM_CHARACTER_CLASSES_ENABLED': (
+        json.dumps({
+            'character_type_validation': [
+                ['lower_case', '(?=(.*[A-Z]){1,})'],
+                ['upper_case', '(?=(.*[A-Z]){1,})'],
+                ['number', '(?=(?:\D*\d){1,})'],
+                ['symbol', '(?=(.*[\W]){1,})'],
+            ]
+        }),
+        # '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]',
+        'Enable custom character classes for password validation. '
+        'List all custom character classes as a list under "character_type_validation"',
+    ),
+    # Custom password1233 Validator
+    'MOST_RECENT_PASSWORD_VALIDATION': (
+        True,
+        'Enable most recent password validation which will prevernt the user from '
+        'reusing the most recent password',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -410,7 +466,19 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'SECTOR_CHOICES',
         'OPERATIONAL_PURPOSE_CHOICES',
     ),
-    'Trash bin': (
+    'Password Validation': (
+        'ZXCVBN_PASSWORD_VALIDATION',
+        'ENABLE_MINIMUM_LENGTH_VALIDATION',
+        'MINIMUM_LENGTH_VALIDATION',
+        'USER_ATTRIBUTE_SIMILARITY_VALIDATOR',
+        'ENABLE_CUSTOM_COMMON_PASSWORD_VALIDATION',
+        'COMMON_PASSWORD_VALIDATION',
+        'ENABLE_CUSTOM_CHARACTER_CLASSES_ENABLED',
+        'MINIMUM_CUSTOM_CHARACTER_CLASS_VALIDATION',
+        'CUSTOM_CHARACTER_CLASSES_ENABLED',
+        'MOST_RECENT_PASSWORD_VALIDATION',
+    ),
+    'Trashbin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
