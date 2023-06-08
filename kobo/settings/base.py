@@ -101,7 +101,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'oauth2_provider',
-    'markitup',
     'django_digest',
     'kobo.apps.organizations',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
@@ -431,8 +430,8 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# used in kpi.models.sitewide_messages
-MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
+# # used in kpi.models.sitewide_messages
+# MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level
@@ -786,6 +785,12 @@ CELERY_BEAT_SCHEDULE = {
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
         'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every monday at 00:30
+    'markdown-images-garbage-collector': {
+        'task': 'kobo.apps.markdownx_upload.tasks.remove_unused_markdown_files',
+        'schedule': crontab(hour=0, minute=30, day_of_week=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }

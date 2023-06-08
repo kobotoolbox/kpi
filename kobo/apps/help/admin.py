@@ -1,11 +1,14 @@
 # coding: utf-8
 from django.contrib import admin
-from markdownx.admin import MarkdownxModelAdmin
 
+from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
 from .models import InAppMessage, InAppMessageFile
 
 
-class InAppMessageAdmin(MarkdownxModelAdmin):
+class InAppMessageAdmin(MarkdownxModelAdminBase):
+
+    model = InAppMessage
+
     new_message_warning = (
         '⚠ Warning: always create a new message, from scratch, to display new '
         'information. If someone has already dismissed a message, editing it '
@@ -52,4 +55,3 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
 
 
 admin.site.register(InAppMessage, InAppMessageAdmin)
-admin.site.register(InAppMessageFile, admin.ModelAdmin)

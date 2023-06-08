@@ -15,14 +15,18 @@ from django.utils.http import http_date
 from django.views.static import was_modified_since
 from markdownx.models import MarkdownxField
 
+from kobo.apps.markdownx_uploader.models import AbstractMarkdownxModel
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
 
 
-class SitewideMessage(models.Model):
+class SitewideMessage(AbstractMarkdownxModel):
+
     slug = models.CharField(max_length=50)
     body = MarkdownxField()
+
+    markdown_fields = ['body']
 
     def __str__(self):
         return self.slug

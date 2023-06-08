@@ -26,11 +26,15 @@ class MarkdownxUploaderFileContentView(PrivateStorageView):
     model_file_field = 'content'
 
     def can_access_file(self, private_file):
+
+        if private_file.request.user.is_authenticated:
+            return True
+
         try:
             referrer = self.request.META['HTTP_REFERER']
         except KeyError:
-            return private_file.request.user.is_authenticated
-        else:
-            parsed_url = urlparse(referrer)
-            referrer = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}'
-            return referrer == absolute_reverse('account_signup')
+            return False
+
+        parsed_url = urlparse(referrer)
+        referrer = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}'
+        return referrer == absolute_reverse('account_signup')

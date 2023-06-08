@@ -5,8 +5,6 @@ import private_storage.storage.s3boto3
 from django.db import migrations, models
 from django.core.paginator import Paginator
 
-import kobo.apps.markdownx_uploader.models
-
 
 def copy_from_in_app_message_to_markdownx_uploader(apps, schema_editor):
 

@@ -6,7 +6,11 @@ from django.conf import settings
 from django.db import models
 from markdownx.models import MarkdownxField
 
-from kobo.apps.markdownx_uploader.models import MarkdownxUploaderFile
+from kobo.apps.markdownx_uploader.models import (
+    AbstractMarkdownxModel,
+    MarkdownxUploaderFile,
+    MarkdownxUploaderFileReference,
+)
 from kpi.fields import KpiUidField
 from kpi.utils.markdown import markdownify
 
@@ -14,7 +18,7 @@ from kpi.utils.markdown import markdownify
 EPOCH_BEGINNING = datetime.datetime.utcfromtimestamp(0)
 
 
-class InAppMessage(models.Model):
+class InAppMessage(AbstractMarkdownxModel):
     """
     A message, composed in the Django admin interface, displayed to regular
     users within the application
@@ -40,6 +44,8 @@ class InAppMessage(models.Model):
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
     last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    markdown_fields = ['snippet', 'body']
+
     def __str__(self):
         return '{} ({})'.format(self.title, self.uid)
 
@@ -47,9 +53,8 @@ class InAppMessage(models.Model):
     def html(self):
         # TODO: Djangerz template processing...
         # Make `request.user.extra_detail` available in the context as `user`
-        MARKDOWN_FIELDS_TO_CONVERT = ('snippet', 'body')
         result = {}
-        for field in MARKDOWN_FIELDS_TO_CONVERT:
+        for field in self.markdown_fields:
             result[field] = markdownify(getattr(self, field))
         return result
 
