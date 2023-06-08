@@ -1,13 +1,17 @@
 from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
+from markdownx.models import MarkdownxField
 
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatFormDisclaimer,
 )
+from kobo.apps.markdownx_uploader.models import AbstractMarkdownxModel
 
 
-class FormDisclaimer(models.Model):
+class FormDisclaimer(AbstractMarkdownxModel):
+
+    markdown_fields = ['message']
 
     language = models.ForeignKey(
         'languages.language',
@@ -21,7 +25,7 @@ class FormDisclaimer(models.Model):
         blank=True,
         on_delete=models.CASCADE,
     )
-    message = models.TextField(default='')
+    message = MarkdownxField()
     default = models.BooleanField(default=False)
 
     class Meta:

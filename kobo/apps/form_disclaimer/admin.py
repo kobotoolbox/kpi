@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db import transaction
 
+from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
 from kpi.deployment_backends.kc_access.shadow_models import KobocatFormDisclaimer
 from .models import (
     FormDisclaimer,
@@ -9,10 +10,11 @@ from .models import (
 from .forms import FormDisclaimerForm, OverriddenFormDisclaimerForm
 
 
-class FormDisclaimerAdmin(admin.ModelAdmin):
+class FormDisclaimerAdmin(MarkdownxModelAdminBase):
 
     form = FormDisclaimerForm
     add_form = FormDisclaimerForm
+    model = FormDisclaimer
 
     list_display = ['get_language', 'default']
     search_fields = ['language__code', 'language__name']

@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('languages', '0001_initial'),
         ('kpi', '0050_add_indexes_to_import_and_export_tasks'),
+        ('markdownx_uploader', '0002_markdownxuploaderfilereference'),
     ]
 
     operations = [
