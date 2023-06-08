@@ -726,8 +726,7 @@ if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
-CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
