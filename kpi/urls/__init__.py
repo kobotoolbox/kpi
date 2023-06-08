@@ -5,16 +5,6 @@ from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kobo.apps.superuser_stats.views import (
-    user_report,
-    user_details_report,
-    country_report,
-    retrieve_reports,
-)
-from kobo.apps.accounts.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
-)
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, browser_tests, design_system, modern_browsers
 from kpi.views.environment import EnvironmentView
