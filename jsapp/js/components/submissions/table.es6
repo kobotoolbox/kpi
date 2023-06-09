@@ -730,11 +730,23 @@ export class DataTable extends React.Component {
           // Detect supplemental details column and put it after its source column.
           if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
             const supplementalColumnSource = key.split('/')[1];
-            const sourceColumn = columnsToRender.find(
-              (columnToRender) =>
-                columnToRender.id === flatPaths[supplementalColumnSource]
-            );
+            // Add extra step if grouped
+            const sourceCleaned = supplementalColumnSource
+              .replace(/-/g, '/')
+              .split('/')[1];
+            let sourceColumn;
 
+            if (survey[0].type === 'begin_group') {
+              sourceColumn = columnsToRender.find(
+                (columnToRender) =>
+                  columnToRender.id === flatPaths[sourceCleaned]
+              );
+            } else {
+              sourceColumn = columnsToRender.find(
+                (columnToRender) =>
+                  columnToRender.id === flatPaths[supplementalColumnSource]
+              );
+            }
             if (sourceColumn) {
               // This way if we have a source column with index `2`, we will set
               // the supplemental details column to `2__supplementalDetails/…`
@@ -754,7 +766,6 @@ export class DataTable extends React.Component {
       if (q && q.type) {
         columnIcon = renderQuestionTypeIcon(q.type);
       }
-
       columnsToRender.push({
         Header: () => {
           const columnName = getColumnLabel(
@@ -763,7 +774,6 @@ export class DataTable extends React.Component {
             this.state.showGroupName,
             this.state.translationIndex
           );
-
           const columnHXLTags = getColumnHXLTags(
             this.props.asset.content.survey,
             key
