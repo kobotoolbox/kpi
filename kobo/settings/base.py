@@ -497,6 +497,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
+        'ln '  # Lingala
         'my '  # Burmese/Myanmar
         'ny '  # Nyanja/Chewa
         'pl '  # Polish
