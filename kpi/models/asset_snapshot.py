@@ -98,7 +98,7 @@ class AssetSnapshot(
         Implements `OpenRosaFormListInterface.get_download_url()`
         """
         return reverse(
-            viewname='assetsnapshot-detail',
+            viewname='assetsnapshot-xml-with-disclaimer',
             format='xml',
             kwargs={'uid': self.uid},
             request=request
