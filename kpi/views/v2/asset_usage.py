@@ -30,14 +30,12 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     >                   "asset": {asset_url},
     >                   "asset_name": {string},
     >                   "nlp_usage_current_month": {
-    >                       "google_asr_seconds": {integer},
-    >                       "google_mt_characters": {integer},
-    >                       ...
+    >                       "asr_seconds": {integer},
+    >                       "mt_characters": {integer},
     >                   }
     >                   "nlp_usage_all_time": {
-    >                       "google_asr_seconds": {integer},
-    >                       "google_mt_characters": {integer},
-    >                       ...
+    >                       "asr_seconds": {integer},
+    >                       "mt_characters": {integer},
     >                   }
     >                   "storage_bytes": {integer},
     >                   "submission_count_current_month": {integer},

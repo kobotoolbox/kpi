@@ -82,9 +82,8 @@ class BaseDeploymentBackend(abc.ABC):
     def connect(self, active=False):
         pass
 
-    @property
     @abc.abstractmethod
-    def current_month_nlp_tracking(self):
+    def nlp_tracking_data(self, start_date):
         pass
 
     def delete(self):

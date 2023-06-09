@@ -1,6 +1,7 @@
 from typing import Optional
 
 from django.apps import apps
+from django.db.models import F
 from django.utils import timezone
 
 from kpi.utils.jsonbfield_helper import IncrementValue
@@ -35,10 +36,18 @@ def update_nlp_counter(
             asset_id=asset_id,
         )
 
-        # Ensure the counter for the month exists first
+        # Ensure the counter for the date exists first
         counter, _ = MonthlyNLPUsageCounter.objects.get_or_create(**criteria)
         counter_id = counter.pk
 
+    # Update the total counters by the usage amount to keep them current
+    kwargs = {}
+    if service.endswith('asr_seconds'):
+        kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
+    if service.endswith('mt_characters'):
+        kwargs['total_mt_characters'] = F('total_mt_characters') + amount
+
     MonthlyNLPUsageCounter.objects.filter(pk=counter_id).update(
-        counters=IncrementValue('counters', keyname=service, increment=amount)
+        counters=IncrementValue('counters', keyname=service, increment=amount),
+        **kwargs,
     )

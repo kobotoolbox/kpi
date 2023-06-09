@@ -88,9 +88,10 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            year=today.year,
-            month=today.month,
-            counters=counter_1
+            date=today.date,
+            counters=counter_1,
+            total_asr_seconds=counter_1['google_asr_seconds'],
+            total_mt_characters=counter_1['google_mt_characters'],
         )
 
         # last month
@@ -102,9 +103,10 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            year=last_month.year,
-            month=last_month.month,
+            date=last_month.date,
             counters=counter_2,
+            total_asr_seconds=counter_2['google_asr_seconds'],
+            total_mt_characters=counter_2['google_mt_characters'],
         )
 
     def __add_submissions(self):

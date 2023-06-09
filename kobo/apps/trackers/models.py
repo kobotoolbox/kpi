@@ -12,6 +12,8 @@ class MonthlyNLPUsageCounter(models.Model):
     user = models.ForeignKey(User, related_name='nlp_counters', on_delete=models.CASCADE)
     asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
     counters = models.JSONField(default=dict)
+    total_asr_seconds = models.PositiveIntegerField(default=0)
+    total_mt_characters = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [

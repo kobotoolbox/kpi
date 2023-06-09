@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import empty
 
@@ -36,13 +37,14 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         if not asset.has_deployment:
             return {}
 
-        return asset.deployment.current_month_nlp_tracking
+        start_date = timezone.now().replace(day=1).date()
+        return asset.deployment.nlp_tracking_data(start_date)
 
     def get_nlp_usage_all_time(self, asset):
         if not asset.has_deployment:
             return {}
 
-        return asset.deployment.nlp_tracking
+        return asset.deployment.nlp_tracking_data()
 
     def get_submission_count_current_month(self, asset):
         if not asset.has_deployment:

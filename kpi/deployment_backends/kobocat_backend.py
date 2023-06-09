@@ -12,6 +12,7 @@ from datetime import date, datetime
 from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -326,27 +327,34 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    @property
-    def current_month_nlp_tracking(self):
+    def nlp_tracking_data(self, start_date=None):
         """
-        Get the current month's NLP tracking data
+        Get the NLP tracking data since a specified date
+        If no date is provided, use the first day of this month
         """
-        today = timezone.now().date()
-        first_of_the_month = timezone.now().date().replace(day=1)
+        filter_args = {}
+        if start_date:
+            filter_args = {'date__gte': start_date}
         try:
-            monthly_nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('counters').filter(
-                    date__gte=first_of_the_month,
-                    date__lte=today,
-                ).get(
-                    asset_id=self.asset.id
-                ).counters
+            nlp_tracking = (
+                MonthlyNLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
+                .filter(
+                    asset_id=self.asset.id,
+                    **filter_args
+                ).aggregate(
+                    asr_seconds=Sum(
+                        'total_asr_seconds',
+                    ),
+                    mt_characters=Sum(
+                        'total_mt_characters'
+                    ),
+                )
             )
         except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict to match `monthly_nlp_tracking` type
+            # return empty dict to match `nlp_tracking` type
             return {}
         else:
-            return monthly_nlp_tracking
+            return nlp_tracking
 
     @property
     def current_month_submission_count(self):
@@ -985,7 +993,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def nlp_tracking(self):
         """
-        Get the current month's NLP tracking data
+        Get the all-time historical NLP tracking data
         """
         try:
             nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
