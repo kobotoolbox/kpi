@@ -112,6 +112,7 @@ export namespace actions {
         loggedin: GenericCallbackDefinition;
       };
       logout: GenericDefinition;
+      changePassword: GenericDefinition;
     };
     const survey: object;
     const search: object;
