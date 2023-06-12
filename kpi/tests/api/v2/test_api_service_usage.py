@@ -88,7 +88,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            date=today.date,
+            date=today,
             counters=counter_1,
             total_asr_seconds=counter_1['google_asr_seconds'],
             total_mt_characters=counter_1['google_mt_characters'],
@@ -103,7 +103,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            date=last_month.date,
+            date=last_month,
             counters=counter_2,
             total_asr_seconds=counter_2['google_asr_seconds'],
             total_mt_characters=counter_2['google_mt_characters'],
@@ -195,9 +195,11 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total_submission_count_current_month'] == 1
-        assert response.data['total_nlp_asr_seconds'] == 4728
-        assert response.data['total_nlp_mt_characters'] == 6726
         assert response.data['total_submission_count_all_time'] == 1
+        assert response.data['total_nlp_asr_seconds_current_month'] == 4586
+        assert response.data['total_nlp_asr_seconds_all_time'] == 4728
+        assert response.data['total_nlp_mt_characters_current_month'] == 5473
+        assert response.data['total_nlp_mt_characters_all_time'] == 6726
         assert response.data['total_storage_bytes'] == self.__expected_file_size()
 
     def test_multiple_forms(self):

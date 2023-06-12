@@ -35,14 +35,20 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_nlp_usage_current_month(self, asset):
         if not asset.has_deployment:
-            return {}
+            return {
+                'total_nlp_asr_seconds': 0,
+                'total_nlp_mt_characters': 0,
+            }
 
         start_date = timezone.now().replace(day=1).date()
         return asset.deployment.nlp_tracking_data(start_date)
 
     def get_nlp_usage_all_time(self, asset):
         if not asset.has_deployment:
-            return {}
+            return {
+                'total_nlp_asr_seconds': 0,
+                'total_nlp_mt_characters': 0,
+            }
 
         return asset.deployment.nlp_tracking_data()
 
@@ -136,17 +142,13 @@ class ServiceUsageSerializer(serializers.Serializer):
             self._total_submission_count_all_time += asset[
                 'submission_count_all_time'
             ]
-            nlp_usage = asset['nlp_usage_all_time']
-            nlp_keys = nlp_usage.keys()
-            for key in nlp_keys:
-                if 'asr_seconds' in key:
-                    self._total_nlp_asr_seconds_all_time += nlp_usage[key]
-                if 'mt_characters' in key:
-                    self._total_nlp_mt_characters_all_time += nlp_usage[key]
-            nlp_usage = asset['nlp_usage_current_month']
-            nlp_keys = nlp_usage.keys()
-            for key in nlp_keys:
-                if 'asr_seconds' in key:
-                    self._total_nlp_asr_seconds_current_month += nlp_usage[key]
-                if 'mt_characters' in key:
-                    self._total_nlp_mt_characters_current_month += nlp_usage[key]
+            for nlp_usage_type in ['all_time', 'current_month']:
+                nlp_usage = asset[f'nlp_usage_{nlp_usage_type}']
+                nlp_keys = nlp_usage.keys()
+                for key in nlp_keys:
+                    if 'asr_seconds' in key:
+                        total_nlp_asr_seconds = f'_total_nlp_asr_seconds_{nlp_usage_type}'
+                        self.__dict__[total_nlp_asr_seconds] += nlp_usage[key]
+                    if 'mt_characters' in key:
+                        total_nlp_mt_characters = f'_total_nlp_mt_characters_{nlp_usage_type}'
+                        self.__dict__[total_nlp_mt_characters] += nlp_usage[key]

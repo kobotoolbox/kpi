@@ -13,6 +13,8 @@ from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
+from django.db.models.functions import Coalesce
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -342,17 +344,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     asset_id=self.asset.id,
                     **filter_args
                 ).aggregate(
-                    asr_seconds=Sum(
-                        'total_asr_seconds',
-                    ),
-                    mt_characters=Sum(
-                        'total_mt_characters'
-                    ),
+                    total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
+                    total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
                 )
             )
         except MonthlyNLPUsageCounter.DoesNotExist:
-            # return empty dict to match `nlp_tracking` type
-            return {}
+            return {
+                'total_nlp_asr_seconds': 0,
+                'total_nlp_mt_characters': 0,
+            }
         else:
             return nlp_tracking
 

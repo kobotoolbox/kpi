@@ -35,8 +35,10 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            date=today.date,
+            date=today,
             counters=counter_1,
+            total_asr_seconds=counter_1['google_asr_seconds'],
+            total_mt_characters=counter_1['google_mt_characters'],
         )
 
         # last month
@@ -48,8 +50,10 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         MonthlyNLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            date=last_month.date,
+            date=last_month,
             counters=counter_2,
+            total_asr_seconds=counter_2['google_asr_seconds'],
+            total_mt_characters=counter_2['google_mt_characters'],
         )
 
     def __add_submissions(self):
@@ -159,8 +163,10 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['results']) == 1
         assert response.data['results'][0]['asset__name'] == ''
-        assert response.data['results'][0]['nlp_usage_all_time']['google_asr_seconds'] == 4728
-        assert response.data['results'][0]['nlp_usage_all_time']['google_mt_characters'] == 6726
+        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_asr_seconds'] == 4586
+        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_mt_characters'] == 5473
+        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_asr_seconds'] == 4728
+        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters'] == 6726
         assert response.data['results'][0]['storage_bytes'] == 21514156
         assert response.data['results'][0]['submission_count_current_month'] == 2
         assert response.data['results'][0]['submission_count_all_time'] == 2
