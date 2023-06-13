@@ -1,7 +1,8 @@
+import datetime
+
 from django.conf import settings
 from django.db import migrations
 from django.db.models.functions import ExtractYear, ExtractMonth
-from django.utils import timezone
 
 
 class Migration(migrations.Migration):
@@ -15,7 +16,7 @@ class Migration(migrations.Migration):
         MonthlyNLPUsageCounter = apps.get_model("trackers", "MonthlyNLPUsageCounter")
         for usage_counter in MonthlyNLPUsageCounter.objects.only('year', 'month', 'date').all().iterator():
             # When converting monthly usage data to daily, set the day to the 1st of the month
-            usage_counter.date = timezone.date(usage_counter.year, usage_counter.month, 1)
+            date = datetime.date(usage_counter.year, usage_counter.month, 1)
             usage_counter.save()
 
     def copy_date_to_month_and_year(apps, schema_editor):
