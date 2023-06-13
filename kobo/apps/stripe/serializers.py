@@ -1,6 +1,28 @@
-from django.core.exceptions import SuspiciousOperation
-from djstripe.models import Customer, Plan, Product, Subscription
+from django.core.exceptions import ValidationError
+from djstripe.models import (
+    Price,
+    Product,
+    Session,
+    Subscription,
+    SubscriptionItem,
+)
 from rest_framework import serializers
+
+
+class OneTimeAddOnSerializer(serializers.ModelSerializer):
+    payment_intent = serializers.SlugRelatedField(
+        slug_field='status',
+        read_only=True,
+        many=False,
+    )
+
+    class Meta:
+        model = Session
+        fields = (
+            'metadata',
+            'created',
+            'payment_intent',
+        )
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
@@ -9,30 +31,97 @@ class BaseProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
 
-class PlanSerializer(serializers.ModelSerializer):
+class BasePriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Price
+        fields = (
+            'id',
+            'nickname',
+            'currency',
+            'type',
+            'recurring',
+            'unit_amount',
+            'human_readable_price',
+            'metadata',
+        )
 
-    product = BaseProductSerializer()
+
+class PriceIdSerializer(serializers.Serializer):
+    price_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Price.objects.filter(active=True, product__active=True),
+        required=True,
+        allow_empty=False,
+    )
 
     class Meta:
-        model = Plan
-        exclude = ('djstripe_id',)
+        model = Price
+        fields = ('id',)
+
+
+class ChangePlanSerializer(PriceIdSerializer):
+    subscription_id = serializers.SlugRelatedField(
+        'id',
+        queryset=Subscription.objects.filter(
+            status__in=['active'],
+        ),
+        required=True,
+        allow_empty=False,
+    )
+
+    class Meta:
+        model = Subscription
+        fields = ('id',)
+
+
+class CustomerPortalSerializer(serializers.Serializer):
+    organization_id = serializers.CharField(required=True)
+
+    def validate_organization_id(self, organization_id):
+        if organization_id.startswith('org'):
+            return organization_id
+        raise ValidationError('Invalid organization ID')
+
+
+class CheckoutLinkSerializer(PriceIdSerializer, CustomerPortalSerializer):
+    organization_id = serializers.CharField(required=False)
+
+
+class PriceSerializer(BasePriceSerializer):
+    product = BaseProductSerializer()
+
+    class Meta(BasePriceSerializer.Meta):
+        fields = (
+            'id',
+            'nickname',
+            'currency',
+            'type',
+            'recurring',
+            'unit_amount',
+            'human_readable_price',
+            'metadata',
+            'product',
+        )
 
 
 class ProductSerializer(BaseProductSerializer):
-    plans = PlanSerializer(many=True, source="plan_set")
+    prices = BasePriceSerializer(many=True)
 
     class Meta(BaseProductSerializer.Meta):
-        fields = ("id", "name", "description", "type", "plans", "metadata")
+        fields = ('id', 'name', 'description', 'type', 'prices', 'metadata')
+
+
+class SubscriptionItemSerializer(serializers.ModelSerializer):
+    price = PriceSerializer()
+
+    class Meta:
+        model = SubscriptionItem
+        fields = ('id', 'price')
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-
-    plan = serializers.SerializerMethodField()
+    items = SubscriptionItemSerializer(many=True)
 
     class Meta:
         model = Subscription
         exclude = ('djstripe_id',)
-
-    def get_plan(self, subscription):
-        plan = Plan.objects.get(id=subscription.plan.id)
-        return PlanSerializer(plan, many=False, context=self.context).data
