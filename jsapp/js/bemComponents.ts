@@ -280,21 +280,11 @@ bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
 bem.TextBox__description = makeBem(bem.TextBox, 'description');
 bem.TextBox__error = makeBem(bem.TextBox, 'error');
 
-bem.Checkbox = makeBem(null, 'checkbox');
-bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label');
-bem.Checkbox__input = makeBem(bem.Checkbox, 'input', 'input');
-bem.Checkbox__label = makeBem(bem.Checkbox, 'label', 'span');
-
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');
 bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');
 bem.ToggleSwitch__slider = makeBem(bem.ToggleSwitch, 'slider', 'span');
 bem.ToggleSwitch__label = makeBem(bem.ToggleSwitch, 'label', 'span');
-
-bem.Radio = makeBem(null, 'radio');
-bem.Radio__row = makeBem(bem.Radio, 'row', 'label');
-bem.Radio__input = makeBem(bem.Radio, 'input', 'input');
-bem.Radio__label = makeBem(bem.Radio, 'label', 'span');
 
 bem.PasswordStrength = makeBem(null, 'password-strength');
 bem.PasswordStrength__title = makeBem(bem.PasswordStrength, 'title');
