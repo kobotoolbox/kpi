@@ -1,5 +1,4 @@
 # coding: utf-8
-from kpi.serializers import UserSerializer
 from kpi.views.v2.user import UserViewSet as UserViewSetV2
 
 
@@ -12,5 +11,4 @@ class UserViewSet(UserViewSetV2):
     This viewset provides only the `detail` action; `list` is *not* provided to
     avoid disclosing every username in the database
     """
-
-    serializer_class = UserSerializer
+    pass

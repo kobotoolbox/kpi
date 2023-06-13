@@ -22,9 +22,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     url = HyperlinkedIdentityField(
         lookup_field='username', view_name='user-detail')
-    assets = PaginatedApiField(
-        serializer_class=AssetUrlListSerializer
-    )
     date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()
@@ -33,7 +30,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ('url',
                   'username',
-                  'assets',
                   'date_joined',
                   'public_collection_subscribers_count',
                   'public_collections_count',
