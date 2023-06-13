@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models.asset import Asset
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -36,25 +36,25 @@ class TrackersTestCases(KpiTestCase):
         asset = self._create_asset()
         asset.deploy(backend='mock', active=True)
         asset.save()
-        MonthlyNLPUsageCounter.objects.create(
+        NLPUsageCounter.objects.create(
             date=self.today.date,
             user=self.user,
             asset_id=asset.id,
             counters={'some_key': 4504},
         )
-        assert MonthlyNLPUsageCounter.objects.all().count() == 1
-        assert MonthlyNLPUsageCounter.objects.filter(asset=None).count() == 0
+        assert NLPUsageCounter.objects.all().count() == 1
+        assert NLPUsageCounter.objects.filter(asset=None).count() == 0
         a_id = asset.id
         asset.delete()
         # test a counter still exists after the asset is deleted
-        assert MonthlyNLPUsageCounter.objects.all().count() == 1
+        assert NLPUsageCounter.objects.all().count() == 1
 
         # test that the counter remaining does not have an asset
-        tracker_no_asset = MonthlyNLPUsageCounter.objects.filter(
+        tracker_no_asset = NLPUsageCounter.objects.filter(
             user=self.user,
             asset_id=None,
         )
-        tracker_with_asset = MonthlyNLPUsageCounter.objects.filter(
+        tracker_with_asset = NLPUsageCounter.objects.filter(
             asset_id=a_id,
         )
         assert tracker_no_asset.count() == 1
@@ -72,7 +72,7 @@ class TrackersTestCases(KpiTestCase):
 
         # create tracker for first service
         update_nlp_counter(service, initial_amount, self.user.id, asset.id)
-        tracker = MonthlyNLPUsageCounter.objects.get(
+        tracker = NLPUsageCounter.objects.get(
             user_id=self.user.id,
             asset_id=asset.id,
         )
@@ -80,7 +80,7 @@ class TrackersTestCases(KpiTestCase):
 
         # update tracker for existing service
         update_nlp_counter(service, increase_amount, self.user.id, asset.id)
-        tracker_updated_service_amount = MonthlyNLPUsageCounter.objects.get(
+        tracker_updated_service_amount = NLPUsageCounter.objects.get(
             user_id=self.user.id,
             asset_id=asset.id,
         )
@@ -89,7 +89,7 @@ class TrackersTestCases(KpiTestCase):
         # ensure original tracker stays with new service added
         assert new_service not in tracker_updated_service_amount.counters
         update_nlp_counter(new_service, initial_amount, self.user.id, asset.id)
-        tracker_two_services = MonthlyNLPUsageCounter.objects.get(
+        tracker_two_services = NLPUsageCounter.objects.get(
             user_id=self.user.id,
             asset_id=asset.id,
         )

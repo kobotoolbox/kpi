@@ -82,7 +82,7 @@ from ..exceptions import (
 )
 
 from kobo.apps.subsequences.utils import stream_with_extras
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -339,7 +339,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             filter_args = {'date__gte': start_date}
         try:
             nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
+                NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
                 .filter(
                     asset_id=self.asset.id,
                     **filter_args
@@ -348,7 +348,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
                 )
             )
-        except MonthlyNLPUsageCounter.DoesNotExist:
+        except NLPUsageCounter.DoesNotExist:
             return {
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
@@ -996,7 +996,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Get the all-time historical NLP tracking data
         """
         try:
-            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+            nlp_usage_counters = NLPUsageCounter.objects.only('counters').filter(
                 asset_id=self.asset.id
             )
             total_counters = {}
@@ -1006,7 +1006,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     if key not in total_counters:
                         total_counters[key] = 0
                     total_counters[key] += counters[key]
-        except MonthlyNLPUsageCounter.DoesNotExist:
+        except NLPUsageCounter.DoesNotExist:
             # return empty dict match `total_counters` type
             return {}
         else:

@@ -27,7 +27,7 @@ from django.utils.translation import gettext as t
 from lxml import etree
 from rest_framework import status
 
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
@@ -170,7 +170,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             filter_args = {'date__gte': start_date}
         try:
             nlp_tracking = (
-                MonthlyNLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
+                NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
                 .filter(
                     asset_id=self.asset.id,
                     **filter_args
@@ -179,7 +179,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
                 )
             )
-        except MonthlyNLPUsageCounter.DoesNotExist:
+        except NLPUsageCounter.DoesNotExist:
             return {
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
@@ -514,7 +514,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         Get the current month's NLP tracking data
         """
         try:
-            nlp_usage_counters = MonthlyNLPUsageCounter.objects.only('counters').filter(
+            nlp_usage_counters = NLPUsageCounter.objects.only('counters').filter(
                 asset_id=self.asset.id
             )
             total_counters = {}
@@ -524,7 +524,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     if key not in total_counters:
                         total_counters[key] = 0
                     total_counters[key] += counters[key]
-        except MonthlyNLPUsageCounter.DoesNotExist:
+        except NLPUsageCounter.DoesNotExist:
             # return empty dict to match `total_counters`
             return {}
         else:

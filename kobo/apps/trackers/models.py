@@ -7,7 +7,7 @@ from django.db.models.signals import post_delete
 from .utils import update_nlp_counter
 
 
-class MonthlyNLPUsageCounter(models.Model):
+class NLPUsageCounter(models.Model):
     date = models.DateField()
     user = models.ForeignKey(User, related_name='nlp_counters', on_delete=models.CASCADE)
     asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
@@ -52,7 +52,7 @@ class MonthlyNLPUsageCounter(models.Model):
 # removal of a related object), whereas the `delete()` model method is not
 # called
 post_delete.connect(
-    MonthlyNLPUsageCounter.update_catch_all_counters_on_delete,
-    sender=MonthlyNLPUsageCounter,
+    NLPUsageCounter.update_catch_all_counters_on_delete,
+    sender=NLPUsageCounter,
     dispatch_uid='update_catch_all_monthly_xform_submission_counters',
 )

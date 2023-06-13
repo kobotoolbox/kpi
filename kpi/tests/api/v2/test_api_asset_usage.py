@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -32,7 +32,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             'google_asr_seconds': 4586,
             'google_mt_characters': 5473,
         }
-        MonthlyNLPUsageCounter.objects.create(
+        NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
             date=today,
@@ -47,7 +47,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             'google_asr_seconds': 142,
             'google_mt_characters': 1253,
         }
-        MonthlyNLPUsageCounter.objects.create(
+        NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
             date=last_month,

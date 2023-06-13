@@ -26,7 +26,7 @@ def update_nlp_counter(
             asset_id (int) or None: Primary key for Asset Model
     """
     # Avoid circular import
-    MonthlyNLPUsageCounter = apps.get_model('trackers', 'MonthlyNLPUsageCounter')  # noqa
+    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
 
     if not counter_id:
         date = timezone.now()
@@ -37,7 +37,7 @@ def update_nlp_counter(
         )
 
         # Ensure the counter for the date exists first
-        counter, _ = MonthlyNLPUsageCounter.objects.get_or_create(**criteria)
+        counter, _ = NLPUsageCounter.objects.get_or_create(**criteria)
         counter_id = counter.pk
 
     # Update the total counters by the usage amount to keep them current
@@ -47,7 +47,7 @@ def update_nlp_counter(
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
 
-    MonthlyNLPUsageCounter.objects.filter(pk=counter_id).update(
+    NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
         **kwargs,
     )

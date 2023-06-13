@@ -29,4 +29,8 @@ class Migration(migrations.Migration):
             model_name='monthlynlpusagecounter',
             name='month',
         ),
+        migrations.RenameModel(
+            old_name='monthlynlpusagecounter',
+            new_name='nlpusagecounter',
+        ),
     ]
