@@ -726,22 +726,23 @@ export class DataTable extends React.Component {
               index = surveyRowIndex.toString();
             }
           });
-          
+
           // Detect supplemental details column and put it after its source column.
           if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
             const supplementalColumnSource = key.split('/')[1];
             // Add extra step if grouped
             const sourceCleaned = supplementalColumnSource
               .replace(/-/g, '/')
-              .split('/').at(-1);
+              .split('/')
+              .at(-1);
             let sourceColumn;
-            
-            let isGroup = false; 
-            survey.forEach(item => {
-              if(item.type === 'begin_group'){
+
+            let isGroup = false;
+            survey.forEach((item) => {
+              if (item.type === 'begin_group') {
                 isGroup = true;
               }
-            })
+            });
 
             if (isGroup) {
               sourceColumn = columnsToRender.find(
