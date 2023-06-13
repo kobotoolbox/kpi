@@ -1,10 +1,12 @@
 import {makeAutoObservable} from 'mobx';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import {fetchGet, fetchPost, fetchDelete} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
 
+const PRODUCTS_URL = '/api/v2/stripe/products/';
 // For plan displaying purposes we only care about this part of the response
-export interface ProductInfo {
+export interface BaseProduct {
   id: string;
   name: string;
   description: string;
@@ -13,7 +15,7 @@ export interface ProductInfo {
 }
 
 export interface PlanInfo {
-  product: ProductInfo;
+  product: BaseProduct;
   djstripe_created: string;
   djstripe_updated: string;
   id: string;
@@ -77,9 +79,19 @@ export interface SubscriptionInfo {
   default_tax_rates: [];
 }
 
+// There is probably a better way to hand the nested types
+export interface Product extends BaseProduct {
+  prices: Array<PlanInfo>
+}
+
+export async function fetchProducts() {
+  return fetchGet<PaginatedResponse<Product>>(PRODUCTS_URL);
+}
+
 class SubscriptionStore {
   public subscriptionResponse: SubscriptionInfo[] = [];
-  public subscribedProduct: ProductInfo | null = null;
+  public subscribedProduct: BaseProduct | null = null;
+  public productsResponse: Product[]| null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -99,7 +111,7 @@ class SubscriptionStore {
     response: PaginatedResponse<SubscriptionInfo>
   ) {
     this.subscriptionResponse = response.results;
-    this.subscribedProduct = response.results[0]?.plan.product;
+    this.subscribedProduct = response.results[0]?.plan?.product;
   }
 }
 
