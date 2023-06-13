@@ -197,12 +197,12 @@ export class DataTable extends React.Component {
    * @param {object} instance
    */
   fetchSubmissions(instance) {
-    let pageSize = instance.state.pageSize;
-    let page = instance.state.page * instance.state.pageSize;
-    let filter = instance.state.filtered;
+    const pageSize = instance.state.pageSize;
+    const page = instance.state.page * instance.state.pageSize;
+    const filter = instance.state.filtered;
     let filterQuery = '';
     // sort comes from outside react-table
-    let sort = [];
+    const sort = [];
 
     if (filter.length) {
       filterQuery = '&query={';
@@ -248,7 +248,7 @@ export class DataTable extends React.Component {
    * @param {object} options - the parameters that the call was made with
    */
   onGetSubmissionsCompleted(response, options) {
-    let results = response.results;
+    const results = response.results;
     if (results && results.length > 0) {
       if (this.state.submissionPager === 'next') {
         this.submissionModalProcessing(results[0]._id, results);
@@ -364,7 +364,7 @@ export class DataTable extends React.Component {
    * @returns {object} submission actions column for react-table
    */
   _getColumnSubmissionActions(maxPageRes) {
-    let userCanSeeEditIcon =
+    const userCanSeeEditIcon =
       this.props.asset.deployment__active &&
       (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
         userCanPartially(
@@ -372,7 +372,7 @@ export class DataTable extends React.Component {
           this.props.asset
         ));
 
-    let userCanSeeCheckbox =
+    const userCanSeeCheckbox =
       userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
       userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
@@ -425,8 +425,8 @@ export class DataTable extends React.Component {
         columnWidth += 20;
       }
 
-      let elClassNames = ['rt-sub-actions', 'is-frozen'];
-      let frozenColumn = tableStore.getFrozenColumn();
+      const elClassNames = ['rt-sub-actions', 'is-frozen'];
+      const frozenColumn = tableStore.getFrozenColumn();
       if (!frozenColumn) {
         elClassNames.push('is-last-frozen');
       }
@@ -610,7 +610,7 @@ export class DataTable extends React.Component {
     let showGroupName = this.state.showGroupName;
     let showHXLTags = this.state.showHXLTags;
     let translationIndex = this.state.translationIndex;
-    let maxPageRes = Math.min(
+    const maxPageRes = Math.min(
       this.state.pageSize,
       this.state.submissions.length
     );
@@ -644,11 +644,11 @@ export class DataTable extends React.Component {
       columnsToRender.push(columnValidation);
     }
 
-    let survey = this.props.asset.content.survey;
-    let choices = this.props.asset.content.choices;
+    const survey = this.props.asset.content.survey;
+    const choices = this.props.asset.content.choices;
     const flatPaths = getSurveyFlatPaths(survey);
     allColumns.forEach((key) => {
-      var q;
+      let q;
       if (key.includes('/')) {
         const qParentG = key.split('/');
         q = survey.find(
@@ -669,7 +669,7 @@ export class DataTable extends React.Component {
 
       // sets location of columns for questions not in current survey version
       // `y` puts this case in front of known meta types
-      var index = 'y_' + key;
+      let index = 'y_' + key;
 
       // Get background-audio question name in case user changes it
       const backgroundAudioName = getBackgroundAudioQuestionName(
@@ -718,7 +718,7 @@ export class DataTable extends React.Component {
             // Get the row name (`loopKey`) from possible path (`key`).
             let loopKey = key;
             if (key.includes('/')) {
-              var loopKeyArray = loopKey.split('/');
+              const loopKeyArray = loopKey.split('/');
               loopKey = loopKeyArray[loopKeyArray.length - 1];
             }
 
@@ -862,7 +862,7 @@ export class DataTable extends React.Component {
 
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {
-              let choice = choices.find(
+              const choice = choices.find(
                 (o) =>
                   o.list_name === q.select_from_list_name &&
                   (o.name === row.value || o.$autoname === row.value)
@@ -878,10 +878,10 @@ export class DataTable extends React.Component {
               }
             }
             if (q.type === QUESTION_TYPES.select_multiple.id && row.value) {
-              let values = row.value.split(' ');
-              var labels = [];
+              const values = row.value.split(' ');
+              const labels = [];
               values.forEach(function (v) {
-                let choice = choices.find(
+                const choice = choices.find(
                   (o) =>
                     o.list_name === q.select_from_list_name &&
                     (o.name === v || o.$autoname === v)
@@ -954,7 +954,7 @@ export class DataTable extends React.Component {
       columnA.index.localeCompare(columnB.index, 'en', {numeric: true})
     );
 
-    let frozenColumn = tableStore.getFrozenColumn();
+    const frozenColumn = tableStore.getFrozenColumn();
 
     columnsToRender.forEach(function (col) {
       if (
@@ -1047,11 +1047,11 @@ export class DataTable extends React.Component {
    */
   onSubmissionValidationStatusChange(result, sid) {
     if (sid) {
-      var subIndex = this.state.submissions.findIndex(
+      const subIndex = this.state.submissions.findIndex(
         (x) => x._id === parseInt(sid)
       );
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
-        var newData = this.state.submissions;
+        const newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
         this.setState({submissions: newData});
         this._prepColumns(newData);
@@ -1137,7 +1137,7 @@ export class DataTable extends React.Component {
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
       ) {
-        let backgroundAudioUrl = getMediaAttachment(
+        const backgroundAudioUrl = getMediaAttachment(
           row.original,
           row.original[backgroundAudioName]
         )?.download_medium_url;
@@ -1171,7 +1171,7 @@ export class DataTable extends React.Component {
     duplicatedSubmission = null,
     backgroundAudioUrl = null
   ) {
-    let ids = [];
+    const ids = [];
 
     submissions.forEach(function (r) {
       ids.push(r._id);
@@ -1218,7 +1218,7 @@ export class DataTable extends React.Component {
       !pageState.modal.sid
     ) {
       let page = 0;
-      let fetchInstance = this.state.fetchInstance;
+      const fetchInstance = this.state.fetchInstance;
       if (pageState.modal.page === 'next') {
         page = this.state.currentPage + 1;
       }
@@ -1245,7 +1245,7 @@ export class DataTable extends React.Component {
    * @param {boolean} isChecked
    */
   bulkUpdateChange(sid, isChecked) {
-    let selectedRows = this.state.selectedRows;
+    const selectedRows = this.state.selectedRows;
     if (isChecked) {
       selectedRows[sid] = true;
     } else {
@@ -1263,7 +1263,7 @@ export class DataTable extends React.Component {
    * @param {boolean} isChecked
    */
   bulkSelectAllRows(isChecked) {
-    let s = this.state.selectedRows;
+    const s = this.state.selectedRows;
     this.state.submissions.forEach(function (r) {
       if (isChecked) {
         s[r._id] = true;
@@ -1274,7 +1274,7 @@ export class DataTable extends React.Component {
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
-    let scount = Object.keys(s).length;
+    const scount = Object.keys(s).length;
 
     if (scount === this.state.resultsTotal) {
       this.setState({
@@ -1298,7 +1298,7 @@ export class DataTable extends React.Component {
    */
   bulkSelectAll() {
     // make sure all rows on current page are selected
-    let s = this.state.selectedRows;
+    const s = this.state.selectedRows;
     this.state.submissions.forEach(function (r) {
       s[r._id] = true;
     });
@@ -1376,7 +1376,7 @@ export class DataTable extends React.Component {
       (this.state.resultsTotal - 1) / this.state.pageSize + 1
     );
 
-    let tableClasses = ['-highlight'];
+    const tableClasses = ['-highlight'];
     if (this.state.showHXLTags) {
       tableClasses.push('has-hxl-tags-visible');
     }
