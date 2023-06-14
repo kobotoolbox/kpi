@@ -19,11 +19,7 @@ class RegistrationPasswordApp extends React.Component<
 > {
   inputEl = document.getElementById(PASS_INPUT_ID);
   onInputBound = this.onInput.bind(this);
-
-  constructor() {
-    super({});
-    this.state = {currentPass: ''};
-  }
+  state: RegistrationPasswordAppState = {currentPass: ''};
 
   componentDidMount() {
     if (this.inputEl) {
