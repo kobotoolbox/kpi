@@ -51,6 +51,7 @@ class EnvStoreData {
   public stripe_public_key: string | null = null;
   public stripe_pricing_table_id: string | null = null;
   public social_apps: SocialApp[] = [];
+  public enable_password_entropy_meter = false;
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -126,6 +127,9 @@ class EnvStore {
     }
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled;
+
+    // TODO: fix this when `response.enable_password_entropy_meter` is available
+    this.data.enable_password_entropy_meter = false;
 
     this.isReady = true;
   }

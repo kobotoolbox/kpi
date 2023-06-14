@@ -12,6 +12,7 @@ import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import './accountSettings.scss';
+import envStore from 'js/envStore';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -176,6 +177,8 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
               </bem.AccountSettings__item>
 
               {
+                envStore.isReady &&
+                envStore.data.enable_password_entropy_meter &&
                 this.state.newPassword !== '' &&
                 <bem.AccountSettings__item>
                   <PasswordStrength password={this.state.newPassword} />
