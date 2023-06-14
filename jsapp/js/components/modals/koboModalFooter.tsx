@@ -5,8 +5,9 @@ bem.KoboModal__footer = makeBem(bem.KoboModal, 'footer', 'footer');
 
 interface KoboModalFooterProps {
   children: React.ReactNode;
+  isCentered?: boolean;
 }
 
 export default function KoboModalFooter(props: KoboModalFooterProps) {
-  return <bem.KoboModal__footer>{props.children}</bem.KoboModal__footer>;
+  return <bem.KoboModal__footer m={props.isCentered ? 'isCentered' : ''}>{props.children}</bem.KoboModal__footer>;
 }

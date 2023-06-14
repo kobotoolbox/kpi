@@ -2,17 +2,16 @@ import React, {useState} from 'react';
 import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {AssetContent} from 'jsapp/js/dataInterface';
-import {
-  META_QUESTION_TYPES,
-  ADDITIONAL_SUBMISSION_PROPS,
-} from 'js/constants';
+import {META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS} from 'js/constants';
 import styles from './sidebarSubmissionDetails.module.scss';
 
 interface SidebarSubmissionDataProps {
   asset: AssetContent | undefined;
 }
 
-export default function SidebarSubmissionData(props: SidebarSubmissionDataProps) {
+export default function SidebarSubmissionData(
+  props: SidebarSubmissionDataProps
+) {
   const [store] = useState(() => singleProcessingStore);
 
   const submissionData = store.getSubmissionData();
@@ -38,14 +37,14 @@ export default function SidebarSubmissionData(props: SidebarSubmissionDataProps)
   return (
     <section className={styles.dataList} key='data-list'>
       <div className={styles.dataListBody}>
-        {submissionData &&
+        {submissionData && (
           <SubmissionDataList
             assetContent={props.asset}
             submissionData={submissionData}
             hideQuestions={getQuestionsToHide()}
             hideGroups
           />
-        }
+        )}
       </div>
     </section>
   );

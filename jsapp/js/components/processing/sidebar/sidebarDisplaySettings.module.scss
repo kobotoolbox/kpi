@@ -9,14 +9,14 @@
 }
 
 .description {
-  padding-bottom: sizes.$x30;
+  padding-bottom: sizes.$x36;
 }
 
-.display {
-  padding-bottom: sizes.$x40;
+.display:not(:last-child) {
+  padding-bottom: sizes.$x36;
 }
 
-.hasTranslation {
+.wrapWithParens {
   span::before {
     content: '(';
   }
@@ -27,20 +27,19 @@
 }
 
 .options {
-  height: 100%;
-  padding-bottom: sizes.$x24;
-  overflow-y: scroll;
+  margin: 0 !important;
+  overflow-y: auto;
 }
 
-footer {
-  padding-top: sizes.$x12;
-  padding-bottom: sizes.$x12;
-  justify-content: center !important;
-  // Some basic overflow styling just in case the list is very long
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  background: colors.$kobo-white;
-  border-radius: sizes.$x6;
-}
+//footer {
+//  padding-top: sizes.$x12;
+//  padding-bottom: sizes.$x12;
+//  justify-content: center !important;
+//  // Some basic overflow styling just in case the list is very long
+//  position: fixed;
+//  bottom: 0;
+//  right: 0;
+//  left: 0;
+//  background: colors.$kobo-white;
+//  border-radius: sizes.$x6;
+//}

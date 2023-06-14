@@ -24,7 +24,7 @@ export default function SidebarDisplaySettings() {
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript && transcript) {
       return (
-        <strong className={styles.hasTranslation}>
+        <strong className={styles.wrapWithParens}>
           {t('Original transcript')}
           &nbsp;
           <AsyncLanguageDisplayLabel code={transcript.languageCode} />
@@ -40,7 +40,6 @@ export default function SidebarDisplaySettings() {
   return (
     <div className={styles.root}>
       <Button
-        classNames={[styles.displaySettings]}
         size='m'
         type='bare'
         label={t('Display settings')}
@@ -53,9 +52,7 @@ export default function SidebarDisplaySettings() {
         onRequestClose={() => setIsModalOpen(false)}
         size='medium'
       >
-        <KoboModalHeader iconColor='storm'>
-          {t('Customize display settings')}
-        </KoboModalHeader>
+        <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
 
         <KoboModalContent>
           <p className={styles.description}>
@@ -87,7 +84,7 @@ export default function SidebarDisplaySettings() {
                       onChange={() => store.setDisplay(entry[0], !entry[1])}
                       checked={entry[1]}
                       label={
-                        <strong className={styles.hasTranslation}>
+                        <strong className={styles.wrapWithParens}>
                           {t('Translation')}
                           &nbsp;
                           <AsyncLanguageDisplayLabel code={entry[0]} />
@@ -102,7 +99,7 @@ export default function SidebarDisplaySettings() {
             })}
           </ul>
         </KoboModalContent>
-        <KoboModalFooter>
+        <KoboModalFooter isCentered>
           <Button
             label={<strong>{t('Reset')}</strong>}
             type='frame'

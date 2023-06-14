@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {formatTime} from 'js/utils';
 import type {Transx} from 'js/components/processing/singleProcessingStore';
 import bodyStyles from './processingBody.module.scss';
@@ -11,7 +11,7 @@ interface TransxDisplayProps {
 }
 
 export default function TransxDisplay(props: TransxDisplayProps) {
-  function renderLanguageAndDate() {
+  const renderLanguageAndDate = useCallback(() => {
     const source = props.transx;
 
     const contentLanguageCode = source?.languageCode;
@@ -43,7 +43,7 @@ export default function TransxDisplay(props: TransxDisplayProps) {
         )}
       </React.Fragment>
     );
-  }
+  }, []);
 
   return (
     <section className={styles.root}>
