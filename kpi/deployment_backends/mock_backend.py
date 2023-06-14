@@ -508,28 +508,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def mongo_userform_id(self):
         return f'{self.asset.owner.username}_{self.asset.uid}'
 
-    @property
-    def nlp_tracking(self):
-        """
-        Get the current month's NLP tracking data
-        """
-        try:
-            nlp_usage_counters = NLPUsageCounter.objects.only('counters').filter(
-                asset_id=self.asset.id
-            )
-            total_counters = {}
-            for nlp_counters in nlp_usage_counters:
-                counters = nlp_counters.counters
-                for key in counters.keys():
-                    if key not in total_counters:
-                        total_counters[key] = 0
-                    total_counters[key] += counters[key]
-        except NLPUsageCounter.DoesNotExist:
-            # return empty dict to match `total_counters`
-            return {}
-        else:
-            return total_counters
-
     def redeploy(self, active: bool = None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and

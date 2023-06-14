@@ -254,11 +254,6 @@ class BaseDeploymentBackend(abc.ABC):
     def mongo_userform_id(self):
         return None
 
-    @property
-    @abc.abstractmethod
-    def nlp_tracking(self):
-        pass
-
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
         pass

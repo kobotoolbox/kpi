@@ -990,28 +990,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
-    @property
-    def nlp_tracking(self):
-        """
-        Get the all-time historical NLP tracking data
-        """
-        try:
-            nlp_usage_counters = NLPUsageCounter.objects.only('counters').filter(
-                asset_id=self.asset.id
-            )
-            total_counters = {}
-            for nlp_counters in nlp_usage_counters:
-                counters = nlp_counters.counters
-                for key in counters.keys():
-                    if key not in total_counters:
-                        total_counters[key] = 0
-                    total_counters[key] += counters[key]
-        except NLPUsageCounter.DoesNotExist:
-            # return empty dict match `total_counters` type
-            return {}
-        else:
-            return total_counters
-
     def redeploy(self, active=None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
