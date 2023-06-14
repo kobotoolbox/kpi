@@ -55,8 +55,22 @@ class MetadataFieldsListField(JsonSchemaFormField):
     Validates that the input is an array of objects with "name" and "required"
     properties, e.g.
         [
-            {"name": "important_field", "required": true},
-            {"name": "whatever_field", "required": false},
+            {
+                "name": "important_field", 
+                "required": true,
+                "label": {
+                    "default": "Important Field",
+                    "fr": "Champ important"
+                }
+            },
+            {
+                "name": "whatever_field", 
+                "required": false,
+                "label": {
+                    "default": "Whatever Field",
+                    "fr": "Champ whatever"
+                }
+            },
             …
         ]
     """
@@ -66,11 +80,20 @@ class MetadataFieldsListField(JsonSchemaFormField):
             'uniqueItems': True,
             'items': {
                 'type': 'object',
-                'required': ['name', 'required'],
+                'required': ['name', 'required', 'label'],
                 'additionalProperties': False,
                 'properties': {
                     'name': {'type': 'string'},
                     'required': {'type': 'boolean'},
+                    'label': {
+                        'type': 'object',
+                        'uniqueItems': True,
+                        'properties': {
+                            'default': {'type': 'string'},
+                        },
+                        'required': ['default'],
+                        'additionalProperties': True,
+                    }
                 },
             },
         }
