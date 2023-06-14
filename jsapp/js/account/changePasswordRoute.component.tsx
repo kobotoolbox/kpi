@@ -1,5 +1,4 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import DocumentTitle from 'react-document-title';
 import {observer} from 'mobx-react';
 import sessionStore from 'js/stores/session';
@@ -19,8 +18,6 @@ bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
-interface ChangePasswordRouteProps extends WithRouterProps {}
-
 interface PasswordErrors {
   currentPassword?: string;
   newPassword?: string;
@@ -37,12 +34,12 @@ interface ChangePasswordRouteState {
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
 const ChangePasswordRoute = class ChangePassword extends React.Component<
-  ChangePasswordRouteProps,
+  WithRouterProps,
   ChangePasswordRouteState
 > {
   errors: PasswordErrors = {};
 
-  constructor(props: ChangePasswordRouteProps) {
+  constructor(props: WithRouterProps) {
     super(props);
     this.errors = {};
     this.state = {
@@ -51,14 +48,13 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
       newPassword: '',
       verifyPassword: '',
     };
-    autoBind(this);
   }
 
   close() {
     this.props.router.navigate(-1);
   }
 
-  changePassword() {
+  savePassword() {
     this.errors = {};
 
     if (!this.state.currentPassword) {
@@ -90,19 +86,15 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
     this.setState({errors: this.errors});
   }
 
-  onChangePasswordCompleted() {
-    this.close();
-  }
-
-  currentPasswordChange(val: string) {
+  onCurrentPasswordChange(val: string) {
     this.setState({currentPassword: val});
   }
 
-  newPasswordChange(val: string) {
+  onNewPasswordChange(val: string) {
     this.setState({newPassword: val});
   }
 
-  verifyPasswordChange(val: string) {
+  onVerifyPasswordChange(val: string) {
     this.setState({verifyPassword: val});
   }
 
@@ -119,14 +111,14 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <bem.KoboButton
-              onClick={this.changePassword}
+              onClick={this.savePassword.bind(this)}
               m={['blue']}
             >
               {t('Save Password')}
             </bem.KoboButton>
 
             <button
-              onClick={this.close}
+              onClick={this.close.bind(this)}
               className='account-settings-close mdl-button mdl-button--icon'
             >
               <i className='k-icon k-icon-close'/>
@@ -153,7 +145,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
                   type='password'
                   errors={this.state.errors.currentPassword}
                   value={this.state.currentPassword}
-                  onChange={this.currentPasswordChange}
+                  onChange={this.onCurrentPasswordChange.bind(this)}
                 />
 
                 <a
@@ -171,7 +163,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
                   type='password'
                   errors={this.state.errors.newPassword}
                   value={this.state.newPassword}
-                  onChange={this.newPasswordChange}
+                  onChange={this.onNewPasswordChange.bind(this)}
                 />
               </bem.AccountSettings__item>
 
@@ -189,7 +181,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
                   type='password'
                   errors={this.state.errors.verifyPassword}
                   value={this.state.verifyPassword}
-                  onChange={this.verifyPasswordChange}
+                  onChange={this.onVerifyPasswordChange.bind(this)}
                 />
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
