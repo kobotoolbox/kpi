@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
-
-from djstripe.models import Customer, Plan, Subscription
+from djstripe.enums import BillingScheme
+from djstripe.models import Customer
 from model_bakery import baker
 from rest_framework import status
 
@@ -22,11 +22,11 @@ class SubscriptionAPITestCase(BaseTestCase):
         organization = baker.make(Organization)
         organization.add_user(self.someuser, is_admin=True)
         customer = baker.make(Customer, subscriber=organization)
-        plan = baker.make(Plan)
         self.subscription = baker.make(
-            Subscription,
+            'djstripe.Subscription',
             customer=customer,
-            plan=plan,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
             livemode=False,
         )
         self.url_detail = reverse(

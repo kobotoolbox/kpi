@@ -6,4 +6,4 @@ from kobo.apps.organizations.models import Organization
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
-        fields = ['uid', 'name', 'is_active', 'created', 'modified', 'slug']
+        fields = ['id', 'name', 'is_active', 'created', 'modified', 'slug']

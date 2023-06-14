@@ -18,8 +18,10 @@ except ImportError:
 import constance
 import requests
 from django.conf import settings
+from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
+from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
 import formpack
@@ -36,7 +38,6 @@ from formpack.schema.fields import (
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
 from private_storage.fields import PrivateFileField
-from pyxform import xls2json_backends
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 from openpyxl.utils.exceptions import InvalidFileException
@@ -227,6 +228,16 @@ class ImportTask(ImportExportTask):
     Something that would be done after the file has uploaded
     ...although we probably would need to store the file in a blob
     """
+
+    class Meta(ImportExportTask.Meta):
+        indexes = [
+            BTreeIndex(
+                F('data__destination'), name='data__destination_idx'
+            ),
+            HashIndex(
+                F('data__destination'), name='data__destination_hash_idx'
+            ),
+        ]
 
     def _run_task(self, messages):
         self.status = self.PROCESSING
@@ -569,6 +580,14 @@ class ExportTaskBase(ImportExportTask):
     class Meta:
         abstract = True
         ordering = ['-date_created']
+        indexes = [
+            BTreeIndex(
+                F('data__source'), name='data__source_idx'
+            ),
+            HashIndex(
+                F('data__source'), name='data__source_hash_idx'
+            ),
+        ]
 
     def _build_export_filename(self, export, export_type):
         """
@@ -919,6 +938,7 @@ class ExportTask(ExportTaskBase):
     """
     An asynchronous export task, to be run with Celery
     """
+
     def _run_task(self, messages):
         try:
             source_url = self.data['source']

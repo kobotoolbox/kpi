@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
 
 from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
@@ -23,6 +24,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = UserSerializer
     lookup_field = 'username'
     pagination_class = LimitOffsetPagination
+    permission_classes = (IsAuthenticated,)
     search_default_field_lookups = [
         'username__icontains',
     ]
