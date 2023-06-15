@@ -336,8 +336,22 @@ export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'ownerUsername',
 ];
 
+/**
+ * The inital fields that are going to be displayed. We also use them with
+ * "reset" fields button.
+ */
 export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'countries',
+  'dateModified',
+  'dateDeployed',
+  'name',
+  'ownerUsername',
+  'status',
+  'submissions',
+];
+
+/** An override default list (instead of DEFAULT_VISIBLE_FIELDS) */
+export const HOME_DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'dateModified',
   'dateDeployed',
   'name',

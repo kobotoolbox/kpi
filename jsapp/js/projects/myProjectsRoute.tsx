@@ -9,7 +9,7 @@ import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
 import {
   HOME_VIEW,
   HOME_ORDERABLE_FIELDS,
-  DEFAULT_VISIBLE_FIELDS,
+  HOME_DEFAULT_VISIBLE_FIELDS,
   HOME_EXCLUDED_FIELDS,
 } from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
@@ -33,7 +33,8 @@ function MyProjectsRoute() {
   useEffect(() => {
     customView.setUp(
       HOME_VIEW.uid,
-      `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.s}`
+      `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.s}`,
+      HOME_DEFAULT_VISIBLE_FIELDS
     );
   }, []);
 
@@ -54,7 +55,7 @@ function MyProjectsRoute() {
 
   /** Filters out excluded fields */
   const getTableVisibleFields = () => {
-    const outcome = toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS;
+    const outcome = toJS(customView.fields) || customView.defaultVisibleFields;
     return outcome.filter(
       (fieldName) => !HOME_EXCLUDED_FIELDS.includes(fieldName)
     );
