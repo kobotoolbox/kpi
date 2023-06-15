@@ -2,6 +2,7 @@
 from __future__ import annotations
 import abc
 import copy
+import datetime
 import json
 from datetime import date
 from typing import Union, Iterator, Optional
@@ -43,11 +44,6 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def all_time_submission_count(self):
-        pass
-
-    @property
-    @abc.abstractmethod
     def attachment_storage_bytes(self):
         pass
 
@@ -75,7 +71,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date: datetime.date):
         pass
 
     @abc.abstractmethod

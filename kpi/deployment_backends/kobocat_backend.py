@@ -13,6 +13,7 @@ from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
+from dateutil.relativedelta import relativedelta
 from django.db.models.functions import Coalesce
 
 try:
@@ -105,22 +106,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     SUBMISSION_UUID_PATTERN = re.compile(
         r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}'
     )
-
-    @property
-    def all_time_submission_count(self):
-        try:
-            xform_id = self.xform_id
-        except InvalidXFormException:
-            return 0
-
-        result = ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.filter(
-            xform_id=xform_id
-        ).aggregate(Sum('counter'))
-
-        if count := result['counter__sum']:
-            return count
-
-        return 0
 
     @property
     def attachment_storage_bytes(self):
@@ -332,7 +317,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def nlp_tracking_data(self, start_date=None):
         """
         Get the NLP tracking data since a specified date
-        If no date is provided, use the first day of this month
+        If no date is provided, get all-time data
         """
         filter_args = {}
         if start_date:
@@ -356,28 +341,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             return nlp_tracking
 
-    @property
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date=None):
         try:
             xform_id = self.xform_id
         except InvalidXFormException:
             return 0
 
         today = timezone.now().date()
+        filter_args = {
+            'xform_id': xform_id,
+        }
+        if start_date:
+            filter_args['date__range'] = [start_date, today]
         try:
-            monthly_counter = (
-                ReadOnlyKobocatMonthlyXFormSubmissionCounter.objects.only(
-                    'counter'
-                ).get(
-                    xform_id=xform_id,
-                    year=today.year,
-                    month=today.month,
-                )
-            )
-        except ReadOnlyKobocatMonthlyXFormSubmissionCounter.DoesNotExist:
+            # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
+            # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
+            total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
+                    'date', 'counter'
+                ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
+        except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:
-            return monthly_counter.counter
+            return total_submissions['count_sum']
 
     @staticmethod
     def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:

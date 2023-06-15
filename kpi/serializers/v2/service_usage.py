@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from djstripe.models import Subscription
@@ -23,6 +24,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     nlp_usage_all_time = serializers.SerializerMethodField()
     storage_bytes = serializers.SerializerMethodField()
     submission_count_current_month = serializers.SerializerMethodField()
+    submission_count_current_year = serializers.SerializerMethodField()
     submission_count_all_time = serializers.SerializerMethodField()
 
     class Meta:
@@ -36,6 +38,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
             'nlp_usage_all_time',
             'storage_bytes',
             'submission_count_current_month',
+            'submission_count_current_year',
             'submission_count_all_time',
         )
 
@@ -53,14 +56,20 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     def get_submission_count_current_month(self, asset):
         if not asset.has_deployment:
             return 0
+        start_date = self._get_current_month_start_date()
+        return asset.deployment.submission_count_since_date(start_date)
 
-        return asset.deployment.current_month_submission_count
+    def get_submission_count_current_year(self, asset):
+        if not asset.has_deployment:
+            return 0
+        start_date = self._get_current_year_start_date()
+        return asset.deployment.submission_count_since_date(start_date)
 
     def get_submission_count_all_time(self, asset):
         if not asset.has_deployment:
             return 0
 
-        return asset.deployment.all_time_submission_count
+        return asset.deployment.submission_count_since_date()
 
     def get_storage_bytes(self, asset):
         # Get value from asset deployment (if it has deployment)
@@ -109,20 +118,24 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
                 # Subscription is billed yearly, use the provided anchor date as start date
                 return anchor_date
             # Subscription is monthly, calculate 11 months before the anchor date
-            anchor_date -= timedelta(months=11)
+            anchor_date += relativedelta(months=-11)
             return anchor_date
         else:
             # No subscription info, just use the first day of current year
             return now.replace(day=1, month=1).date()
 
+
 class ServiceUsageSerializer(serializers.Serializer):
 
     total_nlp_asr_seconds_all_time = serializers.SerializerMethodField()
     total_nlp_asr_seconds_current_month = serializers.SerializerMethodField()
+    total_nlp_asr_seconds_current_year = serializers.SerializerMethodField()
     total_nlp_mt_characters_all_time = serializers.SerializerMethodField()
     total_nlp_mt_characters_current_month = serializers.SerializerMethodField()
+    total_nlp_mt_characters_current_year = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count_current_month = serializers.SerializerMethodField()
+    total_submission_count_current_year = serializers.SerializerMethodField()
     total_submission_count_all_time = serializers.SerializerMethodField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
@@ -130,11 +143,14 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         self._total_nlp_asr_seconds_all_time = 0
         self._total_nlp_asr_seconds_current_month = 0
+        self._total_nlp_asr_seconds_current_year = 0
         self._total_nlp_mt_characters_all_time = 0
         self._total_nlp_mt_characters_current_month = 0
+        self._total_nlp_mt_characters_current_year = 0
         self._total_storage_bytes = 0
         self._total_submission_count_all_time = 0
         self._total_submission_count_current_month = 0
+        self._total_submission_count_current_year = 0
         self._get_per_asset_usage(instance)
 
     def get_total_nlp_asr_seconds_all_time(self, user):
@@ -143,17 +159,26 @@ class ServiceUsageSerializer(serializers.Serializer):
     def get_total_nlp_asr_seconds_current_month(self, user):
         return self._total_nlp_asr_seconds_current_month
 
+    def get_total_nlp_asr_seconds_current_year(self, user):
+        return self._total_nlp_asr_seconds_current_year
+
     def get_total_nlp_mt_characters_all_time(self, user):
         return self._total_nlp_mt_characters_all_time
 
     def get_total_nlp_mt_characters_current_month(self, user):
         return self._total_nlp_mt_characters_current_month
 
+    def get_total_nlp_mt_characters_current_year(self, user):
+        return self._total_nlp_mt_characters_current_year
+
     def get_total_submission_count_all_time(self, user):
         return self._total_submission_count_all_time
 
     def get_total_submission_count_current_month(self, user):
         return self._total_submission_count_current_month
+
+    def get_total_submission_count_current_year(self, user):
+        return self._total_submission_count_current_year
 
     def get_total_storage_bytes(self, user):
         return self._total_storage_bytes
@@ -195,25 +220,22 @@ class ServiceUsageSerializer(serializers.Serializer):
             'anchor_date': anchor_date,
             'subscription_interval': subscription_interval
         }
+
         self._per_asset_usage = AssetUsageSerializer(
             user_assets, many=True, read_only=True, context=asset_usage_context
         ).data
 
         for asset in self._per_asset_usage:
             self._total_storage_bytes += asset['storage_bytes']
-            self._total_submission_count_current_month += asset[
-                'submission_count_current_month'
-            ]
-            self._total_submission_count_all_time += asset[
-                'submission_count_all_time'
-            ]
-            for nlp_usage_type in ['all_time', 'current_month']:
-                nlp_usage = asset[f'nlp_usage_{nlp_usage_type}']
+            for usage_type in ['all_time', 'current_month', 'current_year']:
+                submission_type = f'_total_submission_count_{usage_type}'
+                self.__dict__[submission_type] += asset[f'submission_count_{usage_type}']
+                nlp_usage = asset[f'nlp_usage_{usage_type}']
                 nlp_keys = nlp_usage.keys()
                 for key in nlp_keys:
                     if 'asr_seconds' in key:
-                        total_nlp_asr_seconds = f'_total_nlp_asr_seconds_{nlp_usage_type}'
-                        self.__dict__[total_nlp_asr_seconds] += nlp_usage[key]
+                        nlp_counter_type = f'_total_nlp_asr_seconds_{usage_type}'
+                        self.__dict__[nlp_counter_type] += nlp_usage[key]
                     if 'mt_characters' in key:
-                        total_nlp_mt_characters = f'_total_nlp_mt_characters_{nlp_usage_type}'
-                        self.__dict__[total_nlp_mt_characters] += nlp_usage[key]
+                        nlp_counter_type = f'_total_nlp_mt_characters_{usage_type}'
+                        self.__dict__[nlp_counter_type] += nlp_usage[key]

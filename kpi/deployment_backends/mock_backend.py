@@ -62,15 +62,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     ]
 
     @property
-    def all_time_submission_count(self):
-        # FIXME, does not reproduce KoBoCAT behaviour.
-        #   Deleted submissions are not taken into account but they should be
-        monthly_counter = len(
-            self.get_submissions(self.asset.owner)
-        )
-        return monthly_counter
-
-    @property
     def attachment_storage_bytes(self):
         submissions = self.get_submissions(self.asset.owner)
         storage_bytes = 0
@@ -163,7 +154,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def nlp_tracking_data(self, start_date=None):
         """
         Get the NLP tracking data since a specified date
-        If no date is provided, use the first day of this month
+        If no date is provided, get all-time data
         """
         filter_args = {}
         if start_date:
@@ -187,8 +178,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         else:
             return nlp_tracking
 
-    @property
-    def current_month_submission_count(self):
+    def submission_count_since_date(self, start_date=None):
         # FIXME, does not reproduce KoBoCAT behaviour.
         #   Deleted submissions are not taken into account but they should be
         monthly_counter = len(
