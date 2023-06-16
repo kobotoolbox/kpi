@@ -117,6 +117,13 @@ const MainHeader = class MainHeader extends Reflux.Component {
     });
   }
 
+  accountUsage() {
+    // verifyLogin also refreshes stored profile data
+    actions.auth.verifyLogin.triggerAsync().then(() => {
+      this.props.router.navigate(ACCOUNT_ROUTES.USAGE);
+    });
+  }
+
   languageChange(evt) {
     evt.preventDefault();
     let langCode = $(evt.target).data('key');
@@ -234,6 +241,11 @@ const MainHeader = class MainHeader extends Reflux.Component {
                       {langs.map(this.renderLangItem)}
                     </ul>
                   }
+                </bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLink onClick={this.accountUsage}>
+                    {t('Manage your account usage')}
+                  </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
