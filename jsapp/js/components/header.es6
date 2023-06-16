@@ -244,6 +244,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLink onClick={this.accountUsage}>
+                <i className='k-icon k-icon-archived' />
                     {t('Manage your account usage')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
