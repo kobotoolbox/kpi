@@ -1,0 +1,77 @@
+version: 2.1
+
+# Define a common Docker container and environment for jobs
+executors:
+  docker-publisher:
+    # Define the image tag
+    environment:
+      IMAGE_TAG: rondcm/kpi:latest
+    # Use `docker:stable` as the Docker image for this executor
+    docker:
+      - image: cimg/base:2023.06
+
+jobs:
+  build:
+    # Use docker-publisher from above as the Docker container to run this job in
+    executor: docker-publisher
+
+    steps:
+      # Checkout the repository files
+      - checkout
+
+      # Set up a separate Docker environment to run `docker` commands in
+      - setup_remote_docker
+
+      # Build the hello world image
+      - run:
+          name: Build Docker image
+          # Tag using the image tag above
+          command: docker build --tag "${IMAGE_TAG}" .
+
+      # Archive and persist the Docker image
+      - run:
+          name: Archive Docker image
+          command: docker save --output image.tar "${IMAGE_TAG}"
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./image.tar
+
+  push:
+    # Use docker-publisher from above as the Docker container to run this job in
+    executor: docker-publisher
+
+    steps:
+      # Set up a separate Docker environment to run `docker` commands in
+      - setup_remote_docker
+
+      # Load and un-archive the Docker image
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Load Docker image
+          command: docker load --input /tmp/workspace/image.tar
+
+      # Log in to Docker Hub and push the image
+      - run:
+          name: Publish Docker image
+          command: |
+            echo "${DOCKERHUB_PASS}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
+            docker push "${IMAGE_TAG}"
+
+# Run the two different jobs as a sequenced workflow
+workflows:
+  version: 2
+  build-push:
+    jobs:
+      # Run the build first
+      - build
+      # Push the image second
+      - push:
+          # Build needs to finish first
+          requires:
+            - build
+          # Only push images from the main branch
+          filters:
+            branches:
+              only: staging
