@@ -237,7 +237,7 @@ export function replaceBracketsWithLink(str: string, url?: string): string {
 }
 
 export function currentLang(): string {
-  return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
+  return cookies.get(LANGUAGE_COOKIE_NAME) || 'my';
 }
 
 interface LangObject {

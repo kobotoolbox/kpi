@@ -314,10 +314,10 @@ COUNTRIES = (
 # information about the language here. This dictionary will be used to update
 # `django.conf.locale.LANG_INFO`
 EXTRA_LANG_INFO = {
-    'ku': {
-        'bidi': True,
-        'code': 'ku',
-        'name': 'Kurdish',
-        'name_local': 'كوردی',
-    },
+    # 'ku': {
+    #     'bidi': True,
+    #     'code': 'ku',
+    #     'name': 'Kurdish',
+    #     'name_local': 'كوردی',
+    # },
 }
