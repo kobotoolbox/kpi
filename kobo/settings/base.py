@@ -13,7 +13,8 @@ import django.conf.locale
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
-from django.utils.translation import get_language_info
+# from django.utils.translation import get_language_info
+from django.utils.translation import ugettext_lazy as _
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
@@ -129,7 +130,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    # 'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -481,34 +482,39 @@ DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
 django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
-DJANGO_LANGUAGE_CODES = env.str(
-    'DJANGO_LANGUAGE_CODES',
-    default=(
-        'ar '  # Arabic
-        'cs '  # Czech
-        'de-DE '  # German
-        'en '  # English
-        'es '  # Spanish
-        'fa '  # Persian/Farsi
-        'fr '  # French
-        'hi '  # Hindi
-        'hu '  # Hungarian
-        'ja '  # Japanese
-        'ku '  # Kurdish
-        'pl '  # Polish
-        'pt '  # Portuguese
-        'ru '  # Russian
-        'tr '  # Turkish
-        'uk '  # Ukrainian
-        'zh-hans'  # Chinese Simplified
-    )
+# DJANGO_LANGUAGE_CODES = env.str(
+#     'DJANGO_LANGUAGE_CODES',
+#     default=(
+#         'ar '  # Arabic
+#         'cs '  # Czech
+#         'de-DE '  # German
+#         'en '  # English
+#         'es '  # Spanish
+#         'fa '  # Persian/Farsi
+#         'fr '  # French
+#         'hi '  # Hindi
+#         'hu '  # Hungarian
+#         'ja '  # Japanese
+#         'ku '  # Kurdish
+#         'pl '  # Polish
+#         'pt '  # Portuguese
+#         'ru '  # Russian
+#         'tr '  # Turkish
+#         'uk '  # Ukrainian
+#         'zh-hans'  # Chinese Simplified
+#     )
+# )
+# LANGUAGES = [
+#     (lang_code, get_language_info(lang_code)['name_local'])
+#     for lang_code in DJANGO_LANGUAGE_CODES.split(' ')
+# ]
+LANGUAGES = (
+    # ('en', _('English')),
+    ('my', _('Myanmar')),
 )
-LANGUAGES = [
-    (lang_code, get_language_info(lang_code)['name_local'])
-    for lang_code in DJANGO_LANGUAGE_CODES.split(' ')
-]
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'my-mm'
 
 TIME_ZONE = 'UTC'
 
