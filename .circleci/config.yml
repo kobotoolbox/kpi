@@ -65,7 +65,7 @@ workflows:
   build-push:
     jobs:
       # Run the build first
-      - build
+      - build:
         filters:
           branches:
             only:
