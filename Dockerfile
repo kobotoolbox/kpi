@@ -59,6 +59,7 @@ RUN apt-get -qq update && \
     apt-get -qq -y install curl && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get -qq -y install --no-install-recommends \
+        npm \
         ffmpeg \
         gdal-bin \
         gettext \
@@ -114,7 +115,7 @@ RUN rm -rf ${KPI_NODE_PATH} && \
     npm install -g check-dependencies && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
-    npm install --quiet && \
+    npm install --quiet --legacy-peer-deps && \
     npm cache clean --force
 
 ENV PATH $PATH:${KPI_NODE_PATH}/.bin
