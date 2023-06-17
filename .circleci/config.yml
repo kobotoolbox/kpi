@@ -66,15 +66,16 @@ workflows:
     jobs:
       # Run the build first
       - build
-          filters:
-            branches:
-              only: staging
+        filters:
+          branches:
+            only:
+              -staging
       # Push the image second
       - push:
-          # Build needs to finish first
-          requires:
-            - build
-          # Only push images from the main branch
-          filters:
-            branches:
-              only: staging
+        # Build needs to finish first
+        requires:
+          - build
+        # Only push images from the staging branch
+        filters:
+          branches:
+            only: staging
