@@ -1,15 +1,15 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import DocumentTitle from 'react-document-title';
-import { observer } from 'mobx-react';
-import sessionStore from "js/stores/session";
+import {observer} from 'mobx-react';
+import sessionStore from 'js/stores/session';
 import {actions} from '../actions';
 import bem, {makeBem} from 'js/bem';
 import TextBox from 'js/components/common/textBox';
-import PasswordStrength from 'js/components/passwordStrength';
-import {stringToColor} from 'utils';
+import PasswordStrength from 'js/components/passwordStrength.component';
+import {stringToColor} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import './accountSettings.scss';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
@@ -18,44 +18,70 @@ bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
-const ChangePassword = class ChangePassword extends React.Component {
-  constructor(props) {
+interface PasswordErrors {
+  currentPassword?: string;
+  newPassword?: string;
+  verifyPassword?: string;
+}
+
+interface ChangePasswordRouteState {
+  errors: PasswordErrors;
+  currentPassword: string;
+  newPassword: string;
+  verifyPassword: string;
+}
+
+const FIELD_REQUIRED_ERROR = t('This field is required.');
+
+const ChangePasswordRoute = class ChangePassword extends React.Component<
+  WithRouterProps,
+  ChangePasswordRouteState
+> {
+  errors: PasswordErrors = {};
+
+  constructor(props: WithRouterProps) {
     super(props);
     this.errors = {};
     this.state = {
       errors: this.errors,
       currentPassword: '',
       newPassword: '',
-      verifyPassword: ''
+      verifyPassword: '',
     };
-    autoBind(this);
-  }
-
-  validateRequired(what) {
-    if (!this.state[what]) {
-      this.errors[what] = t('This field is required.');
-    }
   }
 
   close() {
-    this.props.router.navigate(-1)
+    this.props.router.navigate(-1);
   }
 
-  changePassword() {
+  savePassword() {
     this.errors = {};
-    this.validateRequired('currentPassword');
-    this.validateRequired('newPassword');
-    this.validateRequired('verifyPassword');
+
+    if (!this.state.currentPassword) {
+      this.errors.currentPassword = FIELD_REQUIRED_ERROR;
+    }
+    if (!this.state.newPassword) {
+      this.errors.newPassword = FIELD_REQUIRED_ERROR;
+    }
+    if (!this.state.verifyPassword) {
+      this.errors.verifyPassword = FIELD_REQUIRED_ERROR;
+    }
+
     if (this.state.newPassword !== this.state.verifyPassword) {
-      this.errors['newPassword'] = t('This field must match the Verify Password field.');
+      this.errors.newPassword = t(
+        'This field must match the Verify Password field.'
+      );
     }
     if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(this.state.currentPassword, this.state.newPassword);
+      actions.auth.changePassword(
+        this.state.currentPassword,
+        this.state.newPassword
+      );
     }
     this.setState({errors: this.errors});
   }
 
-  onChangePasswordFailed(jqXHR) {
+  onChangePasswordFailed(jqXHR: JQuery.jqXHR) {
     if (jqXHR.responseJSON.current_password) {
       this.errors.currentPassword = jqXHR.responseJSON.current_password;
     }
@@ -65,52 +91,43 @@ const ChangePassword = class ChangePassword extends React.Component {
     this.setState({errors: this.errors});
   }
 
-  onChangePasswordCompleted() {
-    this.close();
-  }
-
-  currentPasswordChange(val) {
+  onCurrentPasswordChange(val: string) {
     this.setState({currentPassword: val});
   }
 
-  newPasswordChange(val) {
+  onNewPasswordChange(val: string) {
     this.setState({newPassword: val});
   }
 
-  verifyPasswordChange(val) {
+  onVerifyPasswordChange(val: string) {
     this.setState({verifyPassword: val});
   }
 
   render() {
-    if(!sessionStore.isLoggedIn) {
+    if (!sessionStore.isLoggedIn) {
       return null;
     }
 
-    var accountName = sessionStore.currentAccount.username;
-    var initialsStyle = {
-      background: `#${stringToColor(accountName)}`
-    };
+    const accountName = sessionStore.currentAccount.username;
+    const initialsStyle = {background: `#${stringToColor(accountName)}`};
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <bem.KoboButton
-              onClick={this.changePassword}
-              m={['blue']}
-            >
+            <bem.KoboButton onClick={this.savePassword.bind(this)} m='blue'>
               {t('Save Password')}
             </bem.KoboButton>
 
             <button
-              onClick={this.close}
+              onClick={this.close.bind(this)}
               className='account-settings-close mdl-button mdl-button--icon'
             >
-              <i className='k-icon k-icon-close'/>
+              <i className='k-icon k-icon-close' />
             </button>
           </bem.AccountSettings__actions>
 
-          <bem.AccountSettings__item m={'column'}>
+          <bem.AccountSettings__item m='column'>
             <bem.AccountSettings__item m='username'>
               <bem.AccountBox__initials style={initialsStyle}>
                 {accountName.charAt(0)}
@@ -130,7 +147,7 @@ const ChangePassword = class ChangePassword extends React.Component {
                   type='password'
                   errors={this.state.errors.currentPassword}
                   value={this.state.currentPassword}
-                  onChange={this.currentPasswordChange}
+                  onChange={this.onCurrentPasswordChange.bind(this)}
                 />
 
                 <a
@@ -148,16 +165,15 @@ const ChangePassword = class ChangePassword extends React.Component {
                   type='password'
                   errors={this.state.errors.newPassword}
                   value={this.state.newPassword}
-                  onChange={this.newPasswordChange}
+                  onChange={this.onNewPasswordChange.bind(this)}
                 />
               </bem.AccountSettings__item>
 
-              {
-                this.state.newPassword !== '' &&
+              {this.state.newPassword !== '' && (
                 <bem.AccountSettings__item>
                   <PasswordStrength password={this.state.newPassword} />
                 </bem.AccountSettings__item>
-              }
+              )}
 
               <bem.AccountSettings__item>
                 <TextBox
@@ -166,7 +182,7 @@ const ChangePassword = class ChangePassword extends React.Component {
                   type='password'
                   errors={this.state.errors.verifyPassword}
                   value={this.state.verifyPassword}
-                  onChange={this.verifyPasswordChange}
+                  onChange={this.onVerifyPasswordChange.bind(this)}
                 />
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
@@ -175,6 +191,6 @@ const ChangePassword = class ChangePassword extends React.Component {
       </DocumentTitle>
     );
   }
-}
+};
 
-export default observer(withRouter(ChangePassword));
+export default observer(withRouter(ChangePasswordRoute));
