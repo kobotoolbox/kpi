@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import clonedeep from 'lodash.clonedeep';
 import Select from 'react-select';
-import _ from 'underscore';
+import debounce from 'lodash.debounce';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
@@ -165,12 +165,10 @@ export default assign({
   },
 
   getStyleSelectVal(optionVal) {
-    return _.find(AVAILABLE_FORM_STYLES, (option) => {
-      return option.value === optionVal;
-    });
+    return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal);
   },
 
-  onSurveyChange: _.debounce(function () {
+  onSurveyChange: debounce(function () {
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
       this.preventClosingTab();
     }

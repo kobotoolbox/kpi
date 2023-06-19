@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
-import _ from 'underscore';
+import zip from 'lodash.zip';
 import Chart from 'chart.js';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
@@ -13,7 +13,7 @@ import ReportTable from './reportTable';
 function getPreparedTable(data) {
   let reportTable = [];
   if (data.percentages && data.responses && data.frequencies) {
-    reportTable = _.zip(
+    reportTable = zip(
       data.responseLabels || data.responses,
       data.frequencies,
       data.percentages,
@@ -269,7 +269,7 @@ const ReportViewItem = observer(class ReportViewItem extends React.Component {
       );
     }
     if (_type.select_one || _type.select_multiple) {
-      _type = _.keys(_type)[0];
+      _type = Object.keys(_type)[0];
     }
     _type = JSON.stringify(_type);
     return (

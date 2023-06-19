@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import debounce from 'lodash.debounce';
 import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
@@ -17,7 +17,7 @@ export default class SearchBox extends React.Component {
     this.state = {
       inputVal: searchBoxStore.getSearchPhrase()
     };
-    this.setSearchPhraseDebounced = _.debounce(this.setSearchPhrase, 500);
+    this.setSearchPhraseDebounced = debounce(this.setSearchPhrase, 500);
     autoBind(this);
   }
 
