@@ -1,6 +1,7 @@
 import logging
 
 from celery.signals import task_failure, task_retry
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
@@ -33,6 +34,9 @@ from .utils import delete_asset, replace_user_with_placeholder
     retry_backoff_max=600,
     max_retries=5,
     retry_jitter=False,
+    queue='kpi_low_priority_queue',
+    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
 def empty_account(account_trash_id: int):
     with transaction.atomic():
@@ -158,6 +162,9 @@ def empty_account(account_trash_id: int):
     retry_backoff_max=600,
     max_retries=5,
     retry_jitter=False,
+    queue='kpi_low_priority_queue',
+    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
 def empty_project(project_trash_id: int):
     with transaction.atomic():

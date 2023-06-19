@@ -6,6 +6,10 @@
 @use 'scss/z-indexes';
 
 $projects-table-hover-bg: colors.$kobo-gray-98;
+$projects-table-row-padding: sizes.$x8;
+// The shared height of a row: project rows are bigger due to padding, but
+// header rows use this size without paddings
+$projects-table-row-height: sizes.$x36;
 
 .row {
   display: flex;
@@ -13,14 +17,14 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   position: relative;
   align-items: stretch;
   cursor: pointer;
-  margin: 0 sizes.$x30;
+  margin: 0 sizes.$x8;
 
   user-select: none;
 }
 
 .cell {
   border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x18;
+  padding: $projects-table-row-padding;
   color: colors.$kobo-gray-40;
   flex: 1 0 auto;
   // ensures the table columns are same width for all rows
@@ -39,8 +43,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   }
 
   &[data-field='checkbox'] {
-    max-width: sizes.$x18 + sizes.$x20 + sizes.$x18;
-    width: sizes.$x18 + sizes.$x20 + sizes.$x18;
+    max-width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
+    width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
     @include mixins.centerRowFlex;
   }
 
@@ -48,9 +52,12 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   &[data-field='description'],
   &[data-field='ownerEmail'],
   &[data-field='ownerOrganization'],
-  &[data-field='status'],
-  &[data-field='submissions'] {
+  &[data-field='status'] {
     width: 13%;
+  }
+
+  &[data-field='submissions'] {
+    width: 10%;
   }
 
   &[data-field='countries'] {
@@ -63,13 +70,13 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &[data-field='ownerFullName'],
   &[data-field='ownerUsername'] {
-    width: 12.5%;
+    width: 10%;
     font-weight: 600;
   }
 
   &[data-field='dateModified'],
   &[data-field='dateDeployed'] {
-    width: 18%;
+    width: 14%;
   }
 
   &[data-field='languages'] {
@@ -78,9 +85,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &[data-field='name'] {
     color: colors.$kobo-dark-blue;
-    font-size: sizes.$x16;
     font-weight: 600;
-    width: 25%;
+    width: 30%;
 
     // Setup for underlining the Project Name on row hover.
     // This clarifies the size of the checkbox touch-target
@@ -97,7 +103,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 .row.rowTypeProject {
   .cell {
     @include mixins.textEllipsis;
-    line-height: sizes.$x36;
+    line-height: $projects-table-row-height;
 
     // performance hints for resizing
     contain: inline-size layout paint style;
@@ -126,8 +132,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
       }
       // right: cover whitespace up to the project name link
       &::after {
-        right: 0 - sizes.$x18;
-        width: sizes.$x18;
+        right: 0 - $projects-table-row-padding;
+        width: $projects-table-row-padding;
       }
       // left: cover whitespace left of project table
       &::before {
@@ -203,7 +209,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     color: colors.$kobo-gray-40;
     border-top: 0;
     cursor: pointer;
-    height: sizes.$x36;
+    height: $projects-table-row-height;
     padding: 0; // dropdown does the padding
     background-color: colors.$kobo-white;
 

@@ -49,7 +49,6 @@ class EnvStoreData {
   public mfa_enabled = false;
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
-  public stripe_pricing_table_id: string | null = null;
   public social_apps: SocialApp[] = [];
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
@@ -109,7 +108,6 @@ class EnvStore {
     this.data.mfa_enabled = response.mfa_enabled;
     this.data.mfa_code_length = response.mfa_code_length;
     this.data.stripe_public_key = response.stripe_public_key;
-    this.data.stripe_pricing_table_id = response.stripe_pricing_table_id;
     this.data.social_apps = response.social_apps;
 
     if (response.sector_choices) {

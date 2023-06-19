@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import _ from 'lodash';
+import escape from 'lodash.escape';
 import alertify from 'alertifyjs';
 import {stores} from './stores';
 import sessionStore from 'js/stores/session';
@@ -52,7 +52,7 @@ export function deleteAsset(
   }
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
-  const safeName = _.escape(name);
+  const safeName = escape(name);
 
   const dialog = alertify.dialog('confirm');
   const deployed = asset.has_deployment;
@@ -316,7 +316,7 @@ function _cloneAssetAsNewType(params: {
   const opts = {
     title: params.promptTitle,
     message: params.promptMessage,
-    value: _.escape(params.sourceName),
+    value: escape(params.sourceName),
     labels: {ok: t('Create'), cancel: t('Cancel')},
     onok: ({}, value: string) => {
       // disable buttons

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import get from 'lodash.get';
 import {
   getRowName,
   getTranslatedRowLabel,
@@ -561,7 +561,7 @@ export function getSupplementalDetailsContent(
     // we don't need the language code in the last element of the path.
     pathArray.pop();
     pathArray.push('transcript');
-    const transcriptObj = _.get(submission, pathArray, '');
+    const transcriptObj = get(submission, pathArray, '');
     if (
       transcriptObj.languageCode === pathParts.languageCode &&
       typeof transcriptObj.value === 'string'
@@ -580,7 +580,7 @@ export function getSupplementalDetailsContent(
   // Then we add one more nested level
   pathArray.push('value');
   // Moments like these makes you really apprecieate the beauty of lodash.
-  const value = _.get(submission, pathArray, '');
+  const value = get(submission, pathArray, '');
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
   return value || t('N/A');

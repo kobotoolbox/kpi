@@ -48,6 +48,8 @@ class CustomViewStore {
   /** Whether the first page call was made after setup. */
   public isFirstLoadComplete = false;
   public isLoading = false;
+  /** This starts with some default value, but `setUp` overrides it. */
+  public defaultVisibleFields: ProjectFieldName[] = DEFAULT_VISIBLE_FIELDS;
   /**
    * Please pass url with query parameters included, or simply ending with `?`.
    * This is the API url we want to call for given view. We have it here, so
@@ -87,9 +89,14 @@ class CustomViewStore {
    *
    * Use this method whenever you change view.
    */
-  public setUp(viewUid: string, baseUrl: string) {
+  public setUp(
+    viewUid: string,
+    baseUrl: string,
+    defaultVisibleFields: ProjectFieldName[]
+  ) {
     this.viewUid = viewUid;
     this.baseUrl = baseUrl;
+    this.defaultVisibleFields = defaultVisibleFields;
     this.assets = [];
     this.isFirstLoadComplete = false;
     this.isLoading = false;
@@ -129,7 +136,7 @@ class CustomViewStore {
   public hideField(fieldName: ProjectFieldName) {
     let newFields = Array.isArray(this.fields)
       ? Array.from(this.fields)
-      : DEFAULT_VISIBLE_FIELDS;
+      : this.defaultVisibleFields;
     newFields = newFields.filter((item) => item !== fieldName);
     this.setFields(newFields);
   }
