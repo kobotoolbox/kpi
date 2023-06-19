@@ -174,7 +174,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   },
   ownerUsername: {
     name: 'ownerUsername',
-    label: t('Owner username'),
+    label: t('Owner'),
     apiFilteringName: 'owner__username',
     apiOrderingName: 'owner__username',
     availableConditions: [
@@ -188,7 +188,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   },
   ownerFullName: {
     name: 'ownerFullName',
-    label: t('Owner full name'),
+    label: t('Owner name'),
     apiFilteringName: 'owner__extra_details__data__name',
     apiOrderingName: 'owner__extra_details__data__name',
     availableConditions: [

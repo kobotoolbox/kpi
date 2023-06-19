@@ -4,6 +4,7 @@
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 @use 'js/components/common/icon';
+@use './projectsTableRow.module';
 
 // This file contains all the styles that are being used exclusively in
 // `ProjectsTableHeader` component. Most of styles it is using are coming
@@ -30,10 +31,15 @@
 .trigger {
   @include mixins.centerRowFlex;
 
-  padding: sizes.$x2 sizes.$x18;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: projectsTableRow.$projects-table-row-padding;
+  // 10 px is a magic number that puts the caret icon in the same line as the
+  // content of the cells below
+  padding-left: projectsTableRow.$projects-table-row-padding + sizes.$x10;
 
   cursor: pointer;
-  line-height: sizes.$x30; // ??
+  line-height: projectsTableRow.$projects-table-row-height;
 
   :global {
     // Dropdown arrow
