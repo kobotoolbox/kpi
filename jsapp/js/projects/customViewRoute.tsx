@@ -37,7 +37,8 @@ function CustomViewRoute() {
   useEffect(() => {
     customView.setUp(
       viewUid,
-      `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/?`
+      `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/?`,
+      DEFAULT_VISIBLE_FIELDS
     );
   }, [viewUid]);
 
@@ -110,7 +111,7 @@ function CustomViewRoute() {
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={toJS(customView.fields) || DEFAULT_VISIBLE_FIELDS}
+        visibleFields={toJS(customView.fields) || customView.defaultVisibleFields}
         orderableFields={DEFAULT_ORDERABLE_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}

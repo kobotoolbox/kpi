@@ -174,7 +174,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   },
   ownerUsername: {
     name: 'ownerUsername',
-    label: t('Owner username'),
+    label: t('Owner'),
     apiFilteringName: 'owner__username',
     apiOrderingName: 'owner__username',
     availableConditions: [
@@ -188,7 +188,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   },
   ownerFullName: {
     name: 'ownerFullName',
-    label: t('Owner full name'),
+    label: t('Owner name'),
     apiFilteringName: 'owner__extra_details__data__name',
     apiOrderingName: 'owner__extra_details__data__name',
     availableConditions: [
@@ -336,8 +336,22 @@ export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'ownerUsername',
 ];
 
+/**
+ * The inital fields that are going to be displayed. We also use them with
+ * "reset" fields button.
+ */
 export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'countries',
+  'dateModified',
+  'dateDeployed',
+  'name',
+  'ownerUsername',
+  'status',
+  'submissions',
+];
+
+/** An override default list (instead of DEFAULT_VISIBLE_FIELDS) */
+export const HOME_DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'dateModified',
   'dateDeployed',
   'name',
