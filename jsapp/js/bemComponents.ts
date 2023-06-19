@@ -264,13 +264,6 @@ bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');
 bem.ToggleSwitch__slider = makeBem(bem.ToggleSwitch, 'slider', 'span');
 bem.ToggleSwitch__label = makeBem(bem.ToggleSwitch, 'label', 'span');
 
-bem.PasswordStrength = makeBem(null, 'password-strength');
-bem.PasswordStrength__title = makeBem(bem.PasswordStrength, 'title');
-bem.PasswordStrength__bar = makeBem(bem.PasswordStrength, 'bar');
-bem.PasswordStrength__indicator = makeBem(bem.PasswordStrength, 'indicator');
-bem.PasswordStrength__messages = makeBem(bem.PasswordStrength, 'messages', 'ul');
-bem.PasswordStrength__message = makeBem(bem.PasswordStrength, 'message', 'li');
-
 bem.Breadcrumbs = makeBem(null, 'breadcrumbs');
 bem.Breadcrumbs__crumb = makeBem(bem.Breadcrumbs, 'crumb', 'a');
 bem.Breadcrumbs__divider = makeBem(bem.Breadcrumbs, 'divider', 'i');
