@@ -14,7 +14,7 @@ import {
 } from 'js/components/assetsTable/assetsTableConstants';
 import type {OrderDirection} from 'js/projects/projectViews/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import { history } from "js/router/historyRouter";
+import { router } from "js/router/legacy";
 import type {
   AssetResponse,
   AssetsResponse,
@@ -76,7 +76,7 @@ class MyLibraryStore extends Reflux.Store {
 
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router.subscribe(this.onRouteChange.bind(this)));
     searchBoxStore.listen(this.searchBoxStoreChanged, this);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));

@@ -38,7 +38,6 @@ interface RouterProp {
 export interface WithRouterProps {
   router: RouterProp;
   params: Readonly<Params<string>>; // Defined as props twice for compat!
-
 }
 
 /**
@@ -62,7 +61,7 @@ export function withRouter(Component: FC | typeof React.Component) {
 }
 
 function getCurrentRoute() {
-  return location.hash.split('#')[1] || '';
+  return router.state.location.pathname;
 }
 
 /**
@@ -83,4 +82,9 @@ export function routerGetAssetId() {
     }
   }
   return null;
+}
+
+export let router: any = null;
+export function injectRouter(newRouter: unknown) {
+  router = newRouter;
 }

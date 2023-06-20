@@ -1,6 +1,6 @@
 import Reflux from 'reflux';
 import {DEFAULT_EXPORT_SETTINGS} from './exportsConstants';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 
 /**
  * It handles the selected export type.
@@ -12,7 +12,7 @@ const exportsStore = Reflux.createStore({
   },
 
   init() {
-    history.listen(this.onRouteChange.bind(this));
+    router.subscribe(this.onRouteChange.bind(this));
   },
 
   onRouteChange() {

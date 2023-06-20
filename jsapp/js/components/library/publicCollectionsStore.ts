@@ -17,7 +17,7 @@ import {
   ACCESS_TYPES,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import type {
   AssetResponse,
   AssetsResponse,
@@ -80,7 +80,7 @@ class PublicCollectionsStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router.subscribe(this.onRouteChange.bind(this)));
     searchBoxStore.listen(this.searchBoxStoreChanged.bind(this), this);
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));

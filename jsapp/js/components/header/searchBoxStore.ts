@@ -4,7 +4,7 @@ import {
   isMyLibraryRoute,
   isPublicCollectionsRoute,
 } from 'js/router/routerUtils';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 
 const DEFAULT_SEARCH_PHRASE = '';
 
@@ -30,7 +30,7 @@ class SearchBoxStore extends Reflux.Store {
   };
 
   init() {
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router.subscribe(this.onRouteChange.bind(this)));
     this.resetContext();
   }
 

@@ -6,7 +6,7 @@ import {
   isFormSingleProcessingRoute,
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
-import {history} from 'js/router/historyRouter';
+import { router } from 'js/router/legacy';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
@@ -171,7 +171,7 @@ class SingleProcessingStore extends Reflux.Store {
   init() {
     this.resetProcessingData();
 
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router.subscribe(this.onRouteChange.bind(this)));
 
     actions.submissions.getSubmissionByUuid.completed.listen(
       this.onGetSubmissionByUuidCompleted.bind(this)

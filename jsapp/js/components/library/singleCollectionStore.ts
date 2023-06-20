@@ -19,7 +19,7 @@ import type {
   SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
 import {ROUTES} from 'js/router/routerConstants';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import type {AssetTypeName} from 'js/constants';
 
 interface SingleCollectionStoreData {
@@ -74,7 +74,7 @@ class SingleCollectionStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router.subscribe(this.onRouteChange.bind(this)));
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this));
