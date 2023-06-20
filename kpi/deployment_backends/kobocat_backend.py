@@ -13,7 +13,6 @@ from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
-from dateutil.relativedelta import relativedelta
 from django.db.models.functions import Coalesce
 
 try:
@@ -68,7 +67,6 @@ from .kc_access.shadow_models import (
     ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatDailyXFormSubmissionCounter,
-    ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -314,7 +312,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    def nlp_tracking_data(self, start_date=None):
+    @staticmethod
+    def nlp_tracking_data(asset_ids, start_date=None):
         """
         Get the NLP tracking data since a specified date
         If no date is provided, get all-time data
@@ -326,7 +325,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             nlp_tracking = (
                 NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
                 .filter(
-                    asset_id=self.asset.id,
+                    asset_id__in=asset_ids,
                     **filter_args
                 ).aggregate(
                     total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
@@ -358,7 +357,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
             total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
                     'date', 'counter'
-                ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
+            ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
         except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:

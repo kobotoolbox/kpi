@@ -71,7 +71,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def submission_count_since_date(self, start_date: datetime.date):
+    def submission_count_since_date(self, start_date: Optional[datetime.date] = None):
         pass
 
     @abc.abstractmethod
@@ -79,7 +79,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def nlp_tracking_data(self, start_date):
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
         pass
 
     def delete(self):

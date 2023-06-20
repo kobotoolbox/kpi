@@ -12,7 +12,7 @@ from kpi.serializers.v2.service_usage import AssetUsageSerializer
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     """
     ## Asset Usage Tracker
-    Tracks the total and monthly submissions per asset, as well as NLP usage ant total storage use
+    Tracks the total and monthly submissions per asset, as well as NLP usage and total storage use
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/asset_usage/
