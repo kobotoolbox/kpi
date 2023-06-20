@@ -2,7 +2,8 @@ import datetime
 
 from django.conf import settings
 from django.db import migrations
-from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import DateField, Value, F
+from django.db.models.functions import ExtractYear, ExtractMonth, Cast, Concat
 
 
 class Migration(migrations.Migration):
@@ -14,10 +15,15 @@ class Migration(migrations.Migration):
 
     def copy_month_and_year_to_date(apps, schema_editor):
         MonthlyNLPUsageCounter = apps.get_model("trackers", "MonthlyNLPUsageCounter")
-        for usage_counter in MonthlyNLPUsageCounter.objects.only('year', 'month', 'date').all().iterator():
-            # When converting monthly usage data to daily, set the day to the 1st of the month
-            date = datetime.date(usage_counter.year, usage_counter.month, 1)
-            usage_counter.save()
+        # Note: when converting monthly usage data to daily, set the day to the 1st of the month
+        MonthlyNLPUsageCounter.objects.only('year', 'month', 'date').update(
+            date=Cast(
+                Concat(
+                    F('year'), Value('-'), F('month'), Value('-'), 1
+                ),
+                DateField(),
+            ),
+        )
 
     def copy_date_to_month_and_year(apps, schema_editor):
         MonthlyNLPUsageCounter = apps.get_model("trackers", "MonthlyNLPUsageCounter")
