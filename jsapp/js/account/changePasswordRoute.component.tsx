@@ -68,10 +68,15 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
     }
 
     if (this.state.newPassword !== this.state.verifyPassword) {
-      this.errors.newPassword = t('This field must match the Verify Password field.');
+      this.errors.newPassword = t(
+        'This field must match the Verify Password field.'
+      );
     }
     if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(this.state.currentPassword, this.state.newPassword);
+      actions.auth.changePassword(
+        this.state.currentPassword,
+        this.state.newPassword
+      );
     }
     this.setState({errors: this.errors});
   }
@@ -110,10 +115,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <bem.KoboButton
-              onClick={this.savePassword.bind(this)}
-              m={['blue']}
-            >
+            <bem.KoboButton onClick={this.savePassword.bind(this)} m='blue'>
               {t('Save Password')}
             </bem.KoboButton>
 
@@ -121,11 +123,11 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
               onClick={this.close.bind(this)}
               className='account-settings-close mdl-button mdl-button--icon'
             >
-              <i className='k-icon k-icon-close'/>
+              <i className='k-icon k-icon-close' />
             </button>
           </bem.AccountSettings__actions>
 
-          <bem.AccountSettings__item m={'column'}>
+          <bem.AccountSettings__item m='column'>
             <bem.AccountSettings__item m='username'>
               <bem.AccountBox__initials style={initialsStyle}>
                 {accountName.charAt(0)}
@@ -167,12 +169,11 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
                 />
               </bem.AccountSettings__item>
 
-              {
-                this.state.newPassword !== '' &&
+              {this.state.newPassword !== '' && (
                 <bem.AccountSettings__item>
                   <PasswordStrength password={this.state.newPassword} />
                 </bem.AccountSettings__item>
-              }
+              )}
 
               <bem.AccountSettings__item>
                 <TextBox

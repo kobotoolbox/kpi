@@ -4,7 +4,7 @@ import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import permConfig from './permConfig';
 import {actions} from '../../actions';
-import _ from 'underscore';
+import union from 'lodash.union';
 import {
   notify,
   replaceSupportEmail
@@ -33,8 +33,8 @@ class PermValidator extends React.Component {
 
     permissionAssignments.forEach((assignment) => {
       const permDef = permConfig.getPermission(assignment.permission);
-      allImplied = _.union(allImplied, appendUserUrls(permDef.implied, assignment.user));
-      allContradictory = _.union(allContradictory, appendUserUrls(permDef.contradictory, assignment.user));
+      allImplied = union(allImplied, appendUserUrls(permDef.implied, assignment.user));
+      allContradictory = union(allContradictory, appendUserUrls(permDef.contradictory, assignment.user));
     });
 
     let hasAllImplied = true;
