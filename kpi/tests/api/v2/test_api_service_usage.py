@@ -184,28 +184,28 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         Create/update the daily submission counter and the shadow xform we use to query it
         """
         today = timezone.now()
-        # if self.xform:
-        #     self.xform.attachment_storage_bytes += self.__expected_file_size() * submissions
-        #     self.xform.save()
-        # else:
-        self.xform = KobocatXForm.objects.create(
-            attachment_storage_bytes=self.__expected_file_size() * submissions,
-            kpi_asset_uid=uid,
-            date_created=today,
-            date_modified=today,
-        )
-        self.xform.save()
+        if self.xform:
+            self.xform.attachment_storage_bytes += self.__expected_file_size() * submissions
+            self.xform.save()
+        else:
+            self.xform = KobocatXForm.objects.create(
+                attachment_storage_bytes=self.__expected_file_size() * submissions,
+                kpi_asset_uid=uid,
+                date_created=today,
+                date_modified=today,
+            )
+            self.xform.save()
 
-        # if self.counter:
-        #     self.counter.counter += submissions
-        #     self.counter.save()
-        # else:
-        self.counter = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
-            date=today.date(),
-            counter=submissions,
-            xform=self.xform,
-        )
-        self.counter.save()
+        if self.counter:
+            self.counter.counter += submissions
+            self.counter.save()
+        else:
+            self.counter = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
+                date=today.date(),
+                counter=submissions,
+                xform=self.xform,
+            )
+            self.counter.save()
 
     def __expected_file_size(self):
         """
