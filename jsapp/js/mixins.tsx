@@ -13,7 +13,7 @@
  */
 
 import React from 'react';
-import _ from 'lodash';
+import escape from 'lodash.escape';
 import alertify from 'alertifyjs';
 import toast from 'react-hot-toast';
 import assetUtils from 'js/assetUtils';
@@ -21,10 +21,8 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
-  ANON_USERNAME,
   PERMISSIONS_CODENAMES,
 } from './constants';
-import type {PermissionCodename} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from 'js/dataInterface';
 import {stores} from './stores';
@@ -37,7 +35,6 @@ import {
   assign,
   notify,
   escapeHtml,
-  buildUserUrl,
   renderCheckbox,
   join,
 } from 'js/utils';
@@ -47,11 +44,11 @@ import type {
   CreateImportRequest,
   ImportResponse,
   Permission,
-  SubmissionResponse,
 } from 'js/dataInterface';
 import {getRouteAssetUid} from 'js/router/routerUtils';
-import { routerGetAssetId, routerIsActive } from './router/legacy';
-import { history } from "./router/historyRouter";
+import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
+import {history} from 'js/router/historyRouter';
+import {userCan} from 'js/components/permissions/utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -59,9 +56,6 @@ interface MixinsObject {
   contextRouter: {
     [functionName: string]: Function;
     context?: any;
-  };
-  permissions: {
-    [functionName: string]: Function;
   };
   clickAssets: {
     onActionButtonClick: Function;
@@ -90,7 +84,6 @@ interface MixinsObject {
 
 const mixins: MixinsObject = {
   contextRouter: {},
-  permissions: {},
   clickAssets: {
     onActionButtonClick: Function.prototype,
     click: {asset: {}},
@@ -110,7 +103,7 @@ const mixins: MixinsObject = {
       const opts = {
         title: params.promptTitle,
         message: params.promptMessage,
-        value: _.escape(params.sourceName),
+        value: escape(params.sourceName),
         labels: {ok: t('Create'), cancel: t('Cancel')},
         onok: ({}, value: string) => {
           // disable buttons
@@ -625,7 +618,7 @@ mixins.clickAssets = {
               const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
               canAddToParent = (
                 typeof foundParentAsset !== 'undefined' &&
-                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
+                userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
               );
             }
 
@@ -700,7 +693,7 @@ mixins.clickAssets = {
         }
         const assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
-        const safeName = _.escape(name);
+        const safeName = escape(name);
 
         const dialog = alertify.dialog('confirm');
         const deployed = asset.has_deployment;
@@ -883,162 +876,6 @@ mixins.clickAssets = {
       },
 
     },
-  },
-};
-
-mixins.permissions = {
-  /** For `.find`-ing the permissions */
-  _doesPermMatch(perm: Permission, permName: string, partialPermName: string | null = null) {
-    // Case 1: permissions don't match, stop looking
-    if (perm.permission !== permConfig.getPermissionByCodename(permName)?.url) {
-      return false;
-    }
-
-    // Case 2: permissions match, and we're not looking for partial one
-    if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
-      return true;
-    }
-
-    // Case 3a: we are looking for partial permission, but the name was no given
-    if (!partialPermName) {
-      return false;
-    }
-
-    // Case 3b: we are looking for partial permission, check if there are some that match
-    return perm.partial_permissions?.some((partialPerm) => partialPerm.url === permConfig.getPermissionByCodename(partialPermName)?.url);
-  },
-
-  /**
-   * This implementation does not use the back end to detect if `submission`
-   * is writable or not. So far, the front end only supports filters like:
-   *    `_submitted_by: {'$in': []}`
-   * Let's search for `submissions._submitted_by` value among these `$in`
-   * lists.
-   */
-  isSubmissionWritable(
-    /** Permission to check if user can do at least partially */
-    permName: string,
-    asset: AssetResponse,
-    submission: SubmissionResponse
-  ) {
-    // TODO optimize this to avoid calling `userCan()` and `userCanPartially()`
-    // repeatedly in the table view
-    // TODO Support multiple permissions at once
-    const userCan = this.userCan(permName, asset);
-    const userCanPartially = this.userCanPartially(permName, asset);
-
-    // Case 1: User has full permission
-    if (userCan) {
-      return true;
-    }
-
-    // Case 2: User has neither full nor partial permission
-    if (!userCanPartially) {
-      return false;
-    }
-
-    // Case 3: User has only partial permission, and things are complicated
-    const currentUsername = sessionStore.currentAccount.username;
-    const partialPerms = asset.permissions.find((perm) => (
-        perm.user === buildUserUrl(currentUsername) &&
-        this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
-      ));
-
-    const partialPerm = partialPerms?.partial_permissions?.find((nestedPerm) => nestedPerm.url === permConfig.getPermissionByCodename(permName)?.url);
-
-    const submittedBy = submission._submitted_by;
-    // If ther `_submitted_by` was not stored, there is no way of knowing.
-    if (submittedBy === null) {
-      return false;
-    }
-
-    let allowedUsers: string[] = [];
-
-    partialPerm?.filters.forEach((filter) => {
-      if (filter._submitted_by) {
-        allowedUsers = allowedUsers.concat(filter._submitted_by.$in);
-      }
-    });
-    return allowedUsers.includes(submittedBy);
-  },
-
-  // NOTE: be aware of the fact that some of non-TypeScript code is passing
-  // things that are not AssetResponse (probably due to how dmix mixin is used
-  // - merging asset response directly into component state object)
-  userCan(permName: PermissionCodename, asset?: AssetResponse, partialPermName = null) {
-    // Sometimes asset data is not ready yet and we still call the function
-    // through some rendering function. We have to be prepared
-    if (!asset) {
-      return false;
-    }
-
-    // TODO: check out whether any other checks are really needed at this point.
-    // Pay attention if partial permissions work.
-    const hasEffectiveAccess = asset.effective_permissions?.some((effectivePerm) =>
-      effectivePerm.codename === permName
-    );
-    if (hasEffectiveAccess) {
-      return true;
-    }
-
-    if (!asset.permissions) {
-      return false;
-    }
-    const currentUsername = sessionStore.currentAccount.username;
-
-    if (asset.owner__username === currentUsername) {
-      return true;
-    }
-
-    // if permission is granted publicly, then grant it to current user
-    const anonAccess = asset.permissions.some((perm) => (
-        perm.user === buildUserUrl(ANON_USERNAME) &&
-        perm.permission === permConfig.getPermissionByCodename(permName)?.url
-      ));
-    if (anonAccess) {
-      return true;
-    }
-
-    return asset.permissions.some((perm) => (
-        perm.user === buildUserUrl(currentUsername) &&
-        this._doesPermMatch(perm, permName, partialPermName)
-      ));
-  },
-
-  /**
-   * @param {string} permName
-   * @param {Object} asset
-   */
-  userCanPartially(permName: string, asset: AssetResponse) {
-    const currentUsername = sessionStore.currentAccount.username;
-
-    // Owners cannot have partial permissions because they have full permissions.
-    // Both are contradictory.
-    if (asset?.owner__username === currentUsername) {
-      return false;
-    }
-
-    return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
-  },
-
-  /**
-   * This checks if current user can remove themselves from a project that was
-   * shared with them. If `view_asset` comes from `asset.effective_permissions`,
-   * but doesn't exist in `asset.permissions` it means that `view_asset` comes
-   * from Project View access, not from project being shared with user directly.
-   */
-  userCanRemoveSharedProject(asset: AssetResponse) {
-    const currentUsername = sessionStore.currentAccount.username;
-    const userHasDirectViewAsset = asset.permissions.some((perm) => (
-      perm.user === buildUserUrl(currentUsername) &&
-      this._doesPermMatch(perm, 'view_asset')
-    ));
-
-    return (
-      !assetUtils.isSelfOwned(asset) &&
-      this.userCan('view_asset', asset) &&
-      userHasDirectViewAsset
-    );
   },
 };
 

@@ -52,9 +52,7 @@ class EnvironmentTests(BaseTestCase):
                     ('KEN', 'Kenya'), x
                 ),
             'interface_languages': lambda x: \
-                self.assertGreater(len(x), 5) and self.assertIn(
-                    ('ar', 'العربيّة'), x
-                ),
+                self.assertEqual(len(x), len(settings.LANGUAGES)),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
@@ -69,7 +67,6 @@ class EnvironmentTests(BaseTestCase):
             },
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             'stripe_public_key': settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None,
-            'stripe_pricing_table_id': settings.STRIPE_PRICING_TABLE_ID,
             'free_tier_thresholds': json.loads(
                 constance.config.FREE_TIER_THRESHOLDS
             ),

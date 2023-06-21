@@ -8,7 +8,7 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import _ from 'lodash';
+import debounce from 'lodash.debounce';
 import PopoverMenu from 'js/popoverMenu';
 import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
@@ -25,7 +25,9 @@ import {
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 import type {OwnedCollectionsStoreData} from 'js/components/library/ownedCollectionsStore';
 import './assetActionButtons.scss';
-import {withRouter, WithRouterProps} from 'jsapp/js/router/legacy';
+import {withRouter} from 'jsapp/js/router/legacy';
+import type {WithRouterProps} from 'jsapp/js/router/legacy';
+import {userCan} from 'js/components/permissions/utils';
 
 bem.AssetActionButtons = makeBem(null, 'asset-action-buttons', 'menu');
 bem.AssetActionButtons__button = makeBem(bem.AssetActionButtons, 'button', 'a');
@@ -55,7 +57,7 @@ class AssetActionButtons extends React.Component<
   AssetActionButtonsState
 > {
   private unlisteners: Function[] = [];
-  hidePopoverDebounced = _.debounce(() => {
+  hidePopoverDebounced = debounce(() => {
     if (this.state.isPopoverVisible) {
       this.setState({shouldHidePopover: true});
     }
@@ -252,10 +254,7 @@ class AssetActionButtons extends React.Component<
     if (assetType !== ASSET_TYPES.collection.id) {
       downloads = this.props.asset.downloads;
     }
-    const userCanEdit = mixins.permissions.userCan(
-      'change_asset',
-      this.props.asset
-    );
+    const userCanEdit = userCan('change_asset', this.props.asset);
     const isDeployable =
       assetType === ASSET_TYPES.survey.id &&
       this.props.asset.deployed_version_id === null;
@@ -435,10 +434,7 @@ class AssetActionButtons extends React.Component<
     }
 
     const assetType = this.props.asset.asset_type;
-    const userCanEdit = mixins.permissions.userCan(
-      'change_asset',
-      this.props.asset
-    );
+    const userCanEdit = userCan('change_asset', this.props.asset);
     const hasDetailsEditable =
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id;

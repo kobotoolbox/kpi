@@ -12,14 +12,24 @@ class KpiUidField(models.CharField):
     """
     If empty, automatically populates itself with a UID before saving
     """
-    def __init__(self, uid_prefix):
+    def __init__(self, uid_prefix, **kwargs):
         self.uid_prefix = uid_prefix
         total_length = len(uid_prefix) + UUID_LENGTH
-        super().__init__(max_length=total_length, unique=True)
+        # make `null` available only as `_null` because it should not be used
+        # outside of migrations
+        self._null = kwargs.get('_null', False)
+        primary_key = kwargs.get('primary_key', False)
+        super().__init__(
+            max_length=total_length,
+            unique=True,
+            null=self._null,
+            primary_key=primary_key,
+        )
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         kwargs['uid_prefix'] = self.uid_prefix
+        kwargs['_null'] = self._null
         del kwargs['max_length']
         del kwargs['unique']
         return name, path, args, kwargs

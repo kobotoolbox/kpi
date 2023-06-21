@@ -58,7 +58,7 @@ let devConfig = WebpackCommon({
   ],
 });
 
-// Print speed measurements if env variable MEASURE is set
+// Print speed measurements if env variable MEASURE_WEBPACK_PLUGIN_SPEED is set
 // Be careful with this, as SpeedMeasurePlugin's wrap(config) sometimes prevents
 // other plugins from working correctly - particularly in Dev mode.
 // Usually the workaround is to wrap first, then add the plugins that don't
@@ -66,7 +66,7 @@ let devConfig = WebpackCommon({
 // - https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/160
 // - https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/167
 // - https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/175
-if (process.env.MEASURE) {
+if (process.env.MEASURE_WEBPACK_PLUGIN_SPEED) {
   const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
   const smp = new SpeedMeasurePlugin();
   devConfig = smp.wrap(devConfig);

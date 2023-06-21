@@ -35,5 +35,5 @@ def get_provider_appname(context, provider=None):
 @register.simple_tag()
 def get_social_apps():
     if settings.SOCIALACCOUNT_PROVIDERS:
-        return SocialApp.objects.all()
+        return SocialApp.objects.filter(custom_data__isnull=True)
     return []

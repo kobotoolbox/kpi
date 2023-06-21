@@ -52,8 +52,8 @@ const prodConfig = WebpackCommon({
   },
 });
 
-// Print speed measurements if env variable MEASURE is set
-if (process.env.MEASURE) {
+// Print speed measurements if env variable MEASURE_WEBPACK_PLUGIN_SPEED is set
+if (process.env.MEASURE_WEBPACK_PLUGIN_SPEED) {
   const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
   const smp = new SpeedMeasurePlugin();
   module.exports = smp.wrap(prodConfig);

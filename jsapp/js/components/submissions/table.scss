@@ -1,6 +1,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/z-indexes';
-@use "js/components/common/checkbox-and-radio";
+@use 'js/components/common/checkbox';
 
 // These are custom styles for Table View table.
 
@@ -142,7 +142,7 @@ $s-data-table-font: 13px;
             margin-top: 10px;
 
             .popover-menu__toggle::after {
-              content: "\25BC";
+              content: '\25BC';
               font-size: 16px;
               display: inline-block;
               vertical-align: 1px;

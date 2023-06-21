@@ -1,4 +1,5 @@
 @use 'sass:color';
+@use 'sass:math';
 @use 'scss/mixins';
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
@@ -7,22 +8,30 @@
 // `ProjectsTableHeader` component. Most of styles it is using are coming
 // from `projectsTableRow.module.scss` file.
 
+// Column Resizer handle styles are here, too.
+
 .columnRoot {
   // We need this to truncate long column names
   :global .kobo-dropdown,
   :global .kobo-dropdown__trigger {
     max-width: 100%;
   }
+
+  // For column width resizers
+  position: relative; // Be a positioned ancestor for resize handles
+  user-select: none;  // Prevent accidental text selection
 }
 
 .trigger {
   @include mixins.centerRowFlex;
+
   cursor: pointer;
   line-height: sizes.$x30; // ??
 
   :global {
     label {
       @include mixins.textEllipsis;
+
       cursor: inherit;
       flex: 1;
     }
@@ -54,4 +63,97 @@
       }
     }
   }
+}
+
+// Resizers
+
+$line-width: sizes.$x1;
+// Resizer "pad" should be at least 10px wide for ease of use.
+// If $line-width is odd, $resizer-width should be odd, too.
+$resizer-width: sizes.$x16 + $line-width;
+
+// Resizer "pad" - interactive area
+.resizer {
+  cursor: ew-resize; // col-resize <-|->   ew-resize <->
+  border-radius: sizes.$x4;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: math.div($resizer-width - $line-width, -2);
+  width: $resizer-width;
+  z-index: 2; // Overlap adjacent column header and cell width indicator
+  background-color: colors.$kobo-light-blue; // Resizer "pad" color
+  opacity: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+  // performance hints
+  contain: inline-size layout paint style;
+}
+
+// Active resizer "line" - visible when hovering
+.resizer::after {
+  display: inline-block;
+  content: '';
+  position: absolute;
+  top: sizes.$x4; // $resizer-line-vertical-offset;
+  bottom: sizes.$x4;
+  right: math.div($resizer-width - $line-width, 2);
+  width: $line-width;
+  background-color: colors.$kobo-blue;
+  opacity: 0;
+  z-index: 2; // Layer above gray lines and above adjacent column header
+}
+
+.resizer:hover::after {
+  opacity: 1;
+}
+
+// Thin gray vertical lines
+// Appear on either side of the header cell, indicating
+// the width of the cell you're going to resize.
+.columnRoot,
+.columnRoot:hover {
+  &::before,
+  &::after {
+    top: sizes.$x6;
+    bottom: sizes.$x6;
+    display: inline-block;
+    position: absolute;
+    background-color: colors.$kobo-gray-65;
+    // Give a little fade
+    border-top: sizes.$x1 solid colors.$kobo-gray-92;
+    border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+    box-shadow:
+      0 -1px 0 colors.$kobo-gray-96,
+      0  1px 0 colors.$kobo-gray-96;
+    width: $line-width;
+    content: '';
+    z-index: 1; // Layer below the resizer "pad" but above adjacent column headers
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  &::before {
+    left: (-$line-width);
+  }
+
+  &::after {
+    right: 0;
+  }
+}
+
+.columnRoot::before,
+.columnRoot::after {
+  opacity: 0;
+}
+
+.columnRoot:hover::before,
+.columnRoot:hover::after {
+  opacity: 1;
+}
+// Always hide leftmost width indicator
+.columnRoot:first-child::before {
+  display: none;
 }

@@ -1,0 +1,236 @@
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'sass:color';
+@use 'scss/_variables';
+
+.accountPlan {
+  padding: sizes.$x30 sizes.$x40;
+  overflow-y: auto;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: sizes.$x20;
+}
+
+.wait {
+  cursor: wait;
+}
+
+.allPlans {
+  column-gap: sizes.$x20;
+  display: flex;
+  flex-direction: row;
+}
+
+.stripePlans {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.intervalToggle {
+  background-color: colors.$kobo-cloud;
+  padding: sizes.$x3;
+  border-radius: sizes.$x4;
+  margin: 0 auto;
+}
+
+.intervalToggle input[type='radio'] {
+  display: none;
+  appearance: none;
+}
+
+.intervalToggle label {
+  color: colors.$kobo-dark-blue;
+  padding: 0 sizes.$x12;
+  font-size: sizes.$x18;
+  line-height: sizes.$x32;
+  display: inline-block;
+  min-width: sizes.$x100;
+  text-align: center;
+  cursor: pointer;
+}
+
+.intervalToggle input[type='radio']:checked + label {
+  background-color: colors.$kobo-blue;
+  color: colors.$kobo-white;
+  border-radius: sizes.$x4;
+}
+
+.intervalToggle input[type='radio']:checked + label:after {
+  background-color: colors.$kobo-blue;
+  padding: sizes.$x8 sizes.$x12;
+}
+
+.intervalToggle input[type='radio']:checked + label:before {
+  width: sizes.$x20;
+  height: sizes.$x20;
+  color: colors.$kobo-cloud;
+  padding: sizes.$x8 sizes.$x12;
+}
+
+.intervalToggle input[type='radio']:checked + label:hover {
+  background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
+}
+
+.intervalToggle input[type='radio'] + label:hover {
+  background-color: color.adjust(colors.$kobo-cloud, $lightness: -5%);
+  border-radius: sizes.$x4;
+}
+
+.planContainer {
+  border-radius: sizes.$x6;
+  border: colors.$kobo-gray-85 solid 1px;
+  padding: sizes.$x36 sizes.$x48 sizes.$x40;
+  flex-grow: 1;
+}
+
+.plansSection {
+  display: flex;
+  flex-direction: column;
+  row-gap: sizes.$x20;
+}
+
+.priceName,
+.enterpriseTitle {
+  color: colors.$kobo-gray-40;
+  font-weight: 700;
+  font-size: sizes.$x24;
+  line-height: sizes.$x40;
+  margin: 0;
+  padding: 0;
+}
+
+.priceName {
+  text-align: center;
+}
+
+.enterpriseTitle {
+  margin-bottom: sizes.$x16;
+}
+
+.priceTitle {
+  color: colors.$kobo-dark-blue;
+  text-align: center;
+  font-size: sizes.$x18;
+  padding-bottom: sizes.$x16;
+  font-weight: 600;
+  line-height: sizes.$x20;
+}
+
+.planContainer :global .k-button {
+  margin: sizes.$x20 auto 0;
+  width: 120px;
+  height: 38px;
+}
+
+.planContainer :global span.k-button__label {
+  text-align: center;
+  width: 120px;
+}
+
+$plan-badge-height: sizes.$x38;
+
+.planContainer:not(.planContainerWithBadge) {
+  margin-top: $plan-badge-height;
+}
+
+.btnSpacePlaceholder {
+  margin: sizes.$x20 0;
+  height: sizes.$x32;
+}
+
+.planContainer :global hr {
+  border-bottom: 1px solid colors.$kobo-gray-85;
+  border-top: none;
+  margin: sizes.$x24 auto;
+}
+
+.planContainer :global li {
+  padding: sizes.$x6 0;
+  vertical-align: middle;
+  display: flex;
+  font-weight: 400;
+}
+
+.iconContainer {
+  height: 100%;
+  width: auto;
+  display: inline-flex;
+  margin-right: sizes.$x20;
+}
+
+.enterprisePlanContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 38px;
+}
+
+.enterprisePlan {
+  background-color: colors.$kobo-light-blue;
+  padding: sizes.$x36 sizes.$x48 sizes.$x40;
+  overflow: hidden;
+  border-radius: sizes.$x6;
+  flex-grow: 1;
+}
+
+.enterpriseDetails {
+  line-height: sizes.$x24;
+}
+
+.enterpriseLink a {
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.listTitle {
+  color: colors.$kobo-gray-40;
+  font-size: sizes.$x14;
+  font-weight: 700;
+  margin: 0 0 0 sizes.$x30;
+  padding: 0;
+}
+
+.planContainer ul :global {
+  margin: sizes.$x5 0 sizes.$x32;
+}
+
+.expandedFeature {
+  margin: sizes.$x5 0 sizes.$x32;
+}
+
+.planContainer :last-child {
+  margin-bottom: 0;
+}
+
+.currentPlan {
+  background-color: colors.$kobo-storm;
+  color: colors.$kobo-white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  top: 0;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
+  height: sizes.$x38;
+  width: 100%;
+}
+
+@media screen and (max-width: breakpoints.$b1440) {
+  .enterprisePlan {
+    font-size: sizes.$x12;
+  }
+
+  .planContainer {
+    font-size: sizes.$x12;
+  }
+
+  .iconContainer {
+    margin-right: sizes.$x10;
+  }
+}
