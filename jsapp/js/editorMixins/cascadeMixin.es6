@@ -5,7 +5,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import bem, {makeBem} from 'js/bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
-import _ from 'underscore';
+import last from 'lodash.last';
 import envStore from 'js/envStore';
 
 bem.CascadePopup = makeBem(null, 'cascade-popup');
@@ -17,7 +17,7 @@ const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
 export const cascadeMixin = {
   toggleCascade () {
-    var lastSelectedRow = _.last(this.app.selectedRows()),
+    var lastSelectedRow = last(this.app.selectedRows()),
         lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1;
     this.setState({
       showCascadePopup: !this.state.showCascadePopup,

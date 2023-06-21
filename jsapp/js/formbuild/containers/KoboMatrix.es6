@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
 import { bemComponents } from 'js/libs/reactBemComponents';
@@ -340,7 +339,7 @@ class KoboMatrix extends React.Component {
 
   getSelectTypeVal(expandedCol) {
     const typeVal = this.getCol(expandedCol, 'type');
-    return _.find(this.state.typeChoices, (option) => option.value === typeVal);
+    return this.state.typeChoices.find((option) => option.value === typeVal);
   }
 
   getChoiceField(kuid, field) {
