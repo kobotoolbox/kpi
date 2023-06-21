@@ -1,15 +1,17 @@
 # coding: utf-8
 import os.path
 import uuid
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import connection
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.trackers.models import NLPUsageCounter
+from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm, ReadOnlyKobocatDailyXFormSubmissionCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -20,9 +22,20 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
+    unmanaged_models = [
+        ReadOnlyKobocatDailyXFormSubmissionCounter,
+        KobocatXForm
+    ]
+    xform = None
+    counter = None
+
     def setUp(self) -> None:
+        super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
         self.anotheruser = User.objects.get(username='anotheruser')
+        with connection.schema_editor() as schema_editor:
+            for unmanaged_model in self.unmanaged_models:
+                schema_editor.create_model(unmanaged_model)
 
     def __create_asset(self):
         content_source_asset = {
@@ -74,13 +87,14 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         }
         submissions.append(submission)
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.__update_xform_counters(self.asset.uid, submissions=1)
 
     def __add_nlp_trackers(self):
         """
         Add nlp data to an asset
         """
         # this month
-        today = datetime.today()
+        today = timezone.now().date()
         counter_1 = {
             'google_asr_seconds': 4586,
             'google_mt_characters': 5473,
@@ -163,6 +177,35 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         submissions.append(submission2)
 
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.__update_xform_counters(self.asset.uid, submissions=2)
+
+    def __update_xform_counters(self, uid, submissions=0):
+        """
+        Create/update the daily submission counter and the shadow xform we use to query it
+        """
+        today = timezone.now()
+        # if self.xform:
+        #     self.xform.attachment_storage_bytes += self.__expected_file_size() * submissions
+        #     self.xform.save()
+        # else:
+        self.xform = KobocatXForm.objects.create(
+            attachment_storage_bytes=self.__expected_file_size() * submissions,
+            kpi_asset_uid=uid,
+            date_created=today,
+            date_modified=today,
+        )
+        self.xform.save()
+
+        # if self.counter:
+        #     self.counter.counter += submissions
+        #     self.counter.save()
+        # else:
+        self.counter = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
+            date=today.date(),
+            counter=submissions,
+            xform=self.xform,
+        )
+        self.counter.save()
 
     def __expected_file_size(self):
         """
@@ -209,6 +252,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         """
         self.__create_asset()
         self.__add_submission()
+
         self.__create_asset()
         self.__add_submissions()
 

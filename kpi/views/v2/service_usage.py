@@ -31,7 +31,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     where:
 
     * "organization_id" (optional) is an organization ID string. User must be the organization's owner.
-    * If "organization_id" is set, endpoint will return aggregated usage data for all the organization's users. .
+    ** If "organization_id" is set, endpoint will return aggregated usage data for all the organization's users.
 
     > Example
     >
@@ -84,4 +84,4 @@ class ServiceUsageViewSet(viewsets.ViewSet):
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
-        return Response(serializer.data)
+        return Response(data=serializer.data)

@@ -1,8 +1,6 @@
-from datetime import timedelta
-
-from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.utils import timezone
 from djstripe.models import Subscription
@@ -11,8 +9,7 @@ from rest_framework.fields import empty
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm, \
-    ReadOnlyKobocatDailyXFormSubmissionCounter
+from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm, ReadOnlyKobocatDailyXFormSubmissionCounter
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models.asset import Asset
 
@@ -172,7 +169,7 @@ class ServiceUsageSerializer(serializers.Serializer):
                 organization = Organization.objects.filter(
                     owner__organization_user__user=user,
                     id=organization_id,
-                ).get()
+                )
                 # If the user is in an organization, get all org users so we can query their total org usage
                 organization_users = OrganizationUser.objects.filter(organization=organization).select_related('user')
                 users = [org_user.user.id for org_user in list(organization_users)]
@@ -199,15 +196,14 @@ class ServiceUsageSerializer(serializers.Serializer):
             _deployment_data__has_key='backend',
         )
 
-        xforms = KobocatXForm.objects.filter(kpi_asset_uid__in=[user_asset.uid for user_asset in user_assets])
+        xforms = KobocatXForm.objects.filter(
+            kpi_asset_uid__in=[user_asset.uid for user_asset in user_assets]
+        )
 
-        xform_filter = {
-            'xform__in': xforms,
-        }
-
-        self._total_storage_bytes = xforms.aggregate(
-            bytes_sum=Sum('attachment_storage_bytes')
-        )['bytes_sum']
+        total_storage_bytes = xforms.aggregate(
+            bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
+        )
+        self._total_storage_bytes = total_storage_bytes['bytes_sum'] or 0
 
         self._current_month_start = self._get_current_month_start_date(anchor_date, period_start, subscription_interval)
         self._current_year_start = self._get_current_year_start_date(anchor_date, period_start, subscription_interval)
@@ -218,16 +214,17 @@ class ServiceUsageSerializer(serializers.Serializer):
             'current_year': self._current_year_start,
         }
         for usage_type, start_date in usage_types.items():
-            usage_key = f'_total_submission_count_{usage_type}'
             range_filter = {}
             if start_date:
                 range_filter['date__range'] = [start_date, self._now]
-            self.__dict__[usage_key] = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
-                **xform_filter,
+            submission_count = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.filter(
+                xform__in=xforms,
                 **range_filter,
             ).aggregate(
-                counter_sum=Sum('counter')
-            )['counter_sum']
+                counter_sum=Coalesce(Sum('counter'), 0),
+            )
+            usage_key = f'_total_submission_count_{usage_type}'
+            self.__dict__[usage_key] = submission_count['counter_sum'] or 0
 
             nlp_tracking = KobocatDeploymentBackend.nlp_tracking_data(user_assets, start_date)
             self.__dict__[f'_total_nlp_asr_seconds_{usage_type}'] = nlp_tracking['total_nlp_asr_seconds']
