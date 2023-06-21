@@ -17,6 +17,7 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {isRootRoute, redirectToLogin} from 'js/router/routerUtils';
 import RequireAuth from 'js/router/requireAuth';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
+import InvalidatedPassword from 'js/router/invalidatedPassword.component';
 import sessionStore from 'js/stores/session';
 import {Tracking} from './useTracking';
 import {history} from './historyRouter';
@@ -120,6 +121,13 @@ const AllRoutes = class AllRoutes extends React.Component {
       redirectToLogin();
       // redirect is async, continue showing loading
       return <LoadingSpinner />;
+    }
+
+    if (
+      sessionStore.isLoggedIn &&
+      !sessionStore.currentAccount.validated_password
+    ) {
+      return <InvalidatedPassword />;
     }
 
     return (
