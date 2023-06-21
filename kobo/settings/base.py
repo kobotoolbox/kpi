@@ -486,6 +486,7 @@ DJANGO_LANGUAGE_CODES = env.str(
     default=(
         'am '  # Amharic
         'ar '  # Arabic
+        'bn '  # Bengali
         'cs '  # Czech
         'de '  # German
         'en '  # English
@@ -496,6 +497,8 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
+        'my '  # Burmese/Myanmar
+        'ny '  # Nyanja/Chewa
         'pl '  # Polish
         'pt '  # Portuguese
         'ru '  # Russian
@@ -726,8 +729,7 @@ if env.str("FRONTEND_DEV_MODE", None) == "host":
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'", '*.bootstrapcdn.com']
-CSP_FONT_SRC = CSP_DEFAULT_SRC + ['*.bootstrapcdn.com']
+CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
 CSP_IMG_SRC = CSP_DEFAULT_SRC + [
     'data:',
     'https://*.openstreetmap.org',
@@ -816,6 +818,15 @@ if 'KOBOCAT_URL' in os.environ:
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
+# Increase limits for long-running tasks
+# Notes: They are custom name, not part of `CELERY_*` namespace.
+CELERY_LONG_RUNNING_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_TASK_TIME_LIMIT', 4260)  # seconds
+)
+
+CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
+)
 
 ''' Django allauth configuration '''
 # User.email should continue to be used instead of the EmailAddress model

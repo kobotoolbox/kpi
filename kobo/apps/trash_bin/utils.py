@@ -5,8 +5,9 @@ from copy import deepcopy
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db import IntegrityError, models, transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.db.models.signals import pre_delete
 from django.utils.timezone import now
 from django_celery_beat.models import (
@@ -38,19 +39,22 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
 
     asset_id = asset.pk
     asset_uid = asset.uid
+    host = settings.KOBOFORM_URL
     owner_username = asset.owner.username
     project_exports = []
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
         asset.deployment.delete()
         project_exports = ExportTask.objects.filter(
-            data__source__endswith=f'/api/v2/assets/{asset.uid}/'
+            Q(data__source=f'{host}/api/v2/assets/{asset.uid}/')
+            | Q(data__source=f'{host}/assets/{asset.uid}/')
         )
 
     with transaction.atomic():
         # Delete imports
         ImportTask.objects.filter(
-            data__destination__endswith=f'/api/v2/assets/{asset.uid}/'
+            Q(data__destination=f'{host}/api/v2/assets/{asset.uid}/')
+            | Q(data__destination=f'{host}/assets/{asset.uid}/')
         ).delete()
         # Delete exports (and related files on storage)
         for export in project_exports:
@@ -282,7 +286,7 @@ def replace_user_with_placeholder(
 
 
 def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
-    stop = False
+
     (
         app_label,
         model_name,
@@ -294,7 +298,11 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
             asset.owner, fields=['_id', '_uuid'], limit=200
         ))
         if not submissions:
-            queryset_or_false = asset.deployment.get_orphan_postgres_submissions()
+            if not (
+                queryset_or_false := asset.deployment.get_orphan_postgres_submissions()
+            ):
+                break
+
             # Make submissions an iterable similar to what
             # `deployment.get_submissions()` would return
             if not (
