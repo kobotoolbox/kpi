@@ -157,6 +157,7 @@
     "webpack-extract-translation-keys-plugin": "^6.0.0"
   },
   "scripts": {
+    "preinstall": "npm run hint",
     "postinstall": "patch-package && npm run copy-fonts",
     "build": "npm run hint build && webpack --config webpack/prod.config.js",
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
