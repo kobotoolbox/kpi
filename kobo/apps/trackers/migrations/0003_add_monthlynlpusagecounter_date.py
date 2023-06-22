@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('trackers', '0002_alter_monthlynlpusagecounter_user'),
@@ -26,5 +25,5 @@ class Migration(migrations.Migration):
             model_name='monthlynlpusagecounter',
             name='total_mt_characters',
             field=models.PositiveIntegerField(default=0),
-        )
+        ),
     ]

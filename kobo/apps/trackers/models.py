@@ -9,7 +9,9 @@ from .utils import update_nlp_counter
 
 class NLPUsageCounter(models.Model):
     date = models.DateField()
-    user = models.ForeignKey(User, related_name='nlp_counters', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name='nlp_counters', on_delete=models.CASCADE
+    )
     asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
     counters = models.JSONField(default=dict)
     total_asr_seconds = models.PositiveIntegerField(default=0)
@@ -17,11 +19,14 @@ class NLPUsageCounter(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['date', 'user', 'asset'],
-                             name='unique_with_asset'),
-            UniqueConstraint(fields=['date', 'user'],
-                             condition=Q(asset=None),
-                             name='unique_without_asset')
+            UniqueConstraint(
+                fields=['date', 'user', 'asset'], name='unique_with_asset'
+            ),
+            UniqueConstraint(
+                fields=['date', 'user'],
+                condition=Q(asset=None),
+                name='unique_without_asset',
+            ),
         ]
         indexes = [
             models.Index(fields=('date', 'user')),

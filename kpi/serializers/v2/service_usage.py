@@ -15,7 +15,6 @@ from kpi.models.asset import Asset
 
 
 class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
-
     asset = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
         view_name='asset-detail',
@@ -91,7 +90,6 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ServiceUsageSerializer(serializers.Serializer):
-
     total_nlp_asr_seconds_all_time = serializers.SerializerMethodField()
     total_nlp_asr_seconds_current_month = serializers.SerializerMethodField()
     total_nlp_asr_seconds_current_year = serializers.SerializerMethodField()

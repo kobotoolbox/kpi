@@ -122,7 +122,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # if only the owner has permissions, no need to go further
         if len(users_with_perms) == 1 and \
-                list(users_with_perms)[0].id == self.asset.owner_id:
+            list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
         with kc_transaction_atomic():
@@ -356,7 +356,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Note: this is replicating the functionality that was formerly in `current_month_submission_count`
             # `current_month_submission_count` didn't account for partial permissions, and this doesn't either
             total_submissions = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.only(
-                    'date', 'counter'
+                'date', 'counter'
             ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
         except ReadOnlyKobocatDailyXFormSubmissionCounter.DoesNotExist:
             return 0
@@ -1474,8 +1474,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
     def __get_submissions_in_xml(
-            self,
-            **params
+        self,
+        **params
     ) -> Generator[str, None, None]:
         """
         Retrieve submissions directly from PostgreSQL.

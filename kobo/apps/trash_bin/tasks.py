@@ -29,7 +29,10 @@ from .utils import delete_asset, replace_user_with_placeholder
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError, KobocatCommunicationError,),
+    autoretry_for=(
+        TrashTaskInProgressError,
+        KobocatCommunicationError,
+    ),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
@@ -106,7 +109,7 @@ def empty_account(account_trash_id: int):
                 'user_uid': account_trash.request_author.extra_details.uid,
                 'metadata': {
                     'username': user.username,
-                }
+                },
             }
 
             if account_trash.retain_placeholder:
@@ -129,7 +132,12 @@ def empty_account(account_trash_id: int):
                 delete_kc_user(user.username)
             except HTTPError as e:
                 error = str(e)
-                if error.startswith(('502', '504',)):
+                if error.startswith(
+                    (
+                        '502',
+                        '504',
+                    )
+                ):
                     raise KobocatCommunicationError
                 if error.startswith(('401',)):
                     # When users are deleted in a huge batch, there may be a
@@ -153,11 +161,16 @@ def empty_account(account_trash_id: int):
 
     # Delete related periodic task
     PeriodicTask.objects.get(pk=account_trash.periodic_task_id).delete()
-    logging.info(f'User {user.username} (#{user_id}) has been successfully deleted!')
+    logging.info(
+        f'User {user.username} (#{user_id}) has been successfully deleted!'
+    )
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError, KobocatCommunicationError,),
+    autoretry_for=(
+        TrashTaskInProgressError,
+        KobocatCommunicationError,
+    ),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
@@ -191,7 +204,6 @@ def empty_project(project_trash_id: int):
 
 @task_failure.connect(sender=empty_account)
 def empty_account_failure(sender=None, **kwargs):
-
     # Force scheduler to refresh
     PeriodicTasks.update_changed()
 

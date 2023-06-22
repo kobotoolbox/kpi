@@ -95,7 +95,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def duplicate_submission(
-        self,  submission_id: int, user: 'auth.User'
+        self, submission_id: int, user: 'auth.User'
     ) -> dict:
         pass
 
@@ -411,7 +411,6 @@ class BaseDeploymentBackend(abc.ABC):
                 )
 
         if not isinstance(submission_ids, list):
-
             raise serializers.ValidationError(
                 {'submission_ids': t('Value must be a list.')}
             )

@@ -127,7 +127,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     'uuid': _uuid,
                     'status_code': status.HTTP_201_CREATED,
                     'message': 'Successful submission',
-                    'updated_submission': etree.tostring(xml_parsed) # only for testing
+                    'updated_submission': etree.tostring(xml_parsed)  # only for testing
                 }
             )
 

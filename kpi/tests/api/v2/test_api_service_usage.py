@@ -1,8 +1,8 @@
 # coding: utf-8
 import os.path
 import uuid
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import connection
@@ -11,7 +11,10 @@ from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.shadow_models import KobocatXForm, ReadOnlyKobocatDailyXFormSubmissionCounter
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatXForm,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -24,7 +27,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
     unmanaged_models = [
         ReadOnlyKobocatDailyXFormSubmissionCounter,
-        KobocatXForm
+        KobocatXForm,
     ]
     xform = None
     counter = None
@@ -40,8 +43,18 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
     def __create_asset(self):
         content_source_asset = {
             'survey': [
-                {'type': 'audio', 'label': 'q1', 'required': 'false', '$kuid': 'abcd'},
-                {'type': 'file', 'label': 'q2', 'required': 'false', '$kuid': 'efgh'},
+                {
+                    'type': 'audio',
+                    'label': 'q1',
+                    'required': 'false',
+                    '$kuid': 'abcd',
+                },
+                {
+                    'type': 'file',
+                    'label': 'q2',
+                    'required': 'false',
+                    '$kuid': 'efgh',
+                },
             ]
         }
         self.asset = Asset.objects.create(
@@ -83,7 +96,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'anotheruser'
+            '_submitted_by': 'anotheruser',
         }
         submissions.append(submission)
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
@@ -149,7 +162,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'anotheruser'
+            '_submitted_by': 'anotheruser',
         }
         submission2 = {
             '__version__': v_uid,
@@ -170,7 +183,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'anotheruser'
+            '_submitted_by': 'anotheruser',
         }
 
         submissions.append(submission1)
@@ -185,11 +198,14 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         """
         today = timezone.now()
         if self.xform:
-            self.xform.attachment_storage_bytes += self.__expected_file_size() * submissions
+            self.xform.attachment_storage_bytes += (
+                self.__expected_file_size() * submissions
+            )
             self.xform.save()
         else:
             self.xform = KobocatXForm.objects.create(
-                attachment_storage_bytes=self.__expected_file_size() * submissions,
+                attachment_storage_bytes=self.__expected_file_size()
+                                         * submissions,
                 kpi_asset_uid=uid,
                 date_created=today,
                 date_modified=today,
@@ -200,10 +216,12 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             self.counter.counter += submissions
             self.counter.save()
         else:
-            self.counter = ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
-                date=today.date(),
-                counter=submissions,
-                xform=self.xform,
+            self.counter = (
+                ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
+                    date=today.date(),
+                    counter=submissions,
+                    xform=self.xform,
+                )
             )
             self.counter.save()
 
@@ -213,7 +231,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         """
         return os.path.getsize(
             settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.mp4'
-        ) + os.path.getsize(settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg')
+        ) + os.path.getsize(
+            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
+        )
 
     def test_anonymous_user(self):
         """
@@ -243,7 +263,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         assert response.data['total_nlp_asr_seconds_all_time'] == 4728
         assert response.data['total_nlp_mt_characters_current_month'] == 5473
         assert response.data['total_nlp_mt_characters_all_time'] == 6726
-        assert response.data['total_storage_bytes'] == self.__expected_file_size()
+        assert (
+            response.data['total_storage_bytes'] == self.__expected_file_size()
+        )
 
     def test_multiple_forms(self):
         """
@@ -260,7 +282,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         response = self.client.get(url)
         assert response.data['total_submission_count_current_month'] == 3
         assert response.data['total_submission_count_all_time'] == 3
-        assert response.data['total_storage_bytes'] == (self.__expected_file_size() * 3)
+        assert response.data['total_storage_bytes'] == (
+            self.__expected_file_size() * 3
+        )
 
     def test_no_data(self):
         """
@@ -281,8 +305,18 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         Asset.objects.create(
             content={
                 'survey': [
-                    {'type': 'audio', 'label': 'q1', 'required': 'false', '$kuid': 'abcd'},
-                    {'type': 'file', 'label': 'q2', 'required': 'false', '$kuid': 'efgh'},
+                    {
+                        'type': 'audio',
+                        'label': 'q1',
+                        'required': 'false',
+                        '$kuid': 'abcd',
+                    },
+                    {
+                        'type': 'file',
+                        'label': 'q2',
+                        'required': 'false',
+                        '$kuid': 'efgh',
+                    },
                 ]
             },
             owner=self.anotheruser,

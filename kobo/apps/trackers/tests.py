@@ -26,7 +26,7 @@ class TrackersTestCases(KpiTestCase):
             content={'survey': [{"type": "text", "name": "q1"}]},
             owner=self.user,
             asset_type='survey',
-            name='тєѕт αѕѕєт'
+            name='тєѕт αѕѕєт',
         )
         asset.deploy(backend='mock', active=True)
         asset.save()
@@ -84,7 +84,9 @@ class TrackersTestCases(KpiTestCase):
             user_id=self.user.id,
             asset_id=asset.id,
         )
-        assert tracker_updated_service_amount.counters[service] == expected_amount
+        assert (
+            tracker_updated_service_amount.counters[service] == expected_amount
+        )
 
         # ensure original tracker stays with new service added
         assert new_service not in tracker_updated_service_amount.counters
@@ -95,4 +97,3 @@ class TrackersTestCases(KpiTestCase):
         )
         assert tracker_two_services.counters[new_service] == initial_amount
         assert tracker_two_services.counters[service] == expected_amount
-
