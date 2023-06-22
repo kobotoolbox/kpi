@@ -130,7 +130,7 @@ class KpiTaggableManager(_TaggableManager):
     def add(self, *tags, **kwargs):
         """ A wrapper that replaces spaces in tag names with dashes and also
         strips leading and trailng whitespace. Behavior should match the
-        TagsInput transform function in app.es6. """
+        cleanupTags function in jsapp/js/utils.ts. """
         tags_out = []
         for t in tags:
             # Modify strings only; the superclass' add() method will then

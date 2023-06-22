@@ -13,7 +13,7 @@ module.exports = do ->
       'blur .js-mandatory-setting-custom-text': 'onCustomTextBlur'
     }
 
-    initialize: ({@model}) ->
+    initialize: ({@model, @onChange}) ->
       if @model
         @model.on('change', @render, @)
       return
@@ -63,6 +63,9 @@ module.exports = do ->
 
     setNewValue: (val) ->
       @model.set('value', val)
+
+      if typeof @onChange is 'function'
+        @onChange(val)
       return
 
   MandatorySettingView: MandatorySettingView

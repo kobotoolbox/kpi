@@ -326,4 +326,10 @@ EXTRA_LANG_INFO = {
         'name': 'Kurdish',
         'name_local': 'كوردی',
     },
+    'ny': {
+        'bidi': False,
+        'code': 'ny',
+        'name': 'Nyanja',
+        'name_local': 'Nyanja',
+    },
 }

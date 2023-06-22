@@ -2,11 +2,33 @@ from django.contrib import admin, messages
 from django.db.models import F
 
 from .exceptions import TrashTaskInProgressError
+from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
 from .mixins.admin import TrashMixin
 from .tasks import empty_account, empty_project
 from .utils import put_back
+
+
+class StatusListFilter(admin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = 'Status'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'status'
+
+    def lookups(self, request, model_admin):
+        return TrashStatus.choices
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        if self.value():
+            return queryset.filter(status=self.value())
 
 
 class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
@@ -19,6 +41,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_start_time',
         'get_failure_error',
     ]
+    list_filter = [StatusListFilter]
     search_fields = ['user__username', 'request_author__username']
     ordering = ['-date_created', 'user__username']
     actions = ['empty_trash', 'put_back']
@@ -70,6 +93,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_start_time',
         'get_failure_error',
     ]
+    list_filter = [StatusListFilter]
     search_fields = ['asset__name', 'asset__uid', 'request_author__username']
     ordering = ['-date_created', 'asset__name']
     actions = ['empty_trash', 'put_back']
