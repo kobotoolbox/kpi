@@ -1,6 +1,8 @@
-{% extends "account/base.html" %} {% load static %}
+{% extends "account/base.html" %} 
+{% load static %}
 {% load i18n %}
 {% load account get_provider_appname socialaccount %}
+{% load custom_field_translations %}
 
 {% block content %}
 <form action="{% url 'set_language' %}" method="post" class="language-switcher">
@@ -30,7 +32,12 @@
       {% csrf_token %}
       {% for field in form %}
           <div class="field {{ field.name }}">
+            {% if not field.name|is_configurable %}
             {{ field.label_tag|cut:':' }}
+            {% else %}
+            {% custom_labels_language field.name as field_name %}
+            {% trans field_name %}
+            {% endif %}
             {% if field.field.required %}
               <span class="required">*</span>
             {% endif %}

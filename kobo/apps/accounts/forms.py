@@ -9,15 +9,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
-
-
-# Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
-CONFIGURABLE_METADATA_FIELDS = (
-    'organization',
-    'gender',
-    'sector',
-    'country',
-)
+from kobo.apps.accounts.constants import CONFIGURABLE_USER_METADATA_FIELDS
 
 
 class LoginForm(BaseLoginForm):
@@ -29,7 +21,7 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
-    name = forms.CharField(
+    full_name = forms.CharField(
         label=t('Full name'),
         required=False,
     )
@@ -85,7 +77,7 @@ class KoboSignupMixin(forms.Form):
             field['name']: field for field in desired_metadata_fields
         }
         for field_name in list(self.fields.keys()):
-            if field_name not in CONFIGURABLE_METADATA_FIELDS:
+            if field_name not in CONFIGURABLE_USER_METADATA_FIELDS:
                 continue
             if field_name not in desired_metadata_fields:
                 self.fields.pop(field_name)
@@ -94,6 +86,9 @@ class KoboSignupMixin(forms.Form):
                 self.fields[field_name].required = desired_metadata_fields[
                     field_name
                 ].get('required', False)
+                self.fields[field_name].label = desired_metadata_fields[
+                    field_name
+                ].get('label').get('default')
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -133,7 +128,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
     field_order = [
-        'name',
+        'full_name',
         'organization',
         'username',
         'email',
