@@ -11,4 +11,4 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        return create_organization(user, validated_data["name"])
+        return create_organization(user, validated_data['name'])

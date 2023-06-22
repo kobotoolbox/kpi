@@ -3,8 +3,9 @@ from django.db.models import QuerySet
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from kobo.apps.organizations.models import Organization, create_organization
-from kobo.apps.organizations.serializers import OrganizationSerializer
+from .models import Organization, create_organization
+from .serializers import OrganizationSerializer
+from .permissions import IsOrgAdminOrReadOnly
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -19,14 +20,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
 
     def get_queryset(self) -> QuerySet:
         user = self.request.user
         queryset = super().get_queryset().filter(users=user)
-        if not queryset:
-            # Very inefficient get or create queryset.
-            # It's temporary and should be removed later.
-            create_organization(user, f"{user.username}'s organization")
-            queryset = queryset.all()  # refresh
         return queryset

@@ -10,7 +10,6 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 
 class OrganizationTestCase(BaseTestCase):
-
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -34,16 +33,11 @@ class OrganizationTestCase(BaseTestCase):
         assert response_list.status_code == status.HTTP_403_FORBIDDEN
         response_detail = self.client.get(self.url_detail)
         assert response_detail.status_code == status.HTTP_403_FORBIDDEN
-    
-    def test_create(self):
-        data = {"name": "my org"}
-        res = self.client.post(self.url_list, data)
-        self.assertContains(res, data["name"], status_code=201)
 
-    def test_api_creates_org(self):
-        self.assertFalse(self.user.organizations_organization.all())
-        self.client.get(self.url_list)
-        self.assertTrue(self.user.organizations_organization.all())
+    def test_create(self):
+        data = {'name': 'my org'}
+        res = self.client.post(self.url_list, data)
+        self.assertContains(res, data['name'], status_code=201)
 
     def test_api_returns_org_data(self):
         self._insert_data()
@@ -51,3 +45,16 @@ class OrganizationTestCase(BaseTestCase):
         self.assertContains(response, self.organization.slug)
         self.assertContains(response, self.organization.id)
         self.assertContains(response, self.organization.name)
+
+    def test_update(self):
+        self._insert_data()
+        data = {'name': 'edit'}
+        res = self.client.patch(self.url_detail, data)
+        self.assertContains(res, data['name'])
+
+        user = baker.make(User)
+        self.client.force_login(user)
+        org_user = self.organization.add_user(user=user)
+        with self.assertNumQueries(3):
+            res = self.client.patch(self.url_detail, data)
+        self.assertEqual(res.status_code, 403)
