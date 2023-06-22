@@ -6,6 +6,7 @@ from allauth.account.forms import SignupForm as BaseSignupForm
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.conf import settings
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
@@ -85,15 +86,35 @@ class KoboSignupMixin(forms.Form):
             field['name']: field for field in desired_metadata_fields
         }
         for field_name in list(self.fields.keys()):
-            if field_name not in CONFIGURABLE_METADATA_FIELDS:
+            if field_name not in CONFIGURABLE_USER_METADATA_FIELDS:
+                print('cannot configure', field_name)
                 continue
-            if field_name not in desired_metadata_fields:
+            try:
+                desired_field = desired_metadata_fields[field_name]
+            except KeyError:
+                print('trashing', field_name)
                 self.fields.pop(field_name)
                 continue
-            else:
-                self.fields[field_name].required = desired_metadata_fields[
-                    field_name
-                ].get('required', False)
+            print('custom', field_name)
+            field = self.fields[field_name]
+            field.required = desired_field.get('required', False)
+            """
+            Three scenarios to handle:
+            1. They didn't set a custom label for this field: just proceed and
+               don't touch the label attribute; this will use the built-in label
+                * You don't have to call `gettext()` on it or anything; that
+                  seems to happen automatically
+            2. They DID set a custom label for this field AND the
+               currently-used language: overwrite the label attribute with the
+               custom label (from the Constance JSON)
+            3. They DID set a custom label for this field, BUT they didn't
+               include one for the current language: overwrite the label attribute
+               with the default custom label (from the Constance JSON)
+            """
+            # Idea: see about generalizing `get_mfa_help_text()` so that it can
+            # handle scenarios (2) and (3) above for any customized, translated
+            # text in Constance
+            field.label = f'Label for {field_name} in {get_language()}'
 
     def clean_email(self):
         email = self.cleaned_data['email']
