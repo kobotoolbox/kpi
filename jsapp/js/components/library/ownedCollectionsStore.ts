@@ -38,7 +38,7 @@ class OwnedCollectionsStore extends Reflux.Store {
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
 
     when(() => sessionStore.isLoggedIn, this.startupStore.bind(this));
-    setTimeout(() => router.subscribe(this.startupStore.bind(this)));
+    setTimeout(() => router!.subscribe(this.startupStore.bind(this)));
 
     this.startupStore();
   }

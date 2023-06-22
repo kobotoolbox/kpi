@@ -173,10 +173,6 @@ export function isFormSingleProcessingRoute(
     .replace(':submissionEditId', submissionEditId);
 }
 
-export function isFormResetRoute(uid: string): boolean {
-  return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
-}
-
 /*
  * Additional functions
  */

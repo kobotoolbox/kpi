@@ -1,4 +1,5 @@
 import Reflux from 'reflux';
+import type {RouterState} from '@remix-run/router';
 import {
   getCurrentPath,
   isMyLibraryRoute,
@@ -11,7 +12,7 @@ const DEFAULT_SEARCH_PHRASE = '';
 type SearchBoxContextName = 'MY_LIBRARY' | 'PUBLIC_COLLECTIONS';
 
 export const SEARCH_CONTEXTS: {
-  [name in SearchBoxContextName]: SearchBoxContextName
+  [name in SearchBoxContextName]: SearchBoxContextName;
 } = {
   MY_LIBRARY: 'MY_LIBRARY',
   PUBLIC_COLLECTIONS: 'PUBLIC_COLLECTIONS',
@@ -30,13 +31,15 @@ class SearchBoxStore extends Reflux.Store {
   };
 
   init() {
-    setTimeout(() => router.subscribe(this.onRouteChange.bind(this)));
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
     this.resetContext();
   }
 
   // manages clearing search when switching main routes
-  onRouteChange(data: any) {
-    if (this.previousPath.split('/')[1] !== data.location.pathname.split('/')[1]) {
+  onRouteChange(data: RouterState) {
+    if (
+      this.previousPath.split('/')[1] !== data.location.pathname.split('/')[1]
+    ) {
       this.clear();
     }
     this.previousPath = data.location.pathname;

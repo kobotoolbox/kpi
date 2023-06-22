@@ -54,5 +54,5 @@ export function openProcessing(
   const route = ROUTES.FORM_PROCESSING.replace(':uid', assetUid)
     .replace(':qpath', qpath)
     .replace(':submissionEditId', submissionEditId);
-  router.naviate(route);
+  router?.navigate(route);
 }

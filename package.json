@@ -15,7 +15,6 @@
     "backbone-validation": "^0.11.5",
     "classnames": "^2.3.1",
     "fuse.js": "^6.4.3",
-    "history": "^5.3.0",
     "immutable": "^3.8.2",
     "jquery": "^3.5.1",
     "jquery-ui": "1.12.1",
