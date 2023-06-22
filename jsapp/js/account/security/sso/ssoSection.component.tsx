@@ -6,6 +6,7 @@ import styles from './ssoSection.module.scss';
 import {deleteSocialAccount} from './sso.api';
 import Button from 'jsapp/js/components/common/button';
 import envStore from 'jsapp/js/envStore';
+import classNames from 'classnames';
 
 const SsoSection = observer(() => {
   const socialApps = envStore.isReady ? envStore.data.social_apps : [];
@@ -43,32 +44,40 @@ const SsoSection = observer(() => {
           </div>
         </div>
       ) : (
-        <div className={styles.bodySection}>Already connected </div>
+        <div className={styles.bodySection}>{t('Already connected')}</div>
       )}
 
       {socialAccounts.length === 0 ? (
-        <div className={styles.optionsSection}>
-          <a
-            href={
-              PATHS.MS_SSO + '?process=connect&next=%2F%23%2Faccount%2Fsecurity'
-            }
-            className={styles.passwordLink}
-          >
-            <Button
-              label='Set up'
-              size='m'
-              color='blue'
-              type='frame'
-              onClick={() => {
-                /*TODO: Handle NavLink and Button*/
-              }}
-            />
-          </a>
+        <div className={classNames(styles.optionsSection, styles.ssoSetup)}>
+          {socialApps.map((socialApp) => (
+            <a
+              href={
+                'accounts/' +
+                socialApp.provider +
+                '/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity'
+              }
+              className={styles.passwordLink}
+            >
+              <Button
+                label={
+                  socialApps.length == 1
+                    ? t('Set up')
+                    : t('Set up') + ' ' + socialApp.name // translation example: 'Set up Google Apps'
+                }
+                size='m'
+                color='blue'
+                type='frame'
+                onClick={() => {
+                  /*TODO: Handle NavLink and Button*/
+                }}
+              />
+            </a>
+          ))}
         </div>
       ) : (
         <div className={styles.optionsSection}>
           <Button
-            label='Disable'
+            label={t('Disable')}
             size='m'
             color='blue'
             type='frame'
