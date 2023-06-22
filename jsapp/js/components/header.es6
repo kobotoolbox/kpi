@@ -1,4 +1,4 @@
-;import React from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import { observer } from 'mobx-react';
@@ -52,7 +52,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
 
   componentDidMount() {
     // On initial load use the possibly stored asset.
-    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())});
 
     this.unlisteners.push(
       assetStore.listen(this.onAssetLoad),
@@ -117,9 +117,16 @@ const MainHeader = class MainHeader extends Reflux.Component {
     });
   }
 
+  accountUsage() {
+    // verifyLogin also refreshes stored profile data
+    actions.auth.verifyLogin.triggerAsync().then(() => {
+      this.props.router.navigate(ACCOUNT_ROUTES.USAGE);
+    });
+  }
+
   languageChange(evt) {
     evt.preventDefault();
-    let langCode = $(evt.target).data('key');
+    const langCode = $(evt.target).data('key');
     if (langCode) {
       // use .always (instead of .done) here since Django 1.8 redirects the request
       dataInterface.setLanguage({language: langCode}).always(() => {
@@ -183,11 +190,11 @@ const MainHeader = class MainHeader extends Reflux.Component {
       langs = envStore.data.interface_languages;
     }
     if (sessionStore.isLoggedIn) {
-      var accountName = sessionStore.currentAccount.username;
-      var accountEmail = sessionStore.currentAccount.email;
+      const accountName = sessionStore.currentAccount.username;
+      const accountEmail = sessionStore.currentAccount.email;
 
-      var initialsStyle = {background: `#${stringToColor(accountName)}`};
-      var accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;
+      const initialsStyle = {background: `#${stringToColor(accountName)}`};
+      const accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;
 
       return (
         <bem.AccountBox>
@@ -235,6 +242,12 @@ const MainHeader = class MainHeader extends Reflux.Component {
                     </ul>
                   }
                 </bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLink onClick={this.accountUsage}>
+                    <i className='k-icon k-icon-archived' />
+                    {t('Manage your account usage')}
+                  </bem.AccountBox__menuLink>
+                </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
                     <i className='k-icon k-icon-logout' />
@@ -252,7 +265,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
 
   renderGitRevInfo() {
     if (sessionStore.currentAccount && sessionStore.currentAccount.git_rev) {
-      var gitRev = sessionStore.currentAccount.git_rev;
+      const gitRev = sessionStore.currentAccount.git_rev;
       return (
         <bem.GitRev>
           <bem.GitRev__item>
@@ -339,7 +352,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
         </bem.MainHeader>
       );
   }
-}
+};
 
 reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
 reactMixin(MainHeader.prototype, mixins.contextRouter);
