@@ -34,6 +34,11 @@ class OrganizationTestCase(BaseTestCase):
         assert response_list.status_code == status.HTTP_403_FORBIDDEN
         response_detail = self.client.get(self.url_detail)
         assert response_detail.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_create(self):
+        data = {"name": "my org"}
+        res = self.client.post(self.url_list, data)
+        self.assertContains(res, data["name"], status_code=201)
 
     def test_api_creates_org(self):
         self.assertFalse(self.user.organizations_organization.all())
