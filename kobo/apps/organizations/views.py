@@ -25,7 +25,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet:
         user = self.request.user
         queryset = super().get_queryset().filter(users=user)
-        if self.action == "list":
+        if self.action == "list" and not queryset:
             # Very inefficient get or create queryset.
             # It's temporary and should be removed later.
             create_organization(
