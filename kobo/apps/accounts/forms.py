@@ -6,6 +6,7 @@ from allauth.account.forms import SignupForm as BaseSignupForm
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.conf import settings
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as t
 
 from kobo.static_lists import COUNTRIES
@@ -13,6 +14,7 @@ from kobo.static_lists import COUNTRIES
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
+    'full_name',
     'organization',
     'gender',
     'sector',
@@ -29,7 +31,7 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
-    name = forms.CharField(
+    full_name = forms.CharField(
         label=t('Full name'),
         required=False,
     )
@@ -87,13 +89,20 @@ class KoboSignupMixin(forms.Form):
         for field_name in list(self.fields.keys()):
             if field_name not in CONFIGURABLE_METADATA_FIELDS:
                 continue
-            if field_name not in desired_metadata_fields:
+            try:
+                desired_field = desired_metadata_fields[field_name]
+                if 'label' in desired_field.keys():
+                    try:
+                        self.fields[field_name].label = desired_field['label'][get_language()]
+                    except KeyError:
+                        self.fields[field_name].label = desired_field['label']['default']
+                else:
+                    continue
+            except KeyError:
                 self.fields.pop(field_name)
                 continue
-            else:
-                self.fields[field_name].required = desired_metadata_fields[
-                    field_name
-                ].get('required', False)
+            field = self.fields[field_name]
+            field.required = desired_field.get('required', False)
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -117,7 +126,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
     field_order = [
         'username',
         'email',
-        'name',
+        'full_name',
         'gender',
         'sector',
         'country',
@@ -133,7 +142,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
     field_order = [
-        'name',
+        'full_name',
         'organization',
         'username',
         'email',
