@@ -38,6 +38,11 @@ class OrganizationTestCase(BaseTestCase):
         data = {'name': 'my org'}
         res = self.client.post(self.url_list, data)
         self.assertContains(res, data['name'], status_code=201)
+    
+    def test_list_creates_org(self):
+        self.assertFalse(self.user.organizations_organization.all())
+        self.client.get(self.url_list)
+        self.assertTrue(self.user.organizations_organization.all())
 
     def test_api_returns_org_data(self):
         self._insert_data()
