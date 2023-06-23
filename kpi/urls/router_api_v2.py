@@ -5,7 +5,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
-from kobo.apps.organizations.views import OrganizationViewSet
+from kobo.apps.organizations.urls import router as organizations_router
 from kobo.apps.project_views.views import ProjectViewViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
@@ -142,13 +142,12 @@ router_api_v2.register(r'asset_subscriptions',
                        UserAssetSubscriptionViewSet)
 router_api_v2.register(r'asset_usage', AssetUsageViewSet, basename='asset-usage')
 router_api_v2.register(r'imports', ImportTaskViewSet)
-router_api_v2.register(r'organizations',
-                       OrganizationViewSet, basename='organizations',)
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet)
+router_api_v2.registry.extend(organizations_router.registry)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from kobo.apps.organizations.models import Organization, create_organization
+from .models import Organization, OrganizationUser, create_organization
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -12,3 +12,14 @@ class OrganizationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         return create_organization(user, validated_data['name'])
+
+
+class OrganizationUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationUser
+        fields = ("user", "is_admin")
+
+
+class OrganizationUserInvitationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    is_admin = serializers.BooleanField()

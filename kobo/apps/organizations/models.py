@@ -16,6 +16,7 @@ from kpi.fields import KpiUidField
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
+    is_org_admin = AbstractOrganization.is_admin
 
     @property
     def email(self):
@@ -27,7 +28,8 @@ class Organization(AbstractOrganization):
 
 
 class OrganizationUser(AbstractOrganizationUser):
-    pass
+    def is_org_admin(self, user):
+        return self.organization.is_admin(user)
 
 
 class OrganizationOwner(AbstractOrganizationOwner):

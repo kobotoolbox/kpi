@@ -13,5 +13,5 @@ class IsOrgAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Instance must have an attribute named `owner`.
-        return obj.is_admin(request.user)
+        # Instance must have an attribute named `is_org_admin`.
+        return obj.is_org_admin(request.user)
