@@ -274,25 +274,17 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         json.dumps([
-            {'name': 'full_name', 'required': False, 'label': {
-                'default': 'Full Name', 
-                'some-other-language': (
-                    'This is an example and will never display because some-other-language ' 
-                    'is not a valid language code.'
-                ),
-            },},
-            {'name': 'organization', 'required': False, 'label': {'default': 'Organization',},},
-            {'name': 'organization_website', 'required': False, 'label': {
-                'default': 'Organization Website',
-            },},
-            {'name': 'sector', 'required': False, 'label': {'default': 'Sector',},},
-            {'name': 'gender', 'required': False, 'label': {'default': 'Gender',},},
-            {'name': 'bio', 'required': False, 'label': {'default': 'Bio',},},
-            {'name': 'city', 'required': False, 'label': {'default': 'City',},},
-            {'name': 'country', 'required': False, 'label': {'default': 'Country',},},
-            {'name': 'twitter', 'required': False, 'label': {'default': 'Twitter',},},
-            {'name': 'linkedin', 'required': False, 'label': {'default': 'LinkedIn',},},
-            {'name': 'instagram', 'required': False, 'label': {'default': 'Instagram',},},
+            {'name': 'full_name', 'required': False,},
+            {'name': 'organization', 'required': False,},
+            {'name': 'organization_website', 'required': False,},
+            {'name': 'sector', 'required': False,},
+            {'name': 'gender', 'required': False,},
+            {'name': 'bio', 'required': False,},
+            {'name': 'city', 'required': False,},
+            {'name': 'country', 'required': False,},
+            {'name': 'twitter', 'required': False,},
+            {'name': 'linkedin', 'required': False,},
+            {'name': 'instagram', 'required': False,},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users. '
