@@ -4,8 +4,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Organization, create_organization
-from .serializers import OrganizationSerializer
 from .permissions import IsOrgAdminOrReadOnly
+from .serializers import OrganizationSerializer
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -28,6 +28,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             # Very inefficient get or create queryset.
             # It's temporary and should be removed later.
-            create_organization(user, f"{user.username}'s organization", model=Organization)
+            create_organization(
+                user, f"{user.username}'s organization", model=Organization
+            )
             queryset = queryset.all()  # refresh
         return queryset

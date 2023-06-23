@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
-
 from model_bakery import baker
 from rest_framework import status
 
@@ -38,7 +37,7 @@ class OrganizationTestCase(BaseTestCase):
         data = {'name': 'my org'}
         res = self.client.post(self.url_list, data)
         self.assertContains(res, data['name'], status_code=201)
-    
+
     def test_list_creates_org(self):
         self.assertFalse(self.user.organizations_organization.all())
         self.client.get(self.url_list)
