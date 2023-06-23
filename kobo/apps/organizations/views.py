@@ -28,8 +28,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         if self.action == "list" and not queryset:
             # Very inefficient get or create queryset.
             # It's temporary and should be removed later.
-            create_organization(
-                user, f"{user.username}'s organization", model=Organization
-            )
+            create_organization(user, f"{user.username}'s organization")
             queryset = queryset.all()  # refresh
         return queryset
