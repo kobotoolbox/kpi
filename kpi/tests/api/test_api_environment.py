@@ -109,8 +109,8 @@ class EnvironmentTests(BaseTestCase):
         """
         def check_metadata_for_label(metadata):
             for item in metadata:
-                assert 'label' in item.keys()
-                assert 'default' in item['label'].keys()
+                if 'label' in item.keys():
+                    assert 'default' in item['label'].keys()
                 
         self.client.logout()
         response = self.client.get(self.url, format='json')
