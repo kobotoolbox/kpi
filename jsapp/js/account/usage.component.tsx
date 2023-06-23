@@ -30,11 +30,12 @@ export default function Usage() {
       setUsage({
         ...usage,
         storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
-        monthlySubmissions: data.total_submission_count_current_month,
+        monthlySubmissions: data.total_submission_count['current_month'],
         monthlyTranscriptionMinutes: Math.floor(
-          truncate(data.total_nlp_asr_seconds_current_month / 60)
+          truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
         ), // seconds to minutes
-        monthlyTranslationChars: data.total_nlp_mt_characters_current_month,
+        monthlyTranslationChars:
+          data.total_nlp_usage['mt_characters_current_month'],
       });
     });
   }, []);
