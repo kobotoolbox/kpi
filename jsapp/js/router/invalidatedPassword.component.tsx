@@ -1,7 +1,7 @@
 import React from 'react';
 import InlineMessage from '../components/common/inlineMessage';
+import UpdatePasswordForm from 'js/account/security/password/updatePasswordForm.component';
 import styles from './invalidatedPassword.module.scss';
-
 
 export default function InvalidatedPassword() {
   return (
@@ -11,6 +11,8 @@ export default function InvalidatedPassword() {
       } />
 
       <p>{t('Until you update it, most of the KoboToolbox would be inacessible.')}</p>
+
+      <UpdatePasswordForm />
     </div>
   );
 }
