@@ -71,6 +71,7 @@ def service_health(request):
         'Postgres': lambda: Asset.objects.order_by().exists(),
         'Cache': lambda: cache.set('a', True, 1),
         'Broker': lambda: celery_app.backend.client.ping(),
+        'Session': lambda: request.session.save(),
         'Enketo': lambda: requests.get(
             settings.ENKETO_INTERNAL_URL, timeout=10
         ).raise_for_status(),
@@ -84,7 +85,7 @@ def service_health(request):
         )
         any_failure = True if service_message else any_failure
         check_results.append(
-            f"{service_name}: {service_message or 'OK'} {service_time:.3} seconds"
+            f"{service_name}: {service_message or 'OK'} in {service_time:.3} seconds"
         )
 
     t0 = time.time()
