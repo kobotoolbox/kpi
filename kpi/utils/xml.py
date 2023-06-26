@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import annotations
+
 import re
 from typing import Optional, Union, List
 from xml.dom import Node
@@ -347,14 +349,14 @@ class XMLFormWithDisclaimer:
 
     def _get_disclaimers(self, asset: 'kpi.Asset') -> Optional[QuerySet]:
 
-        # Order by '-message' to ensure that default is overridden later if
+        # Order by '-asset_id' to ensure that default is overridden later if
         # an override exists for the same language. See `_get_translations()`
 
         disclaimers = (
             FormDisclaimer.objects.annotate(language_code=F('language__code'))
             .values('language_code', 'message', 'default')
             .filter(Q(asset__isnull=True) | Q(asset=asset))
-            .order_by('-message')
+            .order_by('-asset_id', 'language_code')
         )
 
         if not disclaimers:
