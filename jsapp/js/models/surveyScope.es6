@@ -1,4 +1,6 @@
-import _ from 'underscore';
+import isEmpty from 'lodash.isempty';
+import findIndex from 'lodash.findindex';
+import map from 'lodash.map';
 import {actions} from '../actions';
 import {
   ASSET_TYPES,
@@ -67,12 +69,12 @@ class SurveyScope {
     let choices = [];
     const groupKuid = row.toJSON2().$kuid;
 
-    if (!_.isEmpty(unnullifiedContent.survey)) {
-      const startGroupIndexFound = _.findIndex(unnullifiedContent.survey, (content) =>
+    if (!isEmpty(unnullifiedContent.survey)) {
+      const startGroupIndexFound = findIndex(unnullifiedContent.survey, (content) =>
         content['$kuid'] === groupKuid
       );
       if (startGroupIndexFound > -1) {
-        const endGroupIndexFound = _.findIndex(unnullifiedContent.survey, (content) =>
+        const endGroupIndexFound = findIndex(unnullifiedContent.survey, (content) =>
           content['$kuid'] === '/' + groupKuid
         );
         contents = unnullifiedContent.survey.slice(startGroupIndexFound, endGroupIndexFound + 1);
@@ -80,13 +82,13 @@ class SurveyScope {
     }
 
     if (contents.length > 0) {
-      const contents_kuids = _.pluck(contents, '$kuid');
+      const contents_kuids = map(contents, '$kuid');
       const selectSurveyContents = unnullifiedContent.survey.filter((content) =>
         [QUESTION_TYPES.select_one.id, QUESTION_TYPES.select_multiple.id].indexOf(content.type) > -1 &&
         contents_kuids.indexOf(content['$kuid']) > -1
       );
       if (selectSurveyContents.length > 0) {
-        const selectListNames = _.pluck(selectSurveyContents, CHOICE_LISTS.SELECT);
+        const selectListNames = map(selectSurveyContents, CHOICE_LISTS.SELECT);
         choices = unnullifiedContent.choices.filter((choice) =>
           selectListNames.indexOf(choice.list_name) > -1
         );

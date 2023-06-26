@@ -16,7 +16,7 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
-    lookup_field = 'uid'
+    lookup_field = 'id'
     permission_classes = (IsAuthenticated,)
     extra_context = None
 
