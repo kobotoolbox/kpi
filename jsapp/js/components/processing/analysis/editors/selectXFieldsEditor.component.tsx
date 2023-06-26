@@ -2,12 +2,12 @@ import React, {useContext} from 'react';
 import styles from './selectXFieldsEditor.module.scss';
 import type {AdditionalFields} from 'js/components/processing/analysis/constants';
 import Button from 'js/components/common/button';
-import {generateUid} from 'js/utils';
+import {generateUuid} from 'js/utils';
 import TextBox from 'jsapp/js/components/common/textBox';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 
 interface SelectXFieldsEditorProps {
-  uid: string;
+  uuid: string;
   fields: AdditionalFields;
   onFieldsChange: (fields: AdditionalFields) => void;
 }
@@ -15,10 +15,10 @@ interface SelectXFieldsEditorProps {
 export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
-  function updateChoiceLabel(uid: string, newLabel: string) {
+  function updateChoiceLabel(uuid: string, newLabel: string) {
     props.onFieldsChange({
       choices: (props.fields.choices || []).map((choice) => {
-        if (choice.uid === uid) {
+        if (choice.uuid === uuid) {
           return {
             ...choice,
             label: newLabel,
@@ -35,17 +35,17 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
       choices: [
         ...(props.fields.choices || []),
         {
-          uid: generateUid(),
+          uuid: generateUuid(),
           label: '',
         },
       ],
     });
   }
 
-  function deleteChoice(uid: string) {
+  function deleteChoice(uuid: string) {
     props.onFieldsChange({
       choices: (props.fields.choices || []).filter(
-        (choice) => choice.uid !== uid
+        (choice) => choice.uuid !== uuid
       ),
     });
   }
@@ -53,12 +53,12 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   return (
     <>
       {props.fields.choices?.map((choice) => (
-        <div className={styles.choice} key={choice.uid}>
+        <div className={styles.choice} key={choice.uuid}>
           <TextBox
             type='text-multiline'
             value={choice.label}
             onChange={(newLabel: string) =>
-              updateChoiceLabel(choice.uid, newLabel)
+              updateChoiceLabel(choice.uuid, newLabel)
             }
             placeholder={t('Type option name')}
             customModifiers='on-white'
@@ -71,7 +71,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
             color='storm'
             size='s'
             startIcon='trash'
-            onClick={() => deleteChoice(choice.uid)}
+            onClick={() => deleteChoice(choice.uuid)}
             isDisabled={analysisQuestions?.state.isPending}
           />
         </div>

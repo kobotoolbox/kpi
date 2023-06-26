@@ -14,7 +14,7 @@ import type {AdditionalFields} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
 
 interface AnalysisQuestionEditorProps {
-  uid: string;
+  uuid: string;
 }
 
 export default function AnalysisQuestionEditor(
@@ -23,7 +23,7 @@ export default function AnalysisQuestionEditor(
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -34,7 +34,7 @@ export default function AnalysisQuestionEditor(
     return null;
   }
 
-  const [label, setLabel] = useState<string>(question.label);
+  const [label, setLabel] = useState<string>(question.labels._default);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [additionalFieldsErrorMessage, setAdditionalFieldsErrorMessage] =
     useState<string | undefined>();
@@ -101,7 +101,7 @@ export default function AnalysisQuestionEditor(
             // We return the same questions array, just replacing one item (it's
             // the updated question).
             questions: analysisQuestions?.state.questions.map((aq) => {
-              if (aq.uid === props.uid) {
+              if (aq.uuid === props.uuid) {
                 // Successfully updating/saving question makes it not a draft
                 delete aq.isDraft;
                 return {
@@ -122,7 +122,7 @@ export default function AnalysisQuestionEditor(
   function cancelEditing() {
     analysisQuestions?.dispatch({
       type: 'stopEditingQuestion',
-      payload: {uid: props.uid},
+      payload: {uuid: props.uuid},
     });
   }
 
@@ -166,7 +166,7 @@ export default function AnalysisQuestionEditor(
         <section className={commonStyles.content}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
-              uid={question.uid}
+              uuid={question.uuid}
               fields={additionalFields || {source: '', keywords: []}}
               onFieldsChange={onAdditionalFieldsChange}
             />
@@ -175,7 +175,7 @@ export default function AnalysisQuestionEditor(
           {(question.type === 'qual_select_one' ||
             question.type === 'qual_select_multiple') && (
             <SelectXFieldsEditor
-              uid={question.uid}
+              uuid={question.uuid}
               fields={additionalFields || {choices: []}}
               onFieldsChange={onAdditionalFieldsChange}
             />

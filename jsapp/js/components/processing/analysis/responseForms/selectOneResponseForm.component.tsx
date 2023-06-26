@@ -13,7 +13,7 @@ import classNames from 'classnames';
 import styles from './selectOneResponseForm.module.scss';
 
 interface SelectOneResponseFormProps {
-  uid: string;
+  uuid: string;
 }
 
 export default function SelectOneResponseForm(
@@ -22,7 +22,7 @@ export default function SelectOneResponseForm(
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -41,7 +41,7 @@ export default function SelectOneResponseForm(
     quietlyUpdateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
-      props.uid,
+      props.uuid,
       newResponse
     );
   }
@@ -50,7 +50,7 @@ export default function SelectOneResponseForm(
     if (question?.additionalFields?.choices) {
       return question?.additionalFields?.choices.map((choice) => {
         return {
-          value: choice.uid,
+          value: choice.uuid,
           label: choice.label,
         };
       });
@@ -60,14 +60,14 @@ export default function SelectOneResponseForm(
 
   return (
     <>
-      <CommonHeader uid={props.uid} />
+      <CommonHeader uuid={props.uuid} />
 
       <section
         className={classNames([commonStyles.content, styles.radioWrapper])}
       >
         <Radio
           options={getOptions()}
-          name={question.label}
+          name={question.labels._default}
           onChange={onRadioChange}
           selected={response}
           isClearable

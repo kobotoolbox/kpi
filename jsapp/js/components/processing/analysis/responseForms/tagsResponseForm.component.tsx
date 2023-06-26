@@ -10,14 +10,14 @@ import TagsInput from 'react-tagsinput';
 import commonStyles from './common.module.scss';
 
 interface TagsResponseFormProps {
-  uid: string;
+  uuid: string;
 }
 
 export default function TagsResponseForm(props: TagsResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -45,14 +45,14 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     quietlyUpdateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
-      props.uid,
+      props.uuid,
       newResponse
     );
   }
 
   return (
     <>
-      <CommonHeader uid={props.uid} />
+      <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
         <TagsInput

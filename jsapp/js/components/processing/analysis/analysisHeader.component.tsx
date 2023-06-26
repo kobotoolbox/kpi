@@ -5,8 +5,8 @@ import Button from 'js/components/common/button';
 import KoboDropdown, {
   KoboDropdownPlacements,
 } from 'js/components/common/koboDropdown';
-import {ANALYSIS_QUESTION_DEFINITIONS} from './constants';
-import type {AnalysisQuestionDefinition} from './constants';
+import {ANALYSIS_QUESTION_TYPES} from './constants';
+import type {AnalysisQuestionTypeDefinition} from './constants';
 import Icon from 'js/components/common/icon';
 import assetStore from 'jsapp/js/assetStore';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
@@ -16,10 +16,10 @@ import classNames from 'classnames';
 export default function AnalysisHeader() {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
-  const manualTypes = Object.values(ANALYSIS_QUESTION_DEFINITIONS).filter(
+  const manualTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter(
     (definition) => !definition.isAutomated
   );
-  const automatedTypes = Object.values(ANALYSIS_QUESTION_DEFINITIONS).filter(
+  const automatedTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter(
     (definition) => definition.isAutomated
   );
 
@@ -28,7 +28,7 @@ export default function AnalysisHeader() {
     return userCan('manage_asset', asset);
   })();
 
-  function renderQuestionTypeButton(definition: AnalysisQuestionDefinition) {
+  function renderQuestionTypeButton(definition: AnalysisQuestionTypeDefinition) {
     return (
       <li
         className={classNames({

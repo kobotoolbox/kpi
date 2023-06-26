@@ -31,27 +31,33 @@ export interface AdditionalFields {
   /** For the `qual_seleect_one` and `qual_select_multiple` question types */
   choices?: Array<{
     label: string;
-    uid: string;
+    uuid: string;
   }>;
 }
 
 /**
- * An instance of analysis question. We use the same object for question
- * definition and response.
+ * An instance of analysis question. We use the same object for the question
+ * and the response
+ *
+ * For example this coulde be a `qual_integer` question with label "How many
+ * pauses did the responded take?" and response "7".
  */
 export interface AnalysisQuestion {
   type: AnalysisQuestionType;
-  label: string;
-  uid: string;
+  labels: {
+    _default: string;
+    [langCode: string]: string;
+  };
+  uuid: string;
   response: string;
   additionalFields?: AdditionalFields;
 }
 
 /**
  * The definition is the object that tells us what kind of questions are
- * available for being created.
+ * internally available for being created, e.g. a `qual_integer` question type.
  */
-export interface AnalysisQuestionDefinition {
+export interface AnalysisQuestionTypeDefinition {
   type: AnalysisQuestionType;
   label: string;
   icon: IconName;
@@ -65,7 +71,7 @@ export interface AnalysisQuestionDefinition {
  * Note: the order here matters - it influnces the order of the dropdown for
  * adding questions and possibly other UI elements.
  */
-export const ANALYSIS_QUESTION_DEFINITIONS: AnalysisQuestionDefinition[] = [
+export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
   {
     type: 'qual_tags',
     label: t('Tags'),

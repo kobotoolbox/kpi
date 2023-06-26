@@ -17,9 +17,9 @@ import {findQuestion} from '../utils';
 import classnames from 'classnames';
 
 export interface AnalysisQuestionRowProps {
-  uid: string;
+  uuid: string;
   index: number;
-  moveRow: (uid: string, oldIndex: number, newIndex: number) => void;
+  moveRow: (uuid: string, oldIndex: number, newIndex: number) => void;
 }
 
 interface DragItem {
@@ -36,7 +36,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -97,7 +97,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
       }
 
       // Time to actually perform the action
-      props.moveRow(props.uid, dragIndex, hoverIndex);
+      props.moveRow(props.uuid, dragIndex, hoverIndex);
 
       // Note: we're mutating the monitor item here!
       // Generally it's better to avoid mutations,
@@ -110,7 +110,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   const [{isDragging}, drag, preview] = useDrag({
     type: DND_TYPES.ANALYSIS_QUESTION,
     item: () => {
-      return {id: props.uid, index: props.index};
+      return {id: props.uuid, index: props.index};
     },
     canDrag: !isDragDisabled,
     collect: (monitor) => {
@@ -146,28 +146,28 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
 
   const renderItem = useCallback(
     (item: AnalysisQuestion) => {
-      if (analysisQuestions?.state.questionsBeingEdited.includes(item.uid)) {
-        return <AnalysisQuestionEditor uid={item.uid} />;
+      if (analysisQuestions?.state.questionsBeingEdited.includes(item.uuid)) {
+        return <AnalysisQuestionEditor uuid={item.uuid} />;
       } else {
         switch (item.type) {
           case 'qual_auto_keyword_count': {
-            return <KeywordSearchResponseForm uid={item.uid} />;
+            return <KeywordSearchResponseForm uuid={item.uuid} />;
           }
           case 'qual_note': {
             // This question type doesn't have any response
-            return <CommonHeader uid={item.uid} />;
+            return <CommonHeader uuid={item.uuid} />;
           }
           case 'qual_select_multiple': {
-            return <SelectMultipleResponseForm uid={item.uid} />;
+            return <SelectMultipleResponseForm uuid={item.uuid} />;
           }
           case 'qual_select_one': {
-            return <SelectOneResponseForm uid={item.uid} />;
+            return <SelectOneResponseForm uuid={item.uuid} />;
           }
           case 'qual_tags': {
-            return <TagsResponseForm uid={item.uid} />;
+            return <TagsResponseForm uuid={item.uuid} />;
           }
           default: {
-            return <DefaultResponseForm uid={item.uid} />;
+            return <DefaultResponseForm uuid={item.uuid} />;
           }
         }
       }

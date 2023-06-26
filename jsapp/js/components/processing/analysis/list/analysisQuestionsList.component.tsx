@@ -13,10 +13,10 @@ export default function AnalysisQuestionsList() {
   }
 
   const moveRow = useCallback(
-    (uid: string, oldIndex: number, newIndex: number) => {
+    (uuid: string, oldIndex: number, newIndex: number) => {
       analysisQuestions.dispatch({
         type: 'reorderQuestion',
-        payload: {uid, oldIndex, newIndex},
+        payload: {uuid: uuid, oldIndex, newIndex},
       });
     },
     []
@@ -27,9 +27,9 @@ export default function AnalysisQuestionsList() {
       <ul className={styles.root}>
         {analysisQuestions.state.questions.map((question, index: number) => (
           <AnalysisQuestionRow
-            uid={question.uid}
+            uuid={question.uuid}
             index={index}
-            key={question.uid}
+            key={question.uuid}
             moveRow={moveRow}
           />
         ))}

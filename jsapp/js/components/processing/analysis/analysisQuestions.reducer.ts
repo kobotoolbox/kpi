@@ -1,4 +1,4 @@
-import {generateUid, moveArrayElementToIndex} from 'jsapp/js/utils';
+import {generateUuid, moveArrayElementToIndex} from 'jsapp/js/utils';
 import type {AnalysisQuestion} from './constants';
 import type {AnalysisQuestionsAction} from './analysisQuestions.actions';
 
@@ -46,7 +46,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
   switch (action.type) {
     case 'addQuestion': {
       // This is the place that assigns the uid to the question
-      const newUid = generateUid();
+      const newUid = generateUuid();
       return {
         ...state,
         // We add the question at the beginning of the existing array.
@@ -74,7 +74,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         // a successful API call that will return new questions list (without
         // the deleted question).
         questions: state.questions.filter(
-          (question) => question.uid !== action.payload.uid
+          (question) => question.uuid !== action.payload.uuid
         ),
       };
     }
@@ -90,7 +90,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         questionsBeingEdited: [
           ...state.questionsBeingEdited,
-          action.payload.uid,
+          action.payload.uuid,
         ],
       };
     }
@@ -100,13 +100,13 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         // If we stop editing a question that was a draft, we need to remove it
         // from the questions list
         questions: state.questions.filter((question) => {
-          if (question.uid === action.payload.uid && question.isDraft) {
+          if (question.uuid === action.payload.uuid && question.isDraft) {
             return false;
           }
           return true;
         }),
         questionsBeingEdited: state.questionsBeingEdited.filter(
-          (uid) => uid !== action.payload.uid
+          (uid) => uid !== action.payload.uuid
         ),
       };
     }

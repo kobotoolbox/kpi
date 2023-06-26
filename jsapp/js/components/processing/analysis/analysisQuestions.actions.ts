@@ -5,12 +5,12 @@ export type AnalysisQuestionsAction =
   | {type: 'addQuestion'; payload: {type: AnalysisQuestionType}}
   // Opens question for editing, i.e. causes the editor to be opened for given
   // question
-  | {type: 'startEditingQuestion'; payload: {uid: string}}
+  | {type: 'startEditingQuestion'; payload: {uuid: string}}
   // Closes the editor (and removes the question if it was a draft)
-  | {type: 'stopEditingQuestion'; payload: {uid: string}}
+  | {type: 'stopEditingQuestion'; payload: {uuid: string}}
   // Immediately removes the question from the local list and blocks the UI,
   // awaiting the API call response.
-  | {type: 'deleteQuestion'; payload: {uid: string}}
+  | {type: 'deleteQuestion'; payload: {uuid: string}}
   // Unlocks UI after successfull API call, updates the questions list with the
   // fresh data from Back-end. It should be identical to the list we already
   // have, but it's still safer to use the fresh data.
@@ -35,7 +35,7 @@ export type AnalysisQuestionsAction =
   | {
       type: 'reorderQuestion';
       payload: {
-        uid: string;
+        uuid: string;
         oldIndex: number;
         newIndex: number;
       };

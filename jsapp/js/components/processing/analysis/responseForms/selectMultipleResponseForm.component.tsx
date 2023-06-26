@@ -11,7 +11,7 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import commonStyles from './common.module.scss';
 
 interface SelectMultipleResponseFormProps {
-  uid: string;
+  uuid: string;
 }
 
 export default function SelectMultipleResponseForm(
@@ -20,7 +20,7 @@ export default function SelectMultipleResponseForm(
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -44,7 +44,7 @@ export default function SelectMultipleResponseForm(
     quietlyUpdateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
-      props.uid,
+      props.uuid,
       newResponse
     );
   }
@@ -53,9 +53,9 @@ export default function SelectMultipleResponseForm(
     if (question?.additionalFields?.choices) {
       return question?.additionalFields?.choices.map((choice) => {
         return {
-          name: choice.uid,
+          name: choice.uuid,
           label: choice.label,
-          checked: response.split(',').includes(choice.uid),
+          checked: response.split(',').includes(choice.uuid),
         };
       });
     }
@@ -64,7 +64,7 @@ export default function SelectMultipleResponseForm(
 
   return (
     <>
-      <CommonHeader uid={props.uid} />
+      <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
         <MultiCheckbox

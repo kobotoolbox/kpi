@@ -10,14 +10,14 @@ import {
 import KoboPrompt from 'js/components/modals/koboPrompt';
 
 interface ResponseFormHeaderProps {
-  uid: string;
+  uuid: string;
 }
 
 export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -37,14 +37,14 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   function openQuestionInEditor() {
     analysisQuestions?.dispatch({
       type: 'startEditingQuestion',
-      payload: {uid: props.uid},
+      payload: {uuid: props.uuid},
     });
   }
 
   function deleteQuestion() {
     analysisQuestions?.dispatch({
       type: 'deleteQuestion',
-      payload: {uid: props.uid},
+      payload: {uuid: props.uuid},
     });
 
     setIsDeletePromptOpen(false);
@@ -58,7 +58,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         type: 'deleteQuestionCompleted',
         payload: {
           questions: analysisQuestions?.state.questions.filter(
-            (item) => item.uid !== props.uid
+            (item) => item.uuid !== props.uuid
           ),
         },
       });
@@ -97,7 +97,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         <Icon name={qaDefinition.icon} size='xl' />
       </div>
 
-      <label className={commonStyles.headerLabel}>{question.label}</label>
+      <label className={commonStyles.headerLabel}>{question.labels._default}</label>
 
       <Button
         type='bare'

@@ -461,8 +461,11 @@ export function generateAutoname(str: string, startIndex = 0, endIndex: number =
   .replace(/(\ |\.)/g, '_');
 }
 
-/** Simple unique ID generator. */
-export function generateUid() {
+/**
+ * Generates UUID string. Uses native crypto with a smart fallback function for
+ * insecure contexts.
+ */
+export function generateUuid() {
   if (crypto.randomUUID) {
     return crypto.randomUUID();
   }

@@ -11,7 +11,7 @@ import {
 import Badge from 'jsapp/js/components/common/badge';
 
 interface KeywordSearchResponseFormProps {
-  uid: string;
+  uuid: string;
 }
 
 export default function KeywordSearchResponseForm(
@@ -20,7 +20,7 @@ export default function KeywordSearchResponseForm(
   const analysisQuestions = useContext(AnalysisQuestionsContext);
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uid, analysisQuestions?.state);
+  const question = findQuestion(props.uuid, analysisQuestions?.state);
   if (!question) {
     return null;
   }
@@ -40,7 +40,7 @@ export default function KeywordSearchResponseForm(
         type: 'initialiseSearchCompleted',
         payload: {
           questions: analysisQuestions?.state.questions.map((item) => {
-            if (item.uid === props.uid) {
+            if (item.uuid === props.uuid) {
               return {
                 ...item,
                 // fake 0-50 response
@@ -64,14 +64,14 @@ export default function KeywordSearchResponseForm(
 
     // TODO make actual API call here
     // For now we make a fake response
-    console.log('QA fake API call: initialise search', props.uid);
+    console.log('QA fake API call: initialise search', props.uuid);
     setTimeout(() => {
       console.log('QA fake API call: initialise search DONE');
       analysisQuestions?.dispatch({
         type: 'initialiseSearchCompleted',
         payload: {
           questions: analysisQuestions?.state.questions.map((item) => {
-            if (item.uid === props.uid) {
+            if (item.uuid === props.uuid) {
               return {
                 ...item,
                 additionalFields: {
@@ -92,7 +92,7 @@ export default function KeywordSearchResponseForm(
 
   return (
     <>
-      <CommonHeader uid={props.uid} />
+      <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
         {(() => {

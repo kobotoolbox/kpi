@@ -9,7 +9,7 @@ import type {LanguageCode} from 'js/components/languages/languagesStore';
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 
 interface KeywordSearchFieldsEditorProps {
-  uid: string;
+  uuid: string;
   fields: AdditionalFields;
   onFieldsChange: (fields: AdditionalFields) => void;
 }
