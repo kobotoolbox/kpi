@@ -627,7 +627,7 @@ export interface AccountResponse {
   email: string;
   server_time: string;
   date_joined: string;
-  projects_url: string;
+  projects_url: string; // TODO: no longer used, kept here for response typing
   is_superuser: boolean;
   gravatar: string;
   is_staff: boolean;
