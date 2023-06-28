@@ -8,13 +8,13 @@ import type {AssetResponse} from 'jsapp/js/dataInterface';
 import SingleProcessingSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
 import SingleProcessingSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
 
-import styles from './sidebar.module.scss';
+import styles from './processingSidebar.module.scss';
 
-interface SidebarProps {
+interface ProcessingSidebarProps {
   asset: AssetResponse;
 }
 
-export default function Sidebar(props: SidebarProps) {
+export default function ProcessingSidebar(props: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore);
 
   const displays = store.getActiveDisplays();

@@ -7,7 +7,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import Sidebar from 'js/components/processing/sidebar/sidebar';
+import ProcessingSidebar from 'js/components/processing/sidebar/processingSidebar';
 import {UNSAVED_CHANGES_WARNING} from 'jsapp/js/protector/protectorConstants';
 import {usePrompt} from 'jsapp/js/router/promptBlocker';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
@@ -133,7 +133,7 @@ export default class SingleProcessingRoute extends React.Component<
           </section>
 
           <section className={styles.bottomRight}>
-            <Sidebar asset={this.state.asset} />
+            <ProcessingSidebar asset={this.state.asset} />
           </section>
         </React.Fragment>
       );
