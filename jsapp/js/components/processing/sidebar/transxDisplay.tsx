@@ -1,9 +1,8 @@
 import React, {useCallback} from 'react';
 import {formatTime} from 'js/utils';
 import type {Transx} from 'js/components/processing/singleProcessingStore';
-import bodyStyles from './processingBody.module.scss';
+import bodyStyles from '../processingBody.module.scss';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
-
 import styles from './transxDisplay.module.scss';
 
 interface TransxDisplayProps {

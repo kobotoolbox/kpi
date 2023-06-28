@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import singleProcessingStore, {
   StaticDisplays,
 } from 'js/components/processing/singleProcessingStore';
-import TransxDisplay from 'js/components/processing/transxDisplay';
+import TransxDisplay from './transxDisplay';
 import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisplaySettings';
 import type {AssetResponse} from 'jsapp/js/dataInterface';
 import SingleProcessingSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';

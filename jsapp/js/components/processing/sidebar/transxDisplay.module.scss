@@ -1,6 +1,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
-@use './singleProcessingVariables';
+@use '../singleProcessingVariables';
 
 .root {
   background-color: colors.$kobo-white;
