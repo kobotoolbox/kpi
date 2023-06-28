@@ -246,7 +246,7 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }, indent=0),  # `indent=0` at least adds newlines
+        }, indent=2),
         (
             'JSON object of guidance messages presented to users when they '
             'click the "Problems with the token" link after being prompted for '
@@ -284,7 +284,7 @@ CONSTANCE_CONFIG = {
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
-        ]),
+        ], indent=2),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users. '
         "Possible fields are 'organization', 'organization_website', "
@@ -299,7 +299,7 @@ CONSTANCE_CONFIG = {
             {'name': 'country', 'required': False},
             # {'name': 'operational_purpose', 'required': False},
             # {'name': 'collects_pii', 'required': False},
-        ]),
+        ], indent=2),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects. '
         "Possible fields are 'sector', 'country', 'operational_purpose', and "
@@ -327,7 +327,7 @@ CONSTANCE_CONFIG = {
             'data': 1000,
             'transcription_minutes': 10,
             'translation_chars': 6000,
-        }),
+        }, indent=2),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
         'minutes of transcription, '
@@ -350,59 +350,63 @@ CONSTANCE_CONFIG = {
         'positive_int_minus_one',
     ),
     # Toggle for ZXCVBN
-    'ZXCVBN_PASSWORD_VALIDATION': (
+    'ENABLE_ZXCVBN_PASSWORD_VALIDATION': (
         True,
         'Enables the dropbox library zxcvbn for password validation',
     ),
     # Built-in password validator
-    'ENABLE_MINIMUM_LENGTH_VALIDATION': (
+    'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION': (
         True,
         'Enable minimum length validation',
     ),
-    'MINIMUM_LENGTH_VALIDATION': (
+    'MINIMUM_PASSWORD_LENGTH': (
         10,
         'Minimum length for all passwords',
+        int,
     ),
     # Build-in password validator
-    'USER_ATTRIBUTE_SIMILARITY_VALIDATOR': (
+    'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION': (
         True,
-        "Custom user attribute similarity validation is enabled",
+        'Custom user attribute similarity validation is enabled',
+    ),
+    'PASSWORD_USER_ATTRIBUTES': (
+        (
+            'username\n'
+            'first_name\n'
+            'last_name\n'
+            'email'
+        ),
+        'List all user attributes for similarity validation\nOne per line'
     ),
     # Built-in password validator
-    'ENABLE_CUSTOM_COMMON_PASSWORD_VALIDATION': (
+    'ENABLE_COMMON_PASSWORD_VALIDATION': (
         True,
-        'Enable adding custom common password validation',
+        'Enable adding common password validation',
     ),
-    'COMMON_PASSWORD_VALIDATION': (
-        '',
-        'Add to list of common passwords for password validation',
-    ),
-    # Custom password Validator
-    'ENABLE_CUSTOM_CHARACTER_CLASSES_ENABLED': (
+    'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION': (
         True,
-        'Enable custom character classes',
+        'Enable custom character rules',
     ),
-    'MINIMUM_CUSTOM_CHARACTER_CLASS_VALIDATION': (
+    'PASSWORD_MINIMUM_CUSTOM_CHARACTER_RULES_TO_PASS': (
         3,
-        'The minimum number of character classes which must be set'
+        'The minimum number of character rules to pass',
+        int,
     ),
-    'CUSTOM_CHARACTER_CLASSES_ENABLED': (
+    'PASSWORD_CUSTOM_CHARACTER_RULES': (
         json.dumps({
-            'character_type_validation': [
-                ['lower_case', '(?=(.*[A-Z]){1,})'],
-                ['upper_case', '(?=(.*[A-Z]){1,})'],
-                ['number', '(?=(?:\D*\d){1,})'],
-                ['symbol', '(?=(.*[\W]){1,})'],
-            ]
-        }),
+            'lower_case': r'(?=(.*[a-z]){1,})',
+            'upper_case': r'(?=(.*[A-Z]){1,})',
+            'number': r'(?=(?:\D*\d){1,})',
+            'symbol': r'(?=(.*[\W]){1,})',
+        }, indent=2),
         # '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]',
-        'Enable custom character classes for password validation. '
-        'List all custom character classes as a list under "character_type_validation"',
+        'List all custom character rules as a dictionary with rule names '
+        'as keys and rule patterns as values',
     ),
     # Custom password1233 Validator
-    'MOST_RECENT_PASSWORD_VALIDATION': (
+    'ENABLE_MOST_RECENT_PASSWORD_VALIDATION': (
         True,
-        'Enable most recent password validation which will prevernt the user from '
+        'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password',
     ),
 }
@@ -467,18 +471,18 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'OPERATIONAL_PURPOSE_CHOICES',
     ),
     'Password Validation': (
-        'ZXCVBN_PASSWORD_VALIDATION',
-        'ENABLE_MINIMUM_LENGTH_VALIDATION',
-        'MINIMUM_LENGTH_VALIDATION',
-        'USER_ATTRIBUTE_SIMILARITY_VALIDATOR',
-        'ENABLE_CUSTOM_COMMON_PASSWORD_VALIDATION',
-        'COMMON_PASSWORD_VALIDATION',
-        'ENABLE_CUSTOM_CHARACTER_CLASSES_ENABLED',
-        'MINIMUM_CUSTOM_CHARACTER_CLASS_VALIDATION',
-        'CUSTOM_CHARACTER_CLASSES_ENABLED',
-        'MOST_RECENT_PASSWORD_VALIDATION',
+        'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
+        'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
+        'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
+        'ENABLE_COMMON_PASSWORD_VALIDATION',
+        'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
+        'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+        'MINIMUM_PASSWORD_LENGTH',
+        'PASSWORD_USER_ATTRIBUTES',
+        'PASSWORD_CUSTOM_CHARACTER_RULES',
+        'PASSWORD_MINIMUM_CUSTOM_CHARACTER_RULES_TO_PASS',
     ),
-    'Trashbin': (
+    'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
@@ -1286,3 +1290,21 @@ SERVICE_ACCOUNT = {
     ),
     'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
 }
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'kpi.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.CustomRulesValidator',
+    },
+    {
+        'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
+    },
+]

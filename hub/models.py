@@ -21,6 +21,13 @@ from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
 
 
+def _configuration_file_upload_to(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    print('INSTANCE', instance, flush=True)
+    print('instance.slug', instance.slug, flush=True)
+    return f'{settings.PUBLIC_MEDIA_PATH}/{filename}'
+
+
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
     body = MarkupField()
@@ -29,20 +36,21 @@ class SitewideMessage(models.Model):
         return self.slug
 
 
+class ConfigurationFileSlug(models.TextChoices):
+
+    LOGO = 'logo', 'Logo'
+    LOGO_SMALL = 'logo_small', 'Small Logo'
+    LOGIN_BACKGROUND = 'login_background', 'Login background'
+    COMMON_PASSWORDS_FILE = 'common_passwords_file', 'Common passwords file'
+
+
 class ConfigurationFile(models.Model):
-    LOGO = 'logo'
-    LOGO_SMALL = 'logo_small'
-    LOGIN_BACKGROUND = 'login_background'
 
-    SLUG_CHOICES = (
-        (LOGO, LOGO),
-        (LOGO_SMALL, LOGO_SMALL),
-        (LOGIN_BACKGROUND, LOGIN_BACKGROUND),
+    slug = models.CharField(
+        max_length=32, choices=ConfigurationFileSlug.choices, unique=True
     )
-
-    slug = models.CharField(max_length=32, choices=SLUG_CHOICES, unique=True)
     content = models.FileField(
-        upload_to=settings.PUBLIC_MEDIA_PATH,
+        upload_to=_configuration_file_upload_to,
         help_text=(
             'Stored in a PUBLIC location where authentication is '
             'NOT required for access'
