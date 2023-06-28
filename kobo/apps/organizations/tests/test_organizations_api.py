@@ -38,6 +38,14 @@ class OrganizationTestCase(BaseTestCase):
         res = self.client.post(self.url_list, data)
         self.assertContains(res, data['name'], status_code=201)
 
+    def test_list(self):
+        self._insert_data()
+        organization2 = baker.make(Organization, id='org_abcd123')
+        organization2.add_user(user=self.user, is_admin=True)
+        with self.assertNumQueries(2):
+            res = self.client.get(self.url_list)
+        self.assertContains(res, organization2.name)
+
     def test_list_creates_org(self):
         self.assertFalse(self.user.organizations_organization.all())
         self.client.get(self.url_list)
@@ -53,12 +61,12 @@ class OrganizationTestCase(BaseTestCase):
     def test_update(self):
         self._insert_data()
         data = {'name': 'edit'}
-        res = self.client.patch(self.url_detail, data)
+        with self.assertNumQueries(4):
+            res = self.client.patch(self.url_detail, data)
         self.assertContains(res, data['name'])
 
         user = baker.make(User)
         self.client.force_login(user)
         org_user = self.organization.add_user(user=user)
-        with self.assertNumQueries(3):
-            res = self.client.patch(self.url_detail, data)
+        res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
