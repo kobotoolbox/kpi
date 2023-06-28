@@ -17,19 +17,25 @@ def get_response(url_):
     failure = False
     content = None
 
-    # response timeout changed to 10 seconds from 45 as requested in
-    # issue linked here https://github.com/kobotoolbox/kpi/issues/2642
-    response_ = requests.get(url_, timeout=10)
-    response_.raise_for_status()
-    content = response_.text
-    # Response can be something else than 200. We need to validate this.
-    # For example: if domain name doesn't match, nginx returns a 204 status code.
-    status_code = response_.status_code
-    if status_code != 200:
+    try:
+        # response timeout changed to 10 seconds from 45 as requested in
+        # issue linked here https://github.com/kobotoolbox/kpi/issues/2642
+        response_ = requests.get(url_, timeout=10)
+        response_.raise_for_status()
+        content = response_.text
+    except Exception as e:
         response_ = None
-        content = None
+        message = repr(e)
         failure = True
-        message = "Response status code is {}".format(status_code)
+    else:
+        # Response can be something else than 200. We need to validate this.
+        # For example: if domain name doesn't match, nginx returns a 204 status code.
+        status_code = response_.status_code
+        if status_code != 200:
+            response_ = None
+            content = None
+            failure = True
+            message = "Response status code is {}".format(status_code)
 
     return failure, message, content
 
@@ -44,7 +50,13 @@ def check_status(
     """
     error = None
     t0 = time.time()
-    check_function()
+    try:
+        check_function()
+    except Exception as exception:
+        logging.error(
+            f'Service health {service_name} check failure', exc_info=True
+        )
+        error = repr(type(exception).__name__)
     cache_time = time.time() - t0
     return error, cache_time
 
@@ -54,7 +66,6 @@ def service_health(request):
     Return a HTTP 200 if some very basic runtime tests of the application
     pass. Otherwise, return HTTP 500
     """
-    request.session.save() # CI experiment
     all_checks = {
         'Mongo': lambda: settings.MONGO_DB.instances.find_one(),
         'Postgres': lambda: Asset.objects.order_by().exists(),
