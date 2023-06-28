@@ -5,8 +5,8 @@ import singleProcessingStore, {
 import TransxDisplay from './transxDisplay';
 import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisplaySettings';
 import type {AssetResponse} from 'jsapp/js/dataInterface';
-import SingleProcessingSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
-import SingleProcessingSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
+import SidebarSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
+import SidebarSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
 
 import styles from './processingSidebar.module.scss';
 
@@ -39,11 +39,11 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
         )}
 
         {displays.has(StaticDisplays.Audio) && (
-          <SingleProcessingSubmissionMedia asset={props.asset.content} />
+          <SidebarSubmissionMedia asset={props.asset.content} />
         )}
 
         {displays.has(StaticDisplays.Data) && (
-          <SingleProcessingSubmissionData asset={props.asset.content} />
+          <SidebarSubmissionData asset={props.asset.content} />
         )}
       </div>
     </div>

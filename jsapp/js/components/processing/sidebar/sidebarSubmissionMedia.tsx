@@ -1,13 +1,13 @@
 import React, {useState} from 'react';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import {AssetContent} from 'jsapp/js/dataInterface';
+import type {AssetContent} from 'js/dataInterface';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import {
   getRowData,
   getMediaAttachment,
 } from 'js/components/submissions/submissionUtils';
-import styles from './sidebarSubmissionDetails.module.scss';
+import styles from './sidebarSubmissionMedia.module.scss';
 
 interface SidebarSubmissionMediaProps {
   asset: AssetContent | undefined;
