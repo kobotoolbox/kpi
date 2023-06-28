@@ -25,7 +25,8 @@
     "skipLibCheck": true,
     "allowJs": true,
     "outDir": "out",
-    "jsx": "react"
+    "jsx": "react",
+    "plugins": [{ "name": "typescript-plugin-css-modules"}]
   },
   "include": [
     "jsapp/**/*.ts",
