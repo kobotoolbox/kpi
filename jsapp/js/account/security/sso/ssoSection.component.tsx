@@ -59,11 +59,7 @@ const SsoSection = observer(() => {
               className={styles.passwordLink}
             >
               <Button
-                label={
-                  socialApps.length == 1
-                    ? t('Set up')
-                    : t('Set up') + ' ' + socialApp.name // translation example: 'Set up Google Apps'
-                }
+                label={socialApp.name}
                 size='m'
                 color='blue'
                 type='frame'
