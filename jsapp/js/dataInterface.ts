@@ -627,7 +627,10 @@ export interface AccountResponse {
   email: string;
   server_time: string;
   date_joined: string;
-  projects_url: string; // TODO: no longer used, kept here for response typing
+  /**
+   * Link to a legacy view containing list of projects. No longer used on FE.
+   */
+  projects_url: string;
   is_superuser: boolean;
   gravatar: string;
   is_staff: boolean;
