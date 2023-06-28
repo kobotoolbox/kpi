@@ -3,9 +3,6 @@
 @use './singleProcessingVariables';
 
 .root {
-  // TODO: Use the $s-single-processing-tabs variable here somehow.
-  // Right now 60px is too big if there are more than 1 translations.
-  margin-top: sizes.$x32;
   background-color: colors.$kobo-white;
   border-radius: sizes.$x6;
   min-height: sizes.$x150;

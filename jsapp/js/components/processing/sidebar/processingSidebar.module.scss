@@ -1,3 +1,4 @@
+@use 'scss/sizes';
 @use '../singleProcessingVariables';
 
 .root {
@@ -5,13 +6,9 @@
 }
 
 .displays {
-  padding-bottom: singleProcessingVariables.$s-single-processing-tabs;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: sizes.$x20;
+  height: calc(100% - singleProcessingVariables.$s-single-processing-tabs);
   overflow: auto;
-}
-
-.displays > :first-child {
-  margin-top: 0 !important;
 }
