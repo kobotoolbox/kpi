@@ -66,6 +66,7 @@ def service_health(request):
     Return a HTTP 200 if some very basic runtime tests of the application
     pass. Otherwise, return HTTP 500
     """
+    request.session.save() # CI experiment
     all_checks = {
         'Mongo': lambda: settings.MONGO_DB.instances.find_one(),
         'Postgres': lambda: Asset.objects.order_by().exists(),
