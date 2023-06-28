@@ -75,6 +75,7 @@ class DeployableMixin:
         latest_version.deployed = True
         latest_version.save()
         self.date_deployed = latest_version.date_modified
+
         if save:
             self.save(
                 update_fields=['date_deployed'],
