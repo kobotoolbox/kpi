@@ -1,0 +1,18 @@
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
+@use '../analysisVariables';
+
+.header {
+  @include mixins.centerRowFlex;
+  align-items: flex-start;
+  gap: analysisVariables.$inner-horizontal-gap;
+
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
+
+  :global .text-box {
+    flex: 1;
+  }
+}

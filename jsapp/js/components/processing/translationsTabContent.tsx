@@ -330,6 +330,7 @@ export default class TranslationsTabContent extends React.Component<
           size='l'
           label={t('begin')}
           onClick={this.begin.bind(this)}
+          isDisabled={singleProcessingStore.getTranscript() === undefined}
         />
       </div>
     );

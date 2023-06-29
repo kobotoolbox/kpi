@@ -27,8 +27,8 @@ placese. As soon as these are removed, we can simplify this file.
 }
 
 .react-tagsinput-tag {
-  background-color: colors.$kobo-gray-40;
-  color: colors.$kobo-white;
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-gray-92;
   font-weight: 400;
   margin-bottom: sizes.$x4;
   margin-right: sizes.$x4;
@@ -40,7 +40,7 @@ placese. As soon as these are removed, we can simplify this file.
 /* a.k-tagsinput-remove */
 .react-tagsinput-remove {
   cursor: pointer;
-  color: colors.$kobo-white !important;
+  color: inherit !important;
   opacity: 0.6;
   margin-left: sizes.$x6;
   vertical-align: middle;

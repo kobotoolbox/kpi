@@ -251,15 +251,21 @@ const MainHeader = class MainHeader extends Reflux.Component {
   }
 
   renderGitRevInfo() {
-    if (sessionStore.currentAccount && sessionStore.currentAccount.git_rev) {
-      var gitRev = sessionStore.currentAccount.git_rev;
+    // For developers who don't want this element to obstruct the UI while
+    // working on it, please uncomment line below
+    // if (window.location.hostname === 'kf.kobo.local') {return null;}
+
+    if (
+      sessionStore.currentAccount?.git_rev?.branch &&
+      sessionStore.currentAccount?.git_rev?.short
+    ) {
       return (
         <bem.GitRev>
           <bem.GitRev__item>
-            branch: {gitRev.branch}
+            branch: {sessionStore.currentAccount.git_rev.branch}
           </bem.GitRev__item>
           <bem.GitRev__item>
-            commit: {gitRev.short}
+            commit: {sessionStore.currentAccount.git_rev.short}
           </bem.GitRev__item>
         </bem.GitRev>
       );
