@@ -73,7 +73,7 @@ class EnvironmentTests(BaseTestCase):
                 constance.config.FREE_TIER_THRESHOLDS
             ),
             'social_apps': [],
-            'zxcvbn_password_validation': constance.config.ZXCVBN_PASSWORD_VALIDATION,
+            'zxcvbn_password_validation': constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION,
         }
 
     def _check_response_dict(self, response_dict):

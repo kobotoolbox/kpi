@@ -83,7 +83,7 @@ class EnvironmentView(APIView):
                 ).exists()
             )
         ),
-        'ZXCVBN_PASSWORD_VALIDATION',
+        'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
     ]
 
     def get(self, request, *args, **kwargs):
@@ -111,7 +111,7 @@ class EnvironmentView(APIView):
                     continue
 
             data[key.lower()] = value
-        
+
         # django-allauth social apps are configured in both settings and the database
         # Optimize by avoiding extra DB call when unnecessary
         social_apps = []

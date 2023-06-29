@@ -22,10 +22,10 @@ from kpi.utils.object_permission import get_database_user
 
 
 def _configuration_file_upload_to(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    print('INSTANCE', instance, flush=True)
-    print('instance.slug', instance.slug, flush=True)
-    return f'{settings.PUBLIC_MEDIA_PATH}/{filename}'
+    if instance.slug == ConfigurationFileSlug.COMMON_PASSWORDS_FILE:
+        return f'__django_files/{instance.slug}/{filename}'
+
+    return f'{settings.PUBLIC_MEDIA_PATH}/{instance.slug}/{filename}'
 
 
 class SitewideMessage(models.Model):
@@ -53,7 +53,7 @@ class ConfigurationFile(models.Model):
         upload_to=_configuration_file_upload_to,
         help_text=(
             'Stored in a PUBLIC location where authentication is '
-            'NOT required for access'
+            'NOT required for access except for common passwords file.'
         ),
     )
 
