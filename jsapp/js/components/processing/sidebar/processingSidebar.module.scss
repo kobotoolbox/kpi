@@ -1,5 +1,6 @@
 @use 'scss/sizes';
 @use '../singleProcessingVariables';
+@use '~kobo-common/src/styles/colors';
 
 .root {
   height: 100%;
@@ -11,4 +12,10 @@
   gap: sizes.$x20;
   height: calc(100% - singleProcessingVariables.$s-single-processing-tabs);
   overflow: auto;
+}
+
+.emptyMessage {
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6;
+  padding: sizes.$x30;
 }

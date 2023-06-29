@@ -49,6 +49,14 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
         {displays.includes(StaticDisplays.Data) && (
           <SidebarSubmissionData asset={props.asset.content} />
         )}
+
+        {displays.length === 0 && (
+          <div className={styles.emptyMessage}>
+            {t(
+              'Use the button above to select the information to be displayed in this area'
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
