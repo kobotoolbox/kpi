@@ -7,7 +7,6 @@ import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisp
 import type {AssetResponse} from 'jsapp/js/dataInterface';
 import SidebarSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData';
 import SidebarSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia';
-
 import styles from './processingSidebar.module.scss';
 
 interface ProcessingSidebarProps {
@@ -17,9 +16,9 @@ interface ProcessingSidebarProps {
 export default function ProcessingSidebar(props: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore);
 
-  const displays = store.getActiveDisplays();
+  const displays = store.getDisplays(store.getActiveTab());
   const translations = store.getTranslations();
-  const transcription = store.getTranscript();
+  const transcript = store.getTranscript();
 
   return (
     <div className={styles.root}>
@@ -27,22 +26,27 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
 
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {
-          if (displays.has(translation.languageCode)) {
-            return <TransxDisplay transx={translation} />;
+          if (displays.includes(translation.languageCode)) {
+            return (
+              <TransxDisplay
+                transx={translation}
+                key={translation.languageCode}
+              />
+            );
           }
 
           return null;
         })}
 
-        {displays.has(StaticDisplays.Transcript) && transcription && (
-          <TransxDisplay transx={transcription} />
+        {displays.includes(StaticDisplays.Transcript) && transcript && (
+          <TransxDisplay transx={transcript} />
         )}
 
-        {displays.has(StaticDisplays.Audio) && (
+        {displays.includes(StaticDisplays.Audio) && (
           <SidebarSubmissionMedia asset={props.asset.content} />
         )}
 
-        {displays.has(StaticDisplays.Data) && (
+        {displays.includes(StaticDisplays.Data) && (
           <SidebarSubmissionData asset={props.asset.content} />
         )}
       </div>

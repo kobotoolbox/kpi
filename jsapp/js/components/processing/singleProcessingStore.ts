@@ -42,6 +42,18 @@ export enum StaticDisplays {
   Transcript = 'Transcript',
 }
 
+export type DisplaysList = Array<LanguageCode | StaticDisplays>;
+
+type SidebarDisplays = {
+  [tabName in SingleProcessingTabs]: DisplaysList;
+};
+
+export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map([
+  [SingleProcessingTabs.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
+  [SingleProcessingTabs.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [SingleProcessingTabs.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
+]);
+
 /** Shared interface for transcript and translations. */
 export interface Transx {
   value: string;
@@ -116,24 +128,11 @@ class SingleProcessingStore extends Reflux.Store {
   private isProcessingDataLoaded = false;
 
   /**
-   * A `Map` of available displays and a boolean. Everything in the `Map`
-   * is an option in `SidebarDisplaySettings`. The boolean determines if
-   * the display is visible and if the switch is on.
-   *
-   * Sidebar does *not* show these changes until `applyDisplay` is called.
+   * A list of active sidebar displays for each of the tabs. They start off with
+   * some default values for each tab, and can be configured through Display
+   * Settings and remembered for as long as the Processing View is being opened.
    */
-  private displays = new Map<LanguageCode | StaticDisplays, boolean>([
-    [StaticDisplays.Audio, true],
-    [StaticDisplays.Data, true],
-    [StaticDisplays.Transcript, false],
-  ]);
-
-  /**
-   * A `Set` of all displays from the `Map` of available displays that hold a `true` value.
-   *
-   * These are the displays that will be shown on the sidebar.
-   */
-  private activeDisplays = new Set<LanguageCode | StaticDisplays>();
+  private displays = this.getInitialDisplays();
 
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
@@ -383,6 +382,9 @@ class SingleProcessingStore extends Reflux.Store {
       )
     ) {
       this.fetchAllInitialDataForAsset();
+      // Each time user visits Processing View from some different route we want
+      // to present the same default displays.
+      this.displays = this.getInitialDisplays();
     }
 
     this.previousPath = data.location.pathname;
@@ -554,11 +556,12 @@ class SingleProcessingStore extends Reflux.Store {
       );
     }
     this.data.translations = translationsArray;
-    this.refreshDisplays();
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
     this.isFetchingData = false;
+
+    this.cleanupDisplays();
 
     this.trigger(this.data);
   }
@@ -683,41 +686,6 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.translationDraft.value = googleTxResponse.value;
     }
     this.trigger(this.data);
-  }
-
-  private resetTranslationDisplays() {
-    Array.from(this.displays.entries()).forEach((key) => {
-      if (!this.isStaticDisplay(key[0])) {
-        // Turn the display off first, then remove from the modal list
-        this.displays.set(key[0], false);
-      }
-    });
-  }
-
-  private clearTranslationDisplays() {
-    Array.from(this.displays.entries()).forEach((key) => {
-      if (!this.isStaticDisplay(key[0])) {
-        // Turn the display off first, then remove from the modal list
-        this.displays.set(key[0], false);
-        this.displays.delete(key[0]);
-      }
-    });
-  }
-
-  private populuateTranslationDisplays() {
-    // Need to clear translations if switching between submissions.
-    this.clearTranslationDisplays();
-    this.data.translations.forEach((translation) => {
-      this.displays.set(translation.languageCode, false);
-    });
-  }
-
-  isStaticDisplay(display: string) {
-    return (
-      display === StaticDisplays.Audio ||
-      display === StaticDisplays.Data ||
-      display === StaticDisplays.Transcript
-    );
   }
 
   /**
@@ -890,13 +858,6 @@ class SingleProcessingStore extends Reflux.Store {
 
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
-
-    // If for whatever reason the transcript display is off, assume user
-    // wants it off and don't turn it on when editng transcript.
-    if (!this.displays.get(StaticDisplays.Transcript)) {
-      this.setDisplay(StaticDisplays.Transcript, false);
-    }
-
     this.trigger(this.data);
   }
 
@@ -921,7 +882,6 @@ class SingleProcessingStore extends Reflux.Store {
 
   activateTab(tab: SingleProcessingTabs) {
     this.data.activeTab = tab;
-    this.refreshDisplays();
 
     // When changing tab, discard all drafts and the selected source.
     this.data.transcriptDraft = undefined;
@@ -985,96 +945,63 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  getDisplays() {
-    return this.displays;
+  getInitialDisplays(): SidebarDisplays {
+    return {
+      trc: DefaultDisplays.get(SingleProcessingTabs.Transcript) || [],
+      trl: DefaultDisplays.get(SingleProcessingTabs.Translations) || [],
+      an: DefaultDisplays.get(SingleProcessingTabs.Analysis) || [],
+    };
   }
 
-  getActiveDisplays() {
-    return this.activeDisplays;
-  }
-
-  /**
-   * Rebuilds the display settings menu and removes redundant display options.
-   * Maintains *valid* display changes such that:
-   *  - if the user switches off Audio, switching tabs would not switch Audio back on.
-   *  - Does not allow transcript to be shown on Transcript tab.
-   *
-   * This does *not* apply the default display. Only `resetDisplays()` applies defaults.
-   */
-  refreshDisplays() {
-    const tab = this.getActiveTab();
-    this.activeDisplays.clear();
-
-    // Tab specific displays
-    if (tab === SingleProcessingTabs.Translations) {
-      this.displays.set(StaticDisplays.Transcript, true);
-      this.clearTranslationDisplays();
-    } else if (tab === SingleProcessingTabs.Transcript) {
-      this.displays.delete(StaticDisplays.Transcript);
-      this.populuateTranslationDisplays();
-    } else {
-      this.populuateTranslationDisplays();
-      // If transcript display is on (coming from translations) then leave it on.
-      this.displays.set(
-        StaticDisplays.Transcript,
-        this.displays.get(StaticDisplays.Transcript) || false
-      );
+  /** Returns available displays for given tab */
+  getAvailableDisplays(tabName: SingleProcessingTabs) {
+    const outcome: DisplaysList = [
+      StaticDisplays.Audio,
+      StaticDisplays.Data,
+    ];
+    if (tabName !== SingleProcessingTabs.Transcript) {
+      outcome.push(StaticDisplays.Transcript);
     }
-
-    this.applyDisplay();
-  }
-
-  /**
-   * Applies default sidebar displays depending on the tab.
-   */
-  resetDisplays() {
-    const tab = this.getActiveTab();
-
-    if (tab === SingleProcessingTabs.Transcript) {
-      this.displays.set(StaticDisplays.Data, true);
-      this.displays.set(StaticDisplays.Audio, true);
-      this.resetTranslationDisplays();
-    } else if (tab === SingleProcessingTabs.Translations) {
-      this.displays.set(StaticDisplays.Data, true);
-      this.displays.set(StaticDisplays.Audio, true);
-      this.clearTranslationDisplays();
-    } else if (tab === SingleProcessingTabs.Analysis) {
-      this.displays.set(StaticDisplays.Data, true);
-      this.displays.set(StaticDisplays.Audio, true);
-      this.displays.set(StaticDisplays.Transcript, true);
-      this.resetTranslationDisplays();
-    }
-
-    this.trigger(this.displays);
-    this.applyDisplay();
-  }
-
-  /**
-   * Changes the supplied display's boolean value in the `Map` of all displays, if it exists.
-   *
-   * Sidebar does *not* show these changes until `applyDisplay` is called.
-   */
-  setDisplay(display: StaticDisplays | LanguageCode, isEnabled: boolean) {
-    if (this.displays.has(display)) {
-      this.displays.set(display, isEnabled);
-    }
-
-    this.trigger(this.displays);
-  }
-
-  /**
-   * Takes displays and their current state and shows on sidebar accordingly.
-   */
-  applyDisplay() {
-    Array.from(this.displays.entries()).forEach((entry) => {
-      if (entry[1]) {
-        this.activeDisplays.add(entry[0]);
-      } else {
-        this.activeDisplays.delete(entry[0]);
-      }
+    this.getTranslations().forEach((translation) => {
+      outcome.push(translation.languageCode);
     });
+    return outcome;
+  }
 
-    this.trigger(this.activeDisplays);
+  /** Returns displays for given tab. */
+  getDisplays(tabName: SingleProcessingTabs) {
+    return this.displays[tabName];
+  }
+
+  /** Updates the list of active displays for given tab. */
+  setDisplays(tabName: SingleProcessingTabs, displays: DisplaysList) {
+    this.displays[tabName] = displays;
+    this.trigger(this.displays);
+  }
+
+  resetDisplays(tabName: SingleProcessingTabs) {
+    this.displays[tabName] = DefaultDisplays.get(tabName) || [];
+    this.trigger(this.displays);
+  }
+
+  /**
+   * Removes nonexistent displays from the list of active displays, e.g. when
+   * use activated "Polish (pl)" translation to appear in sidebar, but then
+   * removed it, it should also disappear from the displays list. Leftovers
+   * would usually cause no problems - until user re-adds that "Polish (pl)"
+   * translation.
+   */
+  cleanupDisplays() {
+    // We need this weird way of iterating enum, because of TypeScript :)
+    let tab: keyof typeof SingleProcessingTabs;
+    for (tab in SingleProcessingTabs) {
+      const tabName = SingleProcessingTabs[tab];
+      const availableDisplays = this.getAvailableDisplays(tabName);
+      this.displays[tabName].filter((display) => {
+        availableDisplays.includes(display);
+      });
+    }
+    this.trigger(this.displays);
   }
 }
 

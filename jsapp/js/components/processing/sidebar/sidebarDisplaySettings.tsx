@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import singleProcessingStore, {
-  SingleProcessingTabs,
   StaticDisplays,
 } from 'js/components/processing/singleProcessingStore';
+import type {DisplaysList} from 'js/components/processing/singleProcessingStore';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
@@ -10,16 +10,26 @@ import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
-
+import type {LanguageCode} from 'js/components/languages/languagesStore';
 import styles from './sidebarDisplaySettings.module.scss';
 
 export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const displays = store.getDisplays();
-  const currentTab = store.getActiveTab();
+  const activeTab = store.getActiveTab();
+  const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(
+    store.getDisplays(activeTab)
+  );
+
+  // Every time user changes the tab, we need to load the stored displays list
+  // for that tab.
+  useEffect(() => {
+    setSelectedDisplays(store.getDisplays(activeTab));
+  }, [activeTab]);
+
   const transcript = store.getTranscript();
+  const availableDisplays = store.getAvailableDisplays(activeTab);
 
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript && transcript) {
@@ -35,6 +45,20 @@ export default function SidebarDisplaySettings() {
     } else {
       return <strong>{t('Original file (Audio)')}</strong>;
     }
+  }
+
+  function enableDisplay(displayName: LanguageCode | StaticDisplays) {
+    setSelectedDisplays(
+      Array.from(new Set([...selectedDisplays, displayName]))
+    );
+  }
+
+  function disableDisplay(displayName: LanguageCode | StaticDisplays) {
+    setSelectedDisplays(
+      selectedDisplays.filter(
+        (selectedDisplayName) => selectedDisplayName !== displayName
+      )
+    );
   }
 
   return (
@@ -62,43 +86,54 @@ export default function SidebarDisplaySettings() {
           </p>
 
           <ul className={styles.options}>
-            {Array.from(displays).map((entry) => {
-              if (entry[0] in StaticDisplays) {
-                const staticDisplay = entry[0] as StaticDisplays;
+            {availableDisplays.map((entry) => {
+              const isEnabled = selectedDisplays.includes(entry);
+
+              if (entry in StaticDisplays) {
+                const staticDisplay = entry as StaticDisplays;
 
                 return (
-                  <li className={styles.display}>
+                  <li className={styles.display} key={entry}>
                     <ToggleSwitch
-                      onChange={() =>
-                        store.setDisplay(staticDisplay, !entry[1])
-                      }
-                      checked={entry[1]}
+                      onChange={(isChecked) => {
+                        if (isChecked) {
+                          enableDisplay(entry);
+                        } else {
+                          disableDisplay(entry);
+                        }
+                      }}
+                      checked={isEnabled}
                       label={getStaticDisplayText(staticDisplay)}
                     />
                   </li>
                 );
-              } else if (!(currentTab === SingleProcessingTabs.Translations)) {
+              } else {
                 return (
-                  <li className={styles.display}>
+                  <li className={styles.display} key={entry}>
                     <ToggleSwitch
-                      onChange={() => store.setDisplay(entry[0], !entry[1])}
-                      checked={entry[1]}
+                      onChange={(isChecked) => {
+                        if (isChecked) {
+                          enableDisplay(entry);
+                        } else {
+                          disableDisplay(entry);
+                        }
+                      }}
+                      checked={isEnabled}
                       label={
                         <strong className={styles.wrapWithParens}>
                           {t('Translation')}
                           &nbsp;
-                          <AsyncLanguageDisplayLabel code={entry[0]} />
+                          <AsyncLanguageDisplayLabel code={entry} />
                         </strong>
                       }
                     />
                   </li>
                 );
-              } else {
-                return null;
               }
             })}
           </ul>
         </KoboModalContent>
+
         <KoboModalFooter isCentered>
           <Button
             label={<strong>{t('Reset')}</strong>}
@@ -106,17 +141,18 @@ export default function SidebarDisplaySettings() {
             color='light-blue'
             size='m'
             onClick={() => {
-              store.resetDisplays();
+              store.resetDisplays(activeTab);
               setIsModalOpen(false);
             }}
           />
+
           <Button
             label={<strong>{t('Apply selection')}</strong>}
             type='full'
             color='light-blue'
             size='m'
             onClick={() => {
-              store.applyDisplay();
+              store.setDisplays(activeTab, selectedDisplays);
               setIsModalOpen(false);
             }}
           />
