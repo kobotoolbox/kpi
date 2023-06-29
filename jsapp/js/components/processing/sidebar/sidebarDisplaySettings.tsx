@@ -135,6 +135,7 @@ export default function SidebarDisplaySettings() {
         </KoboModalContent>
 
         <KoboModalFooter isCentered>
+          {/* This button resets the displays for current tab. */}
           <Button
             label={<strong>{t('Reset')}</strong>}
             type='frame'
@@ -146,6 +147,7 @@ export default function SidebarDisplaySettings() {
             }}
           />
 
+          {/* Applies current selection of displays to the sidebar. */}
           <Button
             label={<strong>{t('Apply selection')}</strong>}
             type='full'

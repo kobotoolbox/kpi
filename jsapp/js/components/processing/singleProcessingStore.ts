@@ -979,6 +979,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.displays);
   }
 
+  /** Resets the list of displays for given tab to a default list. */
   resetDisplays(tabName: SingleProcessingTabs) {
     this.displays[tabName] = DefaultDisplays.get(tabName) || [];
     this.trigger(this.displays);
