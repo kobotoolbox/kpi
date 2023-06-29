@@ -25,6 +25,9 @@ module.exports = {
   core: {
     builder: '@storybook/builder-webpack5',
   },
+  typescript: {
+    reactDocgen: 'react-docgen-typescript-plugin',
+  },
   webpackFinal: async (config, {configType}) => {
     config.plugins.push(new webpack.ProvidePlugin({$: 'jquery'}));
     config.module.rules.push({
