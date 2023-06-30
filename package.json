@@ -136,6 +136,7 @@
     "postcss": "^7.0.30",
     "postcss-loader": "^4.2.0",
     "prettier": "^2.7.1",
+    "react-docgen-typescript-plugin": "^1.0.5",
     "react-hot-loader": "3.1.0",
     "react-refresh": "^0.14.0",
     "replace-in-file": "^6.0.0",
