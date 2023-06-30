@@ -1,29 +1,24 @@
 const path = require('path');
 const webpack = require('webpack');
-
 let SpeedMeasurePlugin;
 if (process.env.MEASURE) {
   SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 }
-
 module.exports = {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
-  addons: [
-    '@storybook/addon-links',
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
-    '@storybook/addon-a11y',
-    // NB:
-    // 'storybook-addon-swc' may improve build speed in the future.
-    // - At time of writing, the build performance gains are negated because it
-    //   switches to a slower refresh plugin and also causes other compatibility
-    //   issues in Storybook 6.
-    // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
-    //   well.
+  addons: ['@storybook/addon-links', '@storybook/addon-essentials', '@storybook/addon-interactions', '@storybook/addon-a11y'
+  // NB:
+  // 'storybook-addon-swc' may improve build speed in the future.
+  // - At time of writing, the build performance gains are negated because it
+  //   switches to a slower refresh plugin and also causes other compatibility
+  //   issues in Storybook 6.
+  // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
+  //   well.
   ],
-  framework: '@storybook/react',
-  core: {
-    builder: '@storybook/builder-webpack5',
+
+  framework: {
+    name: '@storybook/react-webpack5',
+    options: {}
   },
   typescript: {
     reactDocgen: 'react-docgen-typescript-plugin',
@@ -38,33 +33,26 @@ module.exports = {
           jsapp: path.join(__dirname, '../jsapp'),
           js: path.join(__dirname, '../jsapp/js'),
           scss: path.join(__dirname, '../jsapp/scss'),
-          utils: path.join(__dirname, '../jsapp/js/utils'),
-        },
-      },
-    });
-    config.module.rules.push(
-      {
-        test: /\.scss$/,
-        exclude: /\.module\.scss$/,
-        use: ['style-loader', 'css-loader', 'sass-loader'],
-      },
-      {
-        test: /\.module\.scss$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
-              },
-              sourceMap: true,
-            },
-          },
-          'sass-loader',
-        ],
+          utils: path.join(__dirname, '../jsapp/js/utils')
+        }
       }
-    );
+    });
+    config.module.rules.push({
+      test: /\.scss$/,
+      exclude: /\.module\.scss$/,
+      use: ['style-loader', 'css-loader', 'sass-loader']
+    }, {
+      test: /\.module\.scss$/,
+      use: ['style-loader', {
+        loader: 'css-loader',
+        options: {
+          modules: {
+            localIdentName: '[name]__[local]--[hash:base64:5]'
+          },
+          sourceMap: true
+        }
+      }, 'sass-loader']
+    });
 
     // Build speed improvements
     applySpeedTweaks(config);
@@ -76,16 +64,18 @@ module.exports = {
     }
     return config;
   },
-  managerWebpack: async (config) => {
+  managerWebpack: async config => {
     // Build speed improvements
     applySpeedTweaks(config);
-
     if (process.env.MEASURE) {
       const smp = new SpeedMeasurePlugin();
       return smp.wrap(config);
     }
     return config;
   },
+  docs: {
+    autodocs: true
+  }
 };
 
 /// Apply some customizations to the config, intended to decrease build time
@@ -95,18 +85,14 @@ function applySpeedTweaks(config) {
   //   that relies on filesystem case-insensitivity in file imports.
   // - We can let CI detect this instead, or use ESLint.
   //   'import/no-unresolved': [2, { caseSensitive: true }]
-  config.plugins = config.plugins.filter(
-    (plugin) => plugin.constructor.name !== 'CaseSensitivePathsPlugin'
-  );
+  config.plugins = config.plugins.filter(plugin => plugin.constructor.name !== 'CaseSensitivePathsPlugin');
 
   // Use swc to make the Terser step faster
   if (config.mode === 'production') {
     const TerserPlugin = require('terser-webpack-plugin');
-    config.optimization.minimizer = [
-      new TerserPlugin({
-        minify: TerserPlugin.swcMinify,
-        terserOptions: {},
-      }),
-    ];
+    config.optimization.minimizer = [new TerserPlugin({
+      minify: TerserPlugin.swcMinify,
+      terserOptions: {}
+    })];
   }
 }
