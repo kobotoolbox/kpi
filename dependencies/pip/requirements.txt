@@ -157,7 +157,7 @@ django-mptt==0.13.4
     # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==2.0.0
     # via -r dependencies/pip/requirements.in
-django-organizations==2.0.2
+django-organizations==2.1.0
     # via -r dependencies/pip/requirements.in
 django-picklefield==3.0.1
     # via django-constance

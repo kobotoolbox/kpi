@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User
+from django.core import mail
 from django.urls import reverse
 from model_bakery import baker
 
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
+from ..models import OrganizationUser
 
 
 class OrganizationUserTestCase(BaseTestCase):
@@ -24,7 +26,9 @@ class OrganizationUserTestCase(BaseTestCase):
 
     def test_list(self):
         org_user = baker.make(
-            "organizations.OrganizationUser", organization=self.organization
+            "organizations.OrganizationUser",
+            organization=self.organization,
+            _fill_optional=["user"],
         )
         bad_org_user = baker.make("organizations.OrganizationUser")
         with self.assertNumQueries(3):
@@ -34,6 +38,16 @@ class OrganizationUserTestCase(BaseTestCase):
 
     def test_create(self):
         data = {"is_admin": False, "email": "test@example.com"}
-        with self.assertNumQueries(3):
-            res = self.client.post(self.url_list, data)
+        res = self.client.post(self.url_list, data)
         self.assertContains(res, data["email"], status_code=201)
+        self.assertTrue(
+            OrganizationUser.objects.get(email=data["email"], user=None)
+        )
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_invite_accept(self):
+        data = {"is_admin": False, "email": "test@example.com"}
+        res = self.client.post(self.url_list, data)
+        body = mail.outbox[0].body
+        token = body[body.find("invitations/") :].split("/")[1]
+        

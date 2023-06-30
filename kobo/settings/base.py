@@ -851,6 +851,7 @@ SOCIALACCOUNT_FORMS = {
 UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
     "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
 )
+INVITATION_BACKEND = "kobo.apps.organizations.invitation_backend.InvitationBackend"
 
 # See https://django-allauth.readthedocs.io/en/latest/configuration.html
 # Map env vars to upstream dict values, include exact case. Underscores for delimiter.

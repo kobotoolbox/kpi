@@ -1,28 +1,30 @@
 # coding: utf-8
 import private_storage.urls
 from django.conf import settings
-from django.urls import include, re_path, path
+from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
+from organizations.backends import invitation_backend
 
 from hub.models import ConfigurationFile
+from kobo.apps.accounts.mfa.views import MfaLoginView, MfaTokenView
 from kobo.apps.superuser_stats.views import (
-    user_report,
-    user_details_report,
     country_report,
     retrieve_reports,
+    user_details_report,
+    user_report,
 )
-from kobo.apps.accounts.mfa.views import (
-    MfaLoginView,
-    MfaTokenView,
+from kpi.views import (
+    authorized_application_authenticate_user,
+    browser_tests,
+    design_system,
+    home,
+    modern_browsers,
 )
-from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, browser_tests, design_system, modern_browsers
-from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
-
 from .router_api_v1 import router_api_v1
-from .router_api_v2 import router_api_v2, URL_NAMESPACE
+from .router_api_v2 import URL_NAMESPACE, router_api_v2
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -41,6 +43,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
     re_path(r'^api/v2/', include('kobo.apps.audit_log.urls')),
+    path('invitations/', include(invitation_backend().get_urls())),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

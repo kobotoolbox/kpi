@@ -5,11 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Organization, OrganizationUser, create_organization
 from .permissions import IsOrgAdminOrReadOnly
-from .serializers import (
-    OrganizationSerializer,
-    OrganizationUserInvitationSerializer,
-    OrganizationUserSerializer,
-)
+from .serializers import OrganizationSerializer, OrganizationUserSerializer
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -42,11 +38,6 @@ class OrganizationUserViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationUserSerializer
     permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
 
-    def get_serializer_class(self):
-        if self.action in ["create"]:
-            return OrganizationUserInvitationSerializer
-        return super().get_serializer_class()
-
     def get_queryset(self):
         return (
             super()
@@ -58,4 +49,11 @@ class OrganizationUserViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        invitation_backend().send_invitation(org_user)
+        try:
+            organization = self.request.user.organizations_organization.get(
+                pk=self.kwargs.get("organization_id")
+            )
+        except ObjectDoesNotExist:
+            raise Http404
+        org_user = serializer.save(organization=organization)
+        invitation_backend().send_invitation(org_user, sender=self.request.user)

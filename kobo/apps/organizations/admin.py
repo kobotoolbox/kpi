@@ -8,7 +8,6 @@ from organizations.base_admin import (
 
 from .models import (
     Organization,
-    OrganizationInvitation,
     OrganizationOwner,
     OrganizationUser,
 )
@@ -31,9 +30,4 @@ class OrgUserAdmin(BaseOrganizationUserAdmin):
 
 @admin.register(OrganizationOwner)
 class OrgOwnerAdmin(BaseOrganizationOwnerAdmin):
-    pass
-
-
-@admin.register(OrganizationInvitation)
-class OrgInvitationAdmin(admin.ModelAdmin):
     pass

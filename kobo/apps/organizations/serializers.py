@@ -17,9 +17,5 @@ class OrganizationSerializer(serializers.ModelSerializer):
 class OrganizationUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationUser
-        fields = ("user", "is_admin")
-
-
-class OrganizationUserInvitationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    is_admin = serializers.BooleanField()
+        fields = ("user", "is_admin", "email")
+        read_only_fields = ("user",)
