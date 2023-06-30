@@ -1,4 +1,4 @@
-import sys
+import os
 import time
 
 import boto3
@@ -9,10 +9,12 @@ from django.utils import timezone
 from kobo.apps.project_views.models.assignment import User
 
 FROM_ADDRESS = 'no-reply@kobotoolbox.org'
+EMAIL_SUBJECT = '📣 Important update about the OCHA KoboToolbox server'
 EMAIL_TEMPLATE_NAME = 'MyTestTemplate'
-MAX_SEND_RETRIES = 3
-
-USER_DETAIL_EMAIL_PROPERTY = f'{EMAIL_TEMPLATE_NAME}_email_sent'
+EMAIL_HTML_FILENAME = 'ocha_transition_email.html'
+EMAIL_TEXT_FILENAME = 'ocha_transition_email.txt'
+MAX_SEND_ATTEMPTS = 3
+RETRY_WAIT_TIME = 30  # seconds
 
 
 def run(*args):
@@ -20,33 +22,52 @@ def run(*args):
     test_mode = 'test' in args
     ses = boto3.client('ses', region_name='us-east-1')
 
+    directory = os.path.dirname(__file__)
+
+    print(f'getting html content from {EMAIL_HTML_FILENAME}')
+    filename = os.path.join(directory, EMAIL_HTML_FILENAME)
     try:
-        template = ses.get_template(TemplateName=EMAIL_TEMPLATE_NAME)
-        print(f'got template {EMAIL_TEMPLATE_NAME}')
+        with open(filename) as file:
+            email_html = file.read()
+    except FileNotFoundError:
+        quit("couldn't find html file")
+
+    print(f'getting text content from {EMAIL_TEXT_FILENAME}')
+    filename = os.path.join(directory, EMAIL_TEXT_FILENAME)
+    try:
+        with open(filename) as file:
+            email_text = file.read()
+    except FileNotFoundError:
+        quit("couldn't find text file")
+
+    template = {
+        'TemplateName': EMAIL_TEMPLATE_NAME,
+        'SubjectPart': EMAIL_SUBJECT,
+        'TextPart': email_text,
+        'HtmlPart': email_html,
+    }
+
+    try:
+        ses.get_template(TemplateName=EMAIL_TEMPLATE_NAME)
+        print(f'updating template {EMAIL_TEMPLATE_NAME}')
+        ses.update_template(Template=template)
     except ses.exceptions.TemplateDoesNotExistException:
         print('creating template...')
-        response = ses.create_template(
-            Template={
-                'TemplateName': EMAIL_TEMPLATE_NAME,
-                'SubjectPart': '📣 Important update about the OCHA KoboToolbox server',
-                'TextPart': 'Text',
-                'HtmlPart': 'HTML',
-            }
-        )
+        response = ses.create_template(Template=template)
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             print("couldn't create template - response below")
-            print(response)
-            sys.exit()
+            quit(response)
 
     print('building users list...')
     one_year_ago = timezone.now() - relativedelta(years=1)
-    active_users = User.objects.select_related('extra_details').filter(
+    user_detail_email_key = f'{EMAIL_TEMPLATE_NAME}_email_sent'
+    active_users = User.objects.select_related('extra_details').only('extra_details', 'email', 'username').filter(
         last_login__gte=one_year_ago, is_active=True,
     ).exclude(
-        # extra_details__data__has_key=USER_DETAIL_EMAIL_PROPERTY,
+        extra_details__data__has_key=user_detail_email_key,
     ).exclude(
         email='',
-    ).only('extra_details', 'email', 'username')
+    )
 
     active_user_count = active_users.aggregate(user_count=Count('id'))[
         'user_count'
@@ -55,39 +76,40 @@ def run(*args):
         f"found {active_user_count} users active since {one_year_ago.date()} who haven't received emails"
     )
 
-    # In test mode, don't send any emails
-    if test_mode:
-        return
-
     users_emailed_count = 0
 
     for user in active_users.iterator(chunk_size=500):
-        for attempts in range(MAX_SEND_RETRIES):
-            # response = send_email(ses, user.email)
-            response = {}
-            wait_time = 30 * (attempts + 1)
+        for attempts in range(MAX_SEND_ATTEMPTS):
+            # In test mode, don't send any emails
+            if not test_mode:
+                response = send_email(ses, user.email)
+                status = response['ResponseMetadata']['HTTPStatusCode']
+            else:
+                status = 200
+            wait_time = RETRY_WAIT_TIME * (attempts + 1)
 
-            match 419:  # response['ResponseMetadata']['HTTPStatusCode']:
+            match status:
                 case 200:
-                    print(f'email sent to {user.username}')
-                    user.extra_details.data[USER_DETAIL_EMAIL_PROPERTY] = True
-                    user.extra_details.save()
                     users_emailed_count += 1
+                    print(f'\r{users_emailed_count / active_user_count * 100}%', end='', flush=True)
+                    user.extra_details.data[user_detail_email_key] = True
+                    user.extra_details.save()
                     break
                 case 429:
-                    if attempts + 1 == MAX_SEND_RETRIES:
-                        quit(f'hit max retry limit for the day; {users_emailed_count} sent this run')
+                    if attempts + 1 == MAX_SEND_ATTEMPTS:
+                        quit(
+                            f'hit max retry limit of {MAX_SEND_ATTEMPTS} attempts for the day; {users_emailed_count} sent this run')
                     print(f'hit ses rate limit, re-sending in {wait_time} seconds')
                 case default:
-                    if attempts + 1 == MAX_SEND_RETRIES:
+                    if attempts + 1 == MAX_SEND_ATTEMPTS:
                         print(f'SES keeps erroring out; {users_emailed_count} sent this run. Last response:')
                         quit(response)
                     print(f"couldn't email {user.username}, trying again in {wait_time} seconds")
 
-            # back off for an extra 30 seconds on each retry
-            # time.sleep(wait_time)
+            # back off for an extra 30 seconds on each retry (exponential enough for SES)
+            time.sleep(wait_time)
 
-    print(f'all users processed, {users_emailed_count} emails sent this run')
+    print(f'\nall users processed, {users_emailed_count} emails sent this run')
 
 
 def send_email(ses, address):
