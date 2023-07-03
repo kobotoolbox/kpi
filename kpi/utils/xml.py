@@ -354,9 +354,9 @@ class XMLFormWithDisclaimer:
 
         disclaimers = (
             FormDisclaimer.objects.annotate(language_code=F('language__code'))
-            .values('language_code', 'message', 'default')
+            .values('language_code', 'message', 'default', 'hidden')
             .filter(Q(asset__isnull=True) | Q(asset=asset))
-            .order_by('-asset_id', 'language_code')
+            .order_by('-hidden', '-asset_id', 'language_code')
         )
 
         if not disclaimers:
@@ -371,6 +371,11 @@ class XMLFormWithDisclaimer:
         Detect whether the form is translated and return its value plus a dictionary
         of all available messages and the default language code.
         """
+
+        # Do not go further is disclaimer must be hidden
+        if disclaimers[0]['hidden']:
+            return
+
         translated = '<itext>' in self._object.xml
         disclaimers_dict = {}
         default_language_code = None

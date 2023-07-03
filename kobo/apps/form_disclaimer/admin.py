@@ -19,11 +19,18 @@ class FormDisclaimerAdmin(MarkdownxModelAdminBase):
     list_display = ['get_language', 'default']
     search_fields = ['language__code', 'language__name']
     autocomplete_fields = ['language']
-    exclude = ['asset']
+    exclude = ['asset', 'hidden']
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].widget.can_add_related = False
+        return form
 
     @admin.display(description='Language')
     def get_language(self, obj):
-        return f'{obj.language.name} ({obj.language.code})'
+        if obj.language:
+            return f'{obj.language.name} ({obj.language.code})'
+        return '-'
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -45,7 +52,7 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
     form = OverriddenFormDisclaimerForm
     add_form = OverriddenFormDisclaimerForm
 
-    list_display = ['get_language', 'asset', 'get_status']
+    list_display = ['asset', 'get_language', 'get_status']
     search_fields = [
         'language__code',
         'language__name',
@@ -56,9 +63,10 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
     autocomplete_fields = ['language', 'asset']
     exclude = ['default']
 
-    @admin.display(description='Status')
-    def get_status(self, obj):
-        return 'Override' if obj.message.strip() else 'Hide'
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['asset'].widget.can_add_related = False
+        return form
 
     def get_queryset(self, request):
         queryset = super(FormDisclaimerAdmin, self).get_queryset(request)
@@ -69,6 +77,11 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
             .select_related('asset', 'language')
             .order_by('-default', 'language__name')
         )
+
+    @admin.display(description='Status')
+    def get_status(self, obj):
+        return 'Overridden' if obj.message.strip() else 'Hidden'
+
 
 admin.site.register(FormDisclaimer, FormDisclaimerAdmin)
 admin.site.register(OverriddenFormDisclaimer, OverridenFormDisclaimerAdmin)

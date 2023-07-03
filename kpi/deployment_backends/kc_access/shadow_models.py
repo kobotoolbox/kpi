@@ -147,7 +147,7 @@ class KobocatDigestPartial(ShadowModel):
 
 class KobocatFormDisclaimer(ShadowModel):
 
-    language_code = models.CharField(max_length=5)
+    language_code = models.CharField(max_length=5, null=True)
     xform = models.ForeignKey(
         'shadow_model.KobocatXForm',
         related_name='disclaimers',
@@ -156,6 +156,7 @@ class KobocatFormDisclaimer(ShadowModel):
     )
     message = models.TextField(default='')
     default = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=False)
 
     class Meta(ShadowModel.Meta):
         db_table = 'form_disclaimer_formdisclaimer'
@@ -163,8 +164,12 @@ class KobocatFormDisclaimer(ShadowModel):
     @classmethod
     def sync(cls, form_disclaimer):
 
-        language_code = form_disclaimer.language.code
         xform = None
+        language_code = None
+
+        if form_disclaimer.language:
+            language_code = form_disclaimer.language.code
+
         if form_disclaimer.asset:
             xform = form_disclaimer.asset.deployment.xform
 
@@ -179,6 +184,7 @@ class KobocatFormDisclaimer(ShadowModel):
 
         kc_form_disclaimer.message = form_disclaimer.message
         kc_form_disclaimer.default = form_disclaimer.default
+        kc_form_disclaimer.hidden = form_disclaimer.hidden
         kc_form_disclaimer.save()
 
 

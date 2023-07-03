@@ -13,6 +13,7 @@ class FormDisclaimerForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['message'].required = True
+        self.fields['language'].required = True
 
     def clean_default(self):
         default = self.cleaned_data['default']
@@ -29,7 +30,7 @@ class FormDisclaimerForm(ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         default = cleaned_data.get('default', False)
-        language = cleaned_data['language']
+        language = cleaned_data.get('language', False)
 
         if (
             default
@@ -61,3 +62,50 @@ class OverriddenFormDisclaimerForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['asset'].required = True
         self.fields['message'].required = False
+
+    def clean(self):
+        language = self.cleaned_data.get('language', None)
+        hidden = self.cleaned_data.get('hidden', False)
+        message = self.cleaned_data.get('message', '')
+        asset = self.cleaned_data.get('asset', None)
+
+        if not hidden and (not language or not message):
+            raise ValidationError(
+                'You must specify a language and a message if the disclaimer '
+                'is not hidden',
+                'empty_language',
+            )
+        elif hidden:
+            # Force language and message to be blank if disclaimer is hidden
+            # to get some consistency in DB
+            self.cleaned_data['language'] = None
+            self.cleaned_data['message'] = ''
+
+            if not self.instance.pk:
+                if FormDisclaimer.objects.filter(
+                    asset=asset, hidden=True
+                ).exists():
+                    raise ValidationError(
+                        'The disclaimer is already hidden for this asset.',
+                        'already_hidden_asset',
+                    )
+
+            if FormDisclaimer.objects.filter(
+                asset=asset, language__isnull=False
+            ).exclude(pk=self.instance.pk).exists():
+                raise ValidationError(
+                    'The disclaimer for this asset is overridden. '
+                    'Please delete the override before hiding it.',
+                    'already_translated_disclaimers',
+                )
+        else:
+            if FormDisclaimer.objects.filter(
+                asset=asset, hidden=True
+            ).exclude(pk=self.instance.pk).exists():
+                raise ValidationError(
+                    'You cannot override the disclaimer for this asset '
+                    'because it is already flagged as hidden.',
+                    'already_hidden_asset',
+                )
+
+        return self.cleaned_data

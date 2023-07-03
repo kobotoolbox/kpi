@@ -16,6 +16,8 @@ class FormDisclaimer(AbstractMarkdownxModel):
     language = models.ForeignKey(
         'languages.language',
         related_name='languages',
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
     )
     asset = models.ForeignKey(
@@ -27,6 +29,7 @@ class FormDisclaimer(AbstractMarkdownxModel):
     )
     message = MarkdownxField()
     default = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'global'
@@ -41,18 +44,17 @@ class FormDisclaimer(AbstractMarkdownxModel):
                 condition=Q(asset=None),
                 name='uniq_disclaimer_without_asset',
             ),
+            UniqueConstraint(
+                fields=['asset', 'hidden'],
+                condition=Q(hidden=True),
+                name='uniq_hidden_disclaimer_per_asset',
+            ),
         ]
 
-    def save(
-        self,
-        force_insert=False,
-        force_update=False,
-        using=None,
-        update_fields=None,
-    ):
+    def save(self, *args, **kwargs):
 
         with transaction.atomic():
-            super().save(force_insert, force_update, using, update_fields)
+            super().save(*args, **kwargs)
             KobocatFormDisclaimer.sync(self)
 
     def delete(self, using=None, keep_parents=False):

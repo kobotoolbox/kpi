@@ -389,10 +389,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MAX_RETRY_TIME',
         'FREE_TIER_THRESHOLDS',
     ),
-    'Project disclaimer': (
-        'FORM_DISCLAIMER_ENABLED',
-        'FORM_DISCLAIMER',
-    ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
         'HOOK_MAX_RETRIES',
