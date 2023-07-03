@@ -1,8 +1,14 @@
 # coding: utf-8
 import json
 from copy import deepcopy
+from datetime import datetime
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from django.test import TestCase
+from django.utils import timezone
 
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kpi.exceptions import BadAssetTypeException
@@ -109,3 +115,24 @@ class AssetVersionTestCase(TestCase):
         new_asset.settings['description'] = 'Loco el que lee'
         new_asset.save()
         self.assertEqual(new_asset.latest_version.content_hash, expected_hash)
+
+    def test_version_date_modified(self):
+        date_forced = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))
+        content = {
+            'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}],
+        }
+        new_asset = Asset.objects.create(
+            asset_type='survey',
+            content=content,
+            date_created=date_forced,
+            date_modified=date_forced,
+        )
+        AssetVersion.objects.filter(uid=new_asset.latest_version.uid).update(
+            date_modified=date_forced
+        )
+        new_asset.refresh_from_db()
+        assert new_asset.latest_version.date_modified == date_forced
+        now = timezone.now()
+        new_asset.latest_version.save()
+        assert new_asset.latest_version.date_modified != date_forced
+        assert new_asset.latest_version.date_modified >= now
