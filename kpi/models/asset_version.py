@@ -75,19 +75,6 @@ class AssetVersion(models.Model):
             self.date_modified.strftime('%Y-%m-%d %H:%M'),
             ' (deployed)' if self.deployed else '')
 
-    def save(
-        self,
-        force_insert=False,
-        force_update=False,
-        using=None,
-        update_fields=None,
-    ):
-        if self.pk:
-            self.date_modified = timezone.now()
-
-        super().save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
+    def save(self, *args, **kwargs):
+        self.date_modified = timezone.now()
+        super().save(*args, **kwargs)
