@@ -1,7 +1,6 @@
 import gzip
-import json
-import re
 
+import regex as re
 from constance import config
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as t
@@ -44,13 +43,13 @@ class CommonPasswordValidator(BaseCommonPasswordValidator):
 
 class MinimumLengthValidator(BaseMinimumLengthValidator):
 
-    def __init__(self, *args, **kwargs):
-        self.min_length = config.MINIMUM_PASSWORD_LENGTH
-
     def validate(self, password, user=None):
         if not config.ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION:
             return
 
+        # needs to set `self.min_length` here because if it is set in the
+        # constructor, it won't be refresh if constance value is changed.
+        self.min_length = config.MINIMUM_PASSWORD_LENGTH
         return super().validate(password, user)
 
 
@@ -72,15 +71,13 @@ class MostRecentPasswordValidator:
 
 class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
 
-    def __init__(self, *args, **kwargs):
-        user_attributes = config.PASSWORD_USER_ATTRIBUTES.split('\n')
-        super().__init__(
-            user_attributes=user_attributes, max_similarity=0.7
-        )
-
     def validate(self, password, user=None):
         if not config.ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION:
             return
+
+        # needs to set `self.min_length` here because if it is set in the
+        # constructor, it won't be refresh if constance value is changed.
+        self.user_attributes = config.PASSWORD_USER_ATTRIBUTES.splitlines()
 
         # Set extra detail attributes on user object to call parent class
         # validation
@@ -99,18 +96,18 @@ class CustomRulesValidator:
         if not config.ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION:
             return
 
-        custom_rules = json.loads(config.PASSWORD_CUSTOM_CHARACTER_RULES)
+        custom_rules = config.PASSWORD_CUSTOM_CHARACTER_RULES.splitlines()
         threshold = config.PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS
         valid_rules_count = 0
-        for name, pattern in custom_rules.items():
+        for pattern in custom_rules:
             if re.search(pattern, password):
                 valid_rules_count += 1
 
         if valid_rules_count < threshold:
             raise ValidationError(
                 t(
-                   'The password must be a combination of ##number of rules## of'
-                   'the characters rules.'
+                   'The password must be a combination of ##number of rules## '
+                   'of the characters rules.'
                 ).replace(
                     '##number of rules##', str(threshold)
                 ),

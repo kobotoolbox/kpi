@@ -388,14 +388,16 @@ CONSTANCE_CONFIG = {
         'Enable custom character rules',
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES': (
-        json.dumps({
-            'lower_case': r'(?=(.*[a-z]){1,})',
-            'upper_case': r'(?=(.*[A-Z]){1,})',
-            'number': r'(?=(?:\D*\d){1,})',
-            'symbol': r'(?=(.*[\W]){1,})',
-        }, indent=2),
-        'List all custom character rules as a dictionary with rule names '
-        'as keys and rule patterns as values.',
+        (
+            '[[:lower:]]\n'
+            '[[:upper:]]\n'
+            '\d\n'
+            '[\W_]'
+        ),
+        'List all custom character rules as regular expressions supported '
+        'by `regex` python library.\n'
+        'One per line.'
+        ,
     ),
     'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS': (
         3,
@@ -483,7 +485,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PASSWORD_USER_ATTRIBUTES',
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
-        'PASSWORD_CUSTOM_CHARACTER_RULES_MESSAGE',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',

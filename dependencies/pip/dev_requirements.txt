@@ -468,6 +468,8 @@ redis==4.2.2
     #   django-redis
     #   django-redis-sessions
     #   kobo-service-account
+regex==2023.6.3
+    # via -r dependencies/pip/requirements.in
 requests==2.27.1
     # via
     #   -r dependencies/pip/requirements.in
