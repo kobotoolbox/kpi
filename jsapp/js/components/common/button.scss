@@ -222,6 +222,12 @@ $button-border-radius: sizes.$x6;
   &.k-button--type-full {@include button-full(colors.$kobo-storm);}
 }
 
+.k-button.k-button--color-cloud {
+  &.k-button--type-bare {@include button-bare(colors.$kobo-cloud);}
+  &.k-button--type-frame {@include button-frame(colors.$kobo-cloud);}
+  &.k-button--type-full {@include button-full(colors.$kobo-cloud, colors.$kobo-dark-blue);}
+}
+
 .k-button.k-button--size-s {
   @include button-size($button-height-s, $button-font-s, $button-icon-s, $button-icon-alone-s);
 }

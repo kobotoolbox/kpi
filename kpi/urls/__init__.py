@@ -42,6 +42,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
     re_path(r'^api/v2/', include('kobo.apps.audit_log.urls')),
     path('', include('kobo.apps.accounts.urls')),
+    path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
@@ -66,7 +67,8 @@ urlpatterns = [
 
 if settings.STRIPE_ENABLED:
     urlpatterns = [
-        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls'))
+        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls')),
+        re_path(r'^api/v2/stripe/', include('djstripe.urls', namespace='djstripe')),
     ] + urlpatterns
 
 

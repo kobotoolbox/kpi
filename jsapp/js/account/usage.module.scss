@@ -28,10 +28,12 @@ h2 {
   border: sizes.$x1 solid;
   border-color: colors.$kobo-gray-92;
   border-radius: 5%;
+  margin-right: sizes.$x12;
   padding: sizes.$x24;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: sizes.$x2;
   overflow-wrap: break-word;
 }
 

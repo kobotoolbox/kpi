@@ -5,7 +5,8 @@
  * context everywhere.
  */
 
-import _ from 'underscore';
+import values from 'lodash.values';
+import debounce from 'lodash.debounce';
 import Reflux from 'reflux';
 import SparkMD5 from 'spark-md5';
 
@@ -257,7 +258,7 @@ function SearchContext(opts={}) {
       if ('parentName' in searchParams) {
         delete searchParams.parentName;
       }
-      paramGroups = paramGroups.concat(_.values(searchParams));
+      paramGroups = paramGroups.concat(values(searchParams));
       if (paramGroups.length > 1) {
         queryData.q = paramGroups.map(function(s){
           return `(${s})`;
@@ -426,7 +427,7 @@ function SearchContext(opts={}) {
     }, emptySearchState));
   });
   this.mixin = {
-    debouncedSearch: ( debounceTime ? _.debounce(search, debounceTime) : search ),
+    debouncedSearch: ( debounceTime ? debounce(search, debounceTime) : search ),
     searchValue: search,
     updateStore (vals) {
       searchStore.update(vals);
