@@ -29,7 +29,18 @@ class FormDisclaimer(AbstractMarkdownxModel):
     )
     message = MarkdownxField()
     default = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=False)
+    hidden = models.BooleanField(
+        'Hide default disclaimer for all languages of the form', default=False
+    )
+
+    def __str__(self):
+        if getattr(self, 'asset'):
+            return f'Disclaimer for asset {self.asset.uid}'
+        else:
+            return (
+                f'Global disclaimer for {self.language.name} '
+                f'({self.language.code})'
+            )
 
     class Meta:
         verbose_name = 'global'

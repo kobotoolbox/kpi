@@ -61,6 +61,7 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
         'asset__owner__username',
     ]
     autocomplete_fields = ['language', 'asset']
+    fields = ['asset', 'hidden', 'language', 'message']
     exclude = ['default']
 
     def get_form(self, request, obj=None, **kwargs):

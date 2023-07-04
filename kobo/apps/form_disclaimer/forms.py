@@ -62,6 +62,13 @@ class OverriddenFormDisclaimerForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['asset'].required = True
         self.fields['message'].required = False
+        self.fields['message'].help_text = 'Custom disclaimer message'
+        self.fields['language'].help_text = (
+            'Override specific languages for this form'
+        )
+        self.fields['hidden'].help_text = (
+
+        )
 
     def clean(self):
         language = self.cleaned_data.get('language', None)
