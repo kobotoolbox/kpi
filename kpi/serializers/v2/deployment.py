@@ -68,6 +68,6 @@ class DeploymentSerializer(serializers.Serializer):
             deployment.set_active(active)
             # If we (re)activate the asset, let's synchronize its media files
             if active:
-                asset.async_media_files(force=False)
+                asset.sync_media_files_async(always=False)
 
         return deployment

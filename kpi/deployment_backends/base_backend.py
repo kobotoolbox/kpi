@@ -327,6 +327,7 @@ class BaseDeploymentBackend(abc.ABC):
         return self.get_data('status')
 
     def store_data(self, values: dict):
+        """ Saves in memory only; writes nothing to the database """
         self.__stored_data_key = ShortUUID().random(24)
         values['_stored_data_key'] = self.__stored_data_key
         self.asset._deployment_data.update(values)  # noqa
