@@ -16,7 +16,7 @@ import './button.scss';
  * 3. full - no border, background, hover dims background
  */
 export type ButtonType = 'bare' | 'frame' | 'full';
-export type ButtonColor = 'blue' | 'light-blue' | 'red' | 'storm';
+export type ButtonColor = 'blue' | 'light-blue' | 'red' | 'storm' | 'cloud';
 /**
  * The size is the height of the button, but it also influences the paddings.
  * Check out `button.scss` file for exact pixel values.

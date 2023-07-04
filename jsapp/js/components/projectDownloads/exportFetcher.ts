@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import random from 'lodash.random';
 import {actions} from 'js/actions';
 import envStore from 'js/envStore';
 
@@ -37,7 +37,7 @@ export default class ExportFetcher {
       envStore.data.min_retry_time, // Bottom limit
       Math.min(
         envStore.data.max_retry_time, // Top limit
-        _.random(
+        random(
           magicFactor ** this.callCount,
           magicFactor ** (this.callCount + 1)
         )

@@ -1,12 +1,17 @@
 from django.contrib import admin
+from organizations.base_admin import (
+    BaseOrganizationAdmin,
+    BaseOrganizationOwnerAdmin,
+    BaseOrganizationUserAdmin,
+    BaseOwnerInline,
+)
 
-from organizations.base_admin import (BaseOrganizationAdmin,
-                                      BaseOrganizationOwnerAdmin,
-                                      BaseOrganizationUserAdmin,
-                                      BaseOwnerInline)
-
-from .models import (Organization, OrganizationInvitation, OrganizationOwner,
-                     OrganizationUser)
+from .models import (
+    Organization,
+    OrganizationInvitation,
+    OrganizationOwner,
+    OrganizationUser,
+)
 
 
 class OwnerInline(BaseOwnerInline):
@@ -16,7 +21,7 @@ class OwnerInline(BaseOwnerInline):
 @admin.register(Organization)
 class OrgAdmin(BaseOrganizationAdmin):
     inlines = [OwnerInline]
-    readonly_fields = ['uid']
+    readonly_fields = ['id']
 
 
 @admin.register(OrganizationUser)
