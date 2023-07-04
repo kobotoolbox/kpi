@@ -81,12 +81,15 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
 
         # Set extra detail attributes on user object to call parent class
         # validation
-        setattr(user, 'full_name', user.extra_details.data.get('name', ''))
-        setattr(
-            user,
-            'organization',
-            user.extra_details.data.get('organization', ''),
-        )
+        if not hasattr(user, 'full_name') and user.extra_details:
+            setattr(user, 'full_name', user.extra_details.data.get('name', ''))
+
+        if not hasattr(user, 'organization') and user.extra_details:
+            setattr(
+                user,
+                'organization',
+                user.extra_details.data.get('organization', ''),
+            )
         super().validate(password, user)
 
 

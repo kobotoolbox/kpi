@@ -147,6 +147,36 @@ class PasswordTestCase(BaseTestCase):
 
     @override_config(
         ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=True,
+        PASSWORD_USER_ATTRIBUTES='\n'.join(['username', 'full_name', 'email', 'organization']),
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_COMMON_PASSWORD_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
+    )
+    def test_new_user_attribute_similarity_failed(self):
+
+        new_user = User(username='new_user', email='jd_2023@example.org')
+        new_user.full_name = 'John Doe'
+        new_user.organization = 'Unknown business inc.'
+
+        password = 'newuser'
+        error = self._run_validation(password, new_user)
+        assert 'The password is too similar to the username' in error
+
+        password = 'johnnydoe'
+        error = self._run_validation(password, new_user)
+        assert 'The password is too similar to the full_name' in error
+
+        password = 'jd_2023'
+        error = self._run_validation(password, new_user)
+        assert 'The password is too similar to the email' in error
+
+        password = 'unkn0wnBus1ness'
+        error = self._run_validation(password, new_user)
+        assert 'The password is too similar to the organization' in error
+
+    @override_config(
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=True,
         PASSWORD_USER_ATTRIBUTES='\n'.join(['username', 'full_name', 'email']),
         ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
         ENABLE_COMMON_PASSWORD_VALIDATION=False,
