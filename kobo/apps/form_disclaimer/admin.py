@@ -75,7 +75,7 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
                 asset__isnull=False, asset__date_deployed__isnull=False
             )
             .select_related('asset', 'language')
-            .order_by('-default', 'language__name')
+            .order_by('asset__name', 'language')
         )
 
     @admin.display(description='Status')

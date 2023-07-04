@@ -19,6 +19,13 @@ class AssetAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request)
         return queryset.filter(asset_type=ASSET_TYPE_SURVEY)
 
+    def get_search_results(self, request, queryset, search_term):
+        # Only display deployed assets
+        if request.path.startswith('/admin/autocomplete/'):
+            queryset = queryset.filter(date_deployed__isnull=False)
+
+        return super().get_search_results(request, queryset, search_term)
+
 
 # Register your models here.
 admin.site.register(AuthorizedApplication)
