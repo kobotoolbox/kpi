@@ -1767,16 +1767,34 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             0
         ]
         assert asset_response.data['version_id'] == deployed_version['uid']
-        # why does this fail?
-        '''
         assert(
             asset_response.data['deployed_version_id']
             == deployed_version['uid']
         )
-        '''
 
-        # Redeploy, despite no changes. A more realistic test would be to
-        # update a form media file while leaving the asset content unchanged
+        # Add a form media file to this asset
+        crab_png_b64 = (
+            'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
+            'OD/m6OX////GxYKhAAAAR0lEQVQI1y2MMQrAMAwD9Ul5yJQ1+Y8zm0Ig9iur'
+            'kmo4xAmEUgJpaYE9y0VLBrwVO9ZzUnSODidlthgossXf73pNDltav88X3Ncm'
+            'NcRl6K8AAAAASUVORK5CYII='
+        )
+        asset_file_list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
+        asset_file_post_data = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'I have pincers',
+            'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
+            'metadata': json.dumps({'filename': 'crab.png'}),
+        }
+        asset_file_response = self.client.post(
+            asset_file_list_url, asset_file_post_data
+        )
+        assert asset_file_response.status_code == status.HTTP_201_CREATED
+
+        # Redeploy with the new media file, which is a change that occurs
+        # without creating a new `AssetVersion`
         deployment_url = reverse(
             self._get_endpoint('asset-deployment'),
             kwargs={'uid': self.asset_uid},
