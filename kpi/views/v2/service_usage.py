@@ -1,8 +1,7 @@
 # coding: utf-8
-from django.http import Http404
 from rest_framework import (
     renderers,
-    viewsets, status,
+    viewsets,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -31,22 +30,26 @@ class ServiceUsageViewSet(viewsets.ViewSet):
     where:
 
     * "organization_id" (optional) is an organization ID string. User must be the organization's owner.
-    ** If "organization_id" is set, endpoint will return aggregated usage data for all the organization's users.
+    If "organization_id" is set, endpoint will return aggregated usage data for all the organization's users.
 
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/service_usage/
     >       {
-    >           "total_nlp_asr_seconds_current_month": {integer},
-    >           "total_nlp_asr_seconds_current_year": {integer},
-    >           "total_nlp_asr_seconds_all_time": {integer},
-    >           "total_nlp_mt_characters_current_month": {integer},
-    >           "total_nlp_mt_characters_current_year": {integer},
-    >           "total_nlp_mt_characters_all_time": {integer},
+    >           "total_nlp_usage": {
+    >               "asr_seconds_current_month": {integer},
+    >               "asr_seconds_current_year": {integer},
+    >               "asr_seconds_all_time": {integer},
+    >               "mt_characters_current_month": {integer},
+    >               "mt_characters_current_year": {integer},
+    >               "mt_characters_all_time": {integer},
+    >           },
     >           "total_storage_bytes": {integer},
-    >           "total_submission_count_current_month": {integer},
-    >           "total_submission_count_current_year": {integer},
-    >           "total_submission_count_all_time": {integer},
+    >           "total_submission_count": {
+    >               "current_month": {integer},
+    >               "current_year": {integer},
+    >               "all_time": {integer},
+    >           },
     >           "current_month_start": {string (date), YYYY-MM-DD format},
     >           "current_year_start": {string (date), YYYY-MM-DD format},
     >       }
@@ -72,16 +75,8 @@ class ServiceUsageViewSet(viewsets.ViewSet):
         }
 
     def list(self, request, *args, **kwargs):
-        try:
-            serializer = ServiceUsageSerializer(
-                get_database_user(request.user),
-                context=self.get_serializer_context(),
-            )
-        except Http404:
-            return Response(
-                {
-                    'message': "Couldn't find organization with specified ID"
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
+        serializer = ServiceUsageSerializer(
+            get_database_user(request.user),
+            context=self.get_serializer_context(),
+        )
         return Response(data=serializer.data)
