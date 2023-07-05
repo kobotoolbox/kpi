@@ -257,12 +257,20 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['total_submission_count_current_month'] == 1
-        assert response.data['total_submission_count_all_time'] == 1
-        assert response.data['total_nlp_asr_seconds_current_month'] == 4586
-        assert response.data['total_nlp_asr_seconds_all_time'] == 4728
-        assert response.data['total_nlp_mt_characters_current_month'] == 5473
-        assert response.data['total_nlp_mt_characters_all_time'] == 6726
+        assert response.data['total_submission_count']['current_month'] == 1
+        assert response.data['total_submission_count']['all_time'] == 1
+        assert (
+            response.data['total_nlp_usage']['asr_seconds_current_month']
+            == 4586
+        )
+        assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 4728
+        assert (
+            response.data['total_nlp_usage']['mt_characters_current_month']
+            == 5473
+        )
+        assert (
+            response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
+        )
         assert (
             response.data['total_storage_bytes'] == self.__expected_file_size()
         )
@@ -280,8 +288,8 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
-        assert response.data['total_submission_count_current_month'] == 3
-        assert response.data['total_submission_count_all_time'] == 3
+        assert response.data['total_submission_count']['current_month'] == 3
+        assert response.data['total_submission_count']['all_time'] == 3
         assert response.data['total_storage_bytes'] == (
             self.__expected_file_size() * 3
         )
@@ -294,8 +302,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['total_submission_count_current_month'] == 0
-        assert response.data['total_submission_count_all_time'] == 0
+        assert response.data['total_submission_count']['current_month'] == 0
+        assert response.data['total_submission_count']['all_time'] == 0
+        assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 0
         assert response.data['total_storage_bytes'] == 0
 
     def test_no_deployment(self):
@@ -326,3 +335,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
+        assert response.data['total_submission_count']['current_month'] == 0
+        assert response.data['total_submission_count']['all_time'] == 0
+        assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 0
+        assert response.data['total_storage_bytes'] == 0
