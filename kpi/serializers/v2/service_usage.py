@@ -7,6 +7,7 @@ from rest_framework.fields import empty
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.project_views.models.assignment import User
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -268,7 +269,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
         # Get the organization's subscription, if they have one
         subscription = Subscription.objects.filter(
-            status__in=['active', 'past_due', 'trialing'],
+            status__in=ACTIVE_STRIPE_STATUSES,
             customer__subscriber=organization,
         ).first()
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
