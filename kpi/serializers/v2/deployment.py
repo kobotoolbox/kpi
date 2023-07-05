@@ -40,9 +40,9 @@ class DeploymentSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         """
-        If a `version_id` is provided and differs from the current
-        deployment's `version_id`, the asset will be redeployed. Otherwise,
-        only the `active` field will be updated
+        Redeploy unconditionally. If people want to deploy again the same
+        version that's already deployed, let them. They may have a good reason
+        for doing so, e.g. updating form media files.
         """
         asset = self.context['asset']
         deployment = asset.deployment
@@ -53,21 +53,10 @@ class DeploymentSerializer(serializers.Serializer):
                 {'backend': 'This field cannot be modified after the initial '
                             'deployment.'})
 
-        if ('version_id' in validated_data and
-                validated_data['version_id'] != deployment.version_id):
-            # Request specified a `version_id` that differs from the current
-            # deployment's; redeploy
-            self._raise_unless_current_version(asset, validated_data)
-            asset.deploy(
-                backend=deployment.backend,
-                active=validated_data.get('active', deployment.active)
-            )
-        elif 'active' in validated_data:
-            active = validated_data['active']
-            # Set the `active` flag without touching the rest of the deployment
-            deployment.set_active(active)
-            # If we (re)activate the asset, let's synchronize its media files
-            if active:
-                asset.sync_media_files_async(always=False)
+        self._raise_unless_current_version(asset, validated_data)
+        asset.deploy(
+            backend=deployment.backend,
+            active=validated_data.get('active', deployment.active)
+        )
 
         return deployment
