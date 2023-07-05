@@ -12,7 +12,7 @@ class AssetVersionListSerializer(serializers.Serializer):
     url = serializers.SerializerMethodField()
     content_hash = serializers.ReadOnlyField()
     date_deployed = serializers.SerializerMethodField(read_only=True)
-    date_modified = serializers.CharField(read_only=True)
+    date_modified = serializers.ReadOnlyField()
 
     def get_date_deployed(self, obj):
         return obj.deployed and obj.date_modified
