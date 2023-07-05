@@ -3,24 +3,45 @@ import time
 
 import boto3
 from dateutil.relativedelta import relativedelta
-from django.db.models import Count
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 from kobo.apps.project_views.models.assignment import User
 
-FROM_ADDRESS = 'no-reply@kobotoolbox.org'
+FROM_ADDRESS = 'Tino Kreutzer <support@kobotoolbox.org>'
 EMAIL_SUBJECT = '📣 Important update about the OCHA KoboToolbox server'
-EMAIL_TEMPLATE_NAME = 'MyTestTemplate'
+EMAIL_TEMPLATE_NAME = 'OCHATransitionEmail'
 EMAIL_HTML_FILENAME = 'ocha_transition_email.html'
 EMAIL_TEXT_FILENAME = 'ocha_transition_email.txt'
 MAX_SEND_ATTEMPTS = 3
-RETRY_WAIT_TIME = 30  # seconds
+RETRY_WAIT_TIME = 30  # in seconds
+# We don't want to use all of our available email sends; some need to be reserved for other uses (password resets, etc.)
+# So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
+RESERVE_EMAIL_COUNT = 4000
 
 
 def run(*args):
     # To run the script in test mode, use './manage.py runscript ocha_emails --script-args test'
     test_mode = 'test' in args
     ses = boto3.client('ses', region_name='us-east-1')
+
+    remaining_sends = - 1
+    quota = ses.get_send_quota()
+    # if Max24HourSend == -1, we have unlimited daily sending quota
+    if quota['Max24HourSend'] >= 0:
+        print(
+            f"{int(quota['SentLast24Hours'])} of {int(quota['Max24HourSend'])} *total* emails sent in the last 24 hours"
+        )
+        remaining_sends = int(
+            quota['Max24HourSend']
+            - quota['SentLast24Hours']
+            - RESERVE_EMAIL_COUNT
+        )
+        if remaining_sends <= 0:
+            quit(f'already over sending limit; exiting...')
+        print(
+            f'{remaining_sends} emails can be sent this run ({RESERVE_EMAIL_COUNT} kept in reserve)'
+        )
 
     directory = os.path.dirname(__file__)
 
@@ -61,17 +82,24 @@ def run(*args):
     print('building users list...')
     one_year_ago = timezone.now() - relativedelta(years=1)
     user_detail_email_key = f'{EMAIL_TEMPLATE_NAME}_email_sent'
-    active_users = User.objects.select_related('extra_details').only('extra_details', 'email', 'username').filter(
-        last_login__gte=one_year_ago, is_active=True,
-    ).exclude(
-        extra_details__data__has_key=user_detail_email_key,
-    ).exclude(
-        email='',
+    active_users = (
+        User.objects.select_related('extra_details')
+        .only('extra_details', 'email', 'username')
+        .filter(
+            last_login__gte=one_year_ago,
+            is_active=True,
+        )
+        .exclude(
+            extra_details__data__has_key=user_detail_email_key,
+        )
+        .exclude(
+            email='',
+        )
+        .annotate(email_lowercase=Lower('email'))
+        .distinct('email_lowercase')
     )
 
-    active_user_count = active_users.aggregate(user_count=Count('id'))[
-        'user_count'
-    ]
+    active_user_count = len(active_users)
     print(
         f"found {active_user_count} users active since {one_year_ago.date()} who haven't received emails"
     )
@@ -91,20 +119,35 @@ def run(*args):
             match status:
                 case 200:
                     users_emailed_count += 1
-                    print(f'\r{users_emailed_count / active_user_count * 100}%', end='', flush=True)
+                    print(
+                        f'\r{users_emailed_count / active_user_count * 100}%',
+                        end='',
+                        flush=True,
+                    )
                     user.extra_details.data[user_detail_email_key] = True
                     user.extra_details.save()
+                    if remaining_sends != -1 and users_emailed_count >= remaining_sends:
+                        quit(
+                            f'used up all email sends - {users_emailed_count} sent; try again in 24 hours.'
+                        )
                     break
                 case 429:
                     if attempts + 1 == MAX_SEND_ATTEMPTS:
                         quit(
-                            f'hit max retry limit of {MAX_SEND_ATTEMPTS} attempts for the day; {users_emailed_count} sent this run')
-                    print(f'hit ses rate limit, re-sending in {wait_time} seconds')
+                            f'hit max retry limit of {MAX_SEND_ATTEMPTS} attempts for the day; {users_emailed_count} sent this run'
+                        )
+                    print(
+                        f'hit ses rate limit, re-sending in {wait_time} seconds'
+                    )
                 case default:
                     if attempts + 1 == MAX_SEND_ATTEMPTS:
-                        print(f'SES keeps erroring out; {users_emailed_count} sent this run. Last response:')
+                        print(
+                            f'SES keeps erroring out; {users_emailed_count} sent this run. Last response:'
+                        )
                         quit(response)
-                    print(f"couldn't email {user.username}, trying again in {wait_time} seconds")
+                    print(
+                        f"couldn't email {user.username}, trying again in {wait_time} seconds"
+                    )
 
             # back off for an extra 30 seconds on each retry (exponential enough for SES)
             time.sleep(wait_time)
@@ -120,9 +163,6 @@ def send_email(ses, address):
                 address,
             ],
         },
-        ReplyToAddresses=[
-            'no-reply@kobotoolbox.org',
-        ],
         Template=EMAIL_TEMPLATE_NAME,
         TemplateData='{}',
     )
