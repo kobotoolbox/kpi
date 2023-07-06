@@ -22,7 +22,7 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
   return {...state, subscribedProduct: action.prodData};
 }
 
-const exceedList: string[] = [];
+const exceedList: string[] = ['submissions'];
 
 export const  getAllExceedingLimits = () => {
     const [state, dispatch] = useReducer(subscriptionReducer, initialState);
@@ -93,19 +93,19 @@ export const  getAllExceedingLimits = () => {
 
   useEffect(() => {
     if (usage.monthlySubmissions > subscribedSubmissionLimit) {
-      exceedList.push('submissions');
+      exceedList.push(t('submissions'));
     }
 
     if (usage.storage > subscribedStorageLimit) {
-      exceedList.push('storage');
+      exceedList.push(t('storage'));
     }
 
     if (usage.transcriptionMinutes > subscribedTranscriptionMinutes) {
-      exceedList.push('Transcription Minutes');
+      exceedList.push(t('Transcription Minutes'));
     }
 
     if (usage.translationChars > subscribedTranslationChars) {
-      exceedList.push('Translation Charaters');
+      exceedList.push(t('Translation Charaters'));
     }
   });
 

@@ -8,6 +8,7 @@ import sessionStore from 'js/stores/session';
 import {getAllExceedingLimits} from './usageCalculations';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
+import styles from './overLimitModal.module.scss';
 
 interface OverLimitModalProps {
   show: boolean;
@@ -36,38 +37,41 @@ function OverLimitModal(props: OverLimitModalProps) {
     <div>
       <KoboModal isOpen={show} onRequestClose={toggleModal} size='medium'>
         <KoboModalHeader icon='alert' iconColor='red' headerColor='red'>
-          Warning: Account limits exceeded
+          {t('Warning: Account limits exceeded')}
         </KoboModalHeader>
 
         <KoboModalContent>
-          <div>Dear {accountName},</div>
-          <br />
-          <div>
-            You have surpassed your{' '}
-            {getAllExceedingLimits().map((item, i) => (
-              <span key={i}>
-                {i > 0 && ', '}
-                {i == getAllExceedingLimits().length - 1 && i > 0 && 'and '}
-                {item}
-              </span>
-            ))}{' '}
-            quota{getAllExceedingLimits().length > 1 && 's'} included in your
-            current plan.
-          </div>
-          <br />
-          <div>
-            To continue collecting data, please upgrade to a KoboToolbox plan
-            with higher capacity, or consider waiting until the beginning of
-            next month, when your quota will be reset again. You can learn more
-            about monthly limits here.
-          </div>
-          <br />
-          <div>
-            <strong>
-              Please note that failure to respect the monthly limits can lead to
-              the blocking of submissions from being saved and even the
-              suspension your account.
-            </strong>
+          <div className={styles.limitModalContent}>
+            <div>
+              {t('Dear')} {accountName},
+            </div>
+            <br />
+            <div>
+              {t('You have surpassed your')}{' '}
+              {getAllExceedingLimits().map((item, i) => (
+                <span key={i}>
+                  {i > 0 && ', '}
+                  {i == getAllExceedingLimits().length - 1 && i > 0 && 'and '}
+                  {item}
+                </span>
+              ))}{' '}
+              {t('quota')} {getAllExceedingLimits().length > 1 && 's'}{' '}
+              {t('included in your current plan.')}
+            </div>
+            <br />
+            <div>
+              {t(
+                'To continue collecting data, please upgrade to a KoboToolbox plan with higher capacity, or consider waiting until the beginning of next month, when your quota will be reset again. You can learn more about monthly limits here.'
+              )}
+            </div>
+            <br />
+            <div>
+              <strong>
+                {t(
+                  'Please note that failure to respect the monthly limits can lead to the blocking of submissions from being saved and even the suspension your account.'
+                )}
+              </strong>
+            </div>
           </div>
         </KoboModalContent>
 
@@ -77,7 +81,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             color='dark-blue'
             size='l'
             onClick={() => handleClose()}
-            label={'Do it later'}
+            label={t('Do it later')}
           />
 
           <Button
@@ -85,7 +89,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             color='dark-blue'
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
-            label={'Manage subscription'}
+            label={t('Manage subscription')}
           />
         </KoboModalFooter>
       </KoboModal>
