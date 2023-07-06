@@ -12,7 +12,7 @@ import DocumentTitle from 'react-document-title';
 import Icon from 'js/components/common/icon';
 import moment from 'moment';
 import Chart from 'chart.js';
-import {getFormDataTabs} from './formViewTabs';
+import {getFormDataTabs} from './formViewSideTabs';
 import {
   formatDate,
   stringToColor,

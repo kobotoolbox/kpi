@@ -111,8 +111,14 @@ export function isFormLandingRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_LANDING.replace(':uid', uid);
 }
 
+/** Note that this is `false` for sub-routes of `FORM_DATA`. */
 export function isFormDataRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_DATA.replace(':uid', uid);
+}
+
+/** If on `forms/<uid>/data/…` route */
+export function isAnyFormDataRoute(uid: string) {
+  return getCurrentPath().startsWith(ROUTES.FORM_DATA.replace(':uid', uid));
 }
 
 export function isFormReportRoute(uid: string): boolean {
@@ -139,8 +145,14 @@ export function isFormMapByRoute(uid: string, viewby: string): boolean {
   return getCurrentPath() === ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby);
 }
 
+/** Note that this is `false` for sub-routes of `FORM_SETTINGS`. */
 export function isFormSettingsRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_SETTINGS.replace(':uid', uid);
+}
+
+/** If on `forms/<uid>/settings/…` route */
+export function isAnyFormSettingsRoute(uid: string) {
+  return getCurrentPath().startsWith(ROUTES.FORM_SETTINGS.replace(':uid', uid));
 }
 
 export function isFormMediaRoute(uid: string): boolean {
