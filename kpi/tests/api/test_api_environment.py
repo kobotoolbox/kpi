@@ -70,6 +70,7 @@ class EnvironmentTests(BaseTestCase):
             'free_tier_thresholds': json.loads(
                 constance.config.FREE_TIER_THRESHOLDS
             ),
+            'free_tier_name': constance.config.FREE_TIER_NAME,
             'social_apps': [],
         }
 
@@ -157,7 +158,7 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 18
+        queries = 19
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

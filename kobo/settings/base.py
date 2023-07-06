@@ -322,10 +322,10 @@ CONSTANCE_CONFIG = {
     ),
     'FREE_TIER_THRESHOLDS': (
         json.dumps({
-            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
-            'data': 1000,
-            'transcription_minutes': 10,
-            'translation_chars': 6000,
+            'storage': None,
+            'data': None,
+            'transcription_minutes': None,
+            'translation_chars': None,
         }),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
