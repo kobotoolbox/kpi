@@ -114,28 +114,28 @@ export default function Plan() {
     if (envStore.isReady) {
       const thresholds = envStore.data.free_tier_thresholds;
       const feature_list_1 = thresholds?.data
-        ? t('##submissions## submissions/month').replace(
-            '##submissions##',
-            thresholds.data.toLocaleString()
-          )
+        ? t('##submissions## submissions per month').replace(
+          '##submissions##',
+          thresholds.data.toLocaleString()
+        )
         : null;
       const feature_list_2 = thresholds?.storage
         ? t('##storage_gb## GB file storage, up to 1 year').replace(
-            '##storage_gb##',
-            Math.floor(thresholds.storage / 1024).toString()
-          )
+          '##storage_gb##',
+          Math.floor(thresholds.storage / 1024).toString()
+        )
         : null;
       const feature_list_3 =
         thresholds?.translation_chars && thresholds?.transcription_minutes
           ? t('##nlp_mins## mins / ##nlp_chars## characters of NLP')
-              .replace(
-                '##nlp_mins##',
-                thresholds.transcription_minutes.toLocaleString()
-              )
-              .replace(
-                '##nlp_chars##',
-                thresholds.translation_chars.toLocaleString()
-              )
+            .replace(
+              '##nlp_mins##',
+              thresholds.transcription_minutes.toLocaleString()
+            )
+            .replace(
+              '##nlp_chars##',
+              thresholds.translation_chars.toLocaleString()
+            )
           : null;
       const freeTier = {
         name: envStore.data.free_tier_name,
