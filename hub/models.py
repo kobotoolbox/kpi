@@ -3,6 +3,7 @@ import mimetypes
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import get_default_password_validators
 from django.core.exceptions import FieldError, ValidationError
 from django.db import models
 from django.db.models.signals import post_save
@@ -23,6 +24,8 @@ from kpi.utils.object_permission import get_database_user
 
 def _configuration_file_upload_to(instance, filename):
     if instance.slug == ConfigurationFileSlug.COMMON_PASSWORDS_FILE:
+        # Void lru cache to reload the file at the next password validation.
+        get_default_password_validators.cache_clear()
         return f'__django_files/{instance.slug}/{filename}'
 
     return f'{settings.PUBLIC_MEDIA_PATH}/{instance.slug}/{filename}'
