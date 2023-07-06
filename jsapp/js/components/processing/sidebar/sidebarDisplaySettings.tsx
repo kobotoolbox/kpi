@@ -143,6 +143,8 @@ export default function SidebarDisplaySettings() {
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
+              // Apply reset to the ToggleSwitch state.
+              setSelectedDisplays(store.getDisplays(activeTab));
               setIsModalOpen(false);
             }}
           />
