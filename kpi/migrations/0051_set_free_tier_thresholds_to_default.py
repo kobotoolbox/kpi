@@ -16,7 +16,7 @@ def reset_free_tier_thresholds(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0050_add_indexes_to_import_and_export'),
+        ('kpi', '0050_add_indexes_to_import_and_export_tasks'),
     ]
 
     operations = [
