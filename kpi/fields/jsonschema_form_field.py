@@ -29,15 +29,16 @@ class FreeTierThresholdField(JsonSchemaFormField):
     """
     Validates that the input has required properties with expected types
     """
+
     def __init__(self, *args, **kwargs):
         schema = {
             'type': 'object',
             'uniqueItems': True,
             'properties': {
-                'storage': {'type': 'integer'},
-                'data': {'type': 'integer'},
-                'transcription_minutes': {'type': 'integer'},
-                'translation_chars': {'type': 'integer'},
+                'storage': {'type': ['integer', 'null']},
+                'data': {'type': ['integer', 'null']},
+                'transcription_minutes': {'type': ['integer', 'null']},
+                'translation_chars': {'type': ['integer', 'null']},
             },
             'required': [
                 'storage',
@@ -60,6 +61,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
             …
         ]
     """
+
     def __init__(self, *args, **kwargs):
         schema = {
             'type': 'array',
@@ -82,6 +84,7 @@ class MfaHelpTextField(JsonSchemaFormField):
     Validates that the input is an object which contains at least the 'default'
     key.
     """
+
     def __init__(self, *args, **kwargs):
         schema = {
             'type': 'object',

@@ -42,6 +42,7 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'FREE_TIER_NAME',
         ('FREE_TIER_THRESHOLDS', lambda value, request: json.loads(value)),
         ('PROJECT_METADATA_FIELDS', lambda value, request: json.loads(value)),
         ('USER_METADATA_FIELDS', lambda value, request: json.loads(value)),
@@ -79,8 +80,8 @@ class EnvironmentView(APIView):
                 not MfaAvailableToUser.objects.all().exists()
                 # global setting is overwritten by request user setting.
                 or MfaAvailableToUser.objects.filter(
-                    user=get_database_user(request.user)
-                ).exists()
+                user=get_database_user(request.user)
+            ).exists()
             )
         ),
     ]
