@@ -26,6 +26,13 @@ export interface SocialApp {
   client_id: string;
 }
 
+export interface FreeTierThresholds {
+  storage?: number | null;
+  data?: number | null;
+  transcription_minutes?: number | null;
+  translation_chars?: number | null;
+}
+
 class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
@@ -45,11 +52,13 @@ class EnvStoreData {
   public translation_languages: TransxLanguages = {};
   public submission_placeholder = '';
   public asr_mt_features_enabled = false;
-  public mfa_localized_help_text: {[name: string]: string} = {};
+  public mfa_localized_help_text: { [name: string]: string } = {};
   public mfa_enabled = false;
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
   public social_apps: SocialApp[] = [];
+  public free_tier_thresholds: FreeTierThresholds = {};
+  public free_tier_name: string = '';
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -59,6 +68,7 @@ class EnvStoreData {
     }
     return false;
   }
+
   public getUserMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.user_metadata_fields) {
       if (f.name === fieldName) {
@@ -109,6 +119,8 @@ class EnvStore {
     this.data.mfa_code_length = response.mfa_code_length;
     this.data.stripe_public_key = response.stripe_public_key;
     this.data.social_apps = response.social_apps;
+    this.data.free_tier_thresholds = response.free_tier_thresholds;
+    this.data.free_tier_name = response.free_tier_name;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);

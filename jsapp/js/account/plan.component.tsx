@@ -27,7 +27,9 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
-import {BaseProduct} from "js/account/subscriptionStore";
+import {BaseProduct} from 'js/account/subscriptionStore';
+import EnvStore, {FreeTierThresholds} from 'js/envStore';
+import envStore from 'js/envStore';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -42,6 +44,14 @@ interface PlanState {
 interface DataUpdates {
   type: string;
   prodData?: any;
+}
+
+interface FreeTierOverride extends FreeTierThresholds {
+  name?: string | null;
+  feature_list_1?: string | null;
+  feature_list_2?: string | null;
+  feature_list_3?: string | null;
+  feature_list_4?: string | null;
 }
 
 const initialState = {
@@ -100,8 +110,50 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
-  const hasManageableStatus = useCallback((subscription: BaseSubscription) =>
-    activeSubscriptionStatuses.includes(subscription.status), []);
+  const freeTierOverride = useMemo((): FreeTierOverride | null => {
+    if (envStore.isReady) {
+      const thresholds = envStore.data.free_tier_thresholds;
+      const feature_list_1 = thresholds?.data
+        ? t('##submissions## submissions/month').replace(
+            '##submissions##',
+            thresholds.data.toLocaleString()
+          )
+        : null;
+      const feature_list_2 = thresholds?.storage
+        ? t('##storage_gb## GB file storage, up to 1 year').replace(
+            '##storage_gb##',
+            Math.floor(thresholds.storage / 1024).toString()
+          )
+        : null;
+      const feature_list_3 =
+        thresholds?.translation_chars && thresholds?.transcription_minutes
+          ? t('##nlp_mins## mins / ##nlp_chars## characters of NLP')
+              .replace(
+                '##nlp_mins##',
+                thresholds.transcription_minutes.toLocaleString()
+              )
+              .replace(
+                '##nlp_chars##',
+                thresholds.translation_chars.toLocaleString()
+              )
+          : null;
+      const freeTier = {
+        name: envStore.data.free_tier_name,
+        feature_list_1,
+        feature_list_2,
+        feature_list_3,
+        ...thresholds,
+      };
+      return freeTier;
+    }
+    return null;
+  }, [envStore.isReady]);
+
+  const hasManageableStatus = useCallback(
+    (subscription: BaseSubscription) =>
+      activeSubscriptionStatuses.includes(subscription.status),
+    []
+  );
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
@@ -113,9 +165,7 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useMemo(() => {
-    if (
-      state.subscribedProduct?.length > 0
-    ) {
+    if (state.subscribedProduct?.length > 0) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
       if (!hasManageableStatus(state.subscribedProduct)) {
@@ -207,7 +257,10 @@ export default function Plan() {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
-          return interval === state.intervalFilter && product.metadata.product_type === 'plan';
+          return (
+            interval === state.intervalFilter &&
+            product.metadata.product_type === 'plan'
+          );
         });
 
         return {
@@ -216,8 +269,12 @@ export default function Plan() {
         };
       });
 
-      return filterAmount.filter((product: Product) => product.prices)
-        .sort((priceA: Price, priceB: Price) => priceA.prices.unit_amount > priceB.prices.unit_amount);
+      return filterAmount
+        .filter((product: Product) => product.prices)
+        .sort(
+          (priceA: Price, priceB: Price) =>
+            priceA.prices.unit_amount > priceB.prices.unit_amount
+        );
     }
     return [];
   }, [state.products, state.intervalFilter]);
@@ -244,9 +301,10 @@ export default function Plan() {
       const subscriptions = getSubscriptionsForProductId(product.id);
 
       if (subscriptions.length > 0) {
-        return subscriptions.some((subscription: BaseSubscription) =>
-          subscription.items[0].price.id === product.prices.id &&
-          hasManageableStatus(subscription)
+        return subscriptions.some(
+          (subscription: BaseSubscription) =>
+            subscription.items[0].price.id === product.prices.id &&
+            hasManageableStatus(subscription)
         );
       }
       return false;
@@ -262,7 +320,7 @@ export default function Plan() {
       }
 
       return subscriptions.some((subscription: BaseSubscription) =>
-          hasManageableStatus(subscription)
+        hasManageableStatus(subscription)
       );
     },
     [state.subscribedProduct]
@@ -345,6 +403,19 @@ export default function Plan() {
       });
     }
     return expandBool;
+  };
+
+  const getFeatureMetadata = (price: Price, featureItem: string) => {
+    if (
+      price.prices.unit_amount === 0 &&
+      freeTierOverride &&
+      freeTierOverride[featureItem as keyof FreeTierOverride]
+    ) {
+      console.log(featureItem);
+      console.log(freeTierOverride);
+      return freeTierOverride[featureItem as keyof FreeTierOverride];
+    }
+    return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
   };
 
   useEffect(() => {
@@ -453,7 +524,11 @@ export default function Plan() {
                       [styles.planContainer]: true,
                     })}
                   >
-                    <h1 className={styles.priceName}> {price.name} </h1>
+                    <h1 className={styles.priceName}>
+                      {price.prices?.unit_amount
+                        ? price.name
+                        : freeTierOverride?.name || price.name}
+                    </h1>
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
@@ -476,8 +551,7 @@ export default function Plan() {
                                   }
                                 />
                               </div>
-                              {price.prices.metadata?.[featureItem] ||
-                                price.metadata[featureItem]}
+                              {getFeatureMetadata(price, featureItem)}
                             </li>
                           )
                       )}
