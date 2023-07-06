@@ -9,6 +9,11 @@ import mixins from '../mixins';
 import SearchCollectionList from '../components/searchcollectionlist';
 import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
 import styles from './forms.module.scss';
+import LimitModal from '../components/usageLimits/overLimitModal.component';
+import {checkLimits} from '../components/usageLimits/usageCalculations';
+import {Cookies} from 'react-cookie';
+
+const cookies = new Cookies();
 
 class FormsSearchableList extends React.Component {
   constructor(props) {
@@ -19,17 +24,33 @@ class FormsSearchableList extends React.Component {
           assetType: COMMON_QUERIES.s,
         },
         filterTags: COMMON_QUERIES.s,
-      })
+      }),
+      showModal: false,
     };
   }
-  componentDidMount () {
+  
+  componentDidMount() {
+    const allCookies = cookies.getAll();
+    const isLimitCookie = Object.keys(allCookies).find(key => key === 'overLimitsCookie');
+
+    if(isLimitCookie === undefined && checkLimits()){
+      this.setState({showModal: true});   
+
+      var dateNow = new Date();
+      var expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+      cookies.set('overLimitsCookie', {
+        expires: expireDate,
+      });
+    } 
     this.searchSemaphore();
   }
-  render () {
+
+  render() {
     return (
       <div className={styles.myProjectsWrapper}>
         <div className={styles.myProjectsHeader}>
-          <ViewSwitcher selectedViewUid={HOME_VIEW.uid}/>
+          <LimitModal show={this.state.showModal} />
+          <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
         </div>
         <SearchCollectionList searchContext={this.state.searchContext} />
       </div>
@@ -38,7 +59,7 @@ class FormsSearchableList extends React.Component {
 }
 
 FormsSearchableList.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
 };
 
 reactMixin(FormsSearchableList.prototype, searches.common);
