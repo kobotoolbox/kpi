@@ -88,6 +88,15 @@ $projects-table-row-height: sizes.$x36;
     font-weight: 600;
     width: 30%;
 
+    // Handling the fact that the cell content is a link
+    padding: 0;
+    :global a {
+      @include mixins.textEllipsis;
+      color: inherit;
+      display: block;
+      padding: $projects-table-row-padding;
+    }
+
     // Setup for underlining the Project Name on row hover.
     // This clarifies the size of the checkbox touch-target
     // and makes full-navigation a little more predictable.
