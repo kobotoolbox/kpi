@@ -598,16 +598,16 @@ class FormLanding extends React.Component {
                 {this.renderButtons(userCanEdit)}
               </bem.FormView__cell>
             </bem.FormView__cell>
-            {this.isFormRedeploymentNeeded() &&
-              <bem.FormView__cell>
-                <InlineMessage
-                  icon='alert'
-                  type='warning'
-                  message={t('If you want to make these changes public, you must deploy this form.')}
-                />
-              </bem.FormView__cell>
-            }
             <bem.FormView__cell m='box'>
+              {this.isFormRedeploymentNeeded() &&
+                <bem.FormView__cell>
+                  <InlineMessage
+                    icon='alert'
+                    type='warning'
+                    message={t('If you want to make these changes public, you must deploy this form.')}
+                  />
+                </bem.FormView__cell>
+              }
               {this.renderFormInfo(userCanEdit)}
               {this.renderLanguages(userCanEdit)}
             </bem.FormView__cell>

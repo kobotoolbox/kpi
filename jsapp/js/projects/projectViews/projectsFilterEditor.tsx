@@ -2,7 +2,7 @@ import React from 'react';
 import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import KoboSelect from 'js/components/common/koboSelect';
-import {generateUuid} from 'js/utils';
+import {generateUid} from 'js/utils';
 import type {
   FilterConditionName,
   ProjectFieldName,
@@ -94,7 +94,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           <span className={styles.label}>{t('Filter by')}</span>
         )}
         <KoboSelect
-          name={generateUuid()}
+          name={generateUid()}
           type='outline'
           size='m'
           isClearable
@@ -112,7 +112,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           <span className={styles.label}>{t('Condition')}</span>
         )}
         <KoboSelect
-          name={generateUuid()}
+          name={generateUid()}
           type='outline'
           size='m'
           isClearable
@@ -147,7 +147,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
         {isFilterConditionValueRequired(props.filter.condition) &&
           isCountryFilterSelected && (
             <KoboSelect
-              name={generateUuid()}
+              name={generateUid()}
               type='outline'
               size='m'
               isClearable

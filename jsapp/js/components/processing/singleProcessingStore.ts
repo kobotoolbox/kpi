@@ -20,7 +20,9 @@ import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
-import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
+import type {
+  ProcessingDataResponse,
+} from 'js/components/processing/processingActions';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -35,24 +37,6 @@ export enum SingleProcessingTabs {
   Translations = 'trl',
   Analysis = 'an',
 }
-
-export enum StaticDisplays {
-  Data = 'Data',
-  Audio = 'Audio',
-  Transcript = 'Transcript',
-}
-
-export type DisplaysList = Array<LanguageCode | StaticDisplays>;
-
-type SidebarDisplays = {
-  [tabName in SingleProcessingTabs]: DisplaysList;
-};
-
-export const DefaultDisplays: Map<SingleProcessingTabs, DisplaysList> = new Map([
-  [SingleProcessingTabs.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
-  [SingleProcessingTabs.Translations, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-  [SingleProcessingTabs.Analysis, [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript]],
-]);
 
 /** Shared interface for transcript and translations. */
 export interface Transx {
@@ -126,13 +110,6 @@ class SingleProcessingStore extends Reflux.Store {
   private areEditIdsLoaded = false;
   private isSubmissionLoaded = false;
   private isProcessingDataLoaded = false;
-
-  /**
-   * A list of active sidebar displays for each of the tabs. They start off with
-   * some default values for each tab, and can be configured through Display
-   * Settings and remembered for as long as the Processing View is being opened.
-   */
-  private displays = this.getInitialDisplays();
 
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
@@ -382,9 +359,6 @@ class SingleProcessingStore extends Reflux.Store {
       )
     ) {
       this.fetchAllInitialDataForAsset();
-      // Each time user visits Processing View from some different route we want
-      // to present the same default displays.
-      this.displays = this.getInitialDisplays();
     }
 
     this.previousPath = data.location.pathname;
@@ -561,8 +535,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.isProcessingDataLoaded = true;
     this.isFetchingData = false;
 
-    this.cleanupDisplays();
-
     this.trigger(this.data);
   }
 
@@ -715,6 +687,22 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
+  /** Returns whole transcript/translation for selected source. */
+  getSourceData(): Transx | undefined {
+    if (!this.data.source) {
+      return undefined;
+    }
+
+    if (this.data.source === this.data.transcript?.languageCode) {
+      return this.data.transcript;
+    } else {
+      const found = this.data.translations.find(
+        (translation) => translation.languageCode === this.data.source
+      );
+      return found;
+    }
+  }
+
   /** Returns a local cached transcript data. */
   getTranscript() {
     return this.data.transcript;
@@ -858,6 +846,10 @@ class SingleProcessingStore extends Reflux.Store {
 
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
+    // We use transcript as source by default.
+    if (this.data.source === undefined) {
+      this.data.source = this.data.transcript?.languageCode;
+    }
     this.trigger(this.data);
   }
 
@@ -943,66 +935,6 @@ class SingleProcessingStore extends Reflux.Store {
       this.isSubmissionLoaded &&
       this.isProcessingDataLoaded
     );
-  }
-
-  getInitialDisplays(): SidebarDisplays {
-    return {
-      trc: DefaultDisplays.get(SingleProcessingTabs.Transcript) || [],
-      trl: DefaultDisplays.get(SingleProcessingTabs.Translations) || [],
-      an: DefaultDisplays.get(SingleProcessingTabs.Analysis) || [],
-    };
-  }
-
-  /** Returns available displays for given tab */
-  getAvailableDisplays(tabName: SingleProcessingTabs) {
-    const outcome: DisplaysList = [
-      StaticDisplays.Audio,
-      StaticDisplays.Data,
-    ];
-    if (tabName !== SingleProcessingTabs.Transcript) {
-      outcome.push(StaticDisplays.Transcript);
-    }
-    this.getTranslations().forEach((translation) => {
-      outcome.push(translation.languageCode);
-    });
-    return outcome;
-  }
-
-  /** Returns displays for given tab. */
-  getDisplays(tabName: SingleProcessingTabs) {
-    return this.displays[tabName];
-  }
-
-  /** Updates the list of active displays for given tab. */
-  setDisplays(tabName: SingleProcessingTabs, displays: DisplaysList) {
-    this.displays[tabName] = displays;
-    this.trigger(this.displays);
-  }
-
-  /** Resets the list of displays for given tab to a default list. */
-  resetDisplays(tabName: SingleProcessingTabs) {
-    this.displays[tabName] = DefaultDisplays.get(tabName) || [];
-    this.trigger(this.displays);
-  }
-
-  /**
-   * Removes nonexistent displays from the list of active displays, e.g. when
-   * use activated "Polish (pl)" translation to appear in sidebar, but then
-   * removed it, it should also disappear from the displays list. Leftovers
-   * would usually cause no problems - until user re-adds that "Polish (pl)"
-   * translation.
-   */
-  cleanupDisplays() {
-    // We need this weird way of iterating enum, because of TypeScript :)
-    let tab: keyof typeof SingleProcessingTabs;
-    for (tab in SingleProcessingTabs) {
-      const tabName = SingleProcessingTabs[tab];
-      const availableDisplays = this.getAvailableDisplays(tabName);
-      this.displays[tabName].filter((display) => {
-        availableDisplays.includes(display);
-      });
-    }
-    this.trigger(this.displays);
   }
 }
 

@@ -1,5 +1,6 @@
 @use '~kobo-common/src/styles/colors';
 @use 'scss/sizes';
+@use './singleProcessingVariables';
 
 .mediaWrapper {
   &.mediaWrapperAudio {
@@ -13,6 +14,28 @@
     border-radius: sizes.$x6;
     overflow: hidden;
   }
+
+  &:first-child {
+    margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  }
+
+  &:not(:first-child) {
+    margin-top: sizes.$x20;
+  }
+}
+
+.dataList {
+  flex: 1;
+  min-height: sizes.$x100;
+  margin-top: sizes.$x20;
+  padding: sizes.$x12;
+  border: sizes.$x1 solid colors.$kobo-gray-85;
+  border-radius: sizes.$x6;
+}
+
+.dataListBody {
+  overflow-y: auto;
+  height: 100%;
 }
 
 .videoPreview {

@@ -4,7 +4,7 @@ import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import {
   formatSeconds,
-  generateUuid,
+  generateUid,
 } from 'js/utils';
 import 'js/components/common/miniAudioPlayer.scss';
 
@@ -32,7 +32,7 @@ const PLAYER_STARTED_EVENT = 'MiniAudioPlayer:started';
 class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPlayerState> {
   audioInterface: HTMLAudioElement = new Audio();
   /** Useful for stopping. */
-  uid = generateUuid();
+  uid = generateUid();
 
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);

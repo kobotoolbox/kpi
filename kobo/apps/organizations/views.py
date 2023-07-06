@@ -1,33 +1,31 @@
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
+
+from organizations.utils import create_organization
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Organization, create_organization
-from .permissions import IsOrgAdminOrReadOnly
-from .serializers import OrganizationSerializer
+from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.serializers import OrganizationSerializer
 
 
-class OrganizationViewSet(viewsets.ModelViewSet):
+class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Organizations are groups of users with assigned permissions and configurations
-
-    - Organization admins can manage the organization and it's membership
-    - Connect to authentication mechanisms and enforce policy
-    - Create teams and projects under the organization
+    todo: create documentation
     """
 
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
-    permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
+    permission_classes = (IsAuthenticated,)
+    extra_context = None
 
     def get_queryset(self) -> QuerySet:
         user = self.request.user
         queryset = super().get_queryset().filter(users=user)
-        if self.action == "list" and not queryset:
+        if not queryset:
             # Very inefficient get or create queryset.
             # It's temporary and should be removed later.
-            create_organization(user, f"{user.username}'s organization")
+            create_organization(user, f"{user.username}'s organization", model=Organization)
             queryset = queryset.all()  # refresh
         return queryset

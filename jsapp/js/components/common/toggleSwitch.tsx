@@ -4,7 +4,7 @@ import './toggleSwitch.scss';
 
 interface ToggleSwitchProps {
   checked?: boolean;
-  label?: React.ReactNode;
+  label?: string;
   disabled?: boolean;
   name?: string;
   id?: number;

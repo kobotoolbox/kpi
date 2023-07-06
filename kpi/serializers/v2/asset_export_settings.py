@@ -32,7 +32,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
     data_url_csv = serializers.SerializerMethodField()
     data_url_xlsx = serializers.SerializerMethodField()
     name = serializers.CharField(allow_blank=True)
-    date_modified = serializers.ReadOnlyField()
+    date_modified = serializers.CharField(read_only=True)
     export_settings = WritableJSONField()
 
     class Meta:

@@ -1,17 +1,13 @@
 import uuid
-from functools import partial
 
 from django.db import models
-from django.forms.fields import EmailField
-from organizations.abstract import (
-    AbstractOrganization,
-    AbstractOrganizationInvitation,
-    AbstractOrganizationOwner,
-    AbstractOrganizationUser,
-)
-from organizations.utils import create_organization as create_organization_base
-
 from kpi.fields import KpiUidField
+from django.forms.fields import EmailField
+
+from organizations.abstract import (AbstractOrganization,
+                                    AbstractOrganizationInvitation,
+                                    AbstractOrganizationOwner,
+                                    AbstractOrganizationUser)
 
 
 class Organization(AbstractOrganization):
@@ -25,7 +21,6 @@ class Organization(AbstractOrganization):
         """
         return self.owner.organization_user.user.email
 
-
 class OrganizationUser(AbstractOrganizationUser):
     pass
 
@@ -36,6 +31,3 @@ class OrganizationOwner(AbstractOrganizationOwner):
 
 class OrganizationInvitation(AbstractOrganizationInvitation):
     pass
-
-
-create_organization = partial(create_organization_base, model=Organization)

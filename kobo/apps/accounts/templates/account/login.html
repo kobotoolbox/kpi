@@ -8,7 +8,7 @@
   <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
     {#  KoboToolbox Logo #}
     <div class="registration--logo"><a href="/">
-      {% block logo %}{{ block.super }}{% endblock %}
+    {% block logo %}{{ block.super }}{% endblock %}
     </a></div>
 
     {% csrf_token %}
@@ -17,7 +17,7 @@
     {{ form.as_p }}
 
     {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
     {% endif %}
 
     {# Login Button #}
@@ -57,14 +57,13 @@
           {# SSO Provider buttons #}
           <ul class="socialaccount_providers">
             {% for social_app in social_apps %}
-              <li>
-                <a title="{{ social_app.name }}"
-                   class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
-                   href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
-                >
-                  {{ social_app.name }}
-                </a>
-              </li>
+            <li>
+              <a title="{{ social_app.name }}"
+                class="socialaccount_provider {{ social_app.provider }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                href="{% provider_login_url social_app.provider process='login' scope=scope auth_params=auth_params %}"
+                >{% trans "SSO Login" %}</a>
+                {# "Log in with {{social_app.name}}" when supporting social_apps|length>1 #}
+            </li>
             {% endfor %}
           </ul>
           {# for stability with upstream #}

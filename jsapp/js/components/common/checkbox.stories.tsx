@@ -9,7 +9,7 @@ export default {
 } as ComponentMeta<typeof Checkbox>;
 
 const Template: ComponentStory<typeof Checkbox> = (args) => (
-  <Checkbox {...args} onChange={() => {}} />
+  <Checkbox {...args} />
 );
 
 export const Primary = Template.bind({});

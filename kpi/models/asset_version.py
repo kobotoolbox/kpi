@@ -74,7 +74,3 @@ class AssetVersion(models.Model):
             self.asset.uid, self.uid,
             self.date_modified.strftime('%Y-%m-%d %H:%M'),
             ' (deployed)' if self.deployed else '')
-
-    def save(self, *args, **kwargs):
-        self.date_modified = timezone.now()
-        super().save(*args, **kwargs)

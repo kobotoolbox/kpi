@@ -44,6 +44,5 @@
       "editor.codeActionsOnSave.source.fixAll.eslint",
       "editor.codeActionsOnSave.source.fixAll.stylelint",
     ],
-    "typescript.tsdk": "node_modules/typescript/lib",
   },
 }

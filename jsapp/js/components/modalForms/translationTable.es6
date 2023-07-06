@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTable from 'react-table';
-import TextareaAutosize from 'react-textarea-autosize';
+import TextareaAutosize from 'react-autosize-textarea';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import alertify from 'alertifyjs';
 import bem from 'js/bem';

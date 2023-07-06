@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import Radio from './radio';
 import type {RadioOption} from './radio';
@@ -29,19 +29,9 @@ export default {
   argTypes: {},
 } as ComponentMeta<typeof Radio>;
 
-const Template: ComponentStory<typeof Radio> = (args) => {
-  const [selected, setSelected] = useState('');
-  return (
-    <Radio
-      {...args}
-      selected={selected}
-      onChange={(newSelectedValue) => setSelected(newSelectedValue)}
-      options={defaultOptions}
-    />
-  );
-};
+const Template: ComponentStory<typeof Radio> = (args) => (
+  <Radio {...args} options={defaultOptions} />
+);
 
 export const Primary = Template.bind({});
-Primary.args = {
-  title: 'Pick your favourite food',
-};
+Primary.args = {title: 'Pick your favourite food'};

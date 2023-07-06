@@ -16,7 +16,7 @@ interface InlineMessageProps {
 }
 
 /**
- * An inline message component.
+ * A button component.
  */
 class InlineMessage extends React.Component<InlineMessageProps, {}> {
   render() {
