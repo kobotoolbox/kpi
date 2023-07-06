@@ -1,3 +1,5 @@
+import json
+
 from constance import config
 from django.db import migrations
 
@@ -10,7 +12,7 @@ def reset_free_tier_thresholds(apps, schema_editor):
         'transcription_minutes': None,
         'translation_chars': None,
     }
-    setattr(config, 'FREE_TIER_THRESHOLDS', thresholds)
+    setattr(config, 'FREE_TIER_THRESHOLDS', json.dumps(thresholds))
 
 
 class Migration(migrations.Migration):

@@ -43,7 +43,7 @@ class EnvironmentView(APIView):
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'FREE_TIER_NAME',
-        'FREE_TIER_THRESHOLDS',
+        ('FREE_TIER_THRESHOLDS', lambda value, request: json.loads(value)),
         ('PROJECT_METADATA_FIELDS', lambda value, request: json.loads(value)),
         ('USER_METADATA_FIELDS', lambda value, request: json.loads(value)),
         (
