@@ -122,7 +122,7 @@ export default function Plan() {
       const feature_list_2 = thresholds?.storage
         ? t('##storage_gb## GB file storage, up to 1 year').replace(
             '##storage_gb##',
-            Math.floor(thresholds.storage / 1024).toString()
+            Math.floor(thresholds.storage / (1024 * 1024)).toString()
           )
         : null;
       const feature_list_3 =
