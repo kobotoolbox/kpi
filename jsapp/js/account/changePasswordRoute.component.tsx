@@ -2,15 +2,13 @@ import React from 'react';
 import DocumentTitle from 'react-document-title';
 import {observer} from 'mobx-react';
 import sessionStore from 'js/stores/session';
-import {actions} from '../actions';
 import bem, {makeBem} from 'js/bem';
-import TextBox from 'js/components/common/textBox';
-import PasswordStrength from 'js/components/passwordStrength.component';
 import {stringToColor} from 'js/utils';
-import {ROOT_URL} from 'js/constants';
 import {withRouter} from 'js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import './accountSettings.scss';
+import styles from './changePasswordRoute.module.scss';
+import UpdatePasswordForm from './security/password/updatePasswordForm.component';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -18,89 +16,9 @@ bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
-interface PasswordErrors {
-  currentPassword?: string;
-  newPassword?: string;
-  verifyPassword?: string;
-}
-
-interface ChangePasswordRouteState {
-  errors: PasswordErrors;
-  currentPassword: string;
-  newPassword: string;
-  verifyPassword: string;
-}
-
-const FIELD_REQUIRED_ERROR = t('This field is required.');
-
-const ChangePasswordRoute = class ChangePassword extends React.Component<
-  WithRouterProps,
-  ChangePasswordRouteState
-> {
-  errors: PasswordErrors = {};
-
-  constructor(props: WithRouterProps) {
-    super(props);
-    this.errors = {};
-    this.state = {
-      errors: this.errors,
-      currentPassword: '',
-      newPassword: '',
-      verifyPassword: '',
-    };
-  }
-
+const ChangePasswordRoute = class ChangePassword extends React.Component<WithRouterProps> {
   close() {
     this.props.router.navigate(-1);
-  }
-
-  savePassword() {
-    this.errors = {};
-
-    if (!this.state.currentPassword) {
-      this.errors.currentPassword = FIELD_REQUIRED_ERROR;
-    }
-    if (!this.state.newPassword) {
-      this.errors.newPassword = FIELD_REQUIRED_ERROR;
-    }
-    if (!this.state.verifyPassword) {
-      this.errors.verifyPassword = FIELD_REQUIRED_ERROR;
-    }
-
-    if (this.state.newPassword !== this.state.verifyPassword) {
-      this.errors.newPassword = t(
-        'This field must match the Verify Password field.'
-      );
-    }
-    if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(
-        this.state.currentPassword,
-        this.state.newPassword
-      );
-    }
-    this.setState({errors: this.errors});
-  }
-
-  onChangePasswordFailed(jqXHR: JQuery.jqXHR) {
-    if (jqXHR.responseJSON.current_password) {
-      this.errors.currentPassword = jqXHR.responseJSON.current_password;
-    }
-    if (jqXHR.responseJSON.new_password) {
-      this.errors.newPassword = jqXHR.responseJSON.new_password;
-    }
-    this.setState({errors: this.errors});
-  }
-
-  onCurrentPasswordChange(val: string) {
-    this.setState({currentPassword: val});
-  }
-
-  onNewPasswordChange(val: string) {
-    this.setState({newPassword: val});
-  }
-
-  onVerifyPasswordChange(val: string) {
-    this.setState({verifyPassword: val});
   }
 
   render() {
@@ -115,10 +33,6 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <bem.KoboButton onClick={this.savePassword.bind(this)} m='blue'>
-              {t('Save Password')}
-            </bem.KoboButton>
-
             <button
               onClick={this.close.bind(this)}
               className='account-settings-close mdl-button mdl-button--icon'
@@ -135,57 +49,9 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<
               <h4>{accountName}</h4>
             </bem.AccountSettings__item>
 
-            <bem.AccountSettings__item m='fields'>
-              <bem.AccountSettings__item>
-                <h4>{t('Reset Password')}</h4>
-              </bem.AccountSettings__item>
-
-              <bem.AccountSettings__item>
-                <TextBox
-                  customModifiers='on-white'
-                  label={t('Current Password')}
-                  type='password'
-                  errors={this.state.errors.currentPassword}
-                  value={this.state.currentPassword}
-                  onChange={this.onCurrentPasswordChange.bind(this)}
-                />
-
-                <a
-                  className='account-settings-link'
-                  href={`${ROOT_URL}/accounts/password/reset/`}
-                >
-                  {t('Forgot Password?')}
-                </a>
-              </bem.AccountSettings__item>
-
-              <bem.AccountSettings__item>
-                <TextBox
-                  customModifiers='on-white'
-                  label={t('New Password')}
-                  type='password'
-                  errors={this.state.errors.newPassword}
-                  value={this.state.newPassword}
-                  onChange={this.onNewPasswordChange.bind(this)}
-                />
-              </bem.AccountSettings__item>
-
-              {this.state.newPassword !== '' && (
-                <bem.AccountSettings__item>
-                  <PasswordStrength password={this.state.newPassword} />
-                </bem.AccountSettings__item>
-              )}
-
-              <bem.AccountSettings__item>
-                <TextBox
-                  customModifiers='on-white'
-                  label={t('Verify Password')}
-                  type='password'
-                  errors={this.state.errors.verifyPassword}
-                  value={this.state.verifyPassword}
-                  onChange={this.onVerifyPasswordChange.bind(this)}
-                />
-              </bem.AccountSettings__item>
-            </bem.AccountSettings__item>
+            <div className={styles.fieldsWrapper}>
+              <UpdatePasswordForm />
+            </div>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
       </DocumentTitle>
