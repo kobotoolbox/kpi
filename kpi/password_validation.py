@@ -4,6 +4,7 @@ import regex as re
 from constance import config
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as t
+from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import (
     CommonPasswordValidator as BaseCommonPasswordValidator,
     MinimumLengthValidator as BaseMinimumLengthValidator,
@@ -17,6 +18,25 @@ class CommonPasswordValidator(BaseCommonPasswordValidator):
 
     def __init__(self, *args, **kwargs):
         if not config.ENABLE_COMMON_PASSWORD_VALIDATION:
+            return
+
+        self._load_password()
+
+    def validate(self, password, user=None):
+        if not config.ENABLE_COMMON_PASSWORD_VALIDATION:
+            return
+
+        # Call `_load.password()` in case `ENABLE_COMMON_PASSWORD_VALIDATION`
+        # has been turned on after first instantiation of all validators.
+        # List of passwords would not have been populated in that case.
+        self._load_password()
+        return super().validate(password, user)
+
+    def _load_password(self):
+        """
+        Load passwords if they have been loaded yet
+        """
+        if hasattr(self, 'passwords'):
             return
 
         try:
@@ -33,12 +53,6 @@ class CommonPasswordValidator(BaseCommonPasswordValidator):
                 common_passwords_lines = content.decode().splitlines()
 
             self.passwords = {p.strip() for p in common_passwords_lines}
-
-    def validate(self, password, user=None):
-        if not config.ENABLE_COMMON_PASSWORD_VALIDATION:
-            return
-
-        return super().validate(password, user)
 
 
 class MinimumLengthValidator(BaseMinimumLengthValidator):
@@ -81,15 +95,19 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
 
         # Set extra detail attributes on user object to call parent class
         # validation
-        if not hasattr(user, 'full_name') and user.extra_details:
-            setattr(user, 'full_name', user.extra_details.data.get('name', ''))
+        if not hasattr(user, 'full_name') and not hasattr(user, 'organization'):
+            try:
+                user_extra_details = user.extra_details
+            except get_user_model().extra_details.RelatedObjectDoesNotExist:
+                pass
+            else:
+                setattr(user, 'full_name', user_extra_details.data.get('name', ''))
+                setattr(
+                    user,
+                    'organization',
+                    user_extra_details.data.get('organization', ''),
+                )
 
-        if not hasattr(user, 'organization') and user.extra_details:
-            setattr(
-                user,
-                'organization',
-                user.extra_details.data.get('organization', ''),
-            )
         super().validate(password, user)
 
 

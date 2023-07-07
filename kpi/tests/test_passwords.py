@@ -71,6 +71,35 @@ class PasswordTestCase(BaseTestCase):
         assert error is False
 
     @override_config(
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False
+    )
+    def test_common_password_toggle_with_validators_already_loaded(self):
+        """
+        Ensure `CommonPasswordValidator` does not raise
+        `AttributeError: 'CommonPasswordValidator' object has no attribute 'passwords'`
+        if `ENABLE_COMMON_PASSWORD_VALIDATION` is turned on after first
+        instantiation of all validators.
+        """
+
+        password = 'r@nd0mP4s$word'
+
+        @override_config(ENABLE_COMMON_PASSWORD_VALIDATION=False)
+        def disable_common_password_validation():
+            error = self._run_validation(password)
+            assert error is False
+
+        @override_config(ENABLE_COMMON_PASSWORD_VALIDATION=True)
+        def enable_common_password_validation():
+            error = self._run_validation(password, void_cache=False)
+            assert error is False
+
+        disable_common_password_validation()
+        enable_common_password_validation()
+
+    @override_config(
         ENABLE_MOST_RECENT_PASSWORD_VALIDATION=True,
         ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
         ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
@@ -189,11 +218,15 @@ class PasswordTestCase(BaseTestCase):
         assert error is False
 
     def _run_validation(
-        self, password: str, user: User = None
+        self, password: str, user: User = None, void_cache: bool = True
     ) -> Union[str, bool]:
 
         if not user:
             user = self.user
+
+        if void_cache:
+            # Void validators cache to be sure they are instantiated again
+            get_default_password_validators.cache_clear()
 
         for password_validator in get_default_password_validators():
             try:
