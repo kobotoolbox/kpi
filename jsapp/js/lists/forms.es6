@@ -28,20 +28,22 @@ class FormsSearchableList extends React.Component {
       showModal: false,
     };
   }
-  
+
   componentDidMount() {
     const allCookies = cookies.getAll();
-    const isLimitCookie = Object.keys(allCookies).find(key => key === 'overLimitsCookie');
+    const isLimitCookie = Object.keys(allCookies).find(
+      (key) => key === 'overLimitsCookie'
+    );
 
-    if(isLimitCookie === undefined && checkLimits()){
-      this.setState({showModal: true});   
+    if (isLimitCookie === undefined && checkLimits()) {
+      this.setState({showModal: true});
 
       var dateNow = new Date();
       var expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
       cookies.set('overLimitsCookie', {
         expires: expireDate,
       });
-    } 
+    }
     this.searchSemaphore();
   }
 

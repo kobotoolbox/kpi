@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useMemo, useReducer} from 'react';
+import React, {useEffect, useState} from 'react';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
@@ -51,7 +51,7 @@ function OverLimitModal(props: OverLimitModalProps) {
               {getAllExceedingLimits().map((item, i) => (
                 <span key={i}>
                   {i > 0 && ', '}
-                  {i == getAllExceedingLimits().length - 1 && i > 0 && 'and '}
+                  {i === getAllExceedingLimits().length - 1 && i > 0 && 'and '}
                   {item}
                 </span>
               ))}{' '}

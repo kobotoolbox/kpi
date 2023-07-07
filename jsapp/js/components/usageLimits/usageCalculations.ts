@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useMemo, useReducer} from 'react';
+import {useEffect, useState, useMemo, useReducer} from 'react';
 import {getUsage} from '../../account/usage.api';
 import type {BaseSubscription} from '../../account/stripe.api';
 import {getSubscription} from '../../account/stripe.api';
@@ -24,21 +24,20 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
 
 const exceedList: string[] = ['submissions'];
 
-export const  getAllExceedingLimits = () => {
-    const [state, dispatch] = useReducer(subscriptionReducer, initialState);
-    const [usage, setUsage] = useState<UsageState>({
-      storage: 0,
-      monthlySubmissions: 0,
-      transcriptionMinutes: 0,
-      translationChars: 0,
-    });
-    
-    const [subscribedStorageLimit, setSubscribedStorageLimit] = useState(1);
-    const [subscribedSubmissionLimit, setSubscribedSubmissionLimit] =
-      useState(1000);
-    const [subscribedTranscriptionMinutes, setTranscriptionMinutes] =
-      useState(600);
-    const [subscribedTranslationChars, setTranslationChars] = useState(6000);
+export const getAllExceedingLimits = () => {
+  const [state, dispatch] = useReducer(subscriptionReducer, initialState);
+  const [usage, setUsage] = useState<UsageState>({
+    storage: 0,
+    monthlySubmissions: 0,
+    transcriptionMinutes: 0,
+    translationChars: 0,
+  });
+  const [subscribedStorageLimit, setSubscribedStorageLimit] = useState(1);
+  const [subscribedSubmissionLimit, setSubscribedSubmissionLimit] =
+    useState(1000);
+  const [subscribedTranscriptionMinutes, setTranscriptionMinutes] =
+    useState(600);
+  const [subscribedTranslationChars, setTranslationChars] = useState(6000);
 
   // TODO: Current limits with default to community plan values
   // Should discuss this or check up on defaulting
@@ -113,10 +112,10 @@ export const  getAllExceedingLimits = () => {
 };
 
 // Check if any limits have been exceeded and return boolean
-export const checkLimits = ():boolean => {
-  if(exceedList.length > 0){
-  return true;
+export const checkLimits = (): boolean => {
+  if (exceedList.length > 0) {
+    return true;
   } else {
-      return false
+    return false;
   }
 };
