@@ -82,6 +82,8 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={() => handleClose()}
             label={t('Do it later')}
+            classNames={['long-button-padding']}
+            aria-label={t('Do it later')}
           />
 
           <Button
@@ -90,6 +92,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             size='l'
             onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
             label={t('Manage subscription')}
+            aria-label={t('Manage subscription')}
           />
         </KoboModalFooter>
       </KoboModal>
