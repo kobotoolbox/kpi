@@ -1,5 +1,4 @@
-import random
-
+from constance.test import override_config
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import override_settings, TestCase
@@ -22,6 +21,15 @@ class EmailContentModelTestCase(TestCase):
         CACHES={
             'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
         }
+    )
+    # use `override_config` decorator to deactivate all password validators
+    # to let this test use a simple password.
+    @override_config(
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
+        ENABLE_COMMON_PASSWORD_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
     )
     def test_custom_activation_email_template(self):
         email_content = EmailContent.objects.create(
@@ -51,7 +59,20 @@ class EmailContentModelTestCase(TestCase):
         assert mail.outbox[0].subject == email_subject.content
         assert email_content.content in mail.outbox[0].body
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={
+            'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+        }
+    )
+    # use `override_config` decorator to deactivate all password validators
+    # to let this test use a simple password.
+    @override_config(
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
+        ENABLE_COMMON_PASSWORD_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
+    )
     def test_custom_activation_email_template_blank_content(self):
         email_content = EmailContent.objects.create(
             email_name='email_confirmation_signup_message',
@@ -97,7 +118,20 @@ class EmailContentModelTestCase(TestCase):
         assert email_content.content in mail.outbox[0].body
         assert default not in mail.outbox[0].body
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={
+            'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+        }
+    )
+    # use `override_config` decorator to deactivate all password validators
+    # to let this test use a simple password.
+    @override_config(
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
+        ENABLE_COMMON_PASSWORD_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
+    )
     def test_default_activation_email_template(self):
         username = 'user003'
         email = username + '@example.com'
