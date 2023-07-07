@@ -80,9 +80,6 @@ jobs:
     # --- Done installing JavaScript dependencies ---
     - name: Update translations
       run: git submodule init && git submodule update --remote && python manage.py compilemessages
-    # Intercom tests in Python fail if the front-end code has not been built
-    - name: Build front-end code
-      run: SKIP_TS_CHECK=true npm run build
     - name: Test back-end code
       # Explicitly name the directories where coverage should be measured;
       # specifying just `--cov=.` includes `src`, which contains third-party packages
