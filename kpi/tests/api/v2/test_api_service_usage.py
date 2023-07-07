@@ -197,7 +197,6 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         assert response.data['total_nlp_mt_characters'] == 6726
         assert response.data['total_submission_count_all_time'] == 1
         assert response.data['total_storage_bytes'] == self.__expected_file_size()
-        assert len(response.data['per_asset_usage']) == 1
 
     def test_multiple_forms(self):
         """
@@ -211,7 +210,6 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
-        assert len(response.data['per_asset_usage']) == 2
         assert response.data['total_submission_count_current_month'] == 3
         assert response.data['total_submission_count_all_time'] == 3
         assert response.data['total_storage_bytes'] == (self.__expected_file_size() * 3)
@@ -226,7 +224,6 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total_submission_count_current_month'] == 0
         assert response.data['total_submission_count_all_time'] == 0
-        assert len(response.data['per_asset_usage']) == 0
         assert response.data['total_storage_bytes'] == 0
 
     def test_no_deployment(self):

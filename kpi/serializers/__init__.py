@@ -18,5 +18,4 @@ from .v1.tag import TagListSerializer
 from .v1.tag import TagSerializer
 from .create_user import CreateUserSerializer
 from .current_user import CurrentUserSerializer
-from .v1.user import UserSerializer
 from .v1.user_asset_subscription import UserAssetSubscriptionSerializer

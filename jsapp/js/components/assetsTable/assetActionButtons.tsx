@@ -8,7 +8,7 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import _ from 'lodash';
+import debounce from 'lodash.debounce';
 import PopoverMenu from 'js/popoverMenu';
 import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
@@ -57,7 +57,7 @@ class AssetActionButtons extends React.Component<
   AssetActionButtonsState
 > {
   private unlisteners: Function[] = [];
-  hidePopoverDebounced = _.debounce(() => {
+  hidePopoverDebounced = debounce(() => {
     if (this.state.isPopoverVisible) {
       this.setState({shouldHidePopover: true});
     }

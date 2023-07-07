@@ -110,16 +110,14 @@ class EnvironmentView(APIView):
                     continue
 
             data[key.lower()] = value
-        
+
         # django-allauth social apps are configured in both settings and the database
         # Optimize by avoiding extra DB call when unnecessary
         social_apps = []
         if settings.SOCIALACCOUNT_PROVIDERS:
             social_apps = list(
-                SocialApp.objects.values(
-                    'provider',
-                    'name',
-                    'client_id'
+                SocialApp.objects.filter(custom_data__isnull=True).values(
+                    'provider', 'name', 'client_id'
                 )
             )
 
@@ -133,6 +131,5 @@ class EnvironmentView(APIView):
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         data['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
-        data['stripe_pricing_table_id'] = settings.STRIPE_PRICING_TABLE_ID
         data['social_apps'] = social_apps
         return Response(data)
