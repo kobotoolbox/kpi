@@ -156,6 +156,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
     data = models.JSONField(default=dict)
+    private_data = models.JSONField(default=dict)
     date_removal_requested = models.DateTimeField(null=True)
     date_removed = models.DateTimeField(null=True)
 
