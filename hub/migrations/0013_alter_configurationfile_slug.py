@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hub', '0011_add_common_passwords_file'),
+        ('hub', '0012_add_common_passwords_file'),
     ]
 
     operations = [

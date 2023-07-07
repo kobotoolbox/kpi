@@ -7,7 +7,7 @@ import hub.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hub', '0010_do_nothing'),
+        ('hub', '0011_extrauserdetail_private_data'),
     ]
 
     operations = [
