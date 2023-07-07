@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
@@ -26,8 +26,6 @@ interface ProjectsTableRowProps {
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
-  const navigate = useNavigate();
-
   const toggleCheckbox = () => {
     props.onSelectRequested(!props.isSelected);
   };
