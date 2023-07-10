@@ -1,13 +1,18 @@
-import uuid
+from django.conf import settings
 
-from django.db import models
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
-from django.forms.fields import EmailField
 
-from organizations.abstract import (AbstractOrganization,
-                                    AbstractOrganizationInvitation,
-                                    AbstractOrganizationOwner,
-                                    AbstractOrganizationUser)
+from organizations.abstract import (
+    AbstractOrganization,
+    AbstractOrganizationInvitation,
+    AbstractOrganizationOwner,
+    AbstractOrganizationUser,
+)
+
+STRIPE_ENABLED = settings.STRIPE_ENABLED
+if STRIPE_ENABLED:
+    from djstripe.models import Subscription
 
 
 class Organization(AbstractOrganization):
@@ -20,6 +25,21 @@ class Organization(AbstractOrganization):
         it has an email address attribute
         """
         return self.owner.organization_user.user.email
+
+    @property
+    def active_subscription(self):
+        """
+        Retrieve the newest active subscription for the organization
+        The status types that are considered 'active' are determined by ACTIVE_STRIPE_STATUSES
+        """
+        if STRIPE_ENABLED:
+            # Get the organization's subscription, if they have one
+            return Subscription.objects.filter(
+                status__in=ACTIVE_STRIPE_STATUSES,
+                customer__subscriber=self.id,
+            ).order_by('-start_date').first()
+        return None
+
 
 class OrganizationUser(AbstractOrganizationUser):
     pass
