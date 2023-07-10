@@ -154,12 +154,6 @@ bem.FormView__map = makeBem(bem.FormView, 'map');
 bem.FormView__mapButton = makeBem(bem.FormView, 'map-button');
 bem.FormView__mapList = makeBem(bem.FormView, 'map-list');
 
-bem.MainHeader = makeBem(null, 'main-header', 'header');
-bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon', 'i');
-bem.MainHeader__title = makeBem(bem.MainHeader, 'title');
-bem.MainHeader__counter = makeBem(bem.MainHeader, 'counter');
-
-
 bem.ReportView = makeBem(null, 'report-view');
 bem.ReportView__wrap = makeBem(bem.ReportView, 'wrap');
 bem.ReportView__item = makeBem(bem.ReportView, 'item');

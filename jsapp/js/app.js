@@ -13,7 +13,7 @@ import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header/mainHeader';
+import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
 import FormViewSideTabs from 'js/components/formViewSideTabs';
 import ProjectTopTabs from 'js/project/projectTopTabs.component';
@@ -82,7 +82,7 @@ class App extends React.Component {
 
             { !this.isFormBuilder() &&
               <React.Fragment>
-                <MainHeader assetid={assetid}/>
+                <MainHeader assetUid={assetid}/>
                 <Drawer/>
               </React.Fragment>
             }

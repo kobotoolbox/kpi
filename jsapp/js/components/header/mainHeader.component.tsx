@@ -1,45 +1,46 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import reactMixin from 'react-mixin';
 import {observer} from 'mobx-react';
-import autoBind from 'react-autobind';
 import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
-import {withRouter} from 'js/router/legacy';
-import Reflux from 'reflux';
-import bem from 'js/bem';
-import {actions} from 'js/actions';
-import mixins from 'js/mixins';
-import {assign} from 'js/utils';
-import {getLoginUrl, isAnyProjectsViewRoute} from 'js/router/routerUtils';
+import bem, {makeBem} from 'js/bem';
+import {
+  getLoginUrl,
+  isAnyFormRoute,
+  isAnyProjectsViewRoute,
+  isMyLibraryRoute,
+  isPublicCollectionsRoute,
+} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
 import {userCan} from 'js/components/permissions/utils';
 import AccountMenu from './accountMenu';
+import type {AssetResponse} from 'js/dataInterface';
+import {history} from 'js/router/historyRouter';
+import Icon from 'js/components/common/icon';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
-const MainHeader = class MainHeader extends Reflux.Component {
-  constructor(props) {
-    super(props);
-    this.state = assign({
-      asset: false,
-    }, stores.pageState.state);
-    this.stores = [
-      stores.pageState,
-    ];
-    this.unlisteners = [];
-    autoBind(this);
-  }
+bem.MainHeader = makeBem(null, 'main-header', 'header');
+bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon');
+bem.MainHeader__title = makeBem(bem.MainHeader, 'title');
+bem.MainHeader__counter = makeBem(bem.MainHeader, 'counter');
+
+interface MainHeaderProps {
+  assetUid: string | null;
+}
+
+const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
-    // On initial load use the possibly stored asset.
-    this.setState({asset: assetStore.getAsset(this.currentAssetID())});
-
+    // Without much refactor, we ensure that the header re-renders itself,
+    // whenever any linked store changes.
     this.unlisteners.push(
-      assetStore.listen(this.onAssetLoad, this),
-      myLibraryStore.listen(this.forceRender, this)
+      history.listen(() => this.forceUpdate()),
+      assetStore.listen(() => this.forceUpdate(), this),
+      myLibraryStore.listen(() => this.forceUpdate(), this)
     );
   }
 
@@ -47,42 +48,13 @@ const MainHeader = class MainHeader extends Reflux.Component {
     this.unlisteners.forEach((clb) => {clb();});
   }
 
-  /*
-   * NOTE: this should be updated to `getDerivedStateFromProps` but causes Error:
-   * Warning: Unsafe legacy lifecycles will not be called for components using new component APIs.
-   * MainHeader uses getDerivedStateFromProps() but also contains the following legacy lifecycles:
-   * componentWillMount
-   */
-  componentWillUpdate(newProps) {
-    if (this.props.assetid !== newProps.assetid) {
-      this.setState({asset: false});
-      // we need new asset here, but instead of duplicating a call, we wait for
-      // action triggered by other component (route component)
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.assetid !== this.props.assetid && this.props && this.props.assetid) {
-      actions.resources.loadAsset({id: this.props.assetid});
-    }
-  }
-
-  forceRender() {
-    this.setState(this.state);
-  }
-
   isSearchBoxDisabled() {
-    if (this.isMyLibrary()) {
+    if (isMyLibraryRoute()) {
       // disable search when user has zero assets
       return myLibraryStore.getCurrentUserTotalAssets() === null;
     } else {
       return false;
     }
-  }
-
-  onAssetLoad(data) {
-    const asset = data[this.props.assetid];
-    this.setState(assign({asset: asset}));
   }
 
   renderLoginButton() {
@@ -99,7 +71,10 @@ const MainHeader = class MainHeader extends Reflux.Component {
   }
 
   renderGitRevInfo() {
-    if (sessionStore.currentAccount?.git_rev) {
+    if (
+      'git_rev' in sessionStore.currentAccount &&
+      sessionStore.currentAccount?.git_rev
+    ) {
       const gitRev = sessionStore.currentAccount.git_rev;
       return (
         <bem.GitRev>
@@ -123,18 +98,23 @@ const MainHeader = class MainHeader extends Reflux.Component {
   render() {
     const isLoggedIn = sessionStore.isLoggedIn;
 
-    let userCanEditAsset = false;
-    if (this.state.asset) {
-      userCanEditAsset = userCan('change_asset', this.state.asset);
+    let asset: AssetResponse | undefined;
+    if (this.props.assetUid) {
+      asset = assetStore.getAsset(this.props.assetUid);
     }
 
-    let iconClassName = '';
-    if (this.state.asset) {
-      iconClassName = getAssetIcon(this.state.asset);
+    let userCanEditAsset = false;
+    if (asset) {
+      userCanEditAsset = userCan('change_asset', asset);
+    }
+
+    let iconName: IconName | undefined;
+    if (asset) {
+      iconName = getAssetIcon(asset);
     }
 
     let librarySearchBoxPlaceholder = t('Search My Library');
-    if (this.isPublicCollections()) {
+    if (isPublicCollectionsRoute()) {
       librarySearchBoxPlaceholder = t('Search Public Collections');
     }
 
@@ -154,7 +134,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
             </span>
 
             {/* Things for Library */}
-            { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
+            { isLoggedIn && (isMyLibraryRoute() || isPublicCollectionsRoute()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
                   placeholder={librarySearchBoxPlaceholder}
@@ -174,18 +154,22 @@ const MainHeader = class MainHeader extends Reflux.Component {
             }
 
             {/* Things for Project */}
-            {this.state.asset && this.isFormSingle() &&
+            {asset && isAnyFormRoute() &&
               <React.Fragment>
-                <bem.MainHeader__icon className={iconClassName} />
+                {iconName &&
+                  <bem.MainHeader__icon>
+                    <Icon name={iconName} />
+                  </bem.MainHeader__icon>
+                }
 
                 <HeaderTitleEditor
-                  asset={this.state.asset}
+                  asset={asset}
                   isEditable={userCanEditAsset}
                 />
 
-                { this.isFormSingle() && this.state.asset.has_deployment &&
+                { asset.has_deployment &&
                   <bem.MainHeader__counter>
-                    {this.state.asset.deployment__submission_count} {t('submissions')}
+                    {asset.deployment__submission_count} {t('submissions')}
                   </bem.MainHeader__counter>
                 }
               </React.Fragment>
@@ -201,9 +185,4 @@ const MainHeader = class MainHeader extends Reflux.Component {
   }
 };
 
-reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
-reactMixin(MainHeader.prototype, mixins.contextRouter);
-
-MainHeader.contextTypes = {router: PropTypes.object};
-
-export default observer(withRouter(MainHeader));
+export default observer(MainHeader);
