@@ -27,7 +27,6 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
-import {BaseProduct} from 'js/account/subscriptionStore';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 
 interface PlanState {
