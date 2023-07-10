@@ -143,7 +143,9 @@ export default function SidebarDisplaySettings() {
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
-              // Apply reset to the ToggleSwitch state.
+              // Apply reset to local state of selected displays. This is needed
+              // because the modal component (and its state) is kept alive even
+              // when the modal is closed.
               setSelectedDisplays(store.getDisplays(activeTab));
               setIsModalOpen(false);
             }}
