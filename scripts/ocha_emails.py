@@ -9,7 +9,7 @@ from django.utils import timezone
 from kobo.apps.project_views.models.assignment import User
 
 FROM_ADDRESS = 'Tino Kreutzer <support@kobotoolbox.org>'
-EMAIL_SUBJECT = '📣 Important update about the OCHA KoboToolbox server'
+EMAIL_SUBJECT = '📣 OCHA KoboToolbox server - Important Update / Aviso importante / Mise à jour importante / تحديث مهم'
 EMAIL_TEMPLATE_NAME = 'OCHATransitionEmail'
 EMAIL_HTML_FILENAME = 'ocha_transition_email.html'
 EMAIL_TEXT_FILENAME = 'ocha_transition_email.txt'
@@ -19,8 +19,8 @@ RETRY_WAIT_TIME = 30  # in seconds
 # So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
 RESERVE_EMAIL_COUNT = 4000
 # Whether this is a marketing email or a transactional email.
-# Marketing emails aren't sent to addresses that have bounced or registered spam complaints
-# Transactional emails are only suppressed if we record a bounce
+# Marketing emails aren't sent to addresses that have registered spam complaints
+# Transactional emails ignore spam complaints
 IS_MARKETING_EMAIL = True
 
 
@@ -28,12 +28,14 @@ def run(*args):
     # To run the script in test mode, use './manage.py runscript ocha_emails --script-args test'
     test_mode = 'test' in args
     # Use force_send to send emails even to users that have received the email before
-    force_send = 'force_send' in args
+    force_send = 'force' in args
 
-    aws_region_name = os.environ.get('AWS_SES_REGION_NAME') or os.environ.get('AWS_S3_REGION_NAME')
+    aws_region_name = os.environ.get('AWS_SES_REGION_NAME') or os.environ.get(
+        'AWS_S3_REGION_NAME'
+    )
     ses = boto3.client('ses', region_name=aws_region_name)
 
-    remaining_sends = - 1
+    remaining_sends = -1
     quota = ses.get_send_quota()
     # if Max24HourSend == -1, we have unlimited daily sending quota
     if quota['Max24HourSend'] >= 0:
@@ -51,50 +53,52 @@ def run(*args):
             f'{remaining_sends} emails can be sent this run ({RESERVE_EMAIL_COUNT} kept in reserve)'
         )
 
-    directory = os.path.dirname(__file__)
+    if not test_mode:
+        directory = os.path.dirname(__file__)
 
-    print(f'getting html content from {EMAIL_HTML_FILENAME}')
-    filename = os.path.join(directory, EMAIL_HTML_FILENAME)
-    try:
-        with open(filename) as file:
-            email_html = file.read()
-    except FileNotFoundError:
-        quit("couldn't find html file")
+        print(f'getting html content from {EMAIL_HTML_FILENAME}')
+        filename = os.path.join(directory, EMAIL_HTML_FILENAME)
+        try:
+            with open(filename) as file:
+                email_html = file.read()
+        except FileNotFoundError:
+            quit("couldn't find html file")
 
-    print(f'getting text content from {EMAIL_TEXT_FILENAME}')
-    filename = os.path.join(directory, EMAIL_TEXT_FILENAME)
-    try:
-        with open(filename) as file:
-            email_text = file.read()
-    except FileNotFoundError:
-        quit("couldn't find text file")
+        print(f'getting text content from {EMAIL_TEXT_FILENAME}')
+        filename = os.path.join(directory, EMAIL_TEXT_FILENAME)
+        try:
+            with open(filename) as file:
+                email_text = file.read()
+        except FileNotFoundError:
+            quit("couldn't find text file")
 
-    template = {
-        'TemplateName': EMAIL_TEMPLATE_NAME,
-        'SubjectPart': EMAIL_SUBJECT,
-        'TextPart': email_text,
-        'HtmlPart': email_html,
-    }
+        template = {
+            'TemplateName': EMAIL_TEMPLATE_NAME,
+            'SubjectPart': EMAIL_SUBJECT,
+            'TextPart': email_text,
+            'HtmlPart': email_html,
+        }
 
-    try:
-        ses.get_template(TemplateName=EMAIL_TEMPLATE_NAME)
-        print(f'updating template {EMAIL_TEMPLATE_NAME}')
-        ses.update_template(Template=template)
-    except ses.exceptions.TemplateDoesNotExistException:
-        print('creating template...')
-        response = ses.create_template(Template=template)
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
-            print("couldn't create template - response below")
-            quit(response)
+        try:
+            ses.get_template(TemplateName=EMAIL_TEMPLATE_NAME)
+            print(f'updating template {EMAIL_TEMPLATE_NAME}')
+            ses.update_template(Template=template)
+        except ses.exceptions.TemplateDoesNotExistException:
+            print('creating template...')
+            response = ses.create_template(Template=template)
+            if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+                print("couldn't create template - response below")
+                quit(response)
 
     print('building users list...')
     user_detail_email_key = f'{EMAIL_TEMPLATE_NAME}_email_sent'
     eligible_users = get_eligible_users(user_detail_email_key, force=force_send)
 
     active_user_count = len(eligible_users)
-    print(
-        f"found {active_user_count} users who haven't received emails"
-    )
+    print(f"found {active_user_count} users who haven't received emails")
+
+    if test_mode:
+        quit('in test mode, exiting before sending any emails')
 
     users_emailed_count = 0
     configuration_set = {}
@@ -103,12 +107,10 @@ def run(*args):
 
     for user in eligible_users.iterator(chunk_size=500):
         for attempts in range(MAX_SEND_ATTEMPTS):
-            # In test mode, don't send any emails
-            if not test_mode:
-                response = send_email(ses, user.email, configuration=configuration_set)
-                status = response['ResponseMetadata']['HTTPStatusCode']
-            else:
-                status = 200
+            response = send_email(
+                ses, user.email, configuration=configuration_set
+            )
+            status = response['ResponseMetadata']['HTTPStatusCode']
             wait_time = RETRY_WAIT_TIME * (attempts + 1)
 
             match status:
@@ -119,9 +121,14 @@ def run(*args):
                         end='',
                         flush=True,
                     )
-                    user.extra_details.private_data[user_detail_email_key] = True
+                    user.extra_details.private_data[
+                        user_detail_email_key
+                    ] = True
                     user.extra_details.save()
-                    if remaining_sends != -1 and users_emailed_count >= remaining_sends:
+                    if (
+                        remaining_sends != -1
+                        and users_emailed_count >= remaining_sends
+                    ):
                         quit(
                             f'used up all email sends - {users_emailed_count} sent; try again in 24 hours.'
                         )
@@ -171,7 +178,9 @@ def get_eligible_users(user_detail_email_key, force=False):
         eligible_users = eligible_users.exclude(
             extra_details__private_data__has_key=user_detail_email_key,
         )
-    return eligible_users.annotate(email_lowercase=Lower('email')).distinct('email_lowercase')
+    return eligible_users.annotate(email_lowercase=Lower('email')).distinct(
+        'email_lowercase'
+    )
 
 
 def send_email(ses, address, configuration={}):
