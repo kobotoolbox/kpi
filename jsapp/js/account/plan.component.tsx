@@ -108,11 +108,11 @@ export default function Plan() {
 
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
     if (envStore.isReady) {
-      const thresholds = envStore.data.free_tier_thresholds as FreeTierThresholds;
+      const thresholds = envStore.data.free_tier_thresholds;
       const display = envStore.data.free_tier_display as FreeTierDisplay;
       const featureList : {[key: string]: string | null} = {};
       display.feature_list.forEach((feature, key) => {
-        featureList[`feature_list_${key+1}`] = feature;
+        featureList[`feature_list_${key + 1}`] = feature;
       });
       return {
         name: display.name,
