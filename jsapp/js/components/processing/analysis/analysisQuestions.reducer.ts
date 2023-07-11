@@ -46,24 +46,27 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
   switch (action.type) {
     case 'addQuestion': {
       // This is the place that assigns the uid to the question
-      const newUid = generateUuid();
+      const newUuid = generateUuid();
+
+      const newQuestion: AnalysisQuestionDraftable = {
+        type: action.payload.type,
+        labels: {_default: ''},
+        uuid: newUuid,
+        response: '',
+        // Note: initially the question is being added as a draft. It
+        // wouldn't be stored in database until user saves it intentionally.
+        isDraft: true,
+      };
+
       return {
         ...state,
         // We add the question at the beginning of the existing array.
         questions: [
-          {
-            type: action.payload.type,
-            label: '',
-            uid: newUid,
-            response: '',
-            // Note: initially the question is being added as a draft. It
-            // wouldn't be stored in database until user saves it intentionally.
-            isDraft: true,
-          },
+          newQuestion,
           ...state.questions,
         ],
         // We immediately open this question for editing
-        questionsBeingEdited: [...state.questionsBeingEdited, newUid],
+        questionsBeingEdited: [...state.questionsBeingEdited, newUuid],
       };
     }
     case 'deleteQuestion': {

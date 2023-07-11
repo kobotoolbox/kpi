@@ -106,7 +106,7 @@ export default function AnalysisQuestionEditor(
                 delete aq.isDraft;
                 return {
                   ...aq,
-                  label,
+                  labels: {_default: label},
                   additionalFields,
                 };
               } else {
