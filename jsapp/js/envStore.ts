@@ -27,15 +27,15 @@ export interface SocialApp {
 }
 
 export interface FreeTierThresholds {
-  storage?: number | null;
-  data?: number | null;
-  transcription_minutes?: number | null;
-  translation_chars?: number | null;
+  storage: number | null;
+  data: number | null;
+  transcription_minutes: number | null;
+  translation_chars: number | null;
 }
 
 export interface FreeTierDisplay {
   name: string | null;
-  feature_list: [string];
+  feature_list: [string] | [];
 }
 
 class EnvStoreData {
@@ -62,8 +62,13 @@ class EnvStoreData {
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
   public social_apps: SocialApp[] = [];
-  public free_tier_thresholds: FreeTierThresholds = {};
-  public free_tier_display: FreeTierDisplay | {} = {};
+  public free_tier_thresholds: FreeTierThresholds = {
+    storage: null,
+    data: null,
+    transcription_minutes: null,
+    translation_chars: null
+  };
+  public free_tier_display: FreeTierDisplay = {name: null, feature_list: []};
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
