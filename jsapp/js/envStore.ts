@@ -33,6 +33,11 @@ export interface FreeTierThresholds {
   translation_chars?: number | null;
 }
 
+export interface FreeTierDisplay {
+  name: string | null;
+  feature_list: [string];
+}
+
 class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
@@ -58,7 +63,7 @@ class EnvStoreData {
   public stripe_public_key: string | null = null;
   public social_apps: SocialApp[] = [];
   public free_tier_thresholds: FreeTierThresholds = {};
-  public free_tier_name: string = '';
+  public free_tier_display: FreeTierDisplay | {} = {};
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -120,7 +125,7 @@ class EnvStore {
     this.data.stripe_public_key = response.stripe_public_key;
     this.data.social_apps = response.social_apps;
     this.data.free_tier_thresholds = response.free_tier_thresholds;
-    this.data.free_tier_name = response.free_tier_name;
+    this.data.free_tier_display = response.free_tier_display;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs);

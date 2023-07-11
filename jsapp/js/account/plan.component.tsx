@@ -28,7 +28,7 @@ import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
 import {BaseProduct} from 'js/account/subscriptionStore';
-import EnvStore, {FreeTierThresholds} from 'js/envStore';
+import EnvStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
 import envStore from 'js/envStore';
 
 interface PlanState {
@@ -46,12 +46,9 @@ interface DataUpdates {
   prodData?: any;
 }
 
-interface FreeTierOverride extends FreeTierThresholds {
-  name?: string | null;
-  feature_list_1?: string | null;
-  feature_list_2?: string | null;
-  feature_list_3?: string | null;
-  feature_list_4?: string | null;
+interface FreeTierOverride extends FreeTierThresholds{
+  name: string | null;
+  [key: `feature_list_${number}`]: string | null;
 }
 
 const initialState = {
@@ -112,39 +109,17 @@ export default function Plan() {
 
   const freeTierOverride = useMemo((): FreeTierOverride | null => {
     if (envStore.isReady) {
-      const thresholds = envStore.data.free_tier_thresholds;
-      const feature_list_1 = thresholds?.data
-        ? t('##submissions## submissions per month').replace(
-            '##submissions##',
-            thresholds.data.toLocaleString()
-          )
-        : null;
-      const feature_list_2 = thresholds?.storage
-        ? t('##storage_gb## GB file storage, up to 1 year').replace(
-            '##storage_gb##',
-            Math.floor(thresholds.storage / (1024 * 1024)).toString()
-          )
-        : null;
-      const feature_list_3 =
-        thresholds?.translation_chars && thresholds?.transcription_minutes
-          ? t('##nlp_mins## mins / ##nlp_chars## characters of NLP')
-              .replace(
-                '##nlp_mins##',
-                thresholds.transcription_minutes.toLocaleString()
-              )
-              .replace(
-                '##nlp_chars##',
-                thresholds.translation_chars.toLocaleString()
-              )
-          : null;
-      const freeTier = {
-        name: envStore.data.free_tier_name,
-        feature_list_1,
-        feature_list_2,
-        feature_list_3,
+      const thresholds = envStore.data.free_tier_thresholds as FreeTierThresholds;
+      const display = envStore.data.free_tier_display as FreeTierDisplay;
+      const featureList : {[key: string]: string | null} = {};
+      display.feature_list.forEach((feature, key) => {
+        featureList[`feature_list_${key+1}`] = feature;
+      });
+      return {
+        name: display.name,
         ...thresholds,
+        ...featureList,
       };
-      return freeTier;
     }
     return null;
   }, [envStore.isReady]);
@@ -409,11 +384,9 @@ export default function Plan() {
     if (
       price.prices.unit_amount === 0 &&
       freeTierOverride &&
-      freeTierOverride[featureItem as keyof FreeTierOverride]
+      freeTierOverride.hasOwnProperty(featureItem)
     ) {
-      console.log(featureItem);
-      console.log(freeTierOverride);
-      return freeTierOverride[featureItem as keyof FreeTierOverride];
+      return freeTierOverride[featureItem  as keyof FreeTierOverride];
     }
     return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
   };

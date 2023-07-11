@@ -42,7 +42,7 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'FREE_TIER_NAME',
+        ('FREE_TIER_DISPLAY', lambda value, request: json.loads(value)),
         ('FREE_TIER_THRESHOLDS', lambda value, request: json.loads(value)),
         ('PROJECT_METADATA_FIELDS', lambda value, request: json.loads(value)),
         ('USER_METADATA_FIELDS', lambda value, request: json.loads(value)),
@@ -54,11 +54,17 @@ class EnvironmentView(APIView):
             # Starting in 2.8, new lines are saved as just "\n". In order to ensure compatibility
             # for data saved in older versions, we treat \n as the way to split lines. Then,
             # strip the \r off. There is no reason to do this for new constance settings
-            lambda text, request: tuple((line.strip('\r'), t(line.strip('\r'))) for line in text.split('\n')),
+            lambda text, request: tuple(
+                (line.strip('\r'), t(line.strip('\r')))
+                for line in text.split('\n')
+            ),
         ),
         (
             'OPERATIONAL_PURPOSE_CHOICES',
-            lambda text, request: tuple((line.strip('\r'), line.strip('\r')) for line in text.split('\n')),
+            lambda text, request: tuple(
+                (line.strip('\r'), line.strip('\r'))
+                for line in text.split('\n')
+            ),
         ),
         (
             'MFA_LOCALIZED_HELP_TEXT',
@@ -74,15 +80,16 @@ class EnvironmentView(APIView):
         (
             'MFA_ENABLED',
             # MFA is enabled if it is enabled globally…
-            lambda value, request: value and (
-                # but if per-user activation is enabled (i.e. at least one
-                # record in the table)…
-                not MfaAvailableToUser.objects.all().exists()
-                # global setting is overwritten by request user setting.
-                or MfaAvailableToUser.objects.filter(
-                user=get_database_user(request.user)
-            ).exists()
-            )
+            lambda value, request: value
+                                   and (
+                                       # but if per-user activation is enabled (i.e. at least one
+                                       # record in the table)…
+                                       not MfaAvailableToUser.objects.all().exists()
+                                       # global setting is overwritten by request user setting.
+                                       or MfaAvailableToUser.objects.filter(
+                                       user=get_database_user(request.user)
+                                   ).exists()
+                                   ),
         ),
     ]
 
@@ -131,6 +138,8 @@ class EnvironmentView(APIView):
         data['interface_languages'] = settings.LANGUAGES
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
-        data['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+        data['stripe_public_key'] = (
+            settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+        )
         data['social_apps'] = social_apps
         return Response(data)

@@ -10,7 +10,7 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
-import type {EnvStoreFieldItem, SocialApp} from 'js/envStore';
+import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
@@ -730,7 +730,7 @@ export interface EnvironmentResponse {
   stripe_public_key: string | null;
   social_apps: SocialApp[];
   free_tier_thresholds: FreeTierThresholds;
-  free_tier_name: string;
+  free_tier_display: FreeTierDisplay;
 }
 
 export interface AssetSubscriptionsResponse {

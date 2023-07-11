@@ -334,10 +334,16 @@ CONSTANCE_CONFIG = {
         # Use custom field for schema validation
         'free_tier_threshold_jsonschema'
     ),
-    'FREE_TIER_NAME': (
-        '',
-        'Display name to use for the free tier',
-        str,
+    'FREE_TIER_DISPLAY': (
+        json.dumps(
+            {
+                'name': None,
+                'feature_list': [],
+            }
+        ),
+        'Free tier frontend settings: name to use for the free tier, '
+        'array of text strings to display on the feature list of the Plans page',
+        'free_tier_display_jsonschema',
     ),
     'PROJECT_TRASH_GRACE_PERIOD': (
         7,
@@ -358,6 +364,10 @@ CONSTANCE_CONFIG = {
 CONSTANCE_ADDITIONAL_FIELDS = {
     'free_tier_threshold_jsonschema': [
         'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
+        {'widget': 'django.forms.Textarea'},
+    ],
+    'free_tier_display_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
         {'widget': 'django.forms.Textarea'},
     ],
     'metadata_fields_jsonschema': [
@@ -391,8 +401,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'FREE_TIER_THRESHOLDS',
-        'FREE_TIER_NAME',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -419,6 +427,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Tier settings': (
+        'FREE_TIER_THRESHOLDS',
+        'FREE_TIER_DISPLAY',
     ),
 }
 

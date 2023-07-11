@@ -51,6 +51,28 @@ class FreeTierThresholdField(JsonSchemaFormField):
         super().__init__(*args, schema=schema, **kwargs)
 
 
+class FreeTierDisplayField(JsonSchemaFormField):
+    """
+    Validates that the input has required properties with expected types
+    """
+
+    def __init__(self, *args, **kwargs):
+        schema = {
+            'type': 'object',
+            'uniqueItems': True,
+            'properties': {
+                'name': {'type': ['string', 'null']},
+                'feature_list': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                },
+            },
+            'required': ['name', 'feature_list'],
+            'additionalProperties': False,
+        }
+        super().__init__(*args, schema=schema, **kwargs)
+
+
 class MetadataFieldsListField(JsonSchemaFormField):
     """
     Validates that the input is an array of objects with "name" and "required"
