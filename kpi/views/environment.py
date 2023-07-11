@@ -80,16 +80,15 @@ class EnvironmentView(APIView):
         (
             'MFA_ENABLED',
             # MFA is enabled if it is enabled globally…
-            lambda value, request: value
-                                   and (
-                                       # but if per-user activation is enabled (i.e. at least one
-                                       # record in the table)…
-                                       not MfaAvailableToUser.objects.all().exists()
-                                       # global setting is overwritten by request user setting.
-                                       or MfaAvailableToUser.objects.filter(
-                                       user=get_database_user(request.user)
-                                   ).exists()
-                                   ),
+            lambda value, request: value and (
+                # but if per-user activation is enabled (i.e. at least one
+                # record in the table)…
+                not MfaAvailableToUser.objects.all().exists()
+                # global setting is overwritten by request user setting.
+                or MfaAvailableToUser.objects.filter(
+                    user=get_database_user(request.user)
+                ).exists()
+            )
         ),
     ]
 
