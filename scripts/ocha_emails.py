@@ -27,7 +27,7 @@ IS_MARKETING_EMAIL = True
 def run(*args):
     # To run the script in test mode, use './manage.py runscript ocha_emails --script-args test'
     test_mode = 'test' in args
-    # Use force_send to send emails even to users that have received the email before
+    # Use the 'force' arg to send emails even to users that have received the email before
     force_send = 'force' in args
 
     aws_region_name = os.environ.get('AWS_SES_REGION_NAME') or os.environ.get(
