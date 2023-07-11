@@ -122,12 +122,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  router?.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  router!.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  router?.navigate(ROUTES.LIBRARY);
+                  router!.navigate(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -173,7 +173,7 @@ mixins.dmix = {
         }, {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
-            router?.navigate(`/forms/${asset.uid}`);
+            router!.navigate(`/forms/${asset.uid}`);
           },
         });
 
@@ -205,7 +205,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        router?.navigate(`/forms/${asset.uid}`);
+        router!.navigate(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -641,7 +641,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              router?.navigate(goToUrl);
+              router!.navigate(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -674,9 +674,9 @@ mixins.clickAssets = {
       },
       edit: function (uid: string) {
         if (routerIsActive('library')) {
-          router?.navigate(`/library/asset/${uid}/edit`);
+          router!.navigate(`/library/asset/${uid}/edit`);
         } else {
-          router?.navigate(`/forms/${uid}/edit`);
+          router!.navigate(`/forms/${uid}/edit`);
         }
       },
       delete: function (
