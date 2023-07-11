@@ -28,8 +28,7 @@ import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
 import {BaseProduct} from 'js/account/subscriptionStore';
-import EnvStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
-import envStore from 'js/envStore';
+import envStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
