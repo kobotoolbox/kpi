@@ -140,7 +140,6 @@ export default function UpdatePasswordForm() {
           type='full'
           color='blue'
           size='m'
-          onClick={savePassword}
           label={t('Save Password')}
           isSubmit
           isPending={isPending}
