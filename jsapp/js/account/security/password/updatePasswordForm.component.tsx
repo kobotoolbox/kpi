@@ -57,8 +57,18 @@ export default function UpdatePasswordForm() {
     if (!hasErrors) {
       setIsPending(true);
 
+      // TODO: Handle error cases (such as 400 bad request)
+      //
+      // Currently this shows "changed password successfully" if the network
+      // succeeds and it gets any response from the server, even a 400.
+      //
+      // It needs to handle the case where a user types the wrong "current"
+      // password, or if the server rejects the update for some other reason.
       try {
-        await fetchPatch(endpoints.ME_URL, {currentPassword, newPassword});
+        await fetchPatch(endpoints.ME_URL, {
+          current_password: currentPassword,
+          new_password: newPassword,
+        });
         setIsPending(false);
         setCurrentPassword('');
         setNewPassword('');

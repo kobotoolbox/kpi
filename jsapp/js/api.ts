@@ -4,6 +4,8 @@ import type {Json} from './components/common/common.interfaces';
 
 const JSON_HEADER = 'application/json';
 
+// TODO: This needs a way to check for errors such as 400, 500.
+// https://stackoverflow.com/questions/39297345/fetch-resolves-even-if-404
 const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
   const headers: {[key: string]: string} = {
     Accept: JSON_HEADER,
