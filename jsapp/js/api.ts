@@ -2,6 +2,7 @@
 import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
+import {notify} from 'js/utils';
 
 const JSON_HEADER = 'application/json';
 
@@ -26,6 +27,18 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
   });
 
   const contentType = response.headers.get('content-type');
+
+  // For server issues, we simply reject with no useful data. We expect the UI
+  // to not react with any notification or some other indicator.
+  if (
+    response.status === 401 ||
+    response.status === 403 ||
+    response.status === 404 ||
+    response.status >= 500
+  ) {
+    notify(t('Server error'));
+    return Promise.reject();
+  }
 
   if (!response.ok) {
     // This will be returned with the promise rejection. It can include that
