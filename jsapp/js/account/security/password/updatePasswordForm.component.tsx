@@ -82,12 +82,17 @@ export default function UpdatePasswordForm() {
     }
   }
 
+  function submitPasswordForm(evt: React.FormEvent<HTMLFormElement>) {
+    evt.preventDefault();
+    savePassword();
+  }
+
   if (!sessionStore.isLoggedIn) {
     return null;
   }
 
   return (
-    <form className={styles.root}>
+    <form className={styles.root} onSubmit={submitPasswordForm}>
       <div className={styles.row}>
         <TextBox
           customModifiers='on-white'
@@ -137,6 +142,7 @@ export default function UpdatePasswordForm() {
           size='m'
           onClick={savePassword}
           label={t('Save Password')}
+          isSubmit
           isPending={isPending}
         />
       </div>
