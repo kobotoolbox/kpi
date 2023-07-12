@@ -464,7 +464,7 @@ export default class Reports extends React.Component {
             <br />
             <code>
               {this.state.error.statusText}
-              {': ' + this.state.error.responseText}
+              {': ' + this.state.error.responseText || t('Unknown error')}
             </code>
           </bem.Loading__inner>
         </bem.Loading>

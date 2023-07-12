@@ -8,7 +8,7 @@ import Button from 'js/components/common/button';
 import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
-import type {PasswordUpdateFailResponse} from 'js/dataInterface';
+import type {FailResponse} from 'js/dataInterface';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
@@ -67,13 +67,13 @@ export default function UpdatePasswordForm() {
         setVerifyPassword('');
         notify(t('changed password successfully'));
       } catch (error) {
-        const errorObj = error as Response | PasswordUpdateFailResponse;
+        const errorObj = error as FailResponse;
 
-        if ('current_password' in errorObj && errorObj.current_password) {
-          setCurrentPasswordError(errorObj.current_password[0]);
+        if (errorObj.responseJSON?.current_password) {
+          setCurrentPasswordError(errorObj.responseJSON.current_password[0]);
         }
-        if ('new_password' in errorObj && errorObj.new_password) {
-          setNewPasswordError(errorObj.new_password[0]);
+        if (errorObj.responseJSON?.new_password) {
+          setNewPasswordError(errorObj.responseJSON.new_password[0]);
         }
 
         setIsPending(false);

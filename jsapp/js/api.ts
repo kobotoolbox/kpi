@@ -1,11 +1,10 @@
 // Thin kobo api wrapper around fetch
 import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
+import type {FailResponse} from 'js/dataInterface';
 
 const JSON_HEADER = 'application/json';
 
-// TODO: This needs a way to check for errors such as 400, 500.
-// https://stackoverflow.com/questions/39297345/fetch-resolves-even-if-404
 const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
   const headers: {[key: string]: string} = {
     Accept: JSON_HEADER,
@@ -29,14 +28,24 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
   const contentType = response.headers.get('content-type');
 
   if (!response.ok) {
+    // This will be returned with the promise rejection. It can include that
+    // response JSON, but not all endpoints/situations will produce one.
+    const failResponse: FailResponse = {
+      status: response.status,
+      statusText: response.statusText,
+    };
+
     if (contentType && contentType.indexOf('application/json') !== -1) {
       try {
-        return Promise.reject(await response.json());
+        failResponse.responseJSON = await response.json();
+        try {
+          failResponse.responseText = await response.text();
+        } finally {}
       } catch {
-        return Promise.reject(response);
+        return Promise.reject(failResponse);
       }
     }
-    return Promise.reject(response);
+    return Promise.reject(failResponse);
   }
 
   if (contentType && contentType.indexOf('application/json') !== -1) {

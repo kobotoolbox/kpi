@@ -85,7 +85,7 @@ class HelpBubbleStore {
 
   private onFetchMessagesFail(response: FailResponse) {
     this.isLoading = false;
-    notify(response.responseText, 'error');
+    notify(response.responseText || t('Unknown error'), 'error');
   }
 
   public selectMessage(messageUid: string) {
@@ -150,7 +150,7 @@ class HelpBubbleStore {
   }
 
   private onPatchMessageFail(response: FailResponse) {
-    notify(response.responseText, 'error');
+    notify(response.responseText || t('Unknown error'), 'error');
   }
 }
 

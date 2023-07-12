@@ -56,7 +56,7 @@ export default class LanguagesListStore {
 
   private onAnyFail(response: FailResponse) {
     this.isLoading = false;
-    notify(response.responseText, 'error');
+    notify(response.responseText || t('Unknown error'), 'error');
   }
 
   /** Gets the next page of results (if available). */

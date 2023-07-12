@@ -96,11 +96,16 @@ export interface ImportResponse {
 }
 
 export interface FailResponse {
+  /**
+   * This is coming from Back end and can have either the general `detail` or
+   * `error`, or a list of specific errors (e.g. for specific fields).
+   */
   responseJSON?: {
     detail?: string;
     error?: string;
+    [fieldName: string]: string[] | string | undefined;
   };
-  responseText: string;
+  responseText?: string;
   status: number;
   statusText: string;
 }
