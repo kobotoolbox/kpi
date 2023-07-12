@@ -10,7 +10,7 @@ import {
   ROOT_URL,
   COMMON_QUERIES,
 } from './constants';
-import type {EnvStoreFieldItem, SocialApp} from 'js/envStore';
+import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AssetTypeName,
@@ -20,6 +20,7 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
+import {FreeTierThresholds} from "js/envStore";
 
 interface AssetsRequestData {
   q?: string;
@@ -723,11 +724,13 @@ export interface EnvironmentResponse {
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
   asr_mt_features_enabled: boolean;
-  mfa_localized_help_text: {[name: string]: string};
+  mfa_localized_help_text: { [name: string]: string };
   mfa_enabled: boolean;
   mfa_code_length: number;
   stripe_public_key: string | null;
   social_apps: SocialApp[];
+  free_tier_thresholds: FreeTierThresholds;
+  free_tier_display: FreeTierDisplay;
 }
 
 export interface AssetSubscriptionsResponse {
