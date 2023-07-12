@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import {notify} from 'alertifyjs';
 import {ROOT_URL} from 'js/constants';
+import {hasActiveSubscription} from 'js/account/stripe.utils';
 
 export type MfaErrorResponse = JQueryXHR & {
   non_field_errors?: string;
@@ -29,6 +30,7 @@ const mfaActions = Reflux.createActions({
   activate: {children: ['completed', 'failed']},
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
+  hasActiveSubscription: {children: ['completed', 'failed']},
   confirmCode: {children: ['completed', 'failed']},
   regenerate: {children: ['completed', 'failed']},
 });
@@ -73,6 +75,18 @@ mfaActions.activate.listen((inModal?: boolean) => {
         errorText = response.non_field_errors;
       }
       notify(errorText, 'error');
+    });
+});
+
+mfaActions.hasActiveSubscription.listen(() => {
+  hasActiveSubscription()
+    .then((response) => {
+      mfaActions.hasActiveSubscription.completed(response);
+    })
+    .catch(() => {
+      let errorText = t('An error occured');
+      notify(errorText, 'error');
+      mfaActions.hasActiveSubscription.failed();
     });
 });
 
