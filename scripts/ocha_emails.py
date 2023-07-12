@@ -9,7 +9,7 @@ from django.utils import timezone
 from kobo.apps.project_views.models.assignment import User
 
 FROM_ADDRESS = 'Tino Kreutzer <support@kobotoolbox.org>'
-EMAIL_SUBJECT = '📣 OCHA KoboToolbox server - Important Update / Aviso importante / Mise à jour importante / تحديث مهم'
+EMAIL_SUBJECT = '📣 OCHA KoboToolbox server - Important Update / Mise à jour importante / Aviso importante / تحديث مهم'
 EMAIL_TEMPLATE_NAME = 'OCHATransitionEmail'
 EMAIL_HTML_FILENAME = 'ocha_transition_email.html'
 EMAIL_TEXT_FILENAME = 'ocha_transition_email.txt'
