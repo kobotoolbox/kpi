@@ -49,9 +49,7 @@ export default function UpdatePasswordForm() {
 
     // Verify password input must match the new password
     if (newPassword !== verifyPassword) {
-      setNewPasswordError(
-        t('This field must match the Verify Password field.')
-      );
+      setVerifyPasswordError(t("Passwords don't match"));
       hasErrors = true;
     }
 
