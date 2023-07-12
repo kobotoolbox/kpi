@@ -8,6 +8,7 @@ import Button from 'js/components/common/button';
 import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
+import type {PasswordUpdateFailResponse} from 'js/dataInterface';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
@@ -57,13 +58,6 @@ export default function UpdatePasswordForm() {
     if (!hasErrors) {
       setIsPending(true);
 
-      // TODO: Handle error cases (such as 400 bad request)
-      //
-      // Currently this shows "changed password successfully" if the network
-      // succeeds and it gets any response from the server, even a 400.
-      //
-      // It needs to handle the case where a user types the wrong "current"
-      // password, or if the server rejects the update for some other reason.
       try {
         await fetchPatch(endpoints.ME_URL, {
           current_password: currentPassword,
@@ -75,6 +69,15 @@ export default function UpdatePasswordForm() {
         setVerifyPassword('');
         notify(t('changed password successfully'));
       } catch (error) {
+        const errorObj = error as Response | PasswordUpdateFailResponse;
+
+        if ('current_password' in errorObj && errorObj.current_password) {
+          setCurrentPasswordError(errorObj.current_password[0]);
+        }
+        if ('new_password' in errorObj && errorObj.new_password) {
+          setNewPasswordError(errorObj.new_password[0]);
+        }
+
         setIsPending(false);
         notify(t('failed to change password'), 'error');
       }
@@ -86,7 +89,7 @@ export default function UpdatePasswordForm() {
   }
 
   return (
-    <form className={styles.foo}>
+    <form className={styles.root}>
       <div className={styles.row}>
         <TextBox
           customModifiers='on-white'

@@ -105,6 +105,12 @@ export interface FailResponse {
   statusText: string;
 }
 
+/** Have a list of errors for different fields. */
+export interface PasswordUpdateFailResponse {
+  current_password: string[];
+  new_password: string[];
+}
+
 interface ProcessingResponseData {
   [questionName: string]: any;
   _id: number;

@@ -25,7 +25,20 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
     headers,
     body: JSON.stringify(data),
   });
+
   const contentType = response.headers.get('content-type');
+
+  if (!response.ok) {
+    if (contentType && contentType.indexOf('application/json') !== -1) {
+      try {
+        return Promise.reject(await response.json());
+      } catch {
+        return Promise.reject(response);
+      }
+    }
+    return Promise.reject(response);
+  }
+
   if (contentType && contentType.indexOf('application/json') !== -1) {
     return (await response.json()) as Promise<T>;
   }
