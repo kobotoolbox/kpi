@@ -36,15 +36,15 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
     };
 
     if (contentType && contentType.indexOf('application/json') !== -1) {
+      failResponse.responseText = await response.text();
       try {
-        failResponse.responseJSON = await response.json();
-        try {
-          failResponse.responseText = await response.text();
-        } finally {}
+        failResponse.responseJSON = JSON.parse(failResponse.responseText);
       } catch {
-        return Promise.reject(failResponse);
+        // If the response text is not a proper JSON, we simply don't add it to
+        // the rejection object.
       }
     }
+
     return Promise.reject(failResponse);
   }
 
