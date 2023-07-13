@@ -3,8 +3,16 @@ import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
 import {notify} from 'js/utils';
+import throttle from 'lodash.throttle';
 
 const JSON_HEADER = 'application/json';
+
+const notifyServerErrorThrottled = throttle(
+  (errorMessage: string) => {
+    notify(errorMessage, 'error');
+  },
+  500 // half second
+);
 
 const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
   const headers: {[key: string]: string} = {
@@ -50,10 +58,9 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       errorMessage += ' ';
       errorMessage += response.statusText;
 
-      // TODO this toast message should probably be debounced or throttled, to
-      // avoid the situation when multiple calls are being made, and all of them
-      // cause a notification to show up
-      notify(errorMessage, 'error');
+      // We only want to display the server issues notification once, even with
+      // multiple calls failing
+      notifyServerErrorThrottled(errorMessage);
 
       if (window.Raven) {
         window.Raven.captureMessage(errorMessage);
