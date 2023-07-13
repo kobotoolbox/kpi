@@ -28,18 +28,6 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
 
   const contentType = response.headers.get('content-type');
 
-  // For server issues, we simply reject with no useful data. We expect the UI
-  // to not react with any notification or some other indicator.
-  if (
-    response.status === 401 ||
-    response.status === 403 ||
-    response.status === 404 ||
-    response.status >= 500
-  ) {
-    notify(t('Server error'));
-    return Promise.reject();
-  }
-
   if (!response.ok) {
     // This will be returned with the promise rejection. It can include that
     // response JSON, but not all endpoints/situations will produce one.
@@ -47,6 +35,28 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       status: response.status,
       statusText: response.statusText,
     };
+
+    // For server issues, we simply reject with no additional data. We expect
+    // the UI to not react with notifications or other indicators.
+    if (
+      response.status === 401 ||
+      response.status === 403 ||
+      response.status === 404 ||
+      response.status >= 500
+    ) {
+      let errorMessage = t('An error occurred');
+      errorMessage += ' ';
+      errorMessage += response.status;
+      errorMessage += ' ';
+      errorMessage += response.statusText;
+
+      notify(errorMessage, 'error');
+
+      if (window.Raven) {
+        window.Raven.captureMessage(errorMessage);
+      }
+      return Promise.reject(failResponse);
+    }
 
     if (contentType && contentType.indexOf('application/json') !== -1) {
       failResponse.responseText = await response.text();
