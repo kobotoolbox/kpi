@@ -280,10 +280,8 @@ class ServiceUsageSerializer(serializers.Serializer):
         )
 
         # If they have a subscription, use its start date to calculate beginning of current month/year's usage
-        subscription = organization.active_subscription
-        if subscription:
-            self._anchor_date = subscription.billing_cycle_anchor.date()
-            self._period_start = subscription.current_period_start.date()
-            self._subscription_interval = (
-                subscription.items.get().price.recurring['interval']
-            )
+        billing_details = organization.active_subscription_billing_details
+        if billing_details:
+            self._anchor_date = billing_details['billing_cycle_anchor'].date()
+            self._period_start = billing_details['current_period_start'].date()
+            self._subscription_interval = billing_details['recurring_interval']
