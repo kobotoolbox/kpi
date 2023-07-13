@@ -27,7 +27,7 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
-import {BaseProduct} from "js/account/subscriptionStore";
+import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -52,12 +52,6 @@ const initialState = {
   organization: null,
   featureTypes: ['support', 'advanced', 'addons'],
 };
-
-/*
-  Stripe Subscription statuses that are shown as active in the UI.
-  Subscriptions with a status in this array will show an option to 'Manage'.
-*/
-const activeSubscriptionStatuses = ['active', 'past_due', 'trialing'];
 
 const subscriptionUpgradeMessageDuration = 8000;
 
@@ -100,8 +94,11 @@ export default function Plan() {
     [state.products, state.organization, state.subscribedProduct]
   );
 
-  const hasManageableStatus = useCallback((subscription: BaseSubscription) =>
-    activeSubscriptionStatuses.includes(subscription.status), []);
+  const hasManageableStatus = useCallback(
+    (subscription: BaseSubscription) =>
+      ACTIVE_STRIPE_STATUSES.includes(subscription.status),
+    []
+  );
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
@@ -113,9 +110,7 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useMemo(() => {
-    if (
-      state.subscribedProduct?.length > 0
-    ) {
+    if (state.subscribedProduct?.length > 0) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
       if (!hasManageableStatus(state.subscribedProduct)) {
@@ -207,7 +202,10 @@ export default function Plan() {
       const filterAmount = state.products.map((product: Product) => {
         const filteredPrices = product.prices.filter((price: BasePrice) => {
           const interval = price.recurring?.interval;
-          return interval === state.intervalFilter && product.metadata.product_type === 'plan';
+          return (
+            interval === state.intervalFilter &&
+            product.metadata.product_type === 'plan'
+          );
         });
 
         return {
@@ -216,8 +214,12 @@ export default function Plan() {
         };
       });
 
-      return filterAmount.filter((product: Product) => product.prices)
-        .sort((priceA: Price, priceB: Price) => priceA.prices.unit_amount > priceB.prices.unit_amount);
+      return filterAmount
+        .filter((product: Product) => product.prices)
+        .sort(
+          (priceA: Price, priceB: Price) =>
+            priceA.prices.unit_amount > priceB.prices.unit_amount
+        );
     }
     return [];
   }, [state.products, state.intervalFilter]);
@@ -244,9 +246,10 @@ export default function Plan() {
       const subscriptions = getSubscriptionsForProductId(product.id);
 
       if (subscriptions.length > 0) {
-        return subscriptions.some((subscription: BaseSubscription) =>
-          subscription.items[0].price.id === product.prices.id &&
-          hasManageableStatus(subscription)
+        return subscriptions.some(
+          (subscription: BaseSubscription) =>
+            subscription.items[0].price.id === product.prices.id &&
+            hasManageableStatus(subscription)
         );
       }
       return false;
@@ -262,7 +265,7 @@ export default function Plan() {
       }
 
       return subscriptions.some((subscription: BaseSubscription) =>
-          hasManageableStatus(subscription)
+        hasManageableStatus(subscription)
       );
     },
     [state.subscribedProduct]
