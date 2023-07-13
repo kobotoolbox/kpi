@@ -50,6 +50,9 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       errorMessage += ' ';
       errorMessage += response.statusText;
 
+      // TODO this toast message should probably be debounced, to avoid
+      // situation when multiple calls are being made, and all of them cause
+      // a notification to show up
       notify(errorMessage, 'error');
 
       if (window.Raven) {
