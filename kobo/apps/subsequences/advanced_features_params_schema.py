@@ -70,9 +70,11 @@ ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
                 'type': 'array',
                 'items': {'$ref': '#/$defs/qualChoice'},
             },
+            'scope': {'type': 'string'},
+            'qpath': {'type': 'string'},
             'options': {'type': 'object'},
         },
-        'required': ['uuid', 'type', 'labels'],
+        'required': ['uuid', 'type', 'labels', 'scope', 'qpath'],
     },
     'qualLabels': {
         'type': 'object',
@@ -89,25 +91,14 @@ ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
         },
         'required': ['labels', 'uuid'],
     },
-    'qualSurvey': {
-        'type': 'array',
-        'items': {'$ref': '#/$defs/qualQuestion'},
-    },
 }
 ADVANCED_FEATURES_PARAMS_SCHEMA['properties']['qual'] = {
     'type': 'object',
     'additionalProperties': False,
     'properties': {
-        'by_question': {
-            'type': 'object',
-            'additionalProperties': False,
-            'patternProperties': {
-                '.+': {
-                    'type': 'object',
-                    'additionalProperties': False,
-                    'properties': {'survey': {'$ref': '#/$defs/qualSurvey'}},
-                },
-            },
+        'qual_survey': {
+            'type': 'array',
+            'items': {'$ref': '#/$defs/qualQuestion'},
         }
-    },
+    }
 }
