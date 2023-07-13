@@ -331,6 +331,16 @@ def user_statistics_report(request):
 
 
 def user_details_report(request):
+
+    # Get the date filters from the query and set defaults
+    today = timezone.now().date()
+    first_of_month = today.replace(day=1)
+    if not (start_date := request.GET.get('start_date')):
+        start_date = str(first_of_month)
+
+    if not (end_date := request.GET.get('end_date')):
+        end_date = str(today)
+
     base_filename = 'user-details-report_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
         date.today(),
@@ -339,13 +349,23 @@ def user_details_report(request):
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username
     )
-    generate_user_details_report.delay(filename)
+    url = f"{KOBOFORM_URL}{reverse('superuser_stats:user_details_report')}"
+    generate_user_details_report.delay(filename, start_date, end_date)
     template_ish = (
         f'<html><head><title>User details report</title></head>'
         f'<body>Your report is being generated. Once finished, it will be '
         f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
         f'If you receive a 404, please refresh your browser periodically until '
-        f'your request succeeds.'
+        f'your request succeeds.<br><br>'
+        f'To select a date range based on the user\'s date joined, add a <code style="background: lightgray">?</code> at the end of the URL and set the '
+        f'<code style="background: lightgray">start_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code> and/or the '
+        f'<code style="background: lightgray">end_date</code> parameter to <code style="background: lightgray">YYYY-MM-DD</code>.<br><br>'
+        f'<b>Example:</b><br>'
+        f'<a href="{url}?start_date={first_of_month}&end_date={today}">'
+        f'  {url}?start_date={first_of_month}&end_date={today}'
+        f'</a>'
+        f'<p>Range is <b>inclusive</b>.</p>'
+        f'<p>The default range is current month: {today.strftime("%B %Y")}.</p>'
         f'</body></html>'
     )
     return HttpResponse(template_ish)
