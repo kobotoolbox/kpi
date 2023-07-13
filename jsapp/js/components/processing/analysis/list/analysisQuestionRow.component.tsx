@@ -18,6 +18,7 @@ import classnames from 'classnames';
 
 export interface AnalysisQuestionRowProps {
   uid: string;
+  questiondata: any;
   index: number;
   moveRow: (uid: string, oldIndex: number, newIndex: number) => void;
 }
@@ -27,6 +28,10 @@ interface DragItem {
   index: number;
   type: string;
 }
+
+// i think it would make sense to make AnalysisQuestionRow a pure component
+// and move the logic out of the individual question into the AnalysisQuestionList
+// component or elsewhere.
 
 export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext);

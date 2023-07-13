@@ -10,6 +10,7 @@ import type {
   QuestionTypeName,
 } from 'js/constants';
 import assetStore from 'js/assetStore';
+import { AssetAdvancedFeaturesStore } from 'js/stores/AssetAdvancedFeaturesStore';
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -777,6 +778,7 @@ export function getAssetProcessingUrl(assetUid: string): string | undefined {
 /** Returns a list of all rows (their `qpath`s) activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid);
+  const assetAdvancedFeatures = new AssetAdvancedFeaturesStore(foundAsset);
   if (foundAsset?.advanced_submission_schema?.properties) {
     const rows: string[] = [];
     Object.keys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
