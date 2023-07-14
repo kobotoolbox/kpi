@@ -25,6 +25,8 @@ const cookies = new Cookies();
 /**
  * Pop up a notification with react-hot-toast
  * Some default options are set in the <Toaster/> component
+ *
+ * Also log messages to browser console to help with debugging.
  */
 export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOptions): Toast['id'] {
   // To avoid changing too much, the default remains 'success' if unspecified.
@@ -42,26 +44,33 @@ export function notify(msg: Toast['message'], atype = 'success', opts?: ToastOpt
     }
   }
 
+  /* eslint-disable no-console */
   switch (atype) {
 
     case 'success':
+      console.log('[notify] ✅ ' + msg);
       return toast.success(msg, opts);
 
     case 'error':
+      console.error('[notify] ❌ ' + msg);
       return toast.error(msg, opts);
 
     case 'warning':
+      console.warn('[notify] ⚠️ ' + msg);
       return toast(msg, Object.assign({icon: '⚠️'}, opts));
 
     case 'empty':
+      console.log('[notify] 📢 ' + msg);
       return toast(msg, opts); // No icon
 
     // Defensively render empty if we're passed an unknown atype,
     // in case we missed something.
     //   e.g. notify('mystery!', '?') //
     default:
+      console.log('[notify] 📢 ' + msg);
       return toast(msg, opts); // No icon
   }
+  /* eslint-enable no-console */
 }
 
 // Convenience functions for code readability, consolidated here
@@ -206,6 +215,7 @@ declare global {
 
 export const log = (function () {
   const innerLogFn = function (...args: any[]) {
+    // eslint-disable-next-line no-console
     console.log.apply(console, args);
     return args[0];
   };
