@@ -295,7 +295,11 @@ stores.allAssets = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (searchData, response) {
-    notify(response?.responseJSON?.detail || t('failed to list assets'), 'error');
+    let iconStyle = 'warning';
+    if (response?.responseJSON?.detail === t('Your query is too short')) {
+      iconStyle = 'empty';
+    }
+    notify(response?.responseJSON?.detail || t('failed to list assets'), iconStyle);
   },
 });
 
