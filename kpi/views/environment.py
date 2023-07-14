@@ -44,6 +44,7 @@ class EnvironmentView(APIView):
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
+        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ]
 
     @classmethod

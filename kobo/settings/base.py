@@ -422,9 +422,29 @@ CONSTANCE_CONFIG = {
         'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password.',
     ),
+    'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        json.dumps({
+            'default': '',
+            'some-other-language': (
+                'This will never appear because `some-other-language` is not '
+                'a valid language code, but this entry is here to show you '
+                'an example of adding another message in a different language.'
+            ),
+        }),
+        (
+            'Create custom guidance text for password complexity. '
+            'The contents of the message should reflect the password complexity rules '
+            'as set in Constance.'
+        ),
+        'custom_password_guidance_text_field',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
+    'custom_password_guidance_text_field': [
+        'kpi.fields.jsonschema_form_field.CustomTextWithTranslations',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'free_tier_threshold_jsonschema': [
         'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
         {'widget': 'django.forms.Textarea'},
@@ -438,7 +458,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         {'widget': 'django.forms.Textarea'},
     ],
     'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
+        'kpi.fields.jsonschema_form_field.CustomTextWithTranslations',
         {'widget': 'django.forms.Textarea'},
     ],
     'positive_int': ['django.forms.fields.IntegerField', {
@@ -501,6 +521,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PASSWORD_USER_ATTRIBUTES',
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
