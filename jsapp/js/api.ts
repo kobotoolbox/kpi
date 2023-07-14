@@ -46,8 +46,7 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       statusText: response.statusText,
     };
 
-    // For server issues, we simply reject with no additional data. We expect
-    // the UI to not react with notifications or other indicators.
+    // For these codes, reject the promise, and display a toast with HTTP status
     if (
       response.status === 401 ||
       response.status === 403 ||
@@ -55,7 +54,7 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       response.status >= 500
     ) {
       let errorMessage = t('An error occurred');
-      errorMessage += ' ';
+      errorMessage += ' — ';
       errorMessage += response.status;
       errorMessage += ' ';
       errorMessage += response.statusText;

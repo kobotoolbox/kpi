@@ -105,7 +105,8 @@ export function handleApiFail(response: FailResponse) {
   }
 
   if (!message) {
-    message = `An unexpected error occurred ${response.status} ${response.statusText}`;
+    message = t('An error occurred');
+    message += ` — ${response.status} ${response.statusText}`;
   }
 
   notify.error(message);

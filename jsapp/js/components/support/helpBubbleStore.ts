@@ -1,7 +1,7 @@
 import throttle from 'lodash.throttle';
 import {makeAutoObservable, when} from 'mobx';
 import type {PaginatedResponse, FailResponse} from 'js/dataInterface';
-import {notify} from 'js/utils';
+import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import sessionStore from 'js/stores/session';
 
@@ -85,7 +85,7 @@ class HelpBubbleStore {
 
   private onFetchMessagesFail(response: FailResponse) {
     this.isLoading = false;
-    notify(response.responseText || t('Unknown error'), 'error');
+    handleApiFail(response);
   }
 
   public selectMessage(messageUid: string) {
@@ -150,7 +150,7 @@ class HelpBubbleStore {
   }
 
   private onPatchMessageFail(response: FailResponse) {
-    notify(response.responseText || t('Unknown error'), 'error');
+    handleApiFail(response);
   }
 }
 

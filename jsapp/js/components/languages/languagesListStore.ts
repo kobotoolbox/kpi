@@ -3,7 +3,7 @@ import type {
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
-import {notify} from 'js/utils';
+import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
 import languagesStore from './languagesStore';
 import type {ListLanguage} from './languagesStore';
@@ -56,7 +56,7 @@ export default class LanguagesListStore {
 
   private onAnyFail(response: FailResponse) {
     this.isLoading = false;
-    notify(response.responseText || t('Unknown error'), 'error');
+    handleApiFail(response);
   }
 
   /** Gets the next page of results (if available). */
