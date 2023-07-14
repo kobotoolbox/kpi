@@ -3,16 +3,18 @@ import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
 import {notify} from 'js/utils';
-import throttle from 'lodash.throttle';
 
 const JSON_HEADER = 'application/json';
 
-const notifyServerErrorThrottled = throttle(
-  (errorMessage: string) => {
-    notify(errorMessage, 'error');
-  },
-  500 // half second
-);
+// TODO: Figure out how to improve UX if there are many errors happening
+// simultaneously (other than deciding not to show them.)
+//
+// const notifyServerErrorThrottled = throttle(
+//   (errorMessage: string) => {
+//     notify(errorMessage, 'error');
+//   },
+//   500 // half second
+// );
 
 const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
   const headers: {[key: string]: string} = {
@@ -57,10 +59,7 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       errorMessage += response.status;
       errorMessage += ' ';
       errorMessage += response.statusText;
-
-      // We only want to display the server issues notification once, even with
-      // multiple calls failing
-      notifyServerErrorThrottled(errorMessage);
+      notify(errorMessage, 'error');
 
       if (window.Raven) {
         window.Raven.captureMessage(errorMessage);
