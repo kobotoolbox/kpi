@@ -8,6 +8,7 @@ import {
   findQuestion,
   getQuestionTypeDefinition,
 } from 'js/components/processing/analysis/utils';
+import { getCurrentAdvancedFeaturesObject } from 'js/models/AssetAdvancedFeatures';
 import AnalysisQuestionsContext from '../analysisQuestions.context';
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
 import type {AdditionalFields} from '../constants';
@@ -88,6 +89,41 @@ export default function AnalysisQuestionEditor(
 
     // Save only if there are no errors
     if (!hasErrors) {
+      const assetAdvancedFeatures = getCurrentAdvancedFeaturesObject();
+      const currentQuestionUuid = analysisQuestions?.state.questionsBeingEdited[0];
+      const currentQuestion = analysisQuestions?.state.questions.find(
+        ({ uuid }) => currentQuestionUuid == uuid
+      );
+      
+      if (currentQuestion) {
+        // we need the qpath
+        const urlHashParts = [...window.location.hash.split('/')].reverse();
+        const [ submissionUuid, qpath ] = urlHashParts;
+
+        // investigate why label is empty even when it shouldn't be
+        if (currentQuestion.labels._default === '') {
+          const uniqueError = 'ERR_NOLABEL_99';
+          console.error(
+            `currentQuestion.labels._default is empty. setting to ${uniqueError}`
+          );
+          currentQuestion.labels._default = uniqueError;
+        }
+        console.log('%c calling assetAdvancedFeatures.qualQuestions.updateQuestion(...)', 'color:#888;font-size:9px');
+        assetAdvancedFeatures.qualQuestions.updateQuestion(
+          { uuid: currentQuestionUuid, qpath },
+          currentQuestion,
+        );
+        if (currentQuestion.response) {
+          assetAdvancedFeatures.updateResponse({
+            uuid: currentQuestionUuid,
+            qpath,
+          }, {
+            type: currentQuestion.type,
+            val: currentQuestion.response
+          });
+        }
+      }
+
       analysisQuestions?.dispatch({type: 'updateQuestion'});
 
       // TODO make actual API call here

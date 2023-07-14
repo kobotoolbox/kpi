@@ -10,6 +10,7 @@ import {
 } from 'js/components/processing/analysis/utils';
 import CommonHeader from './commonHeader.component';
 import commonStyles from './common.module.scss';
+import { getCurrentAdvancedFeaturesObject } from 'jsapp/js/models/AssetAdvancedFeatures';
 
 interface DefaultResponseFormProps {
   uuid: string;
@@ -42,6 +43,33 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
 
   function saveResponse() {
     clearTimeout(typingTimer);
+
+    // getQuestion by questionUuid
+    const questionUuid = props.uuid;
+    const currentAssetAdvancedFeatures = getCurrentAdvancedFeaturesObject();
+    const urlHashParts = [...window.location.hash.split('/')].reverse();
+    const [ submissionUuid, qpath ] = urlHashParts;
+
+    const analysisQuestionType = analysisQuestions?.state.questions[0].type;
+
+    if (analysisQuestions?.state.questions.length !== 1) {
+      console.error(`
+      I could not find how to get the current type (e.g. qual_text, qual_select_multiple)
+      from the state so i am using the *first* type. This will only work when one question
+      is available.
+      `)
+      throw new Error('Only works with 1 analysis question. See console')
+    }
+
+    currentAssetAdvancedFeatures.updateResponse({
+      submissionUuid,
+      questionUuid,
+      qpath,
+    }, {
+      uuid: questionUuid,
+      type: analysisQuestionType,
+      val: response,
+    })
 
     quietlyUpdateResponse(
       analysisQuestions?.state,
