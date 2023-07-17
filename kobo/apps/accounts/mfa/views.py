@@ -68,7 +68,7 @@ class MfaLoginView(LoginView):
         if (
             user.is_authenticated
             and self.redirect_field_name in self.request.POST
-            and user.is_superuser
+            and not user.is_superuser
             and redirect_to.startswith(reverse('admin:index'))
         ):
             return ''
@@ -115,6 +115,8 @@ class MfaLoginView(LoginView):
             return HttpResponseRedirect(
                 resolve_url(self.get_success_url() or next_url)
             )
+
+        return None
 
 
 class MfaTokenView(DjangoLoginView):
