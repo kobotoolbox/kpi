@@ -1,7 +1,12 @@
 # coding: utf-8
 from allauth.account.views import LoginView
+from django.conf import settings
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
+from django.http import HttpResponseRedirect
+from django.shortcuts import resolve_url
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -12,7 +17,6 @@ from .serializers import UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):
-
     form_class = MfaLoginForm
 
     def form_valid(self, form):
@@ -20,11 +24,49 @@ class MfaLoginView(LoginView):
             mfa_token_form = MfaTokenForm(
                 initial={'ephemeral_token': form.get_ephemeral_token()}
             )
+
             context = self.get_context_data(
                 view=MfaTokenView,
                 form=mfa_token_form,
                 next=self.get_success_url(),
             )
+
+            # Prevent users without paid plans from entering step 2 of MFA flow
+            if settings.STRIPE_ENABLED:
+                username = form.cleaned_data.get('login')
+                active_subscription = (
+                    User.objects.filter(
+                        organizations_organization__djstripe_customers__subscriber__organization_users__user__username=username,
+                        # TODO: replace with ACTIVE_STRIPE_STATUSES constant
+                        organizations_organization__djstripe_customers__subscriptions__status__in=[
+                            'active',
+                            'past_due',
+                            'trialing',
+                        ],
+                    )
+                    .exclude(
+                        organizations_organization__djstripe_customers__subscriptions__items__price__unit_amount=0
+                    )
+                    .exists()
+                )
+
+                if not active_subscription:
+                    super().form_valid(form)
+                    next_url = context['redirect_field_value'] or resolve_url(
+                        settings.LOGIN_REDIRECT_URL
+                    )
+
+                    backend = settings.AUTHENTICATION_BACKENDS[0]
+
+                    password = form.cleaned_data.get('password')
+                    new_user = authenticate(
+                        username=username, password=password
+                    )
+                    login(self.request, new_user, backend=backend)
+
+                    return HttpResponseRedirect(
+                        resolve_url(self.get_success_url() or next_url)
+                    )
 
             return self.response_class(
                 request=self.request,
@@ -44,10 +86,10 @@ class MfaLoginView(LoginView):
         if not redirect_to:
             redirect_to = self.request.POST.get(
                 self.redirect_field_name,
-                self.request.GET.get(self.redirect_field_name, '')
+                self.request.GET.get(self.redirect_field_name, ''),
             )
 
-        # We do not want to redirect a regular user to `/admin/` whether they
+        # We do not want to redirect a regular user to `/admin/` if they
         # are not a superuser. Otherwise, they are successfully authenticated,
         # redirected to the admin platform, then disconnected because of the
         # lack of permissions.
