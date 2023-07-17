@@ -6,7 +6,6 @@ import {router} from 'js/router/legacy';
  * It handles the selected export type.
  */
 const exportsStore = Reflux.createStore({
-  previousPath: history.location.pathname,
   data: {
     exportType: DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE,
   },
@@ -24,11 +23,11 @@ const exportsStore = Reflux.createStore({
   },
 
   isOnProjectDownloadsRoute() {
-    const path = history.location.pathname;
+    const path = router.state.location.pathname;
     return (
       path.split('/')[1] === 'forms' &&
       path.split('/')[3] === 'data' &&
-      path.split('/')[3] === 'downloads'
+      path.split('/')[4] === 'downloads'
     );
   },
 
