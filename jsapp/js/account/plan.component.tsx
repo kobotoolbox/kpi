@@ -28,6 +28,7 @@ import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
+import envStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -42,6 +43,11 @@ interface PlanState {
 interface DataUpdates {
   type: string;
   prodData?: any;
+}
+
+interface FreeTierOverride extends FreeTierThresholds{
+  name: string | null;
+  [key: `feature_list_${number}`]: string | null;
 }
 
 const initialState = {
@@ -99,6 +105,25 @@ export default function Plan() {
       ACTIVE_STRIPE_STATUSES.includes(subscription.status),
     []
   );
+
+  const freeTierOverride = useMemo((): FreeTierOverride | null => {
+    if (envStore.isReady) {
+      const thresholds = envStore.data.free_tier_thresholds;
+      const display = envStore.data.free_tier_display;
+      const featureList: {[key: string]: string | null} = {};
+
+      display.feature_list.forEach((feature, key) => {
+        featureList[`feature_list_${key + 1}`] = feature;
+      });
+
+      return {
+        name: display.name,
+        ...thresholds,
+        ...featureList,
+      };
+    }
+    return null;
+  }, [envStore.isReady]);
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
@@ -350,6 +375,17 @@ export default function Plan() {
     return expandBool;
   };
 
+  const getFeatureMetadata = (price: Price, featureItem: string) => {
+    if (
+      price.prices.unit_amount === 0 &&
+      freeTierOverride &&
+      freeTierOverride.hasOwnProperty(featureItem)
+    ) {
+      return freeTierOverride[featureItem  as keyof FreeTierOverride];
+    }
+    return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
+  };
+
   useEffect(() => {
     hasMetaFeatures();
   }, [state.products]);
@@ -456,7 +492,11 @@ export default function Plan() {
                       [styles.planContainer]: true,
                     })}
                   >
-                    <h1 className={styles.priceName}> {price.name} </h1>
+                    <h1 className={styles.priceName}>
+                      {price.prices?.unit_amount
+                        ? price.name
+                        : freeTierOverride?.name || price.name}
+                    </h1>
                     <div className={styles.priceTitle}>
                       {!price.prices?.unit_amount
                         ? t('Free')
@@ -479,8 +519,7 @@ export default function Plan() {
                                   }
                                 />
                               </div>
-                              {price.prices.metadata?.[featureItem] ||
-                                price.metadata[featureItem]}
+                              {getFeatureMetadata(price, featureItem)}
                             </li>
                           )
                       )}
