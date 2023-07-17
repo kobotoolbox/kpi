@@ -1,10 +1,10 @@
-import {when} from "mobx";
+import {when} from 'mobx';
 
 import {
   getSubscription,
-} from 'js/account/stripe.api';;
+} from 'js/account/stripe.api';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
-import envStore from 'js/envStore'
+import envStore from 'js/envStore';
 
 // check if the currently logged-in user has a paid subscription in an active status
 // promise returns a boolean, or `null` if Stripe is not active - we check for the existence of `stripe_public_key`
@@ -18,10 +18,8 @@ export async function hasActiveSubscription() {
     return null;
   }
 
-  return subscription.results.filter((sub) => {
-    return (
+  return subscription.results.filter((sub) => (
       ACTIVE_STRIPE_STATUSES.includes(sub.status) &&
       sub.items?.[0].price.unit_amount > 0
-    );
-  }).length > 0;
+    )).length > 0;
 }
