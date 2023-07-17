@@ -12,6 +12,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
 
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
+
 from .forms import MfaLoginForm, MfaTokenForm
 from .serializers import UserMfaMethodSerializer
 
@@ -33,40 +35,9 @@ class MfaLoginView(LoginView):
 
             # Prevent users without paid plans from entering step 2 of MFA flow
             if settings.STRIPE_ENABLED:
-                username = form.cleaned_data.get('login')
-                active_subscription = (
-                    User.objects.filter(
-                        organizations_organization__djstripe_customers__subscriber__organization_users__user__username=username,
-                        # TODO: replace with ACTIVE_STRIPE_STATUSES constant
-                        organizations_organization__djstripe_customers__subscriptions__status__in=[
-                            'active',
-                            'past_due',
-                            'trialing',
-                        ],
-                    )
-                    .exclude(
-                        organizations_organization__djstripe_customers__subscriptions__items__price__unit_amount=0
-                    )
-                    .exists()
-                )
-
-                if not active_subscription:
-                    super().form_valid(form)
-                    next_url = context['redirect_field_value'] or resolve_url(
-                        settings.LOGIN_REDIRECT_URL
-                    )
-
-                    backend = settings.AUTHENTICATION_BACKENDS[0]
-
-                    password = form.cleaned_data.get('password')
-                    new_user = authenticate(
-                        username=username, password=password
-                    )
-                    login(self.request, new_user, backend=backend)
-
-                    return HttpResponseRedirect(
-                        resolve_url(self.get_success_url() or next_url)
-                    )
+                redirect = self.login_if_user_has_subscription(form, context)
+                if redirect:
+                    return redirect
 
             return self.response_class(
                 request=self.request,
@@ -97,12 +68,53 @@ class MfaLoginView(LoginView):
         if (
             user.is_authenticated
             and self.redirect_field_name in self.request.POST
-            and not user.is_superuser
+            and user.is_superuser
             and redirect_to.startswith(reverse('admin:index'))
         ):
             return ''
 
         return redirect_to
+
+    def login_if_user_has_subscription(self, form, context):
+        """
+        Check if the user has an active, paid subscription.
+        If they do, log the user in and return an HTTPResponse, skipping MFA token entry.
+        If they don't, return None and do nothing.
+        """
+        username = form.cleaned_data.get('login')
+        active_subscription = (
+            User.objects.filter(
+                organizations_organization__djstripe_customers__subscriber__organization_users__user__username=username,
+                organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+            )
+            .exclude(
+                organizations_organization__djstripe_customers__subscriptions__items__price__unit_amount=0
+            )
+            .exists()
+        )
+
+        if not active_subscription:
+            super().form_valid(form)
+            next_url = context['redirect_field_value'] or resolve_url(
+                settings.LOGIN_REDIRECT_URL
+            )
+
+            password = form.cleaned_data.get('password')
+            authenticated_user = authenticate(
+                username=username, password=password
+            )
+
+            # When login is successful, `django.contrib.auth.login()` expects the
+            # authentication backend class to be provided.
+            # See https://github.com/django/django/blob/b87820668e7bd519dbc05f6ee46f551858fb1d6d/django/contrib/auth/__init__.py#L111
+            # Since we do not have a bullet-proof way to detect which authentication
+            # class is the good one, we use the first element of the list
+            backend = settings.AUTHENTICATION_BACKENDS[0]
+            login(self.request, authenticated_user, backend=backend)
+
+            return HttpResponseRedirect(
+                resolve_url(self.get_success_url() or next_url)
+            )
 
 
 class MfaTokenView(DjangoLoginView):
