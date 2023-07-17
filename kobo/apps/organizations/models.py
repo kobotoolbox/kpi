@@ -1,8 +1,6 @@
 from django.conf import settings
 from django.db.models import F
-
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kpi.fields import KpiUidField
+from functools import partial
 
 from organizations.abstract import (
     AbstractOrganization,
@@ -10,6 +8,10 @@ from organizations.abstract import (
     AbstractOrganizationOwner,
     AbstractOrganizationUser,
 )
+from organizations.utils import create_organization as create_organization_base
+
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
+from kpi.fields import KpiUidField
 
 
 class Organization(AbstractOrganization):
@@ -55,3 +57,6 @@ class OrganizationOwner(AbstractOrganizationOwner):
 
 class OrganizationInvitation(AbstractOrganizationInvitation):
     pass
+
+
+create_organization = partial(create_organization_base, model=Organization)

@@ -8,8 +8,8 @@ import subprocess
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
-import environ
 import django.conf.locale
+import environ
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
@@ -17,7 +17,6 @@ from django.utils.translation import get_language_info
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-
 
 env = environ.Env()
 
@@ -323,10 +322,10 @@ CONSTANCE_CONFIG = {
     ),
     'FREE_TIER_THRESHOLDS': (
         json.dumps({
-            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
-            'data': 1000,
-            'transcription_minutes': 10,
-            'translation_chars': 6000,
+            'storage': None,
+            'data': None,
+            'transcription_minutes': None,
+            'translation_chars': None,
         }),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
@@ -334,6 +333,17 @@ CONSTANCE_CONFIG = {
         'number of translation characters',
         # Use custom field for schema validation
         'free_tier_threshold_jsonschema'
+    ),
+    'FREE_TIER_DISPLAY': (
+        json.dumps(
+            {
+                'name': None,
+                'feature_list': [],
+            }
+        ),
+        'Free tier frontend settings: name to use for the free tier, '
+        'array of text strings to display on the feature list of the Plans page',
+        'free_tier_display_jsonschema',
     ),
     'PROJECT_TRASH_GRACE_PERIOD': (
         7,
@@ -354,6 +364,10 @@ CONSTANCE_CONFIG = {
 CONSTANCE_ADDITIONAL_FIELDS = {
     'free_tier_threshold_jsonschema': [
         'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
+        {'widget': 'django.forms.Textarea'},
+    ],
+    'free_tier_display_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
         {'widget': 'django.forms.Textarea'},
     ],
     'metadata_fields_jsonschema': [
@@ -387,7 +401,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'FREE_TIER_THRESHOLDS',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -414,6 +427,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Tier settings': (
+        'FREE_TIER_THRESHOLDS',
+        'FREE_TIER_DISPLAY',
     ),
 }
 
@@ -861,7 +878,7 @@ SOCIALACCOUNT_PROVIDERS = {}
 if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None):
     SOCIALACCOUNT_PROVIDERS['microsoft'] = {'TENANT': MICROSOFT_TENANT}
 # Parse oidc settings as nested dict in array. Example:
-# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google-kobo" # Must be unique
+# SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_id: "google" # Must be unique
 # SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_server_url: "https://accounts.google.com"
 # SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_0_name: "Kobo Google Apps"
 # Only OIDC supports multiple providers. For example, to add two Google Apps sign ins - use
@@ -869,16 +886,42 @@ if MICROSOFT_TENANT := env.str('SOCIALACCOUNT_PROVIDERS_microsoft_TENANT', None)
 oidc_prefix = "SOCIALACCOUNT_PROVIDERS_openid_connect_SERVERS_"
 oidc_pattern = re.compile(r"{prefix}\w+".format(prefix=oidc_prefix))
 oidc_servers = {}
+oidc_nested_keys = ['APP', 'SCOPE', 'AUTH_PARAMS']
+
 for key, value in {
     key.replace(oidc_prefix, ""): val
     for key, val in os.environ.items()
     if oidc_pattern.match(key)
 }.items():
     number, setting = key.split("_", 1)
+    parsed_key = None
+    nested_key = filter(lambda setting_key : setting.startswith(setting_key), oidc_nested_keys)
+    nested_key = list(nested_key)
+    if len(nested_key):
+        _, parsed_key = setting.split(nested_key[0] + "_", 1)
+        setting = nested_key[0]
     if number in oidc_servers:
-        oidc_servers[number][setting] = value
+        if parsed_key:
+            if setting in oidc_servers[number]:
+                if parsed_key.isdigit():
+                    oidc_servers[number][setting].append(value)
+                else:
+                    oidc_servers[number][setting][parsed_key] = value
+            else:
+                if parsed_key.isdigit():
+                    oidc_servers[number][setting] = [value]
+                else:
+                    oidc_servers[number][setting] = {parsed_key: value}
+        else:
+            oidc_servers[number][setting] = value
     else:
-        oidc_servers[number] = {setting: value}
+        if parsed_key:
+            if parsed_key.isdigit():
+                oidc_servers[number] = {setting: [value]}
+            else:
+                oidc_servers[number] = {setting: {parsed_key: value}}
+        else:
+            oidc_servers[number] = {setting: value}
 oidc_servers = [x for x in oidc_servers.values()]
 SOCIALACCOUNT_PROVIDERS["openid_connect"] = {"SERVERS": oidc_servers}
 
@@ -1016,8 +1059,8 @@ LOGGING = {
 sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
 if sentry_dsn:
     import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
     # All of this is already happening by default!
