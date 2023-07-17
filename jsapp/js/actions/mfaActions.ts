@@ -2,6 +2,8 @@ import Reflux from 'reflux';
 import {notify} from 'alertifyjs';
 import {ROOT_URL} from 'js/constants';
 import {hasActiveSubscription} from 'js/account/stripe.utils';
+import {when} from "mobx";
+import envStore from "js/envStore";
 
 export type MfaErrorResponse = JQueryXHR & {
   non_field_errors?: string;
@@ -79,15 +81,22 @@ mfaActions.activate.listen((inModal?: boolean) => {
 });
 
 mfaActions.hasActiveSubscription.listen(() => {
-  hasActiveSubscription()
-    .then((response) => {
-      mfaActions.hasActiveSubscription.completed(response);
-    })
-    .catch(() => {
-      let errorText = t('An error occured');
-      notify(errorText, 'error');
-      mfaActions.hasActiveSubscription.failed();
-    });
+  when(() => envStore.isReady).then(() => {
+    if (!envStore.data.stripe_public_key) {
+      // If Stripe isn't enabled on the site, don't restrict MFA access
+      mfaActions.hasActiveSubscription.completed(true);
+    } else {
+      hasActiveSubscription()
+        .then((response) => {
+          mfaActions.hasActiveSubscription.completed(response);
+        })
+        .catch(() => {
+          let errorText = t('An error occured while checking subscription status');
+          notify(errorText, 'error');
+          mfaActions.hasActiveSubscription.failed();
+        });
+    }
+  })
 });
 
 mfaActions.confirmCode.listen((mfaCode: string) => {
