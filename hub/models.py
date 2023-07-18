@@ -3,6 +3,7 @@ import mimetypes
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import get_default_password_validators
 from django.core.exceptions import FieldError, ValidationError
 from django.db import models
 from django.db.models.signals import post_save
@@ -21,6 +22,15 @@ from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
 
 
+def _configuration_file_upload_to(instance, filename):
+    if instance.slug == ConfigurationFileSlug.COMMON_PASSWORDS_FILE:
+        # Void lru cache to reload the file at the next password validation.
+        get_default_password_validators.cache_clear()
+        return f'__django_files/{instance.slug}/{filename}'
+
+    return f'{settings.PUBLIC_MEDIA_PATH}/{instance.slug}/{filename}'
+
+
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
     body = MarkupField()
@@ -29,23 +39,24 @@ class SitewideMessage(models.Model):
         return self.slug
 
 
+class ConfigurationFileSlug(models.TextChoices):
+
+    LOGO = 'logo', 'Logo'
+    LOGO_SMALL = 'logo_small', 'Small Logo'
+    LOGIN_BACKGROUND = 'login_background', 'Login background'
+    COMMON_PASSWORDS_FILE = 'common_passwords_file', 'Common passwords file'
+
+
 class ConfigurationFile(models.Model):
-    LOGO = 'logo'
-    LOGO_SMALL = 'logo_small'
-    LOGIN_BACKGROUND = 'login_background'
 
-    SLUG_CHOICES = (
-        (LOGO, LOGO),
-        (LOGO_SMALL, LOGO_SMALL),
-        (LOGIN_BACKGROUND, LOGIN_BACKGROUND),
+    slug = models.CharField(
+        max_length=32, choices=ConfigurationFileSlug.choices, unique=True
     )
-
-    slug = models.CharField(max_length=32, choices=SLUG_CHOICES, unique=True)
     content = models.FileField(
-        upload_to=settings.PUBLIC_MEDIA_PATH,
+        upload_to=_configuration_file_upload_to,
         help_text=(
-            'Stored in a PUBLIC location where authentication is '
-            'NOT required for access'
+            'Stored in a PUBLIC location where authentication is NOT required '
+            '**to** access common passwords file.'
         ),
     )
 

@@ -5,7 +5,7 @@ from django.test import LiveServerTestCase
 from django.core.files.base import ContentFile
 from django.template import Template, RequestContext
 
-from hub.models import ConfigurationFile
+from hub.models import ConfigurationFile, ConfigurationFileSlug
 
 sample_svg = b'''<svg xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 420 666">
@@ -39,7 +39,7 @@ class ConfigurationFileTestCase(LiveServerTestCase):
 
     def setUp(self):
         cfg_file = ConfigurationFile()
-        cfg_file.slug = cfg_file.LOGO
+        cfg_file.slug = ConfigurationFileSlug.LOGO
         # FileField.save() also saves the model instance
         cfg_file.content.save("sample.svg", ContentFile(sample_svg))
         self.cfg_file = cfg_file
@@ -57,7 +57,7 @@ class ConfigurationFileTestCase(LiveServerTestCase):
     def test_template_context_processor(self):
         context = RequestContext(HttpRequest())  # NB: empty request
         template = Template(
-            '{{{{ config.{logo} }}}}'.format(logo=self.cfg_file.LOGO)
+            '{{{{ config.{logo} }}}}'.format(logo=ConfigurationFileSlug.LOGO)
         )
         result = template.render(context)
         self.assertEqual(result, self.cfg_file.url)
