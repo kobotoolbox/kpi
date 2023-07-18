@@ -29,6 +29,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
 import {BaseProduct} from 'js/account/subscriptionStore';
 import envStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
+import {when} from "mobx";
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -153,30 +154,41 @@ export default function Plan() {
   }, [state.subscribedProduct]);
 
   useEffect(() => {
-    getProducts().then((data) => {
-      dispatch({
-        type: 'initialProd',
-        prodData: data.results,
-      });
-    });
+    when(() => envStore.isReady).then(() => {
+      // If Stripe isn't loaded, just redirect to the account page
+      if (!envStore.data.stripe_public_key) {
+        window.location.assign('/#/account');
+        return;
+      }
+      const fetchPromises = [];
 
-    getOrganization().then((data) => {
-      dispatch({
-        type: 'initialOrg',
-        prodData: data.results[0],
+      fetchPromises[0] = getProducts().then((data) => {
+        // If we have no products, redirect
+        if (!data.count) {
+          window.location.assign('/#/account');
+        }
+        dispatch({
+          type: 'initialProd',
+          prodData: data.results,
+        });
       });
-    });
-
-    getSubscription().then((data) => {
-      dispatch({
-        type: 'initialSub',
-        prodData: data.results,
+      fetchPromises[1] = getOrganization().then((data) => {
+        dispatch({
+          type: 'initialOrg',
+          prodData: data.results[0],
+        });
       });
+      fetchPromises[2] = getSubscription().then((data) => {
+        dispatch({
+          type: 'initialSub',
+          prodData: data.results,
+        });
+      });
+      Promise.all(fetchPromises)
+        .then(() => {
+            setAreButtonsDisabled(false);
+        });
     });
-
-    if (isDataLoading) {
-      setAreButtonsDisabled(false);
-    }
   }, [searchParams, shouldRevalidate]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
