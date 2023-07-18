@@ -55,8 +55,8 @@ class ConfigurationFile(models.Model):
     content = models.FileField(
         upload_to=_configuration_file_upload_to,
         help_text=(
-            'Stored in a PUBLIC location where authentication is '
-            'NOT required for access except for common passwords file.'
+            'Stored in a PUBLIC location where authentication is NOT required '
+            '**to** access common passwords file.'
         ),
     )
 
