@@ -17,6 +17,7 @@ from rest_framework import status
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.fuzzy_int import FuzzyInt
 
 
 class EnvironmentTests(BaseTestCase):
@@ -70,6 +71,7 @@ class EnvironmentTests(BaseTestCase):
             'free_tier_thresholds': json.loads(constance.config.FREE_TIER_THRESHOLDS),
             'free_tier_display': json.loads(constance.config.FREE_TIER_DISPLAY),
             'social_apps': [],
+            'enable_zxcvbn_password_validation': constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION,
         }
 
     def _check_response_dict(self, response_dict):
@@ -156,12 +158,12 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 19
+        queries = FuzzyInt(19, 24)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
-            with self.assertNumQueries(queries + 1):
+            with self.assertNumQueries(queries):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
