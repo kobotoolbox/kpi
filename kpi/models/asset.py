@@ -1069,9 +1069,13 @@ class Asset(ObjectPermissionMixin,
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
+        '''
+        engines are individual NLP services that can be used
+        '''
         for instance in self.get_advanced_feature_instances():
-            for key, val in instance.engines():
-                yield key, val
+            if hasattr(instance, 'engines'):
+                for key, val in instance.engines():
+                    yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

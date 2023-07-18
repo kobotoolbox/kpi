@@ -1,6 +1,7 @@
 from copy import deepcopy
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.translation import TranslationAction
+from ..actions.qual import QualAction
 
 from ..actions.unknown_action import UnknownAction
 
@@ -8,6 +9,7 @@ from ..actions.unknown_action import UnknownAction
 AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,
     TranslationAction,
+    QualAction,
 )
 
 ACTIONS_BY_ID = dict([
