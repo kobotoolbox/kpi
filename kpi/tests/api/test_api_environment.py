@@ -68,9 +68,8 @@ class EnvironmentTests(BaseTestCase):
             },
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             'stripe_public_key': settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None,
-            'free_tier_thresholds': json.loads(
-                constance.config.FREE_TIER_THRESHOLDS
-            ),
+            'free_tier_thresholds': json.loads(constance.config.FREE_TIER_THRESHOLDS),
+            'free_tier_display': json.loads(constance.config.FREE_TIER_DISPLAY),
             'social_apps': [],
             'zxcvbn_password_validation': constance.config.ZXCVBN_PASSWORD_VALIDATION,
         }

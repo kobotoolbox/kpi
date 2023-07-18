@@ -322,10 +322,10 @@ CONSTANCE_CONFIG = {
     ),
     'FREE_TIER_THRESHOLDS': (
         json.dumps({
-            'storage': int(1 * 1024 * 1024 * 1024),  # 1 GB
-            'data': 1000,
-            'transcription_minutes': 10,
-            'translation_chars': 6000,
+            'storage': None,
+            'data': None,
+            'transcription_minutes': None,
+            'translation_chars': None,
         }),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
@@ -333,6 +333,17 @@ CONSTANCE_CONFIG = {
         'number of translation characters',
         # Use custom field for schema validation
         'free_tier_threshold_jsonschema'
+    ),
+    'FREE_TIER_DISPLAY': (
+        json.dumps(
+            {
+                'name': None,
+                'feature_list': [],
+            }
+        ),
+        'Free tier frontend settings: name to use for the free tier, '
+        'array of text strings to display on the feature list of the Plans page',
+        'free_tier_display_jsonschema',
     ),
     'PROJECT_TRASH_GRACE_PERIOD': (
         7,
@@ -411,6 +422,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
         {'widget': 'django.forms.Textarea'},
     ],
+    'free_tier_display_jsonschema': [
+        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
@@ -442,7 +457,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'FREE_TIER_THRESHOLDS',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -481,6 +495,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+    ),
+    'Tier settings': (
+        'FREE_TIER_THRESHOLDS',
+        'FREE_TIER_DISPLAY',
     ),
 }
 
