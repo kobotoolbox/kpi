@@ -71,7 +71,7 @@ class EnvironmentTests(BaseTestCase):
             'free_tier_thresholds': json.loads(constance.config.FREE_TIER_THRESHOLDS),
             'free_tier_display': json.loads(constance.config.FREE_TIER_DISPLAY),
             'social_apps': [],
-            'zxcvbn_password_validation': constance.config.ZXCVBN_PASSWORD_VALIDATION,
+            'enable_zxcvbn_password_validation': constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION,
         }
 
     def _check_response_dict(self, response_dict):
