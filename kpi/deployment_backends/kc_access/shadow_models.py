@@ -398,13 +398,13 @@ class KobocatUserProfile(ShadowModel):
     def set_password_details(
         cls, 
         user_id: int, 
-        date: datetime.date, 
+        validated: bool,
     ):
         """
         Update the kobocat user's password_change_date and validated_password fields
         """
         user_profile, created = cls.objects.get_or_create(user_id=user_id)
-        user_profile.password_date_changed = date
+        user_profile.validated_password = validated
         user_profile.save(
             update_fields=['validated_password']
         )

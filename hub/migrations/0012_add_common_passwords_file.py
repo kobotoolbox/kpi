@@ -14,7 +14,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='configurationfile',
             name='content',
-            field=models.FileField(help_text='Stored in a PUBLIC location where authentication is NOT required for access except for common passwords file.', upload_to=hub.models._configuration_file_upload_to),
+            field=models.FileField(
+                help_text='Stored in a PUBLIC location where authentication '
+                          'is NOT required to access common passwords file.',
+                upload_to=hub.models._configuration_file_upload_to,
+            ),
         ),
         migrations.AlterField(
             model_name='configurationfile',

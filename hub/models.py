@@ -57,7 +57,7 @@ class ConfigurationFile(models.Model):
         upload_to=_configuration_file_upload_to,
         help_text=(
             'Stored in a PUBLIC location where authentication is NOT required '
-            '**to** access common passwords file.'
+            'to access common passwords file.'
         ),
     )
 
@@ -185,8 +185,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         )
         
         # Sync validated_password field to KobocatUserProfile
-        if not settings.TESTING:
-            if not update_fields or (update_fields and 'data' in update_fields):
+        if not update_fields or (update_fields and 'validated_password' in update_fields):
+            if not settings.TESTING:
                 KobocatUserProfile.set_password_details(
                     self.user.id, 
                     self.validated_password,
