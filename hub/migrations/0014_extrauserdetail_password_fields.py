@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='extrauserdetail',
-            name='password_change_date',
+            name='password_date_changed',
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(

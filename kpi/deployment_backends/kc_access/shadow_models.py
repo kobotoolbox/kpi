@@ -384,43 +384,30 @@ class KobocatUserProfile(ShadowModel):
     # is using `LazyBooleanField` which is an integer behind the scene.
     # We do not want to port this class to KPI only for one line of code.
     is_mfa_active = models.PositiveSmallIntegerField(default=False)
-    password_change_date = models.DateTimeField(null=True, blank=True)
+    password_date_changed = models.DateTimeField(null=True, blank=True)
     validated_password = models.BooleanField(default=False)
 
     @classmethod
     def set_mfa_status(cls, user_id: int, is_active: bool):
 
-        try:
-            user_profile, created = cls.objects.get_or_create(user_id=user_id)
-        except cls.DoesNotExist:
-            pass
-        else:
-            user_profile.is_mfa_active = int(is_active)
-            user_profile.save(update_fields=['is_mfa_active'])
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.is_mfa_active = int(is_active)
+        user_profile.save(update_fields=['is_mfa_active'])
 
     @classmethod
     def set_password_details(
         cls, 
         user_id: int, 
-        date: datetime, 
-        validated: bool,
+        date: datetime.date, 
     ):
         """
-        Update the kobocat user's password_change_date and validated_password fieds
-        :param user_id: the kobocat user's id
-        :param date: the date of the password change
-        :validated: whether the password has been validated or not
+        Update the kobocat user's password_change_date and validated_password fields
         """
-        try:
-            user_profile, created = cls.objects.get_or_create(user_id=user_id)
-        except cls.DoesNotExist:
-            pass
-        else:
-            user_profile.password_change_date = date
-            user_profile.validated_password = validated
-            user_profile.save(
-                update_fields=['password_change_date', 'validated_password']
-            )
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.password_date_changed = date
+        user_profile.save(
+            update_fields=['validated_password']
+        )
 
 
 class KobocatToken(ShadowModel):

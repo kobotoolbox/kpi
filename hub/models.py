@@ -160,7 +160,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     private_data = models.JSONField(default=dict)
     date_removal_requested = models.DateTimeField(null=True)
     date_removed = models.DateTimeField(null=True)
-    password_change_date = models.DateTimeField(null=True, blank=True)
+    password_date_changed = models.DateTimeField(null=True, blank=True)
     validated_password = models.BooleanField(default=True)
 
     def __str__(self):
@@ -184,13 +184,13 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             update_fields=update_fields,
         )
         
-        # Sync password fields to KobocatUserProfile
+        # Sync validated_password field to KobocatUserProfile
         if not settings.TESTING:
-            KobocatUserProfile.set_password_details(
-                self.user.id, 
-                self.password_change_date,
-                self.validated_password,
-            )
+            if not update_fields or (update_fields and 'data' in update_fields):
+                KobocatUserProfile.set_password_details(
+                    self.user.id, 
+                    self.validated_password,
+                )
 
 def create_extra_user_details(sender, instance, created, **kwargs):
     if created:
