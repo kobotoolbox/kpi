@@ -6,8 +6,8 @@ import {getSubscription} from '../../account/stripe.api';
 interface UsageState {
   storage: number;
   monthlySubmissions: number;
-  transcriptionMinutes: number;
-  translationChars: number;
+  monthlyTranscriptionMinutes: number;
+  monthlyTranslationChars: number;
 }
 
 interface SubscribedState {
@@ -29,8 +29,8 @@ export const getAllExceedingLimits = () => {
   const [usage, setUsage] = useState<UsageState>({
     storage: 0,
     monthlySubmissions: 0,
-    transcriptionMinutes: 0,
-    translationChars: 0,
+    monthlyTranscriptionMinutes: 0,
+    monthlyTranslationChars: 0,
   });
   const [subscribedStorageLimit, setSubscribedStorageLimit] = useState(1);
   const [subscribedSubmissionLimit, setSubscribedSubmissionLimit] =
@@ -52,11 +52,12 @@ export const getAllExceedingLimits = () => {
       setUsage({
         ...usage,
         storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
-        monthlySubmissions: data.total_submission_count_current_month,
-        transcriptionMinutes: Math.floor(
-          truncate(data.total_nlp_asr_seconds / 60)
+        monthlySubmissions: data.total_submission_count['current_month'],
+        monthlyTranscriptionMinutes: Math.floor(
+          truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
         ), // seconds to minutes
-        translationChars: data.total_nlp_mt_characters,
+        monthlyTranslationChars:
+          data.total_nlp_usage['mt_characters_current_month'],
       });
     });
   }, []);
@@ -95,11 +96,11 @@ export const getAllExceedingLimits = () => {
       exceedList.push(t('storage'));
     }
 
-    if (usage.transcriptionMinutes > subscribedTranscriptionMinutes) {
+    if (usage.monthlyTranscriptionMinutes > subscribedTranscriptionMinutes) {
       exceedList.push(t('Transcription Minutes'));
     }
 
-    if (usage.translationChars > subscribedTranslationChars) {
+    if (usage.monthlyTranslationChars > subscribedTranslationChars) {
       exceedList.push(t('Translation Charaters'));
     }
   }, [usage]);

@@ -1,15 +1,20 @@
 # coding: utf-8
 import os.path
 import uuid
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import connection
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
-from kobo.apps.trackers.models import MonthlyNLPUsageCounter
+from kobo.apps.trackers.models import NLPUsageCounter
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatXForm,
+    ReadOnlyKobocatDailyXFormSubmissionCounter,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -20,15 +25,36 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
+    unmanaged_models = [
+        ReadOnlyKobocatDailyXFormSubmissionCounter,
+        KobocatXForm,
+    ]
+    xform = None
+    counter = None
+
     def setUp(self) -> None:
+        super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
         self.anotheruser = User.objects.get(username='anotheruser')
+        with connection.schema_editor() as schema_editor:
+            for unmanaged_model in self.unmanaged_models:
+                schema_editor.create_model(unmanaged_model)
 
     def __create_asset(self):
         content_source_asset = {
             'survey': [
-                {'type': 'audio', 'label': 'q1', 'required': 'false', '$kuid': 'abcd'},
-                {'type': 'file', 'label': 'q2', 'required': 'false', '$kuid': 'efgh'},
+                {
+                    'type': 'audio',
+                    'label': 'q1',
+                    'required': 'false',
+                    '$kuid': 'abcd',
+                },
+                {
+                    'type': 'file',
+                    'label': 'q2',
+                    'required': 'false',
+                    '$kuid': 'efgh',
+                },
             ]
         }
         self.asset = Asset.objects.create(
@@ -70,27 +96,29 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'anotheruser'
+            '_submitted_by': 'anotheruser',
         }
         submissions.append(submission)
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.__update_xform_counters(self.asset.uid, submissions=1)
 
     def __add_nlp_trackers(self):
         """
         Add nlp data to an asset
         """
         # this month
-        today = datetime.today()
+        today = timezone.now().date()
         counter_1 = {
             'google_asr_seconds': 4586,
             'google_mt_characters': 5473,
         }
-        MonthlyNLPUsageCounter.objects.create(
+        NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            year=today.year,
-            month=today.month,
-            counters=counter_1
+            date=today,
+            counters=counter_1,
+            total_asr_seconds=counter_1['google_asr_seconds'],
+            total_mt_characters=counter_1['google_mt_characters'],
         )
 
         # last month
@@ -99,12 +127,13 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
             'google_asr_seconds': 142,
             'google_mt_characters': 1253,
         }
-        MonthlyNLPUsageCounter.objects.create(
+        NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
             asset_id=self.asset.id,
-            year=last_month.year,
-            month=last_month.month,
+            date=last_month,
             counters=counter_2,
+            total_asr_seconds=counter_2['google_asr_seconds'],
+            total_mt_characters=counter_2['google_mt_characters'],
         )
 
     def __add_submissions(self):
@@ -133,7 +162,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'anotheruser'
+            '_submitted_by': 'anotheruser',
         }
         submission2 = {
             '__version__': v_uid,
@@ -154,13 +183,47 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'anotheruser'
+            '_submitted_by': 'anotheruser',
         }
 
         submissions.append(submission1)
         submissions.append(submission2)
 
         self.asset.deployment.mock_submissions(submissions, flush_db=False)
+        self.__update_xform_counters(self.asset.uid, submissions=2)
+
+    def __update_xform_counters(self, uid, submissions=0):
+        """
+        Create/update the daily submission counter and the shadow xform we use to query it
+        """
+        today = timezone.now()
+        if self.xform:
+            self.xform.attachment_storage_bytes += (
+                self.__expected_file_size() * submissions
+            )
+            self.xform.save()
+        else:
+            self.xform = KobocatXForm.objects.create(
+                attachment_storage_bytes=self.__expected_file_size()
+                                         * submissions,
+                kpi_asset_uid=uid,
+                date_created=today,
+                date_modified=today,
+            )
+            self.xform.save()
+
+        if self.counter:
+            self.counter.counter += submissions
+            self.counter.save()
+        else:
+            self.counter = (
+                ReadOnlyKobocatDailyXFormSubmissionCounter.objects.create(
+                    date=today.date(),
+                    counter=submissions,
+                    xform=self.xform,
+                )
+            )
+            self.counter.save()
 
     def __expected_file_size(self):
         """
@@ -168,7 +231,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         """
         return os.path.getsize(
             settings.BASE_DIR + '/kpi/tests/audio_conversion_test_clip.mp4'
-        ) + os.path.getsize(settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg')
+        ) + os.path.getsize(
+            settings.BASE_DIR + '/kpi/tests/audio_conversion_test_image.jpg'
+        )
 
     def test_anonymous_user(self):
         """
@@ -192,11 +257,23 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['total_submission_count_current_month'] == 1
-        assert response.data['total_nlp_asr_seconds'] == 4728
-        assert response.data['total_nlp_mt_characters'] == 6726
-        assert response.data['total_submission_count_all_time'] == 1
-        assert response.data['total_storage_bytes'] == self.__expected_file_size()
+        assert response.data['total_submission_count']['current_month'] == 1
+        assert response.data['total_submission_count']['all_time'] == 1
+        assert (
+            response.data['total_nlp_usage']['asr_seconds_current_month']
+            == 4586
+        )
+        assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 4728
+        assert (
+            response.data['total_nlp_usage']['mt_characters_current_month']
+            == 5473
+        )
+        assert (
+            response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
+        )
+        assert (
+            response.data['total_storage_bytes'] == self.__expected_file_size()
+        )
 
     def test_multiple_forms(self):
         """
@@ -205,14 +282,17 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         """
         self.__create_asset()
         self.__add_submission()
+
         self.__create_asset()
         self.__add_submissions()
 
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
-        assert response.data['total_submission_count_current_month'] == 3
-        assert response.data['total_submission_count_all_time'] == 3
-        assert response.data['total_storage_bytes'] == (self.__expected_file_size() * 3)
+        assert response.data['total_submission_count']['current_month'] == 3
+        assert response.data['total_submission_count']['all_time'] == 3
+        assert response.data['total_storage_bytes'] == (
+            self.__expected_file_size() * 3
+        )
 
     def test_no_data(self):
         """
@@ -222,8 +302,9 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['total_submission_count_current_month'] == 0
-        assert response.data['total_submission_count_all_time'] == 0
+        assert response.data['total_submission_count']['current_month'] == 0
+        assert response.data['total_submission_count']['all_time'] == 0
+        assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 0
         assert response.data['total_storage_bytes'] == 0
 
     def test_no_deployment(self):
@@ -233,8 +314,18 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         Asset.objects.create(
             content={
                 'survey': [
-                    {'type': 'audio', 'label': 'q1', 'required': 'false', '$kuid': 'abcd'},
-                    {'type': 'file', 'label': 'q2', 'required': 'false', '$kuid': 'efgh'},
+                    {
+                        'type': 'audio',
+                        'label': 'q1',
+                        'required': 'false',
+                        '$kuid': 'abcd',
+                    },
+                    {
+                        'type': 'file',
+                        'label': 'q2',
+                        'required': 'false',
+                        '$kuid': 'efgh',
+                    },
                 ]
             },
             owner=self.anotheruser,
@@ -244,3 +335,7 @@ class ServiceUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('service-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
+        assert response.data['total_submission_count']['current_month'] == 0
+        assert response.data['total_submission_count']['all_time'] == 0
+        assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 0
+        assert response.data['total_storage_bytes'] == 0
