@@ -183,14 +183,17 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             using=using,
             update_fields=update_fields,
         )
-        
+
         # Sync validated_password field to KobocatUserProfile
-        if not update_fields or (update_fields and 'validated_password' in update_fields):
-            if not settings.TESTING:
-                KobocatUserProfile.set_password_details(
-                    self.user.id, 
-                    self.validated_password,
-                )
+        if not settings.TESTING and (
+            not update_fields
+            or (update_fields and 'validated_password' in update_fields)
+        ):
+            KobocatUserProfile.set_password_details(
+                self.user.id,
+                self.validated_password,
+            )
+
 
 def create_extra_user_details(sender, instance, created, **kwargs):
     if created:
