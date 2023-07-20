@@ -9,10 +9,11 @@ import {getAllExceedingLimits} from './usageCalculations';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
+import {string} from 'prop-types';
 
 interface OverLimitModalProps {
   show: boolean;
-  close: undefined;
+  limits: (number: number) => void;
 }
 
 function OverLimitModal(props: OverLimitModalProps) {
@@ -23,6 +24,11 @@ function OverLimitModal(props: OverLimitModalProps) {
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+  const limitsLength = getAllExceedingLimits().length;
+
+  useEffect(() => {
+    props.limits(limitsLength);
+  }, [limitsLength]);
 
   const handleClose = () => {
     toggleModal();
@@ -51,11 +57,11 @@ function OverLimitModal(props: OverLimitModalProps) {
               {getAllExceedingLimits().map((item, i) => (
                 <span key={i}>
                   {i > 0 && ', '}
-                  {i === getAllExceedingLimits().length - 1 && i > 0 && 'and '}
+                  {i === limitsLength - 1 && i > 0 && 'and '}
                   {item}
                 </span>
               ))}{' '}
-              {t('quota')} {getAllExceedingLimits().length > 1 && 's'}{' '}
+              {t('quota')} {limitsLength > 1 && 's'}{' '}
               {t('included in your current plan.')}
             </div>
             <br />

@@ -31,7 +31,9 @@ export default function Usage() {
         ...usage,
         storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
         monthlySubmissions: data.total_submission_count_current_month,
-        transcriptionMinutes: Math.floor(truncate(data.total_nlp_asr_seconds / 60)), // seconds to minutes
+        transcriptionMinutes: Math.floor(
+          truncate(data.total_nlp_asr_seconds / 60)
+        ), // seconds to minutes
         translationChars: data.total_nlp_mt_characters,
       });
     });

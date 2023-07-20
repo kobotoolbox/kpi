@@ -22,7 +22,7 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
   return {...state, subscribedProduct: action.prodData};
 }
 
-const exceedList: string[] = ['submissions'];
+export let exceedList: string[] = [];
 
 export const getAllExceedingLimits = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
@@ -39,10 +39,6 @@ export const getAllExceedingLimits = () => {
     useState(600);
   const [subscribedTranslationChars, setTranslationChars] = useState(6000);
 
-  // TODO: Current limits with default to community plan values
-  // Should discuss this or check up on defaulting
-  // also check the whole minute / seconds thing
-
   useMemo(() => {
     getSubscription().then((data) => {
       dispatch({
@@ -50,10 +46,6 @@ export const getAllExceedingLimits = () => {
       });
     });
   }, []);
-
-  function truncate(decimal: number) {
-    return parseFloat(decimal.toFixed(2));
-  }
 
   useEffect(() => {
     getUsage().then((data) => {
@@ -68,6 +60,10 @@ export const getAllExceedingLimits = () => {
       });
     });
   }, []);
+
+  function truncate(decimal: number) {
+    return parseFloat(decimal.toFixed(2));
+  }
 
   useMemo(() => {
     if (state.subscribedProduct?.length > 0) {
@@ -88,13 +84,13 @@ export const getAllExceedingLimits = () => {
           .nlp_character_limit
       );
     }
-  }, []);
+  }, [state.subscribedProduct]);
 
-  useEffect(() => {
+  useMemo(() => {
+    exceedList = [];
     if (usage.monthlySubmissions > subscribedSubmissionLimit) {
       exceedList.push(t('submissions'));
     }
-
     if (usage.storage > subscribedStorageLimit) {
       exceedList.push(t('storage'));
     }
@@ -106,16 +102,6 @@ export const getAllExceedingLimits = () => {
     if (usage.translationChars > subscribedTranslationChars) {
       exceedList.push(t('Translation Charaters'));
     }
-  });
-
+  }, [usage]);
   return exceedList;
-};
-
-// Check if any limits have been exceeded and return boolean
-export const checkLimits = (): boolean => {
-  if (exceedList.length > 0) {
-    return true;
-  } else {
-    return false;
-  }
 };
