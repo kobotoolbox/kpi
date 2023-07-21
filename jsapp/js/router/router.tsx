@@ -287,15 +287,6 @@ export const router = createHashRouter(
                 />
               }
             />
-            <Route
-              path={ROUTES.FORM_KOBOCAT}
-              element={
-                <PermProtectedRoute
-                  protectedComponent={FormSubScreens}
-                  requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
-                />
-              }
-            />
           </Route>
 
           <Route
