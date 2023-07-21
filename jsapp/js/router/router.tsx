@@ -336,7 +336,14 @@ export const router = createHashRouter(
             }
           />
         </Route>
-        <Route path='*' element={FormNotFound} />
+        <Route
+          path='*'
+          element={
+            <Suspense fallback={null}>
+              <FormNotFound />
+            </Suspense>
+          }
+        />
       </Route>
       <Route
         path='*'
