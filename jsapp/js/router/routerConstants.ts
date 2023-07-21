@@ -45,4 +45,5 @@ export const ROUTES = Object.freeze({
   FORM_RECORDS: '/forms/:uid/settings/records',
   FORM_REST: '/forms/:uid/settings/rest',
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
+  FORM_RESET: '/forms/:uid/reset',
 });

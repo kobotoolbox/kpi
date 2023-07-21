@@ -316,6 +316,25 @@ export const router = createHashRouter(
               />
             }
           />
+          {/**
+           * TODO change this HACKFIX to a better solution
+           *
+           * Used to force refresh form sub routes. It's some kind of a weird
+           * way of introducing a loading screen during sub route refresh.
+           * See: https://github.com/kobotoolbox/kpi/issues/3925
+           *
+           * NOTE: To make this more noticeable, you can increase the
+           * timeout in FormViewTabs' triggerRefresh().
+           **/}
+          <Route
+            path={ROUTES.FORM_RESET}
+            element={
+              <PermProtectedRoute
+                protectedComponent={FormSubScreens}
+                requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
+              />
+            }
+          />
         </Route>
         <Route path='*' element={FormNotFound} />
       </Route>
