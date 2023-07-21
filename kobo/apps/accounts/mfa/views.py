@@ -16,6 +16,7 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
 from .forms import MfaLoginForm, MfaTokenForm
 from .serializers import UserMfaMethodSerializer
+from ..utils import user_has_paid_subscription
 
 
 class MfaLoginView(LoginView):
@@ -82,19 +83,9 @@ class MfaLoginView(LoginView):
         If they don't, return None and do nothing.
         """
         username = form.cleaned_data.get('login')
-        active_subscription = (
-            User.objects.filter(
-                organizations_organization__djstripe_customers__subscriber__organization_users__user__username=username,
-                organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            )
-            .exclude(
-                organizations_organization__djstripe_customers__subscriptions__items__price__unit_amount=0
-            )
-            .exists()
-        )
+        active_subscription = user_has_paid_subscription(username)
 
         if not active_subscription:
-            super().form_valid(form)
             next_url = context['redirect_field_value'] or resolve_url(
                 settings.LOGIN_REDIRECT_URL
             )
