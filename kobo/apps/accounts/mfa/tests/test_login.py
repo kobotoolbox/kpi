@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from trench.utils import get_mfa_model
@@ -24,18 +25,13 @@ class LoginTests(KpiTestCase):
         )
         # Ensure `self.client` is not authenticated
         self.client.logout()
-        # Store the original value of STRIPE_ENABLED so we can override it
-        self.original_stripe_enabled = settings.STRIPE_ENABLED
 
-    def tearDown(self):
-        settings.STRIPE_ENABLED = self.original_stripe_enabled
-
+    @override_settings(STRIPE_ENABLED=False)
     def test_login_with_mfa_enabled(self):
         """
         Validate that multi-factor authentication form is displayed after
         successful login
         """
-        settings.STRIPE_ENABLED = False
         data = {
             'login': 'someuser',
             'password': 'someuser',
