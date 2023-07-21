@@ -764,7 +764,7 @@ export class FormMap extends React.Component {
     const fields = this.state.fields;
     const langIndex = this.state.langIndex;
     const langs =
-      this.props.asset.content.translations.length > 1
+      this.props.asset.content.translations?.length > 1
         ? this.props.asset.content.translations
         : [];
     const viewby = this.props.viewby;

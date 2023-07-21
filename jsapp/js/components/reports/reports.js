@@ -122,7 +122,7 @@ export default class Reports extends React.Component {
               reportStyles: reportStyles,
               reportData: dataWithResponses,
               reportCustom: reportCustom,
-              translations: asset.content.translations.length > 1,
+              translations: asset.content.translations?.length > 1,
               groupBy: groupBy,
               error: false,
             });
