@@ -181,16 +181,6 @@ const Drawer = observer(class Drawer extends Reflux.Component {
           { sessionStore.isLoggedIn &&
             <HelpBubble/>
           }
-          { sessionStore.isLoggedIn &&
-            sessionStore.currentAccount.projects_url &&
-            <a href={sessionStore.currentAccount.projects_url}
-              className='k-drawer__link'
-              target='_blank'
-              data-tip={t('Projects (legacy)')}
-            >
-              <i className='k-icon k-icon-globe' />
-            </a>
-          }
           { envStore.isReady &&
             envStore.data.source_code_url &&
             <a href={envStore.data.source_code_url}

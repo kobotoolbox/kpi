@@ -639,6 +639,9 @@ export interface AccountResponse {
   email: string;
   server_time: string;
   date_joined: string;
+  /**
+   * Link to a legacy view containing list of projects. No longer used on FE.
+   */
   projects_url: string;
   is_superuser: boolean;
   gravatar: string;
