@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from allauth.socialaccount.models import SocialApp
 
+from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
@@ -68,14 +69,7 @@ class EnvironmentView(APIView):
         ),
         (
             'MFA_LOCALIZED_HELP_TEXT',
-            lambda i18n_texts, request: {
-                lang: markdown(text)
-                for lang, text in json.loads(
-                    i18n_texts.replace(
-                        '##support email##', constance.config.SUPPORT_EMAIL
-                    )
-                ).items()
-            },
+            lambda value, request: markdown(I18nUtils.get_mfa_help_text()),
         ),
         (
             'MFA_ENABLED',
