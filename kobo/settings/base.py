@@ -422,6 +422,10 @@ CONSTANCE_CONFIG = {
         'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password.',
     ),
+    'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        False,
+        'Enable custom password guidance text to help users create their passwords.',
+    ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
         json.dumps({
             'default': '',
@@ -434,7 +438,9 @@ CONSTANCE_CONFIG = {
         (
             'Create custom guidance text for password complexity. '
             'The contents of the message should reflect the password complexity rules '
-            'as set in Constance.'
+            'as set in Constance. '
+            '"default" is the fallback language, and will be used if no translation are provided '
+            'and should be in English.'
         ),
         'custom_password_guidance_text_field',
     ),
@@ -521,6 +527,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PASSWORD_USER_ATTRIBUTES',
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
         'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ),
     'Trash bin': (
