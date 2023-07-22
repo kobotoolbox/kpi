@@ -164,11 +164,13 @@ export class FormMap extends React.Component {
       ASSET_FILE_TYPES.map_layer.id
     );
   }
-  loadOverlayLayers(map) {
+
+  loadOverlayLayers() {
     dataInterface
       .getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
-      .done((data) => {});
+      .done(() => {});
   }
+
   updateOverlayList(data) {
     const map = this.state.map;
 
@@ -366,13 +368,14 @@ export class FormMap extends React.Component {
     const viewby = this.props.viewby || undefined;
     const colorSet = this.calcColorSet();
     let currentQuestionChoices = [];
+    let mapMarkers = {};
+    let mM = [];
 
     if (viewby) {
-      var mapMarkers = this.prepFilteredMarkers(
+      mapMarkers = this.prepFilteredMarkers(
         this.state.submissions,
         this.props.viewby
       );
-      var mM = [];
       const choices = this.props.asset.content.choices;
       const survey = this.props.asset.content.survey;
 
@@ -386,9 +389,10 @@ export class FormMap extends React.Component {
         );
       }
 
-      Object.keys(mapMarkers).map(function (m, i) {
+      Object.keys(mapMarkers).map(function (m) {
+        let choice;
         if (question && question.type === 'select_one') {
-          var choice = currentQuestionChoices.find(
+          choice = currentQuestionChoices.find(
             (ch) => ch.name === m || ch.$autoname === m
           );
         }
@@ -397,7 +401,7 @@ export class FormMap extends React.Component {
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
           labels: choice ? choice.label : undefined,
-          value: m != 'undefined' ? m : undefined,
+          value: m !== 'undefined' ? m : undefined,
         });
       });
 
@@ -405,7 +409,7 @@ export class FormMap extends React.Component {
         colorSet !== undefined &&
         colorSet !== 'a' &&
         question &&
-        question.type == 'select_one'
+        question.type === 'select_one'
       ) {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
         mM.sort(function (a, b) {
@@ -504,7 +508,7 @@ export class FormMap extends React.Component {
       ) {
         map.fitBounds(markers.getBounds());
       }
-      if (prepPoints == 0) {
+      if (prepPoints.length === 0) {
         map.fitBounds([[42.373, -71.124]]);
         this.setState({noData: true});
       }
@@ -518,7 +522,7 @@ export class FormMap extends React.Component {
 
   calculateIconIndex(index, mM) {
     // use neutral color for items with no set value
-    if (mM[index] && mM[index].value == undefined) {
+    if (mM[index] && mM[index].value === undefined) {
       return '-novalue';
     }
 
@@ -554,10 +558,10 @@ export class FormMap extends React.Component {
     const vb = this.nameOfFieldInGroup(viewby);
     let idcounter = 1;
 
-    data.forEach(function (listitem, i) {
+    data.forEach(function (listitem) {
       const m = listitem[vb];
 
-      if (markerMap[m] == null) {
+      if (markerMap[m] === undefined) {
         markerMap[m] = {count: 1, id: idcounter};
         idcounter++;
       } else {
@@ -622,7 +626,7 @@ export class FormMap extends React.Component {
     }, 1000);
 
     const name = evt.target.getAttribute('data-name') || undefined;
-    if (name != undefined) {
+    if (name !== undefined) {
       this.props.router.navigate(
         `/forms/${this.props.asset.uid}/data/map/${name}`
       );
@@ -631,7 +635,7 @@ export class FormMap extends React.Component {
     }
   }
   filterLanguage(evt) {
-    const index = evt.target.getAttribute('data-index');
+    const index = +evt.target.getAttribute('data-index');
     this.setState({langIndex: index});
   }
   static getDerivedStateFromProps(props, state) {
@@ -760,7 +764,7 @@ export class FormMap extends React.Component {
     const fields = this.state.fields;
     const langIndex = this.state.langIndex;
     const langs =
-      this.props.asset.content.translations.length > 1
+      this.props.asset.content.translations?.length > 1
         ? this.props.asset.content.translations
         : [];
     const viewby = this.props.viewby;
@@ -846,7 +850,7 @@ export class FormMap extends React.Component {
             {langs.map((l, i) => (
               <bem.PopoverMenu__link
                 data-index={i}
-                className={this.state.langIndex == i ? 'active' : ''}
+                className={this.state.langIndex === i ? 'active' : ''}
                 key={`l-${i}`}
                 onClick={this.filterLanguage}
               >
@@ -876,7 +880,7 @@ export class FormMap extends React.Component {
                   data-name={name}
                   key={`f-${name}`}
                   onClick={this.filterMap}
-                  className={viewby == name ? 'active' : ''}
+                  className={viewby === name ? 'active' : ''}
                 >
                   {label}
                 </bem.PopoverMenu__link>

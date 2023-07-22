@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import type {Update} from 'history';
+import type {RouterState} from '@remix-run/router';
 import searchBoxStore from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {getCurrentPath, isPublicCollectionsRoute} from 'js/router/routerUtils';
@@ -11,7 +11,7 @@ import {
 import type {AssetsTableColumn} from 'js/components/assetsTable/assetsTableConstants';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import type {
   AssetResponse,
   AssetsResponse,
@@ -65,7 +65,7 @@ class PublicCollectionsStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
 
     reaction(
       () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
@@ -188,7 +188,7 @@ class PublicCollectionsStore extends Reflux.Store {
     actions.library.searchPublicCollections(params);
   }
 
-  onRouteChange(data: Update) {
+  onRouteChange(data: RouterState) {
     if (
       !this.isInitialised &&
       isPublicCollectionsRoute() &&

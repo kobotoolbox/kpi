@@ -9,9 +9,9 @@ import {
   ASSETS_TABLE_COLUMNS,
 } from 'js/components/assetsTable/assetsTableConstants';
 import type {OrderDirection} from 'js/projects/projectViews/constants';
+import type {RouterState} from '@remix-run/router';
 import {ROUTES} from 'js/router/routerConstants';
-import {history} from 'js/router/historyRouter';
-import type {Update} from 'history';
+import {router} from 'js/router/legacy';
 import type {
   AssetResponse,
   AssetsResponse,
@@ -74,7 +74,7 @@ class MyLibraryStore extends Reflux.Store {
 
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
 
     reaction(
       () => [searchBoxStore.data.context, searchBoxStore.data.searchPhrase],
@@ -198,7 +198,7 @@ class MyLibraryStore extends Reflux.Store {
     actions.library.searchMyLibraryAssets(params);
   }
 
-  onRouteChange(data: Update) {
+  onRouteChange(data: RouterState) {
     if (
       !this.isInitialised &&
       isAnyLibraryRoute() &&

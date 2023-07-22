@@ -111,9 +111,6 @@ export class FormSubScreens extends React.Component {
               hookUid={this.props.params.hookUid}
             />
           );
-        case ROUTES.FORM_KOBOCAT.replace(':uid', this.state.uid):
-          iframeUrl = deployment__identifier + '/form_settings';
-          break;
         case ROUTES.FORM_RESET.replace(':uid', this.state.uid):
           return this.renderReset();
       }

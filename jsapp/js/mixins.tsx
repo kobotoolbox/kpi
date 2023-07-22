@@ -28,8 +28,7 @@ import type {
   DeploymentResponse,
 } from 'js/dataInterface';
 import {getRouteAssetUid} from 'js/router/routerUtils';
-import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
-import {history} from 'js/router/historyRouter';
+import {router, routerGetAssetId, routerIsActive} from 'js/router/legacy';
 import {
   archiveAsset,
   unarchiveAsset,
@@ -148,7 +147,7 @@ const mixins: MixinsObject = {
             {
               onComplete: (asset: AssetResponse) => {
                 dialog.destroy();
-                history.push(`/forms/${asset.uid}`);
+                router!.navigate(`/forms/${asset.uid}`);
               },
             }
           );
@@ -341,11 +340,9 @@ const mixins: MixinsObject = {
     _forEachDroppedFile(params: CreateImportRequest = {}) {
       const totalFiles = params.totalFiles || 1;
 
-      const router = this.props.router;
       const isProjectReplaceInForm =
         this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-        routerIsActive('forms') &&
-        router.params.uid !== undefined;
+        routerIsActive('forms');
       const isLibrary = routerIsActive('library');
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false;
       params = assign({library: isLibrary}, params);
@@ -397,13 +394,13 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      history.push(`/forms/${params.assetUid}`);
+                      router!.navigate(`/forms/${params.assetUid}`);
                     }
                   } else {
                     if (isProjectReplaceInForm) {
                       actions.resources.loadAsset({id: assetUid});
                     } else if (!isLibrary) {
-                      history.push(`/forms/${assetUid}`);
+                      router!.navigate(`/forms/${assetUid}`);
                     }
                     notify(t('XLS Import completed'));
                   }

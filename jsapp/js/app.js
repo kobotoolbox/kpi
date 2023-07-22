@@ -21,8 +21,8 @@ import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
-import {withRouter, routerGetAssetId} from './router/legacy';
-import {history} from './router/historyRouter';
+import {withRouter, routerGetAssetId, router} from './router/legacy';
+import {Tracking} from './router/useTracking';
 
 class App extends React.Component {
   constructor(props) {
@@ -33,7 +33,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    history.listen(this.onRouteChange.bind(this));
+    router.subscribe(this.onRouteChange.bind(this));
   }
 
   onRouteChange() {
@@ -74,6 +74,7 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
+          <Tracking />
           <PermValidator />
           <div className='header-stretch-bg' />
           <bem.PageWrapper
