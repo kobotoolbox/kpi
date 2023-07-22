@@ -21,9 +21,8 @@ import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
-import { withRouter, routerGetAssetId } from './router/legacy';
-import { history } from './router/historyRouter';
-
+import {withRouter, routerGetAssetId} from './router/legacy';
+import {history} from './router/historyRouter';
 
 class App extends React.Component {
   constructor(props) {
@@ -67,36 +66,41 @@ class App extends React.Component {
     };
 
     if (typeof this.state.pageState.modal === 'object') {
-      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] = true;
+      pageWrapperModifiers[
+        `is-modal-${this.state.pageState.modal.type}`
+      ] = true;
     }
 
     return (
       <DocumentTitle title='KoboToolbox'>
         <React.Fragment>
-          <PermValidator/>
-          <div className='header-stretch-bg'/>
-          <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
-            { this.state.pageState.modal &&
+          <PermValidator />
+          <div className='header-stretch-bg' />
+          <bem.PageWrapper
+            m={pageWrapperModifiers}
+            className='mdl-layout mdl-layout--fixed-header'
+          >
+            {this.state.pageState.modal && (
               <BigModal params={this.state.pageState.modal} />
-            }
+            )}
 
-            { !this.isFormBuilder() &&
+            {!this.isFormBuilder() && (
               <React.Fragment>
-                <MainHeader assetid={assetid}/>
-                <Drawer/>
+                <MainHeader assetid={assetid} />
+                <Drawer />
               </React.Fragment>
-            }
+            )}
 
             <bem.PageWrapper__content
               className='mdl-layout__content'
               m={pageWrapperContentModifiers}
             >
-              { !this.isFormBuilder() &&
+              {!this.isFormBuilder() && (
                 <React.Fragment>
-                  {this.isFormSingle() && <ProjectTopTabs/>}
+                  {this.isFormSingle() && <ProjectTopTabs />}
                   <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
-              }
+              )}
               <Outlet />
             </bem.PageWrapper__content>
           </bem.PageWrapper>

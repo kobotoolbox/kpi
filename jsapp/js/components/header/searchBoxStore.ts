@@ -53,4 +53,4 @@ class SearchBoxStore {
   }
 }
 
-export default new SearchBoxStore;
+export default new SearchBoxStore();

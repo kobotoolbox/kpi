@@ -2,20 +2,14 @@ import Reflux from 'reflux';
 import type {Update} from 'history';
 import searchBoxStore from 'js/components/header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {
-  getCurrentPath,
-  isPublicCollectionsRoute,
-} from 'js/router/routerUtils';
+import {getCurrentPath, isPublicCollectionsRoute} from 'js/router/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from 'js/components/assetsTable/assetsTableConstants';
 import type {AssetsTableColumn} from 'js/components/assetsTable/assetsTableConstants';
-import {
-  ASSET_TYPES,
-  ACCESS_TYPES,
-} from 'js/constants';
+import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {history} from 'js/router/historyRouter';
 import type {
@@ -78,21 +72,47 @@ class PublicCollectionsStore extends Reflux.Store {
       this.onSearchBoxStoreChanged.bind(this)
     );
 
-    actions.library.searchPublicCollections.started.listen(this.onSearchStarted.bind(this));
-    actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted.bind(this));
-    actions.library.searchPublicCollections.failed.listen(this.onSearchFailed.bind(this));
-    actions.library.searchPublicCollectionsMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
-    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted.bind(this));
-    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted.bind(this));
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this));
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this));
-    actions.resources.cloneAsset.completed.listen(this.onAssetCreated.bind(this));
-    actions.resources.createResource.completed.listen(this.onAssetCreated.bind(this));
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
+    actions.library.searchPublicCollections.started.listen(
+      this.onSearchStarted.bind(this)
+    );
+    actions.library.searchPublicCollections.completed.listen(
+      this.onSearchCompleted.bind(this)
+    );
+    actions.library.searchPublicCollections.failed.listen(
+      this.onSearchFailed.bind(this)
+    );
+    actions.library.searchPublicCollectionsMetadata.completed.listen(
+      this.onSearchMetadataCompleted.bind(this)
+    );
+    actions.library.subscribeToCollection.completed.listen(
+      this.onSubscribeCompleted.bind(this)
+    );
+    actions.library.unsubscribeFromCollection.listen(
+      this.onUnsubscribeCompleted.bind(this)
+    );
+    actions.library.moveToCollection.completed.listen(
+      this.onMoveToCollectionCompleted.bind(this)
+    );
+    actions.resources.loadAsset.completed.listen(
+      this.onAssetChanged.bind(this)
+    );
+    actions.resources.updateAsset.completed.listen(
+      this.onAssetChanged.bind(this)
+    );
+    actions.resources.cloneAsset.completed.listen(
+      this.onAssetCreated.bind(this)
+    );
+    actions.resources.createResource.completed.listen(
+      this.onAssetCreated.bind(this)
+    );
+    actions.resources.deleteAsset.completed.listen(
+      this.onDeleteAssetCompleted.bind(this)
+    );
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.startupStore.bind(this));
+    actions.permissions.getConfig.completed.listen(
+      this.startupStore.bind(this)
+    );
   }
 
   /**
@@ -100,7 +120,11 @@ class PublicCollectionsStore extends Reflux.Store {
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (
+      !this.isInitialised &&
+      isPublicCollectionsRoute() &&
+      !this.data.isFetchingData
+    ) {
       // This will indirectly run `fetchData`
       searchBoxStore.setContext(this.searchContext);
     }
@@ -126,7 +150,9 @@ class PublicCollectionsStore extends Reflux.Store {
     if (this.data.filterColumnId) {
       const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
-      params.filterValue = this.data.filterValue ? this.data.filterValue : undefined;
+      params.filterValue = this.data.filterValue
+        ? this.data.filterValue
+        : undefined;
     }
 
     // Surrounds `filterValue` with double quotes to avoid filters that have
@@ -154,7 +180,8 @@ class PublicCollectionsStore extends Reflux.Store {
     let orderColumn: AssetsTableColumn;
     if (this.data.orderColumnId) {
       orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
-      const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
+      const direction =
+        this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
       params.ordering = `${direction}${orderColumn.orderBy}`;
     }
 
@@ -162,7 +189,11 @@ class PublicCollectionsStore extends Reflux.Store {
   }
 
   onRouteChange(data: Update) {
-    if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (
+      !this.isInitialised &&
+      isPublicCollectionsRoute() &&
+      !this.data.isFetchingData
+    ) {
       // This will indirectly run `fetchData`
       searchBoxStore.setContext(this.searchContext);
     } else if (
