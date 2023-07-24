@@ -51,12 +51,13 @@ function OverLimitBanner() {
       </div>
       <Button
         type='full'
-        color='red'
+        color='dark-red'
         endIcon='arrow-right'
         size='s'
         label={t('Upgrade now')}
         onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
         aria-label={t('upgrade now')}
+        classNames={[styles.bannerBtn]}
       />
     </div>
   );
