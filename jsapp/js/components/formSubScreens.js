@@ -55,13 +55,11 @@ export class FormSubScreens extends React.Component {
     }
 
     var iframeUrl = '';
-    var report__base = '';
     var deployment__identifier = '';
 
     if (this.state.uid != undefined) {
       if (this.state.deployment__identifier != undefined) {
         deployment__identifier = this.state.deployment__identifier;
-        report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
       switch (this.props.router.location.pathname) {
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
