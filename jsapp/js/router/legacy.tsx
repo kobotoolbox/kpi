@@ -9,6 +9,7 @@ import {
   Location,
   NavigateFunction,
 } from 'react-router-dom';
+import type {Router} from '@remix-run/router';
 
 // https://stackoverflow.com/a/70754791/443457
 const getRoutePath = (location: Location, params: Params): string => {
@@ -38,7 +39,6 @@ interface RouterProp {
 export interface WithRouterProps {
   router: RouterProp;
   params: Readonly<Params<string>>; // Defined as props twice for compat!
-
 }
 
 /**
@@ -62,7 +62,7 @@ export function withRouter(Component: FC | typeof React.Component) {
 }
 
 function getCurrentRoute() {
-  return location.hash.split('#')[1] || '';
+  return router!.state.location.pathname;
 }
 
 /**
@@ -83,4 +83,16 @@ export function routerGetAssetId() {
     }
   }
   return null;
+}
+
+/**
+ * Necessary to avoid circular dependency
+ * Because router may be null, non-component uses may need to check
+ * null status or use setTimeout to ensure it's run after the first react render cycle
+ * For modern code, use router hooks instead of this.
+ * https://github.com/remix-run/react-router/issues/9422#issuecomment-1314642344
+ */
+export let router: Router | null = null;
+export function injectRouter(newRouter: Router) {
+  router = newRouter;
 }

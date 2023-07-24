@@ -46,8 +46,7 @@ import type {
   Permission,
 } from 'js/dataInterface';
 import {getRouteAssetUid} from 'js/router/routerUtils';
-import {routerGetAssetId, routerIsActive} from 'js/router/legacy';
-import {history} from 'js/router/historyRouter';
+import {router, routerGetAssetId, routerIsActive} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
@@ -123,12 +122,12 @@ const mixins: MixinsObject = {
 
               switch (asset.asset_type) {
                 case ASSET_TYPES.survey.id:
-                  history.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                  router!.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                   break;
                 case ASSET_TYPES.template.id:
                 case ASSET_TYPES.block.id:
                 case ASSET_TYPES.question.id:
-                  history.push(ROUTES.LIBRARY);
+                  router!.navigate(ROUTES.LIBRARY);
                   break;
               }
             },
@@ -174,7 +173,7 @@ mixins.dmix = {
         }, {
           onComplete: (asset: AssetResponse) => {
             dialog.destroy();
-            history.push(`/forms/${asset.uid}`);
+            router!.navigate(`/forms/${asset.uid}`);
           },
         });
 
@@ -206,7 +205,7 @@ mixins.dmix = {
       onDone: () => {
         notify(t('deployed form'));
         actions.resources.loadAsset({id: asset.uid});
-        history.push(`/forms/${asset.uid}`);
+        router!.navigate(`/forms/${asset.uid}`);
         toast.dismiss(deployment_toast);
       },
       onFail: () => {
@@ -511,13 +510,13 @@ mixins.droppable = {
               // TODO: use a more specific error message here
               notify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
               if (params.assetUid) {
-                history.push(`/forms/${params.assetUid}`);
+                router.navigate(`/forms/${params.assetUid}`);
               }
             } else {
               if (isProjectReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (!isLibrary) {
-                history.push(`/forms/${assetUid}`);
+                router.navigate(`/forms/${assetUid}`);
               }
               notify(t('XLS Import completed'));
             }
@@ -642,7 +641,7 @@ mixins.clickAssets = {
                 goToUrl = `/library/asset/${asset.uid}`;
               }
 
-              history.push(goToUrl);
+              router!.navigate(goToUrl);
               notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             },
             });
@@ -675,9 +674,9 @@ mixins.clickAssets = {
       },
       edit: function (uid: string) {
         if (routerIsActive('library')) {
-          history.push(`/library/asset/${uid}/edit`);
+          router!.navigate(`/library/asset/${uid}/edit`);
         } else {
-          history.push(`/forms/${uid}/edit`);
+          router!.navigate(`/forms/${uid}/edit`);
         }
       },
       delete: function (
