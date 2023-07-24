@@ -37,7 +37,7 @@ def noop(*args, **kwargs):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0050_add_indexes_to_import_and_export_tasks'),
+        ('kpi', '0051_set_free_tier_thresholds_to_default'),
     ]
 
     operations = [
