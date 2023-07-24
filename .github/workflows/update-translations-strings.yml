@@ -17,8 +17,6 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          # We need this particular version, as npm 8.5.5 is the last version
-          # that works with our package.json :sadface:.
           node-version: '18.17.0'
           cache: 'npm'
 
