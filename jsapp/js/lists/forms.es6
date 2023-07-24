@@ -10,6 +10,7 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
 import styles from './forms.module.scss';
 import LimitModal from '../components/usageLimits/overLimitModal.component';
+import LimitBanner from '../components/usageLimits/overLimitBanner.component';
 import {Cookies} from 'react-cookie';
 
 const cookies = new Cookies();
@@ -53,8 +54,9 @@ class FormsSearchableList extends React.Component {
   render() {
     return (
       <div className={styles.myProjectsWrapper}>
+       <LimitBanner />
         <div className={styles.myProjectsHeader}>
-          <LimitModal
+        <LimitModal
             show={this.state.showModal}
             limits={(limit) => this.data(limit)}
           />
