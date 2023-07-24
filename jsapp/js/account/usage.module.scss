@@ -55,3 +55,17 @@ h2 {
   margin-right: sizes.$x60;
   color: colors.$kobo-storm;
 }
+
+.delimiter {
+  padding: 0 0.25em;
+}
+
+.visuallyHidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

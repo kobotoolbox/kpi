@@ -2,11 +2,13 @@ import React, {useEffect, useState} from 'react';
 import styles from './usage.module.scss';
 import {formatMonth} from '../utils';
 import {getUsage} from './usage.api';
+import {AccountLimit, getAccountLimits} from "js/account/stripe.api";
+import envStore from 'js/envStore';
 import Icon from '../components/common/icon';
 import {NavLink} from 'react-router-dom';
 import Button from '../components/common/button';
 
-interface UsageState {
+interface UsageState extends AccountLimit {
   storage: number;
   monthlySubmissions: number;
   monthlyTranscriptionMinutes: number;
@@ -40,6 +42,18 @@ export default function Usage() {
     });
   }, []);
 
+  useEffect(() => {
+    if (
+      envStore.isReady &&
+      envStore.data.stripe_public_key
+    ) {
+      getAccountLimits().then(limits => setUsage({
+        ...usage,
+        ...limits,
+      }));
+    }
+  }, [envStore.isReady]);
+
   return (
     <div className={styles.root}>
       <h2>{t('Your account total use')}</h2>
@@ -53,6 +67,7 @@ export default function Usage() {
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.monthlySubmissions}</strong>
+            <LimitRow limit={usage.submission_limit}/>
           </div>
         </div>
         <div className={styles.box}>
@@ -61,6 +76,7 @@ export default function Usage() {
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Current use')}</strong>
             <strong>{usage.storage}&nbsp;GB</strong>
+            <LimitRow limit={usage.storage_bytes_limit}/>
           </div>
         </div>
         <div className={styles.box}>
@@ -71,6 +87,7 @@ export default function Usage() {
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.monthlyTranscriptionMinutes}</strong>
+            <LimitRow limit={usage.nlp_seconds_limit}/>
           </div>
         </div>
         <div className={styles.box}>
@@ -83,9 +100,25 @@ export default function Usage() {
           <div className={styles.usage}>
             <strong className={styles.description}>{t('Monthly use')}</strong>
             <strong>{usage.monthlyTranslationChars}</strong>
+            <LimitRow limit={usage.nlp_character_limit}/>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+const LimitRow = ({limit}: {limit: number|string|undefined}) => {
+  if (!limit || !Number.isInteger(limit)) {
+    return null;
+  }
+  return (
+      <>
+        <span aria-hidden className={styles.delimiter}>/</span>
+        <span className={styles.visuallyHidden}>
+          {t('used out of')}
+        </span>
+        <span>{limit.toLocaleString()}</span>
+      </>
+  );
+};
