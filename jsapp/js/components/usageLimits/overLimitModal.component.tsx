@@ -9,7 +9,6 @@ import {getAllExceedingLimits} from './usageCalculations';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
-import {string} from 'prop-types';
 
 interface OverLimitModalProps {
   show: boolean;
