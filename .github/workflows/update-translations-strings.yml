@@ -19,7 +19,7 @@ jobs:
         with:
           # We need this particular version, as npm 8.5.5 is the last version
           # that works with our package.json :sadface:.
-          node-version: '16.15.0'
+          node-version: '18.17.0'
           cache: 'npm'
 
       - name: Change Directories

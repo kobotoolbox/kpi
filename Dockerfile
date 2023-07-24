@@ -57,7 +57,7 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 
 RUN apt-get -qq update && \
     apt-get -qq -y install curl && \
-    curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get -qq -y install --no-install-recommends \
         ffmpeg \
         gdal-bin \
@@ -110,7 +110,6 @@ COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
-    npm install -g npm@8.5.5 && \
     npm install -g check-dependencies && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \

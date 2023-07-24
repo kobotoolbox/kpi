@@ -21,7 +21,7 @@ build:
 deploy-beta:
   stage: deploy
   image:
-    name: alpine/helm:3.12.0
+    name: alpine/helm:3.12.2
     entrypoint: [""]
   script:
     - helm repo add kobo https://gitlab.com/api/v4/projects/32216873/packages/helm/stable

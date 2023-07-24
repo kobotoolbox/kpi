@@ -7,14 +7,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           # We need this particular version, as npm 8.5.5 is the last version
           # that works with our package.json :sadface:.
-          node-version: '16.15.0'
+          node-version: '18.17.0'
           cache: 'npm'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
@@ -28,7 +28,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
       - name: Install JavaScript dependencies (npm install)
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        run: npm install
+        run: npm install --legacy-peer-deps
       - name: Run copy-fonts (if using cached node_modules)
         if: steps.cache-nodemodules.outputs.cache-hit == 'true'
         run: npm run copy-fonts
