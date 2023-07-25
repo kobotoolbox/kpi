@@ -27,15 +27,16 @@ class FormsSearchableList extends React.Component {
       }),
       showModal: false,
       limits: 0,
+      dismissed: false,
     };
-    this.data = this.data.bind(this);
+    this.setLimits = this.setLimits.bind(this);
   }
 
   componentDidMount() {
     this.searchSemaphore();
   }
 
-  data = (limit) => {
+  setLimits = (limit) => {
     this.setState({limits: limit});
     const allCookies = cookies.getAll();
     const isLimitCookie = Object.keys(allCookies).find(
@@ -43,22 +44,25 @@ class FormsSearchableList extends React.Component {
     );
     if (isLimitCookie === undefined && limit > 0) {
       this.setState({showModal: true});
-      var dateNow = new Date();
-      var expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
-      cookies.set('overLimitsCookie', {
-        expires: expireDate,
-      });
     }
+    if (isLimitCookie && limit > 0) {
+      this.setState({dismissed: true});
+    }
+  };
+
+  modalDismissed = (dismiss) => {
+    this.setState({dismissed: dismiss});
   };
 
   render() {
     return (
       <div className={styles.myProjectsWrapper}>
-       <LimitBanner />
+        {this.state.dismissed && <LimitBanner />}
         <div className={styles.myProjectsHeader}>
-        <LimitModal
+          <LimitModal
             show={this.state.showModal}
-            limits={(limit) => this.data(limit)}
+            limits={(limit) => this.setLimits(limit)}
+            dismissed={(dismiss) => this.modalDismissed(dismiss)}
           />
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
         </div>
