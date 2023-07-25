@@ -96,8 +96,6 @@ class KoboSignupMixin(forms.Form):
                         self.fields[field_name].label = desired_field['label'][get_language()]
                     except KeyError:
                         self.fields[field_name].label = desired_field['label']['default']
-                else:
-                    continue
             except KeyError:
                 self.fields.pop(field_name)
                 continue
