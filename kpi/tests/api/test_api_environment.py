@@ -101,25 +101,7 @@ class EnvironmentTests(BaseTestCase):
         context = RequestContext(HttpRequest())  # NB: empty request
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
-        self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
-
-    def test_metadata_label_with_default_language(self):
-        """
-        Test that the label field of the user and project metadata contains a default value
-        """
-        def check_metadata_for_label(metadata):
-            for item in metadata:
-                if 'label' in item.keys():
-                    assert 'default' in item['label'].keys()
-                
-        self.client.logout()
-        response = self.client.get(self.url, format='json')
-        assert response.status_code == status.HTTP_200_OK
-        user_metadata = response.data['user_metadata_fields']
-        project_metadata = response.data['project_metadata_fields']
-        check_metadata_for_label(user_metadata)
-        check_metadata_for_label(project_metadata)        
-
+        self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)  
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):

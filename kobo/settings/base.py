@@ -274,48 +274,42 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         json.dumps([
-            {'name': 'full_name', 'required': False,},
-            {'name': 'organization', 'required': False,},
-            {'name': 'organization_website', 'required': False,},
-            {'name': 'sector', 'required': False,},
-            {'name': 'gender', 'required': False,},
-            {'name': 'bio', 'required': False,},
-            {'name': 'city', 'required': False,},
-            {'name': 'country', 'required': False,},
-            {'name': 'twitter', 'required': False,},
-            {'name': 'linkedin', 'required': False,},
-            {'name': 'instagram', 'required': False,},
+            {'name': 'full_name', 'required': False},
+            {'name': 'organization', 'required': False},
+            {'name': 'organization_website', 'required': False},
+            {'name': 'sector', 'required': False},
+            {'name': 'gender', 'required': False},
+            {'name': 'bio', 'required': False},
+            {'name': 'city', 'required': False},
+            {'name': 'country', 'required': False},
+            {'name': 'twitter', 'required': False},
+            {'name': 'linkedin', 'required': False},
+            {'name': 'instagram', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users. '
         "Possible fields are 'full_name', 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
-        "and 'instagram'.\n\r"
+        "and 'instagram'.\n\n"
         "To add another language, use 'some-other-language' as an example.",
         # Use custom field for schema validation
         'metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
         json.dumps([
-            {'name': 'sector', 'required': False, 'label': {
-                'default': 'Sector',
-                'some-other-language': (
-                    'This is an example and will never display because some-other-language '
-                    'is not a valid language code.'
-                ),
-            },},
-            {'name': 'country', 'required': False, 'label': {'default': 'Country'},},
-            # {'name': 'description', 'required': False, 'label': {'default': 'Description'},},
-            # {'name': 'operational_purpose', 'required': False, 'label': 
-            #     {'default': 'Operational Purpose'},
-            # },
-            # {'name': 'collects_pii', 'required': False, 'label': {'default': 'Collects PII'},},
+            {'name': 'sector', 'required': False,},
+            {'name': 'country', 'required': False,},
+            {'name': 'description', 'required': False},
+            # {'name': 'operational_purpose', 'required': False},
+            # {'name': 'collects_pii', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects. '
         "Possible fields are 'sector', 'country', 'operational_purpose', "
         "'collects_pii', and 'description'\n\r"
-        "To add another language, use 'some-other-language' as an example.",
+        'To add another language, follow the example below.\n\n'
+        "{'name': 'sector', 'required': False, 'label': {default: 'Sector', 'fr': 'Secteur'}}\n"
+        "'default' is a required field within the 'label' dict, but 'label' is optional.",
         # Use custom field for schema validation
         'metadata_fields_jsonschema'
     ),

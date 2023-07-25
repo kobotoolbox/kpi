@@ -80,22 +80,22 @@ class MetadataFieldsListField(JsonSchemaFormField):
             'uniqueItems': True,
             'items': {
                 'type': 'object',
-                'required': ['name', 'required',],
+                'required': ['name', 'required'],
                 'additionalProperties': False,
                 'properties': {
-                    'name': {'type': 'string',},
-                    'required': {'type': 'boolean',},
+                    'name': {'type': 'string'},
+                    'required': {'type': 'boolean'},
                     'label': {
                         'type': 'object',
                         'uniqueItems': True,
                         'properties': {
-                            'default': {'type': 'string',},
+                            'default': {'type': 'string'},
                         },
-                        'required': ['default',],
+                        'required': ['default'],
                         'additionalProperties': True,
                     }
-                },
-            },
+                }
+            }
         }
         super().__init__(*args, schema=schema, **kwargs)
 
