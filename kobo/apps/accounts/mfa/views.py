@@ -3,7 +3,7 @@ from allauth.account.views import LoginView
 from django.conf import settings
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.views import LoginView as DjangoLoginView
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Exists
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django.urls import reverse
@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
 
 from .forms import MfaLoginForm, MfaTokenForm
+from .models import MfaAvailableToUser
 from .serializers import UserMfaMethodSerializer
 from ..utils import user_has_paid_subscription
 
@@ -103,4 +104,6 @@ class MfaListUserMethodsView(ListAPIView):
 
     def get_queryset(self) -> QuerySet:
         mfa_model = get_mfa_model()
-        return mfa_model.objects.filter(user_id=self.request.user.id)
+        return mfa_model.objects.filter(user_id=self.request.user.id).annotate(
+            mfa_available=Exists(MfaAvailableToUser.objects.filter(user=self.request.user))
+        )

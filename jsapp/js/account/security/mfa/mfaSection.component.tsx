@@ -85,6 +85,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     if (response.length) {
       this.setState({
         isMfaActive: response[0].is_active,
+        isMfaAllowed: response[0].mfa_available,
         dateDisabled: response[0].date_disabled,
         dateModified: response[0].date_modified,
       });
@@ -92,9 +93,12 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   onGetActiveSubscription(response: boolean|null) {
-    this.setState({
-      isMfaAllowed: response || response === null,
-    });
+    // Only disable MFA settings if user doesn't have per-user availability set
+    if (!this.state.isMfaAllowed) {
+      this.setState({
+        isMfaAllowed: response || response === null,
+      });
+    }
   }
 
   mfaActivating(response: MfaActivatedResponse) {
