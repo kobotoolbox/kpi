@@ -32,12 +32,17 @@ export const getAllExceedingLimits = () => {
     monthlyTranscriptionMinutes: 0,
     monthlyTranslationChars: 0,
   });
-  const [subscribedStorageLimit, setSubscribedStorageLimit] = useState(1);
+  const [subscribedStorageLimit, setSubscribedStorageLimit] =
+    useState(1073741824);
   const [subscribedSubmissionLimit, setSubscribedSubmissionLimit] =
     useState(1000);
   const [subscribedTranscriptionMinutes, setTranscriptionMinutes] =
     useState(600);
   const [subscribedTranslationChars, setTranslationChars] = useState(6000);
+
+  function truncate(decimal: number) {
+    return parseFloat(decimal.toFixed(2));
+  }
 
   useMemo(() => {
     getSubscription().then((data) => {
@@ -51,7 +56,7 @@ export const getAllExceedingLimits = () => {
     getUsage().then((data) => {
       setUsage({
         ...usage,
-        storage: truncate(data.total_storage_bytes / 1000000000), // bytes to GB
+        storage: data.total_storage_bytes,
         monthlySubmissions: data.total_submission_count['current_month'],
         monthlyTranscriptionMinutes: Math.floor(
           truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
@@ -61,10 +66,6 @@ export const getAllExceedingLimits = () => {
       });
     });
   }, []);
-
-  function truncate(decimal: number) {
-    return parseFloat(decimal.toFixed(2));
-  }
 
   useMemo(() => {
     if (state.subscribedProduct?.length > 0) {
