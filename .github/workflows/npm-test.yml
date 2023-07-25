@@ -5,6 +5,9 @@ on:
     branches: [ master, beta ]
   pull_request:
 
+env:
+  NODE_VERSION: '18.17.0'
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -12,7 +15,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18.17.0'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
@@ -23,10 +26,10 @@ jobs:
           cache-name: cache-node-modules
         with:
           path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch', '.npmrc') }}
       - name: Install JavaScript dependencies (npm install)
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        run: npm install --legacy-peer-deps
+        run: npm install
       - name: Run copy-fonts (if using cached node_modules)
         if: steps.cache-nodemodules.outputs.cache-hit == 'true'
         run: npm run copy-fonts
