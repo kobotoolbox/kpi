@@ -151,3 +151,19 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertIsInstance(response, TemplateResponse)
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertIsInstance(response.context_data['form'], MfaLoginForm)
+
+    def test_mfa_login_per_user_availability_no_subscription(self):
+        """
+        Validate that multi-factor authentication form is displayed after
+        successful login if the user has no subscription but has per user
+        availability set up
+        """
+        mfa_available = baker.make('MfaAvailableToUser', user=self.someuser)
+        
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(reverse('kobo_login'), data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'verification token')
