@@ -2,7 +2,6 @@
 from allauth.account.views import LoginView
 from django.conf import settings
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.http import HttpResponseRedirect
@@ -12,8 +11,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
 
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-
 from .forms import MfaLoginForm, MfaTokenForm
 from .serializers import UserMfaMethodSerializer
 from ..utils import user_has_paid_subscription
@@ -21,33 +18,6 @@ from ..utils import user_has_paid_subscription
 
 class MfaLoginView(LoginView):
     form_class = MfaLoginForm
-
-    def form_valid(self, form):
-        if form.get_ephemeral_token():
-            mfa_token_form = MfaTokenForm(
-                initial={'ephemeral_token': form.get_ephemeral_token()}
-            )
-
-            context = self.get_context_data(
-                view=MfaTokenView,
-                form=mfa_token_form,
-                next=self.get_success_url(),
-            )
-
-            # Prevent users without paid plans from entering step 2 of MFA flow
-            if settings.STRIPE_ENABLED:
-                redirect = self.login_if_user_has_subscription(form, context)
-                if redirect:
-                    return redirect
-
-            return self.response_class(
-                request=self.request,
-                template='mfa_token.html',
-                context=context,
-                using=self.template_engine,
-            )
-        else:
-            return super().form_valid(form)
 
     def get_success_url(self):
         """
