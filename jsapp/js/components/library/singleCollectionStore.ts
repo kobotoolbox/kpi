@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import type {Update} from 'history';
+import type {RouterState} from '@remix-run/router';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
@@ -19,7 +19,7 @@ import type {
   SearchAssetsPredefinedParams,
 } from 'js/dataInterface';
 import {ROUTES} from 'js/router/routerConstants';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import type {AssetTypeName} from 'js/constants';
 
 interface SingleCollectionStoreData {
@@ -66,7 +66,8 @@ class SingleCollectionStore extends Reflux.Store {
       organizations: [],
     },
     orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
-    orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue || ORDER_DIRECTIONS.ascending,
+    orderValue:
+      this.DEFAULT_ORDER_COLUMN.defaultValue || ORDER_DIRECTIONS.ascending,
     filterColumnId: null,
     filterValue: null,
   };
@@ -74,23 +75,49 @@ class SingleCollectionStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
-    history.listen(this.onRouteChange.bind(this));
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted.bind(this));
-    actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this));
-    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this));
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged.bind(this));
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged.bind(this));
-    actions.resources.cloneAsset.completed.listen(this.onAssetCreated.bind(this));
-    actions.resources.createResource.completed.listen(this.onAssetCreated.bind(this));
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
+    actions.library.moveToCollection.completed.listen(
+      this.onMoveToCollectionCompleted.bind(this)
+    );
+    actions.library.subscribeToCollection.completed.listen(
+      this.fetchData.bind(this)
+    );
+    actions.library.unsubscribeFromCollection.completed.listen(
+      this.fetchData.bind(this)
+    );
+    actions.resources.loadAsset.completed.listen(
+      this.onAssetChanged.bind(this)
+    );
+    actions.resources.updateAsset.completed.listen(
+      this.onAssetChanged.bind(this)
+    );
+    actions.resources.cloneAsset.completed.listen(
+      this.onAssetCreated.bind(this)
+    );
+    actions.resources.createResource.completed.listen(
+      this.onAssetCreated.bind(this)
+    );
+    actions.resources.deleteAsset.completed.listen(
+      this.onDeleteAssetCompleted.bind(this)
+    );
     // Actions unique to a single collection store (overwriting myLibraryStore)
-    actions.library.searchMyCollectionAssets.started.listen(this.onSearchStarted.bind(this));
-    actions.library.searchMyCollectionAssets.completed.listen(this.onSearchCompleted.bind(this));
-    actions.library.searchMyCollectionAssets.failed.listen(this.onSearchFailed.bind(this));
-    actions.library.searchMyCollectionMetadata.completed.listen(this.onSearchMetadataCompleted.bind(this));
+    actions.library.searchMyCollectionAssets.started.listen(
+      this.onSearchStarted.bind(this)
+    );
+    actions.library.searchMyCollectionAssets.completed.listen(
+      this.onSearchCompleted.bind(this)
+    );
+    actions.library.searchMyCollectionAssets.failed.listen(
+      this.onSearchFailed.bind(this)
+    );
+    actions.library.searchMyCollectionMetadata.completed.listen(
+      this.onSearchMetadataCompleted.bind(this)
+    );
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.startupStore.bind(this));
+    actions.permissions.getConfig.completed.listen(
+      this.startupStore.bind(this)
+    );
   }
 
   /**
@@ -98,14 +125,19 @@ class SingleCollectionStore extends Reflux.Store {
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (!this.isInitialised && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
+    if (
+      !this.isInitialised &&
+      isAnyLibraryItemRoute() &&
+      !this.data.isFetchingData
+    ) {
       this.fetchData(true);
     }
   }
 
   setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
-    this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue || ORDER_DIRECTIONS.ascending;
+    this.data.orderValue =
+      this.DEFAULT_ORDER_COLUMN.defaultValue || ORDER_DIRECTIONS.ascending;
     this.data.filterColumnId = null;
     this.data.filterValue = null;
   }
@@ -155,24 +187,27 @@ class SingleCollectionStore extends Reflux.Store {
 
     if (this.data.orderColumnId !== null) {
       const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
-      const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
+      const direction =
+        this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
       params.ordering = `${direction}${orderColumn.orderBy}`;
     }
 
     actions.library.searchMyCollectionAssets(params);
   }
 
-  onRouteChange(data: Update) {
-    if (!this.isInitialised && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
+  onRouteChange(data: RouterState) {
+    if (
+      !this.isInitialised &&
+      isAnyLibraryItemRoute() &&
+      !this.data.isFetchingData
+    ) {
       this.fetchData(true);
     } else if (
-      (
-        // coming from the library
-        this.previousPath.split('/')[1] === 'library' ||
+      // coming from the library
+      (this.previousPath.split('/')[1] === 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
-      ) &&
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)) &&
       isAnyLibraryItemRoute()
     ) {
       // refresh data when navigating into library from other place
@@ -243,12 +278,10 @@ class SingleCollectionStore extends Reflux.Store {
         const loopAsset = this.data.assets[i];
         if (
           loopAsset.uid === asset.uid &&
-          (
-            // if the changed asset didn't change (e.g. was just loaded)
-            // let's not cause it to fetchMetadata
-            loopAsset.date_modified !== asset.date_modified ||
-            loopAsset.version_id !== asset.version_id
-          )
+          // if the changed asset didn't change (e.g. was just loaded)
+          // let's not cause it to fetchMetadata
+          (loopAsset.date_modified !== asset.date_modified ||
+            loopAsset.version_id !== asset.version_id)
         ) {
           this.data.assets[i] = asset;
           wasUpdated = true;
@@ -263,10 +296,7 @@ class SingleCollectionStore extends Reflux.Store {
   }
 
   onAssetCreated(asset: AssetResponse) {
-    if (
-      assetUtils.isLibraryAsset(asset.asset_type) &&
-      asset.parent === null
-    ) {
+    if (assetUtils.isLibraryAsset(asset.asset_type) && asset.parent === null) {
       if (this.data.totalUserAssets !== null) {
         this.data.totalUserAssets++;
       }
@@ -274,7 +304,7 @@ class SingleCollectionStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted(response: {uid: string; assetType: AssetTypeName;}) {
+  onDeleteAssetCompleted(response: {uid: string; assetType: AssetTypeName}) {
     if (assetUtils.isLibraryAsset(response.assetType)) {
       const found = this.findAsset(response.uid);
       if (found) {
