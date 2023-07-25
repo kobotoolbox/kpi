@@ -156,7 +156,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         else:
             self.save_log(
                 KOBO_INTERNAL_ERROR_STATUS_CODE,
-                "Submission has been deleted")
+                'Submission has been deleted'
+            )
 
         return success
 
