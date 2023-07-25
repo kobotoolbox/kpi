@@ -1,7 +1,6 @@
 const path = require('path');
 const WebpackCommon = require('./webpack.common');
 
-//
 const testConfig = WebpackCommon({
   mode: 'development',
   entry: path.resolve(__dirname, '../test/index.js'),
