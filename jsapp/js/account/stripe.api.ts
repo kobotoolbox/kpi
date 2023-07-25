@@ -13,6 +13,18 @@ export interface BaseProduct {
   metadata: {[key: string]: string};
 }
 
+export enum RecurringInterval {
+  Year = 'year',
+  Month = 'month',
+  Week = 'week',
+  Day = 'day',
+}
+
+enum UsageType {
+  Metered = 'metered',
+  Licensed = 'licensed',
+}
+
 export interface BasePrice {
   id: string;
   nickname: string;
@@ -20,7 +32,12 @@ export interface BasePrice {
   type: string;
   unit_amount: number;
   human_readable_price: string;
-  recurring: {[key: string]: string | number};
+  recurring?: {
+    interval: RecurringInterval;
+    aggregate_usage: string;
+    interval_count: number;
+    usage_type: UsageType;
+  };
   metadata: {[key: string]: string};
   product: BaseProduct;
 }
