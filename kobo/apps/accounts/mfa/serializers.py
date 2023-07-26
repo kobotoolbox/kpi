@@ -15,7 +15,6 @@ class UserMfaMethodSerializer(serializers.ModelSerializer):
             'name',
             'is_primary',
             'is_active',
-            'mfa_available',
             'date_created',
             'date_modified',
             'date_disabled',

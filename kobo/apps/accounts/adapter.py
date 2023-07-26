@@ -15,7 +15,9 @@ from .utils import user_has_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):
+
     def pre_login(self, request, user, **kwargs):
+
         if parent_response := super().pre_login(request, user, **kwargs):
             # A response from the parent means the login process must be
             # interrupted, e.g. due to the user being inactive or not having
@@ -41,8 +43,9 @@ class AccountAdapter(DefaultAccountAdapter):
                 initial={'ephemeral_token': ephemeral_token_cache}
             )
 
-            next_url = kwargs.get('redirect_url') or resolve_url(
-                settings.LOGIN_REDIRECT_URL
+            next_url = (
+                kwargs.get('redirect_url')
+                or resolve_url(settings.LOGIN_REDIRECT_URL)
             )
 
             context = {

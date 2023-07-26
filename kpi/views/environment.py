@@ -13,6 +13,7 @@ from allauth.socialaccount.models import SocialApp
 from kobo.static_lists import COUNTRIES
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.utils import user_has_paid_subscription
 from kpi.utils.object_permission import get_database_user
 
 
@@ -83,11 +84,18 @@ class EnvironmentView(APIView):
             lambda value, request: value and (
                 # but if per-user activation is enabled (i.e. at least one
                 # record in the table)…
-                not MfaAvailableToUser.objects.all().exists()
-                # global setting is overwritten by request user setting.
-                or MfaAvailableToUser.objects.filter(
+                MfaAvailableToUser.objects.filter(
                     user=get_database_user(request.user)
                 ).exists()
+                or (
+                    settings.STRIPE_ENABLED
+                    and user_has_paid_subscription(
+                        get_database_user(request.user).username
+                    )
+                ) or (
+                    not settings.STRIPE_ENABLED
+                    and not MfaAvailableToUser.objects.all().exists()
+                )
             )
         ),
     ]

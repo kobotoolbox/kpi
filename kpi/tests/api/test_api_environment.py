@@ -102,21 +102,21 @@ class EnvironmentTests(BaseTestCase):
         result = template.render(context)
         self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
 
-    @override_config(MFA_ENABLED=True)
+    @override_config(MFA_ENABLED=True, STRIPE_ENABLED=False)
     def test_mfa_value_globally_enabled(self):
         self.client.login(username='someuser', password='someuser')
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
 
-    @override_config(MFA_ENABLED=False)
+    @override_config(MFA_ENABLED=False, STRIPE_ENABLED=False)
     def test_mfa_value_globally_disabled(self):
         self.client.login(username='someuser', password='someuser')
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
 
-    @override_config(MFA_ENABLED=True)
+    @override_config(MFA_ENABLED=True, STRIPE_ENABLED=False)
     def test_mfa_per_user_availability_while_globally_enabled(self):
         # When MFA is globally enabled, it is allowed for everyone *until* the
         # first per-user allowance (`MfaAvailableToUser` instance) is created.
@@ -137,7 +137,7 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
 
-    @override_config(MFA_ENABLED=True)
+    @override_config(MFA_ENABLED=True, STRIPE_ENABLED=False)
     def test_mfa_per_user_availability_while_globally_enabled_as_anonymous(self):
         # Enable MFA only for someuser, in order to enter per-user-allowance
         # mode. MFA should then appear to be disabled for everyone else
@@ -151,6 +151,32 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['mfa_enabled'])
+
+    @override_config(MFA_ENABLED=True, STRIPE_ENABLED=True)
+    def test_mfa_value_globally_enabled_as_user_with_no_paid_subscriptions(self):
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # User has no paid subscriptions, mfa should be disabled
+        self.assertFalse(response.data['mfa_enabled'])
+
+    @override_config(MFA_ENABLED=True, STRIPE_ENABLED=True)
+    def test_mfa_value_globally_enabled_as_user_with_paid_subscription(self):
+        # @TODO implement this test
+        #   mfa should be enabled
+        pass
+
+    @override_config(MFA_ENABLED=False, STRIPE_ENABLED=True)
+    def test_mfa_value_globally_disable_as_user_with_paid_subscription(self):
+        # @TODO implement this test
+        #   mfa should be disabled
+        pass
+
+    @override_config(MFA_ENABLED=True, STRIPE_ENABLED=True)
+    def test_mfa_per_user_availability_as_user_with_no_paid_subscriptions(self):
+        # @TODO implement this test
+        #   mfa should be enabled
+        pass
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
