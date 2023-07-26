@@ -339,3 +339,13 @@ EXTRA_LANG_INFO = {
         'name_local': 'Nyanja',
     },
 }
+
+MFA_DEFAULT_HELP_TEXT = t(
+    # It's terrible, but this duplicates the default value from
+    # `MFA_LOCALIZED_HELP_TEXT` in django-constance because it's impossible to
+    # use `gettext()` or `gettext_lazy()` there.
+    'If you cannot access your authenticator app, please enter one '
+    'of your backup codes instead. If you cannot access those '
+    'either, then you will need to request assistance by '
+    'contacting [##support email##](mailto:##support email##).'
+)
