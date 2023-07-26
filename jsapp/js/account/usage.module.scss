@@ -40,6 +40,8 @@ h2 {
 .usage {
   display: flex;
   margin-top: sizes.$x18;
+  border-radius: sizes.$x6;
+  padding: sizes.$x6;
 }
 
 .title {

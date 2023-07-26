@@ -7,6 +7,7 @@ import envStore from 'js/envStore';
 import {when} from "mobx";
 import {ACTIVE_STRIPE_STATUSES} from "js/constants";
 import classnames from "classnames";
+import Icon from "js/components/common/icon";
 
 interface UsageState {
   storage: number;
@@ -193,6 +194,7 @@ const UsageContainer = ({children, usage, limit}: UsageContainerProps) => {
         [styles.overlimit]: limitRatio > 1,
       },
     )}>
+      {<Icon name={'warning'} size={'l'}/>}
       {children}
     </div>
   );
