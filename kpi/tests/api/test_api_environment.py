@@ -105,7 +105,7 @@ class EnvironmentTests(BaseTestCase):
         context = RequestContext(HttpRequest())  # NB: empty request
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
-        self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)  
+        self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
 
     def test_mfa_help_text_default_translation(self):
         MOCK_TRANSLATION_STRING = 'hello from gettext'

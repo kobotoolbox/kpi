@@ -308,7 +308,7 @@ CONSTANCE_CONFIG = {
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects. '
         "Possible fields are 'sector', 'country', 'operational_purpose', "
-        "'collects_pii', and 'description'\n\r"
+        "'collects_pii', and 'description'\n\n"
         'To add another language, follow the example below.\n\n'
         "{'name': 'sector', 'required': False, 'label': {default: 'Sector', 'fr': 'Secteur'}}\n"
         "'default' is a required field within the 'label' dict, but 'label' is optional.",
