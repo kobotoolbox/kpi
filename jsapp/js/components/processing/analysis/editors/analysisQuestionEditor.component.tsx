@@ -7,11 +7,15 @@ import Button from 'js/components/common/button';
 import {
   findQuestion,
   getQuestionTypeDefinition,
+  getQuestionsFromSchema,
+  updateSurveyQuestions,
 } from 'js/components/processing/analysis/utils';
 import AnalysisQuestionsContext from '../analysisQuestions.context';
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component';
-import type {AdditionalFields} from '../constants';
+import type {AdditionalFields, AnalysisQuestionInternal} from '../constants';
 import SelectXFieldsEditor from './selectXFieldsEditor.component';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
+import clonedeep from 'lodash.clonedeep';
 
 interface AnalysisQuestionEditorProps {
   uuid: string;
@@ -56,7 +60,7 @@ export default function AnalysisQuestionEditor(
     }
   }
 
-  function saveQuestion() {
+  async function saveQuestion() {
     let hasErrors = false;
 
     // Check missing label
@@ -90,32 +94,40 @@ export default function AnalysisQuestionEditor(
     if (!hasErrors) {
       analysisQuestions?.dispatch({type: 'updateQuestion'});
 
-      // TODO make actual API call here
-      // For now we make a fake response
-      console.log('QA fake API call: update question');
-      setTimeout(() => {
-        console.log('QA fake API call: update question DONE');
-        analysisQuestions?.dispatch({
-          type: 'updateQuestionCompleted',
-          payload: {
-            // We return the same questions array, just replacing one item (it's
-            // the updated question).
-            questions: analysisQuestions?.state.questions.map((aq) => {
-              if (aq.uuid === props.uuid) {
-                // Successfully updating/saving question makes it not a draft
-                delete aq.isDraft;
-                return {
-                  ...aq,
-                  labels: {_default: label},
-                  additionalFields,
-                };
-              } else {
-                return aq;
-              }
-            }),
-          },
-        });
-      }, 2000);
+      // Step 1: get current questions list, and update current question definition in it
+      const qualSurveyObj: AnalysisQuestionInternal[] =
+        analysisQuestions?.state.questions.map((aq) => {
+          const output = clonedeep(aq);
+          // If this is the question we're currently editing, let's update what
+          // we have in store.
+          if (aq.uuid === props.uuid) {
+            output.labels = {_default: label};
+
+            // Set additional fields if any, or delete if it was removed
+            if (additionalFields) {
+              output.additionalFields = additionalFields;
+            } else if (!additionalFields && aq.additionalFields) {
+              delete output.additionalFields;
+            }
+          }
+          return output;
+        }) || [];
+
+      // TODO try catch it with some error handling
+
+      // Step 2: update asset endpoint with new questions
+      const response = await updateSurveyQuestions(
+        singleProcessingStore.currentAssetUid,
+        qualSurveyObj
+      );
+
+      // Step 3: update reducer's state with new list after the call finishes
+      analysisQuestions?.dispatch({
+        type: 'updateQuestionCompleted',
+        payload: {
+          questions: getQuestionsFromSchema(response?.advanced_features),
+        },
+      });
     }
   }
 

@@ -51,7 +51,7 @@ export default function SelectOneResponseForm(
       return question?.additionalFields?.choices.map((choice) => {
         return {
           value: choice.uuid,
-          label: choice.label,
+          label: choice.labels._default,
         };
       });
     }

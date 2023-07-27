@@ -8,7 +8,7 @@ import SelectOneResponseForm from '../responseForms/selectOneResponseForm.compon
 import TagsResponseForm from '../responseForms/tagsResponseForm.component';
 import CommonHeader from '../responseForms/commonHeader.component';
 import styles from './analysisQuestionRow.module.scss';
-import type {AnalysisQuestion} from '../constants';
+import type {AnalysisQuestionBase} from '../constants';
 import Icon from 'js/components/common/icon';
 import {useDrag, useDrop} from 'react-dnd';
 import type {Identifier, XYCoord} from 'dnd-core';
@@ -145,7 +145,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
   drop(preview(previewRef));
 
   const renderItem = useCallback(
-    (item: AnalysisQuestion) => {
+    (item: AnalysisQuestionBase) => {
       if (analysisQuestions?.state.questionsBeingEdited.includes(item.uuid)) {
         return <AnalysisQuestionEditor uuid={item.uuid} />;
       } else {

@@ -21,7 +21,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         if (choice.uuid === uuid) {
           return {
             ...choice,
-            label: newLabel,
+            labels: {_default: newLabel},
           };
         } else {
           return choice;
@@ -36,7 +36,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         ...(props.fields.choices || []),
         {
           uuid: generateUuid(),
-          label: '',
+          labels: {_default: ''},
         },
       ],
     });
@@ -56,7 +56,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         <div className={styles.choice} key={choice.uuid}>
           <TextBox
             type='text-multiline'
-            value={choice.label}
+            value={choice.labels._default}
             onChange={(newLabel: string) =>
               updateChoiceLabel(choice.uuid, newLabel)
             }

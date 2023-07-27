@@ -54,7 +54,7 @@ export default function SelectMultipleResponseForm(
       return question?.additionalFields?.choices.map((choice) => {
         return {
           name: choice.uuid,
-          label: choice.label,
+          label: choice.labels._default,
           checked: response.split(',').includes(choice.uuid),
         };
       });

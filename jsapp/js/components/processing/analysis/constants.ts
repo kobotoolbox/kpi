@@ -16,6 +16,16 @@ export type AnalysisQuestionType =
   | 'qual_tags'
   | 'qual_text';
 
+interface AnalysisLabels {
+  _default: string;
+  [langCode: string]: string;
+}
+
+interface AnalysisQuestionChoice {
+  labels: AnalysisLabels;
+  uuid: string;
+}
+
 /**
  * This is a sum of all different possible fields for multiple question types.
  *
@@ -29,28 +39,42 @@ export interface AdditionalFields {
   /** The transcript or translation source for the search. */
   source?: LanguageCode;
   /** For the `qual_seleect_one` and `qual_select_multiple` question types */
-  choices?: Array<{
-    label: string;
-    uuid: string;
-  }>;
+  choices?: AnalysisQuestionChoice[];
+}
+
+/** Analysis question definition base type containing all common properties. */
+export interface AnalysisQuestionBase {
+  type: AnalysisQuestionType;
+  labels: AnalysisLabels;
+  uuid: string;
+}
+
+/** Analysis question definition from the asset's schema (i.e. from Back end) */
+export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
+  // 'by_question#survey'
+  scope: string;
+  qpath: string;
+  choices?: AnalysisQuestionChoice[];
 }
 
 /**
  * An instance of analysis question. We use the same object for the question
- * and the response
+ * and the response.
  *
  * For example this coulde be a `qual_integer` question with label "How many
  * pauses did the responded take?" and response "7".
  */
-export interface AnalysisQuestion {
-  type: AnalysisQuestionType;
-  labels: {
-    _default: string;
-    [langCode: string]: string;
-  };
-  uuid: string;
-  response: string;
+export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
   additionalFields?: AdditionalFields;
+  isDraft?: boolean;
+  response: string;
+}
+
+/** Analysis question response (to a question defined as `uuid`) from Back end. */
+export interface AnalysisResponse {
+  type: AnalysisQuestionType;
+  uuid: string;
+  value: string | string[];
 }
 
 /**

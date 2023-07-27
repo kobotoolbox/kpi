@@ -21,6 +21,7 @@ import type {
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
 import {FreeTierThresholds} from "js/envStore";
+import type {AnalysisQuestionSchema} from './components/processing/analysis/constants';
 
 interface AssetsRequestData {
   q?: string;
@@ -367,38 +368,41 @@ interface AssetReportStylesKuidNames {
 }
 
 interface AdvancedSubmissionSchema {
-  type: 'string' | 'object'
-  $description: string
-  url?: string
-  properties?: AdvancedSubmissionSchemaDefinition
-  additionalProperties?: boolean
-  required?: string[]
-  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
+  type: 'string' | 'object';
+  $description: string;
+  url?: string;
+  properties?: AdvancedSubmissionSchemaDefinition;
+  additionalProperties?: boolean;
+  required?: string[];
+  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition};
 }
 
 export interface AssetAdvancedFeatures {
   transcript?: {
     /** List of question names */
-    values?: string[]
+    values?: string[];
     /** List of transcript enabled languages. */
-    languages?: string[]
-  }
+    languages?: string[];
+  };
   translation?: {
     /** List of question names */
-    values?: string[]
+    values?: string[];
     /** List of translations enabled languages. */
-    languages?: string[]
-  }
+    languages?: string[];
+  };
+  qual?: {
+    qual_survey?: AnalysisQuestionSchema[];
+  };
 }
 
 interface AdvancedSubmissionSchemaDefinition {
   [name: string]: {
-    type: 'string' | 'object'
-    description: string
-    properties?: {[name: string]: {}}
-    additionalProperties?: boolean
-    required?: string[]
-  }
+    type: 'string' | 'object';
+    description: string;
+    properties?: {[name: string]: {}};
+    additionalProperties?: boolean;
+    required?: string[];
+  };
 }
 
 /**
