@@ -122,7 +122,7 @@ export default class Reports extends React.Component {
               reportStyles: reportStyles,
               reportData: dataWithResponses,
               reportCustom: reportCustom,
-              translations: asset.content.translations.length > 1,
+              translations: asset.content.translations?.length > 1,
               groupBy: groupBy,
               error: false,
             });
@@ -464,7 +464,7 @@ export default class Reports extends React.Component {
             <br />
             <code>
               {this.state.error.statusText}
-              {': ' + this.state.error.responseText}
+              {': ' + this.state.error.responseText || t('An error occurred')}
             </code>
           </bem.Loading__inner>
         </bem.Loading>

@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import bem from 'js/bem';
 import {QUESTION_TYPES} from 'js/constants';
 import ReportViewItem from './reportViewItem';
@@ -140,9 +139,9 @@ export default class ReportContents extends React.Component {
         {
           reportData.map((rowContent, i) => {
             let label = t('Unlabeled');
-            if (_.isArray(rowContent.row.label)) {
+            if (Array.isArray(rowContent.row.label)) {
               label = rowContent.row.label[tnslIndex];
-            } else if (_.isString(rowContent.row.label)) {
+            } else if (typeof rowContent.row.label === 'string') {
               label = rowContent.row.label;
             }
 

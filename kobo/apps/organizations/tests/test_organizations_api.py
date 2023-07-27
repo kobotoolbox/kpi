@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.urls import reverse
-
 from model_bakery import baker
 from rest_framework import status
 
@@ -10,7 +9,6 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 
 class OrganizationTestCase(BaseTestCase):
-
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -35,7 +33,20 @@ class OrganizationTestCase(BaseTestCase):
         response_detail = self.client.get(self.url_detail)
         assert response_detail.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_api_creates_org(self):
+    def test_create(self):
+        data = {'name': 'my org'}
+        res = self.client.post(self.url_list, data)
+        self.assertContains(res, data['name'], status_code=201)
+
+    def test_list(self):
+        self._insert_data()
+        organization2 = baker.make(Organization, id='org_abcd123')
+        organization2.add_user(user=self.user, is_admin=True)
+        with self.assertNumQueries(2):
+            res = self.client.get(self.url_list)
+        self.assertContains(res, organization2.name)
+
+    def test_list_creates_org(self):
         self.assertFalse(self.user.organizations_organization.all())
         self.client.get(self.url_list)
         self.assertTrue(self.user.organizations_organization.all())
@@ -46,3 +57,16 @@ class OrganizationTestCase(BaseTestCase):
         self.assertContains(response, self.organization.slug)
         self.assertContains(response, self.organization.id)
         self.assertContains(response, self.organization.name)
+
+    def test_update(self):
+        self._insert_data()
+        data = {'name': 'edit'}
+        with self.assertNumQueries(4):
+            res = self.client.patch(self.url_detail, data)
+        self.assertContains(res, data['name'])
+
+        user = baker.make(User)
+        self.client.force_login(user)
+        org_user = self.organization.add_user(user=user)
+        res = self.client.patch(self.url_detail, data)
+        self.assertEqual(res.status_code, 403)
