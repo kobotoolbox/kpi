@@ -54,14 +54,15 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
     setIsDeletePromptOpen(false);
 
     // Step 1: get current questions list, and remove question from it
-    const updatedQuestions: AnalysisQuestionInternal[] = analysisQuestions?.state.questions.filter(
-      (item) => item.uuid !== props.uuid
-    ) || [];
+    const updatedQuestions: AnalysisQuestionInternal[] =
+      analysisQuestions?.state.questions.filter(
+        (item) => item.uuid !== props.uuid
+      ) || [];
 
     // Step 2: update asset endpoint with new questions
     const response = await updateSurveyQuestions(
       singleProcessingStore.currentAssetUid,
-      updatedQuestions,
+      updatedQuestions
     );
 
     // Step 3: update reducer's state with new list after the call finishes
@@ -105,7 +106,9 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         <Icon name={qaDefinition.icon} size='xl' />
       </div>
 
-      <label className={commonStyles.headerLabel}>{question.labels._default}</label>
+      <label className={commonStyles.headerLabel}>
+        {question.labels._default}
+      </label>
 
       <Button
         type='bare'

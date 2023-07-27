@@ -101,7 +101,7 @@ export async function updateSurveyQuestions(
 
   const response = await fetchPatch<AssetResponse>(
     endpoints.ASSET_URL.replace(':uid', assetUid),
-    {advanced_features: advancedFeatures as Json},
+    {advanced_features: advancedFeatures as Json}
   );
 
   // TODO think of better way to handle this

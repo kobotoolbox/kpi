@@ -28,7 +28,9 @@ export default function AnalysisHeader() {
     return userCan('manage_asset', asset);
   })();
 
-  function renderQuestionTypeButton(definition: AnalysisQuestionTypeDefinition) {
+  function renderQuestionTypeButton(
+    definition: AnalysisQuestionTypeDefinition
+  ) {
     return (
       <li
         className={classNames({
