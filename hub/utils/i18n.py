@@ -5,7 +5,7 @@ import logging
 import constance
 from django.db.models import Q
 from django.db.models.functions import Length
-from django.utils.translation import get_language
+from django.utils.translation import get_language, gettext as t
 
 from kpi.utils.log import logging
 from ..models import SitewideMessage
@@ -54,12 +54,8 @@ class I18nUtils:
         # Get default value if lang is not specified
         language = lang if lang else get_language()
 
-        text = constance.config.MFA_LOCALIZED_HELP_TEXT.replace(
-            '##support email##',
-            constance.config.SUPPORT_EMAIL,
-        )
         try:
-            messages_dict = json.loads(text)
+            messages_dict = json.loads(constance.config.MFA_LOCALIZED_HELP_TEXT)
         except json.JSONDecodeError:
             logging.error(
                 'Configuration value for MFA_LOCALIZED_HELP_TEXT has invalid '
@@ -68,6 +64,21 @@ class I18nUtils:
             # Given the validation done in the django admin interface, this
             # is an acceptable, low-likelihood evil
             return ''
+        try:
+            message = messages_dict[language]
+        except KeyError:
+            # Fall back to a default, which could be either:
+            #   * A static string from `CONSTANCE_CONFIG`, which itself is
+            #     translated, or,
+            #   * The superuser's customized default.
+            # If it's the former, calling `t()` will return a translated string
+            # (if available) from the Django gettext machinery. If it's the
+            # latter, then `t()` won't do anything useful, but it won't hurt
+            # either
+            message = t(messages_dict['default'])
 
-        default = messages_dict['default']
-        return messages_dict.get(language, default)
+        message = message.replace(
+            '##support email##',
+            constance.config.SUPPORT_EMAIL,
+        )
+        return message
