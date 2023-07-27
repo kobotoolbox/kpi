@@ -17,6 +17,99 @@ from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kpi.utils.object_permission import get_database_user
 
 
+# NOMERGE
+FAKE_USER_METADATA_FIELDS = '''
+[
+  {
+    "name": "full_name",
+    "label": "Füłł ñámé",
+    "required": true
+  },
+  {
+    "name": "organization",
+    "label": "Örgáñîzátîöñ",
+    "required": true
+  },
+  {
+    "name": "organization_website",
+    "label": "Örgáñîzátîöñ wébšîté",
+    "required": true
+  },
+  {
+    "name": "sector",
+    "label": "Šéćtör",
+    "required": true
+  },
+  {
+    "name": "gender",
+    "label": "Géñdér",
+    "required": true
+  },
+  {
+    "name": "bio",
+    "label": "Bîö",
+    "required": true
+  },
+  {
+    "name": "city",
+    "label": "Ćîtÿ",
+    "required": true
+  },
+  {
+    "name": "country",
+    "label": "Ćöüñtrÿ",
+    "required": true
+  },
+  {
+    "name": "twitter",
+    "label": "Twîttér",
+    "required": true
+  },
+  {
+    "name": "linkedin",
+    "label": "ŁîñkédÎñ",
+    "required": true
+  },
+  {
+    "name": "instagram",
+    "label": "Îñštágrám",
+    "required": true
+  }
+]
+'''.strip()
+
+# NOMERGE
+FAKE_PROJECT_METADATA_FIELDS = '''
+[
+  {
+    "name": "sector",
+    "label": "Šéćtör",
+    "required": true
+  },
+  {
+    "name": "country",
+    "label": "Ćöüñtrÿ",
+    "required": true
+  },
+  {
+    "name": "operational_purpose",
+    "label": "Öpérátîöñáł Pürpöšé",
+    "required": true
+  },
+  {
+    "name": "collects_pii",
+    "label": "Ćöłłéćtš PÎÎ",
+    "required": true
+  },
+  {
+    "name": "description",
+    "label": "Déšćrîptîöñ",
+    "required": true
+  }
+]
+'''.strip()
+
+
 def _check_asr_mt_access_for_user(user):
     # This is for proof-of-concept testing and will be replaced with proper
     # quotas and accounting
@@ -163,4 +256,6 @@ class EnvironmentView(APIView):
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
         data.update(self.process_other_configs(request))
+        data['user_metadata_fields'] = json.loads(FAKE_USER_METADATA_FIELDS)  # NOMERGE
+        data['project_metadata_fields'] = json.loads(FAKE_PROJECT_METADATA_FIELDS)  # NOMERGE
         return Response(data)
