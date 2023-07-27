@@ -32,144 +32,148 @@ class AccountFormsTestCase(TestCase):
         assert (email_input := pq("[name=email]"))
         assert "readonly" not in email_input[0].attrib
 
-    @override_config(USER_METADATA_FIELDS='{}')
     def test_only_configurable_fields_can_be_removed(self):
-        form = SocialSignupForm(sociallogin=self.sociallogin)
-        assert 'username' in form.fields
-        assert 'email' in form.fields
+        with override_config(USER_METADATA_FIELDS='{}'):
+            form = SocialSignupForm(sociallogin=self.sociallogin)
+            assert 'username' in form.fields
+            assert 'email' in form.fields
 
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [{'name': 'full_name', 'required': True}]
-        )
-    )
     def test_field_without_custom_label_can_be_required(self):
-        form = SocialSignupForm(sociallogin=self.sociallogin)
-        assert form.fields['full_name'].required
-        assert form.fields['full_name'].label == 'Full name'
-
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [
-                {
-                    'name': 'full_name',
-                    'required': True,
-                    'label': {'default': 'Secret Agent ID'},
-                }
-            ]
-        )
-    )
-    def test_field_with_only_default_custom_label(self):
-        form = SocialSignupForm(sociallogin=self.sociallogin)
-        assert form.fields['full_name'].required
-        assert form.fields['full_name'].label == 'Secret Agent ID'
-
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [
-                {
-                    'name': 'full_name',
-                    'required': True,
-                    'label': {
-                        'default': 'Secret Agent ID',
-                        'es': 'ID de agente secreto',
-                    },
-                }
-            ]
-        )
-    )
-    def test_field_with_specific_and_default_custom_labels(self):
-        with translation.override('es'):
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [{'name': 'full_name', 'required': True}]
+            )
+        ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert form.fields['full_name'].required
-            assert form.fields['full_name'].label == 'ID de agente secreto'
-        with translation.override('en'):
+            assert form.fields['full_name'].label == 'Full name'
+
+    def test_field_with_only_default_custom_label(self):
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [
+                    {
+                        'name': 'full_name',
+                        'required': True,
+                        'label': {'default': 'Secret Agent ID'},
+                    }
+                ]
+            )
+        ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert form.fields['full_name'].required
             assert form.fields['full_name'].label == 'Secret Agent ID'
 
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [
-                {
-                    'name': 'organization',
-                    'required': True,
-                    'label': {
-                        'fr': 'Organisation secrète',
-                    },
-                },
-            ]
-        )
-    )
+    def test_field_with_specific_and_default_custom_labels(self):
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [
+                    {
+                        'name': 'full_name',
+                        'required': True,
+                        'label': {
+                            'default': 'Secret Agent ID',
+                            'es': 'ID de agente secreto',
+                        },
+                    }
+                ]
+            )
+        ):
+            with translation.override('es'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['full_name'].required
+                assert form.fields['full_name'].label == 'ID de agente secreto'
+            with translation.override('en'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['full_name'].required
+                assert form.fields['full_name'].label == 'Secret Agent ID'
+
     def test_field_with_custom_label_without_default(self):
-        with translation.override('fr'):
-            form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['organization'].required
-            assert form.fields['organization'].label == 'Organisation secrète'
+        """
+        The JSON schema should always require a default label, but the form
+        should render labels properly even if the default is missing
+        """
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [
+                    {
+                        'name': 'organization',
+                        'required': True,
+                        'label': {
+                            'fr': 'Organisation secrète',
+                        },
+                    },
+                ]
+            )
+        ):
+            with translation.override('fr'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['organization'].required
+                assert form.fields['organization'].label == 'Organisation secrète'
 
 
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [
-                {
-                    'name': 'organization',
-                    'required': False,
-                },
-            ]
-        )
-    )
     def test_field_without_custom_label_can_be_optional(self):
-        form = SocialSignupForm(sociallogin=self.sociallogin)
-        assert not form.fields['organization'].required    
-
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [
-                {
-                    'name': 'organization',
-                    'required': False,
-                    'label': {
-                        'default': 'Organization',
-                        'fr': 'Organisation',
-                        'es': 'Organización',
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [
+                    {
+                        'name': 'organization',
+                        'required': False,
                     },
-                },
-            ]
-        )
-    )
-    def test_field_with_custom_label_without_default_can_be_optional(self):
-        form = SocialSignupForm(sociallogin=self.sociallogin)
-        assert not form.fields['organization'].required
-        assert form.fields['organization'].label == 'Organization'
-        with translation.override('fr'):
+                ]
+            )
+        ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['organization'].required == False 
-            assert form.fields['organization'].label == 'Organisation'
-        with translation.override('es'):
-            form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['organization'].required == False
-            assert form.fields['organization'].label == 'Organización'
+            assert not form.fields['organization'].required
 
-    @override_config(
-        USER_METADATA_FIELDS=json.dumps(
-            [
-                {
-                    'name': 'organization',
-                    'required': False,
-                    'label': {
-                        'default': 'Organization',
-                        'fr': 'Organisation',
+    def test_field_with_custom_label_can_be_optional(self):
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [
+                    {
+                        'name': 'organization',
+                        'required': False,
+                        'label': {
+                            'default': 'Organization',
+                            'fr': 'Organisation',
+                            'es': 'Organización',
+                        },
                     },
-                },
-            ]
-        )
-    )
+                ]
+            )
+        ):
+            form = SocialSignupForm(sociallogin=self.sociallogin)
+            assert not form.fields['organization'].required
+            assert form.fields['organization'].label == 'Organization'
+            with translation.override('fr'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['organization'].required == False
+                assert form.fields['organization'].label == 'Organisation'
+            with translation.override('es'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['organization'].required == False
+                assert form.fields['organization'].label == 'Organización'
+
     def test_not_supported_translation(self):
-        with translation.override('es'):
-            form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['organization'].required == False 
-            assert form.fields['organization'].label == 'Organization'
-        with translation.override('ar'):
-            form = SocialSignupForm(sociallogin=self.sociallogin)
-            assert form.fields['organization'].required == False
-            assert form.fields['organization'].label == 'Organization'
+        with override_config(
+            USER_METADATA_FIELDS=json.dumps(
+                [
+                    {
+                        'name': 'organization',
+                        'required': False,
+                        'label': {
+                            'default': 'Organization',
+                            'fr': 'Organisation',
+                        },
+                    },
+                ]
+            )
+        ):
+            with translation.override('es'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['organization'].required == False
+                assert form.fields['organization'].label == 'Organization'
+            with translation.override('ar'):
+                form = SocialSignupForm(sociallogin=self.sociallogin)
+                assert form.fields['organization'].required == False
+                assert form.fields['organization'].label == 'Organization'
