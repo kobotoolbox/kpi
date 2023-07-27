@@ -14,7 +14,8 @@ import {NO_FEATURE_ERROR} from '../processingActions';
 import {notify} from 'js/utils';
 import singleProcessingStore from '../singleProcessingStore';
 import type {AssetAdvancedFeatures, AssetResponse} from 'js/dataInterface';
-import {Json} from '../../common/common.interfaces';
+import type {Json} from '../../common/common.interfaces';
+import assetStore from 'js/assetStore';
 
 /** Finds given question in state */
 export function findQuestion(
@@ -102,6 +103,13 @@ export async function updateSurveyQuestions(
     endpoints.ASSET_URL.replace(':uid', assetUid),
     {advanced_features: advancedFeatures as Json},
   );
+
+  // TODO think of better way to handle this
+  // We need to let the `assetStore` know about the change, because
+  // `analysisQuestions.reducer` is using `assetStore` to build the initial
+  // list of questions every time user (re-)visits "Analysis" tab.
+  // Without this line, user could see some old data.
+  assetStore.onUpdateAssetCompleted(response);
 
   return response;
 }
