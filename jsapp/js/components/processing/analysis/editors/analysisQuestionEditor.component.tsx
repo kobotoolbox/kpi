@@ -95,7 +95,7 @@ export default function AnalysisQuestionEditor(
       analysisQuestions?.dispatch({type: 'updateQuestion'});
 
       // Step 1: get current questions list, and update current question definition in it
-      const qualSurveyObj: AnalysisQuestionInternal[] =
+      const updatedQuestions: AnalysisQuestionInternal[] =
         analysisQuestions?.state.questions.map((aq) => {
           const output = clonedeep(aq);
           // If this is the question we're currently editing, let's update what
@@ -118,7 +118,7 @@ export default function AnalysisQuestionEditor(
       // Step 2: update asset endpoint with new questions
       const response = await updateSurveyQuestions(
         singleProcessingStore.currentAssetUid,
-        qualSurveyObj
+        updatedQuestions
       );
 
       // Step 3: update reducer's state with new list after the call finishes

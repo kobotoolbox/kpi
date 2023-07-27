@@ -6,8 +6,12 @@ import AnalysisQuestionsContext from 'js/components/processing/analysis/analysis
 import {
   findQuestion,
   getQuestionTypeDefinition,
+  getQuestionsFromSchema,
+  updateSurveyQuestions,
 } from 'js/components/processing/analysis/utils';
 import KoboPrompt from 'js/components/modals/koboPrompt';
+import type {AnalysisQuestionInternal} from '../constants';
+import singleProcessingStore from '../../singleProcessingStore';
 
 interface ResponseFormHeaderProps {
   uuid: string;
@@ -41,7 +45,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
     });
   }
 
-  function deleteQuestion() {
+  async function deleteQuestion() {
     analysisQuestions?.dispatch({
       type: 'deleteQuestion',
       payload: {uuid: props.uuid},
@@ -49,20 +53,24 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
 
     setIsDeletePromptOpen(false);
 
-    // TODO make actual API call here
-    // For now we make a fake response
-    console.log('QA fake API call: delete question');
-    setTimeout(() => {
-      console.log('QA fake API call: delete question DONE');
-      analysisQuestions?.dispatch({
-        type: 'deleteQuestionCompleted',
-        payload: {
-          questions: analysisQuestions?.state.questions.filter(
-            (item) => item.uuid !== props.uuid
-          ),
-        },
-      });
-    }, 1000);
+    // Step 1: get current questions list, and remove question from it
+    const updatedQuestions: AnalysisQuestionInternal[] = analysisQuestions?.state.questions.filter(
+      (item) => item.uuid !== props.uuid
+    ) || [];
+
+    // Step 2: update asset endpoint with new questions
+    const response = await updateSurveyQuestions(
+      singleProcessingStore.currentAssetUid,
+      updatedQuestions,
+    );
+
+    // Step 3: update reducer's state with new list after the call finishes
+    analysisQuestions?.dispatch({
+      type: 'deleteQuestionCompleted',
+      payload: {
+        questions: getQuestionsFromSchema(response?.advanced_features),
+      },
+    });
   }
 
   return (
