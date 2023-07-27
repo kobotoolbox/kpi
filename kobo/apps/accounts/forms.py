@@ -88,19 +88,28 @@ class KoboSignupMixin(forms.Form):
         }
         for field_name in list(self.fields.keys()):
             if field_name not in CONFIGURABLE_METADATA_FIELDS:
+                # This field is not allowed to be configured
                 continue
+
             try:
                 desired_field = desired_metadata_fields[field_name]
-                if 'label' in desired_field.keys():
-                    try:
-                        self.fields[field_name].label = desired_field['label'][get_language()]
-                    except KeyError:
-                        self.fields[field_name].label = desired_field['label']['default']
             except KeyError:
+                # This field is unwanted
                 self.fields.pop(field_name)
                 continue
+
             field = self.fields[field_name]
             field.required = desired_field.get('required', False)
+
+            if 'label' in desired_field.keys():
+                try:
+                    self.fields[field_name].label = desired_field['label'][
+                        get_language()
+                    ]
+                except KeyError:
+                    self.fields[field_name].label = desired_field['label'][
+                        'default'
+                    ]
 
     def clean_email(self):
         email = self.cleaned_data['email']
