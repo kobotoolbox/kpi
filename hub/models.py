@@ -17,6 +17,7 @@ from markitup.fields import MarkupField
 # whose approach is emulated here
 from django.views.static import was_modified_since
 
+from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
@@ -56,7 +57,7 @@ class ConfigurationFile(models.Model):
         upload_to=_configuration_file_upload_to,
         help_text=(
             'Stored in a PUBLIC location where authentication is NOT required '
-            '**to** access common passwords file.'
+            'to access common passwords file.'
         ),
     )
 
@@ -159,6 +160,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     private_data = models.JSONField(default=dict)
     date_removal_requested = models.DateTimeField(null=True)
     date_removed = models.DateTimeField(null=True)
+    password_date_changed = models.DateTimeField(null=True, blank=True)
+    validated_password = models.BooleanField(default=True)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
@@ -180,6 +183,16 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             using=using,
             update_fields=update_fields,
         )
+
+        # Sync validated_password field to KobocatUserProfile
+        if not settings.TESTING and (
+            not update_fields
+            or (update_fields and 'validated_password' in update_fields)
+        ):
+            KobocatUserProfile.set_password_details(
+                self.user.id,
+                self.validated_password,
+            )
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):
