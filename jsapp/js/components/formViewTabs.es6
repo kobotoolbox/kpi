@@ -64,6 +64,7 @@ class FormViewTabs extends Reflux.Component {
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
+      // ROUTES.FORM_RESET
       this.props.router.navigate(`/forms/${this.state.asset.uid}/reset`);
 
       var path = evt.target.getAttribute('data-path');
