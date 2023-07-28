@@ -59,6 +59,7 @@ class EnvStoreData {
   public asr_mt_features_enabled = false;
   public mfa_localized_help_text: { [name: string]: string } = {};
   public mfa_enabled = false;
+  public mfa_available_to_user = false;
   public mfa_code_length = 6;
   public stripe_public_key: string | null = null;
   public social_apps: SocialApp[] = [];
@@ -126,6 +127,7 @@ class EnvStore {
     this.data.submission_placeholder = response.submission_placeholder;
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
+    this.data.mfa_available_to_user = response.mfa_available_to_user;
     this.data.mfa_code_length = response.mfa_code_length;
     this.data.stripe_public_key = response.stripe_public_key;
     this.data.social_apps = response.social_apps;
