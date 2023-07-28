@@ -12,7 +12,6 @@ from ..models import SitewideMessage
 
 
 class I18nUtils:
-
     @staticmethod
     def get_sitewide_message(slug="welcome_message", lang=None):
         """
@@ -33,12 +32,14 @@ class I18nUtils:
         #   - "<slug>"
         # We order the results by the length of the slug to be sure
         # localized version comes first.
-        sitewide_message = SitewideMessage.objects\
-            .filter(
-                Q(slug="{}_{}".format(slug, language)) |
-                Q(slug="{}".format(slug)))\
-            .order_by(Length("slug").desc())\
+        sitewide_message = (
+            SitewideMessage.objects.filter(
+                Q(slug="{}_{}".format(slug, language))
+                | Q(slug="{}".format(slug))
+            )
+            .order_by(Length("slug").desc())
             .first()
+        )
 
         if sitewide_message is not None:
             return sitewide_message.body
@@ -82,3 +83,46 @@ class I18nUtils:
             constance.config.SUPPORT_EMAIL,
         )
         return message
+
+    @staticmethod
+    def get_user_metadata(lang: str = None):
+        """
+        Return the translated label of the user metadata fields
+        """
+        # Get default value if lang is not specified
+        language = lang if lang else get_language()
+
+        try:
+            user_metadata_dict = json.loads(
+                constance.config.USER_METADATA_FIELDS
+            )
+        except json.JSONDecodeError:
+            logging.error(
+                'Configuration value for USER_METADATA_FIELDS has invalid '
+                'JSON'
+            )
+            # Given the validation done in the django admin interface, this
+            # is an acceptable, low-likelihood evil
+            return ''
+
+        # loop through fields to reformat the data
+        fields_list = []
+        for field in user_metadata_dict:
+            try:
+                label = field['label']
+                try:
+                    translation = label[language]
+                except KeyError:
+                    # Use the default value if language is not available
+                    translation = t(label['default'])
+
+            except KeyError:
+                translation = ''
+
+            fields_list.append(
+                [
+                    field['name'],
+                    field['label'],
+                    translation,
+                ]
+            )
