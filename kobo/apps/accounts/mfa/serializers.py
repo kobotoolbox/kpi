@@ -5,9 +5,8 @@ from trench.utils import get_mfa_model
 
 class UserMfaMethodSerializer(serializers.ModelSerializer):
     """
-    Exposes user's MFA methods, per-user availability, and their created, modified and disabled dates
+    Exposes user's MFA methods and their created, modified and disabled dates
     """
-    mfa_available = serializers.BooleanField()
 
     class Meta:
         model = get_mfa_model()
