@@ -333,7 +333,7 @@ CONSTANCE_CONFIG = {
         'minutes of transcription, '
         'number of translation characters',
         # Use custom field for schema validation
-        'free_tier_threshold_jsonschema'
+        'free_tier_threshold_jsonschema',
     ),
     'FREE_TIER_DISPLAY': (
         LazyJSONSerializable({

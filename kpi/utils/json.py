@@ -22,21 +22,21 @@ class LazyJSONSerializable:
     It can be JSON serialized.
     """
     def __init__(self, o):
-        self._object = o
+        self.object = o
 
     def __repr__(self):
-        return self.__str__()
+        return f'<LazyJSONSerializable object={type(self.object)}>'
 
     def __eq__(self, *args, **kwargs):
         other_object = args[0]
         if isinstance(other_object, str):
             return other_object == self.__str__()
-        return other_object == self._object
+        return other_object == self.object
 
     def __str__(self):
         try:
-            value = json.dumps(self._object, indent=2, cls=LazyJSONEncoder)
+            value = json.dumps(self.object, indent=2, cls=LazyJSONEncoder)
         except json.JSONDecodeError:
-            return self._object
+            return self.object
 
         return normalize_newlines(value)
