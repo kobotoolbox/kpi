@@ -13,7 +13,6 @@ export type MfaUserMethodsResponse = [{
   name: 'app';
   is_primary: boolean;
   is_active: boolean;
-  mfa_available: boolean;
   date_created: string;
   date_modified: string;
   date_disabled: string;

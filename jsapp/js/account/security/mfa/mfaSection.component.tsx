@@ -15,6 +15,7 @@ import {MODAL_TYPES} from 'jsapp/js/constants';
 import envStore from 'js/envStore';
 import './mfaSection.scss';
 import {formatTime, formatDate} from 'js/utils';
+import {when} from "mobx";
 
 bem.SecurityRow = makeBem(null, 'security-row');
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header');
@@ -85,7 +86,6 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     if (response.length) {
       this.setState({
         isMfaActive: response[0].is_active,
-        isMfaAllowed: response[0].mfa_available,
         dateDisabled: response[0].date_disabled,
         dateModified: response[0].date_modified,
       });
@@ -93,12 +93,10 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   onGetActiveSubscription(response: boolean|null) {
-    // Only disable MFA settings if user doesn't have per-user availability set
-    if (!this.state.isMfaAllowed) {
-      this.setState({
-        isMfaAllowed: response || response === null,
-      });
-    }
+    // Determine whether MFA is allowed based on per-user availability and subscription status
+    this.setState({
+      isMfaAllowed: response || envStore.data.mfa_available_to_user,
+    });
   }
 
   mfaActivating(response: MfaActivatedResponse) {
