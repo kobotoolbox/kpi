@@ -4,6 +4,7 @@ import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import envStore from "js/envStore";
 import {when} from "mobx";
+import subscriptionStore from "js/account/subscriptionStore";
 
 export interface BaseProduct {
   id: string;
@@ -59,10 +60,10 @@ export interface Organization {
 }
 
 export interface AccountLimit {
-  submission_limit?: 'unlimited'|number;
-  nlp_seconds_limit?: 'unlimited'|number;
-  nlp_character_limit?: 'unlimited'|number;
-  storage_bytes_limit?: 'unlimited'|number;
+  submission_limit: 'unlimited'|number;
+  nlp_seconds_limit: 'unlimited'|number;
+  nlp_character_limit: 'unlimited'|number;
+  storage_bytes_limit: 'unlimited'|number;
 }
 
 export interface Product extends BaseProduct {
@@ -110,8 +111,9 @@ export async function postCustomerPortal(organizationId: string) {
 }
 
 export async function getAccountLimits() {
-  const subscriptions = await getSubscription();
-  const activeSubscriptions = subscriptions.results.filter(subscription =>
+  await when(() => subscriptionStore.isLoaded);
+  const subscriptions = [...subscriptionStore.subscriptionResponse];
+  const activeSubscriptions = subscriptions.filter(subscription =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
   let metadata;
@@ -124,7 +126,7 @@ export async function getAccountLimits() {
     const products = await getProducts();
     const freeProduct = products.results.filter(product =>
       product.prices.filter((price: BasePrice) => {
-        return (price.unit_amount === 0 && price?.recurring?.interval === 'month');
+        return (price.unit_amount === 0 && price.recurring?.interval === RecurringInterval.Month);
       })
     );
     metadata = {

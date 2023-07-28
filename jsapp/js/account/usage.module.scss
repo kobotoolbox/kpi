@@ -62,6 +62,10 @@ h2 {
   background-color: #FFF6EB;
 }
 
+.warningIcon {
+  color: colors.$kobo-red;
+}
+
 .overlimit {
   background-color: adjust-color(colors.$kobo-light-red, $alpha: -0.4);
 }

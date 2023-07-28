@@ -11,6 +11,8 @@ interface AssetUsage {
 }
 
 interface UsageResponse {
+  current_month_start: string;
+  current_year_start: string;
   per_asset_usage: AssetUsage[];
   total_submission_count: {
     current_month: number;
