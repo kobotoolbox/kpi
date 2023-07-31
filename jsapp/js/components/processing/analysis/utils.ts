@@ -11,6 +11,7 @@ import {endpoints} from 'js/api.endpoints';
 import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
 import clonedeep from 'lodash.clonedeep';
 import {NO_FEATURE_ERROR} from '../processingActions';
+import type {ProcessingDataResponse} from '../processingActions';
 import {notify} from 'js/utils';
 import type {AssetAdvancedFeatures, AssetResponse} from 'js/dataInterface';
 import type {Json} from '../../common/common.interfaces';
