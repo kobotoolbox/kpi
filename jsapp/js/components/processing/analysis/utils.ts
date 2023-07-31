@@ -6,9 +6,9 @@ import type {
   AnalysisQuestionSchema,
 } from './constants';
 import {ANALYSIS_QUESTION_TYPES} from './constants';
-import {fetchPatch} from 'js/api';
+import {fetchPatch, fetchPostUrl} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
-import {getAssetAdvancedFeatures} from 'js/assetUtils';
+import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
 import clonedeep from 'lodash.clonedeep';
 import {NO_FEATURE_ERROR} from '../processingActions';
 import {notify} from 'js/utils';
@@ -87,7 +87,7 @@ export async function updateSurveyQuestions(
 
   if (!advancedFeatures || !qpath) {
     notify(NO_FEATURE_ERROR, 'error');
-    return;
+    return Promise.reject();
   }
 
   if (!advancedFeatures.qual) {
@@ -112,6 +112,53 @@ export async function updateSurveyQuestions(
   assetStore.onUpdateAssetCompleted(response);
 
   return response;
+}
+
+/**
+ * A function that updates the response for a question, i.e. the submission data.
+ */
+export async function updateResponse(
+  state: AnalysisQuestionsState | undefined,
+  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,
+  assetUid: string,
+  submissionUid: string,
+  qpath: string,
+  questionUuid: string,
+  questionType: string,
+  response: string
+) {
+  if (!state || !dispatch) {
+    return Promise.reject();
+  }
+
+  dispatch({type: 'updateResponse'});
+
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (!processingUrl) {
+    return Promise.reject();
+  }
+
+  // TODO: this needs to send different objects for diffferent quetsion types
+  // and we need to set the return response type
+  const apiResponse = await fetchPostUrl<any>(
+    processingUrl,
+    {
+      submission: submissionUid,
+      [qpath]: {
+        qual: [
+          {
+            uuid: questionUuid,
+            type: questionType,
+            val: response,
+          },
+        ],
+      },
+    }
+  );
+
+  console.log(apiResponse);
+
+  return apiResponse;
 }
 
 /**

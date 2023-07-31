@@ -6,8 +6,9 @@ import {AUTO_SAVE_TYPING_DELAY} from 'js/components/processing/analysis/constant
 import {
   findQuestion,
   getQuestionTypeDefinition,
-  quietlyUpdateResponse,
+  updateResponse,
 } from 'js/components/processing/analysis/utils';
+import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import CommonHeader from './commonHeader.component';
 import commonStyles from './common.module.scss';
 
@@ -43,10 +44,19 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
   function saveResponse() {
     clearTimeout(typingTimer);
 
-    quietlyUpdateResponse(
+    if (!question || !singleProcessingStore.currentQuestionQpath) {
+      // TODO handle this (unlikely) error somehow
+      return;
+    }
+
+    updateResponse(
       analysisQuestions?.state,
       analysisQuestions?.dispatch,
-      props.uuid,
+      singleProcessingStore.currentAssetUid,
+      singleProcessingStore.currentSubmissionEditId,
+      singleProcessingStore.currentQuestionQpath,
+      question.uuid,
+      question.type,
       response
     );
   }
