@@ -99,6 +99,7 @@ export async function updateSurveyQuestions(
     questions
   );
 
+  // TODO: add try catch error handling
   const response = await fetchPatch<AssetResponse>(
     endpoints.ASSET_URL.replace(':uid', assetUid),
     {advanced_features: advancedFeatures as Json}
@@ -116,6 +117,7 @@ export async function updateSurveyQuestions(
 
 /**
  * A function that updates the response for a question, i.e. the submission data.
+ * TODO: see if this really needs so much parameters
  */
 export async function updateResponse(
   state: AnalysisQuestionsState | undefined,
@@ -138,8 +140,10 @@ export async function updateResponse(
     return Promise.reject();
   }
 
-  // TODO: this needs to send different objects for diffferent quetsion types
-  // and we need to set the return response type
+  // TODO: this needs
+  // 1. to send different objects for diffferent quetsion types
+  // 2. to set the return response type instead of that `any`
+  // 3. do some error handling
   const apiResponse = await fetchPostUrl<any>(
     processingUrl,
     {
@@ -162,6 +166,7 @@ export async function updateResponse(
 }
 
 /**
+ * TODO: delete this function
  * A function that updates the response for a question, i.e. the submission data.
  */
 export function quietlyUpdateResponse(
