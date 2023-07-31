@@ -136,9 +136,8 @@ export async function updateResponse(
 
   // TODO: this needs
   // 1. to send different objects for diffferent question types
-  // 2. to set the return response type instead of that `any`
   try {
-    const apiResponse = await fetchPostUrl<any>(
+    const apiResponse = await fetchPostUrl<ProcessingDataResponse>(
       processingUrl,
       {
         submission: submissionUid,
