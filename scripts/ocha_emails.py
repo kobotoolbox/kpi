@@ -3,10 +3,9 @@ import time
 
 import boto3
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.models import User
 from django.db.models.functions import Lower
 from django.utils import timezone
-
-from kobo.apps.project_views.models.assignment import User
 
 FROM_ADDRESS = 'Tino Kreutzer <support@kobotoolbox.org>'
 EMAIL_SUBJECT = '📣 OCHA KoboToolbox server - Important Update / Mise à jour importante / Aviso importante / تحديث مهم'
@@ -15,13 +14,21 @@ EMAIL_HTML_FILENAME = 'ocha_transition_email.html'
 EMAIL_TEXT_FILENAME = 'ocha_transition_email.txt'
 MAX_SEND_ATTEMPTS = 3
 RETRY_WAIT_TIME = 30  # in seconds
+
 # We don't want to use all of our available email sends; some need to be reserved for other uses (password resets, etc.)
 # So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
 RESERVE_EMAIL_COUNT = 4000
+
 # Whether this is a marketing email or a transactional email.
 # Marketing emails aren't sent to addresses that have registered spam complaints
 # Transactional emails ignore spam complaints
 IS_MARKETING_EMAIL = True
+
+# Maximum number of emails to send in one use of the script
+# Set to 0 to send as many emails as SES will allow
+MAX_SEND_LIMIT = 500
+
+start_time = time.time()
 
 
 def run(*args):
@@ -35,22 +42,28 @@ def run(*args):
     )
     ses = boto3.client('ses', region_name=aws_region_name)
 
-    remaining_sends = -1
+    remaining_sends = MAX_SEND_LIMIT
     quota = ses.get_send_quota()
     # if Max24HourSend == -1, we have unlimited daily sending quota
     if quota['Max24HourSend'] >= 0:
         print(
             f"{int(quota['SentLast24Hours'])} of {int(quota['Max24HourSend'])} *total* emails sent in the last 24 hours"
         )
-        remaining_sends = int(
+        quota_sends = int(
             quota['Max24HourSend']
             - quota['SentLast24Hours']
             - RESERVE_EMAIL_COUNT
         )
-        if remaining_sends <= 0:
+        if quota_sends <= 0:
             quit(f'already over sending limit; exiting...')
+        remaining_sends = (
+            remaining_sends >= 0
+            and min(quota_sends, remaining_sends)
+            or quota_sends
+        )
+        string_sends = remaining_sends >= 0 and remaining_sends or "unlimited"
         print(
-            f'{remaining_sends} emails can be sent this run ({RESERVE_EMAIL_COUNT} kept in reserve)'
+            f'{string_sends} emails can be sent this run ({RESERVE_EMAIL_COUNT} kept in reserve)'
         )
 
     if not test_mode:
@@ -129,32 +142,46 @@ def run(*args):
                         remaining_sends != -1
                         and users_emailed_count >= remaining_sends
                     ):
-                        quit(
-                            f'used up all email sends - {users_emailed_count} sent; try again in 24 hours.'
+                        quit_with_time_elapsed(
+                            f'\nused up all email sends - {users_emailed_count} sent'
                         )
                     break
                 case 429:
                     if attempts + 1 == MAX_SEND_ATTEMPTS:
                         quit(
-                            f'hit max retry limit of {MAX_SEND_ATTEMPTS} attempts for the day; {users_emailed_count} sent this run'
+                            f'\nhit max retry limit of {MAX_SEND_ATTEMPTS} attempts for the day; {users_emailed_count} sent this run'
                         )
                     print(
-                        f'hit ses rate limit, re-sending in {wait_time} seconds'
+                        f'\nhit ses rate limit, re-sending in {wait_time} seconds'
                     )
                 case default:
                     if attempts + 1 == MAX_SEND_ATTEMPTS:
                         print(
-                            f'SES keeps erroring out; {users_emailed_count} sent this run. Last response:'
+                            f'\nSES keeps erroring out; {users_emailed_count} sent this run. Last response:'
                         )
-                        quit(response)
+                        quit_with_time_elapsed(response)
                     print(
-                        f"couldn't email {user.username}, trying again in {wait_time} seconds"
+                        f"\ncouldn't email {user.username}, trying again in {wait_time} seconds"
                     )
 
             # back off for an extra 30 seconds on each retry (exponential enough for SES)
             time.sleep(wait_time)
+    quit_with_time_elapsed(
+        f'\nall users processed, {users_emailed_count} emails sent this run'
+    )
 
-    print(f'\nall users processed, {users_emailed_count} emails sent this run')
+
+def quit_with_time_elapsed(message):
+    print(message)
+    end_time = time.time()
+    seconds = int(end_time - start_time)
+    minutes = int(seconds / 60)
+    seconds = seconds % 60
+    quit_message = 'script exited after '
+    if minutes:
+        quit_message += f'{minutes} minutes and '
+    quit_message += f'{seconds} seconds'
+    quit(quit_message)
 
 
 def get_eligible_users(user_detail_email_key, force=False):
