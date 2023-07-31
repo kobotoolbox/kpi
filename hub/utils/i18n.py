@@ -85,7 +85,7 @@ class I18nUtils:
         return message
 
     @staticmethod
-    def get_user_metadata(lang: str = None):
+    def set_custom_label(field: dict, lang: str = None):
         """
         Return the translated label of the user metadata fields
         """
@@ -93,36 +93,15 @@ class I18nUtils:
         language = lang if lang else get_language()
 
         try:
-            user_metadata_dict = json.loads(
-                constance.config.USER_METADATA_FIELDS
-            )
-        except json.JSONDecodeError:
-            logging.error(
-                'Configuration value for USER_METADATA_FIELDS has invalid '
-                'JSON'
-            )
-            # Given the validation done in the django admin interface, this
-            # is an acceptable, low-likelihood evil
-            return ''
-
-        # loop through fields to reformat the data
-        fields_list = []
-        for field in user_metadata_dict:
+            label = field['label']
             try:
-                label = field['label']
-                try:
-                    translation = label[language]
-                except KeyError:
-                    # Use the default value if language is not available
-                    translation = t(label['default'])
-
+                translation = label[language]
             except KeyError:
-                translation = ''
+                # Use the default value if language is not available
+                translation = t(label['default'])
+        except KeyError:
+            raise Exception('`label` is not available for this field')
 
-            fields_list.append(
-                [
-                    field['name'],
-                    field['label'],
-                    translation,
-                ]
-            )
+        field['label'] = translation
+
+        return field

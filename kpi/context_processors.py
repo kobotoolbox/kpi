@@ -1,11 +1,13 @@
 # coding: utf-8
 import constance
+import json
 import markdown
 from django.conf import settings
 from django.urls import reverse
 
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
+from kobo.apps.accounts.forms import SignupForm
 
 
 def external_service_tokens(request):
@@ -40,6 +42,31 @@ def mfa(request):
     }
 
 
+def custom_label_translations(request):
+    """
+    Returns custom labels and translations for the signup form
+    from the USER_METADATA_FIELDS constance config.
+    """
+
+    # Get User Metadata Fields
+    user_metadata_fields = json.loads(constance.config.USER_METADATA_FIELDS)
+    
+    # Check if each user metadata has a label
+    for metadata_field in user_metadata_fields:
+        if 'label' in metadata_field.keys():
+            metadata_field['label'] = I18nUtils.set_custom_label(metadata_field)
+        else:
+            # If label is not available, use the default set in the SignupForm
+            try: 
+                metadata_field['label'] = SignupForm.declared_fields[
+                    metadata_field['name']
+                ].label
+            except KeyError:
+                continue
+
+    return user_metadata_fields
+
+
 def django_settings(request):
     return {"stripe_enabled": settings.STRIPE_ENABLED}
 
@@ -50,7 +77,6 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info == reverse('account_signup'):
-
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
             return {'welcome_message': sitewide_message}
@@ -63,6 +89,7 @@ class CombinedConfig:
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object
     """
+
     def __init__(self, constance_config, extra_config):
         """
         constance_config: LazyConfig object
