@@ -20,6 +20,8 @@ export default function AnalysisTabContent() {
   // We load existing question definitions from asset
   const [state, dispatch] = useReducer(analysisQuestionsReducer, {
     ...initialState,
+    // TODO: these questions would need some existing responses from the
+    // advanced_submission_post endpoint.
     questions: getQuestionsFromSchema(advancedFeatures),
   });
   const contextValue = useMemo(() => {

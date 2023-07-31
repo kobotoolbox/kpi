@@ -123,6 +123,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         questionsBeingEdited: [],
       };
     }
+    case 'udpateQuestionFailed': {
+      return {
+        ...state,
+        isPending: false,
+      };
+    }
     case 'updateResponse': {
       return {
         ...state,
@@ -134,6 +140,12 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
         ...state,
         isPending: false,
         questions: action.payload.questions,
+      };
+    }
+    case 'updateResponseFailed': {
+      return {
+        ...state,
+        isPending: false,
       };
     }
     case 'reorderQuestion': {

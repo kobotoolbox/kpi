@@ -41,7 +41,7 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
   const [response, setResponse] = useState<string>(question.response);
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>();
 
-  function saveResponse() {
+  async function saveResponse() {
     clearTimeout(typingTimer);
 
     if (!question || !singleProcessingStore.currentQuestionQpath) {
@@ -49,16 +49,24 @@ export default function DefaultResponseForm(props: DefaultResponseFormProps) {
       return;
     }
 
-    updateResponse(
-      analysisQuestions?.state,
-      analysisQuestions?.dispatch,
-      singleProcessingStore.currentAssetUid,
-      singleProcessingStore.currentSubmissionEditId,
-      singleProcessingStore.currentQuestionQpath,
-      question.uuid,
-      question.type,
-      response
-    );
+    // Step 1: Let the reducer know what we're about to do
+    analysisQuestions?.dispatch({type: 'updateResponse'});
+
+    // Step 2: Store the response using the `advanced_submission_post` API
+    try {
+      const resp = await updateResponse(
+        singleProcessingStore.currentAssetUid,
+        singleProcessingStore.currentSubmissionEditId,
+        singleProcessingStore.currentQuestionQpath,
+        question.uuid,
+        question.type,
+        response
+      );
+      console.log('resp', resp);
+    } catch (err) {
+      console.log('catch err', err);
+      analysisQuestions?.dispatch({type: 'updateResponseFailed'});
+    }
   }
 
   function saveResponseDelayedAndQuietly() {

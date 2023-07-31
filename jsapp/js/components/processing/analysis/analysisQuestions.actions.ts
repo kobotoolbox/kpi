@@ -27,6 +27,8 @@ export type AnalysisQuestionsAction =
       type: 'updateQuestionCompleted';
       payload: {questions: AnalysisQuestionInternal[]};
     }
+  // Unlocks UI after failed API call
+  | {type: 'udpateQuestionFailed'}
   // Used for updating the response to the question. Blocks the UI, awaiting
   // the API call response.
   | {type: 'updateResponse'}
@@ -36,6 +38,8 @@ export type AnalysisQuestionsAction =
       type: 'updateResponseCompleted';
       payload: {questions: AnalysisQuestionInternal[]};
     }
+  // Unlocks UI after failed API call
+  | {type: 'updateResponseFailed'}
   // Moves the question in the list, immediately updating the questions array.
   // This action is being called while the question is being dragged (this is
   // how `react-dnd` works). Here we modify the local list, the new order will

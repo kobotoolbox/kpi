@@ -12,7 +12,6 @@ import {getAssetAdvancedFeatures, getAssetProcessingUrl} from 'js/assetUtils';
 import clonedeep from 'lodash.clonedeep';
 import {NO_FEATURE_ERROR} from '../processingActions';
 import {notify} from 'js/utils';
-import singleProcessingStore from '../singleProcessingStore';
 import type {AssetAdvancedFeatures, AssetResponse} from 'js/dataInterface';
 import type {Json} from '../../common/common.interfaces';
 import assetStore from 'js/assetStore';
@@ -79,15 +78,18 @@ export function getQuestionsFromSchema(
  */
 export async function updateSurveyQuestions(
   assetUid: string,
+  /**
+   * We allow `undefined`, because `singleProcessingStore.currentQuestion.qpath`
+   * can be `undefined`.
+   */
+  qpath: string | undefined,
   questions: AnalysisQuestionInternal[]
 ) {
   const advancedFeatures = clonedeep(getAssetAdvancedFeatures(assetUid));
 
-  const qpath = singleProcessingStore.currentQuestionQpath;
-
   if (!advancedFeatures || !qpath) {
     notify(NO_FEATURE_ERROR, 'error');
-    return Promise.reject();
+    return Promise.reject(NO_FEATURE_ERROR);
   }
 
   if (!advancedFeatures.qual) {
@@ -120,49 +122,46 @@ export async function updateSurveyQuestions(
  * TODO: see if this really needs so much parameters
  */
 export async function updateResponse(
-  state: AnalysisQuestionsState | undefined,
-  dispatch: React.Dispatch<AnalysisQuestionsAction> | undefined,
   assetUid: string,
   submissionUid: string,
   qpath: string,
-  questionUuid: string,
-  questionType: string,
-  response: string
+  analysisQuestionUuid: string,
+  analysisQuestionType: string,
+  newResponse: string
 ) {
-  if (!state || !dispatch) {
-    return Promise.reject();
-  }
-
-  dispatch({type: 'updateResponse'});
-
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (!processingUrl) {
     return Promise.reject();
   }
 
   // TODO: this needs
-  // 1. to send different objects for diffferent quetsion types
+  // 1. to send different objects for diffferent question types
   // 2. to set the return response type instead of that `any`
-  // 3. do some error handling
-  const apiResponse = await fetchPostUrl<any>(
-    processingUrl,
-    {
-      submission: submissionUid,
-      [qpath]: {
-        qual: [
-          {
-            uuid: questionUuid,
-            type: questionType,
-            val: response,
-          },
-        ],
-      },
-    }
-  );
+  try {
+    const apiResponse = await fetchPostUrl<any>(
+      processingUrl,
+      {
+        submission: submissionUid,
+        [qpath]: {
+          qual: [
+            {
+              uuid: analysisQuestionUuid,
+              type: analysisQuestionType,
+              val: newResponse,
+            },
+          ],
+        },
+      }
+    );
 
-  console.log(apiResponse);
+    console.log(apiResponse);
 
-  return apiResponse;
+    return apiResponse;
+  } catch (err) {
+    // TODO: do something here
+    console.log(err);
+    return Promise.reject(err);
+  }
 }
 
 /**

@@ -92,9 +92,10 @@ export default function AnalysisQuestionEditor(
 
     // Save only if there are no errors
     if (!hasErrors) {
+      // Step 1: Let the reducer know what we're about to do
       analysisQuestions?.dispatch({type: 'updateQuestion'});
 
-      // Step 1: get current questions list, and update current question definition in it
+      // Step 2: get current questions list, and update current question definition in it
       const updatedQuestions: AnalysisQuestionInternal[] =
         analysisQuestions?.state.questions.map((aq) => {
           const output = clonedeep(aq);
@@ -113,21 +114,27 @@ export default function AnalysisQuestionEditor(
           return output;
         }) || [];
 
-      // TODO try catch it with some error handling
+      // TODO finish up writing the error handling code
 
-      // Step 2: update asset endpoint with new questions
-      const response = await updateSurveyQuestions(
-        singleProcessingStore.currentAssetUid,
-        updatedQuestions
-      );
+      // Step 3: update asset endpoint with new questions
+      try {
+        const response = await updateSurveyQuestions(
+          singleProcessingStore.currentAssetUid,
+          singleProcessingStore.currentQuestionQpath,
+          updatedQuestions
+        );
 
-      // Step 3: update reducer's state with new list after the call finishes
-      analysisQuestions?.dispatch({
-        type: 'updateQuestionCompleted',
-        payload: {
-          questions: getQuestionsFromSchema(response?.advanced_features),
-        },
-      });
+        // Step 4: update reducer's state with new list after the call finishes
+        analysisQuestions?.dispatch({
+          type: 'updateQuestionCompleted',
+          payload: {
+            questions: getQuestionsFromSchema(response?.advanced_features),
+          },
+        });
+      } catch (err) {
+        console.log('err', err);
+        analysisQuestions?.dispatch({type: 'udpateQuestionFailed'});
+      }
     }
   }
 
