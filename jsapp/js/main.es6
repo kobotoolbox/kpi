@@ -11,9 +11,19 @@ import {AppContainer} from 'react-hot-loader';
 import React from 'react';
 import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
+import * as Sentry from "@sentry/react";
 import {csrfSafeMethod, currentLang} from 'utils';
 require('../scss/main.scss');
 import Modal from 'react-modal';
+
+let sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]');
+if (sentryDsnEl !== null) {
+  Sentry.init({
+    dsn: sentryDsnEl.content,
+    tracesSampleRate: 0.0,
+  })
+  window.Raven = Sentry;
+}
 
 // Tell moment library what is the app language
 moment.locale(currentLang());

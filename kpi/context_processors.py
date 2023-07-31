@@ -12,8 +12,8 @@ def external_service_tokens(request):
     out = {}
     if settings.GOOGLE_ANALYTICS_TOKEN:
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
-    if settings.RAVEN_JS_DSN:
-        out['raven_js_dsn'] = settings.RAVEN_JS_DSN
+    if settings.SENTRY_JS_DSN:
+        out['sentry_js_dsn'] = settings.SENTRY_JS_DSN
     return out
 
 

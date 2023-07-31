@@ -3,6 +3,7 @@ import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
 import {notify} from 'js/utils';
+import * as Sentry from "@sentry/react";
 
 const JSON_HEADER = 'application/json';
 
@@ -60,9 +61,7 @@ const fetchData = async <T>(path: string, method = 'GET', data?: Json) => {
       errorMessage += response.statusText;
       notify(errorMessage, 'error');
 
-      if (window.Raven) {
-        window.Raven.captureMessage(errorMessage);
-      }
+      Sentry.captureMessage(errorMessage);
       return Promise.reject(failResponse);
     }
 

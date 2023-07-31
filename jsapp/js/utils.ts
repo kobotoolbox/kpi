@@ -14,7 +14,7 @@ import {Cookies} from 'react-cookie';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 import type {FailResponse} from './dataInterface';
-import type Raven from 'raven';
+import * as Sentry from "@sentry/react";
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -210,7 +210,7 @@ export function buildUserUrl(username: string): string {
 declare global {
   interface Window {
     log: () => void;
-    Raven?: Raven.Client;
+    Raven?: Sentry.BrowserClient;  // For legacy use, import Sentry instead of this.
   }
 }
 
