@@ -64,6 +64,9 @@ class EnvironmentTests(BaseTestCase):
                     user=get_database_user(self.user)
                 ).exists(),
             ),
+            'mfa_has_availability_list': lambda response: (
+                MfaAvailableToUser.objects.all().exists()
+            ),
             'mfa_localized_help_text': lambda i18n_texts: {
                 lang: markdown(text)
                 for lang, text in json.loads(
@@ -142,6 +145,7 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
         self.assertTrue(response.data['mfa_available_to_user'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
         self._check_response_dict(response.data)
 
         # anotheruser should **NOT** have per-user availability
@@ -152,6 +156,7 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
         self.assertFalse(response.data['mfa_available_to_user'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
         self._check_response_dict(response.data)
 
     @override_config(MFA_ENABLED=True)
@@ -171,12 +176,13 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
         self.assertFalse(response.data['mfa_available_to_user'])
+        self.assertTrue(response.data['mfa_has_availability_list'])
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 19
+        queries = 21
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
