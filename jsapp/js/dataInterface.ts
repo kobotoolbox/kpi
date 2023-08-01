@@ -720,6 +720,7 @@ export interface TransxLanguages {
 }
 
 export interface EnvironmentResponse {
+  mfa_has_availability_list: boolean;
   terms_of_service_url: string;
   privacy_policy_url: string;
   source_code_url: string;
