@@ -340,9 +340,6 @@ const mixins: MixinsObject = {
     _forEachDroppedFile(params: CreateImportRequest = {}) {
       const totalFiles = params.totalFiles || 1;
 
-      const isProjectReplaceInForm =
-        this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-        routerIsActive('forms');
       const isLibrary = routerIsActive('library');
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false;
       params = assign({library: isLibrary}, params);
@@ -397,7 +394,10 @@ const mixins: MixinsObject = {
                       router!.navigate(`/forms/${params.assetUid}`);
                     }
                   } else {
-                    if (isProjectReplaceInForm) {
+                    if (
+                      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+                      routerIsActive('forms')
+                    ) {
                       actions.resources.loadAsset({id: assetUid});
                     } else if (!isLibrary) {
                       router!.navigate(`/forms/${assetUid}`);
