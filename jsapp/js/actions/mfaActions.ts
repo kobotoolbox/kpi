@@ -32,7 +32,7 @@ const mfaActions = Reflux.createActions({
   activate: {children: ['completed', 'failed']},
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
-  hasActiveSubscription: {children: ['completed', 'failed']},
+  getMfaAvailability: {children: ['completed', 'failed']},
   confirmCode: {children: ['completed', 'failed']},
   regenerate: {children: ['completed', 'failed']},
 });
@@ -80,20 +80,26 @@ mfaActions.activate.listen((inModal?: boolean) => {
     });
 });
 
-mfaActions.hasActiveSubscription.listen(() => {
+mfaActions.getMfaAvailability.listen(() => {
   when(() => envStore.isReady).then(() => {
+    const hasMfaList = envStore.data.mfa_has_availability_list;
+    const mfaAvailableToUser = envStore.data.mfa_available_to_user;
     if (!envStore.data.stripe_public_key) {
       // If Stripe isn't enabled on the site, don't restrict MFA access
-      mfaActions.hasActiveSubscription.completed(true);
+      mfaActions.getMfaAvailability.completed({
+        isMfaAvailable: hasMfaList && mfaAvailableToUser,
+        isPlansMessageVisible: false
+      });
     } else {
       hasActiveSubscription()
         .then((response) => {
-          mfaActions.hasActiveSubscription.completed(response);
+          const isMfaAvailable = hasMfaList ? (response || mfaAvailableToUser) : response;
+          mfaActions.getMfaAvailability.completed({isMfaAvailable, isPlansMessageVisible: !isMfaAvailable});
         })
         .catch(() => {
           let errorText = t('An error occured while checking subscription status');
           notify(errorText, 'error');
-          mfaActions.hasActiveSubscription.failed();
+          mfaActions.getMfaAvailability.failed({isMfaAvailable: false, isPlansMessageVisible: false});
         });
     }
   })

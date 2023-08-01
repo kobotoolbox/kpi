@@ -15,7 +15,6 @@ import {MODAL_TYPES} from 'jsapp/js/constants';
 import envStore from 'js/envStore';
 import './mfaSection.scss';
 import {formatTime, formatDate} from 'js/utils';
-import {when} from "mobx";
 
 bem.SecurityRow = makeBem(null, 'security-row');
 bem.SecurityRow__header = makeBem(bem.SecurityRow, 'header');
@@ -40,6 +39,7 @@ bem.TableMediaPreviewHeader__title = makeBem(
 interface SecurityState {
   isMfaAllowed?: boolean;
   isMfaActive: boolean;
+  isPlansMessageVisible?: boolean;
   dateDisabled?: string;
   dateModified?: string;
 }
@@ -52,6 +52,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     this.state = {
       isMfaAllowed: undefined,
       isMfaActive: false,
+      isPlansMessageVisible: undefined,
       dateDisabled: undefined,
       dateModified: undefined,
     };
@@ -64,8 +65,8 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
       mfaActions.getUserMethods.completed.listen(
         this.onGetUserMethodsCompleted.bind(this)
       ),
-      mfaActions.hasActiveSubscription.completed.listen(
-        this.onGetActiveSubscription.bind(this)
+      mfaActions.getMfaAvailability.completed.listen(
+        this.onGetMfaAvailability.bind(this)
       ),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
       mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
@@ -73,7 +74,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     );
 
     mfaActions.getUserMethods();
-    mfaActions.hasActiveSubscription();
+    mfaActions.getMfaAvailability();
   }
 
   componentWillUnmount() {
@@ -92,10 +93,11 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     }
   }
 
-  onGetActiveSubscription(response: boolean|null) {
+  onGetMfaAvailability(response: {isMfaAvailable: boolean, isPlansMessageVisible: boolean}) {
     // Determine whether MFA is allowed based on per-user availability and subscription status
     this.setState({
-      isMfaAllowed: response || envStore.data.mfa_available_to_user,
+      isMfaAllowed: response.isMfaAvailable,
+      isPlansMessageVisible: response.isPlansMessageVisible,
     });
   }
 
@@ -172,7 +174,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
       return <LoadingSpinner />;
     }
 
-    if (!envStore.data.mfa_enabled) {
+    if (!envStore.data.mfa_enabled || (!this.state.isMfaAllowed && !this.state.isPlansMessageVisible)) {
       return null;
     }
 
@@ -257,7 +259,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
             />
           )}
         </bem.SecurityRow>
-        {this.state.isMfaAllowed === false && (
+        {this.state.isPlansMessageVisible && (
           <InlineMessage
             type='default'
             message={
