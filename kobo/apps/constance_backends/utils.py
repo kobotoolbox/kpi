@@ -12,11 +12,8 @@ def to_python_object(
     """
     Returns a python object from `object_or_str`.
     """
-    # If a Constance setting is a `LazyJSONSerializable` object,
-    # `constance.config.SETTING` does not return the same type of object depending
-    # on whether the setting was saved in its back end or not. From the back end,
-    # it returns the string representation. Otherwise, it returns the
-    # `LazyJSONSerializable` object itself.
+    # Make constance.config.SETTING return a consistent value when SETTING is a
+    # LazyJSONSerializable object
     if isinstance(object_or_str, LazyJSONSerializable):
         return object_or_str.object
 
