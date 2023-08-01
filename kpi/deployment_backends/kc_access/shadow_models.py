@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional
 
 from django.conf import settings
@@ -383,17 +384,30 @@ class KobocatUserProfile(ShadowModel):
     # is using `LazyBooleanField` which is an integer behind the scene.
     # We do not want to port this class to KPI only for one line of code.
     is_mfa_active = models.PositiveSmallIntegerField(default=False)
+    password_date_changed = models.DateTimeField(null=True, blank=True)
+    validated_password = models.BooleanField(default=False)
 
     @classmethod
     def set_mfa_status(cls, user_id: int, is_active: bool):
 
-        try:
-            user_profile, created = cls.objects.get_or_create(user_id=user_id)
-        except cls.DoesNotExist:
-            pass
-        else:
-            user_profile.is_mfa_active = int(is_active)
-            user_profile.save(update_fields=['is_mfa_active'])
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.is_mfa_active = int(is_active)
+        user_profile.save(update_fields=['is_mfa_active'])
+
+    @classmethod
+    def set_password_details(
+        cls, 
+        user_id: int, 
+        validated: bool,
+    ):
+        """
+        Update the kobocat user's password_change_date and validated_password fields
+        """
+        user_profile, created = cls.objects.get_or_create(user_id=user_id)
+        user_profile.validated_password = validated
+        user_profile.save(
+            update_fields=['validated_password']
+        )
 
 
 class KobocatToken(ShadowModel):

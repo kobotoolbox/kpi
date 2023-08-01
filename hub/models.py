@@ -3,6 +3,7 @@ import mimetypes
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import get_default_password_validators
 from django.core.exceptions import FieldError, ValidationError
 from django.db import models
 from django.db.models.signals import post_save
@@ -16,9 +17,19 @@ from markitup.fields import MarkupField
 # whose approach is emulated here
 from django.views.static import was_modified_since
 
+from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 from kpi.utils.object_permission import get_database_user
+
+
+def _configuration_file_upload_to(instance, filename):
+    if instance.slug == ConfigurationFileSlug.COMMON_PASSWORDS_FILE:
+        # Void lru cache to reload the file at the next password validation.
+        get_default_password_validators.cache_clear()
+        return f'__django_files/{instance.slug}/{filename}'
+
+    return f'{settings.PUBLIC_MEDIA_PATH}/{instance.slug}/{filename}'
 
 
 class SitewideMessage(models.Model):
@@ -29,23 +40,24 @@ class SitewideMessage(models.Model):
         return self.slug
 
 
+class ConfigurationFileSlug(models.TextChoices):
+
+    LOGO = 'logo', 'Logo'
+    LOGO_SMALL = 'logo_small', 'Small Logo'
+    LOGIN_BACKGROUND = 'login_background', 'Login background'
+    COMMON_PASSWORDS_FILE = 'common_passwords_file', 'Common passwords file'
+
+
 class ConfigurationFile(models.Model):
-    LOGO = 'logo'
-    LOGO_SMALL = 'logo_small'
-    LOGIN_BACKGROUND = 'login_background'
 
-    SLUG_CHOICES = (
-        (LOGO, LOGO),
-        (LOGO_SMALL, LOGO_SMALL),
-        (LOGIN_BACKGROUND, LOGIN_BACKGROUND),
+    slug = models.CharField(
+        max_length=32, choices=ConfigurationFileSlug.choices, unique=True
     )
-
-    slug = models.CharField(max_length=32, choices=SLUG_CHOICES, unique=True)
     content = models.FileField(
-        upload_to=settings.PUBLIC_MEDIA_PATH,
+        upload_to=_configuration_file_upload_to,
         help_text=(
-            'Stored in a PUBLIC location where authentication is '
-            'NOT required for access'
+            'Stored in a PUBLIC location where authentication is NOT required '
+            'to access common passwords file.'
         ),
     )
 
@@ -147,6 +159,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     data = models.JSONField(default=dict)
     date_removal_requested = models.DateTimeField(null=True)
     date_removed = models.DateTimeField(null=True)
+    password_date_changed = models.DateTimeField(null=True, blank=True)
+    validated_password = models.BooleanField(default=True)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
@@ -168,6 +182,16 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             using=using,
             update_fields=update_fields,
         )
+
+        # Sync validated_password field to KobocatUserProfile
+        if not settings.TESTING and (
+            not update_fields
+            or (update_fields and 'validated_password' in update_fields)
+        ):
+            KobocatUserProfile.set_password_details(
+                self.user.id,
+                self.validated_password,
+            )
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):

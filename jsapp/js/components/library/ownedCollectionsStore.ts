@@ -10,7 +10,7 @@ import type {
   AssetsResponse,
   DeleteAssetResponse,
 } from 'js/dataInterface';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 
 export interface OwnedCollectionsStoreData {
   isFetchingData: boolean;
@@ -38,7 +38,7 @@ class OwnedCollectionsStore extends Reflux.Store {
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
 
     when(() => sessionStore.isLoggedIn, this.startupStore.bind(this));
-    history.listen(this.startupStore.bind(this));
+    setTimeout(() => router!.subscribe(this.startupStore.bind(this)));
 
     this.startupStore();
   }
