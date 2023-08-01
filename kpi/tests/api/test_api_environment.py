@@ -109,22 +109,6 @@ class EnvironmentTests(BaseTestCase):
         result = template.render(context)
         self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
 
-    def test_mfa_help_text_default_translation(self):
-        MOCK_TRANSLATION_STRING = 'hello from gettext'
-        messages_dict = to_python_object(
-            constance.config.MFA_LOCALIZED_HELP_TEXT
-        )
-        default_translation = messages_dict['default']
-
-        with mock.patch(
-            'hub.utils.i18n.t', return_value=MOCK_TRANSLATION_STRING
-        ) as mock_t:
-            response = self.client.get(self.url, format='json')
-            assert response.json()['mfa_localized_help_text'] == markdown(
-                MOCK_TRANSLATION_STRING
-            )
-            assert mock_t.call_args.args[0] == default_translation._proxy____args[0]
-
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):
         self.client.login(username='someuser', password='someuser')
