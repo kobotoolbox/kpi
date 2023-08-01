@@ -53,8 +53,8 @@ interface FreeTierOverride extends FreeTierThresholds{
 
 const initialState = {
   subscribedProduct: null,
-  intervalFilter: 'year',
-  filterToggle: false,
+  intervalFilter: 'month',
+  filterToggle: true,
   products: null,
   organization: null,
   featureTypes: ['support', 'advanced', 'addons'],
@@ -145,9 +145,7 @@ export default function Plan() {
     if (state.subscribedProduct?.length > 0) {
       const subscribedFilter =
         state.subscribedProduct?.[0].items[0].price.recurring?.interval;
-      if (!hasManageableStatus(state.subscribedProduct)) {
-        dispatch({type: 'year'});
-      } else {
+      if (hasManageableStatus(state.subscribedProduct?.[0])) {
         dispatch({type: subscribedFilter});
       }
     }
@@ -280,7 +278,6 @@ export default function Plan() {
     (product: Price) => {
       if (
         !product.prices.unit_amount &&
-        state.intervalFilter === 'year' &&
         !hasActiveSubscription
       ) {
         return true;
