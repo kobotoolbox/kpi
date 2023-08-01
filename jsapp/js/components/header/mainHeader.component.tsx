@@ -73,16 +73,16 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   renderGitRevInfo() {
     if (
       'git_rev' in sessionStore.currentAccount &&
-      sessionStore.currentAccount?.git_rev
+      sessionStore.currentAccount.git_rev.branch &&
+      sessionStore.currentAccount.git_rev.short
     ) {
-      const gitRev = sessionStore.currentAccount.git_rev;
       return (
         <bem.GitRev>
           <bem.GitRev__item>
-            branch: {gitRev.branch}
+            branch: {sessionStore.currentAccount.git_rev.branch}
           </bem.GitRev__item>
           <bem.GitRev__item>
-            commit: {gitRev.short}
+            commit: {sessionStore.currentAccount.git_rev.short}
           </bem.GitRev__item>
         </bem.GitRev>
       );

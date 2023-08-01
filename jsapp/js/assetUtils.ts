@@ -267,8 +267,8 @@ export function isAssetPublic(permissions?: Permission[]) {
 }
 
 /**
- * For getting the icon class name for given asset type. Returned string always
- * contains two class names: base `k-icon` and respective CSS class name.
+ * For getting the icon name for given asset type. Recommended to be used with
+ * the `<Icon>` component.
  */
 export function getAssetIcon(asset: AssetResponse): IconName {
   switch (asset.asset_type) {
