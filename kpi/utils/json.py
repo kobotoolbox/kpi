@@ -25,7 +25,7 @@ class LazyJSONSerializable:
         self.object = o
 
     def __repr__(self):
-        return f'<LazyJSONSerializable object={type(self.object)}>'
+        return self.__str__()
 
     def __eq__(self, *args, **kwargs):
         other_object = args[0]
