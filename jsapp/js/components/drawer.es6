@@ -46,16 +46,14 @@ const FormSidebar = observer(
       this.state = assign(INITIAL_STATE, this.state);
 
       this.stores = [stores.pageState];
-      this.unlisteners = [];
       autoBind(this);
     }
     componentDidMount() {
+      // NOTE: this causes multiple callbacks being fired when using hot reload
+      // in dev environment. Unfortunately `router.subscribe` doesn't return
+      // a cancel function, so we can't make it stop.
+      // TODO: when refactoring this file, make sure not to use the legacy code.
       router.subscribe(this.onRouteChange.bind(this));
-    }
-    componentWillUnmount() {
-      this.unlisteners.forEach((clb) => {
-        clb();
-      });
     }
     newFormModal(evt) {
       evt.preventDefault();
