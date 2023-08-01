@@ -9,7 +9,9 @@ except ImportError:
 import constance
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
@@ -131,6 +133,14 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {'current_password': t('Incorrect current password.')}
                 )
+            try:
+                validate_password(new_password, self.instance)
+            except DjangoValidationError as e:
+                errors = []
+                for validation_errors in e.error_list:
+                    for validation_error in validation_errors:
+                        errors.append(validation_error)
+                raise serializers.ValidationError({'new_password': errors})
         elif any((current_password, new_password)):
             not_empty_field_name = (
                 'current_password' if current_password else 'new_password'
