@@ -74,6 +74,7 @@ class MyLibraryStore extends Reflux.Store {
 
     this.setDefaultColumns();
 
+    // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
 
     reaction(
