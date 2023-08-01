@@ -1,5 +1,6 @@
 {% extends "account/base.html" %} {% load static %}
 {% load i18n %}
+{% load constance_variables %}
 {% load account get_provider_appname socialaccount %}
 
 {% block content %}
@@ -44,6 +45,7 @@
 
           {% if field.name == 'password1' %}
             <div class="field" id="registration-password-app"></div>
+            <div class="field">{% get_custom_guidance_text %}</div>
           {% endif %}
       {% endfor %}
 
