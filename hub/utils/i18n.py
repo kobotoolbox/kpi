@@ -15,6 +15,38 @@ from ..models import SitewideMessage
 class I18nUtils:
 
     @staticmethod
+    def get_custom_password_help_text(lang=None):
+        # Get default value if lang is not specified
+        language = lang if lang else get_language()
+
+        try:
+            messages_dict = to_python_object(
+                constance.config.CUSTOM_PASSWORD_GUIDANCE_TEXT
+            )
+        except json.JSONDecodeError:
+            logging.error(
+                'Configuration value for CUSTOM_PASSWORD_GUIDANCE_TEXT has '
+                'invalid JSON'
+            )
+            # Given the validation done in the django admin interface, this
+            # is an acceptable, low-likelihood evil
+            return ''
+        try:
+            message = messages_dict[language]
+        except KeyError:
+            # Fall back to a default, which could be either:
+            #   * A static string from `CONSTANCE_CONFIG`, which itself is
+            #     translated, or,
+            #   * The superuser's customized default.
+            # If it's the former, calling `t()` will return a translated string
+            # (if available) from the Django gettext machinery. If it's the
+            # latter, then `t()` won't do anything useful, but it won't hurt
+            # either
+            message = t(messages_dict['default'])
+
+        return message
+
+    @staticmethod
     def get_sitewide_message(slug="welcome_message", lang=None):
         """
         Returns a sitewide message based on its slug and the specified language.

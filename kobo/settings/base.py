@@ -424,7 +424,12 @@ CONSTANCE_CONFIG = {
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
         LazyJSONSerializable({
-            'default': t('Lorem ipsum'),
+            'default': t(
+                'The password must be a combination of 10 or more alphanumeric'
+                ' and special characters. It must contain at least one uppercase'
+                ' and lowercase letter, it cannot be similar to your name, '
+                'username or email.'
+            ),
             'some-other-language': (
                 'This will never appear because `some-other-language` is not '
                 'a valid language code, but this entry is here to show you '
@@ -529,11 +534,11 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ENABLE_COMMON_PASSWORD_VALIDATION',
         'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
         'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
         'MINIMUM_PASSWORD_LENGTH',
         'PASSWORD_USER_ATTRIBUTES',
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
-        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
         'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ),
     'Trash bin': (
