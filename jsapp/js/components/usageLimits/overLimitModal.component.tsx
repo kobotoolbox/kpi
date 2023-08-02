@@ -95,7 +95,7 @@ function OverLimitModal(props: OverLimitModalProps) {
             type='full'
             color='dark-blue'
             size='l'
-            onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
+            onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
             label={t('Manage subscription')}
             aria-label={t('Manage subscription')}
           />

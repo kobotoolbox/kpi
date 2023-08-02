@@ -11,6 +11,7 @@ import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
 import styles from './forms.module.scss';
 import LimitModal from '../components/usageLimits/overLimitModal.component';
 import {Cookies} from 'react-cookie';
+import envStore from 'js/envStore';
 
 const cookies = new Cookies();
 
@@ -42,8 +43,8 @@ class FormsSearchableList extends React.Component {
     );
     if (isLimitCookie === undefined && limit > 0) {
       this.setState({showModal: true});
-      var dateNow = new Date();
-      var expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+      const dateNow = new Date();
+      const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
       cookies.set('overLimitsCookie', {
         expires: expireDate,
       });
@@ -54,10 +55,12 @@ class FormsSearchableList extends React.Component {
     return (
       <div className={styles.myProjectsWrapper}>
         <div className={styles.myProjectsHeader}>
+          {envStore.data.stripe_public_key !== null &&
           <LimitModal
             show={this.state.showModal}
             limits={(limit) => this.data(limit)}
           />
+          }
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
         </div>
         <SearchCollectionList searchContext={this.state.searchContext} />
