@@ -1,8 +1,7 @@
 # coding: utf-8
 # 😇
-import json
-
 import constance
+import mock
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -14,7 +13,9 @@ from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
 
+from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.object_permission import get_database_user
@@ -36,26 +37,30 @@ class EnvironmentTests(BaseTestCase):
             'community_url': constance.config.COMMUNITY_URL,
             'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
             'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
-            'project_metadata_fields': lambda x: \
-                self.assertEqual(len(x), len(json.loads(constance.config.PROJECT_METADATA_FIELDS))) \
-                and self.assertIn({'name': 'organization', 'required': False}, x),
-            'user_metadata_fields': lambda x: \
-                self.assertEqual(
-                    len(x), len(json.loads(constance.config.USER_METADATA_FIELDS))
-                ) and self.assertIn({'name': 'sector', 'required': False}, x),
-            'sector_choices': lambda x: \
-                self.assertGreater(len(x), 10) and self.assertIn(
-                    ("Humanitarian - Sanitation, Water & Hygiene",
-                     "Humanitarian - Sanitation, Water & Hygiene"),
-                    x
+            'project_metadata_fields': lambda x: self.assertEqual(
+                len(x),
+                len(to_python_object(constance.config.PROJECT_METADATA_FIELDS)),
+            ) and self.assertIn({'name': 'organization', 'required': False}, x),
+            'user_metadata_fields': lambda x: self.assertEqual(
+                len(x),
+                len(to_python_object(constance.config.USER_METADATA_FIELDS))
+            ) and self.assertIn({'name': 'sector', 'required': False}, x),
+            'sector_choices': lambda x: self.assertGreater(
+                len(x), 10
+            ) and self.assertIn(
+                (
+                    "Humanitarian - Sanitation, Water & Hygiene",
+                    "Humanitarian - Sanitation, Water & Hygiene",
                 ),
+                x,
+            ),
             'operational_purpose_choices': (('', ''),),
-            'country_choices': lambda x: \
-                self.assertGreater(len(x), 200) and self.assertIn(
-                    ('KEN', 'Kenya'), x
-                ),
-            'interface_languages': lambda x: \
-                self.assertEqual(len(x), len(settings.LANGUAGES)),
+            'country_choices': lambda x: self.assertGreater(
+                len(x), 200
+            ) and self.assertIn(('KEN', 'Kenya'), x),
+            'interface_languages': lambda x: self.assertEqual(
+                len(x), len(settings.LANGUAGES)
+            ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
@@ -67,19 +72,21 @@ class EnvironmentTests(BaseTestCase):
             'mfa_has_availability_list': lambda response: (
                 MfaAvailableToUser.objects.all().exists()
             ),
-            'mfa_localized_help_text': lambda i18n_texts: {
-                lang: markdown(text)
-                for lang, text in json.loads(
-                    constance.config.MFA_LOCALIZED_HELP_TEXT.replace(
-                        '##support email##',
-                        constance.config.SUPPORT_EMAIL
-                    )
-                ).items()
-            },
+            'mfa_localized_help_text': markdown(
+                I18nUtils.get_mfa_help_text().replace(
+                    '##support email##', constance.config.SUPPORT_EMAIL
+                )
+            ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
-            'stripe_public_key': settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None,
-            'free_tier_thresholds': json.loads(constance.config.FREE_TIER_THRESHOLDS),
-            'free_tier_display': json.loads(constance.config.FREE_TIER_DISPLAY),
+            'stripe_public_key': (
+                settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
+            ),
+            'free_tier_thresholds': to_python_object(
+                constance.config.FREE_TIER_THRESHOLDS
+            ),
+            'free_tier_display': to_python_object(
+                constance.config.FREE_TIER_DISPLAY
+            ),
             'social_apps': [],
         }
 
@@ -182,7 +189,7 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = 21
+        queries = 20
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

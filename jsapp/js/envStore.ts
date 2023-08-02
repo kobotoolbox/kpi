@@ -57,7 +57,7 @@ class EnvStoreData {
   public translation_languages: TransxLanguages = {};
   public submission_placeholder = '';
   public asr_mt_features_enabled = false;
-  public mfa_localized_help_text: { [name: string]: string } = {};
+  public mfa_localized_help_text = '';
   public mfa_enabled = false;
   public mfa_per_user_availability = false;
   public mfa_has_availability_list = false;

@@ -1,0 +1,4 @@
+# .git-blame-ignore-revs
+
+# Applied automated eslint autofixes and prettier to map.es6
+be3a9b6041e451b02c671220be50b5ca33cae1a8
