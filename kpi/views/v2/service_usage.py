@@ -3,6 +3,7 @@ from rest_framework import (
     renderers,
     viewsets,
 )
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -57,6 +58,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
 
     ### CURRENT ENDPOINT
     """
+
     renderer_classes = (
         renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
@@ -80,3 +82,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
             context=self.get_serializer_context(),
         )
         return Response(data=serializer.data)
+
+    @action(methods=['post'], detail=False)
+    def post(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
