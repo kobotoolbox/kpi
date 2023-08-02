@@ -418,6 +418,33 @@ CONSTANCE_CONFIG = {
         'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password.',
     ),
+    'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        False,
+        'Enable custom password guidance text to help users create their passwords.',
+    ),
+    'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        LazyJSONSerializable({
+            'default': t(
+                'The password must be a combination of 10 or more alphanumeric'
+                ' and special characters. It must contain at least one uppercase'
+                ' and lowercase letter, it cannot be similar to your name, '
+                'username or email.'
+            ),
+            'some-other-language': (
+                'This will never appear because `some-other-language` is not '
+                'a valid language code, but this entry is here to show you '
+                'an example of adding another message in a different language.'
+            ),
+        }),
+        (
+            'Create custom guidance text for password complexity. '
+            'The contents of the message should reflect the password complexity rules '
+            'as set in Constance. '
+            '"default" is the fallback language, and will be used if no translation are provided '
+            'and should be in English.'
+        ),
+        'i18n_text_jsonfield_schema',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -431,10 +458,6 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
     'i18n_text_jsonfield_schema': [
         'kpi.fields.jsonschema_form_field.I18nTextJSONField',
-        {'widget': 'django.forms.Textarea'},
-    ],
-    'metadata_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
     'long_metadata_fields_jsonschema': [
@@ -455,16 +478,16 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             }
         },
     ],
+    'metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {'widget': 'django.forms.Textarea'},
+    ],
     'positive_int': ['django.forms.fields.IntegerField', {
         'min_value': 0
     }],
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {
         'min_value': -1
     }],
-    'lazy_gettext': [
-        'django.forms.fields.CharField',
-        {'widget': 'django.forms.Textarea'}
-    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -511,10 +534,12 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ENABLE_COMMON_PASSWORD_VALIDATION',
         'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
         'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
         'MINIMUM_PASSWORD_LENGTH',
         'PASSWORD_USER_ATTRIBUTES',
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
