@@ -1,8 +1,7 @@
-import React, {ReactNode, useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import styles from './usage.module.scss';
-import {formatMonth} from '../utils';
 import {getUsage} from './usage.api';
-import {getAccountLimits, RecurringInterval} from "js/account/stripe.api";
+import {getAccountLimits, getOrganization, RecurringInterval} from "js/account/stripe.api";
 import envStore from 'js/envStore';
 import {when} from "mobx";
 import {ACTIVE_STRIPE_STATUSES} from "js/constants";
@@ -11,6 +10,7 @@ import Icon from "js/components/common/icon";
 import subscriptionStore, {SubscriptionInfo} from "js/account/subscriptionStore";
 import {useLocation} from "react-router-dom";
 import prettyBytes from "pretty-bytes";
+import moment from "moment/moment";
 
 interface UsageState {
   storage: number;
@@ -22,8 +22,8 @@ interface UsageState {
   nlpMinuteLimit: number|'unlimited';
   submissionLimit: number|'unlimited';
   trackingPeriod: RecurringInterval;
-  currentMonthStart: Date;
-  currentYearStart: Date;
+  currentMonthStart: string;
+  currentYearStart: string;
 }
 
 const WARNING_THRESHOLD_RATIO = 0.8;
@@ -39,8 +39,8 @@ export default function Usage() {
     nlpMinuteLimit: 'unlimited',
     submissionLimit: 'unlimited',
     trackingPeriod: RecurringInterval.Month,
-    currentMonthStart: new Date(),
-    currentYearStart: new Date(),
+    currentMonthStart: '',
+    currentYearStart: '',
   });
 
   const location = useLocation();
@@ -48,6 +48,31 @@ export default function Usage() {
   const truncate = (decimal: number) => {
     return parseFloat(decimal.toFixed(2));
   };
+
+  const formatDate = (dateString: string) => {
+    const myMoment = moment.utc(dateString);
+    return myMoment.format('ll');
+  };
+
+  const dateRange = useMemo(() => {
+    let startDate: string;
+    const endDate = formatDate(new Date().toUTCString());
+    switch (usage.trackingPeriod) {
+      case RecurringInterval.Year:
+        startDate = usage.currentYearStart;
+        break;
+      default:
+        startDate = usage.currentMonthStart;
+        break;
+    }
+    return t('##start_date## to ##end_date##').replace(
+      '##start_date##',
+      startDate
+    ).replace(
+      '##end_date##',
+      endDate
+    );
+  }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
 
   useEffect(() => {
     const getLimits = async () => {
@@ -66,7 +91,7 @@ export default function Usage() {
             storageByteLimit: limits.storage_bytes_limit,
             nlpCharacterLimit: limits.nlp_character_limit,
             nlpMinuteLimit: typeof limits.nlp_seconds_limit === 'number' ?
-              limits.nlp_seconds_limit as number / 60 :
+              limits.nlp_seconds_limit / 60 :
               limits.nlp_seconds_limit,
             submissionLimit: limits.submission_limit,
           };
@@ -103,20 +128,22 @@ export default function Usage() {
 
   // load fresh usage data on every page load and whenever switching routes to this page
   useEffect(() => {
-    getUsage().then((data) => {
-      setUsage((prevState) => {
-        return {
-          ...prevState,
-          storage: data.total_storage_bytes,
-          monthlySubmissions: data.total_submission_count['current_month'],
-          monthlyTranscriptionMinutes: Math.floor(
-            truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
-          ), // seconds to minutes
-          monthlyTranslationChars:
-            data.total_nlp_usage['mt_characters_current_month'],
-          currentMonthStart: new Date(Date.parse(data.current_month_start)),
-          currentYearStart: new Date(Date.parse(data.current_year_start)),
-        };
+    getOrganization().then((organizations) => {
+      getUsage(organizations.results?.[0].id).then((data) => {
+        setUsage((prevState) => {
+          return {
+            ...prevState,
+            storage: data.total_storage_bytes,
+            monthlySubmissions: data.total_submission_count['current_month'],
+            monthlyTranscriptionMinutes: Math.floor(
+              truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
+            ), // seconds to minutes
+            monthlyTranslationChars:
+              data.total_nlp_usage['mt_characters_current_month'],
+            currentMonthStart: formatDate(data.current_month_start),
+            currentYearStart: formatDate(data.current_year_start),
+          };
+        });
       });
     });
   }, [location]);
@@ -129,7 +156,7 @@ export default function Usage() {
         <div className={styles.box}>
           <strong className={styles.title}>{t('Submissions')}</strong>
           <div className={styles.date}>
-            {formatMonth(new Date().toUTCString())}
+            {dateRange}
           </div>
           <UsageContainer
             usage={usage.monthlySubmissions}
@@ -144,13 +171,14 @@ export default function Usage() {
             usage={usage.storage}
             limit={usage.storageByteLimit}
             period={usage.trackingPeriod}
+            label={t('Total')}
             isStorage
           />
         </div>
         <div className={styles.box}>
           <strong className={styles.title}>{t('Transcription minutes')}</strong>
           <div className={styles.date}>
-            {formatMonth(new Date().toUTCString())}
+            {dateRange}
           </div>
           <UsageContainer
             usage={usage.monthlyTranscriptionMinutes}
@@ -163,13 +191,12 @@ export default function Usage() {
             {t('Translation characters')}
           </strong>
           <div className={styles.date}>
-            {formatMonth(new Date().toUTCString())}
+            {dateRange}
           </div>
           <UsageContainer
             usage={usage.monthlyTranslationChars}
             limit={usage.nlpCharacterLimit}
             period={usage.trackingPeriod}
-            label={t('Total')}
           />
         </div>
       </div>
@@ -193,39 +220,38 @@ const UsageContainer = ({usage, limit, period, label = undefined, isStorage = fa
   const isOverLimit = limitRatio > 1;
   const isNearingLimit = !isOverLimit && limitRatio > WARNING_THRESHOLD_RATIO;
   return (
-    <div className={classnames(
-      styles.usage,
-      {
-        [styles.warning]: isNearingLimit,
-        [styles.overlimit]: isOverLimit,
-      },
-    )}>
-      {isNearingLimit &&
-        <Icon name={'warning'} color={'amber'} size={'m'}/>
-      }
-      {isOverLimit &&
-        <Icon name={'warning'} color={'red'} size={'m'}/>
-      }
+    <div className={styles.usage}>
         <strong className={styles.description}>
           {label ||
             (period === 'month' ? t('Monthly') : t('Yearly'))
           }
         </strong>
-        {!usage && <span>-</span>}
-        {Boolean(usage) && (
-          <>
-            <strong>{isStorage ? prettyBytes(usage) : usage.toLocaleString()}</strong>
-            {(limit !== 'unlimited' && limit) &&
-              <>
-                <span aria-hidden className={styles.delimiter}>/</span>
-                <span className={styles.visuallyHidden}>
-                  {t('used out of')}
-                </span>
-                <span>{isStorage ? prettyBytes(limit): limit.toLocaleString()}</span>
-              </>
-            }
-          </>
-        )}
+      {!usage && <span>-</span>}
+      {Boolean(usage) && (
+        <div className={classnames(styles.usageRow,
+          {
+            [styles.warning]: isNearingLimit,
+            [styles.overlimit]: isOverLimit,
+          },
+        )}>
+          {isNearingLimit &&
+            <Icon name={'warning'} color={'amber'} size={'m'}/>
+          }
+          {isOverLimit &&
+            <Icon name={'warning'} color={'red'} size={'m'}/>
+          }
+          <strong>{isStorage ? prettyBytes(usage) : usage.toLocaleString()}</strong>
+          {(limit !== 'unlimited' && limit) &&
+            <>
+              <span aria-hidden> / </span>
+              <span className={styles.visuallyHidden}>
+                {t('used out of')}
+              </span>
+              <span>{isStorage ? prettyBytes(limit): limit.toLocaleString()}</span>
+            </>
+          }
+        </div>
+      )}
     </div>
   );
 };
