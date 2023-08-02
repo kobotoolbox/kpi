@@ -3,7 +3,7 @@ import gzip
 import regex as re
 from constance import config
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as t
+from django.utils.translation import gettext as t, ngettext as nt
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import (
     CommonPasswordValidator as BaseCommonPasswordValidator,
@@ -12,6 +12,7 @@ from django.contrib.auth.password_validation import (
 )
 
 from hub.models import ConfigurationFile, ConfigurationFileSlug
+from hub.utils.i18n import I18nUtils
 
 
 class CommonPasswordValidator(BaseCommonPasswordValidator):
@@ -54,6 +55,12 @@ class CommonPasswordValidator(BaseCommonPasswordValidator):
 
             self.passwords = {p.strip() for p in common_passwords_lines}
 
+    def get_help_text(self):
+        if not config.ENABLE_COMMON_PASSWORD_VALIDATION:
+            return
+
+        return super().get_help_text()
+
 
 class MinimumLengthValidator(BaseMinimumLengthValidator):
 
@@ -65,6 +72,13 @@ class MinimumLengthValidator(BaseMinimumLengthValidator):
         # constructor, it won't be refresh if constance value is changed.
         self.min_length = config.MINIMUM_PASSWORD_LENGTH
         return super().validate(password, user)
+
+    def get_help_text(self):
+        if not config.ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION:
+            return
+
+        self.min_length = config.MINIMUM_PASSWORD_LENGTH
+        return super().get_help_text()
 
 
 class MostRecentPasswordValidator:
@@ -81,6 +95,12 @@ class MostRecentPasswordValidator:
                 t('You cannot use your last password.'),
                 code=f'most_recent_password_error',
             )
+
+    def get_help_text(self):
+        if not config.ENABLE_MOST_RECENT_PASSWORD_VALIDATION:
+            return
+
+        return t('Your password cannot be the same as your previous one.')
 
 
 class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
@@ -134,3 +154,9 @@ class CustomRulesValidator:
                 ),
                 code=f'custom_rules_error',
             )
+
+    def get_help_text(self):
+        if not config.ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION:
+            return
+
+        return I18nUtils.get_custom_password_help_text()

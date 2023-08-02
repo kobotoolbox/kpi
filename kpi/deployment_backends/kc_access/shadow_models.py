@@ -130,6 +130,10 @@ class KobocatDigestPartial(ShadowModel):
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
+
+        # No need to decorate this method with a `kc_transaction_atomic` because
+        # it is only used in KobocatUser.sync() which is called only in
+        # `save_kobocat_user()` inside a (KoBoCAT) transaction.
         cls.objects.filter(user=user).delete()
         # Query for `user_id` since user PKs are synchronized
         for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
