@@ -37,7 +37,7 @@ bem.TableMediaPreviewHeader__title = makeBem(
 );
 
 interface SecurityState {
-  isMfaAllowed?: boolean;
+  isMfaAvailable?: boolean;
   isMfaActive: boolean;
   isPlansMessageVisible?: boolean;
   dateDisabled?: string;
@@ -50,7 +50,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      isMfaAllowed: undefined,
+      isMfaAvailable: undefined,
       isMfaActive: false,
       isPlansMessageVisible: undefined,
       dateDisabled: undefined,
@@ -96,7 +96,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   onGetMfaAvailability(response: {isMfaAvailable: boolean, isPlansMessageVisible: boolean}) {
     // Determine whether MFA is allowed based on per-user availability and subscription status
     this.setState({
-      isMfaAllowed: response.isMfaAvailable,
+      isMfaAvailable: response.isMfaAvailable,
       isPlansMessageVisible: response.isPlansMessageVisible,
     });
   }
@@ -127,7 +127,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   onToggleChange(isActive: boolean) {
-    if (!this.state.isMfaAllowed) {
+    if (!this.state.isMfaAvailable) {
       return;
     }
     if (isActive) {
@@ -170,17 +170,17 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   render() {
-    if (!envStore.isReady || this.state.isMfaAllowed === undefined) {
+    if (!envStore.isReady || this.state.isMfaAvailable === undefined) {
       return <LoadingSpinner />;
     }
 
-    if (!envStore.data.mfa_enabled || (!this.state.isMfaAllowed && !this.state.isPlansMessageVisible)) {
+    if (!envStore.data.mfa_enabled || (!this.state.isMfaAvailable && !this.state.isPlansMessageVisible)) {
       return null;
     }
 
     return (
       <>
-        <bem.SecurityRow m={{unauthorized: !this.state.isMfaAllowed}}>
+        <bem.SecurityRow m={{unauthorized: !this.state.isMfaAvailable}}>
           <bem.SecurityRow__header>
             <bem.SecurityRow__title>
               {t('Two-factor authentication')}
@@ -196,15 +196,15 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
             <bem.SecurityRow__switch>
               <bem.SecurityRow__buttons>
                 <ToggleSwitch
-                  label={(this.state.isMfaActive && this.state.isMfaAllowed) ? t('Enabled') : t('Disabled')}
-                  checked={this.state.isMfaActive && this.state.isMfaAllowed}
+                  label={(this.state.isMfaActive && this.state.isMfaAvailable) ? t('Enabled') : t('Disabled')}
+                  checked={this.state.isMfaActive && this.state.isMfaAvailable}
                   onChange={this.onToggleChange.bind(this)}
                 />
               </bem.SecurityRow__buttons>
             </bem.SecurityRow__switch>
         </bem.SecurityRow__header>
 
-          {this.state.isMfaActive && this.state.isMfaAllowed && (
+          {this.state.isMfaActive && this.state.isMfaAvailable && (
             <bem.MFAOptions>
               <bem.MFAOptions__row>
                 <bem.MFAOptions__label>
@@ -250,7 +250,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
             </bem.MFAOptions>
           )}
 
-          {!this.state.isMfaActive && this.state.isMfaAllowed && this.state.dateDisabled && (
+          {!this.state.isMfaActive && this.state.isMfaAvailable && this.state.dateDisabled && (
             <InlineMessage
               type='default'
               message={t(
