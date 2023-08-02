@@ -7,7 +7,6 @@ from django.urls import reverse
 
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
-from kobo.apps.accounts.forms import SignupForm
 
 
 def external_service_tokens(request):
@@ -42,25 +41,25 @@ def mfa(request):
     }
 
 
-def custom_label_translations(request):
+def custom_label_translations(request, metadata_configs, default_labels):
     """
     Returns custom labels and translations for the signup form
     from the USER_METADATA_FIELDS constance config.
     """
 
     # Get User Metadata Fields
-    user_metadata_fields = json.loads(constance.config.USER_METADATA_FIELDS)
-    
+    user_metadata_fields = json.loads(metadata_configs)
+
     # Check if each user metadata has a label
     for metadata_field in user_metadata_fields:
         if 'label' in metadata_field.keys():
             metadata_field['label'] = I18nUtils.set_custom_label(metadata_field)
         else:
             # If label is not available, use the default set in the SignupForm
-            try: 
-                metadata_field['label'] = SignupForm.declared_fields[
+            try:
+                metadata_field['label'] = default_labels[
                     metadata_field['name']
-                ].label
+                ]
             except KeyError:
                 continue
 

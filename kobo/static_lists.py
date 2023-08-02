@@ -349,3 +349,25 @@ MFA_DEFAULT_HELP_TEXT = t(
     'either, then you will need to request assistance by '
     'contacting [##support email##](mailto:##support email##).'
 )
+
+PROJECT_METADATA_DEFAULT_LABELS = {
+    'sector': t('Sector'),
+    'country': t('Country'),
+    'operational_purpose': t('Operational purpose'),
+    'collects_ppi': t('Collects PPI'),
+    'description': t('Description'),
+}
+
+USER_METADATA_DEFAULT_LABELS = {
+    'name': t('Full name'),
+    'organization': t('Organization'),
+    'organization_website': t('Organization website'),
+    'sector': t('Sector'),
+    'gender': t('Gender'),
+    'bio': t('Bio'),
+    'city': t('City'),
+    'country': t('Country'),
+    'twitter': t('Twitter'),
+    'linkedin': t('LinkedIn'),
+    'instagram': t('Instagram'),
+}

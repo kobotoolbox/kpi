@@ -85,7 +85,7 @@ class I18nUtils:
         return message
 
     @staticmethod
-    def set_custom_label(field: dict, lang: str = None):
+    def set_custom_label(field: dict, lang: str = None, default_label_list: dict = {}):
         """
         Return the translated label of the user metadata fields
         """
@@ -100,7 +100,7 @@ class I18nUtils:
                 # Use the default value if language is not available
                 translation = t(label['default'])
         except KeyError:
-            raise Exception('`label` is not available for this field')
+            translation = default_label_list[field['name']]
 
         field['label'] = translation
 

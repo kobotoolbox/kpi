@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as t
 
-from kobo.static_lists import COUNTRIES
+from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
 
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
@@ -31,16 +31,16 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
-    full_name = forms.CharField(
-        label=t('Full name'),
+    name = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['name'],
         required=False,
     )
     organization = forms.CharField(
-        label=t('Organization name'),
+        label=USER_METADATA_DEFAULT_LABELS['organization'],
         required=False,
     )
     gender = forms.ChoiceField(
-        label=t('Gender'),
+        label=USER_METADATA_DEFAULT_LABELS['gender'],
         required=False,
         widget=forms.RadioSelect,
         choices=(
@@ -50,13 +50,13 @@ class KoboSignupMixin(forms.Form):
         ),
     )
     sector = forms.ChoiceField(
-        label=t('Sector'),
+        label=USER_METADATA_DEFAULT_LABELS['sector'],
         required=False,
         # Don't set choices here; set them in the constructor so that changes
         # made in the Django admin interface do not require a server restart
     )
     country = forms.ChoiceField(
-        label=t('Country'),
+        label=USER_METADATA_DEFAULT_LABELS['country'],
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )

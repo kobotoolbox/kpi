@@ -11,7 +11,11 @@ from rest_framework.views import APIView
 from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
-from kobo.static_lists import COUNTRIES
+from kobo.static_lists import (
+    COUNTRIES, 
+    PROJECT_METADATA_DEFAULT_LABELS, 
+    USER_METADATA_DEFAULT_LABELS
+)
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kpi.context_processors import custom_label_translations
@@ -56,7 +60,6 @@ class EnvironmentView(APIView):
     JSON_CONFIGS = [
         'FREE_TIER_DISPLAY',
         'FREE_TIER_THRESHOLDS',
-        'PROJECT_METADATA_FIELDS',
     ]
 
     @classmethod
@@ -132,8 +135,26 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_project_metadata_configs(request):
+        data = {
+            'project_metadata_fields': custom_label_translations(
+                request, 
+                constance.config.PROJECT_METADATA_FIELDS, 
+                PROJECT_METADATA_DEFAULT_LABELS,
+            )
+        }
+        return data
+
+    @staticmethod
     def process_user_metadata_configs(request):
-        return custom_label_translations(request)
+        data = {
+            'user_metadata_fields': custom_label_translations(
+                request, 
+                constance.config.USER_METADATA_FIELDS, 
+                USER_METADATA_DEFAULT_LABELS,
+            )
+        }
+        return data
 
     @staticmethod
     def process_other_configs(request):
@@ -166,6 +187,7 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         return Response(data)
