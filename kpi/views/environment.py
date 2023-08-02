@@ -12,8 +12,9 @@ from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.utils.object_permission import get_database_user
 
 
@@ -66,7 +67,7 @@ class EnvironmentView(APIView):
         for key in cls.JSON_CONFIGS:
             value = getattr(constance.config, key)
             try:
-                value = json.loads(value)
+                value = to_python_object(value)
             except json.JSONDecodeError:
                 logging.error(
                     f'Configuration value for `{key}` has invalid JSON'

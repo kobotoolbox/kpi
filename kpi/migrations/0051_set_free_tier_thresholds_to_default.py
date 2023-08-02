@@ -3,6 +3,8 @@ import json
 from constance import config
 from django.db import migrations
 
+from kpi.utils.json import LazyJSONSerializable
+
 
 def reset_free_tier_thresholds(apps, schema_editor):
     # The constance defaults for FREE_TIER_THRESHOLDS changed, so we set existing config to the new default value
@@ -12,7 +14,7 @@ def reset_free_tier_thresholds(apps, schema_editor):
         'transcription_minutes': None,
         'translation_chars': None,
     }
-    setattr(config, 'FREE_TIER_THRESHOLDS', json.dumps(thresholds))
+    setattr(config, 'FREE_TIER_THRESHOLDS', LazyJSONSerializable(thresholds))
 
 
 class Migration(migrations.Migration):

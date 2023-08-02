@@ -1,7 +1,5 @@
 # coding: utf-8
 # 😇
-import json
-
 import constance
 import mock
 from constance.test import override_config
@@ -15,9 +13,10 @@ from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
 
+from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.static_lists import MFA_DEFAULT_HELP_TEXT
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -38,10 +37,11 @@ class EnvironmentTests(BaseTestCase):
             'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
             'project_metadata_fields': lambda x: self.assertEqual(
                 len(x),
-                len(json.loads(constance.config.PROJECT_METADATA_FIELDS)),
+                len(to_python_object(constance.config.PROJECT_METADATA_FIELDS)),
             ) and self.assertIn({'name': 'organization', 'required': False}, x),
             'user_metadata_fields': lambda x: self.assertEqual(
-                len(x), len(json.loads(constance.config.USER_METADATA_FIELDS))
+                len(x),
+                len(to_python_object(constance.config.USER_METADATA_FIELDS))
             ) and self.assertIn({'name': 'sector', 'required': False}, x),
             'sector_choices': lambda x: self.assertGreater(
                 len(x), 10
@@ -63,7 +63,7 @@ class EnvironmentTests(BaseTestCase):
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
             'mfa_localized_help_text': markdown(
-                MFA_DEFAULT_HELP_TEXT.replace(
+                I18nUtils.get_mfa_help_text().replace(
                     '##support email##', constance.config.SUPPORT_EMAIL
                 )
             ),
@@ -71,10 +71,12 @@ class EnvironmentTests(BaseTestCase):
             'stripe_public_key': (
                 settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
             ),
-            'free_tier_thresholds': json.loads(
+            'free_tier_thresholds': to_python_object(
                 constance.config.FREE_TIER_THRESHOLDS
             ),
-            'free_tier_display': json.loads(constance.config.FREE_TIER_DISPLAY),
+            'free_tier_display': to_python_object(
+                constance.config.FREE_TIER_DISPLAY
+            ),
             'social_apps': [],
             'enable_zxcvbn_password_validation': constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION,
         }
@@ -108,17 +110,6 @@ class EnvironmentTests(BaseTestCase):
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
         self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
-
-    def test_mfa_help_text_default_translation(self):
-        MOCK_TRANSLATION_STRING = 'hello from gettext'
-        with mock.patch(
-            'hub.utils.i18n.t', return_value=MOCK_TRANSLATION_STRING
-        ) as mock_t:
-            response = self.client.get(self.url, format='json')
-            assert response.json()['mfa_localized_help_text'] == markdown(
-                MOCK_TRANSLATION_STRING
-            )
-            assert mock_t.call_args.args[0] == MFA_DEFAULT_HELP_TEXT
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):

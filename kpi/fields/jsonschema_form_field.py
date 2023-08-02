@@ -73,6 +73,25 @@ class FreeTierDisplayField(JsonSchemaFormField):
         super().__init__(*args, schema=schema, **kwargs)
 
 
+class I18nTextJSONField(JsonSchemaFormField):
+    """
+    Validates that the input is an object which contains at least the 'default'
+    key.
+    """
+
+    def __init__(self, *args, **kwargs):
+        schema = {
+            'type': 'object',
+            'uniqueItems': True,
+            'properties': {
+                'default': {'type': 'string'},
+            },
+            'required': ['default'],
+            'additionalProperties': True,
+        }
+        super().__init__(*args, schema=schema, **kwargs)
+
+
 class MetadataFieldsListField(JsonSchemaFormField):
     """
     Validates that the input is an array of objects with "name" and "required"
@@ -97,24 +116,5 @@ class MetadataFieldsListField(JsonSchemaFormField):
                     'required': {'type': 'boolean'},
                 },
             },
-        }
-        super().__init__(*args, schema=schema, **kwargs)
-
-
-class MfaHelpTextField(JsonSchemaFormField):
-    """
-    Validates that the input is an object which contains at least the 'default'
-    key.
-    """
-
-    def __init__(self, *args, **kwargs):
-        schema = {
-            'type': 'object',
-            'uniqueItems': True,
-            'properties': {
-                'default': {'type': 'string'},
-            },
-            'required': ['default'],
-            'additionalProperties': True,
         }
         super().__init__(*args, schema=schema, **kwargs)
