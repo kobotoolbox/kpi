@@ -87,7 +87,7 @@ mfaActions.getMfaAvailability.listen(() => {
     if (!envStore.data.stripe_public_key) {
       // If Stripe isn't enabled on the site, don't restrict MFA access
       mfaActions.getMfaAvailability.completed({
-        isMfaAvailable: hasMfaList && perUserAvailability,
+        isMfaAvailable: !hasMfaList || perUserAvailability,
         isPlansMessageVisible: false,
       });
     } else {
