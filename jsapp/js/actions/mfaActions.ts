@@ -88,7 +88,7 @@ mfaActions.getMfaAvailability.listen(() => {
       // If Stripe isn't enabled on the site, don't restrict MFA access
       mfaActions.getMfaAvailability.completed({
         isMfaAvailable: hasMfaList && perUserAvailability,
-        isPlansMessageVisible: false
+        isPlansMessageVisible: false,
       });
     } else {
       hasActiveSubscription()
