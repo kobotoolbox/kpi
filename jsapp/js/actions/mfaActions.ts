@@ -1,6 +1,9 @@
 import Reflux from 'reflux';
 import {notify} from 'alertifyjs';
 import {ROOT_URL} from 'js/constants';
+import {hasActiveSubscription} from 'js/account/stripe.utils';
+import {when} from "mobx";
+import envStore from "js/envStore";
 
 export type MfaErrorResponse = JQueryXHR & {
   non_field_errors?: string;
@@ -10,6 +13,7 @@ export type MfaUserMethodsResponse = [{
   name: 'app';
   is_primary: boolean;
   is_active: boolean;
+  mfa_available: boolean;
   date_created: string;
   date_modified: string;
   date_disabled: string;
@@ -29,6 +33,7 @@ const mfaActions = Reflux.createActions({
   activate: {children: ['completed', 'failed']},
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
+  hasActiveSubscription: {children: ['completed', 'failed']},
   confirmCode: {children: ['completed', 'failed']},
   regenerate: {children: ['completed', 'failed']},
 });
@@ -74,6 +79,25 @@ mfaActions.activate.listen((inModal?: boolean) => {
       }
       notify(errorText, 'error');
     });
+});
+
+mfaActions.hasActiveSubscription.listen(() => {
+  when(() => envStore.isReady).then(() => {
+    if (!envStore.data.stripe_public_key) {
+      // If Stripe isn't enabled on the site, don't restrict MFA access
+      mfaActions.hasActiveSubscription.completed(true);
+    } else {
+      hasActiveSubscription()
+        .then((response) => {
+          mfaActions.hasActiveSubscription.completed(response);
+        })
+        .catch(() => {
+          let errorText = t('An error occured while checking subscription status');
+          notify(errorText, 'error');
+          mfaActions.hasActiveSubscription.failed();
+        });
+    }
+  })
 });
 
 mfaActions.confirmCode.listen((mfaCode: string) => {
