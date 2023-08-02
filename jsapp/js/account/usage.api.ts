@@ -1,4 +1,4 @@
-import {fetchGet} from 'jsapp/js/api';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
 
 interface AssetUsage {
   asset: string;
@@ -32,6 +32,9 @@ interface UsageResponse {
 
 const USAGE_URL = '/api/v2/service_usage/';
 
-export async function getUsage() {
-  return fetchGet<UsageResponse>(USAGE_URL);
+export async function getUsage(organization_id: string|null = null) {
+    if (organization_id) {
+      return fetchPost<UsageResponse>(USAGE_URL, {organization_id});
+    }
+    return fetchGet<UsageResponse>(USAGE_URL);
 }
