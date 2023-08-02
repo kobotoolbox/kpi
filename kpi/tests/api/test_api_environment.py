@@ -1,7 +1,6 @@
 # coding: utf-8
 # 😇
 import constance
-import mock
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -78,7 +77,15 @@ class EnvironmentTests(BaseTestCase):
                 constance.config.FREE_TIER_DISPLAY
             ),
             'social_apps': [],
-            'enable_zxcvbn_password_validation': constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION,
+            'enable_zxcvbn_password_validation': (
+                constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
         }
 
     def _check_response_dict(self, response_dict):

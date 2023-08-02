@@ -44,7 +44,6 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
     ]
 
     @classmethod
@@ -134,6 +133,20 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_password_configs(request):
+        return {
+            'enable_zxcvbn_password_validation': (
+                constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
+        }
+
+    @staticmethod
     def process_other_configs(request):
         data = {}
 
@@ -164,5 +177,6 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
         data.update(self.process_other_configs(request))
         return Response(data)
