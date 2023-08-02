@@ -12,8 +12,9 @@ from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.utils.object_permission import get_database_user
 
 
@@ -43,9 +44,6 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
-        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
-        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ]
 
     @classmethod
@@ -68,7 +66,7 @@ class EnvironmentView(APIView):
         for key in cls.JSON_CONFIGS:
             value = getattr(constance.config, key)
             try:
-                value = json.loads(value)
+                value = to_python_object(value)
             except json.JSONDecodeError:
                 logging.error(
                     f'Configuration value for `{key}` has invalid JSON'
@@ -135,6 +133,20 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_password_configs(request):
+        return {
+            'enable_zxcvbn_password_validation': (
+                constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION
+            ),
+            'enable_custom_password_guidance_text': (
+                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+            ),
+            'custom_password_localized_help_text': markdown(
+                I18nUtils.get_custom_password_help_text()
+            ),
+        }
+
+    @staticmethod
     def process_other_configs(request):
         data = {}
 
@@ -165,5 +177,6 @@ class EnvironmentView(APIView):
         data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
         data.update(self.process_other_configs(request))
         return Response(data)
