@@ -46,7 +46,7 @@ import {
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
-import { usePrompt } from 'js/router/promptBlocker';
+import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 
 const ErrorMessage = makeBem(null, 'error-message');
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
@@ -56,7 +56,7 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
 /** Use usePrompt directly instead for functional components */
 const Prompt = () => {
-  usePrompt(UNSAVED_CHANGES_WARNING);
+  usePrompt({when: true, message: UNSAVED_CHANGES_WARNING});
   return <></>;
 };
 

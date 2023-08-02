@@ -8,8 +8,8 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 
+from kobo.apps.constance_backends.utils import to_python_object
 from kobo.static_lists import COUNTRIES
-
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
@@ -78,7 +78,7 @@ class KoboSignupMixin(forms.Form):
 
         # It's easier to _remove_ unwanted fields here in the constructor
         # than to add a new fields *shrug*
-        desired_metadata_fields = json.loads(
+        desired_metadata_fields = to_python_object(
             constance.config.USER_METADATA_FIELDS
         )
         desired_metadata_fields = {

@@ -101,6 +101,7 @@
   padding: 0 sizes.$x40;
   margin: 0;
   background: transparent;
+  line-height: sizes.$x40;
 }
 
 .language-selector__selected-language-label {
@@ -114,6 +115,9 @@
   &::placeholder {
     opacity: 1;
     color: colors.$kobo-gray-55;
+  }
+  &:focus {
+    outline: none;
   }
 }
 
