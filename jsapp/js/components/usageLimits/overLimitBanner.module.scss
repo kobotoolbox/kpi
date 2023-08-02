@@ -1,0 +1,23 @@
+@use '~kobo-common/src/styles/colors';
+
+.limitBannerContainer {
+  background-color: hsla(353, 100%, 92%, 0.4);
+  display: flex;
+  padding: 0 2%;
+  align-items: center;
+  height: 75px;
+}
+
+.bannerContent { 
+  padding: 0 2%;
+}
+
+.bannerLink {
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+}
+
+.bannerBtn { 
+  width: 175px;
+  height: 32px;
+}

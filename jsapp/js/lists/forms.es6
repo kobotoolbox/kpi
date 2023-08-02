@@ -10,6 +10,7 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
 import styles from './forms.module.scss';
 import LimitModal from '../components/usageLimits/overLimitModal.component';
+import LimitBanner from '../components/usageLimits/overLimitBanner.component';
 import {Cookies} from 'react-cookie';
 import envStore from 'js/envStore';
 
@@ -27,15 +28,16 @@ class FormsSearchableList extends React.Component {
       }),
       showModal: false,
       limits: 0,
+      dismissed: false,
     };
-    this.data = this.data.bind(this);
+    this.setLimits = this.setLimits.bind(this);
   }
 
   componentDidMount() {
     this.searchSemaphore();
   }
 
-  data = (limit) => {
+  setLimits = (limit) => {
     this.setState({limits: limit});
     const allCookies = cookies.getAll();
     const isLimitCookie = Object.keys(allCookies).find(
@@ -49,16 +51,25 @@ class FormsSearchableList extends React.Component {
         expires: expireDate,
       });
     }
+    if (isLimitCookie && limit > 0) {
+      this.setState({dismissed: true});
+    }
+  };
+
+  modalDismissed = (dismiss) => {
+    this.setState({dismissed: dismiss});
   };
 
   render() {
     return (
       <div className={styles.myProjectsWrapper}>
+        {this.state.dismissed && <LimitBanner />}
         <div className={styles.myProjectsHeader}>
           {envStore.data.stripe_public_key !== null &&
           <LimitModal
             show={this.state.showModal}
-            limits={(limit) => this.data(limit)}
+            limits={(limit) => this.setLimits(limit)}
+            dismissed={(dismiss) => this.modalDismissed(dismiss)}
           />
           }
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />

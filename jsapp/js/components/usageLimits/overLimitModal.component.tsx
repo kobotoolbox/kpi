@@ -9,10 +9,13 @@ import {getAllExceedingLimits} from './usageCalculations';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
+import {Cookies} from 'react-cookie';
+const cookies = new Cookies();
 
 interface OverLimitModalProps {
   show: boolean;
   limits: (number: number) => void;
+  dismissed: (boolean: boolean) => void;
 }
 
 function OverLimitModal(props: OverLimitModalProps) {
@@ -32,6 +35,12 @@ function OverLimitModal(props: OverLimitModalProps) {
   const handleClose = () => {
     toggleModal();
     setShow(false);
+    props.dismissed(true);
+    var dateNow = new Date();
+    var expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+    cookies.set('overLimitsCookie', {
+      expires: expireDate,
+    });
   };
 
   useEffect(() => {
