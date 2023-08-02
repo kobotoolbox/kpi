@@ -3,16 +3,16 @@ import json
 import logging
 
 import constance
+from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from allauth.socialaccount.models import SocialApp
 
-from kobo.static_lists import COUNTRIES
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.static_lists import COUNTRIES
 from kpi.utils.object_permission import get_database_user
 
 
@@ -77,19 +77,7 @@ class EnvironmentView(APIView):
                 ).items()
             },
         ),
-        (
-            'MFA_ENABLED',
-            # MFA is enabled if it is enabled globally…
-            lambda value, request: value and (
-                # but if per-user activation is enabled (i.e. at least one
-                # record in the table)…
-                not MfaAvailableToUser.objects.all().exists()
-                # global setting is overwritten by request user setting.
-                or MfaAvailableToUser.objects.filter(
-                    user=get_database_user(request.user)
-                ).exists()
-            )
-        ),
+        'MFA_ENABLED',
     ]
 
     def get(self, request, *args, **kwargs):
@@ -141,4 +129,8 @@ class EnvironmentView(APIView):
             settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
         )
         data['social_apps'] = social_apps
+        data['mfa_per_user_availability'] = MfaAvailableToUser.objects.filter(
+            user=get_database_user(request.user)
+        ).exists()
+        data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
         return Response(data)

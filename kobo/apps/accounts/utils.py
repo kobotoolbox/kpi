@@ -6,7 +6,6 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 def user_has_paid_subscription(username):
     return (
         User.objects.filter(
-            organizations_organization__djstripe_customers__subscriber__organization_users__user__username=username,
             organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
         )
         .exclude(

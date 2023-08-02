@@ -1,9 +1,11 @@
 # coding: utf-8
 from allauth.account.models import EmailAddress
+from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
+from django.test import override_settings
 from django.urls import reverse
 from djstripe.models import Customer, Price, SubscriptionItem, Subscription
 from model_bakery import baker
@@ -18,6 +20,7 @@ from kpi.tests.kpi_test_case import KpiTestCase
 class TestStripeMFALogin(KpiTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
 
         # Confirm someuser's e-mail address as primary and verified
         email_address, _ = EmailAddress.objects.get_or_create(
@@ -59,6 +62,8 @@ class TestStripeMFALogin(KpiTestCase):
             status=billing_status,
         )
 
+    @override_config(MFA_ENABLED=True)
+    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_without_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -77,6 +82,8 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(status_code, status.HTTP_302_FOUND)
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
+    @override_config(MFA_ENABLED=True)
+    @override_settings(STRIPE_ENABLED=True)
     def test_mfa_login_works_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -93,6 +100,8 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'verification token')
 
+    @override_config(MFA_ENABLED=True)
+    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_with_free_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -113,6 +122,8 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(status_code, status.HTTP_302_FOUND)
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
+    @override_config(MFA_ENABLED=True)
+    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_with_canceled_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -133,6 +144,8 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(status_code, status.HTTP_302_FOUND)
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
+    @override_config(MFA_ENABLED=True)
+    @override_settings(STRIPE_ENABLED=True)
     def test_no_mfa_login_with_wrong_password(self):
         """
         Test if MFA by-pass does not create a hole and let the
@@ -152,14 +165,16 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertIsInstance(response.context_data['form'], MfaLoginForm)
 
+    @override_config(MFA_ENABLED=True)
+    @override_settings(STRIPE_ENABLED=True)
     def test_mfa_login_per_user_availability_no_subscription(self):
         """
         Validate that multi-factor authentication form is displayed after
         successful login if the user has no subscription but has per user
         availability set up
         """
-        mfa_available = baker.make('MfaAvailableToUser', user=self.someuser)
-        
+        baker.make('MfaAvailableToUser', user=self.someuser)
+
         data = {
             'login': 'someuser',
             'password': 'someuser',
@@ -167,3 +182,25 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'verification token')
+
+    @override_config(MFA_ENABLED=False)
+    @override_settings(STRIPE_ENABLED=True)
+    def test_mfa_globally_disabled_as_user_with_paid_subscription(self):
+        """
+        Validate that multi-factor authentication form isn't displayed after
+        successful login if the user has a paid, active subscription but
+        MFA setting is globally disabled
+        """
+        self._create_subscription(billing_status='active')
+
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        self.assertEqual(len(response.redirect_chain), 1)
+        redirection, status_code = response.redirect_chain[0]
+        self.assertEqual(status_code, status.HTTP_302_FOUND)
+        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
