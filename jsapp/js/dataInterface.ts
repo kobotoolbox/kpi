@@ -741,7 +741,7 @@ export interface EnvironmentResponse {
   asr_mt_features_enabled: boolean;
   mfa_localized_help_text: { [name: string]: string };
   mfa_enabled: boolean;
-  mfa_available_to_user: boolean;
+  mfa_per_user_availability: boolean;
   mfa_code_length: number;
   stripe_public_key: string | null;
   social_apps: SocialApp[];

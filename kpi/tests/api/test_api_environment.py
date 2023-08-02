@@ -59,7 +59,7 @@ class EnvironmentTests(BaseTestCase):
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
             'mfa_enabled': constance.config.MFA_ENABLED,
-            'mfa_available_to_user': lambda response: (
+            'mfa_per_user_availability': lambda response: (
                 MfaAvailableToUser.objects.filter(
                     user=get_database_user(self.user)
                 ).exists(),
@@ -144,7 +144,7 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
-        self.assertTrue(response.data['mfa_available_to_user'])
+        self.assertTrue(response.data['mfa_per_user_availability'])
         self.assertTrue(response.data['mfa_has_availability_list'])
         self._check_response_dict(response.data)
 
@@ -155,7 +155,7 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
-        self.assertFalse(response.data['mfa_available_to_user'])
+        self.assertFalse(response.data['mfa_per_user_availability'])
         self.assertTrue(response.data['mfa_has_availability_list'])
         self._check_response_dict(response.data)
 
@@ -175,7 +175,7 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['mfa_enabled'])
-        self.assertFalse(response.data['mfa_available_to_user'])
+        self.assertFalse(response.data['mfa_per_user_availability'])
         self.assertTrue(response.data['mfa_has_availability_list'])
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})

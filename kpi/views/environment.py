@@ -129,7 +129,7 @@ class EnvironmentView(APIView):
             settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
         )
         data['social_apps'] = social_apps
-        data['mfa_available_to_user'] = MfaAvailableToUser.objects.filter(
+        data['mfa_per_user_availability'] = MfaAvailableToUser.objects.filter(
             user=get_database_user(request.user)
         ).exists()
         data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
