@@ -119,13 +119,16 @@ export const getAllExceedingLimits = () => {
               .storage_bytes_limit;
           break;
         case 'data':
+          limitValue =
+            state.subscribedProduct?.[0].items[0].price.product.metadata
+              .submission_limit;
           break;
         case 'translation_char':
           limitValue =
             state.subscribedProduct?.[0].items[0].price.product.metadata
               .nlp_character_limit;
           break;
-        case 'ttranscription_minutes':
+        case 'transcription_minutes':
           limitValue =
             state.subscribedProduct?.[0].items[0].price.product.metadata
               .nlp_seconds_limit;
@@ -139,6 +142,7 @@ export const getAllExceedingLimits = () => {
         setSubscribedStorageLimit(limitValue);
         break;
       case 'data':
+        setSubscribedSubmissionLimit(limitValue);
         break;
       case 'translation_char':
         setTranslationChars(limitValue);
