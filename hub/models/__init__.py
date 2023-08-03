@@ -5,4 +5,5 @@ from .configuration_file import (
 )
 from .extra_user_detail import ExtraUserDetail
 from .sitewide_message import SitewideMessage
+from .password_validation import PasswordValidation
 from .per_user_setting import PerUserSetting
