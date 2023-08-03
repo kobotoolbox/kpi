@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import styles from './usage.module.scss';
 import {getUsage} from './usage.api';
-import {getAccountLimits, getOrganization, RecurringInterval} from "js/account/stripe.api";
+import {AccountLimit, getAccountLimits, getOrganization, RecurringInterval} from "js/account/stripe.api";
 import envStore from 'js/envStore';
 import {when} from "mobx";
 import {ACTIVE_STRIPE_STATUSES} from "js/constants";
@@ -11,12 +11,13 @@ import subscriptionStore, {SubscriptionInfo} from "js/account/subscriptionStore"
 import {useLocation} from "react-router-dom";
 import prettyBytes from "pretty-bytes";
 import moment from "moment/moment";
+import LoadingSpinner from "js/components/common/loadingSpinner";
 
 interface UsageState {
   storage: number;
-  monthlySubmissions: number;
-  monthlyTranscriptionMinutes: number;
-  monthlyTranslationChars: number;
+  submissions: number;
+  transcriptionMinutes: number;
+  translationChars: number;
   storageByteLimit: number|'unlimited';
   nlpCharacterLimit: number|'unlimited';
   nlpMinuteLimit: number|'unlimited';
@@ -24,6 +25,11 @@ interface UsageState {
   trackingPeriod: RecurringInterval;
   currentMonthStart: string;
   currentYearStart: string;
+  loaded: {
+    usage: boolean;
+    limits: boolean;
+    subscription: boolean;
+  };
 }
 
 const WARNING_THRESHOLD_RATIO = 0.8;
@@ -31,9 +37,9 @@ const WARNING_THRESHOLD_RATIO = 0.8;
 export default function Usage() {
   const [usage, setUsage] = useState<UsageState>({
     storage: 0,
-    monthlySubmissions: 0,
-    monthlyTranscriptionMinutes: 0,
-    monthlyTranslationChars: 0,
+    submissions: 0,
+    transcriptionMinutes: 0,
+    translationChars: 0,
     storageByteLimit: 'unlimited',
     nlpCharacterLimit: 'unlimited',
     nlpMinuteLimit: 'unlimited',
@@ -41,6 +47,11 @@ export default function Usage() {
     trackingPeriod: RecurringInterval.Month,
     currentMonthStart: '',
     currentYearStart: '',
+    loaded: {
+      usage: false,
+      limits: false,
+      subscription: false,
+    },
   });
 
   const location = useLocation();
@@ -77,14 +88,13 @@ export default function Usage() {
   useEffect(() => {
     const getLimits = async () => {
       await when(() => envStore.isReady);
+      let limits: AccountLimit;
       if (envStore.data.stripe_public_key) {
-        return await getAccountLimits();
+        limits = await getAccountLimits();
       }
-      return null;
-    };
-
-    getLimits().then((limits) => {
-      if (limits) {
+      if (!limits) {
+        return;
+      }
       setUsage((prevState) => {
           return {
             ...prevState,
@@ -94,15 +104,21 @@ export default function Usage() {
               limits.nlp_seconds_limit / 60 :
               limits.nlp_seconds_limit,
             submissionLimit: limits.submission_limit,
+            loaded: {
+              ...prevState.loaded,
+              limits: true,
+            },
           };
-        });
-      }
-    });
+      });
+    };
+
+    getLimits();
   }, []);
 
+  // get subscription interval (monthly, yearly) from the subscriptionStore when ready
   useEffect(() => {
     if (envStore.isReady && envStore.data.stripe_public_key && subscriptionStore.isLoaded) {
-      const subscriptionList: SubscriptionInfo[] = [...subscriptionStore.subscriptionResponse];
+      const subscriptionList: SubscriptionInfo[] = subscriptionStore.subscriptionResponse;
       const activeSubscription = subscriptionList.find((sub) =>
         ACTIVE_STRIPE_STATUSES.includes(sub.status)
       );
@@ -113,7 +129,11 @@ export default function Usage() {
       setUsage((prevState) => {
         return {
           ...prevState,
-          trackingPeriod: subscriptionInterval || prevState.trackingPeriod,
+          trackingPeriod: subscriptionInterval || RecurringInterval.Month,
+          loaded: {
+            ...prevState.loaded,
+            subscription: true,
+          },
         };
       });
     }
@@ -128,25 +148,38 @@ export default function Usage() {
 
   // load fresh usage data on every page load and whenever switching routes to this page
   useEffect(() => {
-    getOrganization().then((organizations) => {
-      getUsage(organizations.results?.[0].id).then((data) => {
-        setUsage((prevState) => {
-          return {
-            ...prevState,
-            storage: data.total_storage_bytes,
-            monthlySubmissions: data.total_submission_count['current_month'],
-            monthlyTranscriptionMinutes: Math.floor(
-              truncate(data.total_nlp_usage['asr_seconds_current_month'] / 60)
-            ), // seconds to minutes
-            monthlyTranslationChars:
-              data.total_nlp_usage['mt_characters_current_month'],
-            currentMonthStart: formatDate(data.current_month_start),
-            currentYearStart: formatDate(data.current_year_start),
-          };
-        });
+    if (!usage.loaded.subscription) {
+      return;
+    }
+    const getUsageForOrganization = async () => {
+      const organizations = await getOrganization();
+      const data = await getUsage(organizations.results?.[0].id);
+
+      setUsage((prevState) => {
+        return {
+          ...prevState,
+          storage: data.total_storage_bytes,
+          submissions: data.total_submission_count[`current_${usage.trackingPeriod}`],
+          transcriptionMinutes: Math.floor(
+            truncate(data.total_nlp_usage[`asr_seconds_current_${usage.trackingPeriod}`] / 60)
+          ), // seconds to minutes
+          translationChars:
+            data.total_nlp_usage[`mt_characters_current_${usage.trackingPeriod}`],
+          currentMonthStart: formatDate(data.current_month_start),
+          currentYearStart: formatDate(data.current_year_start),
+          loaded: {
+            ...prevState.loaded,
+            usage: true,
+          },
+        }
       });
-    });
-  }, [location]);
+    };
+    getUsageForOrganization();
+  }, [location, usage.loaded.subscription]);
+
+  if (Object.values(usage.loaded).includes(false)) {
+    return <LoadingSpinner/>;
+  }
 
   return (
     <div className={styles.root}>
@@ -159,7 +192,7 @@ export default function Usage() {
             {dateRange}
           </div>
           <UsageContainer
-            usage={usage.monthlySubmissions}
+            usage={usage.submissions}
             limit={usage.submissionLimit}
             period={usage.trackingPeriod}
           />
@@ -181,7 +214,7 @@ export default function Usage() {
             {dateRange}
           </div>
           <UsageContainer
-            usage={usage.monthlyTranscriptionMinutes}
+            usage={usage.transcriptionMinutes}
             limit={usage.nlpMinuteLimit}
             period={usage.trackingPeriod}
           />
@@ -194,7 +227,7 @@ export default function Usage() {
             {dateRange}
           </div>
           <UsageContainer
-            usage={usage.monthlyTranslationChars}
+            usage={usage.translationChars}
             limit={usage.nlpCharacterLimit}
             period={usage.trackingPeriod}
           />
@@ -212,7 +245,9 @@ interface UsageContainerProps {
   period: RecurringInterval;
 }
 
-const UsageContainer = ({usage, limit, period, label = undefined, isStorage = false}: UsageContainerProps) => {
+const UsageContainer = ({
+  usage, limit, period, label = undefined, isStorage = false,
+}: UsageContainerProps) => {
   let limitRatio = 0;
   if (limit !== 'unlimited' && limit) {
     limitRatio = usage / limit;
@@ -247,7 +282,7 @@ const UsageContainer = ({usage, limit, period, label = undefined, isStorage = fa
               <span className={styles.visuallyHidden}>
                 {t('used out of')}
               </span>
-              <span>{isStorage ? prettyBytes(limit): limit.toLocaleString()}</span>
+              <span>{isStorage ? prettyBytes(limit) : limit.toLocaleString()}</span>
             </>
           }
         </div>

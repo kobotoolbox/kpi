@@ -38,15 +38,12 @@ h2 {
 }
 
 .usage {
-  display: flex;
+  display: grid;
+  grid: 1fr / auto-flow;
   width: 100%;
   margin-top: sizes.$x18;
   justify-content: space-between;
   align-items: center;
-
-  & > * {
-    flex-shrink: 0;
-  }
 }
 
 .usageRow {

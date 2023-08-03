@@ -17,8 +17,6 @@ export interface BaseProduct {
 export enum RecurringInterval {
   Year = 'year',
   Month = 'month',
-  Week = 'week',
-  Day = 'day',
 }
 
 enum UsageType {
