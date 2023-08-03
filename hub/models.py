@@ -173,6 +173,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         using=None,
         update_fields=None,
     ):
+        created = self.pk is None
+
         if not update_fields or (update_fields and 'data' in update_fields):
             self.standardize_json_field('data', 'organization', str)
             self.standardize_json_field('data', 'name', str)
@@ -184,10 +186,17 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             update_fields=update_fields,
         )
 
-        # Sync validated_password field to KobocatUserProfile
-        if not settings.TESTING and (
-            not update_fields
-            or (update_fields and 'validated_password' in update_fields)
+        # Sync `validated_password` field to `KobocatUserProfile` only when
+        # this object is updated to avoid a race condition and an IntegrityError
+        # when trying to save `KobocatUserProfile` object whereas the related
+        # `KobocatUser` object has not been created yet.
+        if (
+            not settings.TESTING
+            and not created
+            and (
+                not update_fields
+                or (update_fields and 'validated_password' in update_fields)
+            )
         ):
             KobocatUserProfile.set_password_details(
                 self.user.id,
