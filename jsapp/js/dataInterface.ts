@@ -647,6 +647,11 @@ export interface AccountResponse {
   gravatar: string;
   is_staff: boolean;
   last_login: string;
+  /**
+   * When this is `false` (literally `false` value, not something falsy like
+   * `undefined`!), user will be blocked from accessing anything sensitive.
+   */
+  validated_password?: boolean;
   extra_details: {
     name: string;
     gender: string;
