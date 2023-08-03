@@ -57,3 +57,41 @@ class QualAction(BaseAction):
                 }},
             )
         return schema
+
+    def compile_revised_record(self, content, edits):
+        '''
+        a method that applies changes to a json structure but stores NO
+        revision history
+        '''
+        for field_name, vals in edits.items():
+            if field_name == 'submission':
+                continue
+
+            erecord = vals.get(self.ID)
+            if erecord is None:
+                continue
+
+            o_keyval = content.get(field_name, {})
+            o_keyval[self.ID] = erecord
+            content[field_name] = o_keyval
+
+        return content
+
+    def is_auto_request(self, erecord):
+        # could also `return False`, but this shouldn't be getting called at
+        # all given the other method overrides
+        raise NotImplementedError()
+
+    def init_field(self, edit):
+        # could simply `return edit`, but this shouldn't be getting called at
+        # all given the other method overrides
+        raise NotImplementedError()
+
+    def revise_field(self, original, edit):
+        raise NotImplementedError()
+
+    def record_repr(self, record):
+        raise NotImplementedError()
+
+    def has_change(self, original, edit):
+        raise NotImplementedError()
