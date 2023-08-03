@@ -26,28 +26,8 @@ from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
-from kpi.exceptions import (
-    QueryParserBadSyntax,
-    QueryParserNotSupportedFieldLookup,
-    SearchQueryTooShortException,
-)
-from kpi.filters import SearchFilter
-
-
-class QueryParserFilter(admin.filters.SimpleListFilter):
-
-    title = 'Advanced search'
-    template = 'admin/query_parser_filter.html'
-    parameter_name = 'q'
-
-    def lookups(self, request, model_admin):
-        return (),
-
-    def queryset(self, request, queryset):
-        return None
-
-    def choices(self, changelist):
-        return (),
+from .filters import UserAdvancedSearchFilter
+from .mixins import AdvancedSearchMixin
 
 
 class UserChangeForm(DjangoUserChangeForm):
@@ -85,7 +65,7 @@ class UserCreationForm(DjangoUserCreationForm):
     )
 
 
-class ExtendedUserAdmin(UserAdmin):
+class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     """
     Deleting users used to a two-step process since KPI and KoBoCAT
     shared the same database, but it's not the case anymore.
@@ -114,7 +94,12 @@ class ExtendedUserAdmin(UserAdmin):
         'get_date_removed',
         'get_status',
     )
-    list_filter = (QueryParserFilter, 'is_active', 'is_superuser', 'date_joined')
+    list_filter = (
+        UserAdvancedSearchFilter,
+        'is_active',
+        'is_superuser',
+        'date_joined',
+    )
     search_default_field_lookups = [
         'username__icontains',
         'email__icontains',
@@ -132,9 +117,6 @@ class ExtendedUserAdmin(UserAdmin):
         ),
     )
     actions = ['remove', 'delete']
-
-    class Media:
-        js = ['admin/js/list_filter_toggle.js']
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):
@@ -215,29 +197,12 @@ class ExtendedUserAdmin(UserAdmin):
     def get_search_results(self, request, queryset, search_term):
 
         if request.path != '/admin/auth/user/':
-            return super().get_search_results(request, queryset, search_term)
-
-        class _ViewAdminView:
-            search_default_field_lookups = self.search_default_field_lookups
-
-        use_distinct = True
-        try:
-            queryset = SearchFilter().filter_queryset(
-                request, queryset, view=_ViewAdminView
+            # If search comes from autocomplete field, use parent class method
+            return super(UserAdmin, self).get_search_results(
+                request, queryset, search_term
             )
-        except (
-            QueryParserBadSyntax,
-            QueryParserNotSupportedFieldLookup,
-            SearchQueryTooShortException,
-        ) as e:
-            self.message_user(
-                request,
-                str(e),
-                messages.ERROR,
-            )
-            return queryset.model.objects.none(), use_distinct
-
-        return queryset, use_distinct
+        # Otherwise, use mixin method.
+        return super().get_search_results(request, queryset, search_term)
 
     def has_delete_permission(self, request, obj=None):
         # Override django admin built-in delete

@@ -1,23 +1,34 @@
 from django.conf import settings
 from django.contrib import admin, messages
-from django.contrib.auth.admin import UserAdmin
 from django.db import transaction
 from django.utils.html import format_html
 
 from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
+from .filters import PasswordValidationAdvancedSearchFilter
+from .mixins import AdvancedSearchMixin
 from ..models import ExtraUserDetail
 
 
-class PasswordValidationAdmin(admin.ModelAdmin):
+class PasswordValidationAdmin(AdvancedSearchMixin, admin.ModelAdmin):
     list_display = (
         'username',
+        'date_joined',
+        'last_login',
         'get_password_date_changed',
         'get_validated_password',
     )
+
+    list_filter = (
+        PasswordValidationAdvancedSearchFilter,
+        'extra_details__validated_password',
+        ('date_joined', admin.DateFieldListFilter),
+        ('last_login', admin.DateFieldListFilter),
+        ('extra_details__password_date_changed', admin.DateFieldListFilter),
+    )
+
     ordering = ('username',)
     search_fields = ('username',)
     actions = ('validate_passwords', 'invalidate_passwords',)
-
     readonly_fields = ('username',)
     fieldsets = [
         (
@@ -30,6 +41,10 @@ class PasswordValidationAdmin(admin.ModelAdmin):
                 ),
             },
         ),
+    ]
+    search_default_field_lookups = [
+        'username__icontains',
+        'email__icontains',
     ]
 
     @admin.display(description='Last password change')
