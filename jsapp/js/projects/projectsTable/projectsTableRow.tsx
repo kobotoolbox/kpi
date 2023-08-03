@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNavigate} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
@@ -26,11 +26,6 @@ interface ProjectsTableRowProps {
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
-  const navigate = useNavigate();
-
-  const navigateToProject = () => {
-    navigate(ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid));
-  };
   const toggleCheckbox = () => {
     props.onSelectRequested(!props.isSelected);
   };
@@ -38,7 +33,11 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const renderColumnContent = (field: ProjectFieldDefinition) => {
     switch (field.name) {
       case 'name':
-        return <AssetName asset={props.asset} />;
+        return (
+          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}>
+            <AssetName asset={props.asset} />
+          </Link>
+        );
       case 'description':
         return props.asset.settings.description;
       case 'status':
@@ -126,11 +125,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
                 field.name
               ),
             })}
-            onClick={
-              /* prettier-ignore */
-              field.name === (PROJECT_FIELDS.name).name
-                ? navigateToProject // Treat 'Project name' cell as a link
-                : toggleCheckbox // Treat any other cell as a checkbox
+            onClick={() => {if (field.name !== PROJECT_FIELDS.name.name) {toggleCheckbox();}}
             }
             // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}

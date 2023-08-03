@@ -171,10 +171,6 @@ export function isFormRestHookRoute(uid: string, hookUid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_REST_HOOK.replace(':uid', uid).replace(':hookUid', hookUid);
 }
 
-export function isFormKobocatRoute(uid: string): boolean {
-  return getCurrentPath() === ROUTES.FORM_KOBOCAT.replace(':uid', uid);
-}
-
 export function isFormSingleProcessingRoute(
   uid: string,
   qpath: string,

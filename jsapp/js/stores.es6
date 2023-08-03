@@ -24,6 +24,7 @@ import {
   notify,
   assign,
 } from 'utils';
+import { toast } from 'react-hot-toast';
 import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
@@ -290,13 +291,20 @@ stores.allAssets = Reflux.createStore({
     }
   },
   onListAssetsCompleted: function(searchData, response) {
+    toast.dismiss('query_too_short');
     response.results.forEach(this.registerAsset);
     this.data = response.results;
     this.trigger(this.data);
   },
   onListAssetsFailed: function (searchData, response) {
-    notify(response?.responseJSON?.detail || t('failed to list assets'));
-  }
+    let iconStyle = 'warning';
+    let opts = {};
+    if (response?.responseJSON?.detail === t('Your query is too short')) {
+      iconStyle = 'empty';
+      opts.id = 'query_too_short'; // de-dupe and make dismissable on success
+    }
+    notify(response?.responseJSON?.detail || t('failed to list assets'), iconStyle, opts);
+  },
 });
 
 stores.userExists = Reflux.createStore({

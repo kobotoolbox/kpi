@@ -19,8 +19,7 @@ import type {
   ProjectViewAsset,
   DeploymentResponse,
 } from './dataInterface';
-import {routerIsActive} from './router/legacy';
-import {history} from './router/historyRouter';
+import {router, routerIsActive} from './router/legacy';
 import {ROUTES} from './router/routerConstants';
 import {ASSET_TYPES, MODAL_TYPES, PERMISSIONS_CODENAMES} from './constants';
 import {notify, renderCheckbox} from './utils';
@@ -33,9 +32,9 @@ import {renderJSXMessage} from './alertify';
 
 export function openInFormBuilder(uid: string) {
   if (routerIsActive('library')) {
-    history.push(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid));
+    router!.navigate(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid));
   } else {
-    history.push(ROUTES.FORM_EDIT.replace(':uid', uid));
+    router!.navigate(ROUTES.FORM_EDIT.replace(':uid', uid));
   }
 }
 
@@ -163,15 +162,18 @@ export function archiveAsset(
       )}</strong>`,
     labels: {ok: t('Archive'), cancel: t('Cancel')},
     onok: () => {
-      actions.resources.setDeploymentActive({
-        asset: asset,
-        active: false,
-      }, (response: DeploymentResponse) => {
-        if (typeof callback === 'function') {
-          callback(response);
+      actions.resources.setDeploymentActive(
+        {
+          asset: asset,
+          active: false,
+        },
+        (response: DeploymentResponse) => {
+          if (typeof callback === 'function') {
+            callback(response);
+          }
+          dialog.destroy();
         }
-        dialog.destroy();
-      });
+      );
     },
     oncancel: () => {
       dialog.destroy();
@@ -198,15 +200,18 @@ export function unarchiveAsset(
     message: `${t('Are you sure you want to unarchive this project?')}`,
     labels: {ok: t('Unarchive'), cancel: t('Cancel')},
     onok: () => {
-      actions.resources.setDeploymentActive({
-        asset: asset,
-        active: true,
-      }, (response: DeploymentResponse) => {
-        if (typeof callback === 'function') {
-          callback(response);
+      actions.resources.setDeploymentActive(
+        {
+          asset: asset,
+          active: true,
+        },
+        (response: DeploymentResponse) => {
+          if (typeof callback === 'function') {
+            callback(response);
+          }
+          dialog.destroy();
         }
-        dialog.destroy();
-      });
+      );
     },
     oncancel: () => {
       dialog.destroy();
@@ -280,7 +285,7 @@ export function cloneAsset(
               goToUrl = `/library/asset/${newAsset.uid}`;
             }
 
-            history.push(goToUrl);
+            router!.navigate(goToUrl);
             notify(
               t('cloned ##ASSET_TYPE## created').replace(
                 '##ASSET_TYPE##',
@@ -342,12 +347,14 @@ function _cloneAssetAsNewType(params: {
 
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
-                history.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
+                router!.navigate(
+                  ROUTES.FORM_LANDING.replace(':uid', asset.uid)
+                );
                 break;
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                history.push(ROUTES.LIBRARY);
+                router!.navigate(ROUTES.LIBRARY);
                 break;
             }
           },
@@ -442,7 +449,7 @@ function _deployAssetFirstTime(
     onDone: (response: DeploymentResponse) => {
       notify(t('deployed form'));
       actions.resources.loadAsset({id: asset.uid});
-      history.push(`/forms/${asset.uid}`);
+      router!.navigate(`/forms/${asset.uid}`);
       toast.dismiss(deploymentToast);
       if (typeof callback === 'function') {
         callback(response);

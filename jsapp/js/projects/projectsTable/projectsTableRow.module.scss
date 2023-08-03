@@ -88,6 +88,24 @@ $projects-table-row-height: sizes.$x36;
     font-weight: 600;
     width: 30%;
 
+    // Handling the fact that the cell content is a link
+    padding: 0;
+    :global a {
+      @include mixins.textEllipsis;
+      color: inherit;
+      display: block;
+      padding: $projects-table-row-padding;
+
+      // Keyboard-focus ring for links
+      &:focus-visible .asset-name {
+        outline: 1px solid colors.$kobo-blue;
+        border-radius: 2px;
+        outline-offset: 4px;
+        text-decoration-color: colors.$kobo-alt-blue;
+        text-decoration-line: underline;
+      }
+    }
+
     // Setup for underlining the Project Name on row hover.
     // This clarifies the size of the checkbox touch-target
     // and makes full-navigation a little more predictable.
