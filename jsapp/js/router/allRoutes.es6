@@ -85,7 +85,7 @@ const AllRoutes = class AllRoutes extends React.Component {
       sessionStore.isLoggedIn &&
       // When user is marked as having invalidated password, we block all the UI
       // and display a special component.
-      sessionStore.currentAccount.validated_password === false
+      sessionStore.currentAccount.extra_details?.validated_password === false
     ) {
       return <InvalidatedPassword />;
     }
