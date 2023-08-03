@@ -140,7 +140,7 @@ export async function getAccountLimits() {
   };
   for (const [key, value] of Object.entries(metadata)) {
     if (Object.keys(limits).includes(key)) {
-      limits[key as keyof AccountLimit] = value === "unlimited" ? value : parseInt(value);
+      limits[key as keyof AccountLimit] = value === 'unlimited' ? value : parseInt(value);
     }
   }
   await when(() => envStore.isReady);

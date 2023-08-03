@@ -91,10 +91,10 @@ export default function Usage() {
       let limits: AccountLimit;
       if (envStore.data.stripe_public_key) {
         limits = await getAccountLimits();
-      }
-      if (!limits) {
+      } else {
         return;
       }
+
       setUsage((prevState) => {
           return {
             ...prevState,
