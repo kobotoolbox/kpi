@@ -153,11 +153,9 @@ export const getAllExceedingLimits = () => {
 
   // Check Thresholds
   useMemo(() => {
-    console.log('checking thresholds');
     const thresholds = envStore.data.free_tier_thresholds;
     Object.entries(thresholds).forEach((entry) => {
       const [key, value] = entry;
-      // console.log(`${state.subscribedProduct?.[0].items[0].price.product.metadata}`)
       if (value === null) {
         setLimitThresholds(key, '');
         return;
@@ -167,7 +165,6 @@ export const getAllExceedingLimits = () => {
         setLimitThresholds(key, 'unlimted');
       }
     });
-    console.log(subscribedStorageLimit);
   }, []);
 
   // Check if usage is more than limit
