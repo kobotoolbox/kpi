@@ -37,6 +37,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     social_accounts = SocialAccountSerializer(
         source='socialaccount_set', many=True, read_only=True
     )
+    validated_password = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -57,6 +58,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'new_password',
             'git_rev',
             'social_accounts',
+            'validated_password'
         )
         read_only_fields = ('email',)
 
@@ -83,6 +85,16 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return settings.GIT_REV
         else:
             return False
+
+    def get_validated_password(self, obj):
+        try:
+            extra_details = obj.extra_details
+        except obj.extra_details.RelatedObjectDoesNotExist:
+            # if user has not extra details, admin has not been able to set
+            # `validated_password`. Let's consider it True.
+            return True
+
+        return extra_details.validated_password
 
     def to_representation(self, obj):
         if obj.is_anonymous:
