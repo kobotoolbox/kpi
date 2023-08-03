@@ -10,7 +10,6 @@ from kobo.apps.hook.models.hook import Hook
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
-    KobocatUserProfile,
 )
 from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
