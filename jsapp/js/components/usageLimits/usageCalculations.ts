@@ -2,6 +2,7 @@ import {useEffect, useState, useMemo, useReducer} from 'react';
 import {getUsage} from '../../account/usage.api';
 import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
 import {getSubscription, getProducts} from '../../account/stripe.api';
+import envStore from 'js/envStore';
 
 interface UsageState {
   storage: number;
@@ -39,13 +40,18 @@ export const getAllExceedingLimits = () => {
     yearlyTranslationChars: 0,
   });
 
-  const [subscribedStorageLimit, setSubscribedStorageLimit] =
-    useState<number>();
-  const [subscribedSubmissionLimit, setSubscribedSubmissionLimit] =
-    useState<number>();
-  const [subscribedTranscriptionMinutes, setTranscriptionMinutes] =
-    useState<number>();
-  const [subscribedTranslationChars, setTranslationChars] = useState<number>();
+  const [subscribedStorageLimit, setSubscribedStorageLimit] = useState<
+    number | string
+  >();
+  const [subscribedSubmissionLimit, setSubscribedSubmissionLimit] = useState<
+    number | string
+  >();
+  const [subscribedTranscriptionMinutes, setTranscriptionMinutes] = useState<
+    number | string
+  >();
+  const [subscribedTranslationChars, setTranslationChars] = useState<
+    number | string
+  >();
 
   function truncate(decimal: number) {
     return parseFloat(decimal.toFixed(2));
@@ -55,7 +61,7 @@ export const getAllExceedingLimits = () => {
   useMemo(() => {
     getProducts().then((products) => {
       const freeProduct = products.results.find((products) =>
-      products.prices.find((price: BasePrice) => {
+        products.prices.find((price: BasePrice) => {
           return (
             price.unit_amount === 0 && price.recurring?.interval === 'month'
           );
@@ -103,27 +109,66 @@ export const getAllExceedingLimits = () => {
     });
   }, []);
 
-  // If user is subscribed to a plan assign limit for that plan
-  useMemo(() => {
-    if (state.subscribedProduct?.length > 0) {
-      setSubscribedSubmissionLimit(
-        state.subscribedProduct?.[0].items[0].price.product.metadata
-          .submission_limit
-      );
-      setSubscribedStorageLimit(
-        state.subscribedProduct?.[0].items[0].price.product.metadata
-          .storage_bytes_limit
-      );
-      setTranscriptionMinutes(
-        state.subscribedProduct?.[0].items[0].price.product.metadata
-          .nlp_seconds_limit
-      );
-      setTranslationChars(
-        state.subscribedProduct?.[0].items[0].price.product.metadata
-          .nlp_character_limit
-      );
+  function setLimitThresholds(limitName: string, limitValue: string | number) {
+    // If user is subscribed to a plan assign limit for that plan
+    if (limitValue === '') {
+      switch (limitName) {
+        case 'storage':
+          limitValue =
+            state.subscribedProduct?.[0].items[0].price.product.metadata
+              .storage_bytes_limit;
+          break;
+        case 'data':
+          break;
+        case 'translation_char':
+          limitValue =
+            state.subscribedProduct?.[0].items[0].price.product.metadata
+              .nlp_character_limit;
+          break;
+        case 'ttranscription_minutes':
+          limitValue =
+            state.subscribedProduct?.[0].items[0].price.product.metadata
+              .nlp_seconds_limit;
+          break;
+        default:
+          break;
+      }
     }
-  }, [state.subscribedProduct]);
+    switch (limitName) {
+      case 'storage':
+        setSubscribedStorageLimit(limitValue);
+        break;
+      case 'data':
+        break;
+      case 'translation_char':
+        setTranslationChars(limitValue);
+        break;
+      case 'ttranscription_minutes':
+        setTranscriptionMinutes(limitValue);
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Check Thresholds
+  useMemo(() => {
+    console.log('checking thresholds');
+    const thresholds = envStore.data.free_tier_thresholds;
+    Object.entries(thresholds).forEach((entry) => {
+      const [key, value] = entry;
+      // console.log(`${state.subscribedProduct?.[0].items[0].price.product.metadata}`)
+      if (value === null) {
+        setLimitThresholds(key, '');
+        return;
+      } else if (value > 0) {
+        setLimitThresholds(key, value);
+      } else if (value <= 0) {
+        setLimitThresholds(key, 'unlimted');
+      }
+    });
+    console.log(subscribedStorageLimit);
+  }, []);
 
   // Check if usage is more than limit
   useMemo(() => {
@@ -134,26 +179,35 @@ export const getAllExceedingLimits = () => {
     }
     exceedList = [];
 
-    if (subscribedStorageLimit) {
+    if (subscribedStorageLimit && typeof subscribedStorageLimit !== 'string') {
       if (usage.storage > subscribedStorageLimit) {
         exceedList.push(t('storage'));
       }
     }
     // If subscribed plan is month or community plan
     if (interval === 'month' || interval === undefined) {
-      if (subscribedSubmissionLimit) {
+      if (
+        subscribedSubmissionLimit &&
+        typeof subscribedSubmissionLimit !== 'string'
+      ) {
         if (usage.monthlySubmissions > subscribedSubmissionLimit) {
           exceedList.push(t('submissions'));
         }
       }
-      if (subscribedTranscriptionMinutes) {
+      if (
+        subscribedTranscriptionMinutes &&
+        typeof subscribedTranscriptionMinutes !== 'string'
+      ) {
         if (
           usage.monthlyTranscriptionMinutes > subscribedTranscriptionMinutes
         ) {
           exceedList.push(t('Transcription Minutes'));
         }
       }
-      if (subscribedTranslationChars) {
+      if (
+        subscribedTranslationChars &&
+        typeof subscribedTranslationChars !== 'string'
+      ) {
         if (usage.monthlyTranslationChars > subscribedTranslationChars) {
           exceedList.push(t('Translation Charaters'));
         }
@@ -161,17 +215,26 @@ export const getAllExceedingLimits = () => {
     }
     // If subscribed plan is year
     if (interval === 'year') {
-      if (subscribedSubmissionLimit) {
+      if (
+        subscribedSubmissionLimit &&
+        typeof subscribedSubmissionLimit !== 'string'
+      ) {
         if (usage.yearlySubmissions > subscribedSubmissionLimit) {
           exceedList.push(t('submissions'));
         }
       }
-      if (subscribedTranscriptionMinutes) {
+      if (
+        subscribedTranscriptionMinutes &&
+        typeof subscribedTranscriptionMinutes !== 'string'
+      ) {
         if (usage.yearlyTranscriptionMinutes > subscribedTranscriptionMinutes) {
           exceedList.push(t('Transcription Minutes'));
         }
       }
-      if (subscribedTranslationChars) {
+      if (
+        subscribedTranslationChars &&
+        typeof subscribedTranslationChars !== 'string'
+      ) {
         if (usage.yearlyTranslationChars > subscribedTranslationChars) {
           exceedList.push(t('Translation Charaters'));
         }
