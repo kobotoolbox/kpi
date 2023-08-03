@@ -23,12 +23,13 @@ import AccountMenu from './accountMenu';
 const MainHeader = class MainHeader extends Reflux.Component {
   constructor(props) {
     super(props);
-    this.state = assign({
-      asset: false,
-    }, stores.pageState.state);
-    this.stores = [
-      stores.pageState,
-    ];
+    this.state = assign(
+      {
+        asset: false,
+      },
+      stores.pageState.state
+    );
+    this.stores = [stores.pageState];
     this.unlisteners = [];
     autoBind(this);
   }
@@ -44,7 +45,9 @@ const MainHeader = class MainHeader extends Reflux.Component {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   /*
@@ -62,7 +65,11 @@ const MainHeader = class MainHeader extends Reflux.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.assetid !== this.props.assetid && this.props && this.props.assetid) {
+    if (
+      prevProps.assetid !== this.props.assetid &&
+      this.props &&
+      this.props.assetid
+    ) {
       actions.resources.loadAsset({id: this.props.assetid});
     }
   }
@@ -88,10 +95,7 @@ const MainHeader = class MainHeader extends Reflux.Component {
   renderLoginButton() {
     return (
       <bem.LoginBox>
-        <a
-          href={getLoginUrl()}
-          className='kobo-button kobo-button--blue'
-        >
+        <a href={getLoginUrl()} className='kobo-button kobo-button--blue'>
           {t('Log In')}
         </a>
       </bem.LoginBox>
@@ -103,12 +107,8 @@ const MainHeader = class MainHeader extends Reflux.Component {
       const gitRev = sessionStore.currentAccount.git_rev;
       return (
         <bem.GitRev>
-          <bem.GitRev__item>
-            branch: {gitRev.branch}
-          </bem.GitRev__item>
-          <bem.GitRev__item>
-            commit: {gitRev.short}
-          </bem.GitRev__item>
+          <bem.GitRev__item>branch: {gitRev.branch}</bem.GitRev__item>
+          <bem.GitRev__item>commit: {gitRev.short}</bem.GitRev__item>
         </bem.GitRev>
       );
     }
@@ -139,65 +139,66 @@ const MainHeader = class MainHeader extends Reflux.Component {
     }
 
     return (
-        <bem.MainHeader className='mdl-layout__header'>
-          <div className='mdl-layout__header-row'>
-            {sessionStore.isLoggedIn &&
-              <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-                <i className='k-icon k-icon-menu' />
-              </bem.Button>
-            }
+      <bem.MainHeader className='mdl-layout__header'>
+        <div className='mdl-layout__header-row'>
+          {sessionStore.isLoggedIn && (
+            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+              <i className='k-icon k-icon-menu' />
+            </bem.Button>
+          )}
 
-            <span className='mdl-layout__title'>
-              <a href='/'>
-                <bem.Header__logo />
-              </a>
-            </span>
+          <span className='mdl-layout__title'>
+            <a href='/'>
+              <bem.Header__logo />
+            </a>
+          </span>
 
-            {/* Things for Library */}
-            { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
-              <div className='mdl-layout__header-searchers'>
-                <SearchBox
-                  placeholder={librarySearchBoxPlaceholder}
-                  disabled={this.isSearchBoxDisabled()}
-                />
-              </div>
-            }
+          {/* Things for Library */}
+          {isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) && (
+            <div className='mdl-layout__header-searchers'>
+              <SearchBox
+                placeholder={librarySearchBoxPlaceholder}
+                disabled={this.isSearchBoxDisabled()}
+              />
+            </div>
+          )}
 
-            {/* Things for My Projects and any Custom View */}
-            { isLoggedIn && isAnyProjectsViewRoute() &&
-              <div className='mdl-layout__header-searchers'>
-                <SearchBox
-                  placeholder={t('Search…')}
-                  disabled={this.isSearchBoxDisabled()}
-                />
-              </div>
-            }
+          {/* Things for My Projects and any Custom View */}
+          {isLoggedIn && isAnyProjectsViewRoute() && (
+            <div className='mdl-layout__header-searchers'>
+              <SearchBox
+                placeholder={t('Search…')}
+                disabled={this.isSearchBoxDisabled()}
+              />
+            </div>
+          )}
 
-            {/* Things for Project */}
-            {this.state.asset && this.isFormSingle() &&
-              <React.Fragment>
-                <bem.MainHeader__icon className={iconClassName} />
+          {/* Things for Project */}
+          {this.state.asset && this.isFormSingle() && (
+            <React.Fragment>
+              <bem.MainHeader__icon className={iconClassName} />
 
-                <HeaderTitleEditor
-                  asset={this.state.asset}
-                  isEditable={userCanEditAsset}
-                />
+              <HeaderTitleEditor
+                asset={this.state.asset}
+                isEditable={userCanEditAsset}
+              />
 
-                { this.isFormSingle() && this.state.asset.has_deployment &&
-                  <bem.MainHeader__counter>
-                    {this.state.asset.deployment__submission_count} {t('submissions')}
-                  </bem.MainHeader__counter>
-                }
-              </React.Fragment>
-            }
+              {this.isFormSingle() && this.state.asset.has_deployment && (
+                <bem.MainHeader__counter>
+                  {this.state.asset.deployment__submission_count}{' '}
+                  {t('submissions')}
+                </bem.MainHeader__counter>
+              )}
+            </React.Fragment>
+          )}
 
-            <AccountMenu />
+          <AccountMenu />
 
-            { !isLoggedIn && this.renderLoginButton()}
-          </div>
-          {this.renderGitRevInfo()}
-        </bem.MainHeader>
-      );
+          {!isLoggedIn && this.renderLoginButton()}
+        </div>
+        {this.renderGitRevInfo()}
+      </bem.MainHeader>
+    );
   }
 };
 

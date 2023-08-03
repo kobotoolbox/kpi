@@ -34,7 +34,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import {withRouter} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';
 
@@ -117,7 +117,7 @@ class ProjectSettings extends React.Component {
       actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      history.listen(this.onRouteChange.bind(this))
+      router.subscribe(this.onRouteChange.bind(this))
     );
   }
 

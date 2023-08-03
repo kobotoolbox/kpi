@@ -2,10 +2,9 @@ import React from 'react';
 import type {FileWithPreview} from 'react-dropzone';
 import type {CreateImportRequest, ImportResponse} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {history} from './router/historyRouter';
 import {escapeHtml, join, log, notify} from 'js/utils';
 import {MODAL_TYPES} from './constants';
-import {routerIsActive} from 'js/router/legacy';
+import {router, routerIsActive} from 'js/router/legacy';
 import {ROUTES} from './router/routerConstants';
 import {stores} from './stores';
 import {getExponentialDelayTime} from 'js/components/projectDownloads/exportFetcher';
@@ -128,7 +127,7 @@ function onImportSingleXLSFormFile(
         // We have to dig deep for that single asset uid :)
         const firstCreated = importData.messages.created[0];
         if (firstCreated?.uid) {
-          history.push(ROUTES.FORM.replace(':uid', firstCreated.uid));
+          router!.navigate(ROUTES.FORM.replace(':uid', firstCreated.uid));
         }
       }
     },
