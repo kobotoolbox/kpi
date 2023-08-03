@@ -200,6 +200,9 @@ def get_eligible_users(user_detail_email_key, force=False):
         .exclude(
             email='',
         )
+        .exclude(
+            extra_details__isnull=True,
+        )
     )
     if not force:
         eligible_users = eligible_users.exclude(
