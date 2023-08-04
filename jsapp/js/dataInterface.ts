@@ -678,10 +678,11 @@ export interface AccountResponse {
     [key: string]: Json | ProjectViewsSettings | undefined;
   };
   git_rev: {
-    short: string;
-    long: string;
-    branch: string;
-    tag: boolean;
+    // All are either a string or `false`
+    short: string | boolean;
+    long: string | boolean;
+    branch: string | boolean;
+    tag: string | boolean;
   };
   social_accounts: SocialAccount[];
 }

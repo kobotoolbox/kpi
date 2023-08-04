@@ -43,6 +43,7 @@ import {
   getSupplementalTranslationPath,
 } from 'js/components/processing/processingUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type {IconName} from 'jsapp/fonts/k-icons';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -266,43 +267,43 @@ export function isAssetPublic(permissions?: Permission[]) {
 }
 
 /**
- * For getting the icon class name for given asset type. Returned string always
- * contains two class names: base `k-icon` and respective CSS class name.
+ * For getting the icon name for given asset type. Recommended to be used with
+ * the `<Icon>` component.
  */
-export function getAssetIcon(asset: AssetResponse) {
+export function getAssetIcon(asset: AssetResponse): IconName {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
       if ('summary' in asset && asset.summary?.lock_any) {
-        return 'k-icon k-icon-template-locked';
+        return 'template-locked';
       } else {
-        return 'k-icon k-icon-template';
+        return 'template';
       }
     case ASSET_TYPES.question.id:
-      return 'k-icon k-icon-question';
+      return 'question';
     case ASSET_TYPES.block.id:
-      return 'k-icon k-icon-block';
+      return 'block';
     case ASSET_TYPES.survey.id:
       if ('summary' in asset && asset.summary?.lock_any) {
-        return 'k-icon k-icon-project-locked';
+        return 'project-locked';
       } else if (asset.deployment_status === 'archived') {
-        return 'k-icon k-icon-project-archived';
+        return 'project-archived';
       } else if (asset.deployment_status === 'deployed') {
-        return 'k-icon k-icon-project-deployed';
+        return 'project-deployed';
       } else {
-        return 'k-icon k-icon-project-draft';
+        return 'project-draft';
       }
     case ASSET_TYPES.collection.id:
       if ('access_types' in asset && asset?.access_types?.includes(ACCESS_TYPES.subscribed)) {
-        return 'k-icon k-icon-folder-subscribed';
+        return 'folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
-        return 'k-icon k-icon-folder-public';
+        return 'folder-public';
       } else if (asset?.access_types?.includes(ACCESS_TYPES.shared)) {
-        return 'k-icon k-icon-folder-shared';
+        return 'folder-shared';
       } else {
-        return 'k-icon k-icon-folder';
+        return 'folder';
       }
     default:
-      return 'k-icon k-icon-project';
+      return 'project';
   }
 }
 
