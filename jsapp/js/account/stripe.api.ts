@@ -4,7 +4,7 @@ import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import envStore from "js/envStore";
 import {when} from "mobx";
-import subscriptionStore from "js/account/subscriptionStore";
+import subscriptionStore, {SubscriptionInfo} from "js/account/subscriptionStore";
 
 export interface BaseProduct {
   id: string;
@@ -108,6 +108,20 @@ export async function postCustomerPortal(organizationId: string) {
   );
 }
 
+export async function getSubscriptionInterval() {
+  await when(() => envStore.isReady && subscriptionStore.isLoaded);
+  if (envStore.data.stripe_public_key) {
+    const subscriptionList: SubscriptionInfo[] = subscriptionStore.subscriptionResponse;
+    const activeSubscription = subscriptionList.find((sub) =>
+      ACTIVE_STRIPE_STATUSES.includes(sub.status)
+    );
+    if (activeSubscription) {
+      return activeSubscription.items[0].price.recurring?.interval;
+    }
+  }
+  return null;
+}
+
 export async function getAccountLimits() {
   await when(() => subscriptionStore.isLoaded);
   const subscriptions = [...subscriptionStore.subscriptionResponse];
@@ -150,5 +164,4 @@ export async function getAccountLimits() {
   thresholds.translation_chars ? limits['nlp_character_limit'] = thresholds.translation_chars : null;
   thresholds.transcription_minutes ? limits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60 : null;
   return limits;
-
 }

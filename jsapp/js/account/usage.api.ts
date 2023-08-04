@@ -1,4 +1,5 @@
 import {fetchGet, fetchPost} from 'jsapp/js/api';
+import {getOrganization} from "js/account/stripe.api";
 
 interface AssetUsage {
   asset: string;
@@ -37,4 +38,9 @@ export async function getUsage(organization_id: string|null = null) {
       return fetchPost<UsageResponse>(USAGE_URL, {organization_id});
     }
     return fetchGet<UsageResponse>(USAGE_URL);
+}
+
+export async function getUsageForOrganization() {
+  const organizations = await getOrganization();
+  return await getUsage(organizations.results?.[0].id);
 }

@@ -1,15 +1,17 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import styles from './usage.module.scss';
-import {getUsage} from './usage.api';
-import {AccountLimit, getAccountLimits, getOrganization, RecurringInterval} from "js/account/stripe.api";
+import {getUsage, getUsageForOrganization} from './usage.api';
+import {
+  AccountLimit,
+  getAccountLimits,
+  getOrganization,
+  getSubscription, getSubscriptionInterval,
+  RecurringInterval
+} from "js/account/stripe.api";
 import envStore from 'js/envStore';
 import {when} from "mobx";
-import {ACTIVE_STRIPE_STATUSES} from "js/constants";
-import classnames from "classnames";
-import Icon from "js/components/common/icon";
 import subscriptionStore, {SubscriptionInfo} from "js/account/subscriptionStore";
 import {useLocation} from "react-router-dom";
-import prettyBytes from "pretty-bytes";
 import moment from "moment/moment";
 import LoadingSpinner from "js/components/common/loadingSpinner";
 import UsageContainer from "js/components/usageContainer";
@@ -116,15 +118,7 @@ export default function Usage() {
 
   // get subscription interval (monthly, yearly) from the subscriptionStore when ready
   useEffect(() => {
-    if (envStore.isReady && envStore.data.stripe_public_key && subscriptionStore.isLoaded) {
-      const subscriptionList: SubscriptionInfo[] = subscriptionStore.subscriptionResponse;
-      const activeSubscription = subscriptionList.find((sub) =>
-        ACTIVE_STRIPE_STATUSES.includes(sub.status)
-      );
-      let subscriptionInterval: RecurringInterval|undefined;
-      if (activeSubscription) {
-        subscriptionInterval = activeSubscription.items[0].price.recurring?.interval;
-      }
+    getSubscriptionInterval().then((subscriptionInterval) => {
       setUsage((prevState) => {
         return {
           ...prevState,
@@ -135,7 +129,7 @@ export default function Usage() {
           },
         };
       });
-    }
+    });
   }, [envStore.isReady, subscriptionStore.isLoaded]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
@@ -150,10 +144,7 @@ export default function Usage() {
     if (!usage.loaded.subscription) {
       return;
     }
-    const getUsageForOrganization = async () => {
-      const organizations = await getOrganization();
-      const data = await getUsage(organizations.results?.[0].id);
-
+    getUsageForOrganization().then((data) => {
       setUsage((prevState) => {
         return {
           ...prevState,
@@ -170,9 +161,10 @@ export default function Usage() {
             ...prevState.loaded,
             usage: true,
           },
-        }
+        };
       });
-    };
+    });
+
     getUsageForOrganization();
   }, [location, usage.loaded.subscription]);
 
