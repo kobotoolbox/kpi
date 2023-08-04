@@ -41,29 +41,30 @@ def mfa(request):
     }
 
 
-def custom_label_translations(request, metadata_configs, default_labels):
+def custom_label_translations(
+    request, metadata_configs: dict, default_labels: dict
+):
     """
     Returns custom labels and translations for the signup form
     from the USER_METADATA_FIELDS constance config.
     """
 
     # Get User Metadata Fields
-    user_metadata_fields = json.loads(metadata_configs)
+    loaded_metadata_fields = json.loads(metadata_configs)
 
     # Check if each user metadata has a label
-    for metadata_field in user_metadata_fields:
+    for metadata_field in loaded_metadata_fields:
         if 'label' in metadata_field.keys():
-            metadata_field['label'] = I18nUtils.set_custom_label(metadata_field)
+            metadata_field = I18nUtils.set_custom_label(
+                metadata_field, default_labels, None
+            )
         else:
             # If label is not available, use the default set in the SignupForm
             try:
-                metadata_field['label'] = default_labels[
-                    metadata_field['name']
-                ]
+                metadata_field['label'] = default_labels[metadata_field['name']]
             except KeyError:
                 continue
-
-    return user_metadata_fields
+    return loaded_metadata_fields
 
 
 def django_settings(request):

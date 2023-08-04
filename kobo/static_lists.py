@@ -359,7 +359,7 @@ PROJECT_METADATA_DEFAULT_LABELS = {
 }
 
 USER_METADATA_DEFAULT_LABELS = {
-    'name': t('Full name'),
+    'full_name': t('Full name'),
     'organization': t('Organization'),
     'organization_website': t('Organization website'),
     'sector': t('Sector'),

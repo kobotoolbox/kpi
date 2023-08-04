@@ -31,8 +31,8 @@ class LoginForm(BaseLoginForm):
 
 
 class KoboSignupMixin(forms.Form):
-    name = forms.CharField(
-        label=USER_METADATA_DEFAULT_LABELS['name'],
+    full_name = forms.CharField(
+        label=USER_METADATA_DEFAULT_LABELS['full_name'],
         required=False,
     )
     organization = forms.CharField(
@@ -99,6 +99,7 @@ class KoboSignupMixin(forms.Form):
                 continue
 
             field = self.fields[field_name]
+            print(desired_field, flush=True)
             field.required = desired_field.get('required', False)
 
             if 'label' in desired_field.keys():

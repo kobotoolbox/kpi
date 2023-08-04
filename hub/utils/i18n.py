@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 import json
 import logging
 
@@ -85,22 +86,28 @@ class I18nUtils:
         return message
 
     @staticmethod
-    def set_custom_label(field: dict, lang: str = None, default_label_list: dict = {}):
+    def set_custom_label(
+        field: dict, default_label_dict: dict, lang: str = None,
+    ):
         """
         Return the translated label of the user metadata fields
         """
         # Get default value if lang is not specified
         language = lang if lang else get_language()
 
+        # This copy is to make unit tests work properly
+        field = copy.deepcopy(field)
+
+        # Check to see if label exists
         try:
             label = field['label']
             try:
                 translation = label[language]
             except KeyError:
                 # Use the default value if language is not available
-                translation = t(label['default'])
+                translation = label['default']
         except KeyError:
-            translation = default_label_list[field['name']]
+            translation = default_label_dict[field['name']]
 
         field['label'] = translation
 
