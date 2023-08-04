@@ -147,7 +147,7 @@ export const getAllExceedingLimits = () => {
       case 'translation_char':
         setTranslationChars(limitValue);
         break;
-      case 'ttranscription_minutes':
+      case 'transcription_minutes':
         setTranscriptionMinutes(limitValue);
         break;
       default:
@@ -171,6 +171,20 @@ export const getAllExceedingLimits = () => {
     });
   }, []);
 
+  function isOverLimit(
+    subscribedLimit: number | string | undefined,
+    currentUsage: number | string | undefined,
+    listString: string
+  ) {
+    if (subscribedLimit && typeof subscribedLimit !== 'string') {
+      if (typeof currentUsage === 'number') {
+        if (currentUsage > subscribedLimit) {
+          exceedList.push(listString);
+        }
+      }
+    }
+  }
+
   // Check if usage is more than limit
   useMemo(() => {
     // Check yearly vs monthly / community
@@ -179,68 +193,64 @@ export const getAllExceedingLimits = () => {
       interval = state.subscribedProduct?.[0].items[0].price.recurring.interval;
     }
     exceedList = [];
+    isOverLimit(subscribedStorageLimit, usage.storage, 'storage');
 
-    if (subscribedStorageLimit && typeof subscribedStorageLimit !== 'string') {
-      if (usage.storage > subscribedStorageLimit) {
-        exceedList.push(t('storage'));
-      }
-    }
     // If subscribed plan is month or community plan
     if (interval === 'month' || interval === undefined) {
-      if (
-        subscribedSubmissionLimit &&
-        typeof subscribedSubmissionLimit !== 'string'
-      ) {
-        if (usage.monthlySubmissions > subscribedSubmissionLimit) {
-          exceedList.push(t('submissions'));
-        }
-      }
-      if (
-        subscribedTranscriptionMinutes &&
-        typeof subscribedTranscriptionMinutes !== 'string'
-      ) {
-        if (
-          usage.monthlyTranscriptionMinutes > subscribedTranscriptionMinutes
-        ) {
-          exceedList.push(t('Transcription Minutes'));
-        }
-      }
-      if (
-        subscribedTranslationChars &&
-        typeof subscribedTranslationChars !== 'string'
-      ) {
-        if (usage.monthlyTranslationChars > subscribedTranslationChars) {
-          exceedList.push(t('Translation Charaters'));
-        }
-      }
+      isOverLimit(
+        subscribedSubmissionLimit,
+        usage.monthlySubmissions,
+        'submissions'
+      );
+      isOverLimit(
+        subscribedTranscriptionMinutes,
+        usage.monthlyTranscriptionMinutes,
+        'Transcription Minutes'
+      );
+      isOverLimit(
+        subscribedTranslationChars,
+        usage.monthlyTranslationChars,
+        'Translation Charaters'
+      );
     }
     // If subscribed plan is year
     if (interval === 'year') {
-      if (
-        subscribedSubmissionLimit &&
-        typeof subscribedSubmissionLimit !== 'string'
-      ) {
-        if (usage.yearlySubmissions > subscribedSubmissionLimit) {
-          exceedList.push(t('submissions'));
-        }
-      }
-      if (
-        subscribedTranscriptionMinutes &&
-        typeof subscribedTranscriptionMinutes !== 'string'
-      ) {
-        if (usage.yearlyTranscriptionMinutes > subscribedTranscriptionMinutes) {
-          exceedList.push(t('Transcription Minutes'));
-        }
-      }
-      if (
-        subscribedTranslationChars &&
-        typeof subscribedTranslationChars !== 'string'
-      ) {
-        if (usage.yearlyTranslationChars > subscribedTranslationChars) {
-          exceedList.push(t('Translation Charaters'));
-        }
-      }
+      isOverLimit(
+        subscribedSubmissionLimit,
+        usage.yearlySubmissions,
+        'submissions'
+      );
+      isOverLimit(
+        subscribedTranscriptionMinutes,
+        usage.monthlyTranscriptionMinutes,
+        'Transcription Minutes'
+      );
+      isOverLimit(
+        subscribedTranslationChars,
+        usage.monthlyTranslationChars,
+        'Translation Charaters'
+      );
     }
   }, [usage]);
   return exceedList;
+};
+
+export const getPlanInterval = () => {
+  const [state, dispatch] = useReducer(subscriptionReducer, initialState);
+
+  useMemo(() => {
+    getSubscription().then((data) => {
+      dispatch({
+        prodData: data.results,
+      });
+    });
+  }, []);
+
+  let interval;
+  if (state.subscribedProduct?.length > 0) {
+    interval = state.subscribedProduct?.[0].items[0].price.recurring.interval;
+  } else {
+    interval = 'month';
+  }
+  return interval;
 };

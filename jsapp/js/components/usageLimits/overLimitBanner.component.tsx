@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import Button from 'js/components/common/button';
-import {getAllExceedingLimits} from './usageCalculations';
+import {getAllExceedingLimits, getPlanInterval} from './usageCalculations';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitBanner.module.scss';
@@ -11,13 +11,15 @@ function OverLimitBanner() {
 
   const limitsLength = getAllExceedingLimits().length;
 
+  const interval = `${getPlanInterval()}ly`;
+
   return (
     <div className={styles.limitBannerContainer}>
       <Icon name='alert' size='m' color='red' />
       <div className={styles.bannerContent}>
         {t('You have surpassed your')}{' '}
         <strong>
-          {t('monthly')}
+          {interval}{' '}
           {getAllExceedingLimits().map((item, i) => (
             <span key={i}>
               {i > 0 && ', '}
@@ -25,13 +27,13 @@ function OverLimitBanner() {
               {item}
             </span>
           ))}{' '}
-          {t('limit')} {limitsLength > 1 && 's'}{' '}
+          {t('limit')}
+          {limitsLength > 1 && 's'}{' '}
         </strong>
         {t(
           '. Please upgrade to a plan with a larger capacity to continue collecting data this month. You can'
         )}{' '}
         <a
-          role='button'
           aria-label={t('review your usage here')}
           onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
           className={styles.bannerLink}
@@ -40,7 +42,6 @@ function OverLimitBanner() {
         </a>
         {t(', or learn more about the KoboToolbox limits and plans in our ')}
         <a
-          role='button'
           aria-label={t('paid plans page')}
           onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
           className={styles.bannerLink}

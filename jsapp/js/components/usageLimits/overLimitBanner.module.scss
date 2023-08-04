@@ -5,7 +5,8 @@
   display: flex;
   padding: 0 2%;
   align-items: center;
-  height: 75px;
+  min-height: 75px;
+  flex-shrink: 0;
 }
 
 .bannerContent { 
@@ -18,6 +19,17 @@
 }
 
 .bannerBtn { 
-  width: 175px;
+  min-width: 120px !important;
   height: 32px;
+}
+
+
+@media (max-width: 979px) {
+  .bannerBtn { 
+    min-width: 100px !important;
+  }
+
+  .bannerContent { 
+    padding: 2%;
+  }
 }
