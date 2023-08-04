@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
 import type {
   BaseSubscription,
@@ -30,6 +30,7 @@ import {notify} from 'js/utils';
 import {BaseProduct} from 'js/account/subscriptionStore';
 import envStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
 import {when} from "mobx";
+import {ACCOUNT_ROUTES} from "js/account/routes";
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -100,6 +101,7 @@ export default function Plan() {
   const [shouldRevalidate, setShouldRevalidate] = useState(false);
   const [searchParams] = useSearchParams();
   const didMount = useRef(false);
+  const navigate = useNavigate();
 
   const isDataLoading = useMemo(
     (): boolean =>
@@ -155,7 +157,7 @@ export default function Plan() {
     when(() => envStore.isReady).then(() => {
       // If Stripe isn't loaded, just redirect to the account page
       if (!envStore.data.stripe_public_key) {
-        window.location.assign('/#/account');
+        navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
         return;
       }
       const fetchPromises = [];
@@ -163,7 +165,7 @@ export default function Plan() {
       fetchPromises[0] = getProducts().then((data) => {
         // If we have no products, redirect
         if (!data.count) {
-          window.location.assign('/#/account');
+          navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
         }
         dispatch({
           type: 'initialProd',
