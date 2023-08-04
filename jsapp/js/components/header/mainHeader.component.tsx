@@ -49,7 +49,9 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb();
+    });
   }
 
   isSearchBoxDisabled() {
@@ -64,10 +66,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   renderLoginButton() {
     return (
       <bem.LoginBox>
-        <a
-          href={getLoginUrl()}
-          className='kobo-button kobo-button--blue'
-        >
+        <a href={getLoginUrl()} className='kobo-button kobo-button--blue'>
           {t('Log In')}
         </a>
       </bem.LoginBox>
@@ -123,69 +122,66 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
     }
 
     return (
-        <bem.MainHeader className='mdl-layout__header'>
-          <div className='mdl-layout__header-row'>
-            {sessionStore.isLoggedIn &&
-              <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-                <i className='k-icon k-icon-menu' />
-              </bem.Button>
-            }
+      <bem.MainHeader className='mdl-layout__header'>
+        <div className='mdl-layout__header-row'>
+          {sessionStore.isLoggedIn && (
+            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+              <i className='k-icon k-icon-menu' />
+            </bem.Button>
+          )}
 
-            <span className='mdl-layout__title'>
-              <a href='/'>
-                <bem.Header__logo />
-              </a>
-            </span>
+          <span className='mdl-layout__title'>
+            <a href='/'>
+              <bem.Header__logo />
+            </a>
+          </span>
 
-            {/* Things for Library */}
-            { isLoggedIn && (isMyLibraryRoute() || isPublicCollectionsRoute()) &&
-              <div className='mdl-layout__header-searchers'>
-                <SearchBox
-                  placeholder={librarySearchBoxPlaceholder}
-                  disabled={this.isSearchBoxDisabled()}
-                />
-              </div>
-            }
+          {/* Things for Library */}
+          {isLoggedIn && (isMyLibraryRoute() || isPublicCollectionsRoute()) && (
+            <div className='mdl-layout__header-searchers'>
+              <SearchBox
+                placeholder={librarySearchBoxPlaceholder}
+                disabled={this.isSearchBoxDisabled()}
+              />
+            </div>
+          )}
 
-            {/* Things for My Projects and any Custom View */}
-            { isLoggedIn && isAnyProjectsViewRoute() &&
-              <div className='mdl-layout__header-searchers'>
-                <SearchBox
-                  placeholder={t('Search…')}
-                  disabled={this.isSearchBoxDisabled()}
-                />
-              </div>
-            }
+          {/* Things for My Projects and any Custom View */}
+          {isLoggedIn && isAnyProjectsViewRoute() && (
+            <div className='mdl-layout__header-searchers'>
+              <SearchBox
+                placeholder={t('Search…')}
+                disabled={this.isSearchBoxDisabled()}
+              />
+            </div>
+          )}
 
-            {/* Things for Project */}
-            {asset && isAnyFormRoute() &&
-              <React.Fragment>
-                {iconName &&
-                  <bem.MainHeader__icon>
-                    <Icon name={iconName} />
-                  </bem.MainHeader__icon>
-                }
+          {/* Things for Project */}
+          {asset && isAnyFormRoute() && (
+            <React.Fragment>
+              {iconName && (
+                <bem.MainHeader__icon>
+                  <Icon name={iconName} />
+                </bem.MainHeader__icon>
+              )}
 
-                <HeaderTitleEditor
-                  asset={asset}
-                  isEditable={userCanEditAsset}
-                />
+              <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
 
-                { asset.has_deployment &&
-                  <bem.MainHeader__counter>
-                    {asset.deployment__submission_count} {t('submissions')}
-                  </bem.MainHeader__counter>
-                }
-              </React.Fragment>
-            }
+              {asset.has_deployment && (
+                <bem.MainHeader__counter>
+                  {asset.deployment__submission_count} {t('submissions')}
+                </bem.MainHeader__counter>
+              )}
+            </React.Fragment>
+          )}
 
-            <AccountMenu />
+          <AccountMenu />
 
-            { !isLoggedIn && this.renderLoginButton()}
-          </div>
-          {this.renderGitRevInfo()}
-        </bem.MainHeader>
-      );
+          {!isLoggedIn && this.renderLoginButton()}
+        </div>
+        {this.renderGitRevInfo()}
+      </bem.MainHeader>
+    );
   }
 };
 
