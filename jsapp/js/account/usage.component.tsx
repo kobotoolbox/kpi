@@ -12,6 +12,7 @@ import {useLocation} from "react-router-dom";
 import prettyBytes from "pretty-bytes";
 import moment from "moment/moment";
 import LoadingSpinner from "js/components/common/loadingSpinner";
+import UsageContainer from "js/components/usageContainer";
 
 interface UsageState {
   storage: number;
@@ -31,8 +32,6 @@ interface UsageState {
     subscription: boolean;
   };
 }
-
-const WARNING_THRESHOLD_RATIO = 0.8;
 
 export default function Usage() {
   const [usage, setUsage] = useState<UsageState>({
@@ -236,57 +235,3 @@ export default function Usage() {
     </div>
   );
 }
-
-interface UsageContainerProps {
-  usage: number;
-  limit: number|'unlimited';
-  label?: string;
-  isStorage?: boolean;
-  period: RecurringInterval;
-}
-
-const UsageContainer = ({
-  usage, limit, period, label = undefined, isStorage = false,
-}: UsageContainerProps) => {
-  let limitRatio = 0;
-  if (limit !== 'unlimited' && limit) {
-    limitRatio = usage / limit;
-  }
-  const isOverLimit = limitRatio > 1;
-  const isNearingLimit = !isOverLimit && limitRatio > WARNING_THRESHOLD_RATIO;
-  return (
-    <div className={styles.usage}>
-        <strong className={styles.description}>
-          {label ||
-            (period === 'month' ? t('Monthly') : t('Yearly'))
-          }
-        </strong>
-      {!usage && <span>-</span>}
-      {Boolean(usage) && (
-        <div className={classnames(styles.usageRow,
-          {
-            [styles.warning]: isNearingLimit,
-            [styles.overlimit]: isOverLimit,
-          },
-        )}>
-          {isNearingLimit &&
-            <Icon name={'warning'} color={'amber'} size={'m'}/>
-          }
-          {isOverLimit &&
-            <Icon name={'warning'} color={'red'} size={'m'}/>
-          }
-          <strong>{isStorage ? prettyBytes(usage) : usage.toLocaleString()}</strong>
-          {(limit !== 'unlimited' && limit) &&
-            <>
-              <span aria-hidden> / </span>
-              <span className={styles.visuallyHidden}>
-                {t('used out of')}
-              </span>
-              <span>{isStorage ? prettyBytes(limit) : limit.toLocaleString()}</span>
-            </>
-          }
-        </div>
-      )}
-    </div>
-  );
-};

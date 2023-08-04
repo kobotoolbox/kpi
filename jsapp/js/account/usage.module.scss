@@ -37,23 +37,6 @@ h2 {
   overflow-wrap: break-word;
 }
 
-.usage {
-  display: grid;
-  grid: 1fr / auto-flow;
-  width: 100%;
-  margin-top: sizes.$x18;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.usageRow {
-  border-radius: sizes.$x6;
-  padding: sizes.$x6;
-  display: flex;
-  gap: 0.25rem;
-  align-items: center
-}
-
 .usageType {
   display: flex;
   align-items: center;
@@ -66,30 +49,4 @@ h2 {
 
 .date {
   font-size: sizes.$x14;
-}
-
-.description {
-  color: colors.$kobo-storm;
-}
-
-.warning {
-  background-color: adjust-color(colors.$kobo-amber, $alpha: -0.875);
-}
-
-.warningIcon {
-  color: colors.$kobo-red;
-}
-
-.overlimit {
-  background-color: adjust-color(colors.$kobo-light-red, $alpha: -0.4);
-}
-
-.visuallyHidden {
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
 }
