@@ -18,7 +18,8 @@ import myLibraryStore from 'js/components/library/myLibraryStore';
 import {userCan} from 'js/components/permissions/utils';
 import AccountMenu from './accountMenu';
 import type {AssetResponse} from 'js/dataInterface';
-import {history} from 'js/router/historyRouter';
+import {withRouter, router} from 'js/router/legacy';
+import type {WithRouterProps} from 'js/router/legacy';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
 
@@ -27,7 +28,7 @@ bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon');
 bem.MainHeader__title = makeBem(bem.MainHeader, 'title');
 bem.MainHeader__counter = makeBem(bem.MainHeader, 'counter');
 
-interface MainHeaderProps {
+interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null;
 }
 
@@ -35,10 +36,13 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   private unlisteners: Function[] = [];
 
   componentDidMount() {
+    // HACK: re-rendering this every time we navigate is not perfect. We need to
+    // come up with a better solution.
+    router!.subscribe(() => this.forceUpdate());
+
     // Without much refactor, we ensure that the header re-renders itself,
     // whenever any linked store changes.
     this.unlisteners.push(
-      history.listen(() => this.forceUpdate()),
       assetStore.listen(() => this.forceUpdate(), this),
       myLibraryStore.listen(() => this.forceUpdate(), this)
     );
@@ -185,4 +189,4 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
   }
 };
 
-export default observer(MainHeader);
+export default observer(withRouter(MainHeader));
