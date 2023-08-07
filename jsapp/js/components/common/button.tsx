@@ -62,7 +62,8 @@ interface ButtonProps {
   isFullWidth?: boolean;
   /** Additional class names. */
   classNames?: string[];
-  onClick: (event: any) => void;
+  /** You don't need to pass the callback for `isSubmit` option. */
+  onClick?: (event: any) => void;
   'data-cy'?: string;
 }
 
