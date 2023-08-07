@@ -6,6 +6,10 @@
 @use 'scss/z-indexes';
 
 $projects-table-hover-bg: colors.$kobo-gray-98;
+$projects-table-row-padding: sizes.$x8;
+// The shared height of a row: project rows are bigger due to padding, but
+// header rows use this size without paddings
+$projects-table-row-height: sizes.$x36;
 
 .row {
   display: flex;
@@ -13,12 +17,14 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
   position: relative;
   align-items: stretch;
   cursor: pointer;
-  margin: 0 sizes.$x30;
+  margin: 0 sizes.$x8;
+
+  user-select: none;
 }
 
 .cell {
   border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x18;
+  padding: $projects-table-row-padding;
   color: colors.$kobo-gray-40;
   flex: 1 0 auto;
   // ensures the table columns are same width for all rows
@@ -36,13 +42,22 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     pointer-events: none;
   }
 
+  &[data-field='checkbox'] {
+    max-width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
+    width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
+    @include mixins.centerRowFlex;
+  }
+
   &[data-field='countries'],
   &[data-field='description'],
   &[data-field='ownerEmail'],
   &[data-field='ownerOrganization'],
-  &[data-field='status'],
-  &[data-field='submissions'] {
+  &[data-field='status'] {
     width: 13%;
+  }
+
+  &[data-field='submissions'] {
+    width: 10%;
   }
 
   &[data-field='countries'] {
@@ -55,15 +70,13 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &[data-field='ownerFullName'],
   &[data-field='ownerUsername'] {
-    width: 12.5%;
+    width: 10%;
     font-weight: 600;
   }
 
   &[data-field='dateModified'],
   &[data-field='dateDeployed'] {
-    width: 18%;
-    justify-content: flex-end;
-    text-align: right;
+    width: 14%;
   }
 
   &[data-field='languages'] {
@@ -72,9 +85,32 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
   &[data-field='name'] {
     color: colors.$kobo-dark-blue;
-    font-size: sizes.$x16;
     font-weight: 600;
-    width: 25%;
+    width: 30%;
+
+    // Handling the fact that the cell content is a link
+    padding: 0;
+    :global a {
+      @include mixins.textEllipsis;
+      color: inherit;
+      display: block;
+      padding: $projects-table-row-padding;
+
+      // Keyboard-focus ring for links
+      &:focus-visible .asset-name {
+        outline: 1px solid colors.$kobo-blue;
+        border-radius: 2px;
+        outline-offset: 4px;
+        text-decoration-color: colors.$kobo-alt-blue;
+        text-decoration-line: underline;
+      }
+    }
+
+    // Setup for underlining the Project Name on row hover.
+    // This clarifies the size of the checkbox touch-target
+    // and makes full-navigation a little more predictable.
+    text-decoration: 1px solid underline color.change(colors.$kobo-alt-blue, $alpha: 0);
+    text-underline-offset: 3px;
   }
 
   &[data-field='sector'] {
@@ -85,7 +121,7 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 .row.rowTypeProject {
   .cell {
     @include mixins.textEllipsis;
-    line-height: sizes.$x36;
+    line-height: $projects-table-row-height;
 
     // performance hints for resizing
     contain: inline-size layout paint style;
@@ -96,6 +132,36 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     &[data-field='submissions'] {
       text-overflow: clip;
     }
+
+    // To make a more forgiving checkbox interaction, make this cell
+    // much wider than it otherwise would be.
+    &[data-field='checkbox'] {
+      position: relative;
+      line-height: unset;
+      // create hanging pseudo-elements to expand touch targets
+      &::after,
+      &::before {
+        display: inline-block;
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: 2;
+      }
+      // right: cover whitespace up to the project name link
+      &::after {
+        right: 0 - $projects-table-row-padding;
+        width: $projects-table-row-padding;
+      }
+      // left: cover whitespace left of project table
+      &::before {
+        left: 0 - sizes.$x32;
+        width: sizes.$x32;
+      }
+      // uncrop element
+      overflow: visible;
+      contain: inline-size style;
+    }
   }
 
   &:hover .cell {
@@ -103,6 +169,54 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     &.cellHighlighted {
       background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
+    }
+
+    // Various hover rules to tell the user what will happen:
+    // - click project cell  ->  navigate to project
+    // - click other cell    ->  toggle the checkbox for project
+
+    // Hovering any cell  ->  Outline the checkbox
+    &[data-field='checkbox'] {
+      :global .checkbox__input {
+        outline: sizes.$x2 solid colors.$kobo-alt-blue;
+        outline-offset: 0 - sizes.$x1;
+      }
+
+      &:hover {
+        // Do an even bigger outline if you're actually near the checkbox
+        :global .checkbox__input {
+          outline-width: sizes.$x3;
+          outline-offset: 0 - sizes.$x1;
+
+          // Override checkbox hover states to reduce flashing
+          &:hover {
+            background-color: colors.$kobo-white;
+
+            &:checked {
+              background-color: colors.$kobo-blue;
+            }
+          }
+        }
+      }
+    }
+    // Specificity: Keep the keyboard focus styles, despite the pointer
+    &[data-field='checkbox'] :global .checkbox__input:focus-visible,
+    &[data-field='checkbox']:hover :global .checkbox__input:focus-visible {
+      outline: 3px solid colors.$kobo-alt-blue;
+      outline-offset: sizes.$x1;
+    }
+
+    // Hovering 'Project name' cell…
+    //  ->  Underline project name (link)
+    &[data-field='name']:hover {
+      text-decoration-color: colors.$kobo-alt-blue;
+    }
+    //  ->  De-emphasize the checkbox
+    &[data-field='checkbox']:has(~ [data-field='name']:hover) {
+      //  (Uses :has(), so not supported in Firefox yet)
+      :global .checkbox__input {
+        outline: none;
+      }
     }
   }
 }
@@ -113,10 +227,8 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
     color: colors.$kobo-gray-40;
     border-top: 0;
     cursor: pointer;
-    height: sizes.$x36;
-    line-height: sizes.$x16;
-    padding-top: sizes.$x12;
-    padding-bottom: sizes.$x12;
+    height: $projects-table-row-height;
+    padding: 0; // dropdown does the padding
     background-color: colors.$kobo-white;
 
     // performance hints for resizing
@@ -124,6 +236,11 @@ $projects-table-hover-bg: colors.$kobo-gray-98;
 
     &:hover {
       color: colors.$kobo-gray-14 !important;
+    }
+
+    // checkbox header not clickable - use default cursor
+    &[data-field='checkbox'] {
+      cursor: default;
     }
   }
 }

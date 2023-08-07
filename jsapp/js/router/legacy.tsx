@@ -1,13 +1,12 @@
 /** Don't use anything here for new components */
-import React, {FC} from 'react';
+import type {FC} from 'react';
+import React from 'react';
+import type {Params, Location, NavigateFunction} from 'react-router-dom';
 import {
-  Params,
   useLocation,
   useNavigate,
   useParams,
   useSearchParams,
-  Location,
-  NavigateFunction,
 } from 'react-router-dom';
 import type {Router} from '@remix-run/router';
 
@@ -91,6 +90,10 @@ export function routerGetAssetId() {
  * null status or use setTimeout to ensure it's run after the first react render cycle
  * For modern code, use router hooks instead of this.
  * https://github.com/remix-run/react-router/issues/9422#issuecomment-1314642344
+ *
+ * Note: using `router.subscribe` will cause memory leaks and could produce bugs
+ * when using hot reload on development environment. This is because `subscribe`
+ * method doesn't have a cancel function.
  */
 export let router: Router | null = null;
 export function injectRouter(newRouter: Router) {

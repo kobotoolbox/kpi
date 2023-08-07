@@ -2,7 +2,6 @@
 @use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
 @use 'scss/mixins';
-@use 'js/components/common/button';
 
 .root {
   display: inline-block;
@@ -24,8 +23,14 @@
   font-weight: 800;
   color: colors.$kobo-gray-24;
   padding: sizes.$x6 sizes.$x16;
+  max-width: sizes.$x400;
 
   :global {
+    label {
+      @include mixins.textEllipsis;
+      pointer-events: none;
+    }
+
     .k-icon {
       margin-left: sizes.$x5;
     }
@@ -36,7 +41,12 @@
   }
 }
 
+.triggerSimple {
+  cursor: default;
+}
+
 .menu {
+  @include mixins.floatingRoundedBox;
   display: block;
   width: 100%;
   min-width: sizes.$x300;
@@ -44,9 +54,6 @@
   max-width: sizes.$x300;
   overflow-x: auto;
   padding: sizes.$x20 0;
-  border-radius: button.$button-border-radius;
-  background-color: colors.$kobo-white;
-  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
 }
 
 .menuOption {
