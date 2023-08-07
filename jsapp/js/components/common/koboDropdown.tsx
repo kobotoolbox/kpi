@@ -7,18 +7,13 @@ import {
 import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
 
-export enum KoboDropdownPlacements {
-  'up-left' = 'up-left',
-  'up-center' = 'up-center',
-  'up-right' = 'up-right',
-  'down-left' = 'down-left',
-  'down-center' = 'down-center',
-  'down-right' = 'down-right',
-}
+export type KoboDropdownPlacement = 'down-center' | 'down-left' | 'down-right' | 'up-center' | 'up-left' | 'up-right';
+
+const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center';
 
 interface KoboDropdownProps {
-  placement: KoboDropdownPlacements;
-  /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
+  placement: KoboDropdownPlacement;
+  /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean;
   /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
   hideOnMenuClick: boolean;
@@ -188,12 +183,11 @@ export default class KoboDropdown extends React.Component<
     const wrapperMods = [];
 
     if (
-      this.props.placement &&
-      typeof KoboDropdownPlacements[this.props.placement] !== 'undefined'
+      this.props.placement
     ) {
       wrapperMods.push(this.props.placement);
     } else {
-      wrapperMods.push(KoboDropdownPlacements['down-center']);
+      wrapperMods.push(DEFAULT_PLACEMENT);
     }
 
     // These modifiers are for styling purposes only, i.e. they don't have

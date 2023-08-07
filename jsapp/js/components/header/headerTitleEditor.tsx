@@ -1,6 +1,4 @@
 import React from 'react';
-import Reflux from 'reflux';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {notify} from 'js/utils';
 import bem from 'js/bem';
@@ -10,32 +8,43 @@ import {removeInvalidChars, getAssetDisplayName} from 'js/assetUtils';
 import {
   KEY_CODES,
   NAME_MAX_LENGTH,
-  ASSET_TYPES
+  ASSET_TYPES,
 } from 'js/constants';
+import type {AssetResponse} from 'jsapp/js/dataInterface';
 
-/**
- * @prop {object} asset
- * @prop {boolean} isEditable
- */
-class HeaderTitleEditor extends React.Component {
-  constructor(props){
+interface HeaderTitleEditorProps {
+  asset: AssetResponse;
+  isEditable: boolean;
+}
+
+interface HeaderTitleEditorState {
+  name: string;
+  isPending: boolean;
+}
+
+class HeaderTitleEditor extends React.Component<
+  HeaderTitleEditorProps,
+  HeaderTitleEditorState
+> {
+  typingTimer?: NodeJS.Timeout;
+
+  constructor(props: HeaderTitleEditorProps) {
     super(props);
-    this.typingTimer = null;
     this.state = {
       name: this.props.asset.name,
-      isPending: false
+      isPending: false,
     };
     autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(assetStore, this.onAssetLoad);
+    assetStore.listen(this.onAssetLoad, this);
   }
 
   onAssetLoad() {
     this.setState({
       name: this.props.asset.name,
-      isPending: false
+      isPending: false,
     });
   }
 
@@ -54,17 +63,17 @@ class HeaderTitleEditor extends React.Component {
     }
   }
 
-  assetTitleChange(evt) {
+  assetTitleChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.setState({name: removeInvalidChars(evt.target.value)});
     clearTimeout(this.typingTimer);
     this.typingTimer = setTimeout(this.updateAssetTitle.bind(this), 1500);
   }
 
-  assetTitleKeyDown(evt) {
+  assetTitleKeyDown(evt: React.KeyboardEvent<HTMLInputElement>) {
     if (evt.keyCode === KEY_CODES.ENTER) {
       clearTimeout(this.typingTimer);
       if (this.updateAssetTitle()) {
-        evt.currentTarget.blur();
+        evt.currentTarget?.blur();
       }
     }
   }
@@ -114,7 +123,5 @@ class HeaderTitleEditor extends React.Component {
     );
   }
 }
-
-reactMixin(HeaderTitleEditor.prototype, Reflux.ListenerMixin);
 
 export default HeaderTitleEditor;

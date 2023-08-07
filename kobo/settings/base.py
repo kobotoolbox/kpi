@@ -1,5 +1,4 @@
 # coding: utf-8
-import json
 import logging
 import os
 import re
@@ -16,6 +15,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
+from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 
@@ -234,11 +234,8 @@ CONSTANCE_CONFIG = {
         'Enable two-factor authentication'
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
-        json.dumps({
-            'default': (
-                # It's terrible, but if you change this, you must also change
-                # `MFA_DEFAULT_HELP_TEXT` in `static_lists.py` so that
-                # translators receive the new string
+        LazyJSONSerializable({
+            'default': t(
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
                 'either, then you will need to request assistance by '
@@ -249,7 +246,7 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }, indent=2),
+        }),
         (
             'JSON object of guidance messages presented to users when they '
             'click the "Problems with the token" link after being prompted for '
@@ -261,7 +258,7 @@ CONSTANCE_CONFIG = {
             'for French).'
         ),
         # Use custom field for schema validation
-        'mfa_help_text_fields_jsonschema'
+        'i18n_text_jsonfield_schema'
     ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
@@ -276,7 +273,7 @@ CONSTANCE_CONFIG = {
         'authentication mechanism.'
     ),
     'USER_METADATA_FIELDS': (
-        json.dumps([
+        LazyJSONSerializable([
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
             {'name': 'sector', 'required': False},
@@ -287,22 +284,22 @@ CONSTANCE_CONFIG = {
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
-        ], indent=2),
+        ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
         "Possible fields are 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
         "and 'instagram'",
         # Use custom field for schema validation
-        'metadata_fields_jsonschema'
+        'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
-        json.dumps([
+        LazyJSONSerializable([
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
             # {'name': 'operational_purpose', 'required': False},
             # {'name': 'collects_pii', 'required': False},
-        ], indent=2),
+        ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects.\n'
         "Possible fields are 'sector', 'country', 'operational_purpose', and "
@@ -312,7 +309,8 @@ CONSTANCE_CONFIG = {
     ),
     'SECTOR_CHOICES': (
         '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
-        "Options available for the 'sector' metadata field, one per line."
+        "Options available for the 'sector' metadata field, one per line.",
+        'long_textfield'
     ),
     'OPERATIONAL_PURPOSE_CHOICES': (
         '',
@@ -325,26 +323,24 @@ CONSTANCE_CONFIG = {
         'positive_int'
     ),
     'FREE_TIER_THRESHOLDS': (
-        json.dumps({
+        LazyJSONSerializable({
             'storage': None,
             'data': None,
             'transcription_minutes': None,
             'translation_chars': None,
-        }, indent=2),
+        }),
         'Free tier thresholds: storage in kilobytes, '
         'data (number of submissions), '
         'minutes of transcription, '
         'number of translation characters',
         # Use custom field for schema validation
-        'free_tier_threshold_jsonschema'
+        'free_tier_threshold_jsonschema',
     ),
     'FREE_TIER_DISPLAY': (
-        json.dumps(
-            {
-                'name': None,
-                'feature_list': [],
-            }
-        ),
+        LazyJSONSerializable({
+            'name': None,
+            'feature_list': [],
+        }),
         'Free tier frontend settings: name to use for the free tier, '
         'array of text strings to display on the feature list of the Plans page',
         'free_tier_display_jsonschema',
@@ -423,6 +419,33 @@ CONSTANCE_CONFIG = {
         'Enable most recent password validation which will prevent the user from '
         'reusing the most recent password.',
     ),
+    'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        False,
+        'Enable custom password guidance text to help users create their passwords.',
+    ),
+    'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
+        LazyJSONSerializable({
+            'default': t(
+                'The password must be a combination of 10 or more alphanumeric'
+                ' and special characters. It must contain at least one uppercase'
+                ' and lowercase letter, it cannot be similar to your name, '
+                'username or email.'
+            ),
+            'some-other-language': (
+                'This will never appear because `some-other-language` is not '
+                'a valid language code, but this entry is here to show you '
+                'an example of adding another message in a different language.'
+            ),
+        }),
+        (
+            'Create custom guidance text for password complexity. '
+            'The contents of the message should reflect the password complexity rules '
+            'as set in Constance. '
+            '"default" is the fallback language, and will be used if no translation are provided '
+            'and should be in English.'
+        ),
+        'i18n_text_jsonfield_schema',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -434,12 +457,30 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'metadata_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+    'i18n_text_jsonfield_schema': [
+        'kpi.fields.jsonschema_form_field.I18nTextJSONField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'mfa_help_text_fields_jsonschema': [
-        'kpi.fields.jsonschema_form_field.MfaHelpTextField',
+    'long_metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {
+            'widget': 'django.forms.Textarea',
+            'widget_kwargs': {
+                'attrs': {'rows': 45}
+            }
+        },
+    ],
+    'long_textfield': [
+        'django.forms.fields.CharField',
+        {
+            'widget': 'django.forms.Textarea',
+            'widget_kwargs': {
+                'attrs': {'rows': 30}
+            }
+        },
+    ],
+    'metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
     'positive_int': ['django.forms.fields.IntegerField', {
@@ -448,10 +489,6 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {
         'min_value': -1
     }],
-    'lazy_gettext': [
-        'django.forms.fields.CharField',
-        {'widget': 'django.forms.Textarea'}
-    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -498,10 +535,12 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ENABLE_COMMON_PASSWORD_VALIDATION',
         'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
         'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
         'MINIMUM_PASSWORD_LENGTH',
         'PASSWORD_USER_ATTRIBUTES',
         'PASSWORD_CUSTOM_CHARACTER_RULES',
         'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
     ),
     'Trash bin': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',

@@ -288,10 +288,12 @@
 
 .main-header {
   .main-header__icon {
-    font-size: 38px;
     color: colors.$kobo-gray-65;
     vertical-align: middle;
-    width: 38px;
+
+    .k-icon {
+      font-size: 38px;
+    }
   }
 
   .main-header__title {
