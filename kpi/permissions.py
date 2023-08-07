@@ -121,7 +121,9 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         return True
 
 
-class AssetPermission(permissions.DjangoObjectPermissions):
+class AssetPermission(
+    ValidationPasswordPermissionMixin, permissions.DjangoObjectPermissions
+):
 
     # Setting this to False allows real permission checking on AnonymousUser.
     # With the default of True, anonymous requests are categorically rejected.
@@ -283,7 +285,7 @@ class AssetVersionReadOnlyPermission(AssetNestedObjectPermission):
     }
 
 
-class IsAuthenticated(DRFIsAuthenticated):
+class IsAuthenticated(ValidationPasswordPermissionMixin, DRFIsAuthenticated):
 
     def has_permission(self, request, view):
         self.validate_password(request)

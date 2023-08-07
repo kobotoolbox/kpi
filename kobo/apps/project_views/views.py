@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -17,6 +16,7 @@ from kpi.filters import (
 )
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
+from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.utils.object_permission import get_database_user

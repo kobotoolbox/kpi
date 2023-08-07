@@ -1,8 +1,7 @@
-from django.contrib.auth.models import User
 from django.db.models import QuerySet
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 
+from kpi.permissions import IsAuthenticated
 from .models import Organization, create_organization
 from .permissions import IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer

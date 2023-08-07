@@ -15,7 +15,7 @@ class AccountsEmailTestCase(APITestCase):
         user_email = baker.make('account.emailaddress', user=self.user)
         other_email = baker.make('account.emailaddress')
         # Auth, Count, Queryset
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             res = self.client.get(self.url_list)
         self.assertContains(res, user_email.email)
         self.assertNotContains(res, other_email.email)
@@ -45,7 +45,7 @@ class AccountsEmailTestCase(APITestCase):
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
         # Auth, Select, Delete (many), Get or Create
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(11):
             res = self.client.post(self.url_list, data, format='json')
         self.assertContains(res, data['email'], status_code=201)
         self.assertEqual(self.user.emailaddress_set.count(), 2)

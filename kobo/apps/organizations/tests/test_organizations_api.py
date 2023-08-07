@@ -42,7 +42,7 @@ class OrganizationTestCase(BaseTestCase):
         self._insert_data()
         organization2 = baker.make(Organization, id='org_abcd123')
         organization2.add_user(user=self.user, is_admin=True)
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(3):
             res = self.client.get(self.url_list)
         self.assertContains(res, organization2.name)
 
@@ -61,7 +61,7 @@ class OrganizationTestCase(BaseTestCase):
     def test_update(self):
         self._insert_data()
         data = {'name': 'edit'}
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(5):
             res = self.client.patch(self.url_detail, data)
         self.assertContains(res, data['name'])
 
