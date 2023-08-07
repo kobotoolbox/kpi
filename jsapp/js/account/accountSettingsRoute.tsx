@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
+import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
-import {usePrompt} from 'js/router/promptBlocker';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
@@ -134,10 +134,10 @@ const AccountSettings = observer(() => {
       });
     }
   }, [sessionStore.isPending]);
-  usePrompt(
-    t('You have unsaved changes. Leave settings without saving?'),
-    !form.isPristine
-  );
+  usePrompt({
+    when: !form.isPristine,
+    message: t('You have unsaved changes. Leave settings without saving?'),
+  });
   const updateProfile = () => {
     // To patch correctly with recent changes to the backend,
     // ensure that we send empty strings if the field is left blank.

@@ -1,12 +1,12 @@
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import type {Update} from 'history';
+import type {RouterState} from '@remix-run/router';
 import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
 import {
   isFormSingleProcessingRoute,
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
@@ -194,7 +194,8 @@ class SingleProcessingStore extends Reflux.Store {
   init() {
     this.resetProcessingData();
 
-    history.listen(this.onRouteChange.bind(this));
+    // HACK: We add this ugly `setTimeout` to ensure router exists.
+    setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
 
     actions.submissions.getSubmissionByUuid.completed.listen(
       this.onGetSubmissionByUuidCompleted.bind(this)
@@ -349,7 +350,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  private onRouteChange(data: Update) {
+  private onRouteChange(data: RouterState) {
     if (this.previousPath === data.location.pathname) {
       return;
     }

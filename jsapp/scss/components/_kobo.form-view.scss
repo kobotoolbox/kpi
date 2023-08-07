@@ -154,56 +154,6 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-// The main tabs on top
-.form-view__toptabs {
-  background: colors.$kobo-white;
-  border-bottom: 1px solid colors.$kobo-gray-92;
-  text-align: center;
-  height: 48px;
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: stretch;
-
-  a.form-view__tab {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    text-transform: uppercase;
-    line-height: 48px;
-    margin: 0 30px;
-    font-size: 15px;
-    cursor: pointer;
-    position: relative;
-    color: colors.$kobo-gray-40;
-    font-weight: normal;
-
-    &:hover,
-    &.active {
-      color: colors.$kobo-gray-24;
-    }
-
-    &.active {
-      font-weight: 700;
-      border-bottom: 4px solid colors.$kobo-teal;
-    }
-
-    &.form-view__tab--disabled {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-  }
-
-  a.form-view__link--close {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    padding: 5px;
-    font-size: 18px;
-  }
-}
-
 .form-view__row {
   margin: 40px;
 
@@ -580,7 +530,7 @@ $side-tabs-width-mobile: 70px;
 
   .form-view__group--deployments {
     .form-view__group--items:hover {
-      background: $hover-asset-row;
+      background: colors.$kobo-gray-96;
     }
   }
 

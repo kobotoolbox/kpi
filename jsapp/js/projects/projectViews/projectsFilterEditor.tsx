@@ -20,6 +20,8 @@ interface ProjectsFilterEditorProps {
   /** Called on every change. */
   onFilterChange: (filter: ProjectsFilterDefinition) => void;
   onDelete: () => void;
+  /** A list of fields that should not be available to user. */
+  excludedFields?: ProjectFieldName[];
 }
 
 const COUNTRIES = envStore.data.country_choices;
@@ -67,6 +69,11 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       .filter(
         (filterDefinition) => filterDefinition.availableConditions.length >= 1
       )
+      // We don't want to display excluded fields.
+      .filter(
+        (filterDefinition) =>
+          !props.excludedFields?.includes(filterDefinition.name)
+      )
       .map((filterDefinition) => {
         return {label: filterDefinition.label, value: filterDefinition.name};
       });
@@ -79,12 +86,16 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     return fieldDefinition.availableConditions.map(
       (condition: FilterConditionName) => {
         const conditionDefinition = FILTER_CONDITIONS[condition];
-        return {label: conditionDefinition.label, value: conditionDefinition.name};
+        return {
+          label: conditionDefinition.label,
+          value: conditionDefinition.name,
+        };
       }
     );
   };
 
-  const isCountryFilterSelected = props.filter.fieldName && props.filter.fieldName === 'countries';
+  const isCountryFilterSelected =
+    props.filter.fieldName && props.filter.fieldName === 'countries';
 
   return (
     <div className={styles.root}>

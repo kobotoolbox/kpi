@@ -6,10 +6,7 @@
  */
 
 import {assign} from 'js/utils';
-import {
-  ROOT_URL,
-  COMMON_QUERIES,
-} from './constants';
+import {ROOT_URL, COMMON_QUERIES} from './constants';
 import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
@@ -20,8 +17,8 @@ import type {
 } from 'js/constants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import {FreeTierThresholds} from "js/envStore";
 import type {AnalysisQuestionSchema} from './components/processing/analysis/constants';
+import type {FreeTierThresholds} from 'js/envStore';
 
 interface AssetsRequestData {
   q?: string;
@@ -66,7 +63,8 @@ interface BulkSubmissionsRequest {
   submission_ids?: string[];
 }
 
-interface BulkSubmissionsValidationStatusRequest extends BulkSubmissionsRequest {
+interface BulkSubmissionsValidationStatusRequest
+  extends BulkSubmissionsRequest {
   'validation_status.uid': ValidationStatus;
 }
 
@@ -78,19 +76,34 @@ interface AssetFileRequest {
 }
 
 export interface CreateImportRequest {
-  base64Encoded?: string;
+  base64Encoded?: string | ArrayBuffer | null;
   name?: string;
-  destination?: string;
   totalFiles?: number;
+  /** Url of the asset that should be replaced with XLSForm */
+  destination?: string;
+  /** Uid of the asset that should be replaced with XLSForm */
   assetUid?: string;
+  /** Causes the imported XLSForm to be added as Library Item */
+  library?: boolean;
 }
 
 export interface ImportResponse {
+  /** The uid of the import (not asset!) */
   uid: string;
   url: string;
   messages?: {
-    updated?: Array<{uid: string; kind: string; summary: AssetSummary; owner__username: string}>;
-    created?: Array<{uid: string; kind: string; summary: AssetSummary; owner__username: string}>;
+    updated?: Array<{
+      uid: string;
+      kind: string;
+      summary: AssetSummary;
+      owner__username: string;
+    }>;
+    created?: Array<{
+      uid: string;
+      kind: string;
+      summary: AssetSummary;
+      owner__username: string;
+    }>;
     error?: string;
     error_type?: string;
   };
@@ -121,9 +134,10 @@ export interface PasswordUpdateFailResponse {
 interface ProcessingResponseData {
   [questionName: string]: any;
   _id: number;
-};
+}
 
-export interface GetProcessingSubmissionsResponse extends PaginatedResponse<ProcessingResponseData> {}
+export type GetProcessingSubmissionsResponse =
+  PaginatedResponse<ProcessingResponseData>;
 
 export interface SubmissionAttachment {
   download_url: string;
@@ -140,34 +154,34 @@ export interface SubmissionAttachment {
 interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: {
-      languageCode: LanguageCode
-      value: string
-      dateCreated: string
-      dateModified: string
-      engine?: string
-      revisions?: {
-        dateModified: string
-        engine?: string
-        languageCode: LanguageCode
-        value: string
-      }[]
-    }
+      languageCode: LanguageCode;
+      value: string;
+      dateCreated: string;
+      dateModified: string;
+      engine?: string;
+      revisions?: Array<{
+        dateModified: string;
+        engine?: string;
+        languageCode: LanguageCode;
+        value: string;
+      }>;
+    };
     translated?: {
       [languageCode: LanguageCode]: {
-        languageCode: LanguageCode
-        value: string
-        dateCreated: string
-        dateModified: string
-        engine?: string
-        revisions?: {
-          dateModified: string
-          engine?: string
-          languageCode: LanguageCode
-          value: string
-        }[]
-      }
-    }
-  }
+        languageCode: LanguageCode;
+        value: string;
+        dateCreated: string;
+        dateModified: string;
+        engine?: string;
+        revisions?: Array<{
+          dateModified: string;
+          engine?: string;
+          languageCode: LanguageCode;
+          value: string;
+        }>;
+      };
+    };
+  };
 }
 
 export interface SubmissionResponse {
@@ -179,7 +193,7 @@ export interface SubmissionResponse {
   _notes: any[];
   _status: string;
   _submission_time: string;
-  _submitted_by: string|null;
+  _submitted_by: string | null;
   _tags: string[];
   _uuid: string;
   _validation_status: object;
@@ -285,7 +299,7 @@ export interface SurveyRow {
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
   /** HXL tags. */
-  tags: string[]
+  tags: string[];
 }
 
 export interface SurveyChoice {
@@ -324,7 +338,8 @@ export interface AssetContent {
   choices?: SurveyChoice[];
   settings?: AssetContentSettings | AssetContentSettings[];
   translated?: string[];
-  translations?: Array<string|null>;
+  /** A list of languages. */
+  translations?: Array<string | null>;
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[];
 }
 
@@ -334,9 +349,9 @@ interface AssetSummary {
   columns?: string[];
   lock_all?: boolean;
   lock_any?: boolean;
-  languages?: Array<string|null>;
+  languages?: Array<string | null>;
   row_count?: number;
-  default_translation?: string|null;
+  default_translation?: string | null;
   /** To be used in a warning about missing or poorly written question names. */
   name_quality?: {
     ok: number;
@@ -487,11 +502,11 @@ export interface AssetResponse extends AssetRequestObject {
   date_created: string;
   summary: AssetSummary;
   date_modified: string;
-  version_id: string|null;
-  version__content_hash?: string|null;
+  version_id: string | null;
+  version__content_hash?: string | null;
   version_count?: number;
   has_deployment: boolean;
-  deployed_version_id: string|null;
+  deployed_version_id: string | null;
   analysis_form_json?: any;
   deployed_versions?: {
     count: number;
@@ -505,7 +520,7 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string;
     }>;
   };
-  deployment__identifier: string|null;
+  deployment__identifier: string | null;
   deployment__links?: {
     url?: string;
     single_url?: string;
@@ -526,6 +541,7 @@ export interface AssetResponse extends AssetRequestObject {
     csv?: string;
   };
   deployment__submission_count: number;
+  deployment_status: 'archived' | 'deployed' | 'draft';
   downloads: AssetDownloads;
   embeds?: Array<{
     format: string;
@@ -536,7 +552,9 @@ export interface AssetResponse extends AssetRequestObject {
   uid: string;
   kind: string;
   xls_link?: string;
-  assignable_permissions?: Array<AssignablePermission|AssignablePermissionPartial>;
+  assignable_permissions?: Array<
+    AssignablePermission | AssignablePermissionPartial
+  >;
   /**
    * A list of all permissions (their codenames) that current user has in
    * regards to this asset. It is a sum of permissions assigned directly for
@@ -550,7 +568,7 @@ export interface AssetResponse extends AssetRequestObject {
   };
   subscribers_count: number;
   status: string;
-  access_types: string[]|null;
+  access_types: string[] | null;
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.
@@ -566,6 +584,7 @@ export interface AssetResponse extends AssetRequestObject {
 /** This is the asset object returned by project-views endpoint. */
 export interface ProjectViewAsset {
   url: string;
+  asset_type: AssetTypeName;
   date_modified: string;
   date_created: string;
   date_deployed: string | null;
@@ -576,21 +595,13 @@ export interface ProjectViewAsset {
   owner__name: string;
   owner__organization: string;
   uid: string;
-  kind: string;
   name: string;
   settings: AssetSettings;
   languages: Array<string | null>;
-  asset_type: string;
-  version_id: string;
-  version_count: number;
   has_deployment: boolean;
-  deployed_version_id: string | null;
   deployment__active: boolean;
   deployment__submission_count: number;
-  permissions: string[];
-  status: string;
-  data_sharing: {};
-  data: string;
+  deployment_status: 'archived' | 'deployed' | 'draft';
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
@@ -625,7 +636,7 @@ export interface PermissionDefinition {
   contradictory: string[];
 }
 
-export interface PermissionsConfigResponse extends PaginatedResponse<PermissionDefinition> {}
+export type PermissionsConfigResponse = PaginatedResponse<PermissionDefinition>;
 
 interface SocialAccount {
   provider: string;
@@ -643,6 +654,9 @@ export interface AccountResponse {
   email: string;
   server_time: string;
   date_joined: string;
+  /**
+   * Link to a legacy view containing list of projects. No longer used on FE.
+   */
   projects_url: string;
   is_superuser: boolean;
   gravatar: string;
@@ -668,10 +682,11 @@ export interface AccountResponse {
     [key: string]: Json | ProjectViewsSettings | undefined;
   };
   git_rev: {
-    short: string;
-    long: string;
-    branch: string;
-    tag: boolean;
+    // All are either a string or `false`
+    short: string | boolean;
+    long: string | boolean;
+    branch: string | boolean;
+    tag: string | boolean;
   };
   social_accounts: SocialAccount[];
 }
@@ -739,7 +754,7 @@ export interface EnvironmentResponse {
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
   asr_mt_features_enabled: boolean;
-  mfa_localized_help_text: { [name: string]: string };
+  mfa_localized_help_text: string;
   mfa_enabled: boolean;
   mfa_code_length: number;
   stripe_public_key: string | null;
@@ -793,46 +808,69 @@ interface ExternalServiceRequestData {
   password?: string;
 }
 
+export interface DeploymentResponse {
+  backend: string;
+  /** URL */
+  identifier: string;
+  active: boolean;
+  version_id: string;
+  asset: AssetResponse;
+}
+
 interface DataInterface {
   patchProfile: (data: AccountRequest) => JQuery.jqXHR<AccountResponse>;
   [key: string]: Function;
 }
 
-const $ajax = (o: {}) => $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
+const $ajax = (o: {}) =>
+  $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
-  getProfile: () => fetch(`${ROOT_URL}/me/`).then((response) => response.json()),  // TODO replace selfProfile
-  selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> => $ajax({url: `${ROOT_URL}/me/`}),
+  getProfile: () =>
+    fetch(`${ROOT_URL}/me/`).then((response) => response.json()), // TODO replace selfProfile
+  selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> =>
+    $ajax({url: `${ROOT_URL}/me/`}),
 
-  apiToken: (): JQuery.jqXHR<{token: string}> => $ajax({
+  apiToken: (): JQuery.jqXHR<{token: string}> =>
+    $ajax({
       url: `${ROOT_URL}/token/?format=json`,
     }),
 
-  getUser: (userUrl: string): JQuery.jqXHR<UserResponse> => $ajax({
+  getUser: (userUrl: string): JQuery.jqXHR<UserResponse> =>
+    $ajax({
       url: userUrl,
     }),
 
   queryUserExistence: (username: string): JQuery.Promise<string, boolean> => {
     const d = $.Deferred();
     $ajax({url: `${ROOT_URL}/api/v2/users/${username}/`})
-      .done(() => {d.resolve(username, true);})
-      .fail(() => {d.reject(username, false);});
+      .done(() => {
+        d.resolve(username, true);
+      })
+      .fail(() => {
+        d.reject(username, false);
+      });
     return d.promise();
   },
 
   logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();
-    $ajax({url: `${ROOT_URL}/accounts/logout/`, method: 'POST'}).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
-      // logout request wasn't successful, but may have logged the user out
-      // querying '/me/' can confirm if we have logged out.
-      dataInterface.selfProfile().done(function (data: {message?: string}){
-        if (data.message === 'user is not logged in') {
-          d.resolve(data);
-        } else {
-          d.reject(data);
-        }
-      }).fail(d.fail);
-    });
+    $ajax({url: `${ROOT_URL}/accounts/logout/`, method: 'POST'})
+      .done(d.resolve)
+      .fail(function (/*resp, etype, emessage*/) {
+        // logout request wasn't successful, but may have logged the user out
+        // querying '/me/' can confirm if we have logged out.
+        dataInterface
+          .selfProfile()
+          .done(function (data: {message?: string}) {
+            if (data.message === 'user is not logged in') {
+              d.resolve(data);
+            } else {
+              d.reject(data);
+            }
+          })
+          .fail(d.fail);
+      });
     return d.promise();
   },
 
@@ -848,15 +886,19 @@ export const dataInterface: DataInterface = {
 
   listTemplates(): JQuery.jqXHR<AssetsResponse> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/` + (COMMON_QUERIES.t ? `?q=${COMMON_QUERIES.t}`: ''),
+      url:
+        `${ROOT_URL}/api/v2/assets/` +
+        (COMMON_QUERIES.t ? `?q=${COMMON_QUERIES.t}` : ''),
     });
   },
 
-  getCollections(params: {
-    owner?: string;
-    pageSize?: number;
-    page?: number;
-  } = {}): JQuery.jqXHR<AssetsResponse> {
+  getCollections(
+    params: {
+      owner?: string;
+      pageSize?: number;
+      page?: number;
+    } = {}
+  ): JQuery.jqXHR<AssetsResponse> {
     let q = COMMON_QUERIES.c;
     if (params.owner) {
       q += ` AND owner__username__exact:${params.owner}`;
@@ -873,7 +915,9 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  createAssetSnapshot(data: AssetResponse): JQuery.jqXHR<AssetSnapshotResponse> {
+  createAssetSnapshot(
+    data: AssetResponse
+  ): JQuery.jqXHR<AssetSnapshotResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/asset_snapshots/`,
       method: 'POST',
@@ -899,7 +943,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  addExternalService(uid: string, data: ExternalServiceRequestData): JQuery.jqXHR<any> {
+  addExternalService(
+    uid: string,
+    data: ExternalServiceRequestData
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/`,
       method: 'POST',
@@ -951,7 +998,11 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  retryExternalServiceLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<any> {
+  retryExternalServiceLog(
+    uid: string,
+    hookUid: string,
+    lid: string
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
       method: 'PATCH',
@@ -967,7 +1018,9 @@ export const dataInterface: DataInterface = {
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;
     }
-    if (data.group_by != '') {identifierString += `&split_by=${data.group_by}`;}
+    if (data.group_by != '') {
+      identifierString += `&split_by=${data.group_by}`;
+    }
 
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${data.uid}/reports/${identifierString}`,
@@ -984,10 +1037,18 @@ export const dataInterface: DataInterface = {
     const data: {[key: string]: any} = {
       clone_from: params.uid,
     };
-    if (params.name) {data.name = params.name;}
-    if (params.version_id) {data.clone_from_version_id = params.version_id;}
-    if (params.new_asset_type) {data.asset_type = params.new_asset_type;}
-    if (params.parent) {data.parent = params.parent;}
+    if (params.name) {
+      data.name = params.name;
+    }
+    if (params.version_id) {
+      data.clone_from_version_id = params.version_id;
+    }
+    if (params.new_asset_type) {
+      data.asset_type = params.new_asset_type;
+    }
+    if (params.parent) {
+      data.parent = params.parent;
+    }
     return $ajax({
       method: 'POST',
       url: `${ROOT_URL}/api/v2/assets/`,
@@ -1016,11 +1077,14 @@ export const dataInterface: DataInterface = {
   /*
    * Dynamic data attachments
    */
-  attachToSource(assetUid: string, data: {
-    source: string;
-    fields: string[];
-    filename: string;
-  }): JQuery.jqXHR<any> {
+  attachToSource(
+    assetUid: string,
+    data: {
+      source: string;
+      fields: string[];
+      filename: string;
+    }
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
       method: 'POST',
@@ -1036,10 +1100,13 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  patchSource(attachmentUrl: string, data: {
-    fields: string;
-    filename: string;
-  }): JQuery.jqXHR<any> {
+  patchSource(
+    attachmentUrl: string,
+    data: {
+      fields: string;
+      filename: string;
+    }
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: attachmentUrl,
       method: 'PATCH',
@@ -1062,12 +1129,15 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  patchDataSharing(assetUid: string, data: {
-    data_sharing: {
-      enabled: boolean;
-      fields: string[];
-    };
-  }): JQuery.jqXHR<any> {
+  patchDataSharing(
+    assetUid: string,
+    data: {
+      data_sharing: {
+        enabled: boolean;
+        fields: string[];
+      };
+    }
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
       method: 'PATCH',
@@ -1144,7 +1214,9 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  subscribeToCollection(assetUrl: string): JQuery.jqXHR<AssetSubscriptionsResponse> {
+  subscribeToCollection(
+    assetUrl: string
+  ): JQuery.jqXHR<AssetSubscriptionsResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/asset_subscriptions/`,
       data: {
@@ -1161,10 +1233,12 @@ export const dataInterface: DataInterface = {
         asset__uid: uid,
       },
       method: 'GET',
-    }).then((data) => $ajax({
+    }).then((data) =>
+      $ajax({
         url: data.results[0].url,
         method: 'DELETE',
-      }));
+      })
+    );
   },
 
   getImportDetails(params: {uid: string}): JQuery.jqXHR<any> {
@@ -1176,7 +1250,9 @@ export const dataInterface: DataInterface = {
       return $.getJSON(params.url);
     } else {
       // limit is for collections children
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
+      return $.getJSON(
+        `${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`
+      );
     }
   },
 
@@ -1192,7 +1268,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  createAssetExport(assetUid: string, data: ExportSettingSettings): JQuery.jqXHR<any> {
+  createAssetExport(
+    assetUid: string,
+    data: ExportSettingSettings
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       method: 'POST',
@@ -1255,10 +1334,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deleteExportSetting(
-    assetUid: string,
-    settingUid: string
-  ): JQuery.jqXHR<any> {
+  deleteExportSetting(assetUid: string, settingUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
       method: 'DELETE',
@@ -1283,7 +1359,6 @@ export const dataInterface: DataInterface = {
       method: 'GET',
     });
   },
-
 
   _searchAssetsWithPredefinedQuery(
     params: SearchAssetsPredefinedParams,
@@ -1369,15 +1444,19 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  searchMyCollectionAssets(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
+  searchMyCollectionAssets(
+    params: SearchAssetsPredefinedParams = {}
+  ): JQuery.jqXHR<any> {
     return this._searchAssetsWithPredefinedQuery(
       params,
       // we only want the currently viewed collection's assets
-      `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`,
+      `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`
     );
   },
 
-  searchMyLibraryAssets(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
+  searchMyLibraryAssets(
+    params: SearchAssetsPredefinedParams = {}
+  ): JQuery.jqXHR<any> {
     // we only want orphans (assets not inside collection)
     // unless it's a search
     let query = COMMON_QUERIES.qbtc;
@@ -1388,15 +1467,19 @@ export const dataInterface: DataInterface = {
     return this._searchAssetsWithPredefinedQuery(params, query);
   },
 
-  searchMyCollectionMetadata(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
+  searchMyCollectionMetadata(
+    params: SearchAssetsPredefinedParams = {}
+  ): JQuery.jqXHR<any> {
     return this._searchMetadataWithPredefinedQuery(
       params,
       // we only want the currently viewed collection's assets
-      `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`,
+      `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`
     );
   },
 
-  searchMyLibraryMetadata(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
+  searchMyLibraryMetadata(
+    params: SearchAssetsPredefinedParams = {}
+  ): JQuery.jqXHR<any> {
     // we only want orphans (assets not inside collection)
     // unless it's a search
     let query = COMMON_QUERIES.qbtc;
@@ -1407,20 +1490,18 @@ export const dataInterface: DataInterface = {
     return this._searchMetadataWithPredefinedQuery(params, query);
   },
 
-  searchPublicCollections(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
+  searchPublicCollections(
+    params: SearchAssetsPredefinedParams = {}
+  ): JQuery.jqXHR<any> {
     params.status = 'public-discoverable';
-    return this._searchAssetsWithPredefinedQuery(
-      params,
-      COMMON_QUERIES.c,
-    );
+    return this._searchAssetsWithPredefinedQuery(params, COMMON_QUERIES.c);
   },
 
-  searchPublicCollectionsMetadata(params: SearchAssetsPredefinedParams = {}): JQuery.jqXHR<any> {
+  searchPublicCollectionsMetadata(
+    params: SearchAssetsPredefinedParams = {}
+  ): JQuery.jqXHR<any> {
     params.status = 'public-discoverable';
-    return this._searchMetadataWithPredefinedQuery(
-      params,
-      COMMON_QUERIES.c,
-    );
+    return this._searchMetadataWithPredefinedQuery(params, COMMON_QUERIES.c);
   },
 
   assetsHash(): JQuery.jqXHR<any> {
@@ -1452,11 +1533,14 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/tags/`,
       method: 'GET',
-      data: assign({
-        // If this number is too big (e.g. 9999) it causes a deadly timeout
-        // whenever Form Builder displays the aside Library search
-        limit: 100,
-      }, data),
+      data: assign(
+        {
+          // If this number is too big (e.g. 9999) it causes a deadly timeout
+          // whenever Form Builder displays the aside Library search
+          limit: 100,
+        },
+        data
+      ),
     });
   },
 
@@ -1467,7 +1551,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  deployAsset(asset: AssetResponse, redeployment: boolean): JQuery.jqXHR<any> {
+  deployAsset(
+    asset: AssetResponse,
+    redeployment: boolean
+  ): JQuery.jqXHR<DeploymentResponse> {
     const data: {
       active: boolean;
       version_id?: string | null;
@@ -1486,7 +1573,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  setDeploymentActive(params: {asset: AssetResponse; active: boolean}): JQuery.jqXHR<any> {
+  setDeploymentActive(params: {
+    asset: AssetResponse;
+    active: boolean;
+  }): JQuery.jqXHR<DeploymentResponse> {
     return $ajax({
       method: 'PATCH',
       url: `${params.asset.url}deployment/`,
@@ -1518,12 +1608,15 @@ export const dataInterface: DataInterface = {
     sort: Array<{desc: boolean; id: string}> = [],
     fields: string[] = [],
     filter = ''
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<PaginatedResponse<SubmissionResponse>> {
     const query = `limit=${pageSize}&start=${page}`;
     let s = '&sort={"_id":-1}'; // default sort
     let f = '';
     if (sort.length) {
-      s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
+      s =
+        sort[0].desc === true
+          ? `&sort={"${sort[0].id}":-1}`
+          : `&sort={"${sort[0].id}":1}`;
     }
     if (fields.length) {
       f = `&fields=${JSON.stringify(fields)}`;
@@ -1535,7 +1628,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getSubmission(uid: string, sid: string): JQuery.jqXHR<any> {
+  getSubmission(uid: string, sid: string): JQuery.jqXHR<SubmissionResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'GET',
@@ -1557,10 +1650,12 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
       method: 'PATCH',
-      data: {'payload': JSON.stringify({
-        submission_ids: submissionIds,
-        data: data,
-      })},
+      data: {
+        payload: JSON.stringify({
+          submission_ids: submissionIds,
+          data: data,
+        }),
+      },
     });
   },
 
@@ -1571,7 +1666,7 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
       method: 'PATCH',
-      data: {'payload': JSON.stringify(data)},
+      data: {payload: JSON.stringify(data)},
     });
   },
 
@@ -1582,7 +1677,7 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
       method: 'DELETE',
-      data: {'payload': JSON.stringify(data)},
+      data: {payload: JSON.stringify(data)},
     });
   },
 
@@ -1598,7 +1693,10 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  removeSubmissionValidationStatus(uid: string, sid: string): JQuery.jqXHR<any> {
+  removeSubmissionValidationStatus(
+    uid: string,
+    sid: string
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
       method: 'DELETE',
@@ -1619,11 +1717,14 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  bulkDeleteSubmissions(uid: string, data: BulkSubmissionsRequest): JQuery.jqXHR<any> {
+  bulkDeleteSubmissions(
+    uid: string,
+    data: BulkSubmissionsRequest
+  ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
       method: 'DELETE',
-      data: {'payload': JSON.stringify(data)},
+      data: {payload: JSON.stringify(data)},
     });
   },
 

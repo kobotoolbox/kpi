@@ -9,7 +9,7 @@ import SingleProcessingContent from 'js/components/processing/singleProcessingCo
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import ProcessingSidebar from 'js/components/processing/sidebar/processingSidebar';
 import {UNSAVED_CHANGES_WARNING} from 'jsapp/js/protector/protectorConstants';
-import {usePrompt} from 'jsapp/js/router/promptBlocker';
+import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import styles from './singleProcessingRoute.module.scss';
 
@@ -20,7 +20,7 @@ interface SingleProcessingRouteProps extends WithRouterProps {
 }
 
 const Prompt = () => {
-  usePrompt(UNSAVED_CHANGES_WARNING);
+  usePrompt({message: UNSAVED_CHANGES_WARNING, when: true});
   return <></>;
 };
 
