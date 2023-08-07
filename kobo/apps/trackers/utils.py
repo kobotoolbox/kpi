@@ -4,7 +4,7 @@ from django.apps import apps
 from django.db.models import F
 from django.utils import timezone
 
-from kpi.utils.jsonbfield_helper import IncrementValue
+from kpi.utils.django_orm_helper import IncrementValue
 
 
 def update_nlp_counter(

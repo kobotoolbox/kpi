@@ -13,9 +13,10 @@ import 'js/surveyCompanionStore'; // importing it so it exists
 import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
-import MainHeader from 'js/components/header';
+import MainHeader from 'js/components/header/mainHeader.component';
 import Drawer from 'js/components/drawer';
-import FormViewTabs from 'js/components/formViewTabs';
+import FormViewSideTabs from 'js/components/formViewSideTabs';
+import ProjectTopTabs from 'js/project/projectTopTabs.component';
 import PermValidator from 'js/components/permissions/permValidator';
 import {assign} from 'utils';
 import BigModal from 'js/components/bigModal/bigModal';
@@ -86,7 +87,7 @@ class App extends React.Component {
 
             {!this.isFormBuilder() && (
               <React.Fragment>
-                <MainHeader assetid={assetid} />
+                <MainHeader assetUid={assetid} />
                 <Drawer />
               </React.Fragment>
             )}
@@ -97,8 +98,8 @@ class App extends React.Component {
             >
               {!this.isFormBuilder() && (
                 <React.Fragment>
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                  {this.isFormSingle() && <ProjectTopTabs />}
+                  <FormViewSideTabs show={this.isFormSingle()} />
                 </React.Fragment>
               )}
               <Outlet />

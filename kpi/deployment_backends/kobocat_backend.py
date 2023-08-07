@@ -243,6 +243,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         `POST` initial survey content to KoBoCAT and create a new project.
         Store results in deployment data.
+        CAUTION: Does not save deployment data to the database!
         """
         # If no identifier was provided, construct one using
         # `settings.KOBOCAT_URL` and the uid of the asset
@@ -977,7 +978,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def redeploy(self, active=None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
-        optionally changing whether the deployment is active
+        optionally changing whether the deployment is active.
+        CAUTION: Does not save deployment data to the database!
         """
         if active is None:
             active = self.active
