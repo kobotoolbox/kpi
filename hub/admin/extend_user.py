@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 from constance import config
@@ -9,7 +8,6 @@ from django.contrib.auth.forms import (
     UserCreationForm as DjangoUserCreationForm,
     UserChangeForm as DjangoUserChangeForm,
 )
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
@@ -34,12 +32,6 @@ from kpi.exceptions import (
     SearchQueryTooShortException,
 )
 from kpi.filters import SearchFilter
-from .models import (
-    ExtraUserDetail,
-    ConfigurationFile,
-    SitewideMessage,
-    PerUserSetting,
-)
 
 
 class QueryParserFilter(admin.filters.SimpleListFilter):
@@ -326,23 +318,3 @@ class ExtendedUserAdmin(UserAdmin):
             message += f'View <a href="{url}">trash.</a>'
 
         return mark_safe(message)
-
-
-class ExtraUserDetailAdmin(admin.ModelAdmin):
-    list_display = ('user',)
-    ordering = ('user__username',)
-    search_fields = ('user__username',)
-    autocomplete_fields = ['user']
-
-    def get_queryset(self, request):
-        return (
-            super().get_queryset(request).exclude(user_id=settings.ANONYMOUS_USER_ID)
-        )
-
-
-admin.site.register(ExtraUserDetail, ExtraUserDetailAdmin)
-admin.site.register(SitewideMessage)
-admin.site.register(ConfigurationFile)
-admin.site.register(PerUserSetting)
-admin.site.unregister(User)
-admin.site.register(User, ExtendedUserAdmin)
