@@ -3,7 +3,7 @@ from typing import Optional
 
 from django.apps import apps
 
-from kpi.utils.jsonbfield_helper import IncrementValue
+from kpi.utils.django_orm_helper import IncrementValue
 
 
 def update_nlp_counter(

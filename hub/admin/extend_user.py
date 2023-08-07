@@ -26,6 +26,7 @@ from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
+from kpi.models.asset import AssetDeploymentStatus
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -153,7 +154,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         Django admin user changelist page
         """
         assets_count = obj.assets.filter(
-            _deployment_data__active=True
+            _deployment_status=AssetDeploymentStatus.DEPLOYED
         ).aggregate(count=Count('pk'))
         return assets_count['count']
 
