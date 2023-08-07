@@ -7,13 +7,18 @@ from django.contrib.auth.models import User
 from django.db.models.functions import Lower
 from django.utils import timezone
 
+MAX_SEND_ATTEMPTS = 3
+RETRY_WAIT_TIME = 30  # in seconds
 FROM_ADDRESS = ''
 EMAIL_SUBJECT = ''
 EMAIL_TEMPLATE_NAME = ''
+
+# Path to a valid .html file to use for the email
 EMAIL_HTML_FILENAME = ''
+
+# Path to a valid .txt file to use for the email text content
 EMAIL_TEXT_FILENAME = ''
-MAX_SEND_ATTEMPTS = 3
-RETRY_WAIT_TIME = 30  # in seconds
+
 
 # We don't want to use all of our available email sends; some need to be reserved for other uses (password resets, etc.)
 # So we send emails until we've sent ( 24 hour sending capacity - RESERVE_EMAIL_COUNT ) emails
