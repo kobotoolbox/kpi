@@ -1,11 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import styles from './usage.module.scss';
-import {getUsage, getUsageForOrganization} from './usage.api';
+import {getUsageForOrganization} from './usage.api';
 import {
   AccountLimit,
   getAccountLimits,
-  getOrganization,
-  getSubscription, getSubscriptionInterval,
+  getSubscriptionInterval,
   RecurringInterval
 } from "js/account/stripe.api";
 import envStore from 'js/envStore';
