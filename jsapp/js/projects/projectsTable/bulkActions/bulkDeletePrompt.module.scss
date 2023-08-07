@@ -1,0 +1,11 @@
+@use 'scss/sizes';
+
+.promptContent {
+  display: flex;
+  flex-direction: column;
+  gap: sizes.$x20;
+
+  :global p {
+    margin: 0;
+  }
+}
