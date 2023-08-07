@@ -130,20 +130,19 @@ class KobocatDigestPartial(ShadowModel):
         but updates `KobocatDigestPartial` in the KoBoCAT database instead of
         `PartialDigest` in the KPI database
         """
-        # Because of circular imports, we cannot decorate the method with
-        # `@kc_transaction_atomic`
-        from .utils import kc_transaction_atomic
 
-        with kc_transaction_atomic():
-            cls.objects.filter(user=user).delete()
-            # Query for `user_id` since user PKs are synchronized
-            for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-                cls.objects.create(
-                    user=user,
-                    login=partial_digest.login,
-                    confirmed=partial_digest.confirmed,
-                    partial_digest=partial_digest.partial_digest,
-                )
+        # No need to decorate this method with a `kc_transaction_atomic` because
+        # it is only used in KobocatUser.sync() which is called only in
+        # `save_kobocat_user()` inside a (KoBoCAT) transaction.
+        cls.objects.filter(user=user).delete()
+        # Query for `user_id` since user PKs are synchronized
+        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+            cls.objects.create(
+                user=user,
+                login=partial_digest.login,
+                confirmed=partial_digest.confirmed,
+                partial_digest=partial_digest.partial_digest,
+            )
 
 
 class KobocatGenericForeignKey(GenericForeignKey):
@@ -384,7 +383,6 @@ class KobocatUserProfile(ShadowModel):
     # is using `LazyBooleanField` which is an integer behind the scene.
     # We do not want to port this class to KPI only for one line of code.
     is_mfa_active = models.PositiveSmallIntegerField(default=False)
-    password_date_changed = models.DateTimeField(null=True, blank=True)
     validated_password = models.BooleanField(default=False)
 
     @classmethod
@@ -396,8 +394,8 @@ class KobocatUserProfile(ShadowModel):
 
     @classmethod
     def set_password_details(
-        cls, 
-        user_id: int, 
+        cls,
+        user_id: int,
         validated: bool,
     ):
         """

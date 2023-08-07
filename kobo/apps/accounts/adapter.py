@@ -6,6 +6,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
+from django.utils import timezone
 from trench.utils import get_mfa_model, user_token_generator
 
 from .mfa.forms import MfaTokenForm
@@ -60,3 +61,13 @@ class AccountAdapter(DefaultAccountAdapter):
             if commit:
                 user.extra_details.save()
         return user
+
+    def set_password(self, user, password):
+        with transaction.atomic():
+            user.extra_details.password_date_changed = timezone.now()
+            user.extra_details.validated_password = True
+            user.extra_details.save(
+                update_fields=['password_date_changed', 'validated_password']
+            )
+            user.set_password(password)
+            user.save()

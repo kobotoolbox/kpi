@@ -3,6 +3,7 @@ from datetime import datetime
 from constance.test import override_config
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kpi.tests.base_test_case import BaseTestCase
@@ -115,3 +116,30 @@ class CurrentUserTestCase(BaseTestCase):
             'You cannot use your last password.'
         }
         assert errors == {str(e) for e in response.data['new_password']}
+
+    @override_config(
+        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
+        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
+        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
+        ENABLE_COMMON_PASSWORD_VALIDATION=False,
+        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
+    )
+    def test_validated_password_becomes_true_on_password_change(self):
+
+        password = 'delete_me'
+        self.user.extra_details.validated_password = False
+        self.user.extra_details.save(update_fields=['validated_password'])
+        assert self.user.extra_details.password_date_changed is None
+        now = timezone.now()
+        self.client.login(username='delete_me', password=password)
+        payload = {
+            'current_password': password,
+            'new_password': password,
+        }
+        response = self.client.patch(self.url, data=payload, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        self.user.refresh_from_db()
+        assert self.user.extra_details.validated_password
+        assert self.user.extra_details.password_date_changed is not None
+        assert self.user.extra_details.password_date_changed >= now
