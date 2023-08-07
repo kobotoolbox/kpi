@@ -7,11 +7,11 @@ from django.contrib.auth.models import User
 from django.db.models.functions import Lower
 from django.utils import timezone
 
-FROM_ADDRESS = 'Tino Kreutzer <support@kobotoolbox.org>'
-EMAIL_SUBJECT = '📣 OCHA KoboToolbox server - Important Update / Mise à jour importante / Aviso importante / تحديث مهم'
-EMAIL_TEMPLATE_NAME = 'OCHATransitionEmail'
-EMAIL_HTML_FILENAME = 'ocha_transition_email.html'
-EMAIL_TEXT_FILENAME = 'ocha_transition_email.txt'
+FROM_ADDRESS = ''
+EMAIL_SUBJECT = ''
+EMAIL_TEMPLATE_NAME = ''
+EMAIL_HTML_FILENAME = ''
+EMAIL_TEXT_FILENAME = ''
 MAX_SEND_ATTEMPTS = 3
 RETRY_WAIT_TIME = 30  # in seconds
 
@@ -26,7 +26,11 @@ IS_MARKETING_EMAIL = True
 
 # Maximum number of emails to send in one use of the script
 # Set to 0 to send as many emails as SES will allow
-MAX_SEND_LIMIT = 500
+MAX_SEND_LIMIT = 0
+
+# Only sends to users who have logged in since this date
+# Needs to be a Date object
+ACTIVE_SINCE = timezone.now() - relativedelta(years=1)
 
 start_time = time.time()
 
@@ -188,13 +192,12 @@ def get_eligible_users(user_detail_email_key, force=False):
     # Get the list of users to email
     # Modify this function to change which users receive emails
 
-    one_year_ago = timezone.now() - relativedelta(years=1)
-    print(f'searching for users active since {one_year_ago.date()}')
+    print(f'searching for users active since {ACTIVE_SINCE.date()}')
     eligible_users = (
         User.objects.select_related('extra_details')
         .only('extra_details', 'email', 'username')
         .filter(
-            last_login__gte=one_year_ago,
+            last_login__gte=ACTIVE_SINCE,
             is_active=True,
         )
         .exclude(
