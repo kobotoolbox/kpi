@@ -91,7 +91,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
             # if user has not extra details, admin has not been able to set
-            # `validated_password`. Let's consider it True.
+            # `validated_password`. Let's consider it as True.
             return True
 
         return extra_details.validated_password
