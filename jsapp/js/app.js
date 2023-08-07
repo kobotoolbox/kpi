@@ -23,6 +23,8 @@ import BigModal from 'js/components/bigModal/bigModal';
 import {Toaster} from 'react-hot-toast';
 import {withRouter, routerGetAssetId, router} from './router/legacy';
 import {Tracking} from './router/useTracking';
+import sessionStore from 'js/stores/session';
+import InvalidatedPassword from 'js/router/invalidatedPassword.component';
 
 class App extends React.Component {
   constructor(props) {
@@ -49,6 +51,15 @@ class App extends React.Component {
   }
 
   render() {
+    // When user is marked as having invalidated password, we block all the UI
+    // and display a special component.
+    if (
+      sessionStore.isLoggedIn &&
+      sessionStore.currentAccount.validated_password === false
+    ) {
+      return <InvalidatedPassword />;
+    }
+
     const assetid = routerGetAssetId();
 
     const pageWrapperContentModifiers = [];

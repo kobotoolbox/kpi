@@ -193,9 +193,6 @@ bem.PopoverMenu__item = makeBem(bem.PopoverMenu, 'item');
 bem.PopoverMenu__heading = makeBem(bem.PopoverMenu, 'heading');
 bem.PopoverMenu__moveTo = makeBem(bem.PopoverMenu, 'moveTo');
 
-bem.Header = makeBem(null, 'header');
-bem.Header__logo = makeBem(bem.Header, 'logo', 'span');
-
 bem.LoginBox = makeBem(null, 'login-box');
 
 bem.AccountBox = makeBem(null, 'account-box');
@@ -267,9 +264,6 @@ bem.AssetInfoBox__cell = makeBem(bem.AssetInfoBox, 'cell');
 bem.AssetInfoBox__toggle = makeBem(bem.AssetInfoBox, 'toggle', 'button');
 
 bem.PrintOnly = makeBem(null, 'print-only');
-
-bem.GitRev = makeBem(null, 'git-rev');
-bem.GitRev__item = makeBem(bem.GitRev, 'item', 'div');
 
 bem.ProjectDownloads = makeBem(null, 'project-downloads');
 bem.ProjectDownloads__advancedView = makeBem(bem.ProjectDownloads, 'advanced-view', 'section');

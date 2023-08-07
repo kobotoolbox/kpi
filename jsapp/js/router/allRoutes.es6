@@ -6,7 +6,6 @@ import {actions} from 'js/actions';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {isRootRoute, redirectToLogin} from 'js/router/routerUtils';
-import InvalidatedPassword from 'js/router/invalidatedPassword.component';
 import sessionStore from 'js/stores/session';
 import router from './router';
 
@@ -79,15 +78,6 @@ const AllRoutes = class AllRoutes extends React.Component {
       redirectToLogin();
       // redirect is async, continue showing loading
       return <LoadingSpinner />;
-    }
-
-    if (
-      sessionStore.isLoggedIn &&
-      // When user is marked as having invalidated password, we block all the UI
-      // and display a special component.
-      sessionStore.currentAccount.validated_password === false
-    ) {
-      return <InvalidatedPassword />;
     }
 
     return <RouterProvider router={router} />;
