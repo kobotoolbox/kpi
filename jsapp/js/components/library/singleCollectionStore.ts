@@ -75,7 +75,9 @@ class SingleCollectionStore extends Reflux.Store {
   init() {
     this.setDefaultColumns();
 
+    // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
+
     actions.library.moveToCollection.completed.listen(
       this.onMoveToCollectionCompleted.bind(this)
     );

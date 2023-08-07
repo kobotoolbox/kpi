@@ -4,15 +4,14 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import bem from 'js/bem';
-import sessionStore from 'js/stores/session';
 import assetStore from 'js/assetStore';
-import {Link, NavLink} from 'react-router-dom';
+import {NavLink} from 'react-router-dom';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import {assign} from 'utils';
-import {userCan, userCanPartially} from 'js/components/permissions/utils';
+import {userCan} from 'js/components/permissions/utils';
 
 export function getFormDataTabs(assetUid) {
   return [
@@ -44,7 +43,7 @@ export function getFormDataTabs(assetUid) {
   ];
 }
 
-class FormViewTabs extends Reflux.Component {
+class FormViewSideTabs extends Reflux.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -64,8 +63,9 @@ class FormViewTabs extends Reflux.Component {
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
-      // ROUTES.FORM_RESET
-      this.props.router.navigate(`/forms/${this.state.asset.uid}/reset`);
+      this.props.router.navigate(
+        ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid)
+      );
 
       var path = evt.target.getAttribute('data-path');
       window.setTimeout(() => {
@@ -74,87 +74,6 @@ class FormViewTabs extends Reflux.Component {
 
       evt.preventDefault();
     }
-  }
-
-  isDataTabEnabled() {
-    return (
-      this.state.asset.deployment__identifier != undefined &&
-      this.state.asset.has_deployment &&
-      this.state.asset.deployment__submission_count > 0 &&
-      (
-        userCan('view_submissions', this.state.asset) ||
-        userCanPartially('view_submissions', this.state.asset)
-      )
-    );
-  }
-
-  renderTopTabs() {
-    if (this.state.asset === undefined) {
-      return false;
-    }
-
-    let dataTabClassNames = 'form-view__tab';
-    if (!this.isDataTabEnabled()) {
-      dataTabClassNames += ' form-view__tab--disabled';
-    }
-
-    let summaryTabClassNames = 'form-view__tab';
-    if (!sessionStore.isLoggedIn) {
-      summaryTabClassNames += ' form-view__tab--disabled';
-    }
-
-    let settingsTabClassNames = 'form-view__tab';
-    if (
-      !(
-        sessionStore.isLoggedIn && (
-          userCan('change_asset', this.state.asset) ||
-          userCan('change_metadata_asset', this.state.asset)
-        )
-      )
-    ) {
-      settingsTabClassNames += ' form-view__tab--disabled';
-    }
-
-    return (
-      <bem.FormView__toptabs>
-        <NavLink
-          to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.asset.uid)}
-          className={summaryTabClassNames}
-        >
-          {t('Summary')}
-        </NavLink>
-
-        <NavLink
-          to={ROUTES.FORM_LANDING.replace(':uid', this.state.asset.uid)}
-          className='form-view__tab'
-        >
-          {t('Form')}
-        </NavLink>
-
-        <NavLink
-          to={ROUTES.FORM_DATA.replace(':uid', this.state.asset.uid)}
-          className={dataTabClassNames}
-        >
-          {t('Data')}
-        </NavLink>
-
-        <NavLink
-          to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid)}
-          className={settingsTabClassNames}
-        >
-          {t('Settings')}
-        </NavLink>
-
-        {sessionStore.isLoggedIn && (
-          <Link
-            to={ROUTES.FORMS}
-            className='form-view__link form-view__link--close'
-          >
-            <i className='k-icon k-icon-close' />
-          </Link>
-        )}
-      </bem.FormView__toptabs>
-    );
   }
 
   renderFormSideTabs() {
@@ -277,24 +196,15 @@ class FormViewTabs extends Reflux.Component {
     if (!this.props.show) {
       return false;
     }
-    if (this.props.type === 'top') {
-      return (
-        this.renderTopTabs()
-      );
-    }
-    if (this.props.type === 'side') {
-      return (
-        this.renderFormSideTabs()
-      );
-    }
+    return this.renderFormSideTabs();
   }
 }
 
-reactMixin(FormViewTabs.prototype, Reflux.ListenerMixin);
-reactMixin(FormViewTabs.prototype, mixins.contextRouter);
+reactMixin(FormViewSideTabs.prototype, Reflux.ListenerMixin);
+reactMixin(FormViewSideTabs.prototype, mixins.contextRouter);
 
-FormViewTabs.contextTypes = {
+FormViewSideTabs.contextTypes = {
   router: PropTypes.object,
 };
 
-export default withRouter(FormViewTabs);
+export default withRouter(FormViewSideTabs);
