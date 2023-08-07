@@ -25,13 +25,22 @@ const UsageContainer = ({
   const isOverLimit = limitRatio > 1;
   const isNearingLimit = !isOverLimit && limitRatio > WARNING_THRESHOLD_RATIO;
   return (
-    <div className={styles.usage}>
+    <div className={classnames(styles.usage, {
+      [styles.empty]: !usage
+    })}>
         <strong className={styles.description}>
           {label ||
             (period === RecurringInterval.Month ? t('Monthly') : t('Yearly'))
           }
         </strong>
-      {!usage && <span>-</span>}
+      {!usage &&
+        <>
+          <span aria-hidden className={classnames(styles.usageRow, styles.empty)}>
+            {'-'}
+          </span>
+          <span className={styles.visuallyHidden}>{t('none')}</span>
+        </>
+      }
       {Boolean(usage) && (
         <div className={classnames(styles.usageRow,
           {
@@ -39,16 +48,12 @@ const UsageContainer = ({
             [styles.overlimit]: isOverLimit,
           },
         )}>
-          {isNearingLimit &&
-            <Icon name={'warning'} color={'amber'} size={'m'}/>
-          }
-          {isOverLimit &&
-            <Icon name={'warning'} color={'red'} size={'m'}/>
-          }
+          {isNearingLimit && <Icon name={'warning'} color={'amber'} size={'m'}/>}
+          {isOverLimit && <Icon name={'warning'} color={'red'} size={'m'}/>}
           <strong>{isStorage ? prettyBytes(usage) : usage.toLocaleString()}</strong>
           {(limit !== 'unlimited' && limit) &&
             <>
-              <span aria-hidden> / </span>
+              <span aria-hidden>{' / '}</span>
               <span className={styles.visuallyHidden}>
                 {t('used out of')}
               </span>

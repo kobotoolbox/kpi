@@ -3,19 +3,25 @@
 
 .usage {
   display: grid;
-  grid: 1fr / auto-flow;
+  grid: 1fr / auto auto;
   width: 100%;
   margin-top: sizes.$x18;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+
+  &.empty {
+    justify-content: start;
+    gap: 2em;
+  }
 }
 
 .usageRow {
   border-radius: sizes.$x6;
   padding: sizes.$x6;
+  box-sizing: content-box;
   display: flex;
   gap: 0.25rem;
-  align-items: center
+  align-items: center;
 }
 
 .warning {

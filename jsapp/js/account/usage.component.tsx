@@ -60,20 +60,36 @@ export default function Usage() {
     return parseFloat(decimal.toFixed(2));
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string, format: string = 'll') => {
     const myMoment = moment.utc(dateString);
-    return myMoment.format('ll');
+    return myMoment.format(format);
   };
+
+  const shortDate = useMemo(() => {
+    let format: string;
+    let date: string;
+    switch (usage.trackingPeriod) {
+      case RecurringInterval.Year:
+        format = 'YYYY';
+        date = usage.currentYearStart;
+        break;
+      default:
+        format = 'MMM YYYY';
+        date = usage.currentMonthStart;
+        break;
+    }
+    return formatDate(date, format);
+  }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
 
   const dateRange = useMemo(() => {
     let startDate: string;
     const endDate = formatDate(new Date().toUTCString());
     switch (usage.trackingPeriod) {
       case RecurringInterval.Year:
-        startDate = usage.currentYearStart;
+        startDate = formatDate(usage.currentYearStart);
         break;
       default:
-        startDate = usage.currentMonthStart;
+        startDate = formatDate(usage.currentMonthStart);
         break;
     }
     return t('##start_date## to ##end_date##').replace(
@@ -154,8 +170,8 @@ export default function Usage() {
           ), // seconds to minutes
           translationChars:
             data.total_nlp_usage[`mt_characters_current_${usage.trackingPeriod}`],
-          currentMonthStart: formatDate(data.current_month_start),
-          currentYearStart: formatDate(data.current_year_start),
+          currentMonthStart: data.current_month_start,
+          currentYearStart: data.current_year_start,
           loaded: {
             ...prevState.loaded,
             usage: true,
@@ -177,10 +193,10 @@ export default function Usage() {
 
       <div className={styles.row}>
         <div className={styles.box}>
-          <strong className={styles.title}>{t('Submissions')}</strong>
-          <div className={styles.date}>
-            {dateRange}
-          </div>
+          <span>
+            <strong className={styles.title}>{t('Submissions')}</strong>
+            <div className={styles.date}>{dateRange}</div>
+          </span>
           <UsageContainer
             usage={usage.submissions}
             limit={usage.submissionLimit}
@@ -188,8 +204,10 @@ export default function Usage() {
           />
         </div>
         <div className={styles.box}>
-          <strong className={styles.title}>{t('Storage')}</strong>
-          <div className={styles.date}>{t('per account')}</div>
+          <span>
+            <strong className={styles.title}>{t('Storage')}</strong>
+            <div className={styles.date}>{t('per account')}</div>
+          </span>
           <UsageContainer
             usage={usage.storage}
             limit={usage.storageByteLimit}
@@ -199,10 +217,10 @@ export default function Usage() {
           />
         </div>
         <div className={styles.box}>
-          <strong className={styles.title}>{t('Transcription minutes')}</strong>
-          <div className={styles.date}>
-            {dateRange}
-          </div>
+          <span>
+            <strong className={styles.title}>{t('Transcription minutes')}</strong>
+            <div className={styles.date}>{shortDate}</div>
+          </span>
           <UsageContainer
             usage={usage.transcriptionMinutes}
             limit={usage.nlpMinuteLimit}
@@ -210,12 +228,12 @@ export default function Usage() {
           />
         </div>
         <div className={styles.box}>
-          <strong className={styles.title}>
-            {t('Translation characters')}
-          </strong>
-          <div className={styles.date}>
-            {dateRange}
-          </div>
+          <span>
+            <strong className={styles.title}>
+              {t('Translation characters')}
+            </strong>
+            <div className={styles.date}>{shortDate}</div>
+          </span>
           <UsageContainer
             usage={usage.translationChars}
             limit={usage.nlpCharacterLimit}
