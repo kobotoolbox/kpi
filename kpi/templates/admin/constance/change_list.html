@@ -1,0 +1,7 @@
+{% extends "admin/constance/change_list.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link href="{% static 'admin/constance/css/kobo-constance.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}

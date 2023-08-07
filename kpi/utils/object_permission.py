@@ -79,6 +79,7 @@ def get_anonymous_user():
     return user
 
 
+@cache_for_request
 def get_database_user(user: Union[User, AnonymousUser]) -> User:
     """
     Returns a real `User` object if `user` is an `AnonymousUser`, otherwise
