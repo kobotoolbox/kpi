@@ -1,0 +1,35 @@
+@use '~kobo-common/src/styles/colors';
+
+.limitBannerContainer {
+  background-color: hsla(353, 100%, 92%, 0.4);
+  display: flex;
+  padding: 0 2%;
+  align-items: center;
+  min-height: 75px;
+  flex-shrink: 0;
+}
+
+.bannerContent { 
+  padding: 0 2%;
+}
+
+.bannerLink {
+  color: colors.$kobo-dark-blue;
+  text-decoration: underline;
+}
+
+.bannerBtn { 
+  min-width: 120px !important;
+  height: 32px;
+}
+
+
+@media (max-width: 979px) {
+  .bannerBtn { 
+    min-width: 100px !important;
+  }
+
+  .bannerContent { 
+    padding: 2%;
+  }
+}

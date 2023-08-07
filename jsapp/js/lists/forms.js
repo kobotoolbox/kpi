@@ -9,6 +9,12 @@ import mixins from '../mixins';
 import SearchCollectionList from '../components/searchcollectionlist';
 import ViewSwitcher from 'js/projects/projectViews/viewSwitcher';
 import styles from './forms.module.scss';
+import LimitModal from '../components/usageLimits/overLimitModal.component';
+import LimitBanner from '../components/usageLimits/overLimitBanner.component';
+import {Cookies} from 'react-cookie';
+import envStore from 'js/envStore';
+
+const cookies = new Cookies();
 
 class FormsSearchableList extends React.Component {
   constructor(props) {
@@ -19,17 +25,54 @@ class FormsSearchableList extends React.Component {
           assetType: COMMON_QUERIES.s,
         },
         filterTags: COMMON_QUERIES.s,
-      })
+      }),
+      showModal: false,
+      limits: 0,
+      dismissed: false,
     };
+    this.setLimits = this.setLimits.bind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     this.searchSemaphore();
   }
-  render () {
+
+  setLimits = (limit) => {
+    this.setState({limits: limit});
+    const allCookies = cookies.getAll();
+    const isLimitCookie = Object.keys(allCookies).find(
+      (key) => key === 'overLimitsCookie'
+    );
+    if (isLimitCookie === undefined && limit > 0) {
+      this.setState({showModal: true});
+      const dateNow = new Date();
+      const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+      cookies.set('overLimitsCookie', {
+        expires: expireDate,
+      });
+    }
+    if (isLimitCookie && limit > 0) {
+      this.setState({dismissed: true});
+    }
+  };
+
+  modalDismissed = (dismiss) => {
+    this.setState({dismissed: dismiss});
+  };
+
+  render() {
     return (
       <div className={styles.myProjectsWrapper}>
+        {this.state.dismissed && <LimitBanner />}
         <div className={styles.myProjectsHeader}>
-          <ViewSwitcher selectedViewUid={HOME_VIEW.uid}/>
+          {envStore.data.stripe_public_key !== null &&
+          <LimitModal
+            show={this.state.showModal}
+            limits={(limit) => this.setLimits(limit)}
+            dismissed={(dismiss) => this.modalDismissed(dismiss)}
+          />
+          }
+          <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
         </div>
         <SearchCollectionList searchContext={this.state.searchContext} />
       </div>
@@ -38,7 +81,7 @@ class FormsSearchableList extends React.Component {
 }
 
 FormsSearchableList.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
 };
 
 reactMixin(FormsSearchableList.prototype, searches.common);
