@@ -1,6 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown';
+import KoboDropdown from 'js/components/common/koboDropdown';
 import ColumnsHideForm from 'js/components/submissions/columnsHideForm';
 import './columnsHideDropdown.scss';
 
@@ -21,7 +21,7 @@ class ColumnsHideDropdown extends React.Component {
   render() {
     return (
       <KoboDropdown
-        placement={KoboDropdownPlacements['down-left']}
+        placement={'down-left'}
         name='columns-hide-dropdown'
         triggerContent={
           <span className='columns-hide-dropdown-trigger'>

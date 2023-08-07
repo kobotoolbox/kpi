@@ -119,8 +119,6 @@ export interface ProjectFieldDefinition {
   apiOrderingName: string;
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
   availableConditions: FilterConditionName[];
-  /** Some of the fields (e.g. `submission`) doesn't allow being ordered by. */
-  orderable: boolean;
 }
 
 type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
@@ -147,7 +145,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'startsWith',
     ],
-    orderable: true,
   },
   description: {
     name: 'description',
@@ -164,19 +161,20 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNotEmpty',
       'startsWith',
     ],
-    orderable: true,
   },
   status: {
     name: 'status',
     label: t('Status'),
-    apiFilteringName: '_deployment_data__active',
-    apiOrderingName: '_deployment_data__active',
-    availableConditions: [],
-    orderable: true,
+    apiFilteringName: '_deployment_status',
+    apiOrderingName: '_deployment_status',
+    availableConditions: [
+      'is',
+      'isNot',
+    ],
   },
   ownerUsername: {
     name: 'ownerUsername',
-    label: t('Owner username'),
+    label: t('Owner'),
     apiFilteringName: 'owner__username',
     apiOrderingName: 'owner__username',
     availableConditions: [
@@ -187,11 +185,10 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'startsWith',
     ],
-    orderable: true,
   },
   ownerFullName: {
     name: 'ownerFullName',
-    label: t('Owner full name'),
+    label: t('Owner name'),
     apiFilteringName: 'owner__extra_details__data__name',
     apiOrderingName: 'owner__extra_details__data__name',
     availableConditions: [
@@ -204,7 +201,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNotEmpty',
       'startsWith',
     ],
-    orderable: true,
   },
   ownerEmail: {
     name: 'ownerEmail',
@@ -221,7 +217,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNotEmpty',
       'startsWith',
     ],
-    orderable: true,
   },
   ownerOrganization: {
     name: 'ownerOrganization',
@@ -238,7 +233,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNotEmpty',
       'startsWith',
     ],
-    orderable: true,
   },
   dateModified: {
     name: 'dateModified',
@@ -251,7 +245,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'endsWith',
       'startsWith',
     ],
-    orderable: true,
   },
   dateDeployed: {
     name: 'dateDeployed',
@@ -264,7 +257,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'endsWith',
       'startsWith',
     ],
-    orderable: true,
   },
   sector: {
     name: 'sector',
@@ -277,7 +269,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isEmptyObject',
       'isNotEmptyObject',
     ],
-    orderable: true,
   },
   countries: {
     name: 'countries',
@@ -292,7 +283,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'isNotEmptyObject',
     ],
-    orderable: false,
   },
   languages: {
     name: 'languages',
@@ -307,7 +297,6 @@ export const PROJECT_FIELDS: ProjectFields = {
       'isNot',
       'isNotEmptyObject',
     ],
-    orderable: false,
   },
   submissions: {
     name: 'submissions',
@@ -315,11 +304,43 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiFilteringName: 'deployment__submission_count',
     apiOrderingName: 'deployment__submission_count',
     availableConditions: [],
-    orderable: false,
   },
 };
 
-export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
+/**
+ * The fields that the `/api/v2/project-views/<uid>/assets/` endpoint is able
+ * to order the data by. AKA the default orderable fields.
+ */
+export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
+  'dateDeployed',
+  'dateModified',
+  'description',
+  'name',
+  'ownerEmail',
+  'ownerFullName',
+  'ownerOrganization',
+  'ownerUsername',
+  'sector',
+  'status',
+];
+
+/**
+ * The fields that the `/api/v2/assets/` endpoint can order the data by. AKA
+ * the orderable fields for the "My Projects" route.
+ */
+export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
+  'dateModified',
+  'dateDeployed',
+  'name',
+  'status',
+  'ownerUsername',
+];
+
+/**
+ * The inital fields that are going to be displayed. We also use them with
+ * "reset" fields button.
+ */
+export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'countries',
   'dateModified',
   'dateDeployed',
@@ -327,4 +348,24 @@ export const DEFAULT_PROJECT_FIELDS: ProjectFieldName[] = [
   'ownerUsername',
   'status',
   'submissions',
+];
+
+/** An override default list (instead of DEFAULT_VISIBLE_FIELDS) */
+export const HOME_DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
+  'dateModified',
+  'dateDeployed',
+  'name',
+  'ownerUsername',
+  'status',
+  'submissions',
+];
+
+/**
+ * These are fields not available on the `/api/v2/assets/` endpoint - there is
+ * no point in displaying them to the user.
+ */
+export const HOME_EXCLUDED_FIELDS: ProjectFieldName[] = [
+  'ownerEmail',
+  'ownerFullName',
+  'ownerOrganization',
 ];

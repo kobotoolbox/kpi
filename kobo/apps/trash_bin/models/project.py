@@ -7,8 +7,8 @@ from django.utils.timezone import now
 from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
-from kpi.models import Asset
-from kpi.utils.jsonbfield_helper import ReplaceValues
+from kpi.models.asset import Asset, AssetDeploymentStatus
+from kpi.utils.django_orm_helper import ReplaceValues
 from . import BaseTrash
 
 
@@ -52,6 +52,11 @@ class ProjectTrash(BaseTrash):
             '_deployment_data': ReplaceValues(
                 '_deployment_data',
                 updates={'active': active},
+            ),
+            '_deployment_status': (
+                AssetDeploymentStatus.DEPLOYED
+                if active
+                else AssetDeploymentStatus.ARCHIVED
             ),
             'date_modified': now(),
         }

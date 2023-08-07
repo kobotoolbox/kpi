@@ -28,7 +28,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatMonthlyXFormSubmissionCounter,
 )
-from kpi.models.asset import Asset
+from kpi.models.asset import Asset, AssetDeploymentStatus
 
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
@@ -47,8 +47,7 @@ def generate_country_report(
             '_deployment_data__backend_response__formid', flat=True
         ).filter(
             settings__country_codes__in_array=[code_],
-            _deployment_data__active=True,
-            _deployment_data__has_key='backend',
+            _deployment_status=AssetDeploymentStatus.DEPLOYED,
             asset_type=ASSET_TYPE_SURVEY,
         )
         # Doing it this way because this report is focused on crises in
@@ -465,7 +464,9 @@ def generate_user_statistics_report(
     }
 
     # Filter the asset_queryset for active deployments
-    asset_queryset = asset_queryset.filter(_deployment_data__active=True)
+    asset_queryset = asset_queryset.filter(
+        _deployment_status=AssetDeploymentStatus.DEPLOYED
+    )
     records = asset_queryset.annotate(deployment_count=Count('pk')).order_by()
     deployment_count = {
         record['owner_id']: record['deployment_count']
