@@ -13,7 +13,7 @@ import environ
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.urls import reverse_lazy
-from django.utils.translation import get_language_info
+from django.utils.translation import get_language_info, gettext_lazy as t
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
@@ -235,6 +235,9 @@ CONSTANCE_CONFIG = {
     'MFA_LOCALIZED_HELP_TEXT': (
         json.dumps({
             'default': (
+                # It's terrible, but if you change this, you must also change
+                # `MFA_DEFAULT_HELP_TEXT` in `static_lists.py` so that
+                # translators receive the new string
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
                 'either, then you will need to request assistance by '
@@ -514,6 +517,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'hu '  # Hungarian
         'ja '  # Japanese
         'ku '  # Kurdish
+        'ln '  # Lingala
         'my '  # Burmese/Myanmar
         'ny '  # Nyanja/Chewa
         'pl '  # Polish

@@ -20,8 +20,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
-import {history} from 'js/router/historyRouter';
-import { routerIsActive, withRouter } from '../router/legacy';
+import { router, routerIsActive, withRouter } from '../router/legacy';
 
 const AccountSidebar = lazy(() => import("js/account/accountSidebar"));
 
@@ -51,9 +50,7 @@ const FormSidebar = observer(class FormSidebar extends Reflux.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.unlisteners.push(
-      history.listen(this.onRouteChange.bind(this))
-    );
+    router.subscribe(this.onRouteChange.bind(this));
   }
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
@@ -179,16 +176,6 @@ const Drawer = observer(class Drawer extends Reflux.Component {
         <bem.KDrawer__secondaryIcons>
           { sessionStore.isLoggedIn &&
             <HelpBubble/>
-          }
-          { sessionStore.isLoggedIn &&
-            sessionStore.currentAccount.projects_url &&
-            <a href={sessionStore.currentAccount.projects_url}
-              className='k-drawer__link'
-              target='_blank'
-              data-tip={t('Projects (legacy)')}
-            >
-              <i className='k-icon k-icon-globe' />
-            </a>
           }
           { envStore.isReady &&
             envStore.data.source_code_url &&
