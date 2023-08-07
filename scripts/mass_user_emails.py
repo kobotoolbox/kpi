@@ -41,7 +41,7 @@ start_time = time.time()
 
 
 def run(*args):
-    # To run the script in test mode, use './manage.py runscript ocha_emails --script-args test'
+    # To run the script in test mode, use './manage.py runscript mass_user_emails --script-args test'
     test_mode = 'test' in args
     # Use the 'force' arg to send emails even to users that have received the email before
     force_send = 'force' in args
