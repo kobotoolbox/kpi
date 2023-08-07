@@ -147,7 +147,7 @@ export default function UpdatePasswordForm() {
         <Button
           type='full'
           color='blue'
-          size='m'
+          size='l'
           label={t('Save Password')}
           isSubmit
           isPending={isPending}
