@@ -31,9 +31,7 @@ class AssignmentAdmin(admin.ModelAdmin):
     def get_queryset(self, request: Request) -> QuerySet:
         return self.model.objects.exclude(project_views__isnull=True)
 
-    def has_add_permission(
-        self, request: Reqest, obj: Assignment = None
-    ) -> bool:
+    def has_add_permission(self, request: Request) -> bool:
         return False
 
     def has_change_permission(
