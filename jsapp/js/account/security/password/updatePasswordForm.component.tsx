@@ -9,6 +9,7 @@ import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
 import type {FailResponse} from 'js/dataInterface';
+import envStore from 'js/envStore';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
@@ -93,6 +94,15 @@ export default function UpdatePasswordForm() {
 
   return (
     <form className={styles.root} onSubmit={submitPasswordForm}>
+      {envStore.data.enable_custom_password_guidance_text && (
+        <div
+          className={styles.row}
+          dangerouslySetInnerHTML={{
+            __html: envStore.data.custom_password_localized_help_text,
+          }}
+        />
+      )}
+
       <div className={styles.row}>
         <TextBox
           customModifiers='on-white'

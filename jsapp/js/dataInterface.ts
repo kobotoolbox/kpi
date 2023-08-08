@@ -758,6 +758,7 @@ export interface EnvironmentResponse {
   free_tier_thresholds: FreeTierThresholds;
   free_tier_display: FreeTierDisplay;
   enable_custom_password_guidance_text: boolean;
+  custom_password_localized_help_text: string;
 }
 
 export interface AssetSubscriptionsResponse {
