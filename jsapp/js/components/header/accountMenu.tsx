@@ -10,6 +10,13 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
 
+/**
+ * UI element that display things only for logged-in user. An avatar that gives
+ * access to a menu that allows language change, logging out and few other
+ * things.
+ *
+ * Note: this displays a simplified content for user with invalidated password.
+ */
 export default function AccountMenu() {
   const navigate = useNavigate();
 
@@ -76,6 +83,11 @@ export default function AccountMenu() {
     </bem.AccountBox__initials>
   );
 
+  const isInvalidatedPasswordUser = (
+    'validated_password' in sessionStore.currentAccount &&
+    sessionStore.currentAccount.validated_password === false
+  );
+
   return (
     <bem.AccountBox>
       <PopoverMenu type='account-menu' triggerLabel={accountMenuLabel}>
@@ -90,14 +102,20 @@ export default function AccountMenu() {
               <span className='account-email'>{accountEmail}</span>
             </bem.AccountBox__menuItem>
 
-            <bem.AccountBox__menuItem m={'settings'}>
-              <bem.KoboButton
-                onClick={openAccountSettings}
-                m={['blue', 'fullwidth']}
-              >
-                {t('Account Settings')}
-              </bem.KoboButton>
-            </bem.AccountBox__menuItem>
+            {/*
+              There is no UI we can show to a user with invalidated password, so
+              we don't allow any in-app navigation.
+            */}
+            {!isInvalidatedPasswordUser &&
+              <bem.AccountBox__menuItem m={'settings'}>
+                <bem.KoboButton
+                  onClick={openAccountSettings}
+                  m={['blue', 'fullwidth']}
+                >
+                  {t('Account Settings')}
+                </bem.KoboButton>
+              </bem.AccountBox__menuItem>
+            }
           </bem.AccountBox__menuLI>
 
           {shouldDisplayUrls && (

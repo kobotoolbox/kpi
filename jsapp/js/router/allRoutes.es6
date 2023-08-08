@@ -79,6 +79,7 @@ const AllRoutes = class AllRoutes extends React.Component {
       // redirect is async, continue showing loading
       return <LoadingSpinner />;
     }
+
     return <RouterProvider router={router} />;
   }
 };
