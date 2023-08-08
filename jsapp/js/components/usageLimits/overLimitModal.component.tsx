@@ -5,7 +5,7 @@ import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
 import Button from 'js/components/common/button';
 import sessionStore from 'js/stores/session';
-import {getAllExceedingLimits} from './usageCalculations';
+import {getAllExceedingLimits, getPlanInterval} from './usageCalculations';
 import {ACCOUNT_ROUTES} from 'js/account/routes';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
@@ -27,6 +27,7 @@ function OverLimitModal(props: OverLimitModalProps) {
     setIsModalOpen(!isModalOpen);
   };
   const limitsLength = getAllExceedingLimits().length;
+  const interval = getPlanInterval();
 
   useEffect(() => {
     props.limits(limitsLength);
@@ -36,8 +37,8 @@ function OverLimitModal(props: OverLimitModalProps) {
     toggleModal();
     setShow(false);
     props.dismissed(true);
-    var dateNow = new Date();
-    var expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+    const dateNow = new Date();
+    const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
     cookies.set('overLimitsCookie', {
       expires: expireDate,
     });
@@ -75,15 +76,19 @@ function OverLimitModal(props: OverLimitModalProps) {
             <br />
             <div>
               {t(
-                'To continue collecting data, please upgrade to a KoboToolbox plan with higher capacity, or consider waiting until the beginning of next month, when your quota will be reset again. You can learn more about monthly limits here.'
-              )}
+                'To continue collecting data, please upgrade to a KoboToolbox plan with higher capacity, or consider waiting until the beginning of next ##PERIOD##, when your quota will be reset again. You can learn more about ##PERIOD##ly limits '
+              ).replace(/##PERIOD##/g, interval)}
+              <a href={'https://www.kobotoolbox.org/how-it-works/'}>
+                {t('here')}
+              </a>
+              {'.'}
             </div>
             <br />
             <div>
               <strong>
                 {t(
-                  'Please note that failure to respect the monthly limits can lead to the blocking of submissions from being saved and even the suspension your account.'
-                )}
+                  'Please note that failure to respect the ##PERIOD##ly limits can lead to the blocking of submissions from being saved and even the suspension your account.'
+                ).replace(/##PERIOD##/g, interval)}
               </strong>
             </div>
           </div>
