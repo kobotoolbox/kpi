@@ -757,6 +757,7 @@ export interface EnvironmentResponse {
   social_apps: SocialApp[];
   free_tier_thresholds: FreeTierThresholds;
   free_tier_display: FreeTierDisplay;
+  enable_password_entropy_meter: boolean;
 }
 
 export interface AssetSubscriptionsResponse {

@@ -69,6 +69,7 @@ class EnvStoreData {
     translation_chars: null
   };
   public free_tier_display: FreeTierDisplay = {name: null, feature_list: []};
+  public enable_password_entropy_meter = false;
 
   getProjectMetadataField(fieldName: string): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -146,6 +147,8 @@ class EnvStore {
     }
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled;
+
+    this.data.enable_password_entropy_meter = response.enable_password_entropy_meter;
 
     this.isReady = true;
   }

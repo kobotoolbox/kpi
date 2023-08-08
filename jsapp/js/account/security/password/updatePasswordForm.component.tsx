@@ -8,6 +8,7 @@ import Button from 'js/components/common/button';
 import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
+import envStore from 'jsapp/js/envStore';
 import type {FailResponse} from 'js/dataInterface';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
@@ -121,7 +122,9 @@ export default function UpdatePasswordForm() {
           onChange={setNewPassword}
         />
 
-        {newPassword !== '' && <PasswordStrength password={newPassword} />}
+        {envStore.isReady &&
+          envStore.data.enable_password_entropy_meter &&
+          newPassword !== '' && <PasswordStrength password={newPassword} />}
       </div>
 
       <div className={styles.row}>
