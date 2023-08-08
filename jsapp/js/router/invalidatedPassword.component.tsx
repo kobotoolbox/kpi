@@ -9,6 +9,7 @@ import bem from 'js/bem';
 import MainHeaderLogo from 'js/components/header/mainHeaderLogo.component';
 import AccountMenu from 'js/components/header/accountMenu';
 import {Tracking} from './useTracking';
+import ToasterConfig from '../toasterConfig';
 
 /**
  * This is a route blocker component to be used for accounts marked by admin
@@ -26,6 +27,7 @@ export default function InvalidatedPassword() {
     <DocumentTitle title='KoboToolbox'>
       <>
         <Tracking />
+        <ToasterConfig />
         <div className='header-stretch-bg' />
 
         <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
