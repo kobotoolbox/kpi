@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.models import Asset
+# `baker_generators` needs to be imported to give baker extra support
+from kpi.tests.utils import baker_generators  # noqa
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
