@@ -77,8 +77,8 @@ class EnvironmentTests(BaseTestCase):
                 constance.config.FREE_TIER_DISPLAY
             ),
             'social_apps': [],
-            'enable_zxcvbn_password_validation': (
-                constance.config.ENABLE_ZXCVBN_PASSWORD_VALIDATION
+            'enable_password_entropy_meter': (
+                constance.config.ENABLE_PASSWORD_ENTROPY_METER
             ),
             'enable_custom_password_guidance_text': (
                 constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT

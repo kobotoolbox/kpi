@@ -359,9 +359,9 @@ CONSTANCE_CONFIG = {
         'positive_int_minus_one',
     ),
     # Toggle for ZXCVBN
-    'ENABLE_ZXCVBN_PASSWORD_VALIDATION': (
+    'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
-        'Enables the dropbox library zxcvbn for password validation.',
+        'Display an entropy meter and password quality suggestions whenever users change their passwords.',
     ),
     'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION': (
         True,
@@ -528,7 +528,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'OPERATIONAL_PURPOSE_CHOICES',
     ),
     'Password Validation': (
-        'ENABLE_ZXCVBN_PASSWORD_VALIDATION',
+        'ENABLE_PASSWORD_ENTROPY_METER',
         'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
         'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
         'ENABLE_COMMON_PASSWORD_VALIDATION',
