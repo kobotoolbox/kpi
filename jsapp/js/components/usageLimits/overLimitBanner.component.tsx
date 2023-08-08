@@ -35,7 +35,7 @@ function OverLimitBanner() {
         )}{' '}
         <a
           aria-label={t('review your usage here')}
-          onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
+          href={`#${ACCOUNT_ROUTES.USAGE}`}
           className={styles.bannerLink}
         >
           {t('review your usage here')}
@@ -43,7 +43,7 @@ function OverLimitBanner() {
         {t(', or learn more about the KoboToolbox limits and plans in our ')}
         <a
           aria-label={t('paid plans page')}
-          onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
+          href={'https://www.kobotoolbox.org/how-it-works/'}
           className={styles.bannerLink}
         >
           {t('paid plans page')}
