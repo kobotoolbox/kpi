@@ -4,16 +4,15 @@ import Icon from "js/components/common/icon";
 import prettyBytes from "pretty-bytes";
 import React from "react";
 import {RecurringInterval} from "js/account/stripe.api";
+import {USAGE_WARNING_RATIO} from "js/constants";
 
 interface UsageContainerProps {
   usage: number;
   limit: number|'unlimited';
+  period: RecurringInterval;
   label?: string;
   isStorage?: boolean;
-  period: RecurringInterval;
 }
-
-const WARNING_THRESHOLD_RATIO = 0.8;
 
 const UsageContainer = ({
   usage, limit, period, label = undefined, isStorage = false,
@@ -23,7 +22,7 @@ const UsageContainer = ({
     limitRatio = usage / limit;
   }
   const isOverLimit = limitRatio > 1;
-  const isNearingLimit = !isOverLimit && limitRatio > WARNING_THRESHOLD_RATIO;
+  const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO;
   return (
     <div className={classnames(styles.usage, {
       [styles.empty]: !usage
