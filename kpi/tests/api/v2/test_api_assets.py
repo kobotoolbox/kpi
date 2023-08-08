@@ -1850,3 +1850,30 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response2.data['deployment_status']
             == AssetDeploymentStatus.ARCHIVED.value
         )
+
+    def test_archive_asset_does_not_modify_date_deployed(self):
+        self.test_asset_deployment()
+        self.asset.refresh_from_db()
+        original_date_deployed = self.asset.date_deployed
+
+        deployment_url = reverse(self._get_endpoint('asset-deployment'),
+                                 kwargs={'uid': self.asset_uid})
+
+
+        # archive
+        response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': False,
+        })
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert self.asset.date_deployed == original_date_deployed
+
+        # unarchive
+        response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': True,
+        })
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert self.asset.date_deployed == original_date_deployed

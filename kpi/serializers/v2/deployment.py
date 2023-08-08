@@ -47,16 +47,29 @@ class DeploymentSerializer(serializers.Serializer):
         asset = self.context['asset']
         deployment = asset.deployment
 
-        if 'backend' in validated_data and \
-                validated_data['backend'] != deployment.backend:
+        if (
+            validated_data.pop('backend', deployment.backend)
+            != deployment.backend
+        ):
             raise serializers.ValidationError(
-                {'backend': 'This field cannot be modified after the initial '
-                            'deployment.'})
+                {
+                    'backend': (
+                        'This field cannot be modified after the initial '
+                        'deployment.'
+                    )
+                }
+            )
+
+        if validated_data.keys() == set(('active',)):
+            # This request is only changing the active (aka archived) state,
+            # not actually doing a deployment
+            deployment.set_active(validated_data['active'])
+            return deployment
 
         self._raise_unless_current_version(asset, validated_data)
         asset.deploy(
             backend=deployment.backend,
-            active=validated_data.get('active', deployment.active)
+            active=validated_data.get('active', deployment.active),
         )
 
         return deployment
