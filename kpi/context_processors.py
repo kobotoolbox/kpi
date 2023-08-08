@@ -1,11 +1,29 @@
 # coding: utf-8
 import constance
+import json
 import markdown
 from django.conf import settings
 from django.urls import reverse
 
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
+from django.utils.translation import get_language
+
+
+def custom_password_guidance_text(request):
+    # Get language code
+    language = get_language()
+
+    # Don't return anything if the custom guidance text is disabled
+    if constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT:
+        messages_dict = json.loads(constance.config.CUSTOM_PASSWORD_GUIDANCE_TEXT)
+        # If the language is not found, return the default text
+        try:
+            text = messages_dict[language]
+        except KeyError:
+            text = messages_dict['default']
+        return {'custom_guidance_text': text}
+    return {}
 
 
 def external_service_tokens(request):
