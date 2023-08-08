@@ -1,5 +1,5 @@
 import {useEffect, useState, useMemo, useReducer} from 'react';
-import {getUsage} from '../../account/usage.api';
+import {getUsageForOrganization} from '../../account/usage.api';
 import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
 import {getSubscription, getProducts} from '../../account/stripe.api';
 import envStore from 'js/envStore';
@@ -89,7 +89,7 @@ export const getAllExceedingLimits = () => {
 
   // Get current usage
   useEffect(() => {
-    getUsage().then((data) => {
+    getUsageForOrganization().then((data) => {
       setUsage({
         ...usage,
         storage: data.total_storage_bytes,
