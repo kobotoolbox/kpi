@@ -658,6 +658,11 @@ export interface AccountResponse {
   gravatar: string;
   is_staff: boolean;
   last_login: string;
+  /**
+   * When this is `false`, user will be blocked from accessing anything
+   * sensitive. The default value is `true`.
+   */
+  validated_password: boolean;
   extra_details: {
     name: string;
     gender: string;
