@@ -12,7 +12,15 @@ import type {FailResponse} from 'js/dataInterface';
 
 const FIELD_REQUIRED_ERROR = t('This field is required.');
 
-export default function UpdatePasswordForm() {
+interface UpdatePasswordFormProps {
+  /**
+   * Allows doing some actions when password is updated successfully. Regardless
+   * of this being used, a success toast notification will be displayed.
+   */
+  onSuccess?: () => void;
+}
+
+export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
   const [isPending, setIsPending] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [currentPasswordError, setCurrentPasswordError] = useState<
@@ -66,6 +74,9 @@ export default function UpdatePasswordForm() {
         setNewPassword('');
         setVerifyPassword('');
         notify(t('changed password successfully'));
+        if (typeof props.onSuccess === 'function') {
+          props.onSuccess();
+        }
       } catch (error) {
         const errorObj = error as FailResponse;
 

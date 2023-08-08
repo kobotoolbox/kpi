@@ -18,6 +18,10 @@ import {Tracking} from './useTracking';
 export default function InvalidatedPassword() {
   const [isFormVisible, setIsFormVisible] = useState(false);
 
+  function onSuccess() {
+    window.location.reload();
+  }
+
   return (
     <DocumentTitle title='KoboToolbox'>
       <>
@@ -56,7 +60,7 @@ export default function InvalidatedPassword() {
                   />
                 )}
 
-                {isFormVisible && <UpdatePasswordForm />}
+                {isFormVisible && <UpdatePasswordForm onSuccess={onSuccess} />}
               </footer>
             </div>
           </bem.PageWrapper__content>
