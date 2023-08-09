@@ -106,8 +106,8 @@ class MostRecentPasswordValidator:
 class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
 
     I18N_EXTRA_ATTRIBUTES_MAPPING = {
-        'full_name': t('Create an account'),
-        'organization': t('organization')
+        'full_name': t('Full name'),
+        'organization': t('Organization name'),
     }
 
     def validate(self, password, user=None):
