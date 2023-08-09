@@ -184,7 +184,7 @@ export default function Usage() {
         <div className={styles.box}>
           <span>
             <strong className={styles.title}>{t('Submissions')}</strong>
-            <div className={styles.date}>{dateRange}</div>
+            <time className={styles.date}>{dateRange}</time>
           </span>
           <UsageContainer
             usage={usage.submissions}
@@ -210,7 +210,7 @@ export default function Usage() {
             <strong className={styles.title}>
               {t('Transcription minutes')}
             </strong>
-            <div className={styles.date}>{shortDate}</div>
+            <time className={styles.date}>{shortDate}</time>
           </span>
           <UsageContainer
             usage={usage.transcriptionMinutes}
@@ -223,7 +223,7 @@ export default function Usage() {
             <strong className={styles.title}>
               {t('Translation characters')}
             </strong>
-            <div className={styles.date}>{shortDate}</div>
+            <time className={styles.date}>{shortDate}</time>
           </span>
           <UsageContainer
             usage={usage.translationChars}
