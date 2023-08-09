@@ -78,7 +78,7 @@ export interface SubscriptionInfo {
   pending_setup_intent: any;
   schedule: any;
   default_tax_rates: [];
-  items: [{price: BasePrice}];
+  items: {price: BasePrice}[];
 }
 
 // There is probably a better way to hand the nested types
