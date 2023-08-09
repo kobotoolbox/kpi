@@ -41,6 +41,10 @@ export async function getUsage(organization_id: string | null = null) {
 }
 
 export async function getUsageForOrganization() {
-  const organizations = await getOrganization();
-  return await getUsage(organizations.results?.[0].id);
+  try {
+    const organizations = await getOrganization();
+    return await getUsage(organizations.results?.[0].id);
+  } catch (error) {
+    return null;
+  }
 }
