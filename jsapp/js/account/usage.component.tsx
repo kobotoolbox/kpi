@@ -30,11 +30,9 @@ interface UsageState {
   trackingPeriod: RecurringInterval;
   currentMonthStart: string;
   currentYearStart: string;
-  loaded: {
-    usage: boolean;
-    limits: boolean;
-    subscription: boolean;
-  };
+  isUsageLoaded: boolean;
+  isLimitsLoaded: boolean;
+  isSubscriptionLoaded: boolean;
 }
 
 export default function Usage() {
@@ -50,16 +48,20 @@ export default function Usage() {
     trackingPeriod: RecurringInterval.Month,
     currentMonthStart: '',
     currentYearStart: '',
-    loaded: {
-      usage: false,
-      limits: false,
-      subscription: false,
-    },
+    isUsageLoaded: false,
+    isLimitsLoaded: false,
+    isSubscriptionLoaded: false,
   });
 
   const location = useLocation();
 
   const truncate = (decimal: number) => parseFloat(decimal.toFixed(2));
+
+  const isFullyLoaded = useMemo(
+    () =>
+      usage.isUsageLoaded && usage.isLimitsLoaded && usage.isSubscriptionLoaded,
+    [usage.isUsageLoaded, usage.isLimitsLoaded, usage.isSubscriptionLoaded]
+  );
 
   const shortDate = useMemo(() => {
     let format: string;
@@ -113,10 +115,7 @@ export default function Usage() {
               ? limits.nlp_seconds_limit / 60
               : limits.nlp_seconds_limit,
           submissionLimit: limits.submission_limit,
-          loaded: {
-            ...prevState.loaded,
-            limits: true,
-          },
+          isLimitsLoaded: true,
         };
       });
     };
@@ -131,10 +130,7 @@ export default function Usage() {
         return {
           ...prevState,
           trackingPeriod: subscriptionInterval || RecurringInterval.Month,
-          loaded: {
-            ...prevState.loaded,
-            subscription: true,
-          },
+          isSubscriptionLoaded: true,
         };
       });
     });
@@ -149,10 +145,13 @@ export default function Usage() {
 
   // load fresh usage data on every page load and whenever switching routes to this page
   useEffect(() => {
-    if (!usage.loaded.subscription) {
+    if (!usage.isSubscriptionLoaded) {
       return;
     }
     getUsageForOrganization().then((data) => {
+      if (!data) {
+        return;
+      }
       setUsage((prevState) => {
         return {
           ...prevState,
@@ -172,18 +171,15 @@ export default function Usage() {
             ],
           currentMonthStart: data.current_month_start,
           currentYearStart: data.current_year_start,
-          loaded: {
-            ...prevState.loaded,
-            usage: true,
-          },
+          isUsageLoaded: true,
         };
       });
     });
 
     getUsageForOrganization();
-  }, [location, usage.loaded.subscription]);
+  }, [location, usage.isSubscriptionLoaded]);
 
-  if (Object.values(usage.loaded).includes(false)) {
+  if (!isFullyLoaded) {
     return <LoadingSpinner />;
   }
 
