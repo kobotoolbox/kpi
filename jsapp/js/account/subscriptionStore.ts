@@ -1,7 +1,7 @@
 import {makeAutoObservable} from 'mobx';
 import {handleApiFail} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
-import {fetchGet, fetchPost, fetchDelete} from 'jsapp/js/api';
+import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {BasePrice} from 'js/account/stripe.api';
 
