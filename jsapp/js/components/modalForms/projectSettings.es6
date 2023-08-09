@@ -34,7 +34,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
-import {history} from 'js/router/historyRouter';
+import {router} from 'js/router/legacy';
 import {withRouter} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';
 
@@ -117,7 +117,7 @@ class ProjectSettings extends React.Component {
       actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      history.listen(this.onRouteChange.bind(this))
+      router.subscribe(this.onRouteChange.bind(this))
     );
   }
 
@@ -291,28 +291,22 @@ class ProjectSettings extends React.Component {
   // archive flow
 
   isArchivable() {
-    return this.state.formAsset.has_deployment && this.state.formAsset.deployment__active;
+    return this.state.formAsset.deployment_status === 'deployed';
   }
 
   isArchived() {
-    return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
+    return this.state.formAsset.deployment_status === 'archived';
   }
 
   archiveProject(evt) {
     evt.preventDefault();
-    this.archiveAsset(this.state.formAsset.uid, this.onArchiveProjectStarted.bind(this));
-  }
-
-  onArchiveProjectStarted() {
+    this.archiveAsset(this.state.formAsset.uid);
     this.setState({isAwaitingArchiveCompleted: true});
   }
 
   unarchiveProject(evt) {
     evt.preventDefault();
-    this.unarchiveAsset(this.state.formAsset.uid, this.onUnarchiveProjectStarted.bind(this));
-  }
-
-  onUnarchiveProjectStarted() {
+    this.unarchiveAsset(this.state.formAsset.uid);
     this.setState({isAwaitingUnarchiveCompleted: true});
   }
 

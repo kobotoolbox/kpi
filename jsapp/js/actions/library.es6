@@ -193,9 +193,9 @@ libraryActions.getCollections.listen((params) => {
 
 libraryActions.moveToCollection.completed.listen((asset) => {
   if (asset.parent === null) {
-    notify(t('Successfuly removed from collection'));
+    notify(t('Successfully removed from collection'));
   } else {
-    notify(t('Successfuly moved to collection'));
+    notify(t('Successfully moved to collection'));
   }
 });
 libraryActions.moveToCollection.failed.listen(() => {

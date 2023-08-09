@@ -85,15 +85,6 @@ const MFAModals = class MFAModals extends React.Component<
     this.unlisteners.forEach((clb) => {clb();});
   }
 
-  getLocalizedMfaHelpText() {
-    const language = currentLang();
-    const texts = envStore.data.mfa_localized_help_text;
-    if (Object.prototype.hasOwnProperty.call(texts, language)) {
-      return texts[language];
-    }
-    return texts['default'];
-  }
-
   onMfaActivateCompleted(response: MfaActivatedResponse) {
     this.setState({
       qrCode: response.details,
@@ -531,7 +522,7 @@ const MFAModals = class MFAModals extends React.Component<
         <bem.MFAModal__body>
           <bem.MFAModal__p><strong>{t('Issues with the token')}</strong></bem.MFAModal__p>
 
-          <bem.MFAModal__p dangerouslySetInnerHTML={{__html: this.getLocalizedMfaHelpText()}} />
+          <bem.MFAModal__p dangerouslySetInnerHTML={{__html: envStore.data.mfa_localized_help_text}} />
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
