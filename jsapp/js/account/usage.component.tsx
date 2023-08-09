@@ -1,29 +1,31 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import styles from './usage.module.scss';
 import {getUsageForOrganization} from './usage.api';
+import type {AccountLimit} from 'js/account/stripe.api';
 import {
-  AccountLimit,
   getAccountLimits,
   getSubscriptionInterval,
-  RecurringInterval
-} from "js/account/stripe.api";
+  RecurringInterval,
+} from 'js/account/stripe.api';
 import envStore from 'js/envStore';
-import {when} from "mobx";
-import subscriptionStore, {SubscriptionInfo} from "js/account/subscriptionStore";
-import {useLocation} from "react-router-dom";
-import moment from "moment/moment";
-import LoadingSpinner from "js/components/common/loadingSpinner";
-import UsageContainer from "js/components/usageContainer";
+import {when} from 'mobx';
+import subscriptionStore, {
+  SubscriptionInfo,
+} from 'js/account/subscriptionStore';
+import {useLocation} from 'react-router-dom';
+import moment from 'moment/moment';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import UsageContainer from 'js/components/usageContainer';
 
 interface UsageState {
   storage: number;
   submissions: number;
   transcriptionMinutes: number;
   translationChars: number;
-  storageByteLimit: number|'unlimited';
-  nlpCharacterLimit: number|'unlimited';
-  nlpMinuteLimit: number|'unlimited';
-  submissionLimit: number|'unlimited';
+  storageByteLimit: number | 'unlimited';
+  nlpCharacterLimit: number | 'unlimited';
+  nlpMinuteLimit: number | 'unlimited';
+  submissionLimit: number | 'unlimited';
   trackingPeriod: RecurringInterval;
   currentMonthStart: string;
   currentYearStart: string;
@@ -56,11 +58,9 @@ export default function Usage() {
 
   const location = useLocation();
 
-  const truncate = (decimal: number) => {
-    return parseFloat(decimal.toFixed(2));
-  };
+  const truncate = (decimal: number) => parseFloat(decimal.toFixed(2));
 
-  const formatDate = (dateString: string, format: string = 'll') => {
+  const formatDate = (dateString: string, format = 'll') => {
     const myMoment = moment.utc(dateString);
     return myMoment.format(format);
   };
@@ -92,13 +92,9 @@ export default function Usage() {
         startDate = formatDate(usage.currentMonthStart);
         break;
     }
-    return t('##start_date## to ##end_date##').replace(
-      '##start_date##',
-      startDate
-    ).replace(
-      '##end_date##',
-      endDate
-    );
+    return t('##start_date## to ##end_date##')
+      .replace('##start_date##', startDate)
+      .replace('##end_date##', endDate);
   }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
 
   useEffect(() => {
@@ -112,19 +108,20 @@ export default function Usage() {
       }
 
       setUsage((prevState) => {
-          return {
-            ...prevState,
-            storageByteLimit: limits.storage_bytes_limit,
-            nlpCharacterLimit: limits.nlp_character_limit,
-            nlpMinuteLimit: typeof limits.nlp_seconds_limit === 'number' ?
-              limits.nlp_seconds_limit / 60 :
-              limits.nlp_seconds_limit,
-            submissionLimit: limits.submission_limit,
-            loaded: {
-              ...prevState.loaded,
-              limits: true,
-            },
-          };
+        return {
+          ...prevState,
+          storageByteLimit: limits.storage_bytes_limit,
+          nlpCharacterLimit: limits.nlp_character_limit,
+          nlpMinuteLimit:
+            typeof limits.nlp_seconds_limit === 'number'
+              ? limits.nlp_seconds_limit / 60
+              : limits.nlp_seconds_limit,
+          submissionLimit: limits.submission_limit,
+          loaded: {
+            ...prevState.loaded,
+            limits: true,
+          },
+        };
       });
     };
 
@@ -164,12 +161,19 @@ export default function Usage() {
         return {
           ...prevState,
           storage: data.total_storage_bytes,
-          submissions: data.total_submission_count[`current_${usage.trackingPeriod}`],
+          submissions:
+            data.total_submission_count[`current_${usage.trackingPeriod}`],
           transcriptionMinutes: Math.floor(
-            truncate(data.total_nlp_usage[`asr_seconds_current_${usage.trackingPeriod}`] / 60)
+            truncate(
+              data.total_nlp_usage[
+                `asr_seconds_current_${usage.trackingPeriod}`
+              ] / 60
+            )
           ), // seconds to minutes
           translationChars:
-            data.total_nlp_usage[`mt_characters_current_${usage.trackingPeriod}`],
+            data.total_nlp_usage[
+              `mt_characters_current_${usage.trackingPeriod}`
+            ],
           currentMonthStart: data.current_month_start,
           currentYearStart: data.current_year_start,
           loaded: {
@@ -184,7 +188,7 @@ export default function Usage() {
   }, [location, usage.loaded.subscription]);
 
   if (Object.values(usage.loaded).includes(false)) {
-    return <LoadingSpinner/>;
+    return <LoadingSpinner />;
   }
 
   return (
@@ -218,7 +222,9 @@ export default function Usage() {
         </div>
         <div className={styles.box}>
           <span>
-            <strong className={styles.title}>{t('Transcription minutes')}</strong>
+            <strong className={styles.title}>
+              {t('Transcription minutes')}
+            </strong>
             <div className={styles.date}>{shortDate}</div>
           </span>
           <UsageContainer
