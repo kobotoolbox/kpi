@@ -11,18 +11,9 @@ from django.utils.translation import get_language
 
 
 def custom_password_guidance_text(request):
-    # Get language code
-    language = get_language()
-
-    # Don't return anything if the custom guidance text is disabled
     if constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT:
-        messages_dict = json.loads(constance.config.CUSTOM_PASSWORD_GUIDANCE_TEXT)
-        # If the language is not found, return the default text
-        try:
-            text = messages_dict[language]
-        except KeyError:
-            text = messages_dict['default']
-        return {'custom_guidance_text': text}
+        help_text = I18nUtils.get_custom_password_help_text()
+        return {'custom_guidance_text': help_text}
     return {}
 
 
@@ -68,7 +59,6 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info == reverse('account_signup'):
-
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
             return {'welcome_message': sitewide_message}
@@ -81,6 +71,7 @@ class CombinedConfig:
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object
     """
+
     def __init__(self, constance_config, extra_config):
         """
         constance_config: LazyConfig object
