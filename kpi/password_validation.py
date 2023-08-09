@@ -105,6 +105,11 @@ class MostRecentPasswordValidator:
 
 class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
 
+    I18N_EXTRA_ATTRIBUTES_MAPPING = {
+        'full_name': t('Create an account'),
+        'organization': t('organization')
+    }
+
     def validate(self, password, user=None):
         if not config.ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION:
             return
@@ -128,7 +133,22 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
                     user_extra_details.data.get('organization', ''),
                 )
 
-        super().validate(password, user)
+        try:
+            super().validate(password, user)
+        except ValidationError as e:
+            # if field is one of the extra attributes, raise another error
+            # with the translated version
+            message = e.messages[0]
+            for (
+                extra_attribute,
+                translation,
+            ) in self.I18N_EXTRA_ATTRIBUTES_MAPPING.items():
+                if extra_attribute in message:
+                    raise ValidationError(
+                        message.replace(extra_attribute, translation)
+                    )
+
+            raise e
 
 
 class CustomRulesValidator:
