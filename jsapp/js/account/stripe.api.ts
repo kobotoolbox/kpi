@@ -1,11 +1,11 @@
-import {fetchGet, fetchPost} from 'jsapp/js/api';
-import type {PaginatedResponse} from 'js/dataInterface';
-import {endpoints} from 'js/api.endpoints';
-import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
-import envStore from 'js/envStore';
 import {when} from 'mobx';
 import type {SubscriptionInfo} from 'js/account/subscriptionStore';
 import subscriptionStore from 'js/account/subscriptionStore';
+import {endpoints} from 'js/api.endpoints';
+import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
+import type {PaginatedResponse} from 'js/dataInterface';
+import envStore from 'js/envStore';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
 
 export interface BaseProduct {
   id: string;
@@ -15,15 +15,7 @@ export interface BaseProduct {
   metadata: {[key: string]: string};
 }
 
-export enum RecurringInterval {
-  Year = 'year',
-  Month = 'month',
-}
-
-enum UsageType {
-  Metered = 'metered',
-  Licensed = 'licensed',
-}
+export type RecurringInterval = 'year' | 'month';
 
 export interface BasePrice {
   id: string;
@@ -36,7 +28,7 @@ export interface BasePrice {
     interval: RecurringInterval;
     aggregate_usage: string;
     interval_count: number;
-    usage_type: UsageType;
+    usage_type: 'metered' | 'licensed';
   };
   metadata: {[key: string]: string};
   product: BaseProduct;
@@ -141,8 +133,7 @@ export async function getAccountLimits() {
       const freeProduct = products.results.filter((product) =>
         product.prices.filter(
           (price: BasePrice) =>
-            price.unit_amount === 0 &&
-            price.recurring?.interval === RecurringInterval.Month
+            price.unit_amount === 0 && price.recurring?.interval === 'month'
         )
       );
       metadata = {

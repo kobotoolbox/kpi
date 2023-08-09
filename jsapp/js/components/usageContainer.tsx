@@ -1,9 +1,9 @@
-import styles from 'js/components/usageContainer.module.scss';
 import classnames from 'classnames';
-import Icon from 'js/components/common/icon';
 import prettyBytes from 'pretty-bytes';
 import React from 'react';
 import {RecurringInterval} from 'js/account/stripe.api';
+import Icon from 'js/components/common/icon';
+import styles from 'js/components/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
 
 interface UsageContainerProps {
@@ -34,8 +34,7 @@ const UsageContainer = ({
       })}
     >
       <strong className={styles.description}>
-        {label ||
-          (period === RecurringInterval.Month ? t('Monthly') : t('Yearly'))}
+        {label || (period === 'month' ? t('Monthly') : t('Yearly'))}
       </strong>
       {!usage && (
         <>

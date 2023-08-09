@@ -1,22 +1,15 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import styles from './usage.module.scss';
-import {getUsageForOrganization} from './usage.api';
-import type {AccountLimit} from 'js/account/stripe.api';
-import {
-  getAccountLimits,
-  getSubscriptionInterval,
-  RecurringInterval,
-} from 'js/account/stripe.api';
-import envStore from 'js/envStore';
 import {when} from 'mobx';
-import subscriptionStore, {
-  SubscriptionInfo,
-} from 'js/account/subscriptionStore';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import moment from 'moment/moment';
+import type {AccountLimit, RecurringInterval} from 'js/account/stripe.api';
+import {getAccountLimits, getSubscriptionInterval} from 'js/account/stripe.api';
+import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import UsageContainer from 'js/components/usageContainer';
+import envStore from 'js/envStore';
 import {formatDate} from 'js/utils';
+import {getUsageForOrganization} from './usage.api';
+import styles from './usage.module.scss';
 
 interface UsageState {
   storage: number;
@@ -45,7 +38,7 @@ export default function Usage() {
     nlpCharacterLimit: 'unlimited',
     nlpMinuteLimit: 'unlimited',
     submissionLimit: 'unlimited',
-    trackingPeriod: RecurringInterval.Month,
+    trackingPeriod: 'month',
     currentMonthStart: '',
     currentYearStart: '',
     isUsageLoaded: false,
@@ -67,7 +60,7 @@ export default function Usage() {
     let format: string;
     let date: string;
     switch (usage.trackingPeriod) {
-      case RecurringInterval.Year:
+      case 'year':
         format = 'YYYY';
         date = usage.currentYearStart;
         break;
@@ -83,7 +76,7 @@ export default function Usage() {
     let startDate: string;
     const endDate = formatDate(new Date().toUTCString());
     switch (usage.trackingPeriod) {
-      case RecurringInterval.Year:
+      case 'year':
         startDate = formatDate(usage.currentYearStart, false);
         break;
       default:
@@ -129,7 +122,7 @@ export default function Usage() {
       setUsage((prevState) => {
         return {
           ...prevState,
-          trackingPeriod: subscriptionInterval || RecurringInterval.Month,
+          trackingPeriod: subscriptionInterval || 'month',
           isSubscriptionLoaded: true,
         };
       });
