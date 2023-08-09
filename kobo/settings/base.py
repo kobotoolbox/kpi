@@ -691,7 +691,6 @@ KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat')
 
 KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
-KOBOFORM_INTERNAL_URL = os.environ.get('KOBOFORM_INTERNAL_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
