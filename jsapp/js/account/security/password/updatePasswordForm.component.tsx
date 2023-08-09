@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import sessionStore from 'js/stores/session';
 import TextBox from 'js/components/common/textBox';
 import PasswordStrength from 'js/components/passwordStrength.component';
@@ -16,6 +16,8 @@ const FIELD_REQUIRED_ERROR = t('This field is required.');
 
 export default function UpdatePasswordForm() {
   const [isPending, setIsPending] = useState(false);
+  const [isEnvStoreReady, setIsEnvStoreReady] = useState(envStore.isReady);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [currentPasswordError, setCurrentPasswordError] = useState<
     string | undefined
@@ -28,6 +30,8 @@ export default function UpdatePasswordForm() {
   const [verifyPasswordError, setVerifyPasswordError] = useState<
     string | undefined
   >();
+
+  useEffect(() => setIsEnvStoreReady(true), [envStore.isReady]);
 
   async function savePassword() {
     let hasErrors = false;
@@ -89,7 +93,7 @@ export default function UpdatePasswordForm() {
     savePassword();
   }
 
-  if (!sessionStore.isLoggedIn) {
+  if (!sessionStore.isLoggedIn || !isEnvStoreReady) {
     return null;
   }
 
