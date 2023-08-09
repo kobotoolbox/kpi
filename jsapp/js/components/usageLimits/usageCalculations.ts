@@ -90,6 +90,9 @@ export const getAllExceedingLimits = () => {
   // Get current usage
   useEffect(() => {
     getUsageForOrganization().then((data) => {
+      if (!data) {
+        return;
+      }
       setUsage({
         ...usage,
         storage: data.total_storage_bytes,
