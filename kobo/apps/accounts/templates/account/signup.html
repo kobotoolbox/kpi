@@ -44,6 +44,9 @@
 
           {% if field.name == 'password1' %}
             <div class="field" id="registration-password-app"></div>
+            {% if custom_guidance_text %}
+              <div class="field">{{ custom_guidance_text|safe }}</div>
+            {% endif %}
           {% endif %}
       {% endfor %}
 

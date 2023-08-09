@@ -767,6 +767,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
+                'kpi.context_processors.custom_password_guidance_text',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
