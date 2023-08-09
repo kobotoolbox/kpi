@@ -45,7 +45,7 @@ const UsageContainer = ({
           >
             {'-'}
           </span>
-          <span className={styles.visuallyHidden}>{t('none')}</span>
+          <span className={'visuallyhidden'}>{t('none')}</span>
         </>
       )}
       {Boolean(usage) && (
@@ -65,7 +65,7 @@ const UsageContainer = ({
           {limit !== 'unlimited' && limit && (
             <>
               <span aria-hidden>{' / '}</span>
-              <span className={styles.visuallyHidden}>{t('used out of')}</span>
+              <span className={'visuallyhidden'}>{t('used out of')}</span>
               <span>
                 {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
               </span>
