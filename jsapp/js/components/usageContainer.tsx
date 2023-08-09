@@ -5,6 +5,7 @@ import {RecurringInterval} from 'js/account/stripe.api';
 import Icon from 'js/components/common/icon';
 import styles from 'js/components/usageContainer.module.scss';
 import {USAGE_WARNING_RATIO} from 'js/constants';
+import AriaText from 'js/components/common/ariaText';
 
 interface UsageContainerProps {
   usage: number;
@@ -37,15 +38,11 @@ const UsageContainer = ({
         {label || (period === 'month' ? t('Monthly') : t('Yearly'))}
       </strong>
       {!usage && (
-        <>
-          <span
-            aria-hidden
-            className={classnames(styles.usageRow, styles.empty)}
-          >
-            {'-'}
-          </span>
-          <span className={'visuallyhidden'}>{t('none')}</span>
-        </>
+        <AriaText
+          uiText={'-'}
+          screenReaderText={t('none')}
+          classNames={classnames(styles.usageRow, styles.empty)}
+        />
       )}
       {Boolean(usage) && (
         <div
@@ -63,8 +60,8 @@ const UsageContainer = ({
           </strong>
           {limit !== 'unlimited' && limit && (
             <>
-              <span aria-hidden>{' / '}</span>
-              <span className={'visuallyhidden'}>{t('used out of')}</span>
+              {' '}
+              <AriaText uiText={'/'} screenReaderText={t('used out of')} />{' '}
               <span>
                 {isStorage ? prettyBytes(limit) : limit.toLocaleString()}
               </span>
