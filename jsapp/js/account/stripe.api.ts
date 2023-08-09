@@ -136,18 +136,22 @@ export async function getAccountLimits() {
     metadata = activeSubscriptions[0].items[0].price.metadata;
   } else {
     // the user has no subscription, so get limits from the free monthly price
-    const products = await getProducts();
-    const freeProduct = products.results.filter((product) =>
-      product.prices.filter(
-        (price: BasePrice) =>
-          price.unit_amount === 0 &&
-          price.recurring?.interval === RecurringInterval.Month
-      )
-    );
-    metadata = {
-      ...freeProduct[0].metadata,
-      ...freeProduct[0].prices[0].metadata,
-    };
+    try {
+      const products = await getProducts();
+      const freeProduct = products.results.filter((product) =>
+        product.prices.filter(
+          (price: BasePrice) =>
+            price.unit_amount === 0 &&
+            price.recurring?.interval === RecurringInterval.Month
+        )
+      );
+      metadata = {
+        ...freeProduct[0].metadata,
+        ...freeProduct[0].prices[0].metadata,
+      };
+    } catch (error) {
+      metadata = {};
+    }
   }
   const limits: AccountLimit = {
     submission_limit: 'unlimited',
