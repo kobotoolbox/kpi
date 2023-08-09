@@ -145,7 +145,7 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
             ) in self.I18N_EXTRA_ATTRIBUTES_MAPPING.items():
                 if extra_attribute in message:
                     raise ValidationError(
-                        message.replace(extra_attribute, translation)
+                        message.replace(extra_attribute, translation.lower())
                     )
 
             raise e
