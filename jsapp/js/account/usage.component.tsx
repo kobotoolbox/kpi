@@ -16,6 +16,7 @@ import {useLocation} from 'react-router-dom';
 import moment from 'moment/moment';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import UsageContainer from 'js/components/usageContainer';
+import {formatDate} from 'js/utils';
 
 interface UsageState {
   storage: number;
@@ -60,11 +61,6 @@ export default function Usage() {
 
   const truncate = (decimal: number) => parseFloat(decimal.toFixed(2));
 
-  const formatDate = (dateString: string, format = 'll') => {
-    const myMoment = moment.utc(dateString);
-    return myMoment.format(format);
-  };
-
   const shortDate = useMemo(() => {
     let format: string;
     let date: string;
@@ -78,7 +74,7 @@ export default function Usage() {
         date = usage.currentMonthStart;
         break;
     }
-    return formatDate(date, format);
+    return formatDate(date, false, format);
   }, [usage.currentYearStart, usage.currentMonthStart, usage.trackingPeriod]);
 
   const dateRange = useMemo(() => {
@@ -86,10 +82,10 @@ export default function Usage() {
     const endDate = formatDate(new Date().toUTCString());
     switch (usage.trackingPeriod) {
       case RecurringInterval.Year:
-        startDate = formatDate(usage.currentYearStart);
+        startDate = formatDate(usage.currentYearStart, false);
         break;
       default:
-        startDate = formatDate(usage.currentMonthStart);
+        startDate = formatDate(usage.currentMonthStart, false);
         break;
     }
     return t('##start_date## to ##end_date##')
