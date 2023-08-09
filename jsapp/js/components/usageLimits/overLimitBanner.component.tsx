@@ -8,10 +8,9 @@ import Icon from 'js/components/common/icon';
 
 function OverLimitBanner() {
   const navigate = useNavigate();
+  const interval = getPlanInterval();
 
   const limitsLength = getAllExceedingLimits().length;
-
-  const interval = `${getPlanInterval()}ly`;
 
   return (
     <div className={styles.limitBannerContainer}>
@@ -19,7 +18,7 @@ function OverLimitBanner() {
       <div className={styles.bannerContent}>
         {t('You have surpassed your')}{' '}
         <strong>
-          {interval}{' '}
+          {`${interval}ly`}{' '}
           {getAllExceedingLimits().map((item, i) => (
             <span key={i}>
               {i > 0 && ', '}
@@ -31,11 +30,12 @@ function OverLimitBanner() {
           {limitsLength > 1 && 's'}{' '}
         </strong>
         {t(
-          '. Please upgrade to a plan with a larger capacity to continue collecting data this month. You can'
-        )}{' '}
+          '. Please upgrade to a plan with a larger capacity to continue collecting data this ##PERIOD##. You can'
+        ).replace(/##PERIOD##/g, interval)
+        }{' '}
         <a
           aria-label={t('review your usage here')}
-          onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
+          href={`#${ACCOUNT_ROUTES.USAGE}`}
           className={styles.bannerLink}
         >
           {t('review your usage here')}
@@ -43,7 +43,7 @@ function OverLimitBanner() {
         {t(', or learn more about the KoboToolbox limits and plans in our ')}
         <a
           aria-label={t('paid plans page')}
-          onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
+          href={'https://www.kobotoolbox.org/how-it-works/'}
           className={styles.bannerLink}
         >
           {t('paid plans page')}
