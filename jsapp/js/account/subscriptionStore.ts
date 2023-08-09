@@ -95,7 +95,7 @@ class SubscriptionStore {
   public subscribedProduct: BaseProduct | null = null;
   public productsResponse: Product[] | null = null;
   public isPending = false;
-  public isLoaded = false;
+  public isInitialised = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -124,7 +124,7 @@ class SubscriptionStore {
     this.subscriptionResponse = response.results;
     this.subscribedProduct = response.results[0]?.plan?.product || null;
     this.isPending = false;
-    this.isLoaded = true;
+    this.isInitialised = true;
   }
 }
 

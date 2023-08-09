@@ -138,7 +138,7 @@ export default function Usage() {
         };
       });
     });
-  }, [envStore.isReady, subscriptionStore.isLoaded]);
+  }, [envStore.isReady, subscriptionStore.isInitialised]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useEffect(() => {

@@ -110,7 +110,7 @@ export async function postCustomerPortal(organizationId: string) {
 }
 
 export async function getSubscriptionInterval() {
-  await when(() => envStore.isReady && subscriptionStore.isLoaded);
+  await when(() => envStore.isReady && subscriptionStore.isInitialised);
   if (envStore.data.stripe_public_key) {
     const subscriptionList: SubscriptionInfo[] =
       subscriptionStore.subscriptionResponse;
@@ -125,7 +125,7 @@ export async function getSubscriptionInterval() {
 }
 
 export async function getAccountLimits() {
-  await when(() => subscriptionStore.isLoaded);
+  await when(() => subscriptionStore.isInitialised);
   const subscriptions = [...subscriptionStore.subscriptionResponse];
   const activeSubscriptions = subscriptions.filter((subscription) =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
