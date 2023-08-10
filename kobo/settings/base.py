@@ -288,7 +288,8 @@ CONSTANCE_CONFIG = {
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users. '
-        "Possible fields are 'full_name', 'organization', 'organization_website', "
+        "Possible fields are:\n"
+        " 'full_name', 'organization', 'organization_website', "
         "'sector', 'gender', 'bio', 'city', 'country', 'twitter', 'linkedin', "
         "and 'instagram'.\n\n"
         "To add another language, use 'some-other-language' as an example.",
@@ -303,7 +304,8 @@ CONSTANCE_CONFIG = {
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects. '
-        "Possible fields are 'sector', 'country', 'operational_purpose', "
+        "Possible fields are:\n"
+        "'sector', 'country', 'operational_purpose', "
         "'collects_pii', and 'description'\n\n"
         'To add another language, follow the example below.\n\n'
         "{'name': 'sector', 'required': False, 'label': {default: 'Sector', 'fr': 'Secteur'}}\n"
