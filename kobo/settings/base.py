@@ -422,7 +422,7 @@ CONSTANCE_CONFIG = {
         'reusing the most recent password.',
     ),
     'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        False,
+        True,
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
