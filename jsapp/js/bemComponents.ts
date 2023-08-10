@@ -69,10 +69,6 @@ bem.FormMedia__list = makeBem(bem.FormMedia, 'list');
 bem.FormMedia__label = makeBem(bem.FormMedia, 'label', 'label');
 bem.FormMedia__listItem = makeBem(bem.FormMedia, 'list-item', 'li');
 
-bem.FormMediaUploadUrl = makeBem(null, 'form-media-upload-url');
-bem.FormMediaUploadUrl__label = makeBem(bem.FormMediaUploadUrl, 'label', 'label');
-bem.FormMediaUploadUrl__form = makeBem(bem.FormMediaUploadUrl, 'form');
-
 bem.SearchInput = makeBem(null, 'search-input', 'input');
 
 bem.Search = makeBem(null, 'search');
