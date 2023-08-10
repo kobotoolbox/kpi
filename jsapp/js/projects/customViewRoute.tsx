@@ -2,21 +2,26 @@ import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import {notify, handleApiFail} from 'js/utils';
-import $ from 'jquery';
 import type {
   ProjectsFilterDefinition,
   ProjectFieldName,
 } from './projectViews/constants';
 import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
-import {DEFAULT_PROJECT_FIELDS} from './projectViews/constants';
+import {
+  DEFAULT_VISIBLE_FIELDS,
+  DEFAULT_ORDERABLE_FIELDS,
+} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
 import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
-import styles from './customViewRoute.module.scss';
+import styles from './projectViews.module.scss';
 import {toJS} from 'mobx';
+import {ROOT_URL} from 'js/constants';
+import {fetchPostUrl} from 'js/api';
+import ProjectQuickActions from './projectsTable/projectQuickActions';
 
 function CustomViewRoute() {
   const {viewUid} = useParams();
@@ -27,10 +32,14 @@ function CustomViewRoute() {
 
   const [projectViews] = useState(projectViewsStore);
   const [customView] = useState(customViewStore);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   useEffect(() => {
-    customView.setUp(viewUid);
-    customView.fetchAssets();
+    customView.setUp(
+      viewUid,
+      `${ROOT_URL}/api/v2/project-views/${viewUid}/assets/?`,
+      DEFAULT_VISIBLE_FIELDS
+    );
   }, [viewUid]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
@@ -47,20 +56,13 @@ function CustomViewRoute() {
   const exportAllData = () => {
     const foundView = projectViews.getView(viewUid);
     if (foundView) {
-      $.ajax({
-        dataType: 'json',
-        method: 'POST',
-        url: foundView.assets_export,
-        data: {uid: viewUid},
-      })
-        .done(() => {
-          notify.warning(
-            t(
-              "Export is being generated, you will receive an email when it's done"
-            )
-          );
-        })
-        .fail(handleApiFail);
+      fetchPostUrl(foundView.assets_export, {uid: viewUid}).then(() => {
+        notify.warning(
+          t(
+            "Export is being generated, you will receive an email when it's done"
+          )
+        );
+      }, handleApiFail);
     } else {
       notify.error(
         t(
@@ -69,6 +71,10 @@ function CustomViewRoute() {
       );
     }
   };
+
+  const selectedAssets = customView.assets.filter((asset) =>
+    selectedRows.includes(asset.uid)
+  );
 
   return (
     <section className={styles.root}>
@@ -93,18 +99,27 @@ function CustomViewRoute() {
           label={t('Export all data')}
           onClick={exportAllData}
         />
+
+        {selectedAssets.length === 1 && (
+          <div className={styles.quickActions}>
+            <ProjectQuickActions asset={selectedAssets[0]} />
+          </div>
+        )}
       </header>
 
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={toJS(customView.fields) || DEFAULT_PROJECT_FIELDS}
+        visibleFields={toJS(customView.fields) || customView.defaultVisibleFields}
+        orderableFields={DEFAULT_ORDERABLE_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
         onHideFieldRequested={customView.hideField.bind(customView)}
         onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
         hasMorePages={customView.hasMoreAssets}
+        selectedRows={selectedRows}
+        onRowsSelected={setSelectedRows}
       />
     </section>
   );
