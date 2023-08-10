@@ -596,9 +596,9 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.groupSeparator}
               onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
               label={t('Group separator')}
-              customModifiers={[
-                'group-separator',
-                (!this.state.isIncludeGroupsEnabled ? 'group-separator-disabled' : undefined),
+              customClassNames={[
+                'text-box--group-separator',
+                (!this.state.isIncludeGroupsEnabled ? 'text-box--group-separator-disabled' : undefined),
               ]}
             />
           </bem.ProjectDownloads__columnRow>
@@ -649,7 +649,7 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your export settings')}
-              customModifiers={['custom-export']}
+              customClassNames={['text-box--custom-export']}
             />
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>

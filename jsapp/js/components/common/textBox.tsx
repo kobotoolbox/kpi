@@ -1,20 +1,14 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
-import './textBox.scss';
+import styles from './textBox.module.scss';
+import classnames from 'classnames';
 
-bem.TextBox = makeBem(null, 'text-box', 'label');
-bem.TextBox__label = makeBem(bem.TextBox, 'label');
-bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
-bem.TextBox__description = makeBem(bem.TextBox, 'description');
-bem.TextBox__error = makeBem(bem.TextBox, 'error');
+type TextBoxType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url';
 
-export type AvailableType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url';
-
-const DefaultType: AvailableType = 'text';
+const DefaultType: TextBoxType = 'text';
 
 interface TextBoxProps {
-  type?: AvailableType;
+  type?: TextBoxType;
   value: string;
   /** Not needed if `readOnly` */
   onChange?: Function;
@@ -28,15 +22,15 @@ interface TextBoxProps {
   errors?: string[] | boolean | string;
   label?: string;
   placeholder?: string;
-  description?: string;
   readOnly?: boolean;
   disabled?: boolean;
-  customModifiers?: string[]|string;
+  customClassNames?: string[];
   'data-cy'?: string;
 }
 
 /**
- * A text box generic component.
+ * A generic text box component. It relies on parent to handle all the data
+ * updates.
  */
 export default function TextBox(props: TextBoxProps) {
   /**
@@ -63,15 +57,8 @@ export default function TextBox(props: TextBoxProps) {
     }
   }
 
-  let modifiers = [];
-  if (
-    Array.isArray(props.customModifiers) &&
-    typeof props.customModifiers[0] === 'string'
-  ) {
-    modifiers = props.customModifiers;
-  } else if (typeof props.customModifiers === 'string') {
-    modifiers.push(props.customModifiers);
-  }
+  const rootClassNames = props.customClassNames || [];
+  rootClassNames.push(styles.root);
 
   let errors = [];
   if (Array.isArray(props.errors)) {
@@ -80,7 +67,7 @@ export default function TextBox(props: TextBoxProps) {
     errors.push(props.errors);
   }
   if (errors.length > 0 || props.errors === true) {
-    modifiers.push('error');
+    rootClassNames.push(styles.hasError);
   }
 
   let type = DefaultType;
@@ -100,39 +87,34 @@ export default function TextBox(props: TextBoxProps) {
   };
 
   return (
-    <bem.TextBox m={modifiers}>
+    <label className={classnames(rootClassNames)}>
       {props.label &&
-        <bem.TextBox__label>
+        <div className={styles.label}>
           {props.label}
-        </bem.TextBox__label>
+        </div>
       }
 
       {props.type === 'text-multiline' &&
         <TextareaAutosize
-          className='text-box__input'
+          className={styles.input}
           {...inputProps}
         />
       }
       {props.type !== 'text-multiline' &&
-        <bem.TextBox__input
+        <input
+          className={styles.input}
           type={type}
           {...inputProps}
         />
       }
 
-      {props.description &&
-        <bem.TextBox__description>
-          {props.description}
-        </bem.TextBox__description>
-      }
-
       {errors.length > 0 &&
-        <bem.TextBox__error>
+        <section className={styles.errorMessages}>
           {errors.map((message: string, index: number) => (
             <div key={`textbox-error-${index}`}>{message}</div>
           ))}
-        </bem.TextBox__error>
+        </section>
       }
-    </bem.TextBox>
+    </label>
   );
 }

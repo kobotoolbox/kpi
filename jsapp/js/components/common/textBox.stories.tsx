@@ -17,7 +17,6 @@ Primary.args = {
   type: 'text',
   errors: '',
   label: 'Your real name',
-  description: 'We need your first and last name only.',
   placeholder: 'Type your name...',
   readOnly: false,
   disabled: false,
@@ -26,7 +25,6 @@ Primary.args = {
 export const WithErrors = Template.bind({});
 WithErrors.args = {
   label: 'Well done.',
-  description: 'Here are the test results',
   placeholder: "We weren't even testing for that",
   errors: [
     'Horrible person',

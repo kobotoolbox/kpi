@@ -6,6 +6,7 @@ import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
+import Icon from '../components/common/icon';
 import {addRequiredToLabel, notify, stringToColor} from '../utils';
 import type {EnvStoreFieldItem} from '../envStore';
 import envStore from '../envStore';
@@ -348,30 +349,36 @@ const AccountSettings = observer(() => {
               />
             </bem.AccountSettings__item>
 
-            <bem.AccountSettings__item m='social'>
+            <bem.AccountSettings__item>
               <label>{t('Social')}</label>
-              <label>
-                <i className='k-icon k-icon-logo-twitter' />
+
+              <div className='account-settings-social-row'>
+                <Icon name='logo-twitter' size='m' />
 
                 <TextBox
+                  customClassNames={['account-settings-social-row-textbox']}
                   value={form.fields.twitter}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
                 />
-              </label>
-              <label>
-                <i className='k-icon k-icon-logo-linkedin' />
+              </div>
+
+              <div className='account-settings-social-row'>
+                <Icon name='logo-linkedin' size='m' />
 
                 <TextBox
+                  customClassNames={['account-settings-social-row-textbox']}
                   value={form.fields.linkedin}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
                 />
-              </label>
-              <label>
-                <i className='k-icon k-icon-logo-instagram' />
+              </div>
+
+              <div className='account-settings-social-row'>
+                <Icon name='logo-instagram' size='m' />
 
                 <TextBox
+                  customClassNames={['account-settings-social-row-textbox']}
                   value={form.fields.instagram}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,
@@ -379,7 +386,7 @@ const AccountSettings = observer(() => {
                   )}
                   errors={form.fieldsWithErrors.extra_details?.instagram}
                 />
-              </label>
+              </div>
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         )}

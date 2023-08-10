@@ -1,13 +1,13 @@
 @use '~kobo-common/src/styles/colors';
-@use "scss/mixins";
-@use "scss/sizes";
-@use "js/components/common/button";
+@use 'scss/mixins';
+@use 'scss/sizes';
+@use 'js/components/common/button';
 
 $k-select-option-height: sizes.$x36;
 $k-select-menu-padding: sizes.$x6;
 
 .k-select {
-  font-size: sizes.$x13;
+  font-size: sizes.$x12;
 
   .kobo-dropdown__menu {
     width: 100%;

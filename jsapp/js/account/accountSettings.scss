@@ -93,28 +93,25 @@
       width: 46%;
       float: left;
     }
+  }
+}
 
-    &.form-modal__item--social {
-      clear: both;
+.account-settings-social-row {
+  position: relative;
 
-      > label {
-        position: relative;
+  &:not(:first-child) {
+    margin-top: sizes.$x5;
+  }
 
-        &:not(:first-child) {
-          margin-top: sizes.$x5;
-        }
+  .k-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: sizes.$x10;
+    pointer-events: none;
+  }
 
-        > i {
-          position: absolute;
-          font-size: 24px;
-          top: 4px;
-          left: 4px;
-        }
-
-        .text-box .text-box__input {
-          padding-left: 40px;
-        }
-      }
-    }
+  .account-settings-social-row-textbox input {
+    padding-left: sizes.$x40;
   }
 }
