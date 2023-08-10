@@ -27,10 +27,10 @@ import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {notify} from 'js/utils';
-import {BaseProduct} from 'js/account/subscriptionStore';
-import envStore, {FreeTierThresholds, FreeTierDisplay} from 'js/envStore';
-import {when} from "mobx";
-import {ACCOUNT_ROUTES} from "js/account/routes";
+import type {FreeTierThresholds} from 'js/envStore';
+import envStore from 'js/envStore';
+import {when} from 'mobx';
+import {ACCOUNT_ROUTES} from 'js/account/routes';
 
 interface PlanState {
   subscribedProduct: null | BaseSubscription;
@@ -47,7 +47,7 @@ interface DataUpdates {
   prodData?: any;
 }
 
-interface FreeTierOverride extends FreeTierThresholds{
+interface FreeTierOverride extends FreeTierThresholds {
   name: string | null;
   [key: `feature_list_${number}`]: string | null;
 }
@@ -184,10 +184,9 @@ export default function Plan() {
           prodData: data.results,
         });
       });
-      Promise.all(fetchPromises)
-        .then(() => {
-            setAreButtonsDisabled(false);
-        });
+      Promise.all(fetchPromises).then(() => {
+        setAreButtonsDisabled(false);
+      });
     });
   }, [searchParams, shouldRevalidate]);
 
@@ -278,10 +277,7 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: Price) => {
-      if (
-        !product.prices.unit_amount &&
-        !hasActiveSubscription
-      ) {
+      if (!product.prices.unit_amount && !hasActiveSubscription) {
         return true;
       }
 
@@ -398,7 +394,7 @@ export default function Plan() {
       freeTierOverride &&
       freeTierOverride.hasOwnProperty(featureItem)
     ) {
-      return freeTierOverride[featureItem  as keyof FreeTierOverride];
+      return freeTierOverride[featureItem as keyof FreeTierOverride];
     }
     return price.prices.metadata?.[featureItem] || price.metadata[featureItem];
   };
