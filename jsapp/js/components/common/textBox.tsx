@@ -38,105 +38,101 @@ interface TextBoxProps {
 /**
  * A text box generic component.
  */
-class TextBox extends React.Component<TextBoxProps, {}> {
+export default function TextBox(props: TextBoxProps) {
   /**
    * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
    * types to stop TextareaAutosize complaining.
    */
 
-  onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
-    if (this.props.readOnly || !this.props.onChange) {
+  function onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+    if (props.readOnly || !props.onChange) {
       return;
     }
-    this.props.onChange(evt.currentTarget.value);
+    props.onChange(evt.currentTarget.value);
   }
 
-  onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
-    if (typeof this.props.onBlur === 'function') {
-      this.props.onBlur(evt.currentTarget.value);
-    }
-  }
-
-  onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
-    if (typeof this.props.onKeyPress === 'function') {
-      this.props.onKeyPress(evt.key, evt);
+  function onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
+    if (typeof props.onBlur === 'function') {
+      props.onBlur(evt.currentTarget.value);
     }
   }
 
-  render() {
-    let modifiers = [];
-    if (
-      Array.isArray(this.props.customModifiers) &&
-      typeof this.props.customModifiers[0] === 'string'
-    ) {
-      modifiers = this.props.customModifiers;
-    } else if (typeof this.props.customModifiers === 'string') {
-      modifiers.push(this.props.customModifiers);
+  function onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
+    if (typeof props.onKeyPress === 'function') {
+      props.onKeyPress(evt.key, evt);
     }
-
-    let errors = [];
-    if (Array.isArray(this.props.errors)) {
-      errors = this.props.errors;
-    } else if (typeof this.props.errors === 'string' && this.props.errors.length > 0) {
-      errors.push(this.props.errors);
-    }
-    if (errors.length > 0 || this.props.errors === true) {
-      modifiers.push('error');
-    }
-
-    let type = DefaultType;
-    if (this.props.type) {
-      type = this.props.type;
-    }
-
-    const inputProps = {
-      value: this.props.value,
-      placeholder: this.props.placeholder,
-      onChange: this.onChange.bind(this),
-      onBlur: this.onBlur.bind(this),
-      onKeyPress: this.onKeyPress.bind(this),
-      readOnly: this.props.readOnly,
-      disabled: this.props.disabled,
-      'data-cy': this.props['data-cy'],
-    };
-
-    return (
-      <bem.TextBox m={modifiers}>
-        {this.props.label &&
-          <bem.TextBox__label>
-            {this.props.label}
-          </bem.TextBox__label>
-        }
-
-        {this.props.type === 'text-multiline' &&
-          <TextareaAutosize
-            className='text-box__input'
-            {...inputProps}
-          />
-        }
-        {this.props.type !== 'text-multiline' &&
-          <bem.TextBox__input
-            type={type}
-            {...inputProps}
-          />
-        }
-
-        {this.props.description &&
-          <bem.TextBox__description>
-            {this.props.description}
-          </bem.TextBox__description>
-        }
-
-        {errors.length > 0 &&
-          <bem.TextBox__error>
-            {errors.map((message: string, index: number) => (
-              <div key={`textbox-error-${index}`}>{message}</div>
-            ))}
-          </bem.TextBox__error>
-        }
-      </bem.TextBox>
-    );
   }
+
+  let modifiers = [];
+  if (
+    Array.isArray(props.customModifiers) &&
+    typeof props.customModifiers[0] === 'string'
+  ) {
+    modifiers = props.customModifiers;
+  } else if (typeof props.customModifiers === 'string') {
+    modifiers.push(props.customModifiers);
+  }
+
+  let errors = [];
+  if (Array.isArray(props.errors)) {
+    errors = props.errors;
+  } else if (typeof props.errors === 'string' && props.errors.length > 0) {
+    errors.push(props.errors);
+  }
+  if (errors.length > 0 || props.errors === true) {
+    modifiers.push('error');
+  }
+
+  let type = DefaultType;
+  if (props.type) {
+    type = props.type;
+  }
+
+  const inputProps = {
+    value: props.value,
+    placeholder: props.placeholder,
+    onChange: onChange,
+    onBlur: onBlur,
+    onKeyPress: onKeyPress,
+    readOnly: props.readOnly,
+    disabled: props.disabled,
+    'data-cy': props['data-cy'],
+  };
+
+  return (
+    <bem.TextBox m={modifiers}>
+      {props.label &&
+        <bem.TextBox__label>
+          {props.label}
+        </bem.TextBox__label>
+      }
+
+      {props.type === 'text-multiline' &&
+        <TextareaAutosize
+          className='text-box__input'
+          {...inputProps}
+        />
+      }
+      {props.type !== 'text-multiline' &&
+        <bem.TextBox__input
+          type={type}
+          {...inputProps}
+        />
+      }
+
+      {props.description &&
+        <bem.TextBox__description>
+          {props.description}
+        </bem.TextBox__description>
+      }
+
+      {errors.length > 0 &&
+        <bem.TextBox__error>
+          {errors.map((message: string, index: number) => (
+            <div key={`textbox-error-${index}`}>{message}</div>
+          ))}
+        </bem.TextBox__error>
+      }
+    </bem.TextBox>
+  );
 }
-
-export default TextBox;
