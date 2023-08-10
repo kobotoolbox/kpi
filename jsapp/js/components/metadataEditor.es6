@@ -10,8 +10,15 @@ import {
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
 } from 'js/constants';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import envStore from 'js/envStore';
+import './metadataEditor.scss';
+
+bem.FormBuilderMeta = makeBem(null, 'form-builder-meta');
+bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns');
+bem.FormBuilderMeta__column = makeBem(bem.FormBuilderMeta, 'column');
+bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row');
+bem.FormBuilderMeta__labelLink = makeBem(bem.FormBuilderMeta, 'label-link', 'a');
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';
 const RECORDING_SUPPORT_URL = 'recording-interviews.html';
@@ -143,14 +150,14 @@ export default class MetadataEditor extends React.Component {
 
         {envStore.isReady &&
           envStore.data.support_url && (
-            <bem.TextBox__labelLink
+            <bem.FormBuilderMeta__labelLink
               href={
                 envStore.data.support_url + AUDIT_SUPPORT_URL
               }
               target='_blank'
             >
               <i className='k-icon k-icon-help' />
-            </bem.TextBox__labelLink>
+            </bem.FormBuilderMeta__labelLink>
           )}
       </React.Fragment>
     );
@@ -163,12 +170,12 @@ export default class MetadataEditor extends React.Component {
 
         {envStore.isReady &&
           envStore.data.support_url && (
-            <bem.TextBox__labelLink
+            <bem.FormBuilderMeta__labelLink
               href={envStore.data.support_url + RECORDING_SUPPORT_URL}
               target='_blank'
             >
               <i className='k-icon k-icon-help' />
-            </bem.TextBox__labelLink>
+            </bem.FormBuilderMeta__labelLink>
           )}
       </React.Fragment>
     );

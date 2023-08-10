@@ -50,11 +50,6 @@ bem.FormBuilderMessageBox = makeBem(null, 'form-builder-message-box');
 bem.FormBuilderMessageBox__toggle = makeBem(bem.FormBuilderMessageBox, 'toggle', 'button');
 bem.FormBuilderMessageBox__details = makeBem(bem.FormBuilderMessageBox, 'details', 'section');
 
-bem.FormBuilderMeta = makeBem(null, 'form-builder-meta');
-bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns');
-bem.FormBuilderMeta__column = makeBem(bem.FormBuilderMeta, 'column');
-bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row');
-
 bem.FormBuilderAside = makeBem(null, 'form-builder-aside');
 bem.FormBuilderAside__content = makeBem(bem.FormBuilderAside, 'content');
 bem.FormBuilderAside__header = makeBem(bem.FormBuilderAside, 'header', 'h2');
