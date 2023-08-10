@@ -232,7 +232,6 @@ export default class MetadataEditor extends React.Component {
         {this.isAuditEnabled() && (
           <bem.FormBuilderMeta__row>
             <TextBox
-              customModifiers='on-white'
               label={this.renderAuditInputLabel()}
               value={this.getAuditParameters()}
               disabled={this.props.isDisabled}

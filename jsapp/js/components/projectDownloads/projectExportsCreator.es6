@@ -597,7 +597,6 @@ export default class ProjectExportsCreator extends React.Component {
               onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
               label={t('Group separator')}
               customModifiers={[
-                'on-white',
                 'group-separator',
                 (!this.state.isIncludeGroupsEnabled ? 'group-separator-disabled' : undefined),
               ]}
@@ -650,7 +649,7 @@ export default class ProjectExportsCreator extends React.Component {
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your export settings')}
-              customModifiers={['on-white', 'custom-export']}
+              customModifiers={['custom-export']}
             />
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>

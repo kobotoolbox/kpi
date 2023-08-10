@@ -249,7 +249,6 @@ const AccountSettings = observer(() => {
 
             <bem.AccountSettings__item>
               <TextBox
-                customModifiers='on-white'
                 label={t('Name')}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
                 value={form.fields.name}
@@ -262,7 +261,6 @@ const AccountSettings = observer(() => {
 
             <bem.AccountSettings__item>
               <TextBox
-                customModifiers='on-white'
                 label={addRequiredToLabel(
                   t('Organization'),
                   isFieldRequired('organization')
@@ -278,7 +276,6 @@ const AccountSettings = observer(() => {
 
             <bem.AccountSettings__item>
               <TextBox
-                customModifiers='on-white'
                 label={addRequiredToLabel(
                   t('Organization Website'),
                   isFieldRequired('organization_website')
@@ -322,7 +319,6 @@ const AccountSettings = observer(() => {
 
             <bem.AccountSettings__item m='bio'>
               <TextBox
-                customModifiers='on-white'
                 label={addRequiredToLabel(t('Bio'), isFieldRequired('bio'))}
                 value={form.fields.bio}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
@@ -345,7 +341,6 @@ const AccountSettings = observer(() => {
 
             <bem.AccountSettings__item m='city'>
               <TextBox
-                customModifiers='on-white'
                 label={addRequiredToLabel(t('City'), isFieldRequired('city'))}
                 value={form.fields.city}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
@@ -359,7 +354,6 @@ const AccountSettings = observer(() => {
                 <i className='k-icon k-icon-logo-twitter' />
 
                 <TextBox
-                  customModifiers='on-white'
                   value={form.fields.twitter}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
                   errors={form.fieldsWithErrors.extra_details?.twitter}
@@ -369,7 +363,6 @@ const AccountSettings = observer(() => {
                 <i className='k-icon k-icon-logo-linkedin' />
 
                 <TextBox
-                  customModifiers='on-white'
                   value={form.fields.linkedin}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
                   errors={form.fieldsWithErrors.extra_details?.linkedin}
@@ -379,7 +372,6 @@ const AccountSettings = observer(() => {
                 <i className='k-icon k-icon-logo-instagram' />
 
                 <TextBox
-                  customModifiers='on-white'
                   value={form.fields.instagram}
                   onChange={onAnyFieldChange.bind(
                     onAnyFieldChange,

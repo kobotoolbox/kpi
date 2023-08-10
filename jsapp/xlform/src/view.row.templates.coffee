@@ -338,7 +338,7 @@ module.exports = do ->
               value="custom" #{if modifier is 'custom' then 'checked' else ''}
             >
             <span class="radio__label">#{t('Custom logic')}</span>
-            <label class="text-box text-box--on-white">
+            <label class="text-box">
               <input
                 type="text"
                 class="text-box__input js-mandatory-setting-custom-text"
