@@ -8,7 +8,6 @@ import Button from 'js/components/common/button';
 import {fetchPatch} from 'js/api';
 import {endpoints} from 'js/api.endpoints';
 import {notify} from 'js/utils';
-import envStore from 'jsapp/js/envStore';
 import type {FailResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
 import classnames from 'classnames';
