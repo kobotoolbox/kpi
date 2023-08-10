@@ -13,7 +13,7 @@ class AccountsEmailTestCase(APITestCase):
         account1 = baker.make('socialaccount.SocialAccount', user=self.user)
         account2 = baker.make('socialaccount.SocialAccount')
         # Auth, Count, Queryset
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             res = self.client.get(self.url_list)
         self.assertContains(res, account1.uid)
         self.assertNotContains(res, account2.uid)

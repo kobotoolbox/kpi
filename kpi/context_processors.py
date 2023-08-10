@@ -8,6 +8,13 @@ from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
 
 
+def custom_password_guidance_text(request):
+    if constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT:
+        help_text = I18nUtils.get_custom_password_help_text()
+        return {'custom_guidance_text': help_text}
+    return {}
+
+
 def external_service_tokens(request):
     out = {}
     if settings.GOOGLE_ANALYTICS_TOKEN:
@@ -50,7 +57,6 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info == reverse('account_signup'):
-
         sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
             return {'welcome_message': sitewide_message}
@@ -63,6 +69,7 @@ class CombinedConfig:
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object
     """
+
     def __init__(self, constance_config, extra_config):
         """
         constance_config: LazyConfig object

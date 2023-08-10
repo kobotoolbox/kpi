@@ -4,9 +4,9 @@ from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from trench.utils import get_mfa_model
 
+from kpi.permissions import IsAuthenticated
 from .forms import MfaLoginForm, MfaTokenForm
 from .serializers import UserMfaMethodSerializer
 

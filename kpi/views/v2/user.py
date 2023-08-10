@@ -5,10 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
 
 from kpi.filters import SearchFilter
 from kpi.models.authorized_application import ApplicationTokenAuthentication
+from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.user import UserSerializer, UserListSerializer
 from kpi.tasks import sync_kobocat_xforms
 

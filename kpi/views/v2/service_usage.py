@@ -3,7 +3,7 @@ from rest_framework import (
     renderers,
     viewsets,
 )
-from rest_framework.permissions import IsAuthenticated
+from kpi.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer

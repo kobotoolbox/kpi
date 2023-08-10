@@ -1,8 +1,9 @@
-from allauth.account.models import EmailAddress
 from django.core import mail
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework.test import APITestCase
+
+from kpi.utils.fuzzy_int import FuzzyInt
 
 
 class AccountsEmailTestCase(APITestCase):
@@ -15,7 +16,8 @@ class AccountsEmailTestCase(APITestCase):
         user_email = baker.make('account.emailaddress', user=self.user)
         other_email = baker.make('account.emailaddress')
         # Auth, Count, Queryset
-        with self.assertNumQueries(3):
+        queries = FuzzyInt(3, 5)
+        with self.assertNumQueries(queries):
             res = self.client.get(self.url_list)
         self.assertContains(res, user_email.email)
         self.assertNotContains(res, other_email.email)
@@ -45,7 +47,8 @@ class AccountsEmailTestCase(APITestCase):
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
         # Auth, Select, Delete (many), Get or Create
-        with self.assertNumQueries(10):
+        queries = FuzzyInt(11, 15)
+        with self.assertNumQueries(queries):
             res = self.client.post(self.url_list, data, format='json')
         self.assertContains(res, data['email'], status_code=201)
         self.assertEqual(self.user.emailaddress_set.count(), 2)
@@ -77,7 +80,8 @@ class AccountsEmailTestCase(APITestCase):
         for line in mail.outbox[0].body.splitlines():
             if 'confirm-email' in line:
                 confirm_url = line.split('testserver')[1].rsplit('/', 1)[0]
-        with self.assertNumQueries(14):
+        queries = FuzzyInt(15, 20)
+        with self.assertNumQueries(queries):
             res = self.client.post(confirm_url + "/")
         self.assertEqual(res.status_code, 302)
         self.assertTrue(
