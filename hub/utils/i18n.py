@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.translation import get_language, gettext as t
 
+from kobo.apps.constance_backends.utils import to_python_object
 from kpi.utils.log import logging
 from ..models import SitewideMessage
 
@@ -57,7 +58,9 @@ class I18nUtils:
         language = lang if lang else get_language()
 
         try:
-            messages_dict = json.loads(constance.config.MFA_LOCALIZED_HELP_TEXT)
+            messages_dict = to_python_object(
+                constance.config.MFA_LOCALIZED_HELP_TEXT
+            )
         except json.JSONDecodeError:
             logging.error(
                 'Configuration value for MFA_LOCALIZED_HELP_TEXT has invalid '

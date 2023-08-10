@@ -12,12 +12,13 @@ from allauth.socialaccount.models import SocialApp
 
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import (
-    COUNTRIES, 
-    PROJECT_METADATA_DEFAULT_LABELS, 
+    COUNTRIES,
+    PROJECT_METADATA_DEFAULT_LABELS,
     USER_METADATA_DEFAULT_LABELS
 )
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.constance_backends.utils import to_python_object
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.context_processors import custom_label_translations
 from kpi.utils.object_permission import get_database_user
 
@@ -68,7 +69,7 @@ class EnvironmentView(APIView):
         for key in cls.JSON_CONFIGS:
             value = getattr(constance.config, key)
             try:
-                value = json.loads(value)
+                value = to_python_object(value)
             except json.JSONDecodeError:
                 logging.error(
                     f'Configuration value for `{key}` has invalid JSON'
@@ -138,8 +139,8 @@ class EnvironmentView(APIView):
     def process_project_metadata_configs(request):
         data = {
             'project_metadata_fields': custom_label_translations(
-                request, 
-                constance.config.PROJECT_METADATA_FIELDS, 
+                request,
+                constance.config.PROJECT_METADATA_FIELDS,
                 PROJECT_METADATA_DEFAULT_LABELS,
             )
         }
@@ -149,8 +150,8 @@ class EnvironmentView(APIView):
     def process_user_metadata_configs(request):
         data = {
             'user_metadata_fields': custom_label_translations(
-                request, 
-                constance.config.USER_METADATA_FIELDS, 
+                request,
+                constance.config.USER_METADATA_FIELDS,
                 USER_METADATA_DEFAULT_LABELS,
             )
         }
