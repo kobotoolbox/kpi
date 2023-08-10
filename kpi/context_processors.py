@@ -1,13 +1,11 @@
 # coding: utf-8
 import constance
-import json
 import markdown
 from django.conf import settings
 from django.urls import reverse
 
 from hub.models import ConfigurationFile
 from hub.utils.i18n import I18nUtils
-from django.utils.translation import get_language
 
 
 def custom_password_guidance_text(request):
