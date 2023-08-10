@@ -19,17 +19,6 @@ label.text-box {
     }
   }
 
-  .text-box__label .text-box__label-link {
-    display: inline-block;
-    vertical-align: bottom;
-
-    .k-icon {
-      font-size: sizes.$x18;
-      display: block;
-      margin: sizes.$x1;
-    }
-  }
-
   .text-box__label {
     font-size: sizes.$x12;
     line-height: 1.6;

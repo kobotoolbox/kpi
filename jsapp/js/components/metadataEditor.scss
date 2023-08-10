@@ -1,4 +1,5 @@
 @use 'scss/sizes';
+@use '~kobo-common/src/styles/colors';
 
 .form-builder-meta {
   .form-builder-meta__columns {
@@ -34,15 +35,15 @@
       margin-bottom: sizes.$x10;
     }
   }
+}
 
-  .form-builder-meta__label-link {
-    display: inline-block;
-    vertical-align: bottom;
+.form-builder-meta__label-link {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: sizes.$x3;
+  line-height: 1.4;
 
-    .k-icon {
-      font-size: sizes.$x18;
-      display: block;
-      margin: sizes.$x1;
-    }
+  &:hover {
+    color: colors.$kobo-dark-blue;
   }
 }

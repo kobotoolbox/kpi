@@ -5,7 +5,6 @@ import './textBox.scss';
 
 bem.TextBox = makeBem(null, 'text-box', 'label');
 bem.TextBox__label = makeBem(bem.TextBox, 'label');
-bem.TextBox__labelLink = makeBem(bem.TextBox, 'label-link', 'a');
 bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
 bem.TextBox__description = makeBem(bem.TextBox, 'description');
 bem.TextBox__error = makeBem(bem.TextBox, 'error');

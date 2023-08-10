@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
+import Icon from 'js/components/common/icon';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Select from 'react-select';
 import {assign} from 'utils';
@@ -151,12 +152,10 @@ export default class MetadataEditor extends React.Component {
         {envStore.isReady &&
           envStore.data.support_url && (
             <bem.FormBuilderMeta__labelLink
-              href={
-                envStore.data.support_url + AUDIT_SUPPORT_URL
-              }
+              href={envStore.data.support_url + AUDIT_SUPPORT_URL}
               target='_blank'
             >
-              <i className='k-icon k-icon-help' />
+              <Icon name='help' size='xs' color='blue' />
             </bem.FormBuilderMeta__labelLink>
           )}
       </React.Fragment>
@@ -174,7 +173,7 @@ export default class MetadataEditor extends React.Component {
               href={envStore.data.support_url + RECORDING_SUPPORT_URL}
               target='_blank'
             >
-              <i className='k-icon k-icon-help' />
+              <Icon name='help' size='s' color='blue' />
             </bem.FormBuilderMeta__labelLink>
           )}
       </React.Fragment>
