@@ -123,7 +123,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         />
 
         <a
-          className='account-settings-link'
+          className={styles.forgotLink}
           href={`${ROOT_URL}/accounts/password/reset/`}
         >
           {t('Forgot Password?')}

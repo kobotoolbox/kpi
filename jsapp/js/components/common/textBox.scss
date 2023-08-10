@@ -1,11 +1,10 @@
-@use "scss/sizes";
+@use 'scss/sizes';
 @use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
+@use 'scss/_variables';
 
-// TODO: cleanup the other places
-// this copies a lot of global styles defined in _kobo.bem.ui.scss
-// we copy it because we want to use this component outside of .form-modal__item
-// plus we fight the specificity battle because of too general styles of Form Builder
+// Note: this needs to override a lot of styles defined in `_kobo.bem.ui.scss`,
+// for the context of `.form-modal__item`. Plus we fight the specificity battle
+// because of too general styles of Form Builder.
 // See: https://github.com/kobotoolbox/kpi/issues/3914
 
 label.text-box {
@@ -16,7 +15,7 @@ label.text-box {
     input.text-box__input {
       // Don't type red if there is an error
       color: colors.$kobo-gray-24;
-      border-bottom-color: colors.$kobo-red;
+      border-color: colors.$kobo-red;
     }
   }
 
@@ -25,37 +24,31 @@ label.text-box {
     vertical-align: bottom;
 
     .k-icon {
-      font-size: 18px;
+      font-size: sizes.$x18;
       display: block;
-      margin: 1px;
+      margin: sizes.$x1;
     }
   }
 
   .text-box__label {
-    font-size: sizes.$x13;
-    line-height: sizes.$x16;
-  }
-
-  .text-box__label + textarea.text-box__input,
-  .text-box__label + input.text-box__input {
-    margin-top: 5px;
+    font-size: sizes.$x12;
+    line-height: 1.6;
+    margin-bottom: sizes.$x3;
   }
 
   textarea.text-box__input,
   input.text-box__input {
     width: 100%;
-    padding: 5px 0px;
     margin: 0;
-    font-size: variables.$base-font-size;
+    font-size: sizes.$x14;
     color: colors.$kobo-gray-24;
-    background-color: transparent;
-    border: 1px solid transparent;
-    border-bottom-color: colors.$kobo-gray-85;
-    transition: border-color 0.3s;
+    background-color: colors.$kobo-white;
+    border: sizes.$x1 solid colors.$kobo-gray-92;
+    padding: sizes.$x10 sizes.$x14;
+    border-radius: sizes.$x6;
 
     &:focus {
-      transition: border-color 0.3s;
-      border-bottom-color: colors.$kobo-blue;
+      border-color: colors.$kobo-blue;
     }
 
     &:disabled {
@@ -74,8 +67,11 @@ label.text-box {
   }
 
   .text-box__error {
-    font-size: 13px;
+    font-size: sizes.$x12;
+    line-height: 1.6;
     font-weight: 400;
     font-style: normal;
+    color: colors.$kobo-red;
+    margin-top: sizes.$x3;
   }
 }

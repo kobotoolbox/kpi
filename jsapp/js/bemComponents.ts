@@ -241,13 +241,6 @@ bem.SimpleTable__cell = makeBem(bem.SimpleTable, 'cell', 'td');
 bem.tagSelect = makeBem(null, 'tag-select');
 bem.collectionFilter = makeBem(null, 'collection-filter');
 
-bem.TextBox = makeBem(null, 'text-box', 'label');
-bem.TextBox__label = makeBem(bem.TextBox, 'label');
-bem.TextBox__labelLink = makeBem(bem.TextBox, 'label-link', 'a');
-bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
-bem.TextBox__description = makeBem(bem.TextBox, 'description');
-bem.TextBox__error = makeBem(bem.TextBox, 'error');
-
 bem.ToggleSwitch = makeBem(null, 'toggle-switch');
 bem.ToggleSwitch__wrapper = makeBem(bem.ToggleSwitch, 'wrapper', 'label');
 bem.ToggleSwitch__input = makeBem(bem.ToggleSwitch, 'input', 'input');

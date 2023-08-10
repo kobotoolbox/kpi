@@ -1,7 +1,14 @@
 import React from 'react';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
+
+bem.TextBox = makeBem(null, 'text-box', 'label');
+bem.TextBox__label = makeBem(bem.TextBox, 'label');
+bem.TextBox__labelLink = makeBem(bem.TextBox, 'label-link', 'a');
+bem.TextBox__input = makeBem(bem.TextBox, 'input', 'input');
+bem.TextBox__description = makeBem(bem.TextBox, 'description');
+bem.TextBox__error = makeBem(bem.TextBox, 'error');
 
 export type AvailableType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url';
 
