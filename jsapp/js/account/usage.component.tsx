@@ -127,14 +127,16 @@ export default function Usage() {
         };
       });
     });
-  }, [envStore.isReady, subscriptionStore.isInitialised]);
+  }, []);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useEffect(() => {
-    if (envStore.isReady && envStore.data.stripe_public_key) {
-      subscriptionStore.fetchSubscriptionInfo();
-    }
-  }, [envStore.isReady, location]);
+    when(() => envStore.isReady).then(() => {
+      if (envStore.data.stripe_public_key) {
+        subscriptionStore.fetchSubscriptionInfo();
+      }
+    });
+  }, [location]);
 
   // load fresh usage data on every page load and whenever switching routes to this page
   useEffect(() => {
