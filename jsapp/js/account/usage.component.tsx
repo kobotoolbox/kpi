@@ -7,7 +7,7 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import UsageContainer from 'js/components/usageContainer';
 import envStore from 'js/envStore';
-import {formatDate} from 'js/utils';
+import {formatDate, truncateNumber} from 'js/utils';
 import {getUsageForOrganization} from './usage.api';
 import styles from './usage.module.scss';
 
@@ -47,8 +47,6 @@ export default function Usage() {
   });
 
   const location = useLocation();
-
-  const truncate = (decimal: number) => parseFloat(decimal.toFixed(2));
 
   const isFullyLoaded = useMemo(
     () =>
@@ -154,7 +152,7 @@ export default function Usage() {
           submissions:
             data.total_submission_count[`current_${usage.trackingPeriod}`],
           transcriptionMinutes: Math.floor(
-            truncate(
+            truncateNumber(
               data.total_nlp_usage[
                 `asr_seconds_current_${usage.trackingPeriod}`
               ] / 60

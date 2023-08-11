@@ -479,6 +479,12 @@ export function truncateFile(str: string, length: number) {
 }
 
 /**
+ * Truncates a floating point number to a fixed number of decimal places (default 2)
+ */
+export const truncateNumber = (decimal: number, decimalPlaces = 2) =>
+  parseFloat(decimal.toFixed(decimalPlaces));
+
+/**
  * Generates a simple lowercase, underscored version of a string. Useful for
  * quick filename generation
  *
